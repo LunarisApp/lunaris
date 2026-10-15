@@ -10,7 +10,6 @@ const documentBodySelector =
 function createDocument(name: string, body: string) {
   cy.get('button[aria-label="Add file"]').click();
   cy.contains('[role="menuitem"]', "Rich Text").click();
-  cy.get(documentBodySelector, { timeout: 15_000 }).should("be.visible");
   cy.get("body").then(($body) => {
     const input = $body.find('input[aria-label="Rename resource"]');
     if (input.length > 0) cy.wrap(input).type("{esc}");
@@ -20,6 +19,8 @@ function createDocument(name: string, body: string) {
   cy.contains('[data-testid="workspace-tree-item"]', name, {
     timeout: 15_000,
   }).should("be.visible");
+  cy.contains('[data-testid="workspace-tree-item"]', name).click();
+  cy.get(documentBodySelector, { timeout: 15_000 }).should("be.visible");
   typeYjsText(documentBodySelector, body);
 }
 

@@ -34,7 +34,7 @@ describe("extensions/persistence", () => {
           );
           renameNewItem("Release Board");
           cy.contains("button", "Add Task").click();
-          cy.get('input[placeholder="Item title"]').type("Ship manuscript");
+          cy.get('input[placeholder="Task title"]').type("Ship manuscript");
           cy.get('[role="dialog"]').contains("button", "Create").click();
           cy.contains("Ship manuscript", { timeout: 15_000 }).should("be.visible");
           cy.wait("@boardSync").its("response.statusCode").should("eq", 200);

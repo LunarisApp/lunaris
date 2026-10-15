@@ -116,6 +116,8 @@ function renderDialog({
     error: null,
   }),
   setActive = vi.fn().mockResolvedValue({ data: null, error: null }),
+  refetchSession = vi.fn().mockResolvedValue(undefined),
+  refetchActiveOrganization = vi.fn().mockResolvedValue(undefined),
 } = {}) {
   render(
     <MemoryRouter initialEntries={["/workspaces?region=us"]}>
@@ -123,6 +125,8 @@ function renderDialog({
         client={
           {
             organization: { checkSlug, create, setActive },
+            useSession: () => ({ refetch: refetchSession }),
+            useActiveOrganization: () => ({ refetch: refetchActiveOrganization }),
           } as never
         }
       >
@@ -132,7 +136,7 @@ function renderDialog({
     </MemoryRouter>,
   );
 
-  return { checkSlug, create, setActive };
+  return { checkSlug, create, setActive, refetchSession, refetchActiveOrganization };
 }
 
 describe("CreateOrganizationDialog", () => {
@@ -144,7 +148,7 @@ describe("CreateOrganizationDialog", () => {
 
   it("creates an organization and opens its homepage", async () => {
     const user = userEvent.setup();
-    const { checkSlug, create, setActive } = renderDialog();
+    const { checkSlug, create, setActive, refetchSession, refetchActiveOrganization } = renderDialog();
 
     await user.type(screen.getByLabelText("Name"), "Alpha Space");
     await user.click(screen.getByRole("button", { name: "Create organization" }));
@@ -157,6 +161,8 @@ describe("CreateOrganizationDialog", () => {
         slug: "alpha-space",
       });
       expect(setActive).not.toHaveBeenCalled();
+      expect(refetchSession).toHaveBeenCalledWith({ query: { disableCookieCache: true } });
+      expect(refetchActiveOrganization).toHaveBeenCalledOnce();
       expect(screen.getByTestId("location").textContent).toBe(
         "/alpha-space?region=us"
       );
@@ -166,6 +172,28 @@ describe("CreateOrganizationDialog", () => {
         slug: "alpha-space",
       });
     });
+  });
+
+  it("waits for the new auth context before navigating", async () => {
+    let finishSession!: () => void;
+    let finishOrganization!: () => void;
+    const refetchSession = vi.fn(() => new Promise<void>((resolve) => {
+      finishSession = resolve;
+    }));
+    const refetchActiveOrganization = vi.fn(() => new Promise<void>((resolve) => {
+      finishOrganization = resolve;
+    }));
+    renderDialog({ refetchSession, refetchActiveOrganization });
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("Name"), "Alpha Space");
+    await user.click(screen.getByRole("button", { name: "Create organization" }));
+    await waitFor(() => expect(refetchSession).toHaveBeenCalledOnce());
+    expect(screen.getByTestId("location").textContent).toBe("/workspaces?region=us");
+    finishSession();
+    await Promise.resolve();
+    expect(screen.getByTestId("location").textContent).toBe("/workspaces?region=us");
+    finishOrganization();
+    await waitFor(() => expect(screen.getByTestId("location").textContent).toBe("/alpha-space?region=us"));
   });
 
   it("shows duplicate slug error when slug is taken", async () => {

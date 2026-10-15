@@ -31,9 +31,10 @@ describe("settings/verified", () => {
             "be.visible"
           );
           assertPanelSpacing("organization-panel-billing");
-          cy.get('[data-testid="organization-billing-refresh"]').should(
-            "not.exist"
-          );
+          cy.get('[data-testid="organization-billing-refresh"]')
+            .should("be.visible")
+            .and("not.be.disabled")
+            .click();
         });
 
       cy.openSettings();

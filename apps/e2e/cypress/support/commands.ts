@@ -66,9 +66,18 @@ const deletePowerSyncDb = () => {
   });
 };
 
+// Unload the application before changing its session or deleting databases.
+// Visiting /auth can redirect back into the app and reopen workers mid-reset.
+const visitBlankPage = () => {
+  cy.intercept("GET", "/__e2e_reset__", {
+    headers: { "content-type": "text/html" },
+    body: "<!doctype html><html><body></body></html>",
+  });
+  cy.visit("/__e2e_reset__");
+};
+
 const clearPowerSyncDb = () => {
-  cy.visit("/auth");
-  cy.wait(400, { log: false });
+  visitBlankPage();
   clearOpfsStorage();
   deletePowerSyncDb();
 };
@@ -110,6 +119,7 @@ Cypress.Commands.add("verifyEmailViaLog", (email: string) => {
       // which in turn passes the AuthGuard.
       cy.url({ timeout: 15_000 }).should((current) => {
         const parsed = new URL(current);
+        expect(parsed.origin).to.eq(new URL(Cypress.config("baseUrl")!).origin);
         expect(parsed.pathname).to.not.match(/^\/auth\/verify-email(\/|$)/);
       });
     }
@@ -186,10 +196,11 @@ Cypress.Commands.add("signInAnonymous", () => {
 });
 
 Cypress.Commands.add("signOut", () => {
+  visitBlankPage();
   cy.request({
     method: "POST",
     url: "http://localhost:3000/auth/sign-out",
-    failOnStatusCode: false,
+    headers: { Origin: "http://localhost:5173" },
   });
   cy.clearAllCookies();
   cy.clearAllLocalStorage();

@@ -33,6 +33,8 @@ export function CreateOrganizationDialog({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const auth = useAuth();
+  const { refetch: refetchSession } = auth.useSession();
+  const { refetch: refetchActiveOrganization } = auth.useActiveOrganization();
   const { pathWithRegion } = useRegion();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -131,6 +133,12 @@ export function CreateOrganizationDialog({
         name: trimmedName,
         slug: data.slug,
       });
+      // Creation changes the server's active organization. Refresh both stores
+      // before routing so the guard never sees the old session paired with it.
+      await Promise.all([
+        refetchSession({ query: { disableCookieCache: true } }),
+        refetchActiveOrganization(),
+      ]);
       navigate(pathWithRegion(`/${data.slug}`));
     } catch (error) {
       log.error({

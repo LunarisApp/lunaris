@@ -72,7 +72,7 @@ describe("organization/lifecycle", () => {
           "have.value",
           renamedSlug,
         );
-        cy.contains("a", "Recent Workspaces").click();
+        cy.get('a[aria-label="Lunaris"]').click();
         cy.get('[data-testid="organization-selector-trigger"]').should(
           "contain.text",
           "Authors Room",

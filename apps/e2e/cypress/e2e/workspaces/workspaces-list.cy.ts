@@ -61,10 +61,11 @@ describe("workspaces/workspaces-list", () => {
         .lessThan(2);
     });
 
-    cy.get('[data-testid="workspaces-search"]').type("beac");
-    cy.get('[data-testid="workspaces-list"]').children().should("have.length", 1);
-    cy.get('[data-testid="workspaces-list-item-beacon"]').should("be.visible");
-    cy.get('[data-testid="workspaces-search"]').clear();
+    cy.get('[data-testid="workspaces-search"]').click();
+    cy.get('[data-testid="search-dialog-input"]').type("beac");
+    cy.contains('[role="option"]', "Beacon").should("be.visible");
+    cy.get('[role="option"]').filter(':contains("Atlas")').should("not.exist");
+    cy.get('[data-testid="search-dialog-input"]').type("{esc}");
 
     cy.get('[data-testid="workspaces-sort"]').click();
     cy.get('[data-testid="workspaces-sort-name"]').click();
