@@ -10,6 +10,7 @@ describe("auth/claim-account", () => {
   it("adopts the guest organization after account claim", () => {
     cy.signInAnonymous();
     cy.visit("/");
+    cy.get('[data-testid="workspaces-page"]').should("be.visible");
     cy.location("pathname").then((guestOrganizationPath) => {
       cy.uniqueEmail("claim").then((email) => {
         cy.openSettings();
@@ -21,6 +22,9 @@ describe("auth/claim-account", () => {
           log: false,
         });
         cy.get('[data-testid="auth-register-submit"]').click();
+        // The email can be logged before signup finishes replacing the guest
+        // session. Follow verification only after the new session is installed.
+        cy.location("pathname", { timeout: 15_000 }).should("eq", "/auth/verify-email");
         cy.verifyEmailViaLog(email);
 
         cy.get('[data-testid="auth-onboarding"]', { timeout: 15_000 }).should(
