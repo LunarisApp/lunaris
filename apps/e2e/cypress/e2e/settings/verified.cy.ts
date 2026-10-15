@@ -102,7 +102,15 @@ describe("settings/verified", () => {
       cy.visit("/");
       cy.openSettings();
       cy.openSettingsTab("local-data");
-      assertPanelSpacing("settings-local-data-overview");
+      cy.get('[data-testid="settings-local-data-overview"] section').should(($sections) => {
+        expect($sections.length).to.eq(3);
+        const firstContent = $sections[0].lastElementChild!;
+        const secondContent = $sections[1].firstElementChild!;
+        const gap =
+          secondContent.getBoundingClientRect().top -
+          firstContent.getBoundingClientRect().bottom;
+        expect(gap, "storage section content gap").to.be.greaterThan(8);
+      });
       cy.get('[data-testid="settings-local-data-no-pending"]').should(
         "be.visible"
       );

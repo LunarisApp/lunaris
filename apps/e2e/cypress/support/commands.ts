@@ -317,7 +317,7 @@ Cypress.Commands.add("openWorkspaceOptions", (slug: string) => {
     .scrollIntoView()
     .parent()
     .within(() => {
-      cy.get('[data-testid="workspaces-options-trigger"]').click({ force: true });
+      cy.get('[data-testid="workspaces-options-trigger"]').click();
     });
 });
 
