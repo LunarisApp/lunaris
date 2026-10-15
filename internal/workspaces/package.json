@@ -1,0 +1,73 @@
+{
+  "name": "@repo/workspaces",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "lib0": "^0.2.117",
+    "@blocknote/core": "^0.52.1",
+    "@extension/file": "workspace:*",
+    "@extension/kanban": "workspace:*",
+    "@extension/rich-text": "workspace:*",
+    "@lunarisapp/plugin-sdk": "workspace:*",
+    "@lunarisapp/ui": "workspace:*",
+    "@powersync/common": "2.0.0",
+    "@repo/agent-contracts": "workspace:*",
+    "@repo/auth": "workspace:*",
+    "@repo/data": "workspace:*",
+    "@repo/features": "workspace:*",
+    "@repo/platform": "workspace:*",
+    "@repo/plugin-runtime": "workspace:*",
+    "@repo/utils": "workspace:*",
+    "@tanstack/react-hotkeys": "^0.10.0",
+    "@tanstack/react-query": "^5.102.8",
+    "@tanstack/react-virtual": "^3.14.10",
+    "@uiw/react-json-view": "^2.0.0-alpha.43",
+    "dockview": "^8.2.0",
+    "dockview-react": "^8.2.0",
+    "evlog": "^2.28.0",
+    "next-themes": "^0.4.6",
+    "posthog-js": "^1.422.5",
+    "react-i18next": "^17.0.13",
+    "react-router": "^8.3.1",
+    "semver": "^7.8.5",
+    "slugify": "^1.6.9",
+    "sonner": "^2.0.8",
+    "yjs": "^13.6.32",
+    "zod": "^4.5.4",
+    "zustand": "^5.0.15",
+    "@repo/agent-work": "workspace:*",
+    "y-protocols": "^1.0.7"
+  },
+  "peerDependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.6",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@types/semver": "^7.8.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "happy-dom": "^20.12.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  },
+  "exports": {
+    "./bootstrap": "./src/features/new-workspace/default-template/seed-marker.ts",
+    "./new-workspace/default-template/use-default-template-seeder": "./src/features/new-workspace/default-template/use-default-template-seeder.ts",
+    "./new-workspace/launcher": "./src/features/new-workspace/launcher.tsx",
+    "./permissions": "./src/features/permissions/index.ts",
+    "./routes": "./src/routes/index.tsx",
+    "./*": "./src/features/*/index.tsx"
+  }
+}

@@ -1,0 +1,42 @@
+{
+	"name": "landing",
+	"version": "0.0.1",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"check:regions": "node scripts/check-region-discovery.mjs",
+		"start": "next start",
+		"lint": "biome lint --config-path ./biome.jsonc .",
+		"test": "bun test",
+		"typecheck": "node ./node_modules/@typescript/native/bin/tsc --noEmit"
+	},
+	"dependencies": {
+		"@aws-sdk/client-s3": "3.1123.0",
+		"@aws-sdk/s3-presigned-post": "3.1123.0",
+		"@aws-sdk/s3-request-presigner": "3.1123.0",
+		"@lunarisapp/readability": "1.1.1",
+		"@lunarisapp/stats": "2.0.0",
+		"@probo/cookie-banner": "^0.17.0",
+		"@repo/utils": "workspace:*",
+		"@tailwindplus/elements": "1.0.22",
+		"@thesvg/react": "^3.3.1",
+		"clsx": "^2.1.1",
+		"evlog": "^2.28.0",
+		"files-sdk": "^2.3.0",
+		"next": "^16.3.4",
+		"posthog-js": "^1.422.5",
+		"react": "^19.2.8",
+		"react-dom": "^19.2.8",
+		"resend": "^6.25.0",
+		"tailwindcss": "^4.3.3"
+	},
+	"devDependencies": {
+		"@tailwindcss/postcss": "^4.3.3",
+		"@typescript/native": "npm:typescript@^7.0.2",
+		"@types/node": "^26.4.0",
+		"@types/react": "^19.2.18",
+		"@types/react-dom": "^19.2.5",
+		"typescript": "^7.0.2"
+	}
+}

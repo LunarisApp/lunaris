@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "biomejs.biome",
+    "bradlc.vscode-tailwindcss",
+    "github.vscode-github-actions",
+    "rust-lang.rust-analyzer",
+    "tauri-apps.tauri-vscode",
+    "TypeScriptTeam.native-preview"
+  ]
+}

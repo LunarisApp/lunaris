@@ -1,0 +1,60 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "rich-text": {
+          "name": "Rich Text",
+          "description": "Rich-Text-Dokumenteditor",
+          "chatGPT": "ChatGPT",
+          "claude": "Claude",
+          "copyPage": "Seite kopieren",
+          "copyPageFailed": "Seite konnte nicht kopiert werden",
+          "copyPageSuccess": "Seite als Markdown kopiert",
+          "exportAs": "Exportieren als",
+          "exportFailed": "Dokument konnte nicht exportiert werden",
+          "exportDocx": "DOCX",
+          "exportDocxGenerating": "DOCX wird erstellt…",
+          "exportDocxSuccess": "DOCX heruntergeladen",
+          "exportDocxMissingImage": "Bild nicht verfügbar",
+          "exportDocxMissingImages": "DOCX heruntergeladen; einige Bilder waren nicht verfügbar",
+          "exportMarkdown": "Markdown",
+          "exportPdf": "PDF",
+          "exportPdfGenerating": "PDF wird erstellt…",
+          "exportPdfSuccess": "PDF heruntergeladen",
+          "openIn": "Öffnen in",
+          "openInFailed": "Seite konnte nicht im Chat geöffnet werden",
+          "openInLongPageCopied": "Seite kopiert. Füge sie in den neuen Chat ein",
+          "mentions": {
+            "ariaLabel": "Arbeitsbereiche, Ordner und Elemente",
+            "close": "schließen",
+            "description": "Arbeitsbereiche, Ordner und Elemente",
+            "folder": "Ordner",
+            "item": "Arbeitsbereichelement",
+            "navigate": "navigieren",
+            "noResultsDescription": "Versuche einen anderen Arbeitsbereich-, Ordner- oder Elementnamen.",
+            "noResultsTitle": "Keine Treffer",
+            "workspace": "Arbeitsbereich",
+            "searching": "Suche läuft",
+            "select": "auswählen",
+            "title": "Erwähnen"
+          },
+          "history": {
+            "added": "hinzugefugt",
+            "close": "Versionsverlauf schliessen",
+            "collaborator": "Mitwirkend {{id}}",
+            "emptyDescription": "Anderungen erscheinen hier, sobald dieses Dokument bearbeitet wurde.",
+            "emptyTitle": "Noch kein Versionsverlauf",
+            "errorTitle": "Versionsverlauf konnte nicht geladen werden",
+            "moreLines": "{{count}} weitere geanderte Zeilen",
+            "removed": "entfernt",
+            "system": "System",
+            "you": "Du"
+          },
+          "presence": {
+            "collaborator": "Mitwirkende Person"
+          }
+        }
+      }
+    }
+  }
+}

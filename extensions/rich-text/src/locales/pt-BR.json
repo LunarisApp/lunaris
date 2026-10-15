@@ -1,0 +1,60 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "rich-text": {
+          "name": "Texto rico",
+          "description": "Editor de texto rico",
+          "chatGPT": "ChatGPT",
+          "claude": "Claude",
+          "copyPage": "Copiar página",
+          "copyPageFailed": "Não foi possível copiar a página",
+          "copyPageSuccess": "Página copiada como Markdown",
+          "exportAs": "Exportar como",
+          "exportFailed": "Não foi possível exportar o documento",
+          "exportDocx": "DOCX",
+          "exportDocxGenerating": "Gerando DOCX…",
+          "exportDocxSuccess": "DOCX baixado",
+          "exportDocxMissingImage": "Imagem indisponível",
+          "exportDocxMissingImages": "DOCX baixado; algumas imagens estavam indisponíveis",
+          "exportMarkdown": "Markdown",
+          "exportPdf": "PDF",
+          "exportPdfGenerating": "Gerando PDF…",
+          "exportPdfSuccess": "PDF baixado",
+          "openIn": "Abrir em",
+          "openInFailed": "Não foi possível abrir a página no chat",
+          "openInLongPageCopied": "Página copiada. Cole-a no novo chat",
+          "mentions": {
+            "ariaLabel": "Espaços de trabalho, pastas e itens",
+            "close": "fechar",
+            "description": "Espaços de trabalho, pastas e itens",
+            "folder": "Pasta",
+            "item": "Item do espaço de trabalho",
+            "navigate": "navegar",
+            "noResultsDescription": "Tente outro nome de espaço de trabalho, pasta ou item.",
+            "noResultsTitle": "Nenhum resultado",
+            "workspace": "Espaço de trabalho",
+            "searching": "Buscando",
+            "select": "selecionar",
+            "title": "Mencionar"
+          },
+          "history": {
+            "added": "adicionadas",
+            "close": "Fechar historico de versoes",
+            "collaborator": "Colaborador {{id}}",
+            "emptyDescription": "As mudancas aparecerao aqui quando este documento receber edicoes.",
+            "emptyTitle": "Ainda nao ha historico de versoes",
+            "errorTitle": "Nao foi possivel carregar o historico de versoes",
+            "moreLines": "{{count}} linhas alteradas a mais",
+            "removed": "removidas",
+            "system": "Sistema",
+            "you": "Voce"
+          },
+          "presence": {
+            "collaborator": "Colaborador"
+          }
+        }
+      }
+    }
+  }
+}

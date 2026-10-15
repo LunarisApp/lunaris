@@ -1,0 +1,160 @@
+---
+title: "Host Capabilities"
+description: "Integrate navigation, commands, search, locales, networking, downloads, workers, and services."
+---
+
+# Host Capabilities
+
+Use SDK hooks in React components and scoped contexts in commands or indexers. Hooks must run inside the extension's host-provided runtime; a plain React preview does not supply storage or authorization.
+
+## Workspace content and navigation
+
+`useWorkspaceResourcesMap()` and `useWorkspaceChildrenMap()` expose reactive workspace resources. `useResourceTypes()` lists registered contracts. `useWorkspaceResourceActions()` creates, renames, reorders, touches, and deletes resources.
+
+Use `usePluginResourceReadContext()` for non-editor reads. Its resource-first methods include `getWorkspaceResource`, `getWorkspaceResourceChildren`, `resolveResource`, and `getYjsStorageUpdates`. `/data` exports `reconstructYjsDoc` and `withYjsDoc` for reconstructing stored Yjs content. Release reconstructed documents when finished; prefer the scoped helper when possible.
+
+`useLunarisContent()` provides host-owned content operations and search; it currently requires both content permissions. Use semantic capabilities instead of querying workspace tables or private API endpoints.
+
+For mentions and links, `useEntityReferenceSearch` and the entity-reference helpers build stable workspace/resource options. Use `useOrganizationNavigation().openEntityReference(reference)` to navigate them. Check its boolean result before assuming a destination opened.
+
+A normal resource open needs the resource's identity and schema version:
+
+```ts
+// Inside a component event handler, using navigation from useOrganizationNavigation():
+navigation.openResource({
+  resourceId: resource.resourceId,
+  resourceTypeId: resource.resourceTypeId,
+  schemaVersion: resource.schemaVersion,
+  title: resource.name,
+});
+```
+
+Here `resource` is a `PluginResource` from a workspace map, not a view's narrower `ResourceEnvelope`.
+
+## Resource commands
+
+Register contextual actions during activation. This fragment adds an action to review cards and opens an already-registered standalone inspector:
+
+```ts
+contributions.command({
+  id: "acme.my-tool.card-actions",
+  resourceTypeIds: ["acme.my-tool.card"],
+  commands: [{
+    id: "acme.my-tool.inspect",
+    labelKey: "extensions.acme.my-tool.inspect",
+    onExecute: ({ resourceId, openView }) => {
+      openView({
+        viewId: "acme.my-tool.inspector",
+        titleKey: "extensions.acme.my-tool.inspect",
+        params: { resourceId },
+      });
+    },
+  }],
+});
+```
+
+The fragment assumes you registered `acme.my-tool.inspector` and the label's locale key. Commands can also use their context's storage handles, `resourceReadContext`, `downloadFile`, and `waitForYjsPersistence`. Do not call React hooks from `onExecute`. Group related commands with a command group rather than adding unrelated top-level actions.
+
+## Search indexing
+
+A search indexer converts a validated resource payload into plain text. The host owns index storage, lifecycle, ranking, and the search UI.
+
+For the review card, add this inside activation; `cardPayload` is the exported validator from the [resource example](/developers/extensions/resources-and-views):
+
+```ts
+contributions.searchIndexer({
+  id: "acme.my-tool.card-search",
+  resourceTypeIds: ["acme.my-tool.card"],
+  schemas: [{ id: "acme.my-tool.card.data", minimumVersion: 1, maximumVersion: 1 }],
+  extractText: ({ payload }) => {
+    const card = cardPayload.parse(payload);
+    return card.reviewed ? "Reviewed" : "Needs review";
+  },
+});
+```
+
+Require `content.read`. If text extraction needs binary data, use `context.readFile(input.storage.<slot>)` and also request `files.read`. Return `null` or blank text to remove that indexer's entry for the resource. Keep extraction deterministic and bounded; do not serialize entire files or resource metadata into search text.
+
+`contributions.searchQuery` is a separate federated search contract with cursor pagination, scoped fetch, and an open handler. It is registered by the runtime but is not yet consumed by the Lunaris search interface. Use an indexer for content that should appear there today.
+
+## Locales and UI
+
+Register host-visible strings with `contributions.locales({ en, de, ... })`. Each value is a locale object; use keys owned by your extension to avoid collisions. For the command above:
+
+```ts
+contributions.locales({
+  en: { extensions: { acme: { "my-tool": { inspect: "Inspect card" } } } },
+});
+```
+
+`useLocale()` returns the active locale for your renderer. Community iframes do not inherit the host's React translation provider. Choose strings from your own dictionaries or initialize your own i18n provider using that locale. Registering locales makes strings available to host UI; it does not initialize an arbitrary third-party translation library inside your frame.
+
+Use semantic HTML, visible labels, keyboard-operable controls, focus indicators, and readable contrast. Render loading, empty, denied, and failed states explicitly. Shared `@lunarisapp/ui` components are available, but include their required styles in your build. Handle narrow panes and avoid depending on host DOM selectors.
+
+## HTTPS requests
+
+Call `usePluginFetch()` once in your component and use the returned function in an event handler or effect. Declare `network.https`:
+
+```ts
+const response = await pluginFetch("https://api.example.com/items", {
+  signal: abortController.signal,
+});
+if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+const value: unknown = await response.json();
+// Validate value before rendering or persisting it.
+```
+
+The endpoint is illustrative; replace it with your own public HTTPS API. Abort work when its view unmounts or a newer request supersedes it. Browser requests remain subject to CORS; Desktop uses native HTTP transport. Credentials default to `omit`, and Lunaris session credentials are not provided to community fetch requests. Do not use direct `fetch` to bypass the sandbox.
+
+Design remote features to explain offline or failed requests without blocking access to locally stored content. Do not put server secrets in the bundle or workspace KV.
+
+## Downloads and workers
+
+Use `useDownloads()` with `downloads.write` to save generated content:
+
+```ts
+await downloads.save({
+  suggestedName: "review.txt",
+  mimeType: "text/plain",
+  data: new TextEncoder().encode("Reviewed\n").buffer,
+});
+```
+
+`save` accepts an `ArrayBuffer` and is limited to 64 MiB. SDK 0.11/API 0.10 adds optional `saveChunks` for `AsyncIterable<Uint8Array>`, with a 256 MiB total limit. Check for the method explicitly and provide a supported fallback or explain the host requirement. Do not silently optional-chain it and tell the user an export succeeded when nothing ran.
+
+Chunk messages are at most 1 MiB; only one pending download per surface is allowed, and inactive sessions expire after 30 seconds. The browser host still assembles a Blob, so chunking does not promise constant-memory file streaming. Pass an abort signal for cancellation.
+
+Move CPU-heavy pure computation to a dedicated inline worker:
+
+```ts
+// src/task.worker.ts
+import { exposePluginWorkerTask } from "@lunarisapp/plugin-sdk/worker";
+
+exposePluginWorkerTask((input: string) => input.toUpperCase());
+```
+
+```ts
+// src/run-task.ts
+import TaskWorker from "./task.worker?worker&inline";
+import { runPluginWorkerTask } from "@lunarisapp/plugin-sdk/worker";
+
+export function uppercase(input: string, signal?: AbortSignal) {
+  return runPluginWorkerTask<string, string>(
+    () => new TaskWorker({ name: "acme-uppercase" }),
+    input,
+    { signal },
+  );
+}
+```
+
+Include Vite client types in your TypeScript setup for worker imports. The helper terminates the worker on success, error, abort, or timeout; default timeout is 30 seconds. Input must be structured-cloneable. `options.transfer` can transfer input buffers, detaching them from the caller. Returned buffers transfer automatically. Workers have no host bridge, storage, network, DOM, or progress channel.
+
+## Services and extension points
+
+Use `definePluginService({ id, version, methods })` to publish a provider-owned contract. Register its implementation with `services.provide` during activation. Consumers declare the provider extension in `dependencies` or `optionalDependencies`, then use `services.require`/`services.optional` and the corresponding React service hooks.
+
+Service version is independent from the provider's extension version. Use a small shared contract package; do not import another extension's private source. Across the iframe bridge, methods accept a single wire value and return a wire value: JSON-compatible data and supported `ArrayBuffer` values. Do not pass functions, React elements, DOM nodes, or live Yjs documents.
+
+For multiple contributors, create a slot from the service definition with `.slot(...)`, register handlers using `slots.contribute`, and consume with `usePluginServiceSlot`. Contributions include stable IDs, metadata, and `invoke` handlers. Handle provider absence for optional integrations and rebind when providers return. See `extensions/exporter/` in the extensions repository for an example of service slots.
+
+Next: [testing and troubleshooting](/developers/extensions/testing).

@@ -1,0 +1,66 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Ideas for AI agents to implement
+.tasks/
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage
+
+# Cypress
+**/cypress/videos
+**/cypress/screenshots
+**/cypress/downloads
+
+# Turbo
+.turbo
+
+# Vercel
+.vercel
+
+# Build Outputs
+.next/
+out/
+build
+dist
+target/
+*.tsbuildinfo
+
+
+# Debug
+npm-debug.log*
+/logs/
+
+# Misc
+.DS_Store
+*.pem
+
+# Vscode
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/mcp.json
+.gstack/
+/.claude/worktrees/
+
+# Compiled Pi runtime (built before Tauri dev/package)
+/apps/desktop/src-tauri/binaries/
+
+# Generated desktop distribution notices
+/apps/desktop/src-tauri/notices/
+
+# Generated edition-specific API compiler configuration
+apps/api/.tsconfig.community.*.json
+apps/api/.tsconfig.enterprise.*.json

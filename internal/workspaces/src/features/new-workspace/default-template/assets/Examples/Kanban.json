@@ -1,0 +1,98 @@
+{
+  "properties": [
+    {
+      "id": "status",
+      "name": "Status",
+      "type": "select",
+      "options": "[{\"id\":\"backlog\",\"name\":\"Backlog\",\"color\":\"#64748b\"},{\"id\":\"todo\",\"name\":\"To Do\",\"color\":\"#3b82f6\"},{\"id\":\"in-progress\",\"name\":\"In Progress\",\"color\":\"#f59e0b\"},{\"id\":\"done\",\"name\":\"Done\",\"color\":\"#22c55e\"}]"
+    },
+    {
+      "id": "priority",
+      "name": "Priority",
+      "type": "select",
+      "options": "[{\"id\":\"high\",\"name\":\"High\",\"color\":\"#ef4444\"},{\"id\":\"medium\",\"name\":\"Medium\",\"color\":\"#f59e0b\"},{\"id\":\"low\",\"name\":\"Low\",\"color\":\"#22c55e\"}]"
+    }
+  ],
+  "items": [
+    {
+      "id": "northstar-goals",
+      "name": "Confirm launch goals",
+      "description": "Align stakeholders on the target audience, launch outcomes, and decision owners.",
+      "createdAt": "2026-01-05T09:00:00.000Z",
+      "prop_status": "done",
+      "prop_priority": "high"
+    },
+    {
+      "id": "northstar-positioning",
+      "name": "Approve product positioning",
+      "description": "Finalize the value proposition and supporting messages for launch channels.",
+      "createdAt": "2026-01-06T09:00:00.000Z",
+      "prop_status": "done",
+      "prop_priority": "high"
+    },
+    {
+      "id": "northstar-landing-page",
+      "name": "Finalize landing page",
+      "description": "Complete copy, product visuals, analytics events, and stakeholder review.",
+      "createdAt": "2026-01-07T09:00:00.000Z",
+      "prop_status": "in-progress",
+      "prop_priority": "high"
+    },
+    {
+      "id": "northstar-announcement",
+      "name": "Prepare launch announcement",
+      "description": "Draft email and social copy, then schedule the approved campaign.",
+      "createdAt": "2026-01-08T09:00:00.000Z",
+      "prop_status": "todo",
+      "prop_priority": "medium"
+    },
+    {
+      "id": "northstar-qa",
+      "name": "Complete release QA",
+      "description": "Validate critical user journeys, accessibility, and launch-day monitoring.",
+      "createdAt": "2026-01-09T09:00:00.000Z",
+      "prop_status": "todo",
+      "prop_priority": "high"
+    },
+    {
+      "id": "northstar-metrics",
+      "name": "Review launch metrics",
+      "description": "Compare activation, adoption, and quality results with launch targets.",
+      "createdAt": "2026-01-10T09:00:00.000Z",
+      "prop_status": "backlog",
+      "prop_priority": "medium"
+    },
+    {
+      "id": "northstar-beta-feedback",
+      "name": "Synthesize beta feedback",
+      "description": "Summarize recurring feedback, resolved blockers, and accepted follow-up work.",
+      "createdAt": "2026-01-11T09:00:00.000Z",
+      "prop_status": "done",
+      "prop_priority": "medium"
+    },
+    {
+      "id": "northstar-support",
+      "name": "Prepare support playbook",
+      "description": "Document common questions, escalation paths, and launch-day support coverage.",
+      "createdAt": "2026-01-12T09:00:00.000Z",
+      "prop_status": "in-progress",
+      "prop_priority": "medium"
+    },
+    {
+      "id": "northstar-dashboard",
+      "name": "Build launch-day dashboard",
+      "description": "Track adoption, reliability, and support signals in one shared launch view.",
+      "createdAt": "2026-01-13T09:00:00.000Z",
+      "prop_status": "todo",
+      "prop_priority": "high"
+    },
+    {
+      "id": "northstar-retrospective",
+      "name": "Schedule launch retrospective",
+      "description": "Invite the launch team and capture topics for the post-launch review.",
+      "createdAt": "2026-01-14T09:00:00.000Z",
+      "prop_status": "backlog",
+      "prop_priority": "low"
+    }
+  ]
+}

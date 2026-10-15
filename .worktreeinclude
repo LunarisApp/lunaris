@@ -1,0 +1,3 @@
+# Personal environment overrides used by local apps and services.
+.env.local
+.env.*.local

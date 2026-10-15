@@ -1,0 +1,4 @@
+interface:
+  display_name: "With Screenshot"
+  short_description: "Capture Lunaris feature screenshots"
+  default_prompt: "Use $with-screenshot to capture the current Lunaris feature from local dev with agent-browser."

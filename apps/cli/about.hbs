@@ -1,0 +1,16 @@
+THIRD-PARTY SOFTWARE LICENSES
+
+This file lists third-party software included in Lunaris CLI.
+
+{{#each licenses}}
+===============================================================================
+{{name}} ({{id}})
+
+Used by:
+{{#each used_by}}
+- {{crate.name}} {{crate.version}}{{#if crate.repository}} (source: {{crate.repository}}){{/if}}
+{{/each}}
+
+{{{text}}}
+
+{{/each}}

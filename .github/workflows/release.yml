@@ -1,0 +1,462 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  BUN_VERSION: 1.3.10
+  MACOSX_DEPLOYMENT_TARGET: "13.0"
+
+jobs:
+  version-pr:
+    name: Version packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          toolchain: 1.96.0
+      - run: bun install --frozen-lockfile
+      - uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
+        with:
+          version: bun run release:version
+          title: "chore(release): version packages"
+          commit: "chore(release): version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  plan:
+    name: Plan releases
+    needs: version-pr
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      cli: ${{ steps.plan.outputs.cli }}
+      cli_tag: ${{ steps.plan.outputs.cli_tag }}
+      cli_version: ${{ steps.plan.outputs.cli_version }}
+      desktop: ${{ steps.plan.outputs.desktop }}
+      desktop_tag: ${{ steps.plan.outputs.desktop_tag }}
+      desktop_version: ${{ steps.plan.outputs.desktop_version }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - id: plan
+        run: bun run release:plan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  signing:
+    name: Select signing mode
+    needs: plan
+    if: needs.plan.outputs.cli == 'true' || needs.plan.outputs.desktop == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.mode.outputs.mode }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - id: mode
+        name: Validate Apple credentials
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
+        run: bun tooling/release/signing-mode.ts
+
+  verify:
+    name: Verify release commit
+    needs: [plan, signing]
+    if: needs.plan.outputs.cli == 'true' || needs.plan.outputs.desktop == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - run: bun run release:validate
+      - run: bun run release:test
+      - run: bun test tooling/licenses
+      - run: bun run check
+      - run: bun run brand:check
+      - run: bun run typecheck
+      - run: bun run brand:typecheck
+      - run: bun run test -- --concurrency=4
+
+  build-cli:
+    name: Build CLI
+    needs: [plan, signing, verify]
+    if: needs.plan.outputs.cli == 'true'
+    runs-on: macos-14
+    permissions:
+      contents: read
+    env:
+      LUNARIS_BUILD_SHA: ${{ github.sha }}
+      LUNARIS_SIGNING_MODE: ${{ needs.signing.outputs.mode }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          toolchain: 1.96.0
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
+        with:
+          workspaces: .
+      - run: bun install --frozen-lockfile
+      - run: bun run release:validate
+      - name: Install license generator
+        run: cargo install --locked --version 0.9.1 --features cli cargo-about
+      - run: cargo test --locked --manifest-path apps/cli/Cargo.toml
+      - name: Build universal executable
+        run: |
+          cargo build --release --locked --manifest-path apps/cli/Cargo.toml --target aarch64-apple-darwin
+          cargo build --release --locked --manifest-path apps/cli/Cargo.toml --target x86_64-apple-darwin
+          mkdir -p dist
+          lipo -create \
+            target/aarch64-apple-darwin/release/lunaris \
+            target/x86_64-apple-darwin/release/lunaris \
+            -output dist/lunaris
+          lipo -info dist/lunaris
+      - name: Import Developer ID certificate
+        if: needs.signing.outputs.mode == 'signed'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          certificate="$RUNNER_TEMP/apple-certificate.p12"
+          keychain="$RUNNER_TEMP/release.keychain-db"
+          keychain_password="$(uuidgen)"
+          printf '%s' "$APPLE_CERTIFICATE" | base64 -D > "$certificate"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$certificate" -k "$keychain" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security list-keychains -d user -s "$keychain"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain"
+      - name: Sign CLI
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          if [ "$LUNARIS_SIGNING_MODE" = "signed" ]; then
+            codesign --force --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" dist/lunaris
+          else
+            codesign --force --sign - dist/lunaris
+          fi
+          codesign --verify --strict --verbose=2 dist/lunaris
+      - name: Smoke test final CLI
+        run: |
+          dist/lunaris --version
+          bun tooling/mcp-smoke.ts dist/lunaris
+      - name: Package CLI
+        env:
+          VERSION: ${{ needs.plan.outputs.cli_version }}
+        run: |
+          if [ "$LUNARIS_SIGNING_MODE" = "signed" ]; then
+            asset="lunaris-cli-${VERSION}-universal-apple-darwin.zip"
+          else
+            asset="lunaris-cli-${VERSION}-universal-apple-darwin-adhoc.zip"
+          fi
+          package_dir="dist/lunaris-cli-${VERSION}"
+          mkdir -p "$package_dir"
+          cp dist/lunaris "$package_dir/lunaris"
+          cp apps/cli/LICENSE "$package_dir/LICENSE"
+          cargo about generate \
+            --manifest-path apps/cli/Cargo.toml \
+            --config apps/cli/about.toml \
+            --locked \
+            --fail \
+            --output-file "$package_dir/THIRD-PARTY-LICENSES.txt" \
+            apps/cli/about.hbs
+          (cd "$package_dir" && zip -9 "../$asset" lunaris LICENSE THIRD-PARTY-LICENSES.txt)
+          unzip -t "dist/$asset"
+          (cd dist && shasum -a 256 "$asset" > SHA256SUMS)
+          echo "asset=$asset" >> "$GITHUB_ENV"
+      - name: Notarize CLI archive
+        if: needs.signing.outputs.mode == 'signed'
+        env:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
+        run: |
+          api_key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY}.p8"
+          printf '%s' "$APPLE_API_PRIVATE_KEY" > "$api_key_path"
+          xcrun notarytool submit "dist/$asset" \
+            --key "$api_key_path" \
+            --key-id "$APPLE_API_KEY" \
+            --issuer "$APPLE_API_ISSUER" \
+            --wait
+          spctl --assess --type execute --verbose=2 dist/lunaris
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-cli
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS
+          if-no-files-found: error
+
+  build-desktop:
+    name: Build Desktop
+    needs: [plan, signing, verify]
+    if: needs.plan.outputs.desktop == 'true'
+    runs-on: macos-14
+    permissions:
+      contents: read
+    env:
+      LUNARIS_BUILD_SHA: ${{ github.sha }}
+      LUNARIS_BUILD_VERSION: ${{ needs.plan.outputs.desktop_version }}
+      LUNARIS_SIGNING_MODE: ${{ needs.signing.outputs.mode }}
+      VITE_REGION_DIRECTORY_URL: https://lunaris.app/.well-known/lunaris-regions
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          toolchain: 1.96.0
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
+        with:
+          workspaces: .
+      - run: bun install --frozen-lockfile
+      - run: bun run release:validate
+      - name: Install license generator
+        run: cargo install --locked --version 0.9.1 --features cli cargo-about
+      - name: Build Agent Work sidecar
+        run: bun run --cwd apps/desktop build:agent
+      - run: cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml
+      - name: Configure ad-hoc signing
+        if: needs.signing.outputs.mode == 'adhoc'
+        run: echo "APPLE_SIGNING_IDENTITY=-" >> "$GITHUB_ENV"
+      - name: Configure Developer ID signing
+        if: needs.signing.outputs.mode == 'signed'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
+        run: |
+          certificate="$RUNNER_TEMP/apple-certificate.p12"
+          keychain="$RUNNER_TEMP/release.keychain-db"
+          keychain_password="$(uuidgen)"
+          api_key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY}.p8"
+          printf '%s' "$APPLE_CERTIFICATE" | base64 -D > "$certificate"
+          printf '%s' "$APPLE_API_PRIVATE_KEY" > "$api_key_path"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$certificate" -k "$keychain" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security list-keychains -d user -s "$keychain"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain"
+          echo "APPLE_SIGNING_IDENTITY=$APPLE_SIGNING_IDENTITY" >> "$GITHUB_ENV"
+          echo "APPLE_API_KEY_PATH=$api_key_path" >> "$GITHUB_ENV"
+      - name: Build universal Desktop app
+        env:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+        run: bun run --cwd apps/desktop tauri:build -- --target universal-apple-darwin --bundles app,dmg
+      - name: Verify Desktop bundle
+        shell: bash
+        run: |
+          app_path="$(find target/universal-apple-darwin/release/bundle/macos -maxdepth 1 -name '*.app' -print -quit)"
+          dmg_path="$(find target/universal-apple-darwin/release/bundle/dmg -maxdepth 1 -name '*.dmg' -print -quit)"
+          test -n "$app_path"
+          test -n "$dmg_path"
+          for notice in LICENSE THIRD-PARTY-NOTICES.md THIRD-PARTY-LICENSES.md EXTEND-LICENSE.txt RUST-LICENSES.txt BUN-RUNTIME.md AGENT-aarch64-apple-darwin-LICENSES.md AGENT-x86_64-apple-darwin-LICENSES.md; do
+            test -s "$app_path/Contents/Resources/notices/$notice"
+          done
+          binary="$app_path/Contents/MacOS/lunaris-desktop"
+          lipo -info "$binary"
+          codesign --verify --deep --strict --verbose=2 "$app_path"
+          bun tooling/mcp-smoke.ts "$binary" lunaris-desktop
+
+          "$binary" > "$RUNNER_TEMP/desktop-launch.log" 2>&1 &
+          app_pid=$!
+          sleep 5
+          kill -0 "$app_pid"
+          kill "$app_pid"
+          wait "$app_pid" || true
+
+          mount_point="$(mktemp -d)"
+          hdiutil attach "$dmg_path" -nobrowse -mountpoint "$mount_point"
+          test -d "$mount_point/Lunaris.app"
+          codesign --verify --deep --strict --verbose=2 "$mount_point/Lunaris.app"
+          hdiutil detach "$mount_point"
+
+          if [ "$LUNARIS_SIGNING_MODE" = "signed" ]; then
+            spctl --assess --type execute --verbose=2 "$app_path"
+            spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg_path"
+            xcrun stapler validate "$app_path"
+            xcrun stapler validate "$dmg_path"
+          fi
+
+          mkdir -p dist
+          if [ "$LUNARIS_SIGNING_MODE" = "signed" ]; then
+            asset="Lunaris-desktop-${LUNARIS_BUILD_VERSION}-universal.dmg"
+          else
+            asset="Lunaris-desktop-${LUNARIS_BUILD_VERSION}-universal-adhoc.dmg"
+          fi
+          cp "$dmg_path" "dist/$asset"
+          (cd dist && shasum -a 256 "$asset" > SHA256SUMS)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-desktop
+          path: |
+            dist/*.dmg
+            dist/SHA256SUMS
+          if-no-files-found: error
+
+  publish-cli:
+    name: Publish CLI
+    needs: [plan, signing, build-cli]
+    if: needs.plan.outputs.cli == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-cli
+          path: dist
+      - name: Prepare release notes
+        run: bun tooling/release/notes.ts cli "$VERSION" "$SIGNING_MODE" > release-notes.md
+        env:
+          VERSION: ${{ needs.plan.outputs.cli_version }}
+          SIGNING_MODE: ${{ needs.signing.outputs.mode }}
+      - name: Publish distribution to S3
+        run: bash tooling/release/publish-s3.sh cli "$VERSION" "$SIGNING_MODE" dist
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.RELEASES_S3_ACCESS_KEY_ID }}
+          AWS_DEFAULT_REGION: ${{ secrets.RELEASES_S3_REGION }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.RELEASES_S3_SECRET_ACCESS_KEY }}
+          RELEASES_S3_BUCKET: ${{ secrets.RELEASES_S3_BUCKET }}
+          RELEASES_S3_ENDPOINT: ${{ secrets.RELEASES_S3_ENDPOINT }}
+          SIGNING_MODE: ${{ needs.signing.outputs.mode }}
+          VERSION: ${{ needs.plan.outputs.cli_version }}
+      - name: Check out Homebrew tap
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: LunarisApp/homebrew-tap
+          path: homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+      - name: Publish Homebrew formula
+        run: |
+          bash tooling/release/publish-homebrew.sh \
+            cli \
+            "$VERSION" \
+            "$SIGNING_MODE" \
+            dist \
+            homebrew-tap
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          SIGNING_MODE: ${{ needs.signing.outputs.mode }}
+          VERSION: ${{ needs.plan.outputs.cli_version }}
+      - name: Publish private GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.plan.outputs.cli_tag }}
+          VERSION: ${{ needs.plan.outputs.cli_version }}
+        run: |
+          gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --draft \
+            --title "Lunaris CLI $VERSION" \
+            --notes-file release-notes.md
+          gh release upload "$TAG" dist/*
+          gh release edit "$TAG" --draft=false --latest=false
+
+  publish-desktop:
+    name: Publish Desktop
+    needs: [plan, signing, build-desktop]
+    if: needs.plan.outputs.desktop == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-desktop
+          path: dist
+      - name: Prepare release notes
+        run: bun tooling/release/notes.ts desktop "$VERSION" "$SIGNING_MODE" > release-notes.md
+        env:
+          VERSION: ${{ needs.plan.outputs.desktop_version }}
+          SIGNING_MODE: ${{ needs.signing.outputs.mode }}
+      - name: Publish distribution to S3
+        run: bash tooling/release/publish-s3.sh desktop "$VERSION" "$SIGNING_MODE" dist
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.RELEASES_S3_ACCESS_KEY_ID }}
+          AWS_DEFAULT_REGION: ${{ secrets.RELEASES_S3_REGION }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.RELEASES_S3_SECRET_ACCESS_KEY }}
+          RELEASES_S3_BUCKET: ${{ secrets.RELEASES_S3_BUCKET }}
+          RELEASES_S3_ENDPOINT: ${{ secrets.RELEASES_S3_ENDPOINT }}
+          SIGNING_MODE: ${{ needs.signing.outputs.mode }}
+          VERSION: ${{ needs.plan.outputs.desktop_version }}
+      - name: Check out Homebrew tap
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: LunarisApp/homebrew-tap
+          path: homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+      - name: Publish Homebrew cask
+        run: |
+          bash tooling/release/publish-homebrew.sh \
+            desktop \
+            "$VERSION" \
+            "$SIGNING_MODE" \
+            dist \
+            homebrew-tap
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          SIGNING_MODE: ${{ needs.signing.outputs.mode }}
+          VERSION: ${{ needs.plan.outputs.desktop_version }}
+      - name: Publish private GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.plan.outputs.desktop_tag }}
+          VERSION: ${{ needs.plan.outputs.desktop_version }}
+        run: |
+          gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --draft \
+            --title "Lunaris Desktop $VERSION" \
+            --notes-file release-notes.md
+          gh release upload "$TAG" dist/*
+          gh release edit "$TAG" --draft=false --latest=false

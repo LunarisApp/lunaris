@@ -1,0 +1,31 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "RAILPACK",
+    "buildCommand": "LUNARIS_EDITION=enterprise bunx turbo run build --filter=web",
+    "watchPatterns": [
+      "/bun.lock",
+      "/bunfig.toml",
+      "/apps/web/**",
+      "/internal/**",
+      "/ee/**",
+      "/package.json",
+      "/packages/**",
+      "/extensions/**",
+      "/turbo.json",
+      "/tooling/**"
+    ]
+  },
+  "deploy": {
+    "runtime": "V2",
+    "startCommand": "NODE_ENV=production bun run --filter=web serve",
+    "sleepApplication": false,
+    "ipv6EgressEnabled": false,
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 120,
+    "overlapSeconds": 30,
+    "drainingSeconds": 15,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}

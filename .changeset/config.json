@@ -1,0 +1,40 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.2/schema.json",
+  "changelog": [
+    "@changesets/changelog-github",
+    {
+      "repo": "LunarisApp/lunaris"
+    }
+  ],
+  "commit": false,
+  "fixed": [],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "@extension/ai-chat",
+    "@extension/file",
+    "@extension/kanban",
+    "@extension/rich-text",
+    "@repo/agent-contracts",
+    "@repo/app-shell",
+    "@repo/auth",
+    "@repo/data",
+    "@repo/features",
+    "@repo/ee-audit",
+    "@repo/ee-teams",
+    "@repo/ee-composition",
+    "@repo/platform",
+    "@repo/typescript-config",
+    "@repo/utils",
+    "api",
+    "e2e",
+    "landing",
+    "web"
+  ],
+  "privatePackages": {
+    "version": true,
+    "tag": false
+  }
+}

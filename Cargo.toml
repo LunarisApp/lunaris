@@ -1,0 +1,7 @@
+[workspace]
+members = [
+  "apps/cli",
+  "apps/desktop/src-tauri",
+  "crates/agent-mcp",
+]
+resolver = "2"

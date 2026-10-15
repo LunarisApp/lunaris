@@ -1,0 +1,23 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "file": {
+          "name": "Datei",
+          "description": "Fügen Sie Ihrem Projekt Dateien hinzu und zeigen Sie unterstützte Formate in der Vorschau an."
+        }
+      }
+    }
+  },
+  "fileExtension": {
+    "file": {
+      "download": "Herunterladen",
+      "downloadFailed": "Datei nicht verfügbar",
+      "downloadPending": "Datei wird heruntergeladen",
+      "downloadUnavailable": "Datei kann nicht heruntergeladen werden",
+      "invalidXml": "Ungültiges XML",
+      "missingMetadata": "Dateimetadaten fehlen",
+      "uploadPending": "Datei wird hochgeladen"
+    }
+  }
+}

@@ -1,0 +1,1 @@
+ALTER TABLE "invitation" ADD COLUMN "seat_reserved" boolean DEFAULT false NOT NULL;

@@ -1,0 +1,63 @@
+{
+  "name": "@extension/rich-text",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "sideEffects": [
+    "src/styles.css"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@blocknote/core": "^0.52.1",
+    "@blocknote/react": "^0.52.1",
+    "@blocknote/server-util": "^0.52.1",
+    "@blocknote/shadcn": "^0.52.1",
+    "@lunarisapp/plugin-sdk": "workspace:*",
+    "@lunarisapp/stats": "^2.0.0",
+    "@lunarisapp/ui": "workspace:*",
+    "@react-pdf/renderer": "^4.9.0",
+    "@thesvg/react": "^3.3.1",
+    "buffer": "^6.0.3",
+    "docx": "^9.11.0",
+    "emoji-regex-xs": "^1.0.0",
+    "evlog": "^2.28.0",
+    "next-themes": "^0.4.6",
+    "posthog-js": "^1.422.5",
+    "sonner": "^2.0.8",
+    "y-prosemirror": "^1.3.7",
+    "y-protocols": "^1.0.7",
+    "zod": "^4.5.4"
+  },
+  "peerDependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-i18next": "^17.0.11",
+    "yjs": "^13.6.32"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "happy-dom": "^20.12.0",
+    "i18next": "^26.4.1",
+    "jszip": "^3.10.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  },
+  "exports": {
+    ".": "./src/index.tsx",
+    "./constants": "./src/constants.ts",
+    "./descriptor": "./src/descriptor.ts",
+    "./mcp": "./src/mcp.ts",
+    "./mcp-contract": "./src/mcp-contract.ts",
+    "./mcp-runtime": "./src/mcp-runtime.ts",
+    "./mcp-runtime-server": "./src/mcp-runtime-server.ts",
+    "./manifest.json": "./src/manifest.json"
+  }
+}

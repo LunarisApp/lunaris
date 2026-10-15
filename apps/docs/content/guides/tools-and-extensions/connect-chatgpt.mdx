@@ -1,0 +1,49 @@
+---
+title: "Connect ChatGPT"
+description: "Send a document to ChatGPT or connect it to your Lunaris workspaces."
+---
+
+# Connect ChatGPT
+
+## Send one document
+
+1. Open a document in Lunaris.
+2. Open **More → Open in → ChatGPT**.
+3. If Lunaris copies a long document to your clipboard, paste it into the new chat.
+
+This shares a copy of the document with ChatGPT. It does not give ChatGPT ongoing
+access to your workspace. Only send content you want to share with that service.
+
+## Connect the desktop apps
+
+If you use the Lunaris desktop preview and ChatGPT desktop app:
+
+1. Keep Lunaris open. Go to **Settings → Local Data** and enable **Agent access**.
+2. Under **Connect ChatGPT**, choose **Read only** to start.
+3. In ChatGPT, open **Settings → MCP servers → Add server**.
+4. Name the connection **Lunaris**, choose **STDIO**, and copy the **Command** and
+   **Arguments** shown in Lunaris into the matching fields.
+5. Save the server, then select **Restart** in ChatGPT.
+6. Return to Lunaris and approve the **ChatGPT Desktop** pairing request.
+
+This connection can include Local workspaces in the desktop app. Keep Lunaris
+running while using it. See [OpenAI's MCP setup guide](https://learn.chatgpt.com/docs/extend/mcp)
+if ChatGPT's settings look different.
+
+To stop access, choose **Revoke** beside the client in Lunaris. Turning off
+**Agent access** revokes all approved clients.
+
+## Connect to Lunaris Cloud
+
+For ChatGPT web, use a cloud connection. Availability depends on your ChatGPT
+account and workspace settings.
+
+1. Open the [Lunaris connection page](https://lunaris.app/mcp), choose your cloud
+   data region, and copy the connection URL.
+2. Follow [OpenAI's connection guide](https://developers.openai.com/plugins/deploy/connect-chatgpt)
+   to enable developer mode and add a connection in **ChatGPT Plugins**.
+3. Name it **Lunaris**, enter the URL, and sign in to Lunaris when asked.
+4. Review the requested access, then add the connection to a conversation.
+
+The cloud connection cannot read Local workspaces. If connections are unavailable
+for your account, use **Open in → ChatGPT** or [Copy page](/guides/writing-and-editing/export-and-copy-documents).

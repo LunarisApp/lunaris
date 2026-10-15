@@ -1,0 +1,195 @@
+---
+title: "Publishing and Updates"
+description: "Package immutable releases and distribute extensions through a GitHub or HTTPS marketplace."
+---
+
+# Publishing and Updates
+
+A build is not yet an installable release. Lunaris discovers extensions through `marketplace.json`, fetches a pinned `release.json`, then verifies each executable asset before running it.
+
+## Files and trust
+
+```text
+marketplace.json                         mutable discovery index
+artifacts/acme.my-tool/1.0.0/
+  release.json                           immutable release descriptor
+  main.js                                immutable executable
+  styles.css                             optional stylesheet
+  icon.png                               optional raster marketplace icon
+```
+
+Each marketplace version includes its API range, runtime, status, and descriptor URL, byte length, and SHA-256. The descriptor contains the normalized manifest and asset records with `url`, `bytes`, `resource` (MIME type), and `sha256`.
+
+Hash the exact published bytes, including whitespace and trailing newlines. Do not reformat JSON after hashing it. Asset URLs may be relative to `release.json`; descriptor URLs may be relative to the marketplace URL. All resolved URLs must use HTTPS.
+
+Serve the index, descriptor, and every asset publicly with browser CORS enabled, for example `Access-Control-Allow-Origin: *`. Use `application/json` for JSON, `text/javascript` for the script, and `text/css` for styles. Verify raw file responses, not an HTML repository page or authentication screen.
+
+## Match the executable's protocol
+
+SDK 0.11 builds emit `dist/runtime.json`; use that build metadata for the release's runtime. Known older SDK 0.10 builds use protocol 6 and do not emit that file. Do not infer a runtime from the extension version or simply stamp whichever SDK your publishing tool happens to use.
+
+The extensions repository's `registry/build-artifact.ts` imports `PLUGIN_SANDBOX_PROTOCOL_VERSION` from its own SDK and does not read `dist/runtime.json`. That works for its matching protocol-6 builds. Before using it for a protocol-7 build, update the tooling to consume build metadata or otherwise verify both tool and executable use the same protocol. The generic packager below reads the build metadata explicitly.
+
+Changing `runtime.protocol` does not convert the executable. A mismatch needs a correctly packaged release, not just an index edit.
+
+## Option A: Use the extensions repository tooling
+
+Use this path for an extension maintained inside the extensions repository or a fork with the same registry structure. From that repository root:
+
+```sh
+cd extensions/my-tool
+bun install
+bun run typecheck
+bun run build
+cd ../..
+EXTENSION_DIST=extensions/my-tool/dist bun registry/build-artifact.ts
+```
+
+Run the extension's tests too when it defines a test command. Check the generated `artifacts/<id>/<version>/release.json` against the build's manifest and runtime.
+
+1. Commit the new artifact directory.
+2. With artifact changes committed, run `bun registry/update-marketplace.ts` from the repository root.
+3. Commit the updated `marketplace.json` separately.
+4. Push both commits to your public repository.
+
+The second commit refers to the first commit's full SHA. Do not squash the publication into a single commit whose descriptor URL refers to an unavailable artifact revision. The index updater rejects uncommitted artifact changes.
+
+For a fork, set `EXTENSION_REPOSITORY=owner/repository` when building artifacts and `MARKETPLACE_REPOSITORY=owner/repository` when updating the index. Review the repository's registry policy/configuration too. Otherwise defaults point at `LunarisApp/extensions`.
+
+Existing artifact versions are immutable by default. `build-artifact.ts --check` compares a build with a committed artifact. Normal releases need a new version; replacement/overwrite is an exceptional maintenance operation, not the development loop.
+
+## Option B: Package for your own static host
+
+This minimal script packages `main.js` and optional `styles.css`, validates descriptor/index structure, and creates a starter index. It intentionally omits the optional marketplace icon. Use the registry tooling if you need its raster-icon handling.
+
+Save this as `scripts/package-release.mjs` in your extension project. It runs with Bun and uses your installed SDK's public `/marketplace` entry point:
+
+```js
+import { createHash } from "node:crypto";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { constants } from "node:fs";
+import path from "node:path";
+import {
+  parseExtensionMarketplace,
+  parsePluginReleaseDescriptor,
+} from "@lunarisapp/plugin-sdk/marketplace";
+
+// Arguments: final immutable release.json URL, public source repository URL.
+const [descriptorUrl, repository] = process.argv.slice(2);
+if (!descriptorUrl || !repository) {
+  throw new Error("Pass the final release.json URL and source repository URL");
+}
+for (const value of [descriptorUrl, repository]) {
+  if (new URL(value).protocol !== "https:") throw new Error("URLs must use HTTPS");
+}
+const manifest = JSON.parse(await readFile("dist/manifest.json", "utf8"));
+let runtime;
+try {
+  runtime = JSON.parse(await readFile("dist/runtime.json", "utf8"));
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+  // Only use this fallback for a known legacy SDK 0.10 build.
+  runtime = { kind: "iframe", protocol: 6 };
+}
+const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const jsonBytes = (value) => Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
+async function asset(filename, resource, maxBytes) {
+  const bytes = await readFile(path.join("dist", filename));
+  if (bytes.length > maxBytes) throw new Error(`${filename} exceeds its size limit`);
+  return { url: `./${filename}`, bytes: bytes.length, resource, sha256: hash(bytes) };
+}
+const script = await asset("main.js", "text/javascript", 10 * 1024 * 1024);
+let style;
+try {
+  style = await asset("styles.css", "text/css", 2 * 1024 * 1024);
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+}
+const descriptor = {
+  api: manifest.api,
+  manifest,
+  repository,
+  runtime,
+  script,
+  status: "active",
+  ...(style ? { style } : {}),
+};
+parsePluginReleaseDescriptor(descriptor, {
+  id: manifest.id,
+  version: manifest.version,
+}, descriptorUrl);
+const releaseBytes = jsonBytes(descriptor);
+const marketplace = {
+  schemaVersion: 1,
+  name: "acme-extensions",
+  displayName: "Acme Extensions",
+  enabled: true,
+  generatedAt: new Date().toISOString(),
+  extensions: [{
+    id: manifest.id,
+    name: manifest.name,
+    description: manifest.description,
+    developer: manifest.developer,
+    repository,
+    latestVersion: manifest.version,
+    versions: [{
+      version: manifest.version,
+      api: manifest.api,
+      runtime,
+      status: "active",
+      descriptor: {
+        url: descriptorUrl,
+        bytes: releaseBytes.length,
+        sha256: hash(releaseBytes),
+      },
+    }],
+  }],
+};
+parseExtensionMarketplace(marketplace);
+const output = path.join("release-output", manifest.id, manifest.version);
+await mkdir(path.dirname(output), { recursive: true });
+// Refuse to replace an existing release directory.
+await mkdir(output);
+await copyFile("dist/main.js", path.join(output, "main.js"), constants.COPYFILE_EXCL);
+if (style) {
+  await copyFile("dist/styles.css", path.join(output, "styles.css"), constants.COPYFILE_EXCL);
+}
+await writeFile(path.join(output, "release.json"), releaseBytes, { flag: "wx" });
+await writeFile(path.join(output, "marketplace.example.json"), jsonBytes(marketplace), { flag: "wx" });
+console.info(`Packaged ${manifest.id}@${manifest.version} in ${output}`);
+```
+
+Run from the extension root after a successful build, replacing both example URLs:
+
+```sh
+bun scripts/package-release.mjs \
+  https://extensions.example.com/artifacts/acme.my-tool/1.0.0/release.json \
+  https://github.com/acme/my-tool
+```
+
+Upload `main.js`, `release.json`, and `styles.css` when present to the declared immutable directory. For your first marketplace, edit its display identity as needed and publish `marketplace.example.json` as the root `marketplace.json`. The index itself is not hash-pinned.
+
+For later versions, merge the generated version entry into your existing index, retain historical versions, update `latestVersion` and `generatedAt`, and preserve other extensions. Do not replace a multi-extension marketplace with this script's single-extension example. Run `parseExtensionMarketplace` against the merged index before upload.
+
+For GitHub hosting, use the two-commit workflow in Option A: the full artifact commit SHA is only known after the artifact commit. The generic example assumes you already know the immutable HTTPS descriptor URL.
+
+## Install and verify
+
+Add `https://github.com/owner/repository` or the complete HTTPS marketplace URL in organization **Marketplaces**, then install from **Extensions** as described in the [quickstart](/developers/extensions/quickstart#5-install-in-a-test-organization).
+
+Verify:
+
+- The catalog shows the correct extension ID, developer, release version, and permissions.
+- Installation succeeds in a browser, proving the hosted responses permit CORS.
+- The installed panel/resource behaves correctly after close, reopen, and restart.
+- The release works on the oldest host/API combination you claim to support.
+
+Installed extensions retain descriptor URL, exact length, and hash pins. The marketplace is mutable discovery data; changing it does not silently replace an installed executable.
+
+## Release updates
+
+Increase `manifest.version`, keep package metadata consistent, rebuild, test, publish a new immutable artifact directory, then add its version entry to the marketplace. Increase the resource schema version only when its data contract changes; a UI fix does not need a data migration.
+
+If a release requires SDK 0.11/API 0.10 capabilities, ensure a compatible host is available before advertising it. Keep prior compatible releases in the index. Do not promise that installing older code can reverse a data migration: older code may quarantine newer schemas.
+
+Back to [the developer guide](/developers/extensions).

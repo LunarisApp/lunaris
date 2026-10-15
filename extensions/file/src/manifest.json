@@ -1,0 +1,13 @@
+{
+  "id": "lunaris.file",
+  "name": "File",
+  "description": "Add files to your workspace and preview supported formats",
+  "longDescription": "Keep files alongside the rest of your workspace and preview supported formats directly in Lunaris. Upload, organize, inspect, and download workspace files without switching tools.",
+  "keywords": ["files", "attachments", "preview", "documents"],
+  "developer": "Lunaris",
+  "website": "https://lunaris.app",
+  "version": "1.0.0",
+  "api": "^0.9.0",
+  "optionalDependencies": {},
+  "permissions": ["content.read", "content.write", "files.read", "files.write"]
+}

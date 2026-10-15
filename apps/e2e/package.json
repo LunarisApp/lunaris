@@ -1,0 +1,18 @@
+{
+  "name": "e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "e2e": "cypress run",
+    "e2e:open": "cypress open",
+    "e2e:local": "CYPRESS_BACKEND_LOG_PATH=${CYPRESS_BACKEND_LOG_PATH:-$PWD/../api/backend.log} cypress run",
+    "e2e:local:open": "CYPRESS_BACKEND_LOG_PATH=${CYPRESS_BACKEND_LOG_PATH:-$PWD/../api/backend.log} cypress open",
+    "typecheck": "tsc --noEmit -p cypress/tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "cypress": "^15.21.1",
+    "typescript": "^7.0.2"
+  }
+}

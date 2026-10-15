@@ -1,0 +1,92 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "noEmit": true,
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": false,
+    "types": [
+      "bun"
+    ],
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@app/auth": [
+        "./libs/auth/src"
+      ],
+      "@app/auth/*": [
+        "./libs/auth/src/*"
+      ],
+      "@app/db": [
+        "./libs/db/src"
+      ],
+      "@app/db/*": [
+        "./libs/db/src/*"
+      ],
+      "@app/health": [
+        "./libs/health/src"
+      ],
+      "@app/health/*": [
+        "./libs/health/src/*"
+      ],
+      "@app/http-client": [
+        "./libs/http-client/src"
+      ],
+      "@app/http-client/*": [
+        "./libs/http-client/src/*"
+      ],
+      "@app/polar": [
+        "./libs/polar/src"
+      ],
+      "@app/polar/*": [
+        "./libs/polar/src/*"
+      ],
+      "@app/posthog": [
+        "./libs/posthog/src"
+      ],
+      "@app/posthog/*": [
+        "./libs/posthog/src/*"
+      ],
+      "@app/redis": [
+        "./libs/redis/src"
+      ],
+      "@app/redis/*": [
+        "./libs/redis/src/*"
+      ],
+      "@app/resend": [
+        "./libs/resend/src"
+      ],
+      "@app/resend/*": [
+        "./libs/resend/src/*"
+      ],
+      "@app/storage": [
+        "./libs/storage/src"
+      ],
+      "@app/storage/*": [
+        "./libs/storage/src/*"
+      ],
+      "@app/utils": [
+        "./libs/utils/src"
+      ],
+      "@app/utils/*": [
+        "./libs/utils/src/*"
+      ],
+      "@app/edition": [
+        "./src/edition/community.ts"
+      ]
+    }
+  }
+}

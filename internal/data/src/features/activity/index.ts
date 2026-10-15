@@ -1,0 +1,1 @@
+export { latestTimestamp } from "./time";

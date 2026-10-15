@@ -1,0 +1,195 @@
+@reference "@lunarisapp/ui/globals.css";
+
+/* Sources tailwind classes in all components of the blocknote. */
+@source "../../../node_modules/@blocknote/shadcn";
+
+.rich-text-editor-view,
+.rich-text-editor-view > .bn-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.rich-text-editor-view > .bn-container,
+.rich-text-editor-view > .bn-container > .bn-editor {
+  flex: 1;
+}
+
+.rich-text-editor-view > .bn-container > .bn-editor {
+  height: auto;
+}
+
+.bn-editor {
+  @apply h-full bg-transparent text-foreground;
+}
+
+@media (max-width: 767px) {
+  .bn-editor {
+    padding-inline: 1rem;
+  }
+}
+
+.bn-default-styles {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.bn-container {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.entity-reference-inline {
+  vertical-align: 0.02em;
+  @apply mx-px inline-flex max-w-72 cursor-pointer select-none items-center gap-[0.24em] rounded-[0.3em] border border-transparent bg-muted/45 px-[0.44em] py-[0.14em] text-[0.9em] font-normal leading-none text-foreground outline-none transition-[background-color,border-color,box-shadow] duration-150 hover:bg-muted/70 focus-visible:border-ring/60 focus-visible:ring-2 focus-visible:ring-ring/25 active:bg-accent;
+}
+
+.entity-reference-inline__icon {
+  display: block;
+  flex: 0 0 0.82em;
+  width: 0.82em;
+  height: 0.82em;
+  @apply text-muted-foreground transition-colors duration-150;
+}
+
+.entity-reference-inline:hover .entity-reference-inline__icon,
+.entity-reference-inline:focus-visible .entity-reference-inline__icon {
+  @apply text-foreground;
+}
+
+.entity-reference-inline__label {
+  @apply truncate;
+}
+
+.entity-reference-suggestion {
+  @apply w-[min(20rem,calc(100vw-1.5rem))] overflow-hidden rounded-lg bg-popover text-popover-foreground shadow-[0_12px_32px_-16px_oklch(0_0_0/0.28),0_2px_8px_-5px_oklch(0_0_0/0.16)];
+}
+
+.entity-reference-suggestion__header {
+  @apply flex items-center gap-2 border-b border-border/60 px-2.5 py-2;
+}
+
+.entity-reference-suggestion__header-icon,
+.entity-reference-suggestion__empty-icon {
+  @apply flex size-6 shrink-0 items-center justify-center rounded-md bg-muted/60 text-muted-foreground;
+}
+
+.entity-reference-suggestion__header-icon svg,
+.entity-reference-suggestion__empty-icon svg {
+  @apply size-3.5;
+}
+
+.entity-reference-suggestion__header-copy,
+.entity-reference-suggestion__item-copy,
+.entity-reference-suggestion__loading-copy {
+  @apply min-w-0 flex-1;
+}
+
+.entity-reference-suggestion__title,
+.entity-reference-suggestion__description,
+.entity-reference-suggestion__item-title,
+.entity-reference-suggestion__item-context,
+.entity-reference-suggestion__empty-title,
+.entity-reference-suggestion__empty-description,
+.entity-reference-suggestion__loading-title,
+.entity-reference-suggestion__loading-subtitle {
+  @apply block;
+}
+
+.entity-reference-suggestion__title {
+  @apply text-xs font-medium leading-4;
+}
+
+.entity-reference-suggestion__description {
+  @apply text-[0.6875rem] leading-3.5 text-muted-foreground;
+}
+
+.entity-reference-suggestion__spinner {
+  @apply size-4 shrink-0 animate-spin text-muted-foreground;
+}
+
+.entity-reference-suggestion__list {
+  @apply max-h-64 overflow-y-auto overscroll-contain p-1;
+}
+
+.entity-reference-suggestion__item {
+  @apply flex min-h-10 cursor-pointer select-none items-center gap-2 rounded-md px-2 py-1 outline-none transition-colors duration-100 hover:bg-muted/45 aria-selected:bg-muted/60;
+}
+
+.entity-reference-suggestion__item-icon {
+  @apply flex size-6 shrink-0 items-center justify-center text-muted-foreground transition-colors duration-100;
+}
+
+.entity-reference-suggestion__item-icon[data-kind="item"] {
+  @apply text-muted-foreground;
+}
+
+.entity-reference-suggestion__item-icon[data-kind="workspace"] {
+  @apply text-foreground/75;
+}
+
+.entity-reference-suggestion__item-icon svg {
+  @apply size-3.5;
+}
+
+.entity-reference-suggestion__item:hover
+  .entity-reference-suggestion__item-icon,
+.entity-reference-suggestion__item[aria-selected="true"]
+  .entity-reference-suggestion__item-icon {
+  @apply text-foreground;
+}
+
+.entity-reference-suggestion__item-title {
+  @apply truncate text-[0.8125rem] font-normal leading-4;
+}
+
+.entity-reference-suggestion__item-context {
+  @apply truncate text-[0.6875rem] leading-3.5 text-muted-foreground;
+}
+
+.entity-reference-suggestion__loading {
+  @apply space-y-1 p-1;
+}
+
+.entity-reference-suggestion__loading-row {
+  @apply flex min-h-10 items-center gap-2 rounded-md px-2 py-1;
+}
+
+.entity-reference-suggestion__loading-icon {
+  @apply size-6 shrink-0 animate-pulse rounded-md bg-muted;
+}
+
+.entity-reference-suggestion__loading-title {
+  @apply h-2.5 w-2/5 animate-pulse rounded-sm bg-muted;
+}
+
+.entity-reference-suggestion__loading-subtitle {
+  @apply mt-1 h-2 w-3/5 animate-pulse rounded-sm bg-muted/60;
+}
+
+.entity-reference-suggestion__empty {
+  @apply flex flex-col items-center px-6 py-7 text-center;
+}
+
+.entity-reference-suggestion__empty-icon {
+  @apply mb-2 bg-muted/60 text-muted-foreground;
+}
+
+.entity-reference-suggestion__empty-title {
+  @apply text-sm font-medium;
+}
+
+.entity-reference-suggestion__empty-description {
+  @apply mt-0.5 text-xs text-muted-foreground;
+}
+
+.entity-reference-suggestion__footer {
+  @apply flex flex-wrap items-center gap-x-2.5 gap-y-1 border-t border-border/60 px-2.5 py-1.5 text-[0.625rem] text-muted-foreground;
+}
+
+.entity-reference-suggestion__shortcut {
+  @apply inline-flex items-center gap-1.5;
+}
+
+.entity-reference-suggestion__footer [data-slot="kbd"] {
+  @apply h-3.5 min-w-3.5 rounded-[0.2rem] bg-muted/60 px-0.5 text-[0.5625rem] font-medium;
+}

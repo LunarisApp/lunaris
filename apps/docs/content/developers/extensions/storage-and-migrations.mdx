@@ -1,0 +1,177 @@
+---
+title: "Storage and Migrations"
+description: "Choose Yjs, key-value, or file storage and safely upgrade saved resources."
+---
+
+# Storage and Migrations
+
+Resource types own named durable slots. Views request a subset of those slots. This keeps storage stable when you replace a renderer or offer multiple views of the same content.
+
+## Choose a storage kind
+
+| Kind | Use for | Read or mutate with |
+| --- | --- | --- |
+| `yjs` | Shared structured content and collaborative editing | `useYjsStorage`, then Yjs operations and subscriptions |
+| `key-value` | Small synced settings or values | `useKeyValue` |
+| `file` | One binary attachment per fixed slot | `useStoredFile`, `useFileStorage` |
+| Declared workspace KV | Extension-wide preferences within a workspace | `useWorkspaceKeyValue` |
+
+A resource may combine kinds. File slots contain zero or one file; dynamic collections require another model, such as separate child resources. Use `{}` for a resource with no durable slots.
+
+Slot names and kinds are durable contracts. Never rename a slot or change its kind in place. Introduce a new slot with a migration plan; adding a slot requires a schema-version bump.
+
+## Wait for Yjs hydration
+
+Declare `yjs` in your extension's dependencies when importing it (`bun add yjs`), using a version compatible with the SDK's peer range.
+
+Declare `content: { kind: "yjs" }` on the resource and `content: "yjs"` in the view's requirements. Initialize default data in the resource slot's `initialize(document, context)` callback, not during rendering.
+
+This component edits a single Yjs map field:
+
+```tsx
+import {
+  useOrganizationAccess,
+  useYjsStorage,
+  useYMapField,
+  type ResourceViewProps,
+} from "@lunarisapp/plugin-sdk";
+import type { Doc } from "yjs";
+
+function LoadedTitle({ document }: { document: Doc }) {
+  const [title, setTitle] = useYMapField(document.getMap<string>("fields"), "title");
+  const { canWriteContent } = useOrganizationAccess();
+  return (
+    <label>
+      Title
+      <input
+        value={title}
+        readOnly={!canWriteContent}
+        onChange={(event) => setTitle(event.currentTarget.value)}
+      />
+    </label>
+  );
+}
+
+export function TitleEditor({ storage }: ResourceViewProps) {
+  const content = useYjsStorage(storage.content);
+  if (content.error) return <p role="alert">Content could not be loaded.</p>;
+  if (content.isLoading || !content.yDoc) {
+    return <p role="status">Loading content…</p>;
+  }
+  return <LoadedTitle key={storage.content?.storageId} document={content.yDoc} />;
+}
+```
+
+The separate loaded component keeps hooks unconditional. `useYMapField` observes a map field and unsubscribes on cleanup. A map field replaces a whole string; use `Y.Text` or an editor's Yjs binding when you need character-level collaborative text editing. Observe Yjs types so remote edits trigger UI updates; reading `toJSON()` alone is not a subscription.
+
+`yProvider` exposes `getPersistenceState`, `subscribePersistenceState`, and `waitForPersistence`. Await persistence before an operation that must read host-persisted state, such as a resource export. This means host persistence, not confirmation that every remote device has received the edit. Handle rejected waits and surface save errors.
+
+With protocol 7, the sandbox hydrates and synchronizes incrementally. The SDK owns this transport; extension code should not implement sandbox messages, replicate whole documents on every render, or echo host-origin updates.
+
+## Key-value storage
+
+`useKeyValue<T>(handle, key)` returns `value`, `isLoading`, `isFetching`, `set`, and `remove`. `value` can be `null`. Both mutations return promises: await them and display failures. Store JSON-compatible data; a TypeScript generic does not validate runtime data.
+
+Prefer independent keys for independent settings. For simultaneous edits to structured content, use Yjs rather than overwriting a large serialized object. KV is synced workspace data, not secret storage.
+
+Declare workspace KV during activation:
+
+```tsx
+import {
+  definePlugin,
+  defineWorkspaceStorage,
+  useWorkspaceKeyValue,
+} from "@lunarisapp/plugin-sdk";
+import manifest from "../manifest.json";
+
+export const preferences = defineWorkspaceStorage({
+  kind: "key-value",
+  storageId: "acme.my-tool.preferences",
+});
+
+export default definePlugin({
+  manifest,
+  activate({ contributions }) {
+    contributions.workspaceStorage(preferences);
+    // Register the view that renders your settings UI here too.
+  },
+});
+
+export function DensityLabel() {
+  const density = useWorkspaceKeyValue<string>(preferences, "density");
+  if (density.isLoading) return <p role="status">Loading preferences…</p>;
+  return <p>Density: {density.value ?? "comfortable"}</p>;
+}
+```
+
+This snippet illustrates registration and reading, not a complete launchable extension. Add it to your existing activation. Both resource and workspace KV hooks require `content.read` and `content.write`. Workspace descriptors are private to the registering extension; disabling it removes the registration without erasing the data.
+
+## File storage
+
+Declare a file slot on the resource, and require it in each consuming resource view. `useStoredFile(handle)` exposes metadata and availability state; handle absent, loading, downloading, unavailable, and failed content. An offline client may have resource metadata without locally available bytes.
+
+Call `useFileStorage()` in your component, then use its capabilities from an event handler:
+
+```ts
+await files.upload({ file, storage: storage.cover! });
+await files.download(storage.cover!);
+```
+
+Here `file` is a user-selected `File`, and `cover` is a declared file slot. The hook requires both `files.read` and `files.write`; a read-only preview can use `useStoredFile` with `files.read` alone. Replacing a file queues the old object for deletion. Do not retain backing object keys or write directly to attachment tables.
+
+For generated exports that are not resource attachments, use [downloads](/developers/extensions/host-capabilities#downloads-and-workers).
+
+## Evolve the logical schema
+
+One schema covers the logical payload of all slots. Its `read(context)` reconstructs that payload from hydrated Yjs documents, KV snapshots, and read-only file metadata. Use a Standard Schema validator such as Zod for every historical version from 1 through `currentVersion`.
+
+For every upgrade:
+
+1. Keep the resource type and schema IDs unchanged.
+2. Increase `currentVersion` by one.
+3. Preserve the previous validators and add the new validator.
+4. Add a pure adjacent migration: `{ from: 1, to: 2, migrate(payload) { ... } }`.
+5. Provide `write(payload, context)` to apply validated migrated data to staged storage.
+6. Update compatible view schema ranges and storage requirements.
+7. Test an actual old payload and an already-current resource.
+
+For the review card, a version 2 might add a label. This is the replacement `schema` value; import `z` from `zod` and keep the resource's `settings` slot:
+
+```ts
+schema: {
+  id: "acme.my-tool.card.data",
+  currentVersion: 2,
+  versions: {
+    1: z.object({ reviewed: z.boolean() }),
+    2: z.object({ reviewed: z.boolean(), label: z.string() }),
+  },
+  read: ({ storage }) => {
+    const settings = storage.settings;
+    if (settings?.kind !== "key-value") throw new Error("Settings unavailable");
+    return settings.values;
+  },
+  migrations: [{
+    from: 1,
+    to: 2,
+    migrate: (payload) => ({
+      ...z.object({ reviewed: z.boolean() }).parse(payload),
+      label: "Review",
+    }),
+  }],
+  write: (payload, { storage }) => {
+    const next = z.object({ reviewed: z.boolean(), label: z.string() }).parse(payload);
+    const settings = storage.settings;
+    if (settings?.kind !== "key-value") throw new Error("Settings unavailable");
+    settings.values.reviewed = next.reviewed;
+    settings.values.label = next.label;
+  },
+}
+```
+
+Also change the slot initializer to `() => ({ reviewed: false, label: "Review" })` so newly created resources satisfy version 2. A migration upgrades existing data; it is not a substitute for valid initialization.
+
+Migration writes are staged and committed with the resource version using compare-and-set. Slot additions are provisioned with that migration. Keep migrations deterministic and free of network calls, downloads, and other external side effects. They may be retried.
+
+Invalid payloads, newer unsupported schemas, and corrupt layouts are quarantined without rewriting the stored data. Fix the validator/migration and preserve the resource; do not use “reset to defaults” as an automatic recovery path.
+
+Next: [host capabilities](/developers/extensions/host-capabilities).

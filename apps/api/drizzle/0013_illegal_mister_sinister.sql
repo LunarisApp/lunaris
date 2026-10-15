@@ -1,0 +1,1 @@
+ALTER TABLE "organization" ADD COLUMN "yjs_retention_days" integer DEFAULT 7 NOT NULL;

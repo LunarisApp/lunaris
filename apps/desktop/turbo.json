@@ -1,0 +1,14 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "env": [
+        "LUNARIS_BUILD_SHA",
+        "LUNARIS_BUILD_VERSION",
+        "LUNARIS_SIGNING_MODE",
+        "TAURI_ENV_DEBUG"
+      ]
+    }
+  }
+}

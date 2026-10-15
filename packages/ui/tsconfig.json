@@ -1,0 +1,13 @@
+{
+  "extends": "../../internal/typescript-config/react-library.json",
+  "compilerOptions": {
+    "paths": {
+      "@lunarisapp/ui/*": ["./src/*"]
+    },
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strictNullChecks": true
+  },
+  "include": ["."],
+  "exclude": ["node_modules", "dist"]
+}

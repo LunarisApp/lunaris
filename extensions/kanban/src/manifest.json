@@ -1,0 +1,13 @@
+{
+  "id": "lunaris.kanban",
+  "name": "Kanban",
+  "description": "Kanban board for task management",
+  "longDescription": "Plan and track work with Kanban boards embedded in your Lunaris workspaces. Organize tasks into columns, capture task details, and move work through each stage of your workflow.",
+  "keywords": ["kanban", "tasks", "workspace-management", "workflow"],
+  "developer": "Lunaris",
+  "website": "https://lunaris.app",
+  "version": "1.0.0",
+  "api": "^0.9.0",
+  "optionalDependencies": { "lunaris.exporter": "^0.0.1" },
+  "permissions": ["content.read", "content.write", "network.https"]
+}

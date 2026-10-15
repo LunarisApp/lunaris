@@ -1,0 +1,13 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/tooling/clean-dist.ts",
+        "$TURBO_ROOT$/tooling/copy-public-assets.ts"
+      ]
+    }
+  }
+}

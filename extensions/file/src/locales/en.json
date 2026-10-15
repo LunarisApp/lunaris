@@ -1,0 +1,23 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "file": {
+          "name": "File",
+          "description": "Add files to your workspace and preview supported formats"
+        }
+      }
+    }
+  },
+  "fileExtension": {
+    "file": {
+      "download": "Download",
+      "downloadFailed": "File not available",
+      "downloadPending": "Downloading file",
+      "downloadUnavailable": "File download unavailable",
+      "invalidXml": "Invalid XML",
+      "missingMetadata": "File metadata is missing",
+      "uploadPending": "Uploading file"
+    }
+  }
+}

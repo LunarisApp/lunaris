@@ -1,0 +1,179 @@
+---
+title: "Resources and Resource Views"
+description: "Build a persistent review card with a typed schema, named storage, and an accessible editor."
+---
+
+# Resources and Resource Views
+
+Use a resource type when users should create, save, reopen, and organize content. Use a resource view to render it. Multiple views can render the same resource without duplicating its data.
+
+## Build a saved review card
+
+This example extends the quickstart with a resource containing one synced checkbox. It uses key-value storage so you can learn the resource contract without building a collaborative text editor.
+
+Add a validator dependency:
+
+```sh
+bun add zod
+```
+
+Keep the quickstart manifest's ID, `acme.my-tool`, and change its permissions to:
+
+```json
+"permissions": ["content.read", "content.write"]
+```
+
+Replace `src/index.tsx` with this complete example:
+
+```tsx
+import {
+  definePlugin,
+  defineResourceType,
+  defineView,
+  useKeyValue,
+  useOrganizationAccess,
+  type ResourceViewProps,
+} from "@lunarisapp/plugin-sdk";
+import { Note01Icon } from "@lunarisapp/ui/icons";
+import { useState } from "react";
+import { z } from "zod";
+import manifest from "../manifest.json";
+
+export const cardPayload = z.object({ reviewed: z.boolean() });
+
+export const cardType = defineResourceType({
+  resourceTypeId: "acme.my-tool.card",
+  name: "Review card",
+  icon: Note01Icon,
+  hierarchy: { userCreatable: true, visible: true },
+  defaultViewId: "acme.my-tool.card.editor",
+  storage: {
+    settings: {
+      kind: "key-value",
+      initialize: () => ({ reviewed: false }),
+    },
+  },
+  schema: {
+    id: "acme.my-tool.card.data",
+    currentVersion: 1,
+    versions: { 1: cardPayload },
+    read: ({ storage }) => {
+      const settings = storage.settings;
+      if (settings?.kind !== "key-value") {
+        throw new Error("Review card settings are unavailable");
+      }
+      return settings.values;
+    },
+  },
+});
+
+function ReviewCard({ storage }: ResourceViewProps) {
+  const reviewed = useKeyValue<boolean>(storage.settings!, "reviewed");
+  const { canWriteContent } = useOrganizationAccess();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save(next: boolean) {
+    setSaving(true);
+    setError(null);
+    try {
+      await reviewed.set(next);
+    } catch {
+      setError("Could not save. Try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (reviewed.isLoading) return <p role="status">Loading review card…</p>;
+
+  return (
+    <main style={{ padding: 24 }}>
+      <h1>Review card</h1>
+      <label>
+        <input
+          type="checkbox"
+          checked={reviewed.value ?? false}
+          disabled={!canWriteContent || saving}
+          onChange={(event) => void save(event.currentTarget.checked)}
+        />
+        Reviewed
+      </label>
+      {saving && <p role="status">Saving…</p>}
+      {error && <p role="alert">{error}</p>}
+    </main>
+  );
+}
+
+export const cardView = defineView({
+  viewId: "acme.my-tool.card.editor",
+  name: "Review card",
+  icon: Note01Icon,
+  renderer: ReviewCard,
+  storageRequirements: { settings: "key-value" },
+  target: {
+    kind: "resource",
+    resourceTypeIds: ["acme.my-tool.card"],
+    schemas: [{ id: "acme.my-tool.card.data", minimumVersion: 1, maximumVersion: 1 }],
+  },
+});
+
+export default definePlugin({
+  manifest,
+  activate({ contributions }) {
+    contributions.resourceType(cardType);
+    contributions.view(cardView);
+  },
+});
+```
+
+Run `bun run typecheck` and `bun run build`, then publish a new version. Create a **Review card** from the workspace's resource creation UI, toggle **Reviewed**, close it, and reopen it. The checkbox should persist. Test a second client and reconnect behavior before shipping.
+
+The example's non-null assertion is justified by `storageRequirements`: the host matches that slot before opening the view. Do not make the same assumption about arbitrary resources obtained from a workspace list.
+
+## Choose the right identifiers
+
+| Identifier | Identifies |
+| --- | --- |
+| Manifest `id` | The installed extension and its namespace |
+| `resourceTypeId` | A registered kind of durable content |
+| Schema `id` | The logical data contract consumed by compatible views and tools |
+| `resourceId` | One saved resource instance |
+| `viewId` | A registered rendering definition |
+| `viewInstanceId` | An open organization view instance |
+| Storage handle `storageId` | Opaque host-issued access to a named slot |
+
+Use `resourceId` for content navigation and resource actions. Do not construct storage handles or infer backing Yjs IDs from them.
+
+## Match views to data
+
+A resource view must declare `storageRequirements`, even when it is `{}`. The host matches resource type, schema range, slot names, and slot kinds before offering the view. When both type IDs and schemas are supplied, both filters must match.
+
+A default view must match its resource type. Missing requirements fail activation; corrupt persisted layouts are quarantined. A view targeting only schema version 1 will not accept version 2 until you update its range and implementation.
+
+Views can declare different subsets: an editor can require `content: "yjs"` and `settings: "key-value"`, while a summary requires only settings. A view can target another extension's public resource contract, but must respect its schema and host-issued storage scope.
+
+For lists, use `useWorkspaceChildrenMap()` or `useWorkspaceResourcesMap()`. Each child carries its own handles. Render a keyed child component per resource; call its storage hooks there. Do not call hooks in a changing loop or reuse the containing resource's storage for every child.
+
+## Create resources with custom input
+
+The host supports generic creation. Add `createInWorkspace` only when you need a custom flow, such as selecting a file or choosing initial content. Its scoped context provides:
+
+- `createResource({ name, initialPayload })`, which returns the new resource and handles.
+- `uploadFile({ file, storage })` for one of its file slots.
+- `deleteResource(resourceId)` for cleanup if a multi-step creation fails.
+- `parentId` for the creation location.
+
+Return the created resource, or `null` when cancelled. Use slot `initialize` callbacks to interpret `initialPayload`. Resource creation, bindings, and initial KV/Yjs state are atomic; a later file upload is a separate operation and needs failure handling.
+
+Inside UI, `useWorkspaceResourceActions().createResource(...)` creates resources by registered type. It requires `content.write`. Use `PLUGIN_WORKSPACE_ROOT_ID` when the action expects the workspace root; do not invent a root ID.
+
+## Status, navigation, and readiness
+
+A resource view can provide `statusBar`, a renderer receiving `resource`, `storage`, and `params`. Return one component or fragment containing related counts or state. It only appears while that resource view is active. Standalone views cannot provide status bars.
+
+Use `useOrganizationNavigation().openResource(...)` to open content and `.openView(...)` to open an extension-owned panel. Treat boolean-returning navigation methods as capabilities that may be unsupported. Use entity references and `openEntityReference` for stable references across workspaces; see [host capabilities](/developers/extensions/host-capabilities#workspace-content-and-navigation).
+
+`ResourceViewProps.reportReady` is optional. If you use it, call it when useful content has rendered, after loading and hydration, not merely when the component mounts.
+
+Next: [storage and migrations](/developers/extensions/storage-and-migrations).

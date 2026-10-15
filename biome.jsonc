@@ -1,0 +1,55 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["ultracite/biome/core", "ultracite/biome/react"],
+  "files": {
+    "includes": ["!.claude", "!.agents"]
+  },
+  "overrides": [
+    {
+      "includes": ["apps/api/**"],
+      "javascript": {
+        "parser": {
+          "unsafeParameterDecoratorsEnabled": true
+        }
+      }
+    },
+    {
+      "includes": ["apps/landing/**"],
+      "assist": {
+        "actions": {
+          "source": {
+            "useSortedAttributes": "off"
+          }
+        }
+      }
+    }
+  ],
+  "formatter": {
+    "includes": ["!apps/web/src/auto-imports.d.ts"]
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off",
+        "useSortedAttributes": "off",
+        "useSortedKeys": "off",
+        "useSortedPackageJson": "off"
+      }
+    },
+    "includes": ["**", "!apps/web/src/auto-imports.d.ts"]
+  },
+  "linter": {
+    "includes": [
+      "!packages/ui/src/components",
+      "!apps/web/src/auto-imports.d.ts"
+    ],
+    "rules": {
+      "a11y": {
+        "useAnchorContent": "off"
+      },
+      "performance": {
+        "noBarrelFile": "off"
+      }
+    }
+  }
+}

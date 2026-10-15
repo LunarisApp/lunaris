@@ -1,0 +1,46 @@
+---
+title: "Sync Status"
+description: "Understand each Lunaris sync state and the action it may require."
+---
+
+# Sync Status
+
+The sync indicator reports whether this browser can exchange cloud-workspace
+changes with Lunaris. Select the indicator to see details, including the last
+successful sync when available.
+
+| Status | Meaning | What to do |
+| --- | --- | --- |
+| **Cloud sync connected** | Lunaris is connected to cloud sync. | Check for pending uploads before closing after important work. |
+| **Connecting to cloud sync** | Lunaris is establishing its sync connection. | Keep the app open. |
+| **Uploading** | Local changes or files are moving to the cloud. | Wait before closing after important work. |
+| **Downloading** | Cloud changes or files are moving to this browser. | Keep the app open until needed content arrives. |
+| **You Are Offline** | No network connection is available. Changes remain local for now. | Reconnect; syncing resumes automatically. |
+| **Cloud Sync Is Off** | The guest session does not have cloud sync. | Sign up to enable cloud workspaces and cross-device sync. |
+| **Sync Interrupted** | Lunaris reached a temporary transfer error and is retrying. | Keep the app open. Check the shown reason if it continues. |
+| **Sign In to Resume Sync** | The session expired and uploads were rejected. | Sign in again. |
+| **Sync Needs Access** | The current account cannot upload the queued change. | Check organization access or billing, then retry. |
+| **Sync Paused** | Repeated upload failures paused retries for this session. | Correct the cause, then retry from Local Data settings. |
+
+## Last Synced
+
+**Last Synced** is the most recent time this browser completed a successful
+cloud sync. It does not promise that a change made afterward has uploaded. Wait
+for **Uploading** and **Downloading** to finish before closing the app after
+important work.
+
+## Local workspaces
+
+Local workspaces do not cloud sync, even while the app is online. Their content
+stays in this browser or desktop app. A Local workspace therefore cannot be made current
+on another device through the sync indicator.
+
+## When sync is paused
+
+Open **Settings → Local Data** and choose **Retry Sync** after fixing the sign-in,
+permission, plan, or connection problem. **Discard Pending Uploads** permanently
+discards pending uploads and can lose unsynced work, so use it only when you no
+longer need those changes.
+
+See [Work Offline](/guides/offline-and-sync/work-offline) and
+[Troubleshoot Sync Problems](/troubleshooting/sync-problems) for next steps.

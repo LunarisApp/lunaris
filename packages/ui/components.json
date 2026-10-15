@@ -1,0 +1,27 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "base-nova",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/globals.css",
+    "baseColor": "stone",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "hugeicons",
+  "menuColor": "default",
+  "menuAccent": "subtle",
+  "aliases": {
+    "components": "@lunarisapp/ui/components",
+    "utils": "@lunarisapp/ui/lib/utils",
+    "ui": "@lunarisapp/ui/components",
+    "lib": "@lunarisapp/ui/lib",
+    "hooks": "@lunarisapp/ui/hooks"
+  },
+  "registries": {
+    "@reui": "https://reui.io/r/{style}/{name}.json",
+    "@diceui": "https://diceui.com/r/{name}.json"
+  }
+}

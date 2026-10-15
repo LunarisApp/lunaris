@@ -1,0 +1,66 @@
+---
+title: "Roles and Permissions"
+description: "Compare owner, editor, and viewer access at organization and workspace levels."
+---
+
+# Roles and Permissions
+
+Lunaris uses organization roles for shared content and administration. Private
+workspaces give selected organization members a separate workspace role.
+
+## Organization roles
+
+| Capability | Owner | Editor | Viewer |
+| --- | :---: | :---: | :---: |
+| Open Shared workspaces and content | Yes | Yes | Yes |
+| Create and edit Shared-workspace content | Yes | Yes | No |
+| Create and manage workspaces | Yes | Yes | No |
+| View organization members | Yes | Yes | Yes |
+| Invite, remove, or change members | Yes | No | No |
+| Manage organization details | Yes | No | No |
+| Create and view backups | Yes | No | No |
+| View Audit log | Yes | No | No |
+| Manage billing | Yes | No | No |
+| Delete organization | Yes | No | No |
+
+### Owner
+
+Owner is the administrative role. Owners control organization access, backups,
+billing, and the Audit log in addition to normal workspace work. The
+organization owner cannot be removed or changed to another role.
+
+### Editor
+
+Editors can create, rename, update, and delete workspaces and content. They can
+see the member list but cannot invite people or manage organization administration.
+
+### Viewer
+
+Viewers can open Shared workspaces and content without changing them. A Private
+workspace can separately grant that member Editor or Viewer access.
+
+Personal organizations do not support additional members. In a shared organization,
+an owner can invite new members as Editor or Viewer from **Organization Settings →
+Members**.
+
+## Private-workspace roles
+
+Private workspaces add a second access decision:
+
+| Workspace access | What it allows |
+| --- | --- |
+| **Workspace owner** | Controls private access, visibility, extensions, and ownership. |
+| **Editor** | Can change that workspace's content and manage its extensions. |
+| **Viewer** | Can open the workspace without changing it. |
+| **No workspace access** | Cannot find or open the Private workspace. |
+
+Private-workspace access can only be granted to existing organization members. The
+workspace owner can change a member between Editor and Viewer, remove their
+access, or transfer workspace ownership to an eligible organization member.
+
+Shared workspaces do not use individual workspace roles. Every organization member can
+open them, and their organization role determines what they can do. Local workspaces
+have no roles because they never leave their browser profile.
+
+See [Invite People and Share Workspaces](/guides/collaboration/invite-and-share)
+for the sharing workflow.

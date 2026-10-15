@@ -1,0 +1,32 @@
+name: lunaris-aio
+services:
+  lunaris:
+    image: lunaris:all-in-one-${LUNARIS_EDITION:-community}
+    build:
+      context: ../..
+      dockerfile: infra/all-in-one/Dockerfile
+      args:
+        LUNARIS_EDITION: ${LUNARIS_EDITION:-community}
+    restart: unless-stopped
+    stop_grace_period: 5m
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-8080}:8080"
+    environment:
+      SIGNUPS_ALLOWED: ${SIGNUPS_ALLOWED:-true}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
+      EMAIL_VERIFICATION_DISABLED: ${EMAIL_VERIFICATION_DISABLED:-true}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    volumes:
+      - data:/data
+    shm_size: 256mb
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+volumes:
+  data:

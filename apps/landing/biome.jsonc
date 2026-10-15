@@ -1,0 +1,33 @@
+{
+	"$schema": "../../node_modules/@biomejs/biome/configuration_schema.json",
+	"root": false,
+	"extends": ["../../biome.jsonc"],
+	"files": {
+		"includes": [
+			"**",
+			"!.next",
+			"!build",
+			"!node_modules",
+			"!out",
+			"!next-env.d.ts"
+		]
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
+	"formatter": {
+		"includes": ["**"]
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"useSortedAttributes": "off"
+			}
+		}
+	},
+	"linter": {
+		"includes": ["**"]
+	}
+}
