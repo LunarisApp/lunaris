@@ -76,6 +76,34 @@ describe("useWorkspaceTreeNavigationState", () => {
     expect(itemInstance.scrollTo).toHaveBeenCalled();
   });
 
+  it("preserves open and rename actions while the resource query catches up", () => {
+    const itemInstance = createItemInstance();
+    const onOpenResource = vi.fn();
+    const tree = {
+      getItemInstance: vi.fn(() => itemInstance),
+      setSelectedItems: vi.fn(),
+    } as unknown as TreeInstance<WorkspaceResourceEntity>;
+    const view = renderHook(
+      ({ resourcesMap }) => useWorkspaceTreeNavigationState({
+        resourcesMap, workspaceId: "workspace-1",
+      }),
+      { initialProps: { resourcesMap: new Map() as WorkspaceResourcesMap } }
+    );
+    act(() => view.result.current.registerTree(tree, onOpenResource));
+    act(() => {
+      view.result.current.navigateToResource("new-board");
+      view.result.current.startRenamingResource("new-board");
+    });
+    expect(onOpenResource).not.toHaveBeenCalled();
+    expect(itemInstance.startRenaming).not.toHaveBeenCalled();
+    const resource = createResource({ id: "new-board", resource_type_id: "kanban" });
+    view.rerender({ resourcesMap: new Map([[resource.id, resource]]) });
+    expect(onOpenResource).toHaveBeenCalledExactlyOnceWith(resource);
+    expect(itemInstance.startRenaming).toHaveBeenCalledOnce();
+    view.rerender({ resourcesMap: new Map([[resource.id, resource]]) });
+    expect(onOpenResource).toHaveBeenCalledOnce();
+  });
+
   it("selects, reveals, and opens a navigated document", () => {
     const parentInstance = createItemInstance();
     const itemInstance = createItemInstance(parentInstance);

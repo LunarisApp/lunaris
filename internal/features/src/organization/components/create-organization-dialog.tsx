@@ -33,8 +33,6 @@ export function CreateOrganizationDialog({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const auth = useAuth();
-  const { refetch: refetchSession } = auth.useSession();
-  const { refetch: refetchActiveOrganization } = auth.useActiveOrganization();
   const { pathWithRegion } = useRegion();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -105,7 +103,7 @@ export function CreateOrganizationDialog({
       if (!slugOk) return;
 
       const { data, error } = await auth.organization.create({
-        keepCurrentActiveOrganization: false,
+        keepCurrentActiveOrganization: true,
         name: trimmedName,
         slug: trimmedSlug,
       });
@@ -133,12 +131,8 @@ export function CreateOrganizationDialog({
         name: trimmedName,
         slug: data.slug,
       });
-      // Creation changes the server's active organization. Refresh both stores
-      // before routing so the guard never sees the old session paired with it.
-      await Promise.all([
-        refetchSession({ query: { disableCookieCache: true } }),
-        refetchActiveOrganization(),
-      ]);
+      // The destination route owns activation; changing auth here races the
+      // current route guard, which still points at the previous organization.
       navigate(pathWithRegion(`/${data.slug}`));
     } catch (error) {
       log.error({

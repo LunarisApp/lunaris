@@ -156,13 +156,13 @@ describe("CreateOrganizationDialog", () => {
     await waitFor(() => {
       expect(checkSlug).toHaveBeenCalledWith({ slug: "alpha-space" });
       expect(create).toHaveBeenCalledWith({
-        keepCurrentActiveOrganization: false,
+        keepCurrentActiveOrganization: true,
         name: "Alpha Space",
         slug: "alpha-space",
       });
       expect(setActive).not.toHaveBeenCalled();
-      expect(refetchSession).toHaveBeenCalledWith({ query: { disableCookieCache: true } });
-      expect(refetchActiveOrganization).toHaveBeenCalledOnce();
+      expect(refetchSession).not.toHaveBeenCalled();
+      expect(refetchActiveOrganization).not.toHaveBeenCalled();
       expect(screen.getByTestId("location").textContent).toBe(
         "/alpha-space?region=us"
       );
@@ -172,28 +172,6 @@ describe("CreateOrganizationDialog", () => {
         slug: "alpha-space",
       });
     });
-  });
-
-  it("waits for the new auth context before navigating", async () => {
-    let finishSession!: () => void;
-    let finishOrganization!: () => void;
-    const refetchSession = vi.fn(() => new Promise<void>((resolve) => {
-      finishSession = resolve;
-    }));
-    const refetchActiveOrganization = vi.fn(() => new Promise<void>((resolve) => {
-      finishOrganization = resolve;
-    }));
-    renderDialog({ refetchSession, refetchActiveOrganization });
-    const user = userEvent.setup();
-    await user.type(screen.getByLabelText("Name"), "Alpha Space");
-    await user.click(screen.getByRole("button", { name: "Create organization" }));
-    await waitFor(() => expect(refetchSession).toHaveBeenCalledOnce());
-    expect(screen.getByTestId("location").textContent).toBe("/workspaces?region=us");
-    finishSession();
-    await Promise.resolve();
-    expect(screen.getByTestId("location").textContent).toBe("/workspaces?region=us");
-    finishOrganization();
-    await waitFor(() => expect(screen.getByTestId("location").textContent).toBe("/alpha-space?region=us"));
   });
 
   it("shows duplicate slug error when slug is taken", async () => {

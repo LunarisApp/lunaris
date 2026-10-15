@@ -277,7 +277,6 @@ export function WorkspaceExplorerTree({
     >
       <WorkspaceTreeHeader
         onCollapseAll={() => tree.collapseAll()}
-        onOpenResource={openResourceById}
         onSearchChange={setSearchQuery}
         onSearchKeyDown={handleSearchKeyDown}
         searchActiveDescendantId={activeDescendantId}
