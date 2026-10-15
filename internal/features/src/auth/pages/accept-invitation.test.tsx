@@ -124,6 +124,8 @@ function renderPage({
   }),
   acceptInvitation = vi.fn().mockResolvedValue({ error: null }),
   signOut = vi.fn().mockResolvedValue(undefined),
+  refetchSession = vi.fn().mockResolvedValue(undefined),
+  refetchActiveOrganization = vi.fn().mockResolvedValue(undefined),
 }: {
   acceptInvitation?: ReturnType<typeof vi.fn>;
   getInvitation?: ReturnType<typeof vi.fn>;
@@ -135,6 +137,8 @@ function renderPage({
     };
   } | null;
   signOut?: ReturnType<typeof vi.fn>;
+  refetchSession?: ReturnType<typeof vi.fn>;
+  refetchActiveOrganization?: ReturnType<typeof vi.fn>;
 } = {}) {
   render(
     <MemoryRouter initialEntries={[initialEntry]}>
@@ -146,7 +150,8 @@ function renderPage({
               getInvitation,
             },
             signOut,
-            useSession: () => ({ data: session, isPending: false }),
+            useSession: () => ({ data: session, isPending: false, refetch: refetchSession }),
+            useActiveOrganization: () => ({ refetch: refetchActiveOrganization }),
           } as never
         }
       >
@@ -289,6 +294,26 @@ describe("AcceptInvitationPage", () => {
       expect(screen.getByText("Invited Organization")).toBeTruthy();
       expect(screen.getByText("/alpha-space?region=us")).toBeTruthy();
     });
+  });
+
+  it("waits for refreshed auth stores before entering the organization", async () => {
+    const user = userEvent.setup();
+    let finishRefresh!: () => void;
+    const refetchSession = vi.fn().mockReturnValue(new Promise<void>((resolve) => {
+      finishRefresh = resolve;
+    }));
+    const refetchActiveOrganization = vi.fn().mockResolvedValue(undefined);
+    renderPage({
+      refetchSession,
+      refetchActiveOrganization,
+      session: { user: { emailVerified: true, isAnonymous: false } },
+    });
+    await user.click(await screen.findByRole("button", { name: "Accept invitation" }));
+    expect(refetchSession).toHaveBeenCalledWith({ query: { disableCookieCache: true } });
+    expect(refetchActiveOrganization).toHaveBeenCalled();
+    expect(screen.queryByText("Invited Organization")).toBeNull();
+    finishRefresh();
+    expect(await screen.findByText("Invited Organization")).toBeTruthy();
   });
 
   it("shows member-limit error when an organization is full", async () => {

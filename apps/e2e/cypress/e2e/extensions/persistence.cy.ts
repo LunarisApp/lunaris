@@ -3,11 +3,6 @@
 export {};
 
 function renameNewItem(name: string) {
-  cy.get("body").then(($body) => {
-    const input = $body.find('input[aria-label="Rename resource"]');
-    if (input.length > 0) cy.wrap(input).type("{esc}");
-  });
-  cy.contains('[data-testid="workspace-tree-item"]', "Untitled").dblclick();
   cy.get('input[aria-label="Rename resource"]')
     .clear()
     .type(`${name}{enter}`);

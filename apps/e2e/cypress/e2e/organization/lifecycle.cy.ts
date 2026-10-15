@@ -85,7 +85,7 @@ describe("organization/lifecycle", () => {
         cy.intercept("POST", "**/v1/organization/delete-request").as(
           "organizationDeleteRequest",
         );
-        cy.contains("button", "Request Organization Deletion").click();
+        cy.contains("button", "Delete organization").click();
         cy.get('[data-testid="input-confirm-input"]')
           .should("not.be.disabled")
           .type(renamedSlug);

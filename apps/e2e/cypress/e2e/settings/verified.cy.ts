@@ -1,7 +1,7 @@
 /// <reference path="../../support/index.d.ts" />
 
 function assertPanelSpacing(testid: string) {
-  cy.get(`[data-testid="${testid}"]`).then(($panel) => {
+  cy.get(`[data-testid="${testid}"]`).should(($panel) => {
     const children = $panel[0].children;
     expect(children.length, `${testid} direct children`).to.be.greaterThan(1);
     const gap =
@@ -102,7 +102,7 @@ describe("settings/verified", () => {
       cy.visit("/");
       cy.openSettings();
       cy.openSettingsTab("local-data");
-      assertPanelSpacing("settings-panel-local-data");
+      assertPanelSpacing("settings-local-data-overview");
       cy.get('[data-testid="settings-local-data-no-pending"]').should(
         "be.visible"
       );
