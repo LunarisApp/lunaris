@@ -196,7 +196,12 @@ export default defineConfig({
             mkdirSync(dirname(networkLogPath), { recursive: true });
             // Cypress may relaunch Chrome between specs. Preserve each
             // process trace instead of overwriting earlier failures.
-            launchOptions.args.push(`--log-net-log=${networkLogPath}.${Date.now()}.json`);
+            const launchId = Date.now();
+            launchOptions.args.push(
+              `--log-net-log=${networkLogPath}.${launchId}.json`,
+              "--enable-logging",
+              `--log-file=${networkLogPath}.${launchId}.chrome.log`,
+            );
           }
           return launchOptions;
         });

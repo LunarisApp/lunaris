@@ -158,4 +158,7 @@ jobs:
 
       - name: Dump service logs on failure
         if: failure()
-        run: LUNARIS_COMPOSE_ENV=.env.e2e bun run services:logs
+        run: |
+          LUNARIS_COMPOSE_ENV=.env.e2e bun run services:logs
+          free -m
+          sudo dmesg --ctime | tail -100
