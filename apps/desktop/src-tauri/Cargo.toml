@@ -1,6 +1,6 @@
 [package]
 name = "lunaris-desktop"
-version = "0.0.1"
+version = "0.0.2"
 description = "Lunaris desktop shell"
 authors = ["Lunaris"]
 edition = "2021"

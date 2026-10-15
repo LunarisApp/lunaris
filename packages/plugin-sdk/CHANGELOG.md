@@ -1,5 +1,13 @@
 # @lunarisapp/plugin-sdk
 
+## 0.12.0
+
+### Minor Changes
+
+- [`019697a`](https://github.com/LunarisApp/lunaris/commit/019697a54fa900999490f36f2c2e23e324bff34f) Thanks [@MrLightful](https://github.com/MrLightful)! - Remove deprecated catalog exports and unused attachment type aliases. This is a breaking change for consumers of these exports.
+  
+  Import marketplace functions and types from `@lunarisapp/plugin-sdk/marketplace` instead of `/catalog`. Replace `PluginAttachmentStatus`, `PluginAttachmentRow`, `PluginFileAttachmentState`, `PluginFileAttachmentUploadInput`, and `UploadFileAttachment` with `PluginStoredFileStatus`, `PluginStoredFile`, `PluginStoredFileState`, `PluginFileStorageUploadInput`, and `StorePluginFile`. The current file state uses `file` instead of `attachment`, and metadata uses `fileId` instead of `attachmentId`.
+
 ## 0.11.0
 
 ### Minor Changes
