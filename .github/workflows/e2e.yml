@@ -66,8 +66,8 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Free Bun install cache
         run: bun pm cache rm
-      - name: Build plugin SDK dependencies
-        run: bun run build --filter=@lunarisapp/plugin-sdk
+      - name: Build public package dependencies
+        run: bun run build --filter=@lunarisapp/plugin-sdk --filter=@lunarisapp/ui
 
       - name: Seed API CI overrides
         run: |
