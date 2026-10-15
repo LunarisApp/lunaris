@@ -360,7 +360,7 @@ exposePluginWorkerTask((input: number) => input * 2);
       "vite.config.ts",
       `import { defineLunarisPluginConfig } from "@lunarisapp/plugin-sdk/vite";
 
-export default defineLunarisPluginConfig();
+export default defineLunarisPluginConfig({ tag: "1.0.0" });
 `,
     ],
   ]);

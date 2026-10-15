@@ -141,6 +141,8 @@ jobs:
         with:
           bun-version: ${{ env.BUN_VERSION }}
       - run: bun install --frozen-lockfile
+      - name: Build public SDK
+        run: bun run --cwd packages/plugin-sdk build
       - name: Build Agent Work sidecar
         run: bun run --cwd apps/desktop build:agent
       - name: Build bundled executable
