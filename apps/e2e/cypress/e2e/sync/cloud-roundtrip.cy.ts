@@ -30,7 +30,7 @@ describe("sync/cloud round trip", () => {
         cy.visit("/");
         cy.createWorkspace({ name: "Cloud Roundtrip" });
         cy.get('[data-testid="workspaces-list-item-cloud-roundtrip"]').click();
-        cy.location("pathname").then((workspacePath) => {
+        cy.location("pathname").should("match", /\/cloud-roundtrip$/).then((workspacePath) => {
           cy.task<number>("backendLogOffset").then((logOffset) => {
             createDocument("Cloud Note", "Persisted through PowerSync and Yjs");
             cy.task("waitForSyncOperation", {
