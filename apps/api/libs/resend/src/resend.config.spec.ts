@@ -22,3 +22,12 @@ it("requires an owned sender when self-hosted delivery is enabled", () => {
   expect(config.from).toBe("Notes <notes@example.com>");
   expect(config.replyTo).toBe("admin@example.com");
 });
+
+ it.each([
+  [{}, false],
+  [{ RESEND_API_KEY: "test-key" }, true],
+  [{ E2E_AUTH_EMAIL_LOGS: "true" }, true],
+  [{ E2E_AUTH_EMAIL_LOGS: "false" }, false],
+] as const)("reports auth email capability for %j", (values, enabled) => {
+  expect(new ResendConfig(new ConfigService(values)).authEmailDeliveryEnabled).toBe(enabled);
+});
