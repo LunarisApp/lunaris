@@ -117,7 +117,9 @@ jobs:
           start: bun run --cwd ../web preview -- --host 0.0.0.0 --port 5173 --strictPort
           wait-on: "http://localhost:5173, http://localhost:3000/v1/health"
           wait-on-timeout: 120
-          browser: chrome
+          # Runner Chrome 155 crashes its network service during this suite.
+          # Use the Chromium runtime bundled with the locked Cypress version.
+          browser: electron
 
       - name: Run returning-user offline PWA test
         uses: cypress-io/github-action@fa4a118725a8f001170d49631ea89e5d66fee626 # v7.4.1
@@ -131,7 +133,9 @@ jobs:
           start: bun run --cwd ../web preview -- --host 0.0.0.0 --port 4173
           wait-on: "http://localhost:4173, http://localhost:3000/v1/health"
           wait-on-timeout: 120
-          browser: chrome
+          # Runner Chrome 155 crashes its network service during this suite.
+          # Use the Chromium runtime bundled with the locked Cypress version.
+          browser: electron
           spec: cypress/e2e/offline/**/*.cy.ts
 
       - name: Upload Cypress screenshots on failure
