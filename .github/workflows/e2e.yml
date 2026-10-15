@@ -99,6 +99,13 @@ jobs:
           disown
         working-directory: apps/api
 
+      - name: Build production PWA
+        run: bun run build
+        env:
+          VITE_ALLOW_INLINE_REGION_DIRECTORY: "true"
+          VITE_REGION_DIRECTORY_JSON: '[{"id":"local","label":"Local","apiUrl":"http://localhost:3000","status":"active","default":true}]'
+        working-directory: apps/web
+
       - name: Run full Cypress E2E suite
         uses: cypress-io/github-action@fa4a118725a8f001170d49631ea89e5d66fee626 # v7.4.1
         env:
@@ -106,17 +113,10 @@ jobs:
         with:
           working-directory: apps/e2e
           install: false
-          start: bun run --cwd ../web dev
+          start: bun run --cwd ../web preview -- --host 0.0.0.0 --port 5173 --strictPort
           wait-on: "http://localhost:5173, http://localhost:3000/v1/health"
           wait-on-timeout: 120
           browser: chrome
-
-      - name: Build production PWA
-        run: bun run build
-        env:
-          VITE_ALLOW_INLINE_REGION_DIRECTORY: "true"
-          VITE_REGION_DIRECTORY_JSON: '[{"id":"local","label":"Local","apiUrl":"http://localhost:3000","status":"active","default":true}]'
-        working-directory: apps/web
 
       - name: Run returning-user offline PWA test
         uses: cypress-io/github-action@fa4a118725a8f001170d49631ea89e5d66fee626 # v7.4.1
