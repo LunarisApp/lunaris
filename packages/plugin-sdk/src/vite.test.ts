@@ -11,7 +11,7 @@ import {
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { build } from "vite";
 import { defineLunarisPluginConfig } from "./vite";
 
@@ -138,7 +138,12 @@ export const identities = { react, reactDom, yjs };
   return root;
 }
 
+beforeEach(() => {
+  vi.stubEnv("GITHUB_REF_NAME", "");
+});
+
 afterEach(async () => {
+  vi.unstubAllEnvs();
   await Promise.all(
     roots.splice(0).map((root) => rm(root, { force: true, recursive: true })),
   );
