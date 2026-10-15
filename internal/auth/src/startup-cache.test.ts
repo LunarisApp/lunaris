@@ -1,8 +1,16 @@
-import { describe, expect, it } from "bun:test";
+import { afterEach, describe, expect, it } from "bun:test";
 import { createAuthClient } from "better-auth/client";
 import { organizationClient } from "better-auth/client/plugins";
+import { cleanStores } from "nanostores";
 import { BASE_PATH } from "./constants";
 import { startupCachePlugin } from "./startup-cache";
+
+const cleanups: (() => void)[] = [];
+afterEach(() => {
+  for (const cleanup of cleanups.splice(0)) {
+    cleanup();
+  }
+});
 
 const baseURL = "https://api.example.test";
 const key = `lunaris:auth-startup:v1:${baseURL}`;
@@ -49,6 +57,7 @@ function setup(
         ((async () => Response.json(null)) as unknown as typeof fetch),
     },
   });
+  cleanups.push(() => cleanStores(client.$store.atoms.session, client.$store.atoms.activeOrganization));
   return { client, storage };
 }
 const saved = () => ({
@@ -272,15 +281,15 @@ describe("auth startup cache", () => {
     expect(storage.getItem(key)).toBeNull();
   });
 
-  it("drops hydrated account state when another tab clears its snapshot", () => {
+  it("drops hydrated account state when another tab clears its snapshot", async () => {
     const original = Object.getOwnPropertyDescriptor(globalThis, "window");
     const events = new EventTarget();
     Object.defineProperty(globalThis, "window", {
       configurable: true,
       value: events,
     });
+    const { client } = setup({ saved: saved() });
     try {
-      const { client } = setup({ saved: saved() });
       const event = Object.assign(new Event("storage"), {
         key,
         newValue: null,
@@ -289,6 +298,9 @@ describe("auth startup cache", () => {
       expect(client.$store.atoms.session!.get().data).toBeNull();
       expect(client.$store.atoms.activeOrganization!.get().data).toBeNull();
     } finally {
+      // Let invalidation refetches settle before disposing browser listeners.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      cleanStores(client.$store.atoms.session, client.$store.atoms.activeOrganization);
       if (original) {
         Object.defineProperty(globalThis, "window", original);
       } else {

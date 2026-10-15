@@ -140,11 +140,7 @@ paths when disconnecting GitHub sources. API migrations run through that config.
    Review the first release PR carefully: setup does not publish existing package
    versions automatically; versions must be advanced with Changesets.
 
-As inspected on 2026-10-15: repository public, ruleset API accessible, no active
-rulesets, CodeQL unconfigured, and no `next` branch. These are setup
-prerequisites, not protections installed by YAML alone.
-
-Lunaris Release was subsequently created with App ID `5335382` and installation
+Lunaris Release was created with App ID `5335382` and installation
 ID `171839628`, scoped only to `LunarisApp/lunaris`. Contents and Pull requests
 have read/write access; Metadata has mandatory read access. `RELEASE_APP_ID` and
 `RELEASE_APP_PRIVATE_KEY` are configured in repository Actions settings. Private
@@ -163,9 +159,24 @@ Required CI is bound to the GitHub Actions integration (`15368`). New commits
 dismiss stale approvals. The release App can bypass checks and PR rules for
 version commits and automatic back-merges; immutable-history rules have no bypass.
 
-`next` has not been created and the default remains `main`. Its rules apply as
-soon as the branch exists. Merge the new workflows before expecting aggregate
-`CI` to pass; release-source/Changeset policy enforcement remains activation-gated.
+Bootstrap PR #2 must pass aggregate CI before merge and creation of `next`.
+Release-source/Changeset policy enforcement remains activation-gated.
+
+### Publication held (2026-10-15)
+
+Production activation is intentionally deferred. `RELEASE_AUTOMATION_ENABLED`
+remains unset; no `RAILWAY_RELEASE_TOKEN` has been created. Existing Railway
+branch auto-deploys remain configured until the release workflow is activated.
+The `release` and `production` GitHub environments accept only `main`, with no
+extra reviewer gate. `RAILWAY_RELEASE_TARGETS` contains verified production
+project/service IDs and health URLs for API, web, docs, and landing.
+
+Both npm packages have trusted publishing configured for `LunarisApp/lunaris`,
+`release.publish.yml`, environment `release`, including direct `npm publish`.
+Their first publication still must validate those connections: SDK before
+2026-10-17 19:14 UTC; UI before 2026-10-17 19:16 UTC. If activation happens later,
+recheck and renew npm trust before publishing. Do not publish merely to preserve
+these validation windows.
 
 ## Failures, retries, and rollback
 
