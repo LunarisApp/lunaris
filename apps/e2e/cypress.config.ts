@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "cypress";
 
@@ -188,6 +188,17 @@ export default defineConfig({
     specPattern: "cypress/e2e/**/*.cy.ts",
     setupNodeEvents(on, config) {
       const logPath = resolveLogPath();
+
+      const networkLogPath = process.env.CYPRESS_NETWORK_LOG_PATH;
+      if (networkLogPath) {
+        on("before:browser:launch", (browser, launchOptions) => {
+          if (browser.family === "chromium") {
+            mkdirSync(dirname(networkLogPath), { recursive: true });
+            launchOptions.args.push(`--log-net-log=${networkLogPath}`);
+          }
+          return launchOptions;
+        });
+      }
 
       on("task", {
         backendLogOffset(): number {

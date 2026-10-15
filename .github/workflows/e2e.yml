@@ -110,6 +110,7 @@ jobs:
         uses: cypress-io/github-action@fa4a118725a8f001170d49631ea89e5d66fee626 # v7.4.1
         env:
           CYPRESS_BACKEND_LOG_PATH: ${{ github.workspace }}/logs/backend.log
+          CYPRESS_NETWORK_LOG_PATH: ${{ github.workspace }}/logs/browser-network.json
         with:
           working-directory: apps/e2e
           install: false
@@ -146,6 +147,14 @@ jobs:
         with:
           name: backend-log
           path: logs/backend.log
+
+      - name: Upload browser network diagnostics on failure
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: browser-network
+          path: logs/browser-network.json
+          retention-days: 1
 
       - name: Dump service logs on failure
         if: failure()
