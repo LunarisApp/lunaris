@@ -153,7 +153,7 @@ jobs:
         if: failure()
         with:
           name: browser-network
-          path: logs/browser-network.json
+          path: logs/browser-network.json*
           retention-days: 1
 
       - name: Dump service logs on failure

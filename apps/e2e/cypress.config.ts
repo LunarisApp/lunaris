@@ -194,7 +194,9 @@ export default defineConfig({
         on("before:browser:launch", (browser, launchOptions) => {
           if (browser.family === "chromium") {
             mkdirSync(dirname(networkLogPath), { recursive: true });
-            launchOptions.args.push(`--log-net-log=${networkLogPath}`);
+            // Cypress may relaunch Chrome between specs. Preserve each
+            // process trace instead of overwriting earlier failures.
+            launchOptions.args.push(`--log-net-log=${networkLogPath}.${Date.now()}.json`);
           }
           return launchOptions;
         });
