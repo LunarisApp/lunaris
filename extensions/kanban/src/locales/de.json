@@ -1,0 +1,119 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "kanban": {
+          "name": "Kanban",
+          "description": "Kanban-Board zur Aufgabenverwaltung",
+          "addTask": "Aufgabe hinzufügen",
+          "creating": "Wird erstellt...",
+          "createError": "Die Aufgabe konnte nicht erstellt werden. Versuchen Sie es erneut.",
+          "newTask": "Neue Aufgabe",
+          "taskName": "Aufgabentitel",
+          "noTasks": "Noch keine Aufgaben. Klicken Sie auf \"Aufgabe hinzufügen\", um eine zu erstellen.",
+          "noTasksReadOnly": "Noch keine Aufgaben.",
+          "emptyColumn": "Keine Aufgaben in dieser Spalte",
+          "taskCount_one": "{{count}} Aufgabe",
+          "taskCount_other": "{{count}} Aufgaben",
+          "back": "Zurück",
+          "taskNotFound": "Aufgabe nicht gefunden.",
+          "deleteTask": "Aufgabe löschen",
+          "deleteTaskConfirmation": "„{{name}}“ löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+          "renameTask": "Aufgabe umbenennen",
+          "taskActions": "Aufgabenaktionen",
+          "collapseColumn": "Einklappen",
+          "expandColumn": "Spalte erweitern",
+          "collapseSection": "{{name}} einklappen",
+          "expandSection": "{{name}} ausklappen",
+          "unknownCreator": "Unbekannter Ersteller",
+          "metadata": {
+            "creator": "Erstellt von",
+            "created": "Erstellt",
+            "board": "Board"
+          },
+          "select": "Auswählen...",
+          "groupBy": "Gruppieren nach",
+          "listView": "Listenansicht",
+          "kanbanView": "Kanban-Ansicht",
+          "manageProperties": "Eigenschaften verwalten",
+          "untitled": "Unbenannt",
+          "created": "Erstellt",
+          "unassigned": "Nicht zugewiesen",
+          "noPropertySelected": "Keine Eigenschaft zur Gruppierung ausgewählt",
+          "fields": {
+            "name": "Titel",
+            "description": "Beschreibung",
+            "status": "Status"
+          },
+          "placeholders": {
+            "description": "Beschreibung hinzufügen..."
+          },
+          "properties": "Eigenschaften",
+          "addProperty": "Eigenschaft hinzufügen",
+          "newProperty": "Neue Eigenschaft",
+          "propertyTypes": {
+            "select": "Auswahl",
+            "multi-select": "Mehrfachauswahl",
+            "people": "Personen",
+            "resource": "Ressource",
+            "date": "Datum",
+            "text": "Text",
+            "number": "Zahl",
+            "checkbox": "Kontrollkästchen"
+          },
+          "propertyPlaceholders": {
+            "select": "Option auswählen",
+            "multi-select": "Optionen auswählen",
+            "people": "Personen auswählen",
+            "resource": "Ressource auswählen",
+            "date": "Datum auswählen",
+            "text": "Text eingeben",
+            "number": "Zahl eingeben"
+          },
+          "validation": {
+            "finiteNumber": "Gib eine gültige Dezimalzahl ein."
+          },
+          "searchPeople": "Personen suchen",
+          "noPeopleFound": "Keine Personen gefunden",
+          "searchResources": "Ressourcen suchen",
+          "searchingResources": "Ressourcen werden gesucht…",
+          "noResourcesFound": "Keine Ressourcen gefunden",
+          "resourceSearchError": "Ressourcen konnten nicht gesucht werden",
+          "openResource": "Ressource öffnen",
+          "time": "Uhrzeit",
+          "clear": "Leeren",
+          "boolean": {
+            "yes": "Ja",
+            "no": "Nein"
+          },
+          "noProperties": "Noch keine Eigenschaften",
+          "propertyName": "Eigenschaftsname",
+          "editName": "Name bearbeiten",
+          "editPropertyName": "Eigenschaftsname bearbeiten",
+          "reorderProperty": "Eigenschaft {{name}} neu anordnen",
+          "reorderTask": "{{name}} neu anordnen",
+          "deleteProperty": "Eigenschaft löschen",
+          "deletePropertyConfirmation": "„{{name}}“ löschen? Aufgaben verlieren diese Eigenschaft und ihre Optionen.",
+          "removeOption": "Option entfernen",
+          "removeOptionConfirmation": "„{{name}}“ entfernen? Aufgaben mit dieser Option werden nicht mehr zugewiesen.",
+          "removeNamedOption": "{{name}} entfernen",
+          "renameOption": "{{name}} umbenennen",
+          "changeOptionColor": "Farbe für {{name}} ändern",
+          "noOptions": "Noch keine Optionen",
+          "newOption": "Neue Option...",
+          "newOptionName": "Name der neuen Option",
+          "add": "Hinzufügen",
+          "addTaskToColumn": "Aufgabe hinzufügen",
+          "addTaskToSection": "Aufgabe zu {{name}} hinzufügen",
+          "defaultStatuses": {
+            "backlog": "Backlog",
+            "todo": "Zu erledigen",
+            "inProgress": "In Bearbeitung",
+            "done": "Erledigt",
+            "canceled": "Abgebrochen"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,130 @@
+---
+title: "Create Your First Extension"
+description: "Scaffold a standalone panel, build it, and install it in a test workspace."
+---
+
+# Create Your First Extension
+
+Build a standalone panel, then install it through a test marketplace. The starter provides the package scripts, TypeScript settings, and sandbox build configuration.
+
+## 1. Create the project
+
+In your development directory:
+
+```sh
+npx @lunarisapp/create-extension my-tool \
+  --id acme.my-tool \
+  --name "My Tool" \
+  --developer "Acme" \
+  --description "A workspace utility from Acme"
+cd my-tool
+bun install
+```
+
+The target directory must be new or empty. If working directly from the extensions repository, copy its `template/` into a new directory instead, then update `manifest.json`, `package.json`, and contribution IDs in `src/index.tsx`.
+
+The starter uses SDK `^0.10.0` and API `^0.9.0`. Inspect the generated files: a newer initializer may have a different baseline. Keep the SDK, API range, and target host compatible; see [versions](/developers/extensions#version-baseline).
+
+## 2. Check the files
+
+```text
+my-tool/
+  manifest.json
+  package.json
+  tsconfig.json
+  vite.config.ts
+  src/
+    index.tsx
+```
+
+`manifest.json` describes the extension before its code runs:
+
+```json
+{
+  "id": "acme.my-tool",
+  "name": "My Tool",
+  "developer": "Acme",
+  "description": "A workspace utility from Acme",
+  "version": "1.0.0",
+  "api": "^0.9.0",
+  "permissions": []
+}
+```
+
+Keep registration code out of the manifest. Unknown fields are rejected. Dependency and conflict maps are optional and normalize to empty objects.
+
+`vite.config.ts` uses the SDK's build contract:
+
+```ts
+import { defineLunarisPluginConfig } from "@lunarisapp/plugin-sdk/vite";
+
+export default defineLunarisPluginConfig();
+```
+
+## 3. Render a panel
+
+Replace `src/index.tsx` with:
+
+```tsx
+import { definePlugin } from "@lunarisapp/plugin-sdk";
+import { Note01Icon } from "@lunarisapp/ui/icons";
+import manifest from "../manifest.json";
+
+function MyTool() {
+  return (
+    <main style={{ padding: 24 }}>
+      <h1>My Tool</h1>
+      <p>Your extension is running inside Lunaris.</p>
+    </main>
+  );
+}
+
+export default definePlugin({
+  manifest,
+  activate({ contributions }) {
+    contributions.view({
+      icon: Note01Icon,
+      name: "My Tool",
+      renderer: MyTool,
+      target: {
+        kind: "standalone",
+        launcher: { defaultPlacement: "primary" },
+      },
+      viewId: "acme.my-tool.panel",
+    });
+  },
+});
+```
+
+The explicit `launcher` makes the standalone view launchable. Its ID uses the manifest's namespace. This example requires no host permissions because it only renders local UI.
+
+Import your CSS from the entry point when needed. The sandbox has its own DOM and styles; do not assume host CSS or Tailwind utility classes are available without including their generated CSS.
+
+## 4. Build
+
+```sh
+bun run typecheck
+bun run build
+```
+
+Expect `dist/main.js` and normalized `dist/manifest.json`, plus `styles.css` if you imported CSS and an icon if you supplied one. SDK 0.11 also emits `dist/runtime.json`.
+
+The build produces a self-contained sandbox script and validates registration. It rejects unsupported imports, extra emitted assets, invalid manifests, and oversized bundles. It does not produce `release.json` or `marketplace.json`.
+
+## 5. Install in a test organization
+
+Follow [Publishing](/developers/extensions/publishing) to turn `dist/` into a release and a public HTTPS test marketplace. This is part of the first-run workflow: a Vite development server alone does not provide Lunaris host capabilities or install the extension.
+
+In Lunaris, using a non-anonymous organization owner account with permission to update the organization:
+
+1. Open organization settings, then **General**.
+2. Enable **Developer mode** and confirm **Enable for development**.
+3. Open **Marketplaces** and add your GitHub repository URL or complete HTTPS `marketplace.json` URL.
+4. Open a test workspace, then **Settings → Manage extensions**. Find your extension and review its source and permissions before choosing **Trust and install**.
+5. Open its launcher. You should see “Your extension is running inside Lunaris.”
+
+Custom marketplaces are intended for development and testing. Disabling developer mode hides marketplace controls; it does not remove existing marketplaces or installed extensions.
+
+For each new build you want to install, publish a new extension version and update the index. Installed releases pin their descriptor and assets; replacing bytes at an existing URL is not a development reload mechanism.
+
+Next: [extension contracts](/developers/extensions/contracts), or [create persistent resources](/developers/extensions/resources-and-views).

@@ -1,0 +1,66 @@
+---
+title: "Build Extensions"
+description: "Build, test, and publish Lunaris extensions with TypeScript, React, and the public SDK."
+---
+
+# Build Extensions
+
+Add a tool, a new kind of workspace content, or another way to view existing content. This guide takes you from a starter project to an installed extension, then covers storage, integration, testing, and distribution.
+
+You should be comfortable with TypeScript and React. Use Bun for the commands below. You need the public SDK and a compatible Lunaris app to test your extension. Access to the private Lunaris repository is not required.
+
+## Choose your starting point
+
+| Your goal | Start here |
+| --- | --- |
+| Build and open your first extension | [Quickstart](/developers/extensions/quickstart) |
+| Understand manifests, permissions, and activation | [Extension contracts](/developers/extensions/contracts) |
+| Create persistent content and its editor | [Resources and resource views](/developers/extensions/resources-and-views) |
+| Choose storage and evolve saved data | [Storage and migrations](/developers/extensions/storage-and-migrations) |
+| Add commands, search, networking, exports, or services | [Host capabilities](/developers/extensions/host-capabilities) |
+| Test behavior and diagnose failures | [Testing and troubleshooting](/developers/extensions/testing) |
+| Package, host, install, and update a release | [Publishing](/developers/extensions/publishing) |
+
+Follow the quickstart first. Continue with resources and storage if your extension creates content; a standalone utility can go straight to host capabilities and publishing.
+
+## Understand the model
+
+- An **extension** registers capabilities during activation.
+- A **resource type** defines durable content: its schema, named storage slots, and creation behavior.
+- A **resource** is one instance in a workspace, identified by `resourceId`.
+- A **resource view** renders a resource. It declares the storage slots it needs and owns no durable storage itself.
+- A **standalone view** is a tool or panel without a resource target. It can use declared workspace storage.
+- A **marketplace** is a JSON index that points to versioned, hash-pinned releases.
+
+Extensions run in an opaque-origin iframe and interact with Lunaris through the public SDK. This guide covers developing and publishing community extensions.
+
+## Version baseline
+
+This guide covers the compatibility baselines in the SDK source and community starter, checked on September 18, 2026. Confirm that your SDK version is published and your target Lunaris app supports its API and protocol before upgrading.
+
+| Baseline | SDK package | Manifest `api` | Sandbox protocol |
+| --- | --- | --- | --- |
+| Community starter | `^0.10.0` | `^0.9.0` | 6 |
+| Newer SDK capabilities | `0.11.0` | `^0.10.0` for new capabilities | 7 |
+
+Hosts supporting API 0.10 and protocol 7 also support API 0.9 and protocol 6. Package version, plugin API version, protocol version, extension release version, and resource schema version are separate contracts. Do not set them all to the same number.
+
+The quickstart keeps the starter's compatible baseline. Incremental sandbox Yjs sync and chunked downloads belong to the newer baseline. See [Yjs storage](/developers/extensions/storage-and-migrations#wait-for-yjs-hydration), [downloads](/developers/extensions/host-capabilities#downloads-and-workers), and [release protocol metadata](/developers/extensions/publishing#match-the-executables-protocol) before adopting them.
+
+## SDK reference and examples
+
+Use your installed `@lunarisapp/plugin-sdk` package's exported TypeScript declarations for exact signatures. Your editor can show the types for definitions, hooks, and scoped contexts without access to Lunaris source.
+
+The separate extensions repository contains these examples and tools:
+
+- [Template](https://github.com/LunarisApp/extensions/tree/main/template) and [initializer](https://github.com/LunarisApp/extensions/tree/main/create-extension): starter structure and scaffolding.
+- [Demo](https://github.com/LunarisApp/extensions/tree/main/extensions/demo): resources backed by key-value storage.
+- [Excalidraw](https://github.com/LunarisApp/extensions/tree/main/extensions/excalidraw): collaborative Yjs content and search indexing.
+- [Exporter](https://github.com/LunarisApp/extensions/tree/main/extensions/exporter): export workflows and service slots.
+- [Registry tooling](https://github.com/LunarisApp/extensions/tree/main/registry): artifact packaging and marketplace index generation.
+
+Built-in extensions provide additional examples in the [Lunaris repository](https://github.com/LunarisApp/lunaris/tree/main/extensions): Rich Text for collaborative editing and exports, Kanban for resource hierarchies, and File for upload and preview workflows. Their lazy descriptors and host-owned MCP wiring are specific to built-ins. Community extensions must use the public activation and sandbox contracts described here.
+
+The [SDK source and reference](https://github.com/LunarisApp/lunaris/tree/main/packages/plugin-sdk) provide deeper API detail. Installing an existing extension instead? See [Manage Extensions](/guides/tools-and-extensions/manage-extensions).
+
+Return to [Developers](/developers).

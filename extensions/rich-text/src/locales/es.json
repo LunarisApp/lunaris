@@ -1,0 +1,60 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "rich-text": {
+          "name": "Texto enriquecido",
+          "description": "Editor de documentos de texto enriquecido",
+          "chatGPT": "ChatGPT",
+          "claude": "Claude",
+          "copyPage": "Copiar página",
+          "copyPageFailed": "No se pudo copiar la página",
+          "copyPageSuccess": "Página copiada como Markdown",
+          "exportAs": "Exportar como",
+          "exportFailed": "No se pudo exportar el documento",
+          "exportDocx": "DOCX",
+          "exportDocxGenerating": "Generando DOCX…",
+          "exportDocxSuccess": "DOCX descargado",
+          "exportDocxMissingImage": "Imagen no disponible",
+          "exportDocxMissingImages": "DOCX descargado; algunas imágenes no estaban disponibles",
+          "exportMarkdown": "Markdown",
+          "exportPdf": "PDF",
+          "exportPdfGenerating": "Generando PDF…",
+          "exportPdfSuccess": "PDF descargado",
+          "openIn": "Abrir en",
+          "openInFailed": "No se pudo abrir la página en el chat",
+          "openInLongPageCopied": "Página copiada. Pégala en el chat nuevo",
+          "mentions": {
+            "ariaLabel": "Espacios de trabajo, carpetas y elementos",
+            "close": "cerrar",
+            "description": "Espacios de trabajo, carpetas y elementos",
+            "folder": "Carpeta",
+            "item": "Elemento del espacio de trabajo",
+            "navigate": "navegar",
+            "noResultsDescription": "Prueba con otro nombre de espacio de trabajo, carpeta o elemento.",
+            "noResultsTitle": "Sin coincidencias",
+            "workspace": "Espacio de trabajo",
+            "searching": "Buscando",
+            "select": "seleccionar",
+            "title": "Mencionar"
+          },
+          "history": {
+            "added": "agregadas",
+            "close": "Cerrar historial de versiones",
+            "collaborator": "Colaborador {{id}}",
+            "emptyDescription": "Los cambios apareceran aqui cuando este documento reciba ediciones.",
+            "emptyTitle": "Aun no hay historial de versiones",
+            "errorTitle": "No se pudo cargar el historial de versiones",
+            "moreLines": "{{count}} lineas modificadas mas",
+            "removed": "eliminadas",
+            "system": "Sistema",
+            "you": "Tu"
+          },
+          "presence": {
+            "collaborator": "Colaborador"
+          }
+        }
+      }
+    }
+  }
+}

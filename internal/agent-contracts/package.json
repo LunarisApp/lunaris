@@ -1,0 +1,26 @@
+{
+  "name": "@repo/agent-contracts",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "check:mcp": "bun scripts/generate-mcp-manifest.ts --check",
+    "generate:mcp": "bun scripts/generate-mcp-manifest.ts",
+    "test": "bun test && bun run check:mcp",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@extension/kanban": "workspace:*",
+    "@extension/rich-text": "workspace:*",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@lunarisapp/plugin-sdk": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "typescript": "^7.0.2"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./descriptions": "./src/descriptions.ts"
+  }
+}

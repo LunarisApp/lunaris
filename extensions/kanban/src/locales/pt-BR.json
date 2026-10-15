@@ -1,0 +1,119 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "kanban": {
+          "name": "Kanban",
+          "description": "Quadro kanban para gerenciamento de tarefas",
+          "addTask": "Adicionar tarefa",
+          "creating": "Criando...",
+          "createError": "Não foi possível criar a tarefa. Tente novamente.",
+          "newTask": "Nova tarefa",
+          "taskName": "Título da tarefa",
+          "noTasks": "Nenhuma tarefa ainda. Clique em \"Adicionar tarefa\" para criar uma.",
+          "noTasksReadOnly": "Nenhuma tarefa ainda.",
+          "emptyColumn": "Nenhuma tarefa nesta coluna",
+          "taskCount_one": "{{count}} tarefa",
+          "taskCount_other": "{{count}} tarefas",
+          "back": "Voltar",
+          "taskNotFound": "Tarefa não encontrada.",
+          "deleteTask": "Excluir tarefa",
+          "deleteTaskConfirmation": "Excluir “{{name}}”? Esta ação não pode ser desfeita.",
+          "renameTask": "Renomear tarefa",
+          "taskActions": "Ações da tarefa",
+          "collapseColumn": "Recolher",
+          "expandColumn": "Expandir coluna",
+          "collapseSection": "Recolher {{name}}",
+          "expandSection": "Expandir {{name}}",
+          "unknownCreator": "Criador desconhecido",
+          "metadata": {
+            "creator": "Criado por",
+            "created": "Criado",
+            "board": "Quadro"
+          },
+          "select": "Selecionar...",
+          "groupBy": "Agrupar por",
+          "listView": "Visualização em lista",
+          "kanbanView": "Visualização kanban",
+          "manageProperties": "Gerenciar propriedades",
+          "untitled": "Sem título",
+          "created": "Criado",
+          "unassigned": "Não atribuído",
+          "noPropertySelected": "Nenhuma propriedade selecionada para agrupamento",
+          "fields": {
+            "name": "Título",
+            "description": "Descrição",
+            "status": "Status"
+          },
+          "placeholders": {
+            "description": "Adicionar descrição..."
+          },
+          "properties": "Propriedades",
+          "addProperty": "Adicionar propriedade",
+          "newProperty": "Nova propriedade",
+          "propertyTypes": {
+            "select": "Seleção",
+            "multi-select": "Seleção múltipla",
+            "people": "Pessoas",
+            "resource": "Recurso",
+            "date": "Data",
+            "text": "Texto",
+            "number": "Número",
+            "checkbox": "Caixa de seleção"
+          },
+          "propertyPlaceholders": {
+            "select": "Selecione uma opção",
+            "multi-select": "Selecione opções",
+            "people": "Selecione pessoas",
+            "resource": "Selecione um recurso",
+            "date": "Escolha uma data",
+            "text": "Digite um texto",
+            "number": "Digite um número"
+          },
+          "validation": {
+            "finiteNumber": "Digite um número decimal finito."
+          },
+          "searchPeople": "Buscar pessoas",
+          "noPeopleFound": "Nenhuma pessoa encontrada",
+          "searchResources": "Buscar recursos",
+          "searchingResources": "Buscando recursos…",
+          "noResourcesFound": "Nenhum recurso encontrada",
+          "resourceSearchError": "Não foi possível buscar recursos",
+          "openResource": "Abrir recurso",
+          "time": "Hora",
+          "clear": "Limpar",
+          "boolean": {
+            "yes": "Sim",
+            "no": "Não"
+          },
+          "noProperties": "Nenhuma propriedade ainda",
+          "propertyName": "Nome da propriedade",
+          "editName": "Editar nome",
+          "editPropertyName": "Editar nome da propriedade",
+          "reorderProperty": "Reordenar {{name}}",
+          "reorderTask": "Reordenar {{name}}",
+          "deleteProperty": "Excluir propriedade",
+          "deletePropertyConfirmation": "Excluir “{{name}}”? As tarefas perderão esta propriedade e suas opções.",
+          "removeOption": "Remover opção",
+          "removeOptionConfirmation": "Remover “{{name}}”? As tarefas que usam esta opção ficarão sem atribuição.",
+          "removeNamedOption": "Remover {{name}}",
+          "renameOption": "Renomear {{name}}",
+          "changeOptionColor": "Alterar a cor de {{name}}",
+          "noOptions": "Nenhuma opção ainda",
+          "newOption": "Nova opção...",
+          "newOptionName": "Nome da nova opção",
+          "add": "Adicionar",
+          "addTaskToColumn": "Adicionar tarefa",
+          "addTaskToSection": "Adicionar tarefa a {{name}}",
+          "defaultStatuses": {
+            "backlog": "Backlog",
+            "todo": "A fazer",
+            "inProgress": "Em progresso",
+            "done": "Concluído",
+            "canceled": "Cancelado"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,107 @@
+---
+title: "Testing and Troubleshooting"
+description: "Verify installed behavior, collaboration, permissions, and migrations, then diagnose common failures."
+---
+
+# Testing and Troubleshooting
+
+A successful build validates packaging and registration. It does not prove the extension works inside a real workspace, survives offline edits, or upgrades old content safely.
+
+## Local checks
+
+Run the starter's checks from the extension directory:
+
+```sh
+bun run typecheck
+bun run build
+```
+
+Add a test runner when you add behavior worth testing; the minimal starter has no test script. In packages that already define one, run it too. Prefer focused tests for:
+
+- Slot initialization and logical schema validation.
+- Every migration step, including invalid input and already-current resources.
+- Search extraction, import/export conversion, and worker logic.
+- Activation registrations, IDs, matching view requirements, and cleanup.
+- UI behavior when loading, read-only, empty, or failing.
+
+Use `preparePluginActivation` in SDK-based lifecycle tests when you need registration validation and cleanup semantics. Calling `activate` with mocked registrar methods alone does not exercise the host's full validation. React tests need host capability mocks or a host harness; do not add private SDK imports to shipped extension code to make a standalone preview work.
+
+## Add a first contract test
+
+For the version 1 [review-card example](/developers/extensions/resources-and-views),
+save this as `src/index.test.ts`. Bun includes a test runner, so this example
+needs no additional test dependency:
+
+```ts
+import { expect, test } from "bun:test";
+import { preparePluginActivation } from "@lunarisapp/plugin-sdk";
+import plugin, { cardPayload } from "./index";
+
+test("review card accepts saved booleans and rejects malformed data", () => {
+  expect(cardPayload.parse({ reviewed: false })).toEqual({ reviewed: false });
+  expect(cardPayload.safeParse({ reviewed: "false" }).success).toBe(false);
+  expect(cardPayload.safeParse({}).success).toBe(false);
+});
+
+test("resource and view registrations pass SDK validation", async () => {
+  const prepared = await preparePluginActivation(plugin);
+  try {
+    await prepared.start();
+  } finally {
+    await prepared.dispose();
+  }
+});
+```
+
+Run `bun test`. If your project's TypeScript check includes test files, install
+Bun's declarations with `bun add --dev @types/bun`. Keep tests out of runtime
+imports so they are not bundled into the extension.
+
+This validates the data contract and registration lifecycle. Add historical
+payload fixtures as soon as you introduce migrations; the installed checks below
+still cover persistence, host permissions, and UI behavior.
+
+## Test the installed artifact
+
+Publish to a test marketplace and install through Lunaris. Test the exact packaged artifact, not just source components.
+
+1. **Fresh install:** inspect metadata/permissions, install, open the launcher or create the resource.
+2. **Persistence:** edit, close, reopen, and restart the client. Confirm loading never replaces stored content with defaults.
+3. **Collaboration:** edit from two clients and verify both local and remote updates render.
+4. **Offline:** open locally available content, disconnect, edit, reconnect, and verify convergence. Test file metadata whose bytes are not cached.
+5. **Access:** use a read-only member and verify UI plus host rejection of unauthorized writes.
+6. **Lifecycle:** close/reopen views, disable/re-enable the extension, and test required/optional provider removal. Check subscriptions and workers stop.
+7. **Upgrade:** install the prior release, create content, then upgrade. Verify migrations and newer unsupported schema handling.
+8. **Platforms:** test browser and Desktop for networking, CORS, downloads, and navigation capabilities.
+9. **Accessibility:** complete the main task with a keyboard, at narrow width, and with loading/error announcements.
+
+Keep historical payload fixtures in tests. For resource migrations, verify that validation failure leaves the original payload untouched. Never test destructive recovery against someone's only copy of content.
+
+## Diagnose by symptom
+
+| Symptom | Check |
+| --- | --- |
+| Manifest rejected | Required fields, unknown fields, duplicate permissions, ID format, API semver range. |
+| Activation stays pending | Missing or incompatible required provider; dependency range refers to extension version. |
+| Contribution rejected | ID namespace, duplicate IDs, default view target, storage requirements, schema/migration chain. |
+| Standalone panel has no launcher | Add `target.launcher`; registering a standalone view alone does not request a launcher. |
+| Resource has no compatible view | Type/schema target and version range; every required slot must exist with the declared kind. |
+| Permission error from a read-looking hook | Yjs/KV hooks require both content permissions; file mutation hook requires both file permissions. |
+| Hook fails outside Lunaris | Missing host runtime; use mocks for component tests and the installed artifact for integration tests. |
+| Blank sandbox or build validation failure | Browser-only top-level code, third-party runtime assumptions, missing styles, activation errors. |
+| CI build rejects a release tag | The Vite helper uses `GITHUB_REF_NAME` when present and expects it to equal `manifest.version`; use a matching build configuration/tag value. |
+| Build rejects dynamic import or extra assets | Use static imports and inline assets; workers must use `?worker&inline`. |
+| Browser request fails but Desktop works | Endpoint HTTPS/CORS behavior; use `usePluginFetch`, not direct fetch. |
+| Marketplace controls absent | Non-anonymous owner access, organization update permission, and developer mode. |
+| Extension absent or incompatible in catalog | Index `enabled`, active release status, host API/protocol compatibility, and `latestVersion` entry. |
+| Download/install fails | Public HTTPS responses, redirects, CORS, exact byte lengths/hashes, correct MIME types. |
+| Protocol mismatch after packaging | Compare executable SDK/runtime metadata with `release.json` and marketplace version metadata. |
+| Changed build never appears | Publish a new version; installed descriptors/assets are pinned. Refresh discovery and install the new release. |
+| Edits disappear after reopen | Hydration gating, persistence errors, initializer accidentally running in UI, wrong slot/resource handle. |
+| File preview missing offline | Metadata is not proof that bytes are cached; render unavailable/download states. |
+| Resource quarantined after upgrade | Historical validators, contiguous migrations, schema writer, slot layout, and valid new-resource initialization. |
+| Generated download does nothing | Check optional `saveChunks` availability and await failures; use `save` within its size limit. |
+
+Use browser developer tools for the frame's console and host-side errors. Identify the extension ID/version, resource type/schema version, host platform, and failing operation when reporting an issue. Include a minimal reproduction and sanitized error; avoid logging resource content or credentials.
+
+Next: [publishing](/developers/extensions/publishing).

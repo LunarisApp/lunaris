@@ -1,0 +1,93 @@
+{
+  "name": "lunaris",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "internal/*",
+    "packages/*",
+    "extensions/*",
+    "ee/*"
+  ],
+  "scripts": {
+    "brand:check": "bun tooling/generate-brand-assets.ts --check",
+    "brand:generate": "bun tooling/generate-brand-assets.ts",
+    "brand:typecheck": "node ./node_modules/@typescript/native/bin/tsc --noEmit -p tooling/tsconfig.json",
+    "public:reports": "bun tooling/validate-public-packages.ts --update-reports --skip-fixture",
+    "public:validate": "bun tooling/validate-public-packages.ts",
+    "build": "turbo build",
+    "build:desktop": "bun run --cwd apps/desktop tauri:build",
+    "dev": "turbo dev --filter=api --filter=web",
+    "dev:desktop": "bun run --cwd apps/desktop tauri:dev",
+    "dev:docs": "turbo dev --filter=docs",
+    "dev:landing": "turbo dev --filter=landing",
+    "extension-icon:generate": "bun tooling/generate-extension-icon.ts",
+    "e2e": "bun run --cwd apps/e2e e2e",
+    "e2e:open": "bun run --cwd apps/e2e e2e:open",
+    "test": "turbo test",
+    "test:coverage": "env -u NODE PATH=\"${PATH#*:}\" turbo test:coverage --concurrency=1 --filter=@repo/data --filter=@repo/app-shell --filter=@repo/features --filter=@repo/workspaces && env -u NODE PATH=\"${PATH#*:}\" turbo test:coverage --filter=api",
+    "typecheck": "turbo typecheck",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "cli:build": "cargo build --release -p lunaris-cli",
+    "cli:test": "cargo test -p lunaris-cli",
+    "services:up": "docker compose --env-file apps/api/${LUNARIS_COMPOSE_ENV:-.env.development} -f infra/local/compose.yaml up -d --wait postgres powersync garage redis",
+    "services:init": "docker compose --env-file apps/api/${LUNARIS_COMPOSE_ENV:-.env.development} -f infra/local/compose.yaml run --rm garage-init",
+    "services:logs": "docker compose --env-file apps/api/${LUNARIS_COMPOSE_ENV:-.env.development} -f infra/local/compose.yaml logs postgres powersync garage",
+    "services:down": "docker compose --env-file apps/api/${LUNARIS_COMPOSE_ENV:-.env.development} -f infra/local/compose.yaml down",
+    "powersync:config:render": "bun tooling/powersync-config.ts",
+    "powersync:config:check": "bun tooling/powersync-config.ts --validate",
+    "powersync:config:check-production": "bun tooling/powersync-config.ts --check-production",
+    "powersync:config:deploy": "bun tooling/powersync-config.ts --deploy-production",
+    "changeset": "changeset",
+    "release:version": "changeset version && bun tooling/release/sync-versions.ts",
+    "release:validate": "bun tooling/release/sync-versions.ts --check",
+    "release:test": "bun test tooling/release",
+    "release:plan": "bun tooling/release/plan.ts",
+    "prepare": "husky"
+  },
+  "packageManager": "bun@1.4.0",
+  "overrides": {
+    "better-auth": "1.7.2",
+    "evlog": "2.28.0",
+    "prosemirror-model": "1.25.4",
+    "prosemirror-view": "1.41.8"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@biomejs/biome": "^2.5.11",
+    "@changesets/changelog-github": "1.0.0",
+    "@changesets/cli": "3.0.1",
+    "@hugeicons/core-free-icons": "^4.3.0",
+    "@lunarisapp/plugin-sdk": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/bun": "^1.4.0",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.4.1",
+    "publint": "^0.3.24",
+    "sharp": "^0.35.4",
+    "turbo": "^2.10.12",
+    "typescript": "^6.0.3",
+    "ultracite": "^7.10.7",
+    "vite": "^8.2.2",
+    "yaml": "2.9.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [
+      "bunx ultracite fix"
+    ]
+  },
+  "trustedDependencies": [
+    "@journeyapps/wa-sqlite",
+    "@swc/core",
+    "core-js-pure",
+    "cypress",
+    "esbuild",
+    "msw"
+  ],
+  "patchedDependencies": {
+    "nextra-theme-docs@4.6.1": "patches/nextra-theme-docs@4.6.1.patch"
+  }
+}

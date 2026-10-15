@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true
+  },
+  "projects": {
+    "auth": {
+      "type": "library",
+      "root": "libs/auth",
+      "entryFile": "index",
+      "sourceRoot": "libs/auth/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/auth/tsconfig.lib.json"
+      }
+    },
+    "db": {
+      "type": "library",
+      "root": "libs/db",
+      "entryFile": "index",
+      "sourceRoot": "libs/db/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/db/tsconfig.lib.json"
+      }
+    },
+    "health": {
+      "type": "library",
+      "root": "libs/health",
+      "entryFile": "index",
+      "sourceRoot": "libs/health/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/health/tsconfig.lib.json"
+      }
+    },
+    "http-client": {
+      "type": "library",
+      "root": "libs/http-client",
+      "entryFile": "index",
+      "sourceRoot": "libs/http-client/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/http-client/tsconfig.lib.json"
+      }
+    },
+    "polar": {
+      "type": "library",
+      "root": "libs/polar",
+      "entryFile": "index",
+      "sourceRoot": "libs/polar/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/polar/tsconfig.lib.json"
+      }
+    },
+    "redis": {
+      "type": "library",
+      "root": "libs/redis",
+      "entryFile": "index",
+      "sourceRoot": "libs/redis/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/redis/tsconfig.lib.json"
+      }
+    },
+    "resend": {
+      "type": "library",
+      "root": "libs/resend",
+      "entryFile": "index",
+      "sourceRoot": "libs/resend/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/resend/tsconfig.lib.json"
+      }
+    },
+    "storage": {
+      "type": "library",
+      "root": "libs/storage",
+      "entryFile": "index",
+      "sourceRoot": "libs/storage/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/storage/tsconfig.lib.json"
+      }
+    },
+    "posthog": {
+      "type": "library",
+      "root": "libs/posthog",
+      "entryFile": "index",
+      "sourceRoot": "libs/posthog/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/posthog/tsconfig.lib.json"
+      }
+    },
+    "utils": {
+      "type": "library",
+      "root": "libs/utils",
+      "entryFile": "index",
+      "sourceRoot": "libs/utils/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/utils/tsconfig.lib.json"
+      }
+    }
+  }
+}

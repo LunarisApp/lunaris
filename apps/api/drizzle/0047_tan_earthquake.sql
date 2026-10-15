@@ -1,0 +1,1 @@
+ALTER TABLE "organization" ADD COLUMN "developer_mode" boolean DEFAULT false NOT NULL;

@@ -1,0 +1,1 @@
+CREATE INDEX "yjs_doc_updates_doc_created_idx" ON "yjs_document_updates" USING btree ("document_id","created_at");

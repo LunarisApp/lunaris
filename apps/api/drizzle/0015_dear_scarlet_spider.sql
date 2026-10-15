@@ -1,0 +1,2 @@
+ALTER TABLE "organization" ADD COLUMN "is_personal" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+UPDATE "organization" SET "is_personal" = true WHERE "metadata"::jsonb->>'personal' = 'true';

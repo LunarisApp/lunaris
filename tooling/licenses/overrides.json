@@ -1,0 +1,255 @@
+{
+  "@better-auth/utils@0.4.2": {
+    "file": "upstream/better-auth-utils-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/better-auth/utils/c0ad05a303467b465c351d42c6465463be38ef78/LICENSE"
+    ]
+  },
+  "@better-auth/utils@0.5.0": {
+    "file": "upstream/better-auth-utils-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/better-auth/utils/c0ad05a303467b465c351d42c6465463be38ef78/LICENSE"
+    ]
+  },
+  "@dukelib/sheets-wasm@0.1.23": {
+    "file": "upstream/guseggert-duke-sheets-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/guseggert/duke-sheets/fec1cd04dbefa5eb65a41d29399ca4a7edc220f2/LICENSE"
+    ]
+  },
+  "@headless-tree/core@1.7.0": {
+    "file": "upstream/lukasbach-headless-tree-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/lukasbach/headless-tree/e3ee809d5762264f59c47ac4ab8f2ebd35fae9c3/LICENSE"
+    ]
+  },
+  "@headless-tree/react@1.7.0": {
+    "file": "upstream/lukasbach-headless-tree-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/lukasbach/headless-tree/e3ee809d5762264f59c47ac4ab8f2ebd35fae9c3/LICENSE"
+    ]
+  },
+  "@hugeicons/core-free-icons@4.3.0": {
+    "file": "upstream/hugeicons-hugeicons-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/hugeicons/hugeicons/9c48f3723dfb243909fa83501aa7c6423ab972c0/LICENSE.md"
+    ]
+  },
+  "@polar-sh/checkout@0.2.0": {
+    "file": "upstream/polarsource-polar-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/polarsource/polar/530331c607ac8941ae7df99b906ea8b029be8785/LICENSE"
+    ]
+  },
+  "@radix-ui/number@1.1.1": {
+    "file": "upstream/radix-ui-primitives-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/radix-ui/primitives/38a78e2084dc3ca0e7cac42eb1f3519b34a07936/LICENSE"
+    ]
+  },
+  "@radix-ui/react-compose-refs@1.1.2": {
+    "file": "upstream/radix-ui-primitives-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/radix-ui/primitives/38a78e2084dc3ca0e7cac42eb1f3519b34a07936/LICENSE"
+    ]
+  },
+  "@radix-ui/react-context@1.1.2": {
+    "file": "upstream/radix-ui-primitives-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/radix-ui/primitives/38a78e2084dc3ca0e7cac42eb1f3519b34a07936/LICENSE"
+    ]
+  },
+  "@radix-ui/react-direction@1.1.1": {
+    "file": "upstream/radix-ui-primitives-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/radix-ui/primitives/38a78e2084dc3ca0e7cac42eb1f3519b34a07936/LICENSE"
+    ]
+  },
+  "@radix-ui/react-id@1.1.1": {
+    "file": "upstream/radix-ui-primitives-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/radix-ui/primitives/38a78e2084dc3ca0e7cac42eb1f3519b34a07936/LICENSE"
+    ]
+  },
+  "@radix-ui/react-use-callback-ref@1.1.1": {
+    "file": "upstream/radix-ui-primitives-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/radix-ui/primitives/38a78e2084dc3ca0e7cac42eb1f3519b34a07936/LICENSE"
+    ]
+  },
+  "@radix-ui/react-use-escape-keydown@1.1.1": {
+    "file": "upstream/radix-ui-primitives-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/radix-ui/primitives/38a78e2084dc3ca0e7cac42eb1f3519b34a07936/LICENSE"
+    ]
+  },
+  "@radix-ui/react-use-layout-effect@1.1.1": {
+    "file": "upstream/radix-ui-primitives-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/radix-ui/primitives/38a78e2084dc3ca0e7cac42eb1f3519b34a07936/LICENSE"
+    ]
+  },
+  "@radix-ui/react-use-previous@1.1.1": {
+    "file": "upstream/radix-ui-primitives-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/radix-ui/primitives/38a78e2084dc3ca0e7cac42eb1f3519b34a07936/LICENSE"
+    ]
+  },
+  "@radix-ui/react-use-size@1.1.1": {
+    "file": "upstream/radix-ui-primitives-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/radix-ui/primitives/38a78e2084dc3ca0e7cac42eb1f3519b34a07936/LICENSE"
+    ]
+  },
+  "@react-pdf/fns@3.1.3": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@react-pdf/font@4.1.2": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@react-pdf/hyphenate@0.1.0": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@react-pdf/image@3.1.2": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@react-pdf/layout@5.2.0": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@react-pdf/paginate@1.0.1": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@react-pdf/primitives@4.4.0": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@react-pdf/reconciler@2.0.0": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@react-pdf/render@4.7.0": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@react-pdf/renderer@4.9.0": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@react-pdf/stylesheet@6.3.2": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@react-pdf/svg@1.1.1": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@react-pdf/textkit@7.0.1": {
+    "file": "upstream/diegomura-react-pdf-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/diegomura/react-pdf/e7b14db1e53d6da22105c0284ed9839d2145c6b4/LICENSE"
+    ]
+  },
+  "@thesvg/react@3.3.1": {
+    "file": "upstream/glincker-thesvg-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/glincker/thesvg/a7c5ddd3f529accdf86519cc8fb96cb76cef4efd/LICENSE"
+    ]
+  },
+  "@uiw/react-json-view@2.0.0-alpha.43": {
+    "file": "upstream/uiwjs-react-json-view-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/uiwjs/react-json-view/c2586f405d2a511672a3e0c5e026878a0b40782a/LICENSE"
+    ]
+  },
+  "abs-svg-path@0.1.1": {
+    "file": "upstream/jkroso-abs-svg-path-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/jkroso/abs-svg-path/f0f57c97b12cdc4fc1d94798256fba357394e40a/License"
+    ]
+  },
+  "cordis@4.0.0-rc.9": {
+    "file": "upstream/cordiverse-cordis-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/cordiverse/cordis/fabd555a087ee51252518c4a424792809c20b76a/LICENSE"
+    ]
+  },
+  "embla-carousel-autoplay@8.6.0": {
+    "file": "upstream/davidjerleke-embla-carousel-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/davidjerleke/embla-carousel/0423b61463dd6f095d7aca810a49bbf194d6c291/LICENSE"
+    ]
+  },
+  "embla-carousel-react@8.6.0": {
+    "file": "upstream/davidjerleke-embla-carousel-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/davidjerleke/embla-carousel/0423b61463dd6f095d7aca810a49bbf194d6c291/LICENSE"
+    ]
+  },
+  "embla-carousel-reactive-utils@8.6.0": {
+    "file": "upstream/davidjerleke-embla-carousel-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/davidjerleke/embla-carousel/0423b61463dd6f095d7aca810a49bbf194d6c291/LICENSE"
+    ]
+  },
+  "embla-carousel@8.6.0": {
+    "file": "upstream/davidjerleke-embla-carousel-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/davidjerleke/embla-carousel/0423b61463dd6f095d7aca810a49bbf194d6c291/LICENSE"
+    ]
+  },
+  "qrcode-generator@2.0.4": {
+    "file": "upstream/kazuhikoarase-qrcode-generator-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/kazuhikoarase/qrcode-generator/83b7e8fe3fddd3b0368dbafd6ce56995bd25e3c8/LICENSE"
+    ]
+  },
+  "react-easy-swipe@0.0.21": {
+    "file": "upstream/leandrowd-react-easy-swipe-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/leandrowd/react-easy-swipe/a620dfd858b725190dd631199c7536e519a5140f/LICENSE"
+    ]
+  },
+  "react-remove-scroll-bar@2.3.8": {
+    "file": "upstream/theKashey-react-remove-scroll-bar-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/theKashey/react-remove-scroll-bar/8ca9ba5ea52de03308fe8ced94f7b159a44d28ff/LICENSE"
+    ]
+  },
+  "yoga-layout@3.2.1": {
+    "file": "upstream/facebook-yoga-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/facebook/yoga/667da3cf1f6c2cd32329ea30a810f1de99be8553/LICENSE",
+      "https://raw.githubusercontent.com/facebook/yoga/667da3cf1f6c2cd32329ea30a810f1de99be8553/LICENSE-examples"
+    ]
+  }
+}

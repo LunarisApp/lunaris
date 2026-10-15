@@ -1,0 +1,26 @@
+# PowerSync self-hosted service configuration
+# https://docs.powersync.com/self-hosting/configuration
+
+replication:
+  connections:
+    - type: postgresql
+      uri: !env PS_POSTGRES_SOURCE_URL
+      sslmode: disable
+
+storage:
+  type: postgresql
+  uri: !env PS_POSTGRES_BUCKET_URL
+  sslmode: disable
+
+port: 80
+
+client_auth:
+  jwks_uri: !env PS_AUTH_JWKS
+  audience:
+    - !env PS_AUTH_AUD
+
+sync_rules:
+  path: sync_rules.yaml
+
+telemetry:
+  disable_telemetry_sharing: false

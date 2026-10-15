@@ -1,0 +1,96 @@
+{
+  "name": "@lunarisapp/plugin-sdk",
+  "version": "0.11.0",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LunarisApp/lunaris.git",
+    "directory": "packages/plugin-sdk"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "bun ../../tooling/clean-dist.ts && tsc -p tsconfig.build.json",
+    "prepack": "bun run build",
+    "pack:check": "npm pack --dry-run",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19.2.8",
+    "vite": "^8.2.0",
+    "yjs": "^13.6.32"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@standard-schema/spec": "^1.1.0",
+    "file-type": "^21.3.4",
+    "semver": "^7.8.5",
+    "zod": "^4.5.4",
+    "y-protocols": "^1.0.7"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.4.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@types/semver": "^7.8.0",
+    "happy-dom": "^20.12.0",
+    "react-dom": "^19.2.8",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./data": {
+      "types": "./dist/data-index.d.ts",
+      "import": "./dist/data-index.js"
+    },
+    "./marketplace": {
+      "types": "./dist/marketplace.d.ts",
+      "import": "./dist/marketplace.js"
+    },
+    "./internal": {
+      "types": "./dist/internal-index.d.ts",
+      "import": "./dist/internal-index.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp.d.ts",
+      "import": "./dist/mcp.js"
+    },
+    "./sandbox": {
+      "types": "./dist/sandbox-entry.d.ts",
+      "import": "./dist/sandbox-entry.js"
+    },
+    "./time": {
+      "types": "./dist/time.d.ts",
+      "import": "./dist/time.js"
+    },
+    "./worker": {
+      "types": "./dist/worker.d.ts",
+      "import": "./dist/worker.js"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "import": "./dist/vite.js"
+    }
+  }
+}

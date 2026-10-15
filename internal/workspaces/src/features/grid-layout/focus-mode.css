@@ -1,0 +1,56 @@
+@reference "@lunarisapp/ui/globals.css";
+
+/*
+ * Focus mode — CSS-driven distraction-free view.
+ * Activated by `data-focus-mode` attribute on <html>.
+ * All chrome hiding is centralized here.
+ */
+
+/* Shared transition for all collapsible chrome */
+:root[data-focus-mode] header,
+:root[data-focus-mode] footer,
+:root[data-focus-mode] .editor-header {
+  height: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    height 0.2s ease,
+    opacity 0.2s ease,
+    margin-bottom 0.2s ease;
+}
+
+/* Restore transitions when NOT in focus mode so exit is smooth too */
+header,
+footer,
+.editor-header {
+  transition:
+    height 0.2s ease,
+    opacity 0.2s ease,
+    margin-bottom 0.2s ease;
+}
+
+/* Remove layout padding for edge-to-edge content */
+:root[data-focus-mode] #workspace-layout {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+:root[data-focus-mode] .workspace-editor-layout {
+  grid-template-rows: 0 minmax(0, 1fr);
+}
+
+/* Dockview: hide tabs and make borders invisible */
+.grid-layout-theme.focus-mode .dv-tabs-and-actions-container {
+  display: none;
+}
+
+.grid-layout-theme.focus-mode .dv-resize-container .dv-groupview {
+  border: 0;
+  box-shadow: none;
+}
+
+:root[data-focus-mode] .resource-view-layout-content {
+  background-color: oklch(from var(--background) l c h);
+}

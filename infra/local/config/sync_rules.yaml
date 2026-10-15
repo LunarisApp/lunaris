@@ -1,0 +1,219 @@
+config:
+  edition: 3
+
+# JWT claims referenced by these rules (signed in apps/api/src/sync/sync.service.ts):
+#   sub               — user id
+#   aud               — POWERSYNC_URL
+#   iat               — issued-at (seconds)
+#   organization_id   — active org from session
+#   sync_access       — "cloud" | "local-only" (authenticated vs. anonymous)
+#
+# Deploy window: JWTs issued BEFORE this rule landed (still valid for up to
+# JWT_TTL_SECONDS = 300s after deploy) do NOT carry `sync_access`. The
+# comparison `NULL = 'cloud'` evaluates to NULL (not TRUE), so those
+# streams fail closed — legacy clients see an empty result set until they
+# refresh credentials. Acceptable deploy-window behavior; refresh happens
+# within REFRESH_SLACK_SECONDS = 60s because the PowerSync SDK calls
+# `fetchCredentials` before the reported `expiresAt`.
+# Rollout: deploy these rules before clients that wait for organization_directory
+# and workspace_index. All three metadata streams auto-subscribe.
+# Existing clients retain organization_index.
+# Scope deletion subqueries explicitly: PowerSync evaluates them independently,
+# so scanning all active organizations can exhaust the parameter-result limit.
+streams:
+  # Organization recovery state stays subscribed through deletion/restoration.
+  organization_index:
+    auto_subscribe: true
+    with:
+      user_organizations: >
+        SELECT organization_id
+        FROM member
+        WHERE user_id = auth.user_id()
+    queries:
+      - >
+        SELECT id, name, slug, logo, created_at, is_personal, yjs_retention_days, deletion_requested_at, deletion_purge_after
+        FROM organization
+        WHERE id IN user_organizations
+          AND auth.parameter('sync_access') = 'cloud'
+      # Recovery needs the current user's membership even while suspended.
+      - >
+        SELECT id, organization_id, user_id, role, created_at
+        FROM member
+        WHERE user_id = auth.user_id()
+          AND auth.parameter('sync_access') = 'cloud'
+  # Selected active organization's directory and extension registry metadata.
+  organization_directory:
+    auto_subscribe: true
+    with:
+      selected_active_organization: >
+        SELECT organization_id
+        FROM member
+        WHERE user_id = auth.user_id()
+          AND organization_id = auth.parameter('organization_id')
+          AND organization_id IN (
+            SELECT id FROM organization
+            WHERE id = auth.parameter('organization_id')
+              AND deletion_requested_at IS NULL
+          )
+    queries:
+      - >
+        SELECT id, organization_id, user_id, role, created_at
+        FROM member
+        WHERE organization_id IN selected_active_organization
+          AND auth.parameter('sync_access') = 'cloud'
+      - >
+        SELECT id, name, organization_id, created_at, updated_at
+        FROM team
+        WHERE organization_id IN selected_active_organization
+          AND auth.parameter('sync_access') = 'cloud'
+      - >
+        SELECT id, team_id, user_id, created_at
+        FROM team_member
+        WHERE team_id IN (
+          SELECT id FROM team WHERE organization_id IN selected_active_organization
+        )
+          AND auth.parameter('sync_access') = 'cloud'
+      - >
+        SELECT organization_id || ':' || id AS id,
+               id AS registry_id, organization_id, kind, location,
+               manifest_url, official, added_by, added_at, updated_at
+        FROM organization_extension_registries
+        WHERE organization_id IN selected_active_organization
+          AND auth.parameter('sync_access') = 'cloud'
+      - >
+        SELECT id, name, email, image
+        FROM "user"
+        WHERE id IN (
+          SELECT user_id
+          FROM member
+          WHERE organization_id IN selected_active_organization
+        )
+          AND auth.parameter('sync_access') = 'cloud'
+  # Active organization's accessible workspace metadata, independent of content.
+  workspace_index:
+    auto_subscribe: true
+    with:
+      accessible_workspaces: >
+        SELECT id
+        FROM workspaces
+        WHERE organization_id = auth.parameter('organization_id')
+          AND organization_id IN (
+            SELECT id FROM organization
+            WHERE id = auth.parameter('organization_id')
+              AND deletion_requested_at IS NULL
+          )
+          AND organization_id IN (
+            SELECT organization_id FROM member WHERE user_id = auth.user_id()
+          )
+          AND (
+            visibility = 'shared'
+            OR (
+              visibility = 'private'
+              AND (
+                owner_id = auth.parameter('sub')
+                OR id IN (
+                  SELECT workspace_id
+                  FROM workspace_members
+                  WHERE organization_member_id IN (
+                    SELECT id
+                    FROM member
+                    WHERE user_id = auth.parameter('sub')
+                      AND organization_id = auth.parameter('organization_id')
+                  )
+                )
+              )
+            )
+          )
+    queries:
+      - >
+        SELECT * FROM workspaces
+        WHERE id IN accessible_workspaces
+          AND auth.parameter('sync_access') = 'cloud'
+      - >
+        SELECT * FROM workspace_members
+        WHERE workspace_id IN accessible_workspaces
+          AND auth.parameter('sync_access') = 'cloud'
+      - >
+        SELECT * FROM workspace_resources
+        WHERE workspace_id IN (
+          SELECT id FROM workspaces WHERE id IN accessible_workspaces
+        )
+          AND auth.parameter('sync_access') = 'cloud'
+      # Resource trash syncs tombstones while preserving resource content.
+      - >
+        SELECT * FROM workspace_resource_trash
+        WHERE workspace_id IN (
+          SELECT id FROM workspaces WHERE id IN accessible_workspaces
+        )
+          AND auth.parameter('sync_access') = 'cloud'
+      # Bootstrap metadata used to select plugin chunks before workspace hydration.
+      - >
+        SELECT * FROM workspace_extensions
+        WHERE workspace_id IN (
+            SELECT id FROM workspaces WHERE id IN accessible_workspaces
+          )
+          AND auth.parameter('sync_access') = 'cloud'
+  workspace_content:
+    with:
+      accessible_workspaces: >
+        SELECT id
+        FROM workspaces
+        WHERE organization_id = auth.parameter('organization_id')
+          AND organization_id IN (
+            SELECT id FROM organization
+            WHERE id = auth.parameter('organization_id')
+              AND deletion_requested_at IS NULL
+          )
+          AND organization_id IN (
+            SELECT organization_id FROM member WHERE user_id = auth.user_id()
+          )
+          AND (
+            visibility = 'shared'
+            OR (
+              visibility = 'private'
+              AND (
+                owner_id = auth.parameter('sub')
+                OR id IN (
+                  SELECT workspace_id
+                  FROM workspace_members
+                  WHERE organization_member_id IN (
+                    SELECT id
+                    FROM member
+                    WHERE user_id = auth.parameter('sub')
+                      AND organization_id = auth.parameter('organization_id')
+                  )
+                )
+              )
+            )
+          )
+    queries:
+      - >
+        SELECT * FROM workspace_storage_slots
+        WHERE workspace_id = subscription.parameter('workspace_id')
+          AND workspace_id IN (
+            SELECT id FROM workspaces WHERE id IN accessible_workspaces
+          )
+          AND auth.parameter('sync_access') = 'cloud'
+      - >
+        SELECT * FROM workspace_storage_values
+        WHERE workspace_id = subscription.parameter('workspace_id')
+          AND workspace_id IN (
+            SELECT id FROM workspaces WHERE id IN accessible_workspaces
+          )
+          AND auth.parameter('sync_access') = 'cloud'
+      - >
+        SELECT * FROM yjs_documents
+        WHERE workspace_id = subscription.parameter('workspace_id')
+          AND workspace_id IN (
+            SELECT id FROM workspaces WHERE id IN accessible_workspaces
+          )
+          AND auth.parameter('sync_access') = 'cloud'
+      - >
+        SELECT id, workspace_id, document_id, user_id, base64(update_data) as update_b64, created_at, updated_at
+        FROM yjs_document_updates
+        WHERE workspace_id = subscription.parameter('workspace_id')
+          AND workspace_id IN (
+            SELECT id FROM workspaces WHERE id IN accessible_workspaces
+          )
+          AND auth.parameter('sync_access') = 'cloud'
+    accept_potentially_dangerous_queries: true

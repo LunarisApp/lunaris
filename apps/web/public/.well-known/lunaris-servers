@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "servers": [
+    {
+      "serverId": "us",
+      "displayName": "United States",
+      "manifestUrl": "https://api-us.lunaris.app/v1/manifest",
+      "status": "available"
+    }
+  ]
+}

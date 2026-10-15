@@ -1,0 +1,50 @@
+{
+  "name": "@repo/ee-teams",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "peerDependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router": "^8.3.0"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.6",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@vitest/coverage-v8": "^4.1.11",
+    "happy-dom": "^20.12.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11",
+    "vitest-axe": "^0.1.0"
+  },
+  "exports": {
+    "./client": "./src/client/index.ts",
+    "./server": "./src/server/teams.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.client.json && tsc --noEmit -p tsconfig.server.json",
+    "test": "bun run test:server && bun run test:client",
+    "test:server": "bun test ./src/server",
+    "test:client": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@repo/auth": "workspace:*",
+    "@repo/data": "workspace:*",
+    "@repo/platform": "workspace:*",
+    "@lunarisapp/ui": "workspace:*",
+    "@tanstack/react-query": "^5.102.8",
+    "react-i18next": "^17.0.13",
+    "@repo/features": "workspace:*",
+    "@powersync/react": "^2.0.0",
+    "posthog-js": "^1.422.5",
+    "sonner": "^2.0.8"
+  }
+}

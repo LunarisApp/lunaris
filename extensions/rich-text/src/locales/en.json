@@ -1,0 +1,60 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "rich-text": {
+          "name": "Rich Text",
+          "description": "Rich text document editor",
+          "chatGPT": "ChatGPT",
+          "claude": "Claude",
+          "copyPage": "Copy page",
+          "copyPageFailed": "Unable to copy page",
+          "copyPageSuccess": "Page copied as Markdown",
+          "exportAs": "Export as",
+          "exportFailed": "Unable to export document",
+          "exportDocx": "DOCX",
+          "exportDocxGenerating": "Generating DOCX…",
+          "exportDocxSuccess": "DOCX downloaded",
+          "exportDocxMissingImage": "Image unavailable",
+          "exportDocxMissingImages": "DOCX downloaded; some images were unavailable",
+          "exportMarkdown": "Markdown",
+          "exportPdf": "PDF",
+          "exportPdfGenerating": "Generating PDF…",
+          "exportPdfSuccess": "PDF downloaded",
+          "openIn": "Open in",
+          "openInFailed": "Unable to open page in chat",
+          "openInLongPageCopied": "Page copied. Paste it into the new chat",
+          "mentions": {
+            "ariaLabel": "Workspaces, folders, and items",
+            "close": "close",
+            "description": "Workspaces, folders, and items",
+            "folder": "Folder",
+            "item": "Workspace item",
+            "navigate": "navigate",
+            "noResultsDescription": "Try another workspace, folder, or item name.",
+            "noResultsTitle": "No matches",
+            "workspace": "Workspace",
+            "searching": "Searching",
+            "select": "select",
+            "title": "Mention"
+          },
+          "history": {
+            "added": "added",
+            "close": "Close version history",
+            "collaborator": "Collaborator {{id}}",
+            "emptyDescription": "Changes will appear here after this document receives edits.",
+            "emptyTitle": "No version history yet",
+            "errorTitle": "Unable to load version history",
+            "moreLines": "{{count}} more changed lines",
+            "removed": "removed",
+            "system": "System",
+            "you": "You"
+          },
+          "presence": {
+            "collaborator": "Collaborator"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "rich-text": {
+          "name": "Texte enrichi",
+          "description": "Éditeur de texte enrichi",
+          "chatGPT": "ChatGPT",
+          "claude": "Claude",
+          "copyPage": "Copier la page",
+          "copyPageFailed": "Impossible de copier la page",
+          "copyPageSuccess": "Page copiée au format Markdown",
+          "exportAs": "Exporter au format",
+          "exportFailed": "Impossible d'exporter le document",
+          "exportDocx": "DOCX",
+          "exportDocxGenerating": "Génération du DOCX…",
+          "exportDocxSuccess": "DOCX téléchargé",
+          "exportDocxMissingImage": "Image indisponible",
+          "exportDocxMissingImages": "DOCX téléchargé ; certaines images étaient indisponibles",
+          "exportMarkdown": "Markdown",
+          "exportPdf": "PDF",
+          "exportPdfGenerating": "Génération du PDF…",
+          "exportPdfSuccess": "PDF téléchargé",
+          "openIn": "Ouvrir dans",
+          "openInFailed": "Impossible d’ouvrir la page dans le chat",
+          "openInLongPageCopied": "Page copiée. Collez-la dans le nouveau chat",
+          "mentions": {
+            "ariaLabel": "Espaces de travail, dossiers et éléments",
+            "close": "fermer",
+            "description": "Espaces de travail, dossiers et éléments",
+            "folder": "Dossier",
+            "item": "Élément de l’espace de travail",
+            "navigate": "naviguer",
+            "noResultsDescription": "Essayez un autre nom d’espace de travail, de dossier ou d’élément.",
+            "noResultsTitle": "Aucun résultat",
+            "workspace": "Espace de travail",
+            "searching": "Recherche",
+            "select": "sélectionner",
+            "title": "Mentionner"
+          },
+          "history": {
+            "added": "ajoutees",
+            "close": "Fermer l'historique des versions",
+            "collaborator": "Collaborateur {{id}}",
+            "emptyDescription": "Les modifications apparaitront ici apres les prochaines editions de ce document.",
+            "emptyTitle": "Aucun historique pour le moment",
+            "errorTitle": "Impossible de charger l'historique des versions",
+            "moreLines": "{{count}} lignes modifiees de plus",
+            "removed": "supprimees",
+            "system": "Systeme",
+            "you": "Vous"
+          },
+          "presence": {
+            "collaborator": "Collaborateur"
+          }
+        }
+      }
+    }
+  }
+}

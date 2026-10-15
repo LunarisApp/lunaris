@@ -1,0 +1,89 @@
+---
+title: "Sync Problems"
+description: "Recover safely when cloud changes are delayed, rejected, or paused."
+---
+
+# Sync Problems
+
+Lunaris saves edits locally first, then syncs cloud workspaces when a connection
+is available. A pending upload does not mean the edit is lost, but it has not
+yet reached Lunaris Cloud or your other devices.
+
+## Changes are not appearing on another device
+
+On the device where you made the change:
+
+1. Confirm the workspace is **Private** or **Shared**. Local workspaces never sync.
+2. Open Lunaris and reconnect to the internet.
+3. Select the sync indicator and wait for **Uploading** to finish.
+4. Open **Settings → Local Data** and confirm the **Upload Queue** returns to no
+   pending uploads.
+
+On the other device, confirm you selected the same account, data region,
+organization, and workspace. Keep the workspace open while **Downloading** is shown.
+
+## Sync Interrupted
+
+**Sync Interrupted** means a transfer failed temporarily and Lunaris is retrying.
+Keep the app open and check that your connection is stable. Networks with a
+sign-in page, such as hotel or public Wi-Fi, may appear online before internet
+access is complete.
+
+If the error remains after reconnecting, open **Settings → Local Data** and
+review the shown reason and upload queue. Reload Lunaris once, then allow it to
+retry.
+
+## Sign In to Resume Sync
+
+Your session expired and cloud uploads were rejected.
+
+1. Choose **Sign In** from the sync message.
+2. Sign in to the same account and data region.
+3. Return to **Settings → Local Data**.
+4. Choose **Retry Sync**, then wait for the upload queue to clear.
+
+Do not continue as a new guest account: it will not restore access to the
+original account's cloud workspaces.
+
+## Sync Needs Access
+
+The server rejected a queued change under the current plan or permissions.
+Check whether:
+
+- your organization or private-workspace role changed;
+- you now have Viewer access instead of Editor access;
+- the workspace or organization was removed; or
+- the organization plan needs attention.
+
+Ask the organization or workspace owner to restore the needed access. Organization
+owners can review billing from **Organization Settings → Billing**. After the cause
+is fixed, open **Settings → Local Data** and choose **Retry Sync**.
+
+## Sync Paused
+
+Lunaris pauses automatic attempts after repeated upload rejections. The pending
+changes stay in this browser unless you clear them.
+
+1. Correct the sign-in, permission, plan, or connection problem shown.
+2. Open **Settings → Local Data**.
+3. Choose **Retry Sync**.
+4. Keep Lunaris open until no pending uploads remain.
+
+## Last Synced does not change
+
+**Last Synced** records the last completed cloud sync. It will not advance for
+a Local workspace, while offline, or while transfers are still pending. Check the
+upload queue and wait for both **Uploading** and **Downloading** to finish.
+
+## Last-resort local controls
+
+Use these only after normal retries fail:
+
+- **Discard Pending Uploads** permanently discards queued uploads and their unsynced
+  data. It does not upload or repair them.
+- **Purge All Local Data** deletes Lunaris databases and downloaded files from
+  this browser, then reloads the app. Synced cloud data can download again;
+  Local workspaces and unsynced changes cannot be recovered from the cloud.
+
+See [Manage Local Data](/guides/offline-and-sync/manage-local-data) before using
+either action.

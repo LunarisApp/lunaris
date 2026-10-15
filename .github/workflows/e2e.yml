@@ -1,0 +1,139 @@
+name: E2E
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # Daily at 6:00 AM UTC
+  workflow_dispatch:
+
+concurrency:
+  group: e2e
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check-changes:
+    name: Check for recent changes
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Check for recent changes
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "Manual dispatch — always run."
+            exit 0
+          fi
+          CHANGES=$(git log --since="24 hours ago" --oneline)
+          if [ -n "$CHANGES" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "Changes found in the last 24h:"
+            echo "$CHANGES"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "No changes in the last 24h — skipping E2E."
+          fi
+
+  e2e:
+    name: Browser suite
+    needs: check-changes
+    if: needs.check-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.3.10
+      - run: bun install --frozen-lockfile
+      - name: Free Bun install cache
+        run: bun pm cache rm
+      - name: Build plugin SDK dependencies
+        run: bun run build --filter=@lunarisapp/plugin-sdk
+
+      - name: Seed API CI overrides
+        run: |
+          cp apps/api/.env.development apps/api/.env.e2e
+          cat apps/api/.env.e2e.ci >> apps/api/.env.e2e
+          cp apps/api/.env.e2e.ci apps/api/.env.local
+          LUNARIS_COMPOSE_ENV=.env.e2e docker compose \
+            --env-file apps/api/.env.e2e \
+            -f infra/local/compose.yaml \
+            config --quiet
+
+      - name: Start API services (postgres, powersync, garage)
+        run: |
+          LUNARIS_COMPOSE_ENV=.env.e2e bun run services:up
+          LUNARIS_COMPOSE_ENV=.env.e2e bun run services:init
+
+      - name: Migrate API database
+        run: bun --env-file=.env.e2e run db:migrate
+        working-directory: apps/api
+
+      - name: Build API
+        run: bun run build
+        working-directory: apps/api
+
+      - name: Start API (stdout piped to log file for Cypress)
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/logs"
+          nohup bun run start:prod > "$GITHUB_WORKSPACE/logs/backend.log" 2>&1 &
+          disown
+        working-directory: apps/api
+
+      - name: Run full Cypress E2E suite
+        uses: cypress-io/github-action@fa4a118725a8f001170d49631ea89e5d66fee626 # v7.4.1
+        env:
+          CYPRESS_BACKEND_LOG_PATH: ${{ github.workspace }}/logs/backend.log
+        with:
+          working-directory: apps/e2e
+          install: false
+          start: bun run --cwd ../web dev
+          wait-on: "http://localhost:5173, http://localhost:3000/v1/health"
+          wait-on-timeout: 120
+          browser: chrome
+
+      - name: Build production PWA
+        run: bun run build
+        env:
+          VITE_ALLOW_INLINE_REGION_DIRECTORY: "true"
+          VITE_REGION_DIRECTORY_JSON: '[{"id":"local","label":"Local","apiUrl":"http://localhost:3000","status":"active","default":true}]'
+        working-directory: apps/web
+
+      - name: Run returning-user offline PWA test
+        uses: cypress-io/github-action@fa4a118725a8f001170d49631ea89e5d66fee626 # v7.4.1
+        env:
+          CYPRESS_BACKEND_LOG_PATH: ${{ github.workspace }}/logs/backend.log
+          CYPRESS_BASE_URL: http://localhost:4173
+          CYPRESS_PWA_OFFLINE: "true"
+        with:
+          working-directory: apps/e2e
+          install: false
+          start: bun run --cwd ../web preview -- --host 0.0.0.0 --port 4173
+          wait-on: "http://localhost:4173, http://localhost:3000/v1/health"
+          wait-on-timeout: 120
+          browser: chrome
+          spec: cypress/e2e/offline/**/*.cy.ts
+
+      - name: Upload Cypress screenshots on failure
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: apps/e2e/cypress/screenshots
+
+      - name: Upload backend log on failure
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: backend-log
+          path: logs/backend.log
+
+      - name: Dump service logs on failure
+        if: failure()
+        run: LUNARIS_COMPOSE_ENV=.env.e2e bun run services:logs

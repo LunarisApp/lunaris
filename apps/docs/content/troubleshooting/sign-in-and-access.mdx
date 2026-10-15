@@ -1,0 +1,88 @@
+---
+title: "Sign-In and Access Problems"
+description: "Resolve account, password, invitation, organization, workspace, and read-only access issues."
+---
+
+# Sign-In and Access Problems
+
+Sign-in proves which account you are using. Access then depends on the selected
+data region, organization membership, workspace visibility, and role.
+
+## You cannot sign in
+
+1. Confirm the browser is online.
+2. Choose the same data region used when the account was created.
+3. Enter the account's email address and follow the sign-in method Lunaris
+   presents.
+4. If Lunaris marks a method **Last used**, try that method first.
+
+An email connected to Google may need **Continue with Google** instead of a
+password. A passkey must be available through the current device or password
+manager. If two-factor authentication is enabled, enter the current code from
+your authenticator or choose **Use a backup code**.
+
+Repeated failures can trigger **Too many requests**. Wait briefly before trying
+again instead of repeatedly submitting the form.
+
+## Password or verification problems
+
+Choose **Forgot password?** from email sign-in to send a reset link. Open the
+newest email; an older reset link may be invalid or expired. If the account only
+uses Google and has no password, sign in with Google instead.
+
+If Lunaris asks you to verify your email, use the verification message or
+choose **Resend verification email** after its cooldown. Check spam or filtered
+mail if it does not arrive.
+
+Do not create a guest account as a password workaround. Guest workspaces stay in
+that browser and do not restore the original account's organizations.
+
+## Your session expired
+
+**Sign In to Resume Sync** means the existing session can no longer upload changes.
+Sign in to the same account, then open **Settings → Local Data** and choose
+**Retry Sync**. Pending changes remain local unless you clear the upload queue or
+browser data.
+
+## An invitation cannot be accepted
+
+- **Sign in with the invited email address** — choose **Switch account** and use
+  the exact address that received the invitation.
+- **Verify your email** — finish email verification, then reopen the invitation.
+- **Invitation unavailable** — the link is missing, expired, already used, or
+  was canceled. Ask an organization owner to resend it.
+
+An owner may also need to free a member spot or update the organization plan before
+a new invitation can be accepted.
+
+## Organization not found
+
+This message means the organization does not exist for the current session or you
+do not have access. Check the account and data region, then use **Switch
+organization** instead of an old bookmark. If the organization still does not appear,
+ask its owner whether your membership was removed or the organization was deleted.
+
+## Workspace not found or Access denied
+
+First return to the organization's workspace list instead of reusing an old URL.
+Then check:
+
+- the workspace may have been renamed or deleted;
+- a Shared workspace may have changed to Private;
+- the Private workspace's owner may have removed your workspace access;
+- your organization membership may have changed; or
+- a Local workspace may exist only in another browser profile.
+
+Private-workspace access can only be granted to existing organization members. Ask
+the workspace owner to add you as an Editor or Viewer after your organization
+membership is active.
+
+## The workspace is read-only
+
+Viewer access lets you open content but not change it. For a Shared workspace,
+ask an organization owner to review your organization role. For a Private workspace, ask
+the workspace owner to review your separate workspace role. An organization Viewer can
+edit selected Private work when granted the Private workspace's Editor role.
+
+See [Roles and Permissions](/reference/roles-and-permissions) for the complete
+access table.

@@ -1,0 +1,42 @@
+[package]
+name = "lunaris-desktop"
+version = "0.0.1"
+description = "Lunaris desktop shell"
+authors = ["Lunaris"]
+edition = "2021"
+license = "MIT"
+rust-version = "1.96"
+
+[lib]
+name = "lunaris_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+async-trait = "0.1"
+axum = "0.8"
+base64 = "0.22"
+cookie = "0.18"
+futures-lite = "2"
+keyring = { version = "4.1.4", features = ["apple-native-keyring-store", "windows-native-keyring-store", "zbus-secret-service-keyring-store"] }
+lunaris-agent-mcp = { path = "../../../crates/agent-mcp" }
+powersync = "0.1.0"
+rand = "0.9"
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
+rmcp = { version = "=0.15.0", features = ["transport-io"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tauri = { version = "2", features = [] }
+tauri-plugin-deep-link = "2"
+tauri-plugin-http = "2"
+tauri-plugin-powersync = "0.1.0"
+tauri-plugin-shell = "2"
+time = { version = "0.3", features = ["formatting", "parsing"] }
+tokio = { version = "1", features = ["io-std", "net", "rt-multi-thread", "sync", "time"] }
+url = "2"
+
+[target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }

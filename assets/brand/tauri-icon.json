@@ -1,0 +1,7 @@
+{
+  "default": "source/app-icon-dark.svg",
+  "bg_color": "#1c1919",
+  "android_fg": "source/mark-on-dark.svg",
+  "android_fg_scale": 85,
+  "android_monochrome": "source/mark-on-dark.svg"
+}

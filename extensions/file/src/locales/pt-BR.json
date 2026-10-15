@@ -1,0 +1,23 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "file": {
+          "name": "Arquivo",
+          "description": "Adicione arquivos ao seu projeto e visualize formatos compatíveis."
+        }
+      }
+    }
+  },
+  "fileExtension": {
+    "file": {
+      "download": "Baixar",
+      "downloadFailed": "Arquivo indisponível",
+      "downloadPending": "Baixando arquivo",
+      "downloadUnavailable": "Download do arquivo indisponível",
+      "invalidXml": "XML inválido",
+      "missingMetadata": "Metadados do arquivo ausentes",
+      "uploadPending": "Enviando arquivo"
+    }
+  }
+}

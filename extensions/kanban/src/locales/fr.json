@@ -1,0 +1,119 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "kanban": {
+          "name": "Kanban",
+          "description": "Tableau kanban de gestion des tâches",
+          "addTask": "Ajouter une tâche",
+          "creating": "Création...",
+          "createError": "Impossible de créer la tâche. Réessayez.",
+          "newTask": "Nouvelle tâche",
+          "taskName": "Titre de la tâche",
+          "noTasks": "Aucune tâche. Cliquez sur « Ajouter une tâche » pour en créer une.",
+          "noTasksReadOnly": "Aucune tâche pour le moment.",
+          "emptyColumn": "Aucune tâche dans cette colonne",
+          "taskCount_one": "{{count}} tâche",
+          "taskCount_other": "{{count}} tâches",
+          "back": "Retour",
+          "taskNotFound": "Tâche introuvable.",
+          "deleteTask": "Supprimer la tâche",
+          "deleteTaskConfirmation": "Supprimer « {{name}} » ? Cette action est irréversible.",
+          "renameTask": "Renommer la tâche",
+          "taskActions": "Actions de la tâche",
+          "collapseColumn": "Réduire",
+          "expandColumn": "Développer la colonne",
+          "collapseSection": "Réduire {{name}}",
+          "expandSection": "Développer {{name}}",
+          "unknownCreator": "Créateur inconnu",
+          "metadata": {
+            "creator": "Créé par",
+            "created": "Créé",
+            "board": "Tableau"
+          },
+          "select": "Sélectionner...",
+          "groupBy": "Grouper par",
+          "listView": "Vue liste",
+          "kanbanView": "Vue kanban",
+          "manageProperties": "Gérer les propriétés",
+          "untitled": "Sans titre",
+          "created": "Créé",
+          "unassigned": "Non assigné",
+          "noPropertySelected": "Aucune propriété sélectionnée pour le regroupement",
+          "fields": {
+            "name": "Titre",
+            "description": "Description",
+            "status": "Statut"
+          },
+          "placeholders": {
+            "description": "Ajouter une description..."
+          },
+          "properties": "Propriétés",
+          "addProperty": "Ajouter une propriété",
+          "newProperty": "Nouvelle propriété",
+          "propertyTypes": {
+            "select": "Sélection",
+            "multi-select": "Sélection multiple",
+            "people": "Personnes",
+            "resource": "Ressource",
+            "date": "Date",
+            "text": "Texte",
+            "number": "Nombre",
+            "checkbox": "Case à cocher"
+          },
+          "propertyPlaceholders": {
+            "select": "Sélectionner une option",
+            "multi-select": "Sélectionner des options",
+            "people": "Sélectionner des personnes",
+            "resource": "Sélectionner une ressource",
+            "date": "Choisir une date",
+            "text": "Saisir du texte",
+            "number": "Saisir un nombre"
+          },
+          "validation": {
+            "finiteNumber": "Saisissez un nombre décimal fini."
+          },
+          "searchPeople": "Rechercher des personnes",
+          "noPeopleFound": "Aucune personne trouvée",
+          "searchResources": "Rechercher des ressources",
+          "searchingResources": "Recherche de ressources…",
+          "noResourcesFound": "Aucune ressource trouvée",
+          "resourceSearchError": "Impossible de rechercher les ressources",
+          "openResource": "Ouvrir la ressource",
+          "time": "Heure",
+          "clear": "Effacer",
+          "boolean": {
+            "yes": "Oui",
+            "no": "Non"
+          },
+          "noProperties": "Aucune propriété pour le moment",
+          "propertyName": "Nom de la propriété",
+          "editName": "Modifier le nom",
+          "editPropertyName": "Modifier le nom de la propriété",
+          "reorderProperty": "Réorganiser {{name}}",
+          "reorderTask": "Réorganiser {{name}}",
+          "deleteProperty": "Supprimer la propriété",
+          "deletePropertyConfirmation": "Supprimer « {{name}} » ? Les tâches perdront cette propriété et ses options.",
+          "removeOption": "Supprimer l'option",
+          "removeOptionConfirmation": "Supprimer « {{name}} » ? Les tâches utilisant cette option ne seront plus assignées.",
+          "removeNamedOption": "Supprimer {{name}}",
+          "renameOption": "Renommer {{name}}",
+          "changeOptionColor": "Modifier la couleur de {{name}}",
+          "noOptions": "Aucune option pour le moment",
+          "newOption": "Nouvelle option...",
+          "newOptionName": "Nom de la nouvelle option",
+          "add": "Ajouter",
+          "addTaskToColumn": "Ajouter une tâche",
+          "addTaskToSection": "Ajouter une tâche à {{name}}",
+          "defaultStatuses": {
+            "backlog": "En attente",
+            "todo": "À faire",
+            "inProgress": "En cours",
+            "done": "Terminé",
+            "canceled": "Annulé"
+          }
+        }
+      }
+    }
+  }
+}

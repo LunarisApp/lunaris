@@ -1,0 +1,76 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Lunaris",
+  "version": "0.0.1",
+  "identifier": "app.lunaris",
+  "build": {
+    "beforeDevCommand": "bun run --cwd ../../packages/plugin-sdk build && bun run build:agent && bun run dev:web",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeBuildCommand": "bun run build:dependencies && bun run build:agent && bun run build && bun run build:notices",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "security": {
+      "capabilities": [
+        "desktop"
+      ],
+      "dangerousDisableAssetCspModification": [
+        "style-src"
+      ],
+      "csp": {
+        "default-src": "'self'",
+        "connect-src": "'self' ipc: http://ipc.localhost http://localhost:* ws://localhost:* https: wss:",
+        "font-src": "'self' data: blob:",
+        "frame-src": "'self' blob:",
+        "img-src": "'self' asset: http://asset.localhost data: blob: https:",
+        "script-src": "'self' blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg=' 'wasm-unsafe-eval'",
+        "style-src": "'self' 'unsafe-inline'",
+        "worker-src": "'self' blob:"
+      }
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "Lunaris",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 640,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "macOS": {
+      "minimumSystemVersion": "13.0"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "externalBin": [
+      "binaries/lunaris-agent"
+    ],
+    "resources": {
+      "notices/": "notices/"
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": [
+          "lunaris"
+        ]
+      }
+    },
+    "shell": {
+      "open": "(?:https://.+|http://(?:localhost|127\\.0\\.0\\.1)(?::\\d+)?(?:/.*)?)"
+    }
+  }
+}

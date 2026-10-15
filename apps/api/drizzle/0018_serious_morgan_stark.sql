@@ -1,0 +1,1 @@
+DROP INDEX "subscription_user_idx";

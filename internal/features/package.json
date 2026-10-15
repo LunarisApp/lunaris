@@ -1,0 +1,69 @@
+{
+  "name": "@repo/features",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@repo/auth": "workspace:*",
+    "@repo/data": "workspace:*",
+    "@repo/platform": "workspace:*",
+    "@lunarisapp/ui": "workspace:*",
+    "@repo/utils": "workspace:*",
+    "@tanstack/react-hotkeys": "^0.10.0",
+    "@tanstack/react-query": "^5.102.8",
+    "embla-carousel-autoplay": "^8.6.0",
+    "evlog": "^2.28.0",
+    "i18next": "^26.4.1",
+    "i18next-browser-languagedetector": "^8.2.1",
+    "next-themes": "^0.4.6",
+    "posthog-js": "^1.422.5",
+    "react-i18next": "^17.0.13",
+    "react-qr-code": "^2.2.0",
+    "slugify": "^1.6.9",
+    "sonner": "^2.0.8",
+    "zod": "^4.5.4",
+    "zustand": "^5.0.15"
+  },
+  "peerDependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router": "^8.3.0"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.6",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@vitest/coverage-v8": "^4.1.11",
+    "happy-dom": "^20.12.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11",
+    "vitest-axe": "^0.1.0"
+  },
+  "exports": {
+    "./auth/context": "./src/auth/context.tsx",
+    "./auth/pages/*": "./src/auth/pages/*.tsx",
+    "./auth/redirect": "./src/auth/redirect.ts",
+    "./auth/logout": "./src/auth/logout.ts",
+    "./auth/use-logout": "./src/auth/use-logout.ts",
+    "./settings/page": "./src/settings/page.tsx",
+    "./settings/routes": "./src/settings/routes.tsx",
+    "./settings/types": "./src/settings/types.ts",
+    "./settings/use-settings-hotkey": "./src/settings/use-settings-hotkey.ts",
+    "./organization/components/organization-deletion-gate": "./src/organization/components/organization-deletion-gate.tsx",
+    "./organization/components/organization-selector": "./src/organization/components/organization-selector.tsx",
+    "./organization/pending-organization": "./src/organization/pending-organization.ts",
+    "./*": "./src/*/index.tsx",
+    "./organization/sections": "./src/organization/sections.tsx",
+    "./organization/components/members-section": "./src/organization/components/members-section.tsx"
+  }
+}

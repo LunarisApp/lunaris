@@ -1,0 +1,2 @@
+CREATE INDEX "pi_project_position_created_idx" ON "project_items" USING btree ("project_id","position","created_at","id");--> statement-breakpoint
+CREATE INDEX "projects_org_visibility_updated_idx" ON "projects" USING btree ("organization_id","visibility","updated_at" DESC NULLS LAST,"id");

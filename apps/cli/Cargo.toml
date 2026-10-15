@@ -1,0 +1,33 @@
+[package]
+name = "lunaris-cli"
+version = "0.0.1"
+edition = "2021"
+build = "build.rs"
+license = "MIT"
+publish = false
+description = "Native Lunaris control plane CLI and MCP server"
+
+[[bin]]
+name = "lunaris"
+path = "src/main.rs"
+
+[dependencies]
+async-trait = "0.1"
+base64 = "0.22"
+clap = { version = "4.5", features = ["derive"] }
+dirs = "6"
+keyring = { version = "4.1.4", features = ["apple-native-keyring-store", "windows-native-keyring-store", "zbus-secret-service-keyring-store"] }
+lunaris-agent-mcp = { path = "../../crates/agent-mcp" }
+open = "5"
+rand = "0.9"
+reqwest = { version = "0.13", default-features = false, features = ["form", "json", "rustls"] }
+rpassword = "7"
+rmcp = { version = "=0.15.0", features = ["transport-io"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tokio = { version = "1", features = ["io-std", "io-util", "macros", "net", "rt-multi-thread", "sync", "time"] }
+url = "2"
+
+[dev-dependencies]
+tempfile = "3"

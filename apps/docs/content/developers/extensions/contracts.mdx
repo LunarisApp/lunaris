@@ -1,0 +1,86 @@
+---
+title: "Manifests and Activation"
+description: "Declare permissions, register capabilities, and respect the extension sandbox."
+---
+
+# Manifests and Activation
+
+A manifest declares identity and access. Activation registers what the extension provides. Keeping these separate lets Lunaris inspect compatibility before executing code.
+
+## Manifest fields
+
+| Field | Meaning |
+| --- | --- |
+| `id` | Stable extension namespace, at most 50 characters. Lowercase letter-led segments containing letters, numbers, or hyphens, separated by dots. |
+| `name`, `description`, `developer` | Required nonempty discovery text. Explain what users can do with the extension. |
+| `version` | Extension release version, valid semver. Increase for each published release. |
+| `api` | Required plugin API semver range, not the SDK package version. |
+| `permissions` | Required array of requested host capabilities; use `[]` when none are needed. |
+| `dependencies` | Required extension IDs mapped to compatible extension version ranges. |
+| `optionalDependencies` | Optional providers; absence does not block activation. |
+| `conflicts` | Extension IDs and version ranges that cannot run alongside this extension. |
+| `keywords` | Optional, at most 20 unique terms, each at most 64 characters. |
+| `longDescription` | Optional nonempty detail text. |
+| `website` | Optional HTTPS URL. |
+
+Do not depend on yourself, repeat an ID across dependency maps, or declare a provider both as a dependency and a conflict. npm dependencies belong in `package.json`; these manifest maps describe installed Lunaris extensions.
+
+Resource type, view, command contribution, search contribution, and workspace storage IDs must equal your extension ID or start with `<extension-id>.`. Keep stored identities stable across releases.
+
+## Request permissions your hooks actually use
+
+| Operation or hook | Required manifest permissions |
+| --- | --- |
+| Workspace resource maps, breadcrumbs, resource readers | `content.read` |
+| Workspace create, rename, reorder, delete actions | `content.write` |
+| `useYjsStorage`, `useKeyValue`, `useWorkspaceKeyValue`, `useLunarisContent` | Both `content.read` and `content.write` |
+| `useStoredFile` | `files.read` |
+| `useFileStorage` | Both `files.read` and `files.write` |
+| `useDownloads` | `downloads.write` |
+| `usePluginFetch`, `useApiTransport` | `network.https` |
+| Search indexing | `content.read`; add `files.read` when reading a file slot |
+
+The read/write hooks check both permissions when called, even if your component only reads their current value. A manifest grant does not override organization roles. Use `useOrganizationAccess()` to reflect write/delete access in UI; the host remains responsible for enforcing authorization.
+
+## Register first, start effects after commit
+
+Default-export `definePlugin({ manifest, activate })`. During activation, use:
+
+- `contributions.resourceType`, `.view`, `.command`, `.workspaceStorage`, `.searchIndexer`, `.searchQuery`, and `.locales`.
+- `services.provide`, `.require`, and `.optional` for versioned extension services.
+- `slots.contribute` for a provider's extension points.
+- `effects.add` for work that should start only after registration succeeds.
+
+Registration closes when activation returns or its promise resolves. Do not register contributions later from timers, React effects, or network callbacks. A failed activation rolls back staged registrations. Required providers that are missing or incompatible keep the extension pending; losing a required provider suspends it.
+
+An effect may return cleanup and receives an abort signal:
+
+```ts
+// Inside activate({ effects }):
+effects.add((signal) => {
+  const onOnline = () => {
+    if (!signal.aborted) console.info("Connection restored");
+  };
+  window.addEventListener("online", onOnline);
+  return () => window.removeEventListener("online", onOnline);
+});
+```
+
+Activation itself can also return cleanup. Disabling or reloading removes registrations and effects, not durable resource data. Put view-specific subscriptions in React effects with cleanup. Avoid fetching or touching browser-only globals at module load: the build evaluates the entry to validate it.
+
+## Stay within the sandbox
+
+Community code runs with `sandbox="allow-scripts"` and no `allow-same-origin`. It cannot use the host's DOM, cookies, origin storage, navigation, or globals. Its CSP blocks direct network requests, nested frames, forms, and objects. Use SDK capabilities for persistence, navigation, HTTP, files, and downloads.
+
+Runtime imports may use the public SDK, public UI package, local files within the extension root, and declared compatible third-party dependencies. The build rejects:
+
+- Node built-ins, `@repo/*`, `@extension/*`, and `@tauri-apps/*`.
+- `@lunarisapp/plugin-sdk/internal`, manual `/sandbox` imports, and `/vite` in runtime source.
+- Dynamic `import()`, WebAssembly, SharedWorker, and non-inline worker imports.
+- Relative source imports that escape the extension root.
+
+`/vite` belongs in build configuration; `/sandbox` is injected by that tooling. `/marketplace` exposes packaging/discovery contracts, not a way to escape host authorization. Community extension activation does not currently expose an MCP tool registration method.
+
+The build accepts one `main.js` up to 10 MiB, optional `styles.css` up to 2 MiB, and one detectable raster `icon.<extension>` up to 256 KiB. Inline workers and bundled license notices count toward script size. An SVG can be a contribution icon in code, but the optional marketplace icon file must be a supported raster image matching its extension.
+
+Next: [resources and resource views](/developers/extensions/resources-and-views).

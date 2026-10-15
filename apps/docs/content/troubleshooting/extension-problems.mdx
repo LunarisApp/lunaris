@@ -1,0 +1,62 @@
+---
+title: "Extension Problems"
+description: "Fix missing, disabled, incompatible, or offline extension content."
+---
+
+# Extension Problems
+
+Extensions are installed and managed per workspace. Built-in extensions can be
+enabled or disabled; marketplace extensions can be installed, updated, or
+uninstalled.
+
+## An extension is missing from the workspace
+
+1. Open **Settings → Manage extensions**.
+2. Search for the extension.
+3. Enable a built-in extension, or install a marketplace extension.
+4. Reload if Lunaris shows **Extensions changed**.
+
+Viewers cannot change a workspace's extensions. Workspace Editors and Owners can
+install, update, uninstall, enable, or disable extensions.
+
+## Extension Required
+
+An existing resource can remain in the workspace after its extension is disabled.
+The content is not deleted. Choose **Enable Extension** to restore its editor or
+viewer.
+
+If the button is disabled, either you cannot edit the workspace or the extension
+is unavailable. Ask an Editor or Owner for help, then use the availability
+message to identify the cause.
+
+## Availability messages
+
+| Message | Meaning | Next step |
+| --- | --- | --- |
+| **Not installed in this workspace** | The workspace refers to an extension that is not installed. | Ask a workspace Editor or Owner to install it. |
+| **Not cached for offline use** | This browser has not downloaded the extension. | Reconnect, open the workspace, and reload. |
+| **Extension failed to load** | The extension hit a temporary loading failure. | Reload the workspace once. |
+| **Corrupt extension files** | Downloaded extension files failed verification. | Reconnect and reload so Lunaris can download them again. |
+| **Incompatible SDK** | The installed release does not support this Lunaris version. | Choose a compatible version, if offered. |
+| **Release unavailable** | The installed release is no longer in the catalog. | Change to an available release or uninstall it. |
+| **Blocked by Lunaris** | Lunaris has prevented that release from running. | Leave it disabled and use an available release or alternative. |
+| **External extensions disabled** | Community extensions are temporarily disabled. | Retry when they become available again. |
+
+## The extension catalog does not load
+
+The marketplace catalog needs a connection. If it does not load, confirm the
+browser is online and reload the page. Installing and updating require catalog
+access. An already installed extension can still be uninstalled offline.
+
+If controls remain disabled while online, confirm you can edit the workspace. If
+every community extension is unavailable, wait and try again.
+
+## Enabling does not stick
+
+An extension may switch back off when it cannot load. Check its availability,
+reconnect if needed, and reload the workspace. If collaborators changed the
+workspace's extension setup, use the current shared setting instead of repeatedly
+toggling it.
+
+See [Manage Extensions](/guides/tools-and-extensions/manage-extensions) for the
+normal setup flow.

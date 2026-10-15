@@ -1,0 +1,377 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1772136606244,
+      "tag": "0000_powerful_scourge",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772136635748,
+      "tag": "0001_add_powersync_publication",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772300723494,
+      "tag": "0002_abandoned_wild_child",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772405992672,
+      "tag": "0003_abandoned_annihilus",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772482544332,
+      "tag": "0004_dry_tombstone",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772657141555,
+      "tag": "0005_brainy_rawhide_kid",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772891726780,
+      "tag": "0006_handy_vanisher",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1772892728347,
+      "tag": "0007_numerous_jackal",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1773959744030,
+      "tag": "0008_careful_doorman",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1775438508250,
+      "tag": "0009_noisy_manta",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1775510896244,
+      "tag": "0010_chemical_galactus",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1775569464482,
+      "tag": "0011_cold_mariko_yashida",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1775687716530,
+      "tag": "0012_flimsy_timeslip",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1775712904883,
+      "tag": "0013_illegal_mister_sinister",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1776036390138,
+      "tag": "0014_simple_callisto",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1776082255085,
+      "tag": "0015_dear_scarlet_spider",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1776171973660,
+      "tag": "0016_overconfident_metal_master",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1776180702371,
+      "tag": "0017_polite_purifiers",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1776182407793,
+      "tag": "0018_serious_morgan_stark",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1776187650305,
+      "tag": "0019_clever_big_bertha",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1784099843861,
+      "tag": "0020_slim_kulan_gath",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1784102980246,
+      "tag": "0021_sharp_spencer_smythe",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1784104742239,
+      "tag": "0022_closed_human_fly",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1784476379307,
+      "tag": "0023_free_phil_sheldon",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1784664003931,
+      "tag": "0024_oval_chimera",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1784667038223,
+      "tag": "0025_yjs_document_list_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1784668276265,
+      "tag": "0026_user_data_list_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1784671619936,
+      "tag": "0027_cultured_serpent_society",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1784714832689,
+      "tag": "0028_living_monster_badoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1784725623636,
+      "tag": "0029_confused_scalphunter",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1784932061747,
+      "tag": "0030_charming_iron_monger",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1785108212213,
+      "tag": "0031_nifty_krista_starr",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1785180280000,
+      "tag": "0032_add_workspace_directory_to_powersync",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1785220756854,
+      "tag": "0033_deep_vertigo",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1785410237312,
+      "tag": "0034_happy_logan",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1786136359648,
+      "tag": "0035_careless_dagger",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1787042151000,
+      "tag": "0036_default_excalidraw",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1787626800000,
+      "tag": "0037_resource_view_architecture",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1787735130696,
+      "tag": "0038_gray_black_bolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1787768472909,
+      "tag": "0039_overjoyed_xorn",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1787779360364,
+      "tag": "0040_demonic_tattoo",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1787821166025,
+      "tag": "0041_married_midnight",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1787828244446,
+      "tag": "0042_rich_wilson_fisk",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1788220174359,
+      "tag": "0043_adorable_cerebro",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1788290297082,
+      "tag": "0044_plain_susan_delgado",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1788510412285,
+      "tag": "0045_clear_wasp",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1788549538635,
+      "tag": "0046_rename_domain_concepts",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1788859219838,
+      "tag": "0047_tan_earthquake",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1788861289761,
+      "tag": "0048_organization_deletion",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1788946008172,
+      "tag": "0049_activity_timestamps",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1788953604759,
+      "tag": "0050_thankful_loa",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1788957040977,
+      "tag": "0051_adorable_lorna_dane",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1789025046082,
+      "tag": "0052_oauth_client_provider_fields",
+      "breakpoints": true
+    }
+  ]
+}

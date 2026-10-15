@@ -1,0 +1,119 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "kanban": {
+          "name": "Kanban",
+          "description": "Kanban board for task management",
+          "addTask": "Add Task",
+          "creating": "Creating...",
+          "createError": "Could not create the task. Try again.",
+          "newTask": "New Task",
+          "taskName": "Task title",
+          "noTasks": "No tasks yet. Click \"Add Task\" to create one.",
+          "noTasksReadOnly": "No tasks yet.",
+          "emptyColumn": "No tasks in this column",
+          "taskCount_one": "{{count}} task",
+          "taskCount_other": "{{count}} tasks",
+          "back": "Back",
+          "taskNotFound": "Task not found.",
+          "deleteTask": "Delete task",
+          "deleteTaskConfirmation": "Delete ‘{{name}}’? This action cannot be undone.",
+          "renameTask": "Rename task",
+          "taskActions": "Task actions",
+          "collapseColumn": "Collapse",
+          "expandColumn": "Expand column",
+          "collapseSection": "Collapse {{name}}",
+          "expandSection": "Expand {{name}}",
+          "unknownCreator": "Unknown creator",
+          "metadata": {
+            "creator": "Created by",
+            "created": "Created",
+            "board": "Board"
+          },
+          "select": "Select...",
+          "groupBy": "Group by",
+          "listView": "List view",
+          "kanbanView": "Kanban view",
+          "manageProperties": "Manage properties",
+          "untitled": "Untitled",
+          "created": "Created",
+          "unassigned": "Unassigned",
+          "noPropertySelected": "No property selected for grouping",
+          "fields": {
+            "name": "Title",
+            "description": "Description",
+            "status": "Status"
+          },
+          "placeholders": {
+            "description": "Add description..."
+          },
+          "properties": "Properties",
+          "addProperty": "Add property",
+          "newProperty": "New property",
+          "propertyTypes": {
+            "select": "Select",
+            "multi-select": "Multi-select",
+            "people": "People",
+            "resource": "Resource",
+            "date": "Date",
+            "text": "Text",
+            "number": "Number",
+            "checkbox": "Checkbox"
+          },
+          "propertyPlaceholders": {
+            "select": "Select an option",
+            "multi-select": "Select options",
+            "people": "Select people",
+            "resource": "Select a resource",
+            "date": "Pick a date",
+            "text": "Enter text",
+            "number": "Enter a number"
+          },
+          "validation": {
+            "finiteNumber": "Enter a finite decimal number."
+          },
+          "searchPeople": "Search people",
+          "noPeopleFound": "No people found",
+          "searchResources": "Search resources",
+          "searchingResources": "Searching resources…",
+          "noResourcesFound": "No resources found",
+          "resourceSearchError": "Couldn’t search resources",
+          "openResource": "Open resource",
+          "time": "Time",
+          "clear": "Clear",
+          "boolean": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "noProperties": "No properties yet",
+          "propertyName": "Property name",
+          "editName": "Edit name",
+          "editPropertyName": "Edit property name",
+          "reorderProperty": "Reorder {{name}}",
+          "reorderTask": "Reorder {{name}}",
+          "deleteProperty": "Delete property",
+          "deletePropertyConfirmation": "Delete ‘{{name}}’? Tasks will lose this property and its options.",
+          "removeOption": "Remove option",
+          "removeOptionConfirmation": "Remove ‘{{name}}’? Tasks using this option will become unassigned.",
+          "removeNamedOption": "Remove {{name}}",
+          "renameOption": "Rename {{name}}",
+          "changeOptionColor": "Change color for {{name}}",
+          "noOptions": "No options yet",
+          "newOption": "New option...",
+          "newOptionName": "New option name",
+          "add": "Add",
+          "addTaskToColumn": "Add task",
+          "addTaskToSection": "Add task to {{name}}",
+          "defaultStatuses": {
+            "backlog": "Backlog",
+            "todo": "To Do",
+            "inProgress": "In Progress",
+            "done": "Done",
+            "canceled": "Canceled"
+          }
+        }
+      }
+    }
+  }
+}

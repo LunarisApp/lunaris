@@ -1,0 +1,1 @@
+CREATE INDEX "yjs_documents_project_updated_idx" ON "yjs_documents" USING btree ("project_id","updated_at" DESC NULLS LAST,"id");
