@@ -1,0 +1,148 @@
+name: Release - Publish
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: stable-release
+  cancel-in-progress: false
+jobs:
+  version:
+    if: >-
+      vars.RELEASE_AUTOMATION_ENABLED == 'true' && github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' || github.event.head_commit.message != 'chore(release): version packages')
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.version.outputs.sha }}
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        id: app
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - id: version
+        run: bun tooling/release/automation/coordinate.ts version
+        env:
+          GITHUB_TOKEN: ${{ steps.app.outputs.token }}
+  validate:
+    needs: version
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ needs.version.outputs.sha }}
+  tag:
+    needs: [version, validate]
+    if: needs.version.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        id: app
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.version.outputs.sha }}
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - run: bun tooling/release/automation/coordinate.ts tags
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+  back-merge:
+    needs: [version, validate, tag]
+    if: >-
+      always() && needs.validate.result == 'success' &&
+      (needs.tag.result == 'success' || needs.version.outputs.publish == 'false')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        id: app
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.version.outputs.sha }}
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - run: bun tooling/release/automation/back-merge.ts
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+  npm:
+    needs: [version, tag]
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/packages.publish.yml
+    with:
+      ref: ${{ needs.version.outputs.sha }}
+  hosted:
+    needs: [version, tag]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/apps.publish.yml
+    with:
+      ref: ${{ needs.version.outputs.sha }}
+    secrets: inherit
+  complete:
+    needs: [version, npm, hosted]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        id: app
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.version.outputs.sha }}
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - run: bun tooling/release/automation/coordinate.ts complete
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+  result:
+    needs: [version, validate, tag, back-merge, npm, hosted, complete]
+    if: always() && needs.version.result != 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summarize release
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+          RELEASE_SHA: ${{ needs.version.outputs.sha }}
+        run: |
+          echo "Release commit: $RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Job results: $RESULTS" >> "$GITHUB_STEP_SUMMARY"
+          for result in $RESULTS; do
+            case "$result" in success|skipped) ;; *) exit 1 ;; esac
+          done

@@ -2,20 +2,26 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, next]
   pull_request:
-    branches: [main]
+    branches: [main, next]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
   workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.workflow }}-${{ inputs.ref || github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 env:
-  BUN_VERSION: 1.3.10
+  BUN_VERSION: 1.4.0
 
 jobs:
   quality:
@@ -24,6 +30,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
@@ -45,6 +53,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
@@ -60,11 +70,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
       - run: bun install --frozen-lockfile
       - run: bun run test -- --concurrency=4
+      - run: bun run release:test
 
   editions:
     name: Edition (${{ matrix.edition }})
@@ -77,6 +90,8 @@ jobs:
       CYPRESS_INSTALL_BINARY: 0
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.4.0
@@ -98,6 +113,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
@@ -117,6 +134,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
@@ -128,3 +147,52 @@ jobs:
         run: cargo build --release --manifest-path apps/desktop/src-tauri/Cargo.toml --bin lunaris-desktop
       - name: Smoke test bundled executable
         run: bun tooling/mcp-smoke.ts target/release/lunaris-desktop lunaris-desktop
+
+  release-policy:
+    name: Release policy
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - run: bun tooling/release/automation/check-policy.ts
+        if: vars.RELEASE_AUTOMATION_ENABLED == 'true'
+
+  sites:
+    name: Build hosted sites
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - run: bun run build --filter=docs --filter=landing
+
+  e2e:
+    uses: ./.github/workflows/e2e.yml
+    with:
+      ref: ${{ inputs.ref || github.sha }}
+
+  ci:
+    name: CI
+    if: always()
+    needs: [quality, typecheck, test, editions, agent-rust, desktop-mcp, sites, release-policy, e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+          POLICY: ${{ needs.release-policy.result }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          for result in $RESULTS; do
+            case "$result" in success|skipped) ;; *) exit 1 ;; esac
+          done
+          if [ "$EVENT" = pull_request ] && [ "$POLICY" != success ]; then exit 1; fi

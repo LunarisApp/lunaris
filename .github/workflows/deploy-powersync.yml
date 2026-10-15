@@ -23,6 +23,7 @@ env:
 jobs:
   deploy:
     name: Production
+    if: vars.RELEASE_AUTOMATION_ENABLED != 'true'
     runs-on: ubuntu-latest
 
     steps:

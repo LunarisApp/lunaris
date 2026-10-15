@@ -236,7 +236,11 @@ function validateTooling(
     "internal-resolution-error",
   ];
   if (packageInfo.name === "@lunarisapp/ui") {
-    attwArgs.push("--exclude-entrypoints", "@lunarisapp/ui/globals.css");
+    attwArgs.push(
+      "--exclude-entrypoints",
+      "@lunarisapp/ui/globals.css",
+      "@lunarisapp/ui/workbench.css"
+    );
   }
   run("bunx", attwArgs);
 }

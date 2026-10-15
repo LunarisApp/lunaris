@@ -1,0 +1,34 @@
+name: Apps - Publish
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 120
+    env:
+      RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_RELEASE_TOKEN }}
+      RAILWAY_RELEASE_TARGETS: ${{ vars.RAILWAY_RELEASE_TARGETS }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      POWERSYNC_API_SERVICE_ID: ${{ vars.POWERSYNC_API_SERVICE_ID }}
+      POWERSYNC_COMPACT_SERVICE_ID: ${{ vars.POWERSYNC_COMPACT_SERVICE_ID }}
+      POWERSYNC_ENVIRONMENT_ID: ${{ vars.POWERSYNC_ENVIRONMENT_ID }}
+      POWERSYNC_PROJECT_ID: ${{ vars.POWERSYNC_PROJECT_ID }}
+      POWERSYNC_REPLICATION_SERVICE_ID: ${{ vars.POWERSYNC_REPLICATION_SERVICE_ID }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - run: npm install --global @railway/cli@5.26.4
+      - run: bun tooling/release/automation/deploy-hosted.ts
