@@ -31,31 +31,47 @@ describe("sync/cloud round trip", () => {
         cy.createWorkspace({ name: "Cloud Roundtrip" });
         cy.get('[data-testid="workspaces-list-item-cloud-roundtrip"]').click();
         cy.location("pathname").should("match", /\/cloud-roundtrip$/).then((workspacePath) => {
-          cy.task<number>("backendLogOffset").then((logOffset) => {
-            createDocument("Cloud Note", "Persisted through PowerSync and Yjs");
-            cy.task("waitForSyncOperation", {
-              logOffset,
-              operation: "yjs_document_updates.PUT",
-            });
-
-            cy.signOut();
-            cy.resetE2eState();
-            cy.signIn({ email, password });
-            cy.visit("/");
-            cy.get('[data-testid="workspaces-list-item-cloud-roundtrip"]', {
-              timeout: 30_000,
-            }).click();
-            cy.location("pathname").should("eq", workspacePath);
-
-            cy.contains('[data-testid="workspace-tree-item"]', "Cloud Note", {
-              timeout: 30_000,
-            }).click();
-            cy.contains(
-              documentBodySelector,
-              "Persisted through PowerSync and Yjs",
-              { timeout: 30_000 },
-            ).should("be.visible");
+          const body = "Persisted through PowerSync and Yjs";
+          // Resource creation uploads an empty Yjs update first. Wait for the
+          // pasted text itself to be acknowledged before deleting local state.
+          cy.intercept("POST", "**/v1/sync/ingest", (request) => {
+            const payload = request.body as {
+              transactions: {
+                crud: { type: string; data?: { update_b64?: string } }[];
+              }[];
+            };
+            const containsText = payload.transactions.some((transaction) =>
+              transaction.crud.some(
+                (entry) =>
+                  entry.type === "yjs_document_updates" &&
+                  entry.data?.update_b64 &&
+                  atob(entry.data.update_b64).includes(body),
+              ),
+            );
+            if (containsText) request.alias = "textUpload";
           });
+          createDocument("Cloud Note", body);
+          cy.wait("@textUpload", { timeout: 30_000 })
+            .its("response.statusCode")
+            .should("eq", 200);
+
+          cy.signOut();
+          cy.resetE2eState();
+          cy.signIn({ email, password });
+          cy.visit("/");
+          cy.get('[data-testid="workspaces-list-item-cloud-roundtrip"]', {
+            timeout: 30_000,
+          }).click();
+          cy.location("pathname").should("eq", workspacePath);
+
+          cy.contains('[data-testid="workspace-tree-item"]', "Cloud Note", {
+            timeout: 30_000,
+          }).click();
+          cy.contains(
+            documentBodySelector,
+            "Persisted through PowerSync and Yjs",
+            { timeout: 30_000 },
+          ).should("be.visible");
         });
       },
     );

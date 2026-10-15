@@ -195,14 +195,14 @@ Cypress.Commands.add("signInAnonymous", () => {
   });
 });
 
-Cypress.Commands.add("signOut", () => {
+Cypress.Commands.add("signOut", (options: { clearCookies?: boolean } = {}) => {
   visitBlankPage();
   cy.request({
     method: "POST",
     url: "http://localhost:3000/auth/sign-out",
     headers: { Origin: "http://localhost:5173" },
   });
-  cy.clearAllCookies();
+  if (options.clearCookies !== false) cy.clearAllCookies();
   cy.clearAllLocalStorage();
   cy.clearAllSessionStorage();
 });
