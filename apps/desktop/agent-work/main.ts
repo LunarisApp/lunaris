@@ -6,14 +6,16 @@ import { createInterface } from "node:readline";
 // Keep the bundled metadata in this account's private runtime directory.
 import metadata from "../node_modules/@mariozechner/pi-coding-agent/package.json";
 const directory = process.argv[2];
-if (!directory) throw new Error("Agent Work storage directory is required");
+if (!directory) {
+  throw new Error("Agent Work storage directory is required");
+}
 process.umask(0o077);
 const packageDirectory = join(directory, "runtime");
 mkdirSync(packageDirectory, { recursive: true, mode: 0o700 });
 writeFileSync(
   join(packageDirectory, "package.json"),
   JSON.stringify(metadata),
-  { mode: 0o600 },
+  { mode: 0o600 }
 );
 process.env.PI_PACKAGE_DIR = packageDirectory;
 const { AgentWorkRuntime } = await import("./runtime");
@@ -26,7 +28,7 @@ input.on("line", (line) => {
     void runtime.handle(JSON.parse(line));
   } catch {
     process.stdout.write(
-      `${JSON.stringify({ type: "error", message: "Invalid command" })}\n`,
+      `${JSON.stringify({ type: "error", message: "Invalid command" })}\n`
     );
   }
 });

@@ -1,11 +1,7 @@
 /** @vitest-environment happy-dom */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  act,
-  renderHook,
-  waitFor,
-} from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import {
   markWorkspaceRuntimeReady,
   useWorkspaceRuntimeController,
@@ -111,7 +107,7 @@ describe("useWorkspaceRuntimeController", () => {
 
     const { result, rerender } = renderHook(
       ({ extensionIds }) => useWorkspaceRuntimeController(extensionIds),
-      { initialProps: { extensionIds: ["lunaris.rich-text"] } },
+      { initialProps: { extensionIds: ["lunaris.rich-text"] } }
     );
 
     await waitFor(() => {
@@ -142,7 +138,7 @@ describe("useWorkspaceRuntimeController", () => {
     repairFileAttachmentPointersMock.mockReturnValue(
       new Promise((_resolve, reject) => {
         rejectRepair = reject;
-      }),
+      })
     );
     loadWorkspacePluginIdsMock.mockResolvedValue(["lunaris.rich-text"]);
 
@@ -212,7 +208,9 @@ describe("useWorkspaceRuntimeController", () => {
       expect(result.current.enabledPluginIds).toEqual(["lunaris.rich-text"]);
     });
 
-    expect(loadWorkspacePluginIdsMock.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(loadWorkspacePluginIdsMock.mock.calls.length).toBeGreaterThanOrEqual(
+      2
+    );
   });
 });
 
@@ -249,10 +247,10 @@ describe("useWorkspacePluginPreload", () => {
     loadWorkspacePluginIdsMock.mockReturnValue(
       new Promise((resolve) => {
         resolvePluginIds = resolve;
-      }),
+      })
     );
     const { result } = renderHook(() =>
-      useWorkspacePluginPreload(["lunaris.rich-text"]),
+      useWorkspacePluginPreload(["lunaris.rich-text"])
     );
 
     act(() => {
@@ -268,7 +266,7 @@ describe("useWorkspacePluginPreload", () => {
   it("logs preload failures without blocking later retries", async () => {
     loadPluginMock.mockRejectedValueOnce(new Error("chunk unavailable"));
     const { result } = renderHook(() =>
-      useWorkspacePluginPreload(["lunaris.rich-text"]),
+      useWorkspacePluginPreload(["lunaris.rich-text"])
     );
 
     act(() => result.current("workspace_1"));
@@ -283,6 +281,8 @@ describe("useWorkspacePluginPreload", () => {
     });
 
     act(() => result.current("workspace_1"));
-    await waitFor(() => expect(loadWorkspacePluginIdsMock).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(loadWorkspacePluginIdsMock).toHaveBeenCalledTimes(2)
+    );
   });
 });

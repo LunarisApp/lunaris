@@ -7,7 +7,11 @@ import type {
 } from "./content";
 import { createElement, type ReactNode } from "react";
 import { renderBlockNoteExtension } from "./blocknote";
-import { renderCodeContent, renderListItems, renderTableContent } from "./primitives";
+import {
+  renderCodeContent,
+  renderListItems,
+  renderTableContent,
+} from "./primitives";
 import { headingStyleFor, type Styles } from "./styles";
 import type { PdfTheme } from "./theme";
 
@@ -26,7 +30,9 @@ type SectionRenderer<S extends PdfSection = PdfSection> = (
 ) => ReactNode;
 
 const heading: SectionRenderer = (section, { key, styles }) => {
-  if (section.type !== "heading") return null;
+  if (section.type !== "heading") {
+    return null;
+  }
   return createElement(
     Text,
     { key, style: headingStyleFor(styles, section.level) },
@@ -35,13 +41,19 @@ const heading: SectionRenderer = (section, { key, styles }) => {
 };
 
 const paragraph: SectionRenderer = (section, { key, styles }) => {
-  if (section.type !== "paragraph") return null;
-  if (!section.text.trim()) return null;
+  if (section.type !== "paragraph") {
+    return null;
+  }
+  if (!section.text.trim()) {
+    return null;
+  }
   return createElement(Text, { key, style: styles.paragraph }, section.text);
 };
 
 const image: SectionRenderer = (section, { key, styles }) => {
-  if (section.type !== "image") return null;
+  if (section.type !== "image") {
+    return null;
+  }
   return createElement(Image, {
     key,
     src: section.dataUrl,
@@ -50,8 +62,12 @@ const image: SectionRenderer = (section, { key, styles }) => {
 };
 
 const extension: SectionRenderer = (section, { key, styles, theme }) => {
-  if (section.type !== "extension") return null;
-  if (section.kind !== "blocknote") return null;
+  if (section.type !== "extension") {
+    return null;
+  }
+  if (section.kind !== "blocknote") {
+    return null;
+  }
   return createElement(
     View,
     { key },
@@ -60,7 +76,9 @@ const extension: SectionRenderer = (section, { key, styles, theme }) => {
 };
 
 const divider: SectionRenderer = (section, { key, theme }) => {
-  if (section.type !== "divider") return null;
+  if (section.type !== "divider") {
+    return null;
+  }
   const borderStyle = section.style ?? "solid";
   return createElement(View, {
     key,
@@ -75,7 +93,9 @@ const divider: SectionRenderer = (section, { key, theme }) => {
 };
 
 const table: SectionRenderer = (section, { key, styles, theme }) => {
-  if (section.type !== "table") return null;
+  if (section.type !== "table") {
+    return null;
+  }
   return createElement(
     View,
     { key },
@@ -87,7 +107,9 @@ const table: SectionRenderer = (section, { key, styles, theme }) => {
 };
 
 const list: SectionRenderer = (section, { key, styles, theme }) => {
-  if (section.type !== "list") return null;
+  if (section.type !== "list") {
+    return null;
+  }
   return createElement(
     View,
     { key, style: { marginBottom: theme.spacing.paragraphGap } },
@@ -159,19 +181,20 @@ function renderKeyValueSection(
 }
 
 const keyValue: SectionRenderer = (section, { key, styles, theme }) => {
-  if (section.type !== "key-value") return null;
+  if (section.type !== "key-value") {
+    return null;
+  }
   return renderKeyValueSection(section, styles, theme, key);
 };
 
 const code: SectionRenderer = (section, { key, styles }) => {
-  if (section.type !== "code") return null;
+  if (section.type !== "code") {
+    return null;
+  }
   return createElement(View, { key }, renderCodeContent(section.code, styles));
 };
 
-function renderGroupSection(
-  section: GroupSection,
-  ctx: SectionCtx
-): ReactNode {
+function renderGroupSection(section: GroupSection, ctx: SectionCtx): ReactNode {
   const { styles, theme, key, depth } = ctx;
   const containerStyle = {
     marginBottom: theme.spacing.paragraphGap,
@@ -210,7 +233,12 @@ function renderGroupSection(
     renderSection(child, { styles, theme, depth: depth + 1, key: i })
   );
 
-  return createElement(View, { key, style: containerStyle }, titleEl, ...children);
+  return createElement(
+    View,
+    { key, style: containerStyle },
+    titleEl,
+    ...children
+  );
 }
 
 function renderColumnsSection(
@@ -243,17 +271,23 @@ function renderColumnsSection(
 }
 
 const group: SectionRenderer = (section, ctx) => {
-  if (section.type !== "group") return null;
+  if (section.type !== "group") {
+    return null;
+  }
   return renderGroupSection(section, ctx);
 };
 
 const columns: SectionRenderer = (section, ctx) => {
-  if (section.type !== "columns") return null;
+  if (section.type !== "columns") {
+    return null;
+  }
   return renderColumnsSection(section, ctx);
 };
 
 const spacer: SectionRenderer = (section, { key, theme }) => {
-  if (section.type !== "spacer") return null;
+  if (section.type !== "spacer") {
+    return null;
+  }
   return createElement(View, {
     key,
     style: { height: section.height ?? theme.spacing.paragraphGap },
@@ -275,10 +309,7 @@ const SECTION_RENDERERS: Record<PdfSection["type"], SectionRenderer> = {
   spacer,
 };
 
-export function renderSection(
-  section: PdfSection,
-  ctx: SectionCtx
-): ReactNode {
+export function renderSection(section: PdfSection, ctx: SectionCtx): ReactNode {
   if (ctx.depth > MAX_SECTION_DEPTH) {
     return createElement(
       Text,

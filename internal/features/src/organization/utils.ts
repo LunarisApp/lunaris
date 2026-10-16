@@ -5,7 +5,7 @@ export function slugifyOrganizationName(name: string) {
 }
 
 export function isPersonalOrganization(
-  org: { isPersonal?: boolean } | null | undefined,
+  org: { isPersonal?: boolean } | null | undefined
 ): boolean {
   return org?.isPersonal === true;
 }
@@ -36,38 +36,44 @@ export function resolveOrganizationSettingsTab(params: {
     params.marketplacesEnabled &&
     params.isOwner &&
     !params.isAnonymous
-  )
+  ) {
     return "marketplaces";
+  }
   if (
     params.requestedTab === "audit" &&
     !params.isAnonymous &&
     params.isOwner &&
     params.canReadAudit
-  )
+  ) {
     return "audit";
+  }
   if (
     params.requestedTab === "teams" &&
     !params.isPersonal &&
     params.canReadTeams
-  )
+  ) {
     return "teams";
+  }
   if (
     params.requestedTab === "members" &&
     !params.isPersonal &&
     params.canReadMembers
-  )
+  ) {
     return "members";
+  }
   if (
     params.requestedTab === "billing" &&
     !params.isAnonymous &&
     params.canReadBilling
-  )
+  ) {
     return "billing";
+  }
   if (
     params.requestedTab === "backups" &&
     params.isOwner &&
     params.canReadBackups
-  )
+  ) {
     return "backups";
+  }
   return "general";
 }

@@ -73,7 +73,9 @@ export function MarketplacesSection({
         className="space-y-2"
         onSubmit={(event) => {
           event.preventDefault();
-          if (!busy && url.trim()) add.mutate();
+          if (!busy && url.trim()) {
+            add.mutate();
+          }
         }}
       >
         <Label htmlFor={`${id}-url`}>{t("organization.developer.url")}</Label>
@@ -92,17 +94,17 @@ export function MarketplacesSection({
             {t("organization.developer.add")}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground" id={`${id}-url-help`}>
+        <p className="text-muted-foreground text-xs" id={`${id}-url-help`}>
           {t("organization.developer.urlHelp")}
         </p>
       </form>
-      {registries.isPending && (
-        <p role="status" className="text-sm text-muted-foreground">
+      {!!registries.isPending && (
+        <p role="status" className="text-muted-foreground text-sm">
           {t("common.loading")}
         </p>
       )}
-      {registries.isError && (
-        <p role="alert" className="text-sm text-destructive">
+      {!!registries.isError && (
+        <p role="alert" className="text-destructive text-sm">
           {t("organization.developer.loadError")}
         </p>
       )}
@@ -117,8 +119,8 @@ export function MarketplacesSection({
           >
             <div className="min-w-0">
               <p className="break-all text-sm">{registry.location}</p>
-              {registry.official && (
-                <p className="text-xs text-muted-foreground">
+              {!!registry.official && (
+                <p className="text-muted-foreground text-xs">
                   {t("organization.developer.official")}
                 </p>
               )}
@@ -139,7 +141,7 @@ export function MarketplacesSection({
           </li>
         ))}
       </ul>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-xs">
         {t("organization.developer.disableHelp")}
       </p>
     </div>

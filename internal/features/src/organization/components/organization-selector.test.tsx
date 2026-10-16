@@ -3,17 +3,18 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
 import { MemoryRouter, useLocation } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider } from "../../auth";
 import { markPendingOrganization } from "../pending-organization";
 import { OrganizationSelector } from "./organization-selector";
 
-const { useOrganizationsQuery, useOrganizationDeveloperMode } = vi.hoisted(() => ({
-  useOrganizationDeveloperMode: vi.fn(),
-  useOrganizationsQuery: vi.fn(),
-}));
+const { useOrganizationsQuery, useOrganizationDeveloperMode } = vi.hoisted(
+  () => ({
+    useOrganizationDeveloperMode: vi.fn(),
+    useOrganizationsQuery: vi.fn(),
+  })
+);
 
 vi.mock("@repo/data/features/organizations", () => ({
   useOrganizationsQuery,
@@ -43,7 +44,8 @@ vi.mock("react-i18next", () => ({
         "workspaces.switchOrganization": "Switch organization",
         "organization.createOrganization": "Create new",
         "organization.settings": "Organization Settings",
-        "organization.signUpToCreateOrganizations": "Sign up to create organizations",
+        "organization.signUpToCreateOrganizations":
+          "Sign up to create organizations",
       })[key] ?? key,
   }),
 }));
@@ -62,32 +64,38 @@ const otherOrg = {
 
 function LocationDisplay() {
   const location = useLocation();
-  return <div data-testid="location">{`${location.pathname}${location.search}`}</div>;
+  return (
+    <div data-testid="location">{`${location.pathname}${location.search}`}</div>
+  );
 }
 
 function renderSelector({
   anonymous = false,
-  activeOrganization = activeOrg as typeof activeOrg & { deletionRequestedAt?: string },
+  activeOrganization = activeOrg as typeof activeOrg & {
+    deletionRequestedAt?: string;
+  },
   client = new QueryClient(),
   setActive = vi.fn().mockResolvedValue({ data: activeOrg, error: null }),
 } = {}) {
   render(
-    <QueryClientProvider client={client}><MemoryRouter initialEntries={["/northstar?region=us"]}>
-      <AuthProvider
-        client={
-          {
-            organization: { setActive },
-            useActiveOrganization: () => ({ data: activeOrganization }),
-            useSession: () => ({
-              data: { user: { isAnonymous: anonymous } },
-            }),
-          } as never
-        }
-      >
-        <OrganizationSelector />
-        <LocationDisplay />
-      </AuthProvider>
-    </MemoryRouter></QueryClientProvider>
+    <QueryClientProvider client={client}>
+      <MemoryRouter initialEntries={["/northstar?region=us"]}>
+        <AuthProvider
+          client={
+            {
+              organization: { setActive },
+              useActiveOrganization: () => ({ data: activeOrganization }),
+              useSession: () => ({
+                data: { user: { isAnonymous: anonymous } },
+              }),
+            } as never
+          }
+        >
+          <OrganizationSelector />
+          <LocationDisplay />
+        </AuthProvider>
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 
   return { setActive };
@@ -123,32 +131,48 @@ describe("OrganizationSelector", () => {
     });
     renderSelector();
     await userEvent.click(screen.getByTestId("organization-selector-trigger"));
-    expect(screen.queryByRole("menuitemradio", { name: "Paper Lantern" })).toBeNull();
-    expect(screen.getByRole("menuitemradio", { name: "Northstar Studio" })).toBeTruthy();
+    expect(
+      screen.queryByRole("menuitemradio", { name: "Paper Lantern" })
+    ).toBeNull();
+    expect(
+      screen.getByRole("menuitemradio", { name: "Northstar Studio" })
+    ).toBeTruthy();
   });
 
   it("hides deletion immediately before directory sync", async () => {
     const client = new QueryClient();
-    client.setQueryData(["organization-deletion", otherOrg.id], { status: "scheduled" });
+    client.setQueryData(["organization-deletion", otherOrg.id], {
+      status: "scheduled",
+    });
     renderSelector({ client });
     await userEvent.click(screen.getByTestId("organization-selector-trigger"));
-    expect(screen.queryByRole("menuitemradio", { name: "Paper Lantern" })).toBeNull();
+    expect(
+      screen.queryByRole("menuitemradio", { name: "Paper Lantern" })
+    ).toBeNull();
   });
 
   it("shows restored organizations despite stale auth suspension data", async () => {
-    renderSelector({ activeOrganization: { ...activeOrg, deletionRequestedAt: "2026-09-01" } });
+    renderSelector({
+      activeOrganization: { ...activeOrg, deletionRequestedAt: "2026-09-01" },
+    });
     await userEvent.click(screen.getByTestId("organization-selector-trigger"));
-    expect(screen.getByRole("menuitemradio", { name: "Northstar Studio" })).toBeTruthy();
-    expect(screen.getByTestId("organization-settings-trigger").getAttribute("aria-disabled")).not.toBe("true");
+    expect(
+      screen.getByRole("menuitemradio", { name: "Northstar Studio" })
+    ).toBeTruthy();
+    expect(
+      screen
+        .getByTestId("organization-settings-trigger")
+        .getAttribute("aria-disabled")
+    ).not.toBe("true");
   });
 
   it("shows active organization and all organization choices", async () => {
     const user = userEvent.setup();
     renderSelector();
 
-    expect(screen.getByTestId("organization-selector-trigger").textContent).toContain(
-      "Northstar Studio"
-    );
+    expect(
+      screen.getByTestId("organization-selector-trigger").textContent
+    ).toContain("Northstar Studio");
     expect(screen.getByTestId("organization-selector-avatar").textContent).toBe(
       "NS"
     );
@@ -160,7 +184,9 @@ describe("OrganizationSelector", () => {
         .getByRole("menuitemradio", { name: "Northstar Studio" })
         .getAttribute("aria-checked")
     ).toBe("true");
-    expect(screen.getByRole("menuitemradio", { name: "Paper Lantern" })).toBeTruthy();
+    expect(
+      screen.getByRole("menuitemradio", { name: "Paper Lantern" })
+    ).toBeTruthy();
   });
 
   it("routes to another organization for scoped activation", async () => {
@@ -168,7 +194,9 @@ describe("OrganizationSelector", () => {
     const { setActive } = renderSelector();
 
     await user.click(screen.getByTestId("organization-selector-trigger"));
-    await user.click(screen.getByRole("menuitemradio", { name: "Paper Lantern" }));
+    await user.click(
+      screen.getByRole("menuitemradio", { name: "Paper Lantern" })
+    );
 
     await waitFor(() => {
       expect(setActive).not.toHaveBeenCalled();
@@ -184,7 +212,7 @@ describe("OrganizationSelector", () => {
 
     await user.click(screen.getByTestId("organization-selector-trigger"));
     await user.click(
-      screen.getByRole("menuitemradio", { name: "Northstar Studio" }),
+      screen.getByRole("menuitemradio", { name: "Northstar Studio" })
     );
 
     expect(setActive).not.toHaveBeenCalled();
@@ -240,10 +268,10 @@ describe("OrganizationSelector", () => {
     await user.click(screen.getByTestId("organization-selector-trigger"));
 
     expect(
-      screen.getByRole("menuitemradio", { name: "Northstar Studio" }),
+      screen.getByRole("menuitemradio", { name: "Northstar Studio" })
     ).toBeTruthy();
     expect(
-      screen.queryByRole("menuitemradio", { name: "Paper Lantern" }),
+      screen.queryByRole("menuitemradio", { name: "Paper Lantern" })
     ).toBeNull();
   });
 
@@ -265,7 +293,7 @@ describe("OrganizationSelector", () => {
     await user.click(screen.getByTestId("organization-selector-trigger"));
 
     expect(
-      screen.getByRole("menuitemradio", { name: "Paper Lantern" }),
+      screen.getByRole("menuitemradio", { name: "Paper Lantern" })
     ).toBeTruthy();
   });
 
@@ -278,12 +306,12 @@ describe("OrganizationSelector", () => {
     const user = userEvent.setup();
     renderSelector();
 
-    expect(screen.getByTestId("organization-selector-trigger").textContent).toContain(
-      "Renamed Studio"
-    );
+    expect(
+      screen.getByTestId("organization-selector-trigger").textContent
+    ).toContain("Renamed Studio");
     await user.click(screen.getByTestId("organization-selector-trigger"));
     expect(
-      screen.getByRole("menuitemradio", { name: "Renamed Studio" }),
+      screen.getByRole("menuitemradio", { name: "Renamed Studio" })
     ).toBeTruthy();
 
     await user.click(screen.getByTestId("organization-settings-trigger"));
@@ -303,7 +331,7 @@ describe("OrganizationSelector", () => {
 
     await user.click(screen.getByTestId("organization-selector-trigger"));
     await user.click(
-      screen.getByRole("menuitemradio", { name: "Renamed Lantern" }),
+      screen.getByRole("menuitemradio", { name: "Renamed Lantern" })
     );
 
     await waitFor(() => {
@@ -327,10 +355,10 @@ describe("OrganizationSelector", () => {
     await user.click(screen.getByTestId("organization-selector-trigger"));
 
     expect(
-      screen.queryByRole("menuitemradio", { name: "Northstar Studio" }),
+      screen.queryByRole("menuitemradio", { name: "Northstar Studio" })
     ).toBeNull();
     expect(
-      screen.getByRole("menuitemradio", { name: "Paper Lantern" }),
+      screen.getByRole("menuitemradio", { name: "Paper Lantern" })
     ).toBeTruthy();
   });
 });

@@ -10,7 +10,8 @@ import {
 
 export function JsonRenderer({ filename, text }: LoadedTextRendererProps) {
   const { resolvedTheme, theme } = useTheme();
-  const themeStyles = (resolvedTheme ?? theme) === "dark" ? darkTheme : lightTheme;
+  const themeStyles =
+    (resolvedTheme ?? theme) === "dark" ? darkTheme : lightTheme;
   const jsonThemeStyles = {
     ...themeStyles,
     "--w-rjv-background-color": "transparent",

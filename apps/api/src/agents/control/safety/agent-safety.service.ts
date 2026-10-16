@@ -56,17 +56,19 @@ export class AgentSafetyService {
         .where(
           and(
             eq(agentIdempotencyDb.actorId, params.actorId),
-            eq(agentIdempotencyDb.key, params.key),
-          ),
+            eq(agentIdempotencyDb.key, params.key)
+          )
         )
         .limit(1);
-      if (!existing) return this.idempotent(params);
+      if (!existing) {
+        return this.idempotent(params);
+      }
       if (
         existing.operation !== params.operation ||
         existing.requestHash !== requestHash
       ) {
         throw new ConflictException(
-          "Idempotency key was used for another request",
+          "Idempotency key was used for another request"
         );
       }
       if (existing.expiresAt <= now) {
@@ -75,7 +77,9 @@ export class AgentSafetyService {
           .where(eq(agentIdempotencyDb.id, existing.id));
         return this.idempotent(params);
       }
-      if (existing.status === "complete") return existing.response as T;
+      if (existing.status === "complete") {
+        return existing.response as T;
+      }
       throw new ConflictException("Matching operation is still processing");
     }
 
@@ -107,7 +111,10 @@ export class AgentSafetyService {
   }
 
   async issuePreview(params: {
-    action: "delete_resource" | "delete_workspace" | "remove_organization_member";
+    action:
+      | "delete_resource"
+      | "delete_workspace"
+      | "remove_organization_member";
     actorId: string;
     fingerprint: string;
     impact: {
@@ -175,7 +182,7 @@ export class AgentSafetyService {
         }
         if (preview.fingerprint !== (await params.fingerprint(tx))) {
           throw new ConflictException(
-            "Resource changed after preview; request a new preview",
+            "Resource changed after preview; request a new preview"
           );
         }
         const result = await params.run(tx);
@@ -185,7 +192,7 @@ export class AgentSafetyService {
           .where(eq(agentActionPreviewsDb.id, preview.id));
         return result;
       },
-      { isolationLevel: "serializable" },
+      { isolationLevel: "serializable" }
     );
   }
 
@@ -242,14 +249,20 @@ export function fingerprint(value: unknown) {
 }
 
 function canonicalize(value: unknown): unknown {
-  if (value instanceof Date) return value.toISOString();
-  if (Array.isArray(value)) return value.map(canonicalize);
-  if (typeof value !== "object" || value === null) return value;
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (Array.isArray(value)) {
+    return value.map(canonicalize);
+  }
+  if (typeof value !== "object" || value === null) {
+    return value;
+  }
   return Object.fromEntries(
     Object.entries(value)
       .filter(([, item]) => item !== undefined)
       .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, item]) => [key, canonicalize(item)]),
+      .map(([key, item]) => [key, canonicalize(item)])
   );
 }
 

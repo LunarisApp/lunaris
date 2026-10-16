@@ -60,10 +60,21 @@ vi.mock("react-router", async (importOriginal) => {
 });
 
 vi.mock("@repo/features/region", () => ({
-  useRegionClients: () => ({ authClient: {
-    useSession: () => ({ data: { user: { id: "user" }, session: { activeOrganizationId: "org" } }, isPending: false }),
-    useActiveOrganization: () => ({ data: { id: "org", slug: "team" }, isPending: false }),
-  } }),
+  useRegionClients: () => ({
+    authClient: {
+      useSession: () => ({
+        data: {
+          user: { id: "user" },
+          session: { activeOrganizationId: "org" },
+        },
+        isPending: false,
+      }),
+      useActiveOrganization: () => ({
+        data: { id: "org", slug: "team" },
+        isPending: false,
+      }),
+    },
+  }),
   RegionProvider: ({ children }: { children: React.ReactNode }) => children,
   RegionReady: ({ children }: { children: React.ReactNode }) => children,
 }));
@@ -100,15 +111,19 @@ function collectRoutePaths(
 
 function findRoute(
   routes: Array<{ children?: unknown[]; path?: string }>,
-  path: string,
+  path: string
 ): Record<string, unknown> | undefined {
   for (const route of routes) {
-    if (route.path === path) return route as Record<string, unknown>;
+    if (route.path === path) {
+      return route as Record<string, unknown>;
+    }
     const nested = findRoute(
       (route.children ?? []) as Array<{ children?: unknown[]; path?: string }>,
-      path,
+      path
     );
-    if (nested) return nested;
+    if (nested) {
+      return nested;
+    }
   }
 }
 
@@ -118,25 +133,45 @@ describe("AppRouter", () => {
     { key: "home-click", resume: false },
   ])("restores only startup root entry ($key)", async ({ key, resume }) => {
     render(<AppRouter shell="desktop" />);
-    type CapturedRoute = { index?: boolean; element?: React.ReactNode; children?: CapturedRoute[] };
+    type CapturedRoute = {
+      index?: boolean;
+      element?: React.ReactNode;
+      children?: CapturedRoute[];
+    };
     const routes = createBrowserRouter.mock.calls[0]?.[0] as CapturedRoute[];
     const findIndex = (items: CapturedRoute[]): CapturedRoute | undefined => {
       for (const route of items) {
-        if (route.index) return route;
+        if (route.index) {
+          return route;
+        }
         const child = findIndex(route.children ?? []);
-        if (child) return child;
+        if (child) {
+          return child;
+        }
       }
     };
     const index = findIndex(routes);
     function Destination() {
       const location = useLocation();
-      return <div>{location.state?.resumeLastWorkspace ? "resume-workspace" : "show-list"}</div>;
+      return (
+        <div>
+          {location.state?.resumeLastWorkspace
+            ? "resume-workspace"
+            : "show-list"}
+        </div>
+      );
     }
-    render(<MemoryRouter initialEntries={[{ pathname: "/", key }]}><Routes>
-      <Route path="/" element={index?.element} />
-      <Route path="/team" element={<Destination />} />
-    </Routes></MemoryRouter>);
-    expect(await screen.findByText(resume ? "resume-workspace" : "show-list")).toBeTruthy();
+    render(
+      <MemoryRouter initialEntries={[{ pathname: "/", key }]}>
+        <Routes>
+          <Route path="/" element={index?.element} />
+          <Route path="/team" element={<Destination />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(
+      await screen.findByText(resume ? "resume-workspace" : "show-list")
+    ).toBeTruthy();
   });
 
   it("registers nested plugin subview URLs", () => {
@@ -177,24 +212,22 @@ describe("AppRouter", () => {
     }>;
     const organizationRoute = findRoute(
       routes,
-      ":organizationSlug",
+      ":organizationSlug"
     ) as (typeof routes)[number];
     const organizationSettings = organizationRoute.children?.find(
-      (route) => route.path === "settings",
+      (route) => route.path === "settings"
     );
     const workspaceScope = organizationRoute.children?.find(
       (route) =>
         !route.path &&
-        route.children?.some((child) => child.path === ":workspaceSlug"),
+        route.children?.some((child) => child.path === ":workspaceSlug")
     );
 
     expect(organizationSettings?.lazy).toBeTypeOf("function");
     expect(workspaceScope?.lazy).toBeTypeOf("function");
     expect(workspaceScope?.children?.some((route) => route.index)).toBe(true);
     expect(
-      workspaceScope?.children?.some(
-        (route) => route.path === ":workspaceSlug",
-      ),
+      workspaceScope?.children?.some((route) => route.path === ":workspaceSlug")
     ).toBe(true);
   });
 
@@ -224,7 +257,7 @@ describe("AppRouter", () => {
     fireEvent.click(screen.getByRole("button", { name: testCase.button }));
 
     expect(markDefaultWorkspaceSeedPending).toHaveBeenCalledWith(
-      testCase.expected,
+      testCase.expected
     );
   });
 
@@ -238,7 +271,7 @@ describe("AppRouter", () => {
       platform: createBrowserPlatform({ kind: "web" }),
     };
     const { rerender } = render(
-      <AppRouter runtime={firstRuntime} shell="desktop" />,
+      <AppRouter runtime={firstRuntime} shell="desktop" />
     );
 
     rerender(
@@ -248,7 +281,7 @@ describe("AppRouter", () => {
           appUpdate: { needRefresh: true, update: async () => {} },
         }}
         shell="desktop"
-      />,
+      />
     );
 
     expect(createBrowserRouter).toHaveBeenCalledOnce();

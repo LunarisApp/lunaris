@@ -11,7 +11,12 @@ describe("auditInputForRequest", () => {
             transactions: [
               {
                 crud: [
-                  { data: { name: "Private" }, id: "workspace_1", op: "PUT", type: "workspaces" },
+                  {
+                    data: { name: "Private" },
+                    id: "workspace_1",
+                    op: "PUT",
+                    type: "workspaces",
+                  },
                   { id: "item_1", op: "DELETE", type: "workspace_resources" },
                 ],
               },
@@ -28,9 +33,7 @@ describe("auditInputForRequest", () => {
       }),
     } as unknown as ExecutionContext;
 
-    expect(
-      auditInputForRequest(context, "syncIngested", "success"),
-    ).toEqual(
+    expect(auditInputForRequest(context, "syncIngested", "success")).toEqual(
       expect.objectContaining({
         action: "sync.ingested",
         target: {
@@ -42,7 +45,7 @@ describe("auditInputForRequest", () => {
           tenantId: "organization_1",
           type: "organization",
         },
-      }),
+      })
     );
   });
 
@@ -70,8 +73,8 @@ describe("auditInputForRequest", () => {
         "workspaceStorageRead",
         "success",
         undefined,
-        { id: "database_row_1" },
-      ).target?.id,
+        { id: "database_row_1" }
+      ).target?.id
     ).toBe("storage_1");
   });
 
@@ -91,7 +94,7 @@ describe("auditInputForRequest", () => {
     } as unknown as ExecutionContext;
 
     expect(
-      auditInputForRequest(context, "fileDeleted", "success").target?.id,
+      auditInputForRequest(context, "fileDeleted", "success").target?.id
     ).toBe("file_1");
   });
 
@@ -100,14 +103,17 @@ describe("auditInputForRequest", () => {
       switchToHttp: () => ({
         getRequest: () => ({
           auditActor: { id: "user_1", type: "api" },
-          params: { workspaceId: "workspace_1", organizationId: "organization_1" },
+          params: {
+            workspaceId: "workspace_1",
+            organizationId: "organization_1",
+          },
           url: "/v1/organizations/organization_1/workspaces/workspace_1",
         }),
       }),
     } as unknown as ExecutionContext;
 
     expect(
-      auditInputForRequest(context, "workspaceUpdated", "denied").actor,
+      auditInputForRequest(context, "workspaceUpdated", "denied").actor
     ).toEqual({ id: "user_1", type: "api" });
   });
 });

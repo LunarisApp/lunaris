@@ -65,21 +65,41 @@ const XlsxRenderer = xlsxRendererModule.Component;
 
 export function preloadFileRenderer(metadata: PluginStoredFileMetadata) {
   const preview = resolveFilePreview(metadata);
-  if (preview.type === "pdf") return pdfRendererModule.preload();
+  if (preview.type === "pdf") {
+    return pdfRendererModule.preload();
+  }
   if (preview.type === "office") {
-    if (preview.kind === "docx") return docxRendererModule.preload();
-    if (preview.kind === "pptx") return pptxRendererModule.preload();
+    if (preview.kind === "docx") {
+      return docxRendererModule.preload();
+    }
+    if (preview.kind === "pptx") {
+      return pptxRendererModule.preload();
+    }
     return xlsxRendererModule.preload();
   }
-  if (preview.type !== "text") return Promise.resolve();
-  if (preview.kind === "csv") return csvRendererModule.preload();
-  if (preview.kind === "json") return jsonRendererModule.preload();
-  if (preview.kind === "markdown") return markdownRendererModule.preload();
-  if (preview.kind === "xml") return xmlRendererModule.preload();
+  if (preview.type !== "text") {
+    return Promise.resolve();
+  }
+  if (preview.kind === "csv") {
+    return csvRendererModule.preload();
+  }
+  if (preview.kind === "json") {
+    return jsonRendererModule.preload();
+  }
+  if (preview.kind === "markdown") {
+    return markdownRendererModule.preload();
+  }
+  if (preview.kind === "xml") {
+    return xmlRendererModule.preload();
+  }
   return Promise.resolve();
 }
 
-export function renderFilePreview({ metadata, objectUrl, reportReady }: PreviewProps) {
+export function renderFilePreview({
+  metadata,
+  objectUrl,
+  reportReady,
+}: PreviewProps) {
   const preview = resolveFilePreview(metadata);
   if (preview.type === "image") {
     return (
@@ -135,8 +155,12 @@ export function renderFilePreview({ metadata, objectUrl, reportReady }: PreviewP
   );
 }
 
-function resolveFilePreview(metadata: PluginStoredFileMetadata): FilePreviewKind {
-  if (metadata.mediaType.startsWith("image/")) return { type: "image" };
+function resolveFilePreview(
+  metadata: PluginStoredFileMetadata
+): FilePreviewKind {
+  if (metadata.mediaType.startsWith("image/")) {
+    return { type: "image" };
+  }
   if (
     metadata.mediaType === "application/pdf" ||
     getFileExtension(metadata) === "pdf"
@@ -144,9 +168,13 @@ function resolveFilePreview(metadata: PluginStoredFileMetadata): FilePreviewKind
     return { type: "pdf" };
   }
   const officeKind = getOfficeRendererKind(metadata);
-  if (officeKind) return { kind: officeKind, type: "office" };
+  if (officeKind) {
+    return { kind: officeKind, type: "office" };
+  }
   const textKind = getTextRendererKind(metadata);
-  if (textKind) return { kind: textKind, type: "text" };
+  if (textKind) {
+    return { kind: textKind, type: "text" };
+  }
   return { type: "unsupported" };
 }
 
@@ -162,11 +190,21 @@ function getTextRendererKind(
   metadata: PluginStoredFileMetadata
 ): TextRendererKind | null {
   const extension = getFileExtension(metadata);
-  if (extension === "csv") return "csv";
-  if (extension === "json") return "json";
-  if (extension === "md" || extension === "markdown") return "markdown";
-  if (extension === "txt") return "text";
-  if (extension === "xml") return "xml";
+  if (extension === "csv") {
+    return "csv";
+  }
+  if (extension === "json") {
+    return "json";
+  }
+  if (extension === "md" || extension === "markdown") {
+    return "markdown";
+  }
+  if (extension === "txt") {
+    return "text";
+  }
+  if (extension === "xml") {
+    return "xml";
+  }
 
   switch (metadata.mediaType) {
     case "application/json":
@@ -189,9 +227,15 @@ function getOfficeRendererKind(
   metadata: PluginStoredFileMetadata
 ): OfficeRendererKind | null {
   const extension = getFileExtension(metadata);
-  if (extension === "docx") return "docx";
-  if (extension === "ppt" || extension === "pptx") return "pptx";
-  if (extension === "xls" || extension === "xlsx") return "xlsx";
+  if (extension === "docx") {
+    return "docx";
+  }
+  if (extension === "ppt" || extension === "pptx") {
+    return "pptx";
+  }
+  if (extension === "xls" || extension === "xlsx") {
+    return "xlsx";
+  }
 
   switch (metadata.mediaType) {
     case "application/vnd.ms-excel":
@@ -223,7 +267,9 @@ function useObjectUrlText(objectUrl: string) {
     fetch(objectUrl)
       .then((response) => response.text())
       .then((text) => {
-        if (!cancelled) setState({ status: "success", text });
+        if (!cancelled) {
+          setState({ status: "success", text });
+        }
       })
       .catch((error) => {
         log.error({
@@ -231,7 +277,9 @@ function useObjectUrlText(objectUrl: string) {
           msg: "failed to read text file preview",
           error: parseError(error),
         });
-        if (!cancelled) setState({ status: "error", text: null });
+        if (!cancelled) {
+          setState({ status: "error", text: null });
+        }
       });
 
     return () => {
@@ -242,11 +290,18 @@ function useObjectUrlText(objectUrl: string) {
   return state;
 }
 
-function TextFileRenderer({ kind, metadata, objectUrl, reportReady }: TextRendererProps) {
+function TextFileRenderer({
+  kind,
+  metadata,
+  objectUrl,
+  reportReady,
+}: TextRendererProps) {
   const { t } = useTranslation();
   const state = useObjectUrlText(objectUrl);
 
-  if (state.status === "loading") return null;
+  if (state.status === "loading") {
+    return null;
+  }
   if (state.status === "error") {
     return (
       <ViewReady reportReady={reportReady}>
@@ -262,12 +317,13 @@ function TextFileRenderer({ kind, metadata, objectUrl, reportReady }: TextRender
   }
 
   const props = { filename: metadata.filename, text: state.text };
-  if (kind === "text")
+  if (kind === "text") {
     return (
       <ViewReady reportReady={reportReady}>
         <PlainTextRenderer {...props} />
       </ViewReady>
     );
+  }
 
   return (
     <Suspense fallback={null}>

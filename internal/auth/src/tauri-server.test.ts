@@ -31,7 +31,7 @@ function expectRejected(url: URL | string) {
       authorizationURL: url.toString(),
       baseURL,
       googleClientId: clientId,
-    }),
+    })
   ).toThrow(APIError);
 }
 
@@ -51,43 +51,36 @@ describe("Google authorization validation", () => {
         authorizationURL: authorizationURL().toString(),
         baseURL,
         googleClientId: clientId,
-      }).state,
+      }).state
     ).toBe("state-value");
   });
 
   it("rejects invalid origins, paths, credentials, ports, and fragments", () => {
     expectRejected(
-      authorizationURL().toString().replace("https://", "http://"),
+      authorizationURL().toString().replace("https://", "http://")
     );
     expectRejected(
-      authorizationURL().toString().replace(
-        "accounts.google.com",
-        "accounts.google.com.evil.example",
-      ),
+      authorizationURL()
+        .toString()
+        .replace("accounts.google.com", "accounts.google.com.evil.example")
     );
     expectRejected(
-      authorizationURL().toString().replace(
-        GOOGLE_PATH,
-        "/o/oauth2/v2/other",
-      ),
+      authorizationURL().toString().replace(GOOGLE_PATH, "/o/oauth2/v2/other")
     );
     expectRejected(
-      authorizationURL().toString().replace(
-        "accounts.google.com",
-        "user@accounts.google.com",
-      ),
+      authorizationURL()
+        .toString()
+        .replace("accounts.google.com", "user@accounts.google.com")
     );
     expectRejected(
-      authorizationURL().toString().replace(
-        "accounts.google.com",
-        "accounts.google.com:444",
-      ),
+      authorizationURL()
+        .toString()
+        .replace("accounts.google.com", "accounts.google.com:444")
     );
     expectRejected(
-      authorizationURL().toString().replace(
-        "accounts.google.com",
-        "accounts.google.com:443",
-      ),
+      authorizationURL()
+        .toString()
+        .replace("accounts.google.com", "accounts.google.com:443")
     );
     expectRejected(`${authorizationURL()}#fragment`);
   });
@@ -95,7 +88,7 @@ describe("Google authorization validation", () => {
   it("rejects invalid client, callback, response type, state, and duplicates", () => {
     expectRejected(authorizationURL({ client_id: "other-client" }));
     expectRejected(
-      authorizationURL({ redirect_uri: "https://evil.example/callback" }),
+      authorizationURL({ redirect_uri: "https://evil.example/callback" })
     );
     expectRejected(authorizationURL({ response_type: "token" }));
     expectRejected(authorizationURL({ state: "" }));
@@ -110,7 +103,7 @@ describe("Google authorization validation", () => {
       validateGoogleAuthorizationUrl({
         authorizationURL: authorizationURL().toString(),
         baseURL,
-      }),
+      })
     ).toThrow(APIError);
   });
 });
@@ -127,7 +120,7 @@ describe("desktop OAuth state validation", () => {
 
   it("accepts an unexpired state bound to Lunaris", () => {
     expect(() =>
-      validateDesktopOAuthState("state-value", verification, now),
+      validateDesktopOAuthState("state-value", verification, now)
     ).not.toThrow();
   });
 
@@ -153,8 +146,8 @@ describe("desktop OAuth state validation", () => {
             oauthState: "state-value",
           }),
         },
-        now,
-      ),
+        now
+      )
     ).toThrow(APIError);
   });
 
@@ -172,25 +165,25 @@ describe("desktop OAuth state validation", () => {
               [field]: "lunaris://auth/reset-password",
             }),
           },
-          now,
-        ),
+          now
+        )
       ).toThrow(APIError);
     }
   });
 
   it("rejects missing, expired, mismatched, and foreign callback state", () => {
     expect(() => validateDesktopOAuthState("state-value", null, now)).toThrow(
-      APIError,
+      APIError
     );
     expect(() =>
       validateDesktopOAuthState(
         "state-value",
         { ...verification, expiresAt: new Date(now) },
-        now,
-      ),
+        now
+      )
     ).toThrow(APIError);
     expect(() =>
-      validateDesktopOAuthState("other-state", verification, now),
+      validateDesktopOAuthState("other-state", verification, now)
     ).toThrow(APIError);
     expect(() =>
       validateDesktopOAuthState(
@@ -203,8 +196,8 @@ describe("desktop OAuth state validation", () => {
             oauthState: "state-value",
           }),
         },
-        now,
-      ),
+        now
+      )
     ).toThrow(APIError);
   });
 });

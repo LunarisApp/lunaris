@@ -43,7 +43,7 @@ export function billingStateQueryOptions(
   api: ApiClient,
   regionId: string,
   userId: string,
-  orgId: string,
+  orgId: string
 ) {
   return {
     networkMode: "online" as const,
@@ -76,7 +76,7 @@ export function invitationsQueryOptions(auth: AuthClient, orgId: string) {
         if (result.error) {
           throw new Error(
             (result.error as { message?: string }).message ??
-              "Failed to load invitations",
+              "Failed to load invitations"
           );
         }
 
@@ -111,21 +111,14 @@ export async function preloadOrganizationSettingsData({
   const tasks: Promise<unknown>[] = [];
 
   if (invitations) {
-    tasks.push(
-      queryClient.prefetchQuery(invitationsQueryOptions(auth, orgId)),
-    );
+    tasks.push(queryClient.prefetchQuery(invitationsQueryOptions(auth, orgId)));
   }
 
   if (billing) {
     tasks.push(
       queryClient.prefetchQuery(
-        billingStateQueryOptions(
-          api,
-          billing.regionId,
-          billing.userId,
-          orgId,
-        ),
-      ),
+        billingStateQueryOptions(api, billing.regionId, billing.userId, orgId)
+      )
     );
   }
 

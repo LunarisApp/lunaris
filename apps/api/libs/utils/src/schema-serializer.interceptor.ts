@@ -13,7 +13,9 @@ export class SchemaSerializerInterceptor extends StandardSchemaSerializerInterce
     Awaited<ReturnType<StandardSchemaSerializerInterceptor["serialize"]>>
   > {
     const [response, schema, options] = args;
-    if (!schema || response instanceof StreamableFile) return response;
+    if (!schema || response instanceof StreamableFile) {
+      return response;
+    }
     const result = await schema["~standard"].validate(response, options);
     if (result.issues) {
       throw new Error("Response schema validation failed", {

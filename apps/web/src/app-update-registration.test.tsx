@@ -31,7 +31,8 @@ describe("WebAppUpdateRegistration", () => {
     const container = document.createElement("div");
     const root = createRoot(container);
     act(() => root.render(<WebAppUpdateRegistration onChange={onChange} />));
-    const firstUpdate = onChange.mock.calls[0]?.[0].update as () => Promise<void>;
+    const firstUpdate = onChange.mock.calls[0]?.[0]
+      .update as () => Promise<void>;
     const latestUpdate = vi.fn().mockResolvedValue(undefined);
 
     mocks.appUpdate = { needRefresh: false, update: latestUpdate };

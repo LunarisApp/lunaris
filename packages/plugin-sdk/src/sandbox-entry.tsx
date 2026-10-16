@@ -1,4 +1,9 @@
-import { useRemotePresenceDocument, useRemoteResourcePresence, useRemoteResourceAwareness, useRemoteYjsAwareness } from "./sandbox-awareness";
+import {
+  useRemotePresenceDocument,
+  useRemoteResourcePresence,
+  useRemoteResourceAwareness,
+  useRemoteYjsAwareness,
+} from "./sandbox-awareness";
 import { createYjsReplicaSync } from "./yjs-sync";
 import { saveRemoteChunks } from "./downloads";
 import {
@@ -12,11 +17,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import {
-  applyUpdateV2,
-  Doc,
-  encodeStateAsUpdateV2,
-} from "yjs";
+import { applyUpdateV2, Doc, encodeStateAsUpdateV2 } from "yjs";
 import { satisfies } from "semver";
 import type { IconSvgObject } from "./constants";
 import type { PluginResourceReadContext } from "./resource-data";
@@ -29,7 +30,6 @@ import type {
   ResourceCommand,
   ResourceCommandItem,
   ResourceCreationContext,
-  ResourceTypeDefinition,
   ResourceTypeTarget,
   ResourcePayloadStorage,
   ResourceStorageHandle,
@@ -42,7 +42,7 @@ import type {
 
 function isCompatibleServiceVersion(
   providerVersion: string,
-  consumerVersion: string,
+  consumerVersion: string
 ): boolean {
   return satisfies(providerVersion, `^${consumerVersion}`);
 }
@@ -91,7 +91,7 @@ interface SandboxRegistrationResult {
 interface SandboxRuntimeV6 {
   register(
     pluginId: string,
-    definition: PluginDefinition,
+    definition: PluginDefinition
   ): Promise<SandboxRegistrationResult>;
 }
 
@@ -113,13 +113,15 @@ interface RemoteBridge {
 }
 
 function entriesMap<T>(value: unknown): Map<string, T> {
-  return new Map(Array.isArray(value) ? (value as Array<[string, T]>) : []);
+  return new Map(Array.isArray(value) ? (value as [string, T][]) : []);
 }
 
 function toStoredFileMetadata(
   metadata: PluginFileMetadata | null | undefined
 ): PluginStoredFileMetadata | null {
-  if (!metadata) return null;
+  if (!metadata) {
+    return null;
+  }
   return {
     fileExtension: metadata.fileExtension,
     fileId: metadata.attachmentId,
@@ -143,9 +145,12 @@ function remoteFetch(method: string, bridge: RemoteBridge): typeof fetch {
       method: request.method,
       redirect: request.redirect,
     };
-    const value = (await bridge.call(method, [request.url, normalizedInit])) as {
+    const value = (await bridge.call(method, [
+      request.url,
+      normalizedInit,
+    ])) as {
       body: ArrayBuffer;
-      headers: Array<[string, string]>;
+      headers: [string, string][];
       status: number;
       statusText: string;
     };
@@ -159,7 +164,7 @@ function remoteFetch(method: string, bridge: RemoteBridge): typeof fetch {
 
 function createRemoteSdkRuntime(
   bridge: RemoteBridge,
-  snapshot: SandboxWireObject,
+  snapshot: SandboxWireObject
 ): PluginSdkRuntime {
   const emptyStore = {
     getCommands: () => [],
@@ -175,12 +180,13 @@ function createRemoteSdkRuntime(
   const host: PluginHostCapabilities = {
     useApiTransport: () => ({
       baseUrl: String(
-        (snapshot.api as { baseUrl?: string } | undefined)?.baseUrl ?? "",
+        (snapshot.api as { baseUrl?: string } | undefined)?.baseUrl ?? ""
       ),
       fetch: useMemo(() => remoteFetch("api.fetch", bridge), [bridge]),
     }),
     useDownloads: () => ({
-      save: (input) => bridge.call("downloads.save", [input]).then(() => undefined),
+      save: (input) =>
+        bridge.call("downloads.save", [input]).then(() => undefined),
       saveChunks: (input) => saveRemoteChunks(bridge.call, input),
     }),
     useCurrentWorkspace: () => snapshot.currentWorkspace as never,
@@ -193,7 +199,9 @@ function createRemoteSdkRuntime(
             lastEditedAt?: string | null;
           }>
         | undefined;
-      const value = values?.find((entry) => entry.storageId === storage.storageId);
+      const value = values?.find(
+        (entry) => entry.storageId === storage.storageId
+      );
       return {
         isLoading: value?.isLoading === true,
         lastEditedAt: value?.lastEditedAt ? new Date(value.lastEditedAt) : null,
@@ -202,11 +210,16 @@ function createRemoteSdkRuntime(
     useFileStorage: () => {
       const download = useCallback(
         (storage: import("./types").ResourceStorageHandle) =>
-          bridge.call("attachment.download", [storage.storageId]) as Promise<boolean>,
-        [bridge],
+          bridge.call("attachment.download", [
+            storage.storageId,
+          ]) as Promise<boolean>,
+        [bridge]
       );
       const upload = useCallback(
-        async ({ file, storage }: import("./runtime-context").PluginFileStorageUploadInput) => {
+        async ({
+          file,
+          storage,
+        }: import("./runtime-context").PluginFileStorageUploadInput) => {
           const metadata = (await bridge.call("attachment.upload", [
             {
               bytes: await file.arrayBuffer(),
@@ -217,7 +230,7 @@ function createRemoteSdkRuntime(
           ])) as PluginFileMetadata;
           return toStoredFileMetadata(metadata)!;
         },
-        [bridge],
+        [bridge]
       );
       return useMemo(() => ({ download, upload }), [download, upload]);
     },
@@ -231,20 +244,24 @@ function createRemoteSdkRuntime(
             metadata?: unknown;
           }>
         | undefined;
-      const value = attachments?.find((entry) => entry.storageId === storageHandle.storageId);
+      const value = attachments?.find(
+        (entry) => entry.storageId === storageHandle.storageId
+      );
       const bytes = value?.bytes;
       const objectUrl = useMemo(
         () =>
           bytes
             ? URL.createObjectURL(new Blob([bytes], { type: value?.mediaType }))
             : null,
-        [bytes, value?.mediaType],
+        [bytes, value?.mediaType]
       );
       useEffect(
         () => () => {
-          if (objectUrl) URL.revokeObjectURL(objectUrl);
+          if (objectUrl) {
+            URL.revokeObjectURL(objectUrl);
+          }
         },
-        [objectUrl],
+        [objectUrl]
       );
       return {
         file: value ? (value.attachment as never) : null,
@@ -264,27 +281,37 @@ function createRemoteSdkRuntime(
       };
       return {
         ...value,
-        executeAgentTool: (input) => bridge.call("content.executeAgentTool", [input]),
+        executeAgentTool: (input) =>
+          bridge.call("content.executeAgentTool", [input]),
         getAgentToolPolicy: (name) => value.agentToolPolicies?.[name] ?? null,
         listWorkspaces: (input) =>
-          bridge.call("content.listWorkspaces", input === undefined ? [] : [input]) as never,
-        readYjsStorageJson: (input) => bridge.call("content.readYjsStorageJson", [input]),
-        searchResources: (input) => bridge.call("content.searchResources", [input]) as never,
+          bridge.call(
+            "content.listWorkspaces",
+            input === undefined ? [] : [input]
+          ) as never,
+        readYjsStorageJson: (input) =>
+          bridge.call("content.readYjsStorageJson", [input]),
+        searchResources: (input) =>
+          bridge.call("content.searchResources", [input]) as never,
       };
     },
     useOrgMembersMap: () => {
       const value = snapshot.members as {
         isLoading: boolean;
-        items: Array<[string, unknown]>;
+        items: [string, unknown][];
       };
-      return { isLoading: value.isLoading, map: entriesMap(value.items) } as never;
+      return {
+        isLoading: value.isLoading,
+        map: entriesMap(value.items),
+      } as never;
     },
-    usePluginFetch: () => useMemo(() => remoteFetch("plugin.fetch", bridge), [bridge]),
+    usePluginFetch: () =>
+      useMemo(() => remoteFetch("plugin.fetch", bridge), [bridge]),
     useWorkspaceChildrenMap: () =>
       new Map(
         Array.isArray(snapshot.workspaceChildren)
           ? (snapshot.workspaceChildren as never)
-          : [],
+          : []
       ),
     useWorkspaceResourceActions: () => ({
       createResource: (input) =>
@@ -303,7 +330,7 @@ function createRemoteSdkRuntime(
     }),
     useWorkspaceResourceBreadcrumb: (resourceId) => {
       const resources = entriesMap<Record<string, unknown>>(snapshot.resources);
-      const result: Array<Record<string, unknown>> = [];
+      const result: Record<string, unknown>[] = [];
       let item = resources.get(resourceId);
       while (item) {
         result.unshift({
@@ -312,7 +339,10 @@ function createRemoteSdkRuntime(
           name: item.name ?? "Untitled",
           resourceTypeId: item.resourceTypeId ?? "lunaris.folder",
         });
-        item = typeof item.parentId === "string" ? resources.get(item.parentId) : undefined;
+        item =
+          typeof item.parentId === "string"
+            ? resources.get(item.parentId)
+            : undefined;
       }
       return result as never;
     },
@@ -323,10 +353,16 @@ function createRemoteSdkRuntime(
     useWorkspaceResourcesMap: () => entriesMap(snapshot.resources),
     useWorkspaceTrashMap: () => entriesMap(snapshot.resourceTrash),
     useResourceReadContext: () =>
-      createRemoteResourceReadContext((method, args) => bridge.call(method, args)),
+      createRemoteResourceReadContext((method, args) =>
+        bridge.call(method, args)
+      ),
     useStableInitialLoading: ({ dataEmpty, extraGate = false }) => {
-      if (!dataEmpty) return { showEmpty: false, showSkeleton: false };
-      if (extraGate) return { showEmpty: false, showSkeleton: true };
+      if (!dataEmpty) {
+        return { showEmpty: false, showSkeleton: false };
+      }
+      if (extraGate) {
+        return { showEmpty: false, showSkeleton: true };
+      }
       return snapshot.stableEmpty as never;
     },
     useOrganizationAccess: () => snapshot.access as never,
@@ -336,16 +372,23 @@ function createRemoteSdkRuntime(
       navigateToWorkspaceResource: (id) =>
         void bridge.call("navigation.navigateToWorkspaceResource", [id]),
       openEntityReference: (reference) =>
-        bridge.call("navigation.openEntityReference", [reference]) as Promise<boolean>,
-      openResource: (input) => void bridge.call("navigation.openResource", [input]),
+        bridge.call("navigation.openEntityReference", [
+          reference,
+        ]) as Promise<boolean>,
+      openResource: (input) =>
+        void bridge.call("navigation.openResource", [input]),
       openResourceInNewWindow: (input) =>
-        bridge.call("navigation.openResourceInNewWindow", [input]) as Promise<boolean>,
+        bridge.call("navigation.openResourceInNewWindow", [
+          input,
+        ]) as Promise<boolean>,
       openView: (input) => {
         void bridge.call("navigation.openView", [input]);
         return true;
       },
       openViewInNewWindow: (input) =>
-        bridge.call("navigation.openViewInNewWindow", [input]) as Promise<boolean>,
+        bridge.call("navigation.openViewInNewWindow", [
+          input,
+        ]) as Promise<boolean>,
       setViewInstanceTitle: (viewInstanceId, title) =>
         void bridge.call("navigation.setViewInstanceTitle", [
           viewInstanceId,
@@ -368,16 +411,21 @@ function createRemoteSdkRuntime(
     },
     data: {
       useResourcePresence: () => useRemoteResourcePresence(bridge),
-      useResourceAwareness: (_extensionId, channel, options) => useRemoteResourceAwareness(bridge, channel, options),
-      useYjsAwareness: (storage, workspaceId, options) => useRemoteYjsAwareness(bridge, storage?.storageId, workspaceId, options),
+      useResourceAwareness: (_extensionId, channel, options) =>
+        useRemoteResourceAwareness(bridge, channel, options),
+      useYjsAwareness: (storage, workspaceId, options) =>
+        useRemoteYjsAwareness(bridge, storage?.storageId, workspaceId, options),
       useKeyValue: <T,>(storageId: string, key: string) => {
         const storage = snapshot.storage as
           | {
-              slots?: Record<string, {
-                isFetching?: boolean;
-                isLoading?: boolean;
-                items?: Array<[string, unknown]>;
-              }>;
+              slots?: Record<
+                string,
+                {
+                  isFetching?: boolean;
+                  isLoading?: boolean;
+                  items?: [string, unknown][];
+                }
+              >;
             }
           | undefined;
         const slot = storage?.slots?.[storageId];
@@ -385,20 +433,33 @@ function createRemoteSdkRuntime(
         return {
           isFetching: slot?.isFetching === true,
           isLoading: slot?.isLoading === true,
-          remove: () => bridge.call("storage.remove", [storageId, key]).then(() => undefined),
+          remove: () =>
+            bridge
+              .call("storage.remove", [storageId, key])
+              .then(() => undefined),
           set: async (value: T) => {
             await bridge.call("storage.set", [storageId, key, value]);
           },
           value: values.get(key) ?? null,
         };
       },
-      useWorkspaceKeyValue: <T,>(pluginId: string, storageId: string, key: string) => {
+      useWorkspaceKeyValue: <T,>(
+        pluginId: string,
+        storageId: string,
+        key: string
+      ) => {
         const qualifiedId = `${pluginId}:${storageId}`;
-        return createRemoteSdkRuntime(bridge, snapshot).data.useKeyValue<T>(qualifiedId, key);
+        return createRemoteSdkRuntime(bridge, snapshot).data.useKeyValue<T>(
+          qualifiedId,
+          key
+        );
       },
       useReadyYjsStorage: (storageHandle, workspaceId, options) => {
         const id = storageHandle?.storageId;
-        const yDoc = useRemotePresenceDocument(bridge, JSON.stringify([workspaceId, id]));
+        const yDoc = useRemotePresenceDocument(
+          bridge,
+          JSON.stringify([workspaceId, id])
+        );
         const [hydratedDoc, setHydratedDoc] = useState<Doc | null>(null);
         const [error, setError] = useState<Error | null>(null);
         const yjs = snapshot.yjs as
@@ -414,66 +475,115 @@ function createRemoteSdkRuntime(
             }>
           | undefined;
         const remote = yjs?.find((entry) => entry.storageId === id);
-        const enabled = options?.enabled !== false && Boolean(id && workspaceId);
+        const enabled =
+          options?.enabled !== false && Boolean(id && workspaceId);
         const hasRemoteDocument =
           enabled &&
           remote?.storageId === id &&
           remote?.workspaceId === workspaceId &&
-          (remote?.incremental ? remote.available === true : remote?.update instanceof ArrayBuffer);
+          (remote?.incremental
+            ? remote.available === true
+            : remote?.update instanceof ArrayBuffer);
         useEffect(() => {
           setError(null);
           setHydratedDoc(null);
         }, [yDoc]);
-        const sync = useMemo(() => createYjsReplicaSync(
-          yDoc,
-          (vector, cursor) => bridge.call("yjs.sync", [id, vector, cursor ?? null]),
-          () => { setError(null); setHydratedDoc(yDoc); },
-          setError,
-          update => bridge.call("yjs.applyUpdate", [id, update]),
-        ), [bridge, id, yDoc]);
+        const sync = useMemo(
+          () =>
+            createYjsReplicaSync(
+              yDoc,
+              (vector, cursor) =>
+                bridge.call("yjs.sync", [id, vector, cursor ?? null]),
+              () => {
+                setError(null);
+                setHydratedDoc(yDoc);
+              },
+              setError,
+              (update) => bridge.call("yjs.applyUpdate", [id, update])
+            ),
+          [bridge, id, yDoc]
+        );
         useEffect(() => () => sync.dispose(), [sync]);
         useEffect(() => {
-          if (!hasRemoteDocument) return;
-          if (remote?.incremental) { void sync.request(); return; }
+          if (!hasRemoteDocument) {
+            return;
+          }
+          if (remote?.incremental) {
+            void sync.request();
+            return;
+          }
           try {
             const update = remote?.update;
-            if (!(update instanceof ArrayBuffer)) throw new Error("Invalid Yjs synchronization response");
+            if (!(update instanceof ArrayBuffer)) {
+              throw new Error("Invalid Yjs synchronization response");
+            }
             applyUpdateV2(yDoc, new Uint8Array(update), "host");
             setError(null);
             setHydratedDoc(yDoc);
           } catch (nextError) {
-            setError(nextError instanceof Error ? nextError : new Error(String(nextError)));
+            setError(
+              nextError instanceof Error
+                ? nextError
+                : new Error(String(nextError))
+            );
           }
-        }, [hasRemoteDocument, remote?.incremental, remote?.revision, remote?.epoch, remote?.update, sync, yDoc]);
+        }, [
+          hasRemoteDocument,
+          remote?.incremental,
+          remote?.revision,
+          remote?.epoch,
+          remote?.update,
+          sync,
+          yDoc,
+        ]);
         const ready = hasRemoteDocument && hydratedDoc === yDoc && !error;
         useEffect(() => {
-          if (!hasRemoteDocument || !id) return;
+          if (!(hasRemoteDocument && id)) {
+            return;
+          }
           const onUpdate = (update: Uint8Array, origin: unknown) => {
-            if (origin === "host") return;
+            if (origin === "host") {
+              return;
+            }
             const bytes = update.buffer.slice(
               update.byteOffset,
-              update.byteOffset + update.byteLength,
+              update.byteOffset + update.byteLength
             );
-            void bridge.call("yjs.applyUpdate", [id, bytes]).then(() => {
-              sync.acknowledge(update);
-            }).catch((nextError) => {
-              setError(
-                nextError instanceof Error ? nextError : new Error(String(nextError)),
-              );
-              if (remote?.incremental) void sync.request();
-            });
+            void bridge
+              .call("yjs.applyUpdate", [id, bytes])
+              .then(() => {
+                sync.acknowledge(update);
+              })
+              .catch((nextError) => {
+                setError(
+                  nextError instanceof Error
+                    ? nextError
+                    : new Error(String(nextError))
+                );
+                if (remote?.incremental) {
+                  void sync.request();
+                }
+              });
           };
           yDoc.on("updateV2", onUpdate);
           return () => yDoc.off("updateV2", onUpdate);
         }, [bridge, hasRemoteDocument, id, remote?.incremental, sync, yDoc]);
 
         const yProvider = useMemo<PluginYjsProvider | null>(() => {
-          if (!enabled || !id) return null;
+          if (!(enabled && id)) {
+            return null;
+          }
           const getPersistenceState = () => {
             const current = bridge.getSnapshot().yjs as
-              | Array<{ storageId?: string; persistenceState?: PluginYjsPersistenceState }>
+              | Array<{
+                  storageId?: string;
+                  persistenceState?: PluginYjsPersistenceState;
+                }>
               | undefined;
-            return current?.find((entry) => entry.storageId === id)?.persistenceState ?? "idle";
+            return (
+              current?.find((entry) => entry.storageId === id)
+                ?.persistenceState ?? "idle"
+            );
           };
           return {
             getPersistenceState,
@@ -481,7 +591,9 @@ function createRemoteSdkRuntime(
               let previous = getPersistenceState();
               return bridge.subscribe(() => {
                 const next = getPersistenceState();
-                if (next === previous) return;
+                if (next === previous) {
+                  return;
+                }
                 previous = next;
                 listener(next);
               });
@@ -500,22 +612,30 @@ function createRemoteSdkRuntime(
     },
     host,
     services: {
-      getService: (consumerId, definition) => {
+      getService: (_consumerId, definition) => {
         const state = bridge.getSnapshot().extensionServices as
-          | { providers?: Array<{ id: string; methods: string[]; version: string }> }
+          | {
+              providers?: Array<{
+                id: string;
+                methods: string[];
+                version: string;
+              }>;
+            }
           | undefined;
         const provider = state?.providers?.find(
           (entry) =>
             entry.id === definition.id &&
-            isCompatibleServiceVersion(entry.version, definition.version),
+            isCompatibleServiceVersion(entry.version, definition.version)
         );
-        if (!provider) return undefined;
+        if (!provider) {
+          return;
+        }
         const implementation = Object.fromEntries(
           provider.methods.map((method) => [
             method,
             (input: unknown) =>
               bridge.call("services.invoke", [definition.id, method, input]),
-          ]),
+          ])
         );
         return {
           definition,
@@ -545,9 +665,9 @@ function createRemoteSdkRuntime(
               entry.serviceId === slot.serviceId &&
               isCompatibleServiceVersion(
                 slot.serviceVersion,
-                entry.serviceVersion,
+                entry.serviceVersion
               ) &&
-              entry.slotId === slot.id,
+              entry.slotId === slot.id
           )
           .map((entry) => ({
             contributorId: entry.contributorId,
@@ -561,15 +681,17 @@ function createRemoteSdkRuntime(
       },
       getVersion: () =>
         Number(
-          (bridge.getSnapshot().extensionServices as { version?: number } | undefined)
-            ?.version ?? 0,
+          (
+            bridge.getSnapshot().extensionServices as
+              | { version?: number }
+              | undefined
+          )?.version ?? 0
         ),
       invokeService: (_consumerId, serviceId, method, input) =>
         bridge.call("services.invoke", [serviceId, method, input]) as never,
       invokeSlot: (_consumerId, registrationId, input) =>
         bridge.call("services.invokeSlot", [registrationId, input]) as never,
-      snapshot: () =>
-        (bridge.getSnapshot().extensionServices as never),
+      snapshot: () => bridge.getSnapshot().extensionServices as never,
       subscribe: bridge.subscribe,
     },
   };
@@ -591,38 +713,41 @@ function SandboxProviders({
   const snapshot = useSyncExternalStore(
     bridge.subscribe,
     bridge.getSnapshot,
-    bridge.getSnapshot,
+    bridge.getSnapshot
   );
   const runtime = useMemo(
     () => createRemoteSdkRuntime(bridge, snapshot),
-    [bridge, snapshot],
+    [bridge, snapshot]
   );
   useLayoutEffect(() => {
     const environment = snapshot.environment as
-      | { colorScheme?: string; cssVariables?: Record<string, string>; reducedMotion?: boolean }
+      | {
+          colorScheme?: string;
+          cssVariables?: Record<string, string>;
+          reducedMotion?: boolean;
+        }
       | undefined;
     document.documentElement.style.colorScheme = environment?.colorScheme ?? "";
     document.documentElement.dataset.reducedMotion = environment?.reducedMotion
       ? "true"
       : "false";
-    for (const [name, value] of Object.entries(environment?.cssVariables ?? {})) {
+    for (const [name, value] of Object.entries(
+      environment?.cssVariables ?? {}
+    )) {
       document.documentElement.style.setProperty(name, value);
     }
   }, [snapshot]);
   useLayoutEffect(() => {
     onReady();
   }, [onReady]);
-  return createElement(
-    ExtensionSdkProvider,
-    {
-      children: createElement(
-        ExtensionScopeProvider,
-        { extensionId: pluginId, permissions },
-        children,
-      ),
-      runtime,
-    },
-  );
+  return createElement(ExtensionSdkProvider, {
+    children: createElement(
+      ExtensionScopeProvider,
+      { extensionId: pluginId, permissions },
+      children
+    ),
+    runtime,
+  });
 }
 
 function SandboxRenderer({
@@ -640,7 +765,9 @@ function SandboxRenderer({
 function cloneJson<T>(value: T, label: string): T {
   try {
     const json = JSON.stringify(value);
-    if (json === undefined) throw new Error(`${label} is not JSON serializable`);
+    if (json === undefined) {
+      throw new Error(`${label} is not JSON serializable`);
+    }
     return JSON.parse(json) as T;
   } catch (error) {
     throw new Error(`${label} must be JSON serializable`, { cause: error });
@@ -649,7 +776,7 @@ function cloneJson<T>(value: T, label: string): T {
 
 function createRemoteBridge(
   call: RemoteBridge["call"],
-  initialSnapshot: SandboxWireObject,
+  initialSnapshot: SandboxWireObject
 ): RemoteBridge {
   let snapshot = initialSnapshot;
   const listeners = new Set<() => void>();
@@ -662,14 +789,16 @@ function createRemoteBridge(
     },
     update(next) {
       snapshot = next;
-      for (const listener of listeners) listener();
+      for (const listener of listeners) {
+        listener();
+      }
     },
   };
 }
 
 function assertSerializableIcon(
   value: unknown,
-  label: string,
+  label: string
 ): asserts value is IconSvgObject {
   assertSandboxIcon(value, label);
   cloneJson(value, label);
@@ -680,7 +809,7 @@ function commandLeaf(command: ResourceCommandItem): command is ResourceCommand {
 }
 
 function createRemoteResourceReadContext(
-  hostCall: SandboxHostCall,
+  hostCall: SandboxHostCall
 ): PluginResourceReadContext {
   return {
     getWorkspaceResource: (id) =>
@@ -689,14 +818,13 @@ function createRemoteResourceReadContext(
       hostCall("data.getWorkspaceResourceChildren", [id]) as never,
     getYjsStorageUpdates: (storage) =>
       hostCall("data.getYjsStorageUpdates", [storage]) as never,
-    resolveResource: (id) =>
-      hostCall("data.resolveResource", [id]) as never,
+    resolveResource: (id) => hostCall("data.resolveResource", [id]) as never,
   };
 }
 
 function createRemoteResourceCreateContext(
   parentId: string,
-  hostCall: SandboxHostCall,
+  hostCall: SandboxHostCall
 ): ResourceCreationContext {
   return {
     createResource: (input = {}) =>
@@ -704,7 +832,9 @@ function createRemoteResourceCreateContext(
         ResourceCreationContext["createResource"]
       >,
     deleteResource: (resourceId) =>
-      hostCall("resourceCreation.deleteResource", [resourceId]) as Promise<void>,
+      hostCall("resourceCreation.deleteResource", [
+        resourceId,
+      ]) as Promise<void>,
     parentId,
     uploadFile: async ({ file, storage }) => {
       const metadata = await hostCall("resourceCreation.file.upload", [
@@ -744,7 +874,9 @@ function createResourcePayloadContext(input: unknown) {
   const documents: Doc[] = [];
   const storage = Object.fromEntries(
     Object.entries(value.storage).map(([name, entry]) => {
-      if (entry.kind !== "yjs") return [name, structuredClone(entry)];
+      if (entry.kind !== "yjs") {
+        return [name, structuredClone(entry)];
+      }
       if (!(entry.documentUpdate instanceof ArrayBuffer)) {
         throw new Error(`Invalid Yjs storage payload: ${name}`);
       }
@@ -752,7 +884,7 @@ function createResourcePayloadContext(input: unknown) {
       applyUpdateV2(document, new Uint8Array(entry.documentUpdate));
       documents.push(document);
       return [name, { document, kind: "yjs" as const }];
-    }),
+    })
   );
   return {
     context: { resourceId: value.resourceId, storage },
@@ -761,43 +893,45 @@ function createResourcePayloadContext(input: unknown) {
 }
 
 function serializePayloadStorage(
-  context: ReturnType<typeof createResourcePayloadContext>["context"],
+  context: ReturnType<typeof createResourcePayloadContext>["context"]
 ) {
   return Object.fromEntries(
     Object.entries(
-      context.storage as Record<string, ResourcePayloadStorage>,
+      context.storage as Record<string, ResourcePayloadStorage>
     ).map(([name, entry]) => {
-      if (entry.kind !== "yjs") return [name, structuredClone(entry)];
+      if (entry.kind !== "yjs") {
+        return [name, structuredClone(entry)];
+      }
       const update = encodeStateAsUpdateV2(entry.document);
       return [
         name,
         {
           documentUpdate: update.buffer.slice(
             update.byteOffset,
-            update.byteOffset + update.byteLength,
+            update.byteOffset + update.byteLength
           ),
           kind: "yjs",
         },
       ];
-    }),
+    })
   );
 }
 
 function serializeCommands(
   contributionId: string,
   commands: readonly ResourceCommandItem[],
-  handlers: Map<string, Handler>,
+  handlers: Map<string, Handler>
 ): SerializedSandboxCommand[] {
   return commands.map((command) => {
     if (commandLeaf(command) && command.iconElement) {
       throw new Error(
-        `External command "${contributionId}:${command.id}" cannot use iconElement`,
+        `External command "${contributionId}:${command.id}" cannot use iconElement`
       );
     }
     if (command.icon) {
       assertSerializableIcon(
         command.icon,
-        `Command "${contributionId}:${command.id}" icon`,
+        `Command "${contributionId}:${command.id}" icon`
       );
     }
     if (!commandLeaf(command)) {
@@ -818,13 +952,19 @@ function serializeCommands(
           resourceReadContext: createRemoteResourceReadContext(hostCall),
           downloadFile: (storage: ResourceStorageHandle) =>
             hostCall("command.downloadFile", [storage]) as Promise<boolean>,
-          openView: (view: Parameters<ResourceCommand["onExecute"]>[0]["openView"] extends (
-            input: infer T,
-          ) => void ? T : never) => {
+          openView: (
+            view: Parameters<
+              ResourceCommand["onExecute"]
+            >[0]["openView"] extends (input: infer T) => void
+              ? T
+              : never
+          ) => {
             void hostCall("command.openView", [view]);
           },
           waitForYjsPersistence: (storage: ResourceStorageHandle) =>
-            hostCall("command.waitForYjsPersistence", [storage]) as Promise<void>,
+            hostCall("command.waitForYjsPersistence", [
+              storage,
+            ]) as Promise<void>,
         } as never);
       },
     });
@@ -841,11 +981,11 @@ function serializeCommands(
 
 function serializeResourceType(
   resourceType: ResourceTypeContribution,
-  handlers: Map<string, Handler>,
+  handlers: Map<string, Handler>
 ): SerializedSandboxResourceType {
   assertSerializableIcon(
     resourceType.icon,
-    `Resource type "${resourceType.resourceTypeId}" icon`,
+    `Resource type "${resourceType.resourceTypeId}" icon`
   );
 
   const createHandler = resourceType.createInWorkspace
@@ -855,9 +995,11 @@ function serializeResourceType(
     handlers.set(createHandler, {
       invoke: (input, hostCall) => {
         const parentId = (input as { parentId?: unknown })?.parentId;
-        if (typeof parentId !== "string") throw new Error("Parent ID is invalid");
+        if (typeof parentId !== "string") {
+          throw new Error("Parent ID is invalid");
+        }
         return resourceType.createInWorkspace?.(
-          createRemoteResourceCreateContext(parentId, hostCall),
+          createRemoteResourceCreateContext(parentId, hostCall)
         );
       },
     });
@@ -865,13 +1007,13 @@ function serializeResourceType(
 
   const storage = Object.fromEntries(
     Object.entries(resourceType.storage).map(([name, slot]) => {
-      if (!("initialize" in slot) || !slot.initialize) {
+      if (!("initialize" in slot && slot.initialize)) {
         return [name, { kind: slot.kind }];
       }
       const handler = sandboxHandlerKey(
         "initialize",
         resourceType.resourceTypeId,
-        name,
+        name
       );
       handlers.set(handler, {
         invoke: async (input) => {
@@ -884,7 +1026,7 @@ function serializeResourceType(
             const update = encodeStateAsUpdateV2(document);
             return update.buffer.slice(
               update.byteOffset,
-              update.byteOffset + update.byteLength,
+              update.byteOffset + update.byteLength
             );
           } finally {
             document.destroy();
@@ -892,17 +1034,22 @@ function serializeResourceType(
         },
       });
       return [name, { initializeHandler: handler, kind: slot.kind }];
-    }),
+    })
   );
 
-  const readHandler = sandboxHandlerKey("payload-read", resourceType.resourceTypeId);
+  const readHandler = sandboxHandlerKey(
+    "payload-read",
+    resourceType.resourceTypeId
+  );
   handlers.set(readHandler, {
     invoke: async (input) => {
       const { context, documents } = createResourcePayloadContext(input);
       try {
         return await resourceType.schema.read(context);
       } finally {
-        for (const document of documents) document.destroy();
+        for (const document of documents) {
+          document.destroy();
+        }
       }
     },
   });
@@ -914,12 +1061,16 @@ function serializeResourceType(
     handlers.set(writeHandler, {
       invoke: async (input) => {
         const value = input as { context: unknown; payload: unknown };
-        const { context, documents } = createResourcePayloadContext(value.context);
+        const { context, documents } = createResourcePayloadContext(
+          value.context
+        );
         try {
           await resourceType.schema.write?.(value.payload, context);
           return serializePayloadStorage(context);
         } finally {
-          for (const document of documents) document.destroy();
+          for (const document of documents) {
+            document.destroy();
+          }
         }
       },
     });
@@ -930,7 +1081,7 @@ function serializeResourceType(
       const handler = sandboxHandlerKey(
         "migration",
         resourceType.resourceTypeId,
-        String(migration.from),
+        String(migration.from)
       );
       handlers.set(handler, { invoke: (input) => migration.migrate(input) });
       return { from: migration.from, handler, to: migration.to };
@@ -940,13 +1091,13 @@ function serializeResourceType(
       const handler = sandboxHandlerKey(
         "validate",
         resourceType.resourceTypeId,
-        version,
+        version
       );
       handlers.set(handler, {
         invoke: (input) => schema["~standard"].validate(input),
       });
       return [version, handler];
-    }),
+    })
   );
 
   return {
@@ -981,7 +1132,7 @@ function serializeResourceTarget(target: ResourceTypeTarget) {
 function serializeDefinition(
   definition: PluginDefinition,
   activation: ActivatedPluginContributions,
-  handlers: Map<string, Handler>,
+  handlers: Map<string, Handler>
 ): SerializedSandboxPluginDefinition {
   const contributions: SerializedSandboxPluginDefinition["contributions"] = [];
   for (const resourceType of getResourceTypeContributions(activation)) {
@@ -1003,7 +1154,7 @@ function serializeDefinition(
                   void hostCall("renderer.reportReady").catch(() => undefined);
                 },
               } as never)
-            : (input as never),
+            : (input as never)
         ),
     });
     let statusBar: string | undefined;
@@ -1046,12 +1197,16 @@ function serializeDefinition(
   for (const provider of activation.serviceProviders) {
     const registeredHandlers = Object.fromEntries(
       provider.definition.methods.map((method) => {
-        const handler = sandboxHandlerKey("service", provider.definition.id, method);
+        const handler = sandboxHandlerKey(
+          "service",
+          provider.definition.id,
+          method
+        );
         handlers.set(handler, {
           invoke: (input) => provider.implementation[method]?.(input as never),
         });
         return [method, handler];
-      }),
+      })
     );
     contributions.push({
       handlers: registeredHandlers,
@@ -1065,7 +1220,7 @@ function serializeDefinition(
     const handler = sandboxHandlerKey(
       "slot",
       registration.slot.serviceId,
-      registration.contribution.id,
+      registration.contribution.id
     );
     handlers.set(handler, {
       invoke: (input) => registration.contribution.invoke(input as never),
@@ -1132,12 +1287,12 @@ function serializeDefinition(
           ? undefined
           : (cloneSandboxJsonValue(
               activation.locales,
-              `Extension "${definition.manifest.id}" locales`,
+              `Extension "${definition.manifest.id}" locales`
             ) as SerializedSandboxPluginDefinition["locales"]),
       manifest: definition.manifest,
       contributions,
     },
-    `Extension "${definition.manifest.id}" definition`,
+    `Extension "${definition.manifest.id}" definition`
   );
 }
 
@@ -1155,18 +1310,18 @@ function sandboxError(error: { message: string; name: string }): Error {
 
 function startRegisteredPlugin(
   pluginId: string,
-  definition: PluginDefinition,
+  definition: PluginDefinition
 ): Promise<SandboxRegistrationResult> {
   if (definition.manifest.id !== pluginId) {
     throw new Error(
-      `Extension module ID "${definition.manifest.id}" does not match "${pluginId}"`,
+      `Extension module ID "${definition.manifest.id}" does not match "${pluginId}"`
     );
   }
   const handlers = new Map<string, Handler>();
   const activation = preparePluginActivation(definition);
   const registration = activation.then(
     (): SandboxRegistrationResult => ({}),
-    (error): SandboxRegistrationResult => ({ error: toError(error) }),
+    (error): SandboxRegistrationResult => ({ error: toError(error) })
   );
   let connected = false;
   let root: Root | undefined;
@@ -1192,7 +1347,9 @@ function startRegisteredPlugin(
     }
     connected = true;
     const port = event.ports[0];
-    if (!port) return;
+    if (!port) {
+      return;
+    }
     port.onmessage = async ({ data }: MessageEvent<SandboxHostRequest>) => {
       let request: SandboxHostRequest | undefined;
       try {
@@ -1207,23 +1364,26 @@ function startRegisteredPlugin(
             "invoke",
             "render",
             "snapshot",
-          ].includes(
-            String((data as { type?: unknown }).type),
-          )
+          ].includes(String((data as { type?: unknown }).type))
         ) {
           throw new Error("Malformed sandbox RPC request");
         }
         request = cloneSandboxWireValue(
           data,
-          "Sandbox RPC request",
+          "Sandbox RPC request"
         ) as SandboxHostRequest;
         if (request.type === "host-result") {
           const pending = pendingHostCalls.get(request.id);
-          if (!pending) return;
+          if (!pending) {
+            return;
+          }
           pendingHostCalls.delete(request.id);
           clearTimeout(pending.timeout);
-          if (request.error) pending.reject(sandboxError(request.error));
-          else pending.resolve(request.value);
+          if (request.error) {
+            pending.reject(sandboxError(request.error));
+          } else {
+            pending.resolve(request.value);
+          }
           return;
         }
         if (request.type === "dispose") {
@@ -1275,13 +1435,15 @@ function startRegisteredPlugin(
         const hostCall = (method: string, args: unknown[] = []) => {
           const clonedArgs = cloneSandboxWireValue(
             args,
-            `Host call "${method}" arguments`,
+            `Host call "${method}" arguments`
           ) as never;
           return new Promise<unknown>((resolve, reject) => {
             const id = crypto.randomUUID();
             const timeout = setTimeout(() => {
               pendingHostCalls.delete(id);
-              reject(new Error(`Extension sandbox host call timed out: ${method}`));
+              reject(
+                new Error(`Extension sandbox host call timed out: ${method}`)
+              );
             }, PLUGIN_SANDBOX_RPC_TIMEOUT_MS);
             pendingHostCalls.set(id, { reject, resolve, timeout });
             const message: SandboxPluginMessage = {
@@ -1311,30 +1473,34 @@ function startRegisteredPlugin(
             throw new Error("Malformed sandbox render request");
           }
           const handler = handlers.get(request.renderer);
-          if (!handler) throw new Error(`Unknown renderer: ${request.renderer}`);
+          if (!handler) {
+            throw new Error(`Unknown renderer: ${request.renderer}`);
+          }
           const container = document.getElementById("root");
-          if (!container) throw new Error("Sandbox root is missing");
+          if (!container) {
+            throw new Error("Sandbox root is missing");
+          }
           root ??= createRoot(container);
           renderRequestId = request.id;
-          const readyMessage: SandboxPluginMessage = { id: request.id, type: "ready" };
+          const readyMessage: SandboxPluginMessage = {
+            id: request.id,
+            type: "ready",
+          };
           renderBridge = createRemoteBridge(hostCall, request.host);
           root.render(
-            createElement(
-              SandboxProviders,
-              {
-                bridge: renderBridge,
-                children: createElement(SandboxRenderer, {
-                  handler,
-                  hostCall,
-                  params: request.params,
-                }),
-                pluginId,
-                permissions: definition.manifest.permissions,
-                onReady: () => {
-                  port.postMessage(readyMessage);
-                },
+            createElement(SandboxProviders, {
+              bridge: renderBridge,
+              children: createElement(SandboxRenderer, {
+                handler,
+                hostCall,
+                params: request.params,
+              }),
+              pluginId,
+              permissions: definition.manifest.permissions,
+              onReady: () => {
+                port.postMessage(readyMessage);
               },
-            ),
+            })
           );
           return;
         }
@@ -1342,10 +1508,12 @@ function startRegisteredPlugin(
           throw new Error("Unknown sandbox RPC request");
         }
         const handler = handlers.get(request.handler);
-        if (!handler) throw new Error(`Unknown handler: ${request.handler}`);
+        if (!handler) {
+          throw new Error(`Unknown handler: ${request.handler}`);
+        }
         const value = await handler.invoke(
           request.input ?? request.commandContext,
-          hostCall,
+          hostCall
         );
         const message: SandboxPluginMessage = {
           id: request.id,
@@ -1374,7 +1542,9 @@ function startRegisteredPlugin(
     port.start();
     try {
       const result = await registration;
-      if (result.error) throw sandboxError(result.error);
+      if (result.error) {
+        throw sandboxError(result.error);
+      }
       const prepared = await activation;
       const message: SandboxPluginMessage = {
         definition: serializeDefinition(definition, prepared, handlers),
@@ -1401,7 +1571,9 @@ export function installExternalPluginSandboxRuntime(): SandboxRuntimeV6 {
   let registered = false;
   const runtime = Object.freeze({
     register(pluginId: string, definition: PluginDefinition) {
-      if (registered) throw new Error(`Duplicate extension registration: ${pluginId}`);
+      if (registered) {
+        throw new Error(`Duplicate extension registration: ${pluginId}`);
+      }
       registered = true;
       return startRegisteredPlugin(pluginId, definition);
     },

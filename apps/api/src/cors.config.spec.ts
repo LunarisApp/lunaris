@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it } from "bun:test";
-import { FastifyAdapter, type NestFastifyApplication } from "@nestjs/platform-fastify";
+import {
+  FastifyAdapter,
+  type NestFastifyApplication,
+} from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import {
   CORS_METHODS,
@@ -10,7 +13,11 @@ import {
 
 const apps: NestFastifyApplication[] = [];
 const productionConfig = {
-  desktopAppOrigins: ["lunaris://", "tauri://localhost", "http://tauri.localhost"],
+  desktopAppOrigins: [
+    "lunaris://",
+    "tauri://localhost",
+    "http://tauri.localhost",
+  ],
   frontendUrl: "https://web.lunaris.app",
   nodeEnv: "production",
 };
@@ -41,24 +48,26 @@ describe("CORS config", () => {
       "https://web.lunaris.app"
     );
     expect(response.headers["access-control-allow-credentials"]).toBe("true");
-    expect(response.headers["access-control-allow-methods"]).toContain("DELETE");
+    expect(response.headers["access-control-allow-methods"]).toContain(
+      "DELETE"
+    );
     expect(response.headers["access-control-allow-headers"]).toContain(
       "x-csrf-token"
     );
   });
 
   it("does not allow unknown production origins", () => {
-    expect(isAllowedOrigin("https://evil.example", productionConfig)).toBe(false);
+    expect(isAllowedOrigin("https://evil.example", productionConfig)).toBe(
+      false
+    );
   });
 
   it("normalizes and allows configured desktop origins", () => {
-    expect(normalizeOrigin("tauri://localhost/path")).toBe(
-      "tauri://localhost",
-    );
+    expect(normalizeOrigin("tauri://localhost/path")).toBe("tauri://localhost");
     expect(normalizeOrigin("lunaris://auth/callback")).toBe("lunaris://auth");
     expect(isAllowedOrigin("tauri://localhost", productionConfig)).toBe(true);
     expect(isAllowedOrigin("http://tauri.localhost", productionConfig)).toBe(
-      true,
+      true
     );
   });
 

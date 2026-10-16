@@ -2,11 +2,23 @@ import { describe, expect, it, mock } from "bun:test";
 import { OrganizationMismatchError } from "../sync/sync.errors";
 import { FilesService } from "./files.service";
 function makeDb(rows: { id: string }[]) {
-  return { db: { select: () => ({ from: () => ({ where: async () => rows,
-    innerJoin: () => ({ where: async () => [] }) }) }) } };
+  return {
+    db: {
+      select: () => ({
+        from: () => ({
+          where: async () => rows,
+          innerJoin: () => ({ where: async () => [] }),
+        }),
+      }),
+    },
+  };
 }
 function makeStorage() {
-  return { getSignedDownloadUrl: mock((key: string) => Promise.resolve(`https://storage.example.com/download/${key}`)) };
+  return {
+    getSignedDownloadUrl: mock((key: string) =>
+      Promise.resolve(`https://storage.example.com/download/${key}`)
+    ),
+  };
 }
 describe("FilesService", () => {
   it("signs download keys from explicit file extension", async () => {
@@ -33,7 +45,10 @@ describe("FilesService", () => {
   });
 
   it("rejects workspace access outside active organization", async () => {
-    const service = new FilesService(makeDb([]) as never, makeStorage() as never);
+    const service = new FilesService(
+      makeDb([]) as never,
+      makeStorage() as never
+    );
 
     await expect(
       service.getDownloadUrl({

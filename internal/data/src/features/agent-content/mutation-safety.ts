@@ -2,10 +2,7 @@ import type { AbstractPowerSyncDatabase } from "@powersync/common";
 import type { ActionPreview } from "@repo/agent-contracts";
 import { type DatabaseOrTx, ensureTx } from "../../core/utils";
 import { canonicalJson, hashString, randomToken } from "./fingerprint";
-import {
-  AGENT_ACTION_PREVIEWS_TABLE,
-  AGENT_IDEMPOTENCY_TABLE,
-} from "./table";
+import { AGENT_ACTION_PREVIEWS_TABLE, AGENT_IDEMPOTENCY_TABLE } from "./table";
 
 const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
 const PREVIEW_TTL_MS = 5 * 60 * 1000;
@@ -30,7 +27,7 @@ interface PreviewRow {
 
 export function createMutationSafety(
   db: AbstractPowerSyncDatabase,
-  getActorId: () => string,
+  getActorId: () => string
 ) {
   const inflight = new Map<
     string,
@@ -41,13 +38,13 @@ export function createMutationSafety(
     operation: string,
     key: string | undefined,
     input: unknown,
-    run: (database: DatabaseOrTx) => Promise<T>,
+    run: (database: DatabaseOrTx) => Promise<T>
   ) => {
     if (!key) {
       throw safetyError(
         "IDEMPOTENCY_KEY_REQUIRED",
         "Idempotency-Key is required",
-        400,
+        400
       );
     }
     const actorId = getActorId();
@@ -67,22 +64,14 @@ export function createMutationSafety(
       await cleanupSafetyRecords(db, now);
       const existing = await findIdempotencyRecord(db, actorId, key);
       if (existing) {
-        return replayIdempotency<T>(
-          existing,
-          operation,
-          requestFingerprint,
-        );
+        return replayIdempotency<T>(existing, operation, requestFingerprint);
       }
 
       const id = `idem_${await hashString(`${actorId}\0${key}`)}`;
       return ensureTx(db, async (tx) => {
         const claimed = await findIdempotencyRecord(tx, actorId, key);
         if (claimed) {
-          return replayIdempotency<T>(
-            claimed,
-            operation,
-            requestFingerprint,
-          );
+          return replayIdempotency<T>(claimed, operation, requestFingerprint);
         }
         await tx.execute(
           `INSERT INTO ${AGENT_IDEMPOTENCY_TABLE}
@@ -98,12 +87,12 @@ export function createMutationSafety(
             requestFingerprint,
             null,
             "processing",
-          ],
+          ]
         );
         const value = await run(tx);
         await tx.execute(
           `UPDATE ${AGENT_IDEMPOTENCY_TABLE} SET response = ?, status = ? WHERE id = ?`,
-          [JSON.stringify(value), "complete", id],
+          [JSON.stringify(value), "complete", id]
         );
         return value;
       });
@@ -127,7 +116,7 @@ export function createMutationSafety(
     organizationId: string,
     targetId: string,
     impact: ActionPreview["impact"],
-    fingerprint: string,
+    fingerprint: string
   ): Promise<ActionPreview> => {
     const actorId = getActorId();
     const previewToken = randomToken();
@@ -151,7 +140,7 @@ export function createMutationSafety(
         tokenHash,
         null,
         organizationId,
-      ],
+      ]
     );
     return {
       action,
@@ -168,13 +157,13 @@ export function createMutationSafety(
     action: ActionPreview["action"],
     organizationId: string,
     targetId: string,
-    fingerprint: string,
+    fingerprint: string
   ) => {
     const actorId = getActorId();
     const tokenHash = await hashString(token);
     const value = await database.getOptional<PreviewRow>(
       `SELECT * FROM ${AGENT_ACTION_PREVIEWS_TABLE} WHERE token_hash = ? LIMIT 1`,
-      [tokenHash],
+      [tokenHash]
     );
     const usedAt = new Date().toISOString();
     if (
@@ -189,19 +178,19 @@ export function createMutationSafety(
       throw safetyError(
         "INVALID_PREVIEW",
         "Deletion preview is invalid or expired",
-        409,
+        409
       );
     }
     if (value.fingerprint !== fingerprint) {
       throw safetyError(
         "PREVIEW_CHANGED",
         "Resource changed after preview; request a new preview",
-        409,
+        409
       );
     }
     await database.execute(
       `UPDATE ${AGENT_ACTION_PREVIEWS_TABLE} SET used_at = ? WHERE id = ?`,
-      [usedAt, value.id],
+      [usedAt, value.id]
     );
   };
 
@@ -211,21 +200,21 @@ export function createMutationSafety(
 function findIdempotencyRecord(
   database: DatabaseOrTx,
   actorId: string,
-  key: string,
+  key: string
 ) {
   return database.getOptional<IdempotencyRow>(
     `SELECT operation, request_hash, response, status
      FROM ${AGENT_IDEMPOTENCY_TABLE}
      WHERE actor_id = ? AND key = ?
      LIMIT 1`,
-    [actorId, key],
+    [actorId, key]
   );
 }
 
 function replayIdempotency<T>(
   record: IdempotencyRow,
   operation: string,
-  requestFingerprint: string,
+  requestFingerprint: string
 ) {
   if (
     record.operation !== operation ||
@@ -239,7 +228,7 @@ function replayIdempotency<T>(
   throw safetyError(
     "IDEMPOTENCY_IN_PROGRESS",
     "Matching operation is still processing",
-    409,
+    409
   );
 }
 
@@ -247,22 +236,19 @@ function idempotencyConflict() {
   return safetyError(
     "IDEMPOTENCY_CONFLICT",
     "Idempotency key was already used for another request",
-    409,
+    409
   );
 }
 
-async function cleanupSafetyRecords(
-  database: DatabaseOrTx,
-  now: Date,
-) {
+async function cleanupSafetyRecords(database: DatabaseOrTx, now: Date) {
   const timestamp = now.toISOString();
   await database.execute(
     `DELETE FROM ${AGENT_IDEMPOTENCY_TABLE} WHERE expires_at <= ?`,
-    [timestamp],
+    [timestamp]
   );
   await database.execute(
     `DELETE FROM ${AGENT_ACTION_PREVIEWS_TABLE} WHERE expires_at <= ?`,
-    [timestamp],
+    [timestamp]
   );
 }
 

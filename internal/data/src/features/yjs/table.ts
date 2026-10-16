@@ -27,7 +27,9 @@ export type YjsDocumentEntity = RowType<
 >;
 
 export const YJS_DOCUMENT_UPDATES_TABLE = "yjs_document_updates";
-export const LOCAL_YJS_DOCUMENT_UPDATES_TABLE = localTable(YJS_DOCUMENT_UPDATES_TABLE);
+export const LOCAL_YJS_DOCUMENT_UPDATES_TABLE = localTable(
+  YJS_DOCUMENT_UPDATES_TABLE
+);
 export const createYjsDocumentUpdateTable = ({
   localOnly,
   viewName = YJS_DOCUMENT_UPDATES_TABLE,

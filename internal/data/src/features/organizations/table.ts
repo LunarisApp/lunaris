@@ -22,7 +22,7 @@ export const createOrganizationTable = () =>
       indexes: {
         organization_slug_idx: ["slug"],
       },
-    },
+    }
   );
 
 export const createMemberTable = () =>
@@ -39,7 +39,7 @@ export const createMemberTable = () =>
         member_organization_user_idx: ["organization_id", "user_id"],
         member_user_idx: ["user_id"],
       },
-    },
+    }
   );
 
 export const createUserTable = () =>
@@ -61,7 +61,7 @@ export const createOrganizationTeamTable = () =>
       indexes: {
         team_organization_idx: ["organization_id"],
       },
-    },
+    }
   );
 
 export const createOrganizationTeamMemberTable = () =>
@@ -76,7 +76,7 @@ export const createOrganizationTeamMemberTable = () =>
         team_member_team_idx: ["team_id"],
         team_member_user_idx: ["user_id"],
       },
-    },
+    }
   );
 
 export type OrganizationEntity = RowType<

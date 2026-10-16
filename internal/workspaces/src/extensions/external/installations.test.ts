@@ -15,7 +15,7 @@ const installation: WorkspaceExtensionInstallation = {
 
 function catalog(
   status: "active" | "blocked" = "active",
-  api = "^0.9.0",
+  api = "^0.9.0"
 ): ExtensionMarketplace {
   return {
     displayName: "Example",
@@ -64,7 +64,7 @@ describe("resolveExternalInstallations", () => {
         catalog: pluginCatalog,
         installations: [installation],
         online,
-      })[0]?.availability,
+      })[0]?.availability
     ).toBe(expected);
   });
 
@@ -82,7 +82,7 @@ describe("resolveExternalInstallations", () => {
         catalog: null,
         installations: [pinned],
         online: false,
-      })[0]?.availability,
+      })[0]?.availability
     ).toBe("available");
     expect(
       resolveExternalInstallations({
@@ -90,7 +90,7 @@ describe("resolveExternalInstallations", () => {
         catalog: null,
         installations: [pinned],
         online: true,
-      })[0]?.availability,
+      })[0]?.availability
     ).toBe("unknown-release");
   });
 });

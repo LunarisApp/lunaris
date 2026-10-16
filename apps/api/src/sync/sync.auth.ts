@@ -13,7 +13,7 @@ export async function verifyWorkspaceOwnership(
   workspaceId: string,
   organizationId: string,
   userId?: string,
-  access: "owner" | "read" | "write" = "write",
+  access: "owner" | "read" | "write" = "write"
 ): Promise<void> {
   const rows = await tx
     .select({ id: workspacesDb.id })
@@ -21,28 +21,36 @@ export async function verifyWorkspaceOwnership(
     .where(
       and(
         eq(workspacesDb.id, workspaceId),
-        workspaceAccessCondition(organizationId, userId, access),
+        workspaceAccessCondition(organizationId, userId, access)
       )
     );
   if (rows.length === 0) {
     useLogger().set({
-      authz: { entity: "workspace", workspaceId, organizationId, result: "denied" },
+      authz: {
+        entity: "workspace",
+        workspaceId,
+        organizationId,
+        result: "denied",
+      },
     });
-    throw new OrganizationMismatchError("Workspace", workspaceId, organizationId);
+    throw new OrganizationMismatchError(
+      "Workspace",
+      workspaceId,
+      organizationId
+    );
   }
 }
 
 /** Verify a child row's workspace belongs to the org via JOIN. Skips if row missing (idempotent DELETE). */
 export async function verifyChildOwnership(
   tx: DatabaseOrTx,
-  table: PgTable,
+  table: PgTable & { workspaceId: PgColumn },
   idCol: PgColumn,
   id: string,
   organizationId: string,
   userId?: string,
-  access: "read" | "write" = "write",
+  access: "read" | "write" = "write"
 ): Promise<void> {
-  const child = table as any;
   const rows = await tx
     .select({
       hasAccess: workspaceAccessCondition(organizationId, userId, access),
@@ -51,9 +59,11 @@ export async function verifyChildOwnership(
       visibility: workspacesDb.visibility,
     })
     .from(table)
-    .innerJoin(workspacesDb, eq(child.workspaceId, workspacesDb.id))
+    .innerJoin(workspacesDb, eq(table.workspaceId, workspacesDb.id))
     .where(eq(idCol, id));
-  if (rows.length === 0) return; // row missing — allow (idempotent)
+  if (rows.length === 0) {
+    return; // row missing — allow (idempotent)
+  }
   const workspace = rows[0]!;
   // The fallback keeps lightweight database test doubles useful; PostgreSQL
   // always returns hasAccess.

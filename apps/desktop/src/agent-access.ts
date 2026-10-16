@@ -1,9 +1,9 @@
 import { useAuth } from "@repo/features/auth";
-import {
-  type AgentAccessManager,
-  type AgentAccessStatus,
-  type AgentMcpAccess,
-  type AgentMcpSetup,
+import type {
+  AgentAccessManager,
+  AgentAccessStatus,
+  AgentMcpAccess,
+  AgentMcpSetup,
 } from "@repo/platform";
 import { serializeErrorForLog } from "@repo/utils/log-error";
 import { invoke } from "@tauri-apps/api/core";
@@ -12,14 +12,13 @@ import { useEffect } from "react";
 
 function invokeStatus(
   command: string,
-  args?: Record<string, unknown>,
+  args?: Record<string, unknown>
 ): Promise<AgentAccessStatus> {
   return invoke<AgentAccessStatus>(command, args);
 }
 
 export const desktopAgentAccess: AgentAccessManager = {
-  approve: (requestId) =>
-    invokeStatus("agent_access_approve", { requestId }),
+  approve: (requestId) => invokeStatus("agent_access_approve", { requestId }),
   mcpSetup: (access: AgentMcpAccess) =>
     invoke<AgentMcpSetup>("agent_mcp_setup", { access }),
   revoke: (clientId) => invokeStatus("agent_access_revoke", { clientId }),
@@ -34,7 +33,9 @@ export function DesktopAgentSessionBridge() {
   const sessionId = session?.session?.id;
 
   useEffect(() => {
-    if (isPending) return;
+    if (isPending) {
+      return;
+    }
     void invoke("agent_access_set_session", {
       sessionId: sessionId ?? null,
     }).catch((error: unknown) => {

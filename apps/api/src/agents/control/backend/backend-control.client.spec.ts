@@ -12,7 +12,7 @@ const principal: AgentPrincipal = {
 
 function createFactory(
   workspaceAccess: () => Promise<unknown>,
-  scopes: AgentPrincipal["scopes"] = principal.scopes,
+  scopes: AgentPrincipal["scopes"] = principal.scopes
 ) {
   const getDownloadUrl = mock(async () => {
     await workspaceAccess();
@@ -20,10 +20,10 @@ function createFactory(
   });
   const getWorkspace = mock(workspaceAccess);
   const searchResources = mock(() =>
-    Promise.resolve({ items: [], nextCursor: null }),
+    Promise.resolve({ items: [], nextCursor: null })
   );
   const executePluginOperation = mock(() =>
-    Promise.resolve({ boardId: "board_1", properties: [] }),
+    Promise.resolve({ boardId: "board_1", properties: [] })
   );
   const audit = mock(() => Promise.resolve());
   const factory = new BackendControlClientFactory(
@@ -46,7 +46,7 @@ function createFactory(
     { execute: executePluginOperation } as never,
     {} as never,
     { get: getWorkspace } as never,
-    { audit } as never,
+    { audit } as never
   );
   return {
     client: factory.create({ ...principal, scopes }),
@@ -61,15 +61,11 @@ function createFactory(
 describe("BackendControlClientFactory file access", () => {
   it("delegates file storage resolution to the control service", async () => {
     const { client, getDownloadUrl } = createFactory(() =>
-      Promise.resolve({ id: "workspace_1" }),
+      Promise.resolve({ id: "workspace_1" })
     );
 
     await expect(
-      client.getFileDownloadUrl(
-        "organization_1",
-        "workspace_1",
-        "storage_1",
-      ),
+      client.getFileDownloadUrl("organization_1", "workspace_1", "storage_1")
     ).resolves.toMatchObject({
       downloadUrl: "https://files.example/file",
     });
@@ -79,15 +75,11 @@ describe("BackendControlClientFactory file access", () => {
   it("propagates workspace access failures from storage resolution", async () => {
     const error = new Error("Workspace access denied");
     const { client, getDownloadUrl } = createFactory(() =>
-      Promise.reject(error),
+      Promise.reject(error)
     );
 
     await expect(
-      client.getFileDownloadUrl(
-        "organization_1",
-        "workspace_1",
-        "storage_1",
-      ),
+      client.getFileDownloadUrl("organization_1", "workspace_1", "storage_1")
     ).rejects.toBe(error);
     expect(getDownloadUrl).toHaveBeenCalledTimes(1);
   });
@@ -95,25 +87,25 @@ describe("BackendControlClientFactory file access", () => {
   it("checks workspace read access before searching organization items", async () => {
     const { client, searchResources } = createFactory(
       () => Promise.resolve({ id: "workspace_1" }),
-      ["workspace:read"],
+      ["workspace:read"]
     );
 
     await expect(
-      client.searchResources("organization_1", { search: "plan" }),
+      client.searchResources("organization_1", { search: "plan" })
     ).resolves.toEqual({ items: [], nextCursor: null });
     expect(searchResources).toHaveBeenCalledWith(
       "organization_1",
       {
         search: "plan",
       },
-      "user_1",
+      "user_1"
     );
   });
 
   it("executes read-only plugin procedures without idempotency", async () => {
     const { audit, client, executePluginOperation } = createFactory(
       () => Promise.resolve({ id: "workspace_1" }),
-      ["workspace:read"],
+      ["workspace:read"]
     );
 
     await expect(
@@ -122,8 +114,8 @@ describe("BackendControlClientFactory file access", () => {
         "workspace_1",
         "lunaris.kanban",
         "get_board_properties",
-        { boardId: "board_1" },
-      ),
+        { boardId: "board_1" }
+      )
     ).resolves.toEqual({ boardId: "board_1", properties: [] });
     expect(executePluginOperation).toHaveBeenCalledWith({
       actorId: "user_1",
@@ -137,14 +129,14 @@ describe("BackendControlClientFactory file access", () => {
       expect.objectContaining({
         operation: "lunaris.kanban:get_board_properties",
         targetId: "board_1",
-      }),
+      })
     );
   });
 
   it("audits Rich Text procedures against the document item", async () => {
     const { audit, client } = createFactory(
       () => Promise.resolve({ id: "workspace_1" }),
-      ["workspace:read"],
+      ["workspace:read"]
     );
 
     await client.executePluginOperation(
@@ -152,14 +144,14 @@ describe("BackendControlClientFactory file access", () => {
       "workspace_1",
       "lunaris.rich-text",
       "get_document",
-      { documentResourceId: "document_item_1" },
+      { documentResourceId: "document_item_1" }
     );
 
     expect(audit).toHaveBeenCalledWith(
       expect.objectContaining({
         operation: "lunaris.rich-text:get_document",
         targetId: "document_item_1",
-      }),
+      })
     );
   });
 });

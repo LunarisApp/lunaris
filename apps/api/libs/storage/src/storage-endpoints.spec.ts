@@ -20,14 +20,16 @@ test("signs browser transfers against public endpoint while retaining internal s
     expect(exitCode, `${stdout}\n${stderr}`).toBe(0);
     return;
   }
-  const config = new StorageConfig(new ConfigService({
-    AWS_ENDPOINT_URL: "http://127.0.0.1:3900",
-    AWS_PUBLIC_ENDPOINT_URL: "https://notes.example.com",
-    AWS_DEFAULT_REGION: "garage",
-    AWS_S3_BUCKET: "lunaris",
-    AWS_ACCESS_KEY_ID: "test-key",
-    AWS_SECRET_ACCESS_KEY: "test-secret",
-  }));
+  const config = new StorageConfig(
+    new ConfigService({
+      AWS_ENDPOINT_URL: "http://127.0.0.1:3900",
+      AWS_PUBLIC_ENDPOINT_URL: "https://notes.example.com",
+      AWS_DEFAULT_REGION: "garage",
+      AWS_S3_BUCKET: "lunaris",
+      AWS_ACCESS_KEY_ID: "test-key",
+      AWS_SECRET_ACCESS_KEY: "test-secret",
+    })
+  );
   const storage = new StorageService(config);
   try {
     expect(config.endpoint).toBe("http://127.0.0.1:3900");

@@ -18,7 +18,7 @@ export async function renderPdf(
   workspaceName: string,
   theme: PdfTheme = DEFAULT_PDF_THEME,
   noContentLabel = "(No content)",
-  emojiDataUrls?: PdfEmojiDataUrls,
+  emojiDataUrls?: PdfEmojiDataUrls
 ): Promise<PdfRenderResult> {
   if (contents.length === 0) {
     return { success: false, error: "No content to compile" };

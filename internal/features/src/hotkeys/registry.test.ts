@@ -69,9 +69,7 @@ describe("HOTKEYS registry", () => {
     ids.forEach((id, index) => {
       const number = index + 1;
       expect(HOTKEYS[id].category).toBe("navigation");
-      expect(getHotkeyBinding(HOTKEYS[id], "mac")).toBe(
-        `Control+${number}`
-      );
+      expect(getHotkeyBinding(HOTKEYS[id], "mac")).toBe(`Control+${number}`);
       expect(getHotkeyBinding(HOTKEYS[id], "windows")).toBe(`Alt+${number}`);
       expect(getHotkeyBinding(HOTKEYS[id], "linux")).toBe(`Alt+${number}`);
     });
@@ -111,9 +109,15 @@ describe("HOTKEYS registry", () => {
 
   it("maps delete to platform conventions", () => {
     expect(HOTKEYS["delete-resource"].nameKey).toBe("commands.deleteResource");
-    expect(getHotkeyBinding(HOTKEYS["delete-resource"], "mac")).toBe("Mod+Backspace");
-    expect(getHotkeyBinding(HOTKEYS["delete-resource"], "windows")).toBe("Delete");
-    expect(getHotkeyBinding(HOTKEYS["delete-resource"], "linux")).toBe("Delete");
+    expect(getHotkeyBinding(HOTKEYS["delete-resource"], "mac")).toBe(
+      "Mod+Backspace"
+    );
+    expect(getHotkeyBinding(HOTKEYS["delete-resource"], "windows")).toBe(
+      "Delete"
+    );
+    expect(getHotkeyBinding(HOTKEYS["delete-resource"], "linux")).toBe(
+      "Delete"
+    );
   });
 
   it("registers the paste icon", () => {

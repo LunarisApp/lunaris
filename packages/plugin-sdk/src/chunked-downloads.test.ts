@@ -9,7 +9,7 @@ it("cancels a stalled chunk iterator without waiting for next or return", async 
   const next = vi.fn(() => new Promise<IteratorResult<Uint8Array>>(() => {}));
   const close = vi.fn(() => new Promise<IteratorResult<Uint8Array>>(() => {}));
   const call = vi.fn(async (method: string) =>
-    method === "downloads.begin" ? "id" : undefined,
+    method === "downloads.begin" ? "id" : undefined
   );
   const task = saveRemoteChunks(call, {
     suggestedName: "data.csv",
@@ -35,7 +35,7 @@ it("cleans up a begin response arriving after cancellation", async () => {
       ? new Promise<string>((r) => {
           resolve = r;
         })
-      : Promise.resolve(),
+      : Promise.resolve()
   );
   const task = saveRemoteChunks(call, {
     suggestedName: "data.csv",
@@ -59,7 +59,7 @@ it("keeps completing downloads scoped and aborts them on surface cleanup", async
       return new Promise((_, reject) =>
         signal!.addEventListener("abort", () => reject(signal!.reason), {
           once: true,
-        }),
+        })
       );
     },
   });
@@ -81,7 +81,9 @@ it("reassembles chunked downloads and keeps the legacy save capability separate"
   const receiver = new PluginDownloadReceiver({
     save,
     saveChunks: async (input) => {
-      for await (const bytes of input.chunks) received.push(...bytes);
+      for await (const bytes of input.chunks) {
+        received.push(...bytes);
+      }
     },
   });
   const id = receiver.begin({
@@ -101,14 +103,14 @@ it("rejects invalid metadata and oversized chunks and clears cancelled sessions"
     saveChunks: vi.fn(),
   });
   expect(() =>
-    receiver.begin({ mimeType: "text/csv", suggestedName: "../data.csv" }),
+    receiver.begin({ mimeType: "text/csv", suggestedName: "../data.csv" })
   ).toThrow();
   const id = receiver.begin({
     mimeType: "text/csv",
     suggestedName: "data.csv",
   });
   expect(() =>
-    receiver.write(id, new ArrayBuffer(MAX_PLUGIN_CHUNK_BYTES + 1)),
+    receiver.write(id, new ArrayBuffer(MAX_PLUGIN_CHUNK_BYTES + 1))
   ).toThrow("limit");
   const next = receiver.begin({
     mimeType: "text/csv",
@@ -122,8 +124,12 @@ it("splits caller chunks and aborts the host session when cancellation arrives",
   const calls: string[] = [];
   const call = vi.fn(async (method: string) => {
     calls.push(method);
-    if (method === "downloads.begin") return "id";
-    if (method === "downloads.write") abort.abort();
+    if (method === "downloads.begin") {
+      return "id";
+    }
+    if (method === "downloads.write") {
+      abort.abort();
+    }
   });
   await expect(
     saveRemoteChunks(call, {
@@ -133,7 +139,7 @@ it("splits caller chunks and aborts the host session when cancellation arrives",
       chunks: (async function* () {
         yield new Uint8Array(MAX_PLUGIN_CHUNK_BYTES + 1);
       })(),
-    }),
+    })
   ).rejects.toThrow();
   expect(calls).toEqual([
     "downloads.begin",

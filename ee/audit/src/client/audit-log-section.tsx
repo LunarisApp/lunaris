@@ -98,7 +98,7 @@ export function AuditLogSection({
   });
   const events = useMemo(
     () => query.data?.pages.flatMap((page) => page.items) ?? [],
-    [query.data?.pages],
+    [query.data?.pages]
   );
 
   const applyFilters = (event: FormEvent<HTMLFormElement>) => {
@@ -140,16 +140,13 @@ export function AuditLogSection({
         </Alert>
       )}
 
-      <section
-        aria-busy={query.isFetching}
-        className="min-w-0"
-      >
+      <section aria-busy={query.isFetching} className="min-w-0">
         <form
           aria-labelledby={filterHeadingId}
           className="border-b pb-8"
           onSubmit={applyFilters}
         >
-          <h2 className="text-sm font-medium" id={filterHeadingId}>
+          <h2 className="font-medium text-sm" id={filterHeadingId}>
             {t("organization.audit.filters")}
           </h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
@@ -259,9 +256,9 @@ export function AuditLogSection({
           <div
             className={`mt-4 flex flex-col gap-3 sm:flex-row sm:items-center ${rangeInvalid ? "sm:justify-between" : "sm:justify-end"}`}
           >
-            {rangeInvalid && (
+            {!!rangeInvalid && (
               <p
-                className="text-sm text-destructive"
+                className="text-destructive text-sm"
                 id={rangeErrorId}
                 role="alert"
               >
@@ -292,13 +289,13 @@ export function AuditLogSection({
         {(online || events.length > 0) && (
           <>
             <div className="mt-8 flex items-center justify-between gap-3 border-b pb-3">
-              <h2 className="text-sm font-medium" id={activityHeadingId}>
+              <h2 className="font-medium text-sm" id={activityHeadingId}>
                 {t("organization.audit.activity")}
               </h2>
               {events.length > 0 && (
                 <span
                   aria-live="polite"
-                  className="text-xs text-muted-foreground"
+                  className="text-muted-foreground text-xs"
                 >
                   {t("organization.audit.showingEvents", {
                     count: events.length,
@@ -307,9 +304,9 @@ export function AuditLogSection({
               )}
             </div>
 
-            {query.isPending && online && <AuditLoading />}
+            {!!(query.isPending && online) && <AuditLoading />}
 
-            {query.isError && online && (
+            {!!(query.isError && online) && (
               <div className="py-4">
                 <Alert variant="destructive">
                   <AlertTitle>{t("organization.audit.loadFailed")}</AlertTitle>
@@ -326,8 +323,7 @@ export function AuditLogSection({
               </div>
             )}
 
-            {!query.isPending &&
-              !query.isError &&
+            {!(query.isPending || query.isError) &&
               events.length === 0 &&
               online && (
                 <Empty className="min-h-52 border-0">
@@ -348,37 +344,37 @@ export function AuditLogSection({
                 <TableHeader>
                   <TableRow>
                     <TableHead
-                      className="hidden h-9 w-28 px-4 text-xs text-muted-foreground lg:table-cell"
+                      className="hidden h-9 w-28 px-4 text-muted-foreground text-xs lg:table-cell"
                       scope="col"
                     >
                       {t("organization.audit.time")}
                     </TableHead>
                     <TableHead
-                      className="h-9 px-4 text-xs text-muted-foreground"
+                      className="h-9 px-4 text-muted-foreground text-xs"
                       scope="col"
                     >
                       {t("organization.audit.action")}
                     </TableHead>
                     <TableHead
-                      className="hidden h-9 w-36 px-4 text-xs text-muted-foreground md:table-cell"
+                      className="hidden h-9 w-36 px-4 text-muted-foreground text-xs md:table-cell"
                       scope="col"
                     >
                       {t("organization.audit.actor")}
                     </TableHead>
                     <TableHead
-                      className="hidden h-9 w-36 px-4 text-xs text-muted-foreground lg:table-cell"
+                      className="hidden h-9 w-36 px-4 text-muted-foreground text-xs lg:table-cell"
                       scope="col"
                     >
                       {t("organization.audit.target")}
                     </TableHead>
                     <TableHead
-                      className="h-9 w-24 px-3 text-xs text-muted-foreground"
+                      className="h-9 w-24 px-3 text-muted-foreground text-xs"
                       scope="col"
                     >
                       {t("organization.audit.outcome")}
                     </TableHead>
                     <TableHead
-                      className="h-9 w-16 px-3 text-right text-xs text-muted-foreground sm:w-24"
+                      className="h-9 w-16 px-3 text-right text-muted-foreground text-xs sm:w-24"
                       scope="col"
                     >
                       {t("organization.audit.details")}
@@ -398,16 +394,13 @@ export function AuditLogSection({
                       <TableCell className="min-w-0 px-4 py-3">
                         <div className="min-w-0">
                           <code
-                            className="block truncate text-xs font-medium text-foreground sm:text-sm"
+                            className="block truncate font-medium text-foreground text-xs sm:text-sm"
                             title={auditEvent.action}
                           >
                             {auditEvent.action}
                           </code>
                           <div className="mt-1 lg:hidden">
-                            <EventTime
-                              compact
-                              value={auditEvent.occurredAt}
-                            />
+                            <EventTime compact value={auditEvent.occurredAt} />
                           </div>
                         </div>
                       </TableCell>
@@ -452,7 +445,7 @@ export function AuditLogSection({
                 </TableBody>
               </Table>
             )}
-            {query.hasNextPage && (
+            {!!query.hasNextPage && (
               <div className="flex justify-center border-t py-3">
                 <Button
                   disabled={!online || query.isFetchingNextPage}
@@ -472,7 +465,9 @@ export function AuditLogSection({
       <AuditEventDetails
         event={selected}
         onOpenChange={(open) => {
-          if (!open) setSelected(null);
+          if (!open) {
+            setSelected(null);
+          }
         }}
       />
     </div>
@@ -490,7 +485,7 @@ function FilterField({
 }) {
   return (
     <Label className={`flex-col items-stretch gap-1.5 ${className ?? ""}`}>
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <span className="font-medium text-muted-foreground text-xs">{label}</span>
       {children}
     </Label>
   );
@@ -526,7 +521,9 @@ function EventTime({
   const { i18n } = useTranslation();
   const locale = i18n.resolvedLanguage ?? i18n.language;
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return <span>{value}</span>;
+  if (Number.isNaN(date.getTime())) {
+    return <span>{value}</span>;
+  }
   const dateFormatter = getDateFormatter(locale);
   const timeFormatter = getTimeFormatter(locale);
   if (compact) {
@@ -542,30 +539,26 @@ function EventTime({
   }
   return (
     <time className="block" dateTime={value} title={value}>
-      <span className="block text-xs font-medium">
+      <span className="block font-medium text-xs">
         {dateFormatter.format(date)}
       </span>
-      <span className="mt-0.5 block text-xs text-muted-foreground">
+      <span className="mt-0.5 block text-muted-foreground text-xs">
         {timeFormatter.format(date)}
       </span>
     </time>
   );
 }
 
-function Identifier({
-  id,
-  type,
-}: {
-  id: string | null;
-  type: string | null;
-}) {
+function Identifier({ id, type }: { id: string | null; type: string | null }) {
   const { t } = useTranslation();
-  if (!id && !type) return <span className="text-muted-foreground">—</span>;
+  if (!(id || type)) {
+    return <span className="text-muted-foreground">—</span>;
+  }
   return (
     <div className="flex min-w-0 max-w-full items-center gap-2">
-      {type && (
+      {!!type && (
         <Badge
-          className="h-5 bg-muted/35 text-[10px] uppercase tracking-wide text-muted-foreground"
+          className="h-5 bg-muted/35 text-[10px] text-muted-foreground uppercase tracking-wide"
           variant="outline"
         >
           {type}
@@ -587,8 +580,7 @@ function OutcomeBadge({ outcome }: { outcome: AuditOutcome }) {
   const style = {
     denied:
       "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-    failure:
-      "border-destructive/25 bg-destructive/10 text-destructive",
+    failure: "border-destructive/25 bg-destructive/10 text-destructive",
     success:
       "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
   }[outcome];
@@ -630,7 +622,7 @@ function AuditEventDetails({
             {event?.action ?? t("organization.audit.details")}
           </SheetDescription>
         </SheetHeader>
-        {event && (
+        {!!event && (
           <dl className="divide-y px-5">
             <Detail label={t("organization.audit.eventId")}>
               <TechnicalId value={event.id} />
@@ -639,7 +631,7 @@ function AuditEventDetails({
               <time dateTime={event.occurredAt}>
                 {formatDate(event.occurredAt, locale)}
               </time>
-              <code className="block break-all text-xs text-muted-foreground">
+              <code className="block break-all text-muted-foreground text-xs">
                 {event.occurredAt}
               </code>
             </Detail>
@@ -691,16 +683,10 @@ function AuditEventDetails({
   );
 }
 
-function Detail({
-  children,
-  label,
-}: {
-  children: ReactNode;
-  label: string;
-}) {
+function Detail({ children, label }: { children: ReactNode; label: string }) {
   return (
     <div className="grid gap-1 py-3.5 sm:grid-cols-[6.5rem_minmax(0,1fr)] sm:gap-4">
-      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+      <dt className="font-medium text-muted-foreground text-xs">{label}</dt>
       <dd className="min-w-0 break-words text-sm">{children}</dd>
     </div>
   );
@@ -711,7 +697,9 @@ function TechnicalId({ value }: { value: string | null }) {
 }
 
 function toIsoDate(value: string): string | undefined {
-  if (!value) return undefined;
+  if (!value) {
+    return undefined;
+  }
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 }
@@ -734,11 +722,13 @@ function getTimeFormatter(locale?: string): Intl.DateTimeFormat {
 function getFormatter(
   cache: Map<string, Intl.DateTimeFormat>,
   locale: string | undefined,
-  options: Intl.DateTimeFormatOptions,
+  options: Intl.DateTimeFormatOptions
 ): Intl.DateTimeFormat {
   const key = locale ?? "default";
   const cached = cache.get(key);
-  if (cached) return cached;
+  if (cached) {
+    return cached;
+  }
   const formatter = new Intl.DateTimeFormat(locale || undefined, options);
   cache.set(key, formatter);
   return formatter;

@@ -56,9 +56,9 @@ export const APP_TOOLS = [
 ] as const satisfies readonly AppToolDefinition[];
 
 export function createEnabledAppToolRoutes(
-  options: AppToolRouteOptions,
+  options: AppToolRouteOptions
 ): RouteObject[] {
   return APP_TOOLS.flatMap((tool) =>
-    tool.enabled && tool.routes ? tool.routes(options) : [],
+    tool.enabled && tool.routes ? tool.routes(options) : []
   );
 }

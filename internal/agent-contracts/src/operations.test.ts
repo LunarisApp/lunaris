@@ -11,27 +11,32 @@ import { serializeAgentOperation } from "./wire";
 describe("agent operation catalog", () => {
   it("defines permission and risk metadata for every operation", () => {
     expect(Object.keys(agentOperations).sort()).toEqual(
-      [...agentOperationIds].sort(),
+      [...agentOperationIds].sort()
     );
     for (const [id, operation] of Object.entries(agentOperations)) {
       expect(operation.description.length).toBeGreaterThan(0);
       expect(operation.description).not.toBe(id.replaceAll("_", " "));
       expect(["supported", "cloud-required"]).toContain(
-        operation.offlineAvailability,
+        operation.offlineAvailability
       );
       expect(operation.scope).toContain(":");
       expect(operation.transport.path).toStartWith("/v1/");
-      expect(agentOperationContracts[id as keyof typeof agentOperationContracts].input).toBeDefined();
-      expect(agentOperationContracts[id as keyof typeof agentOperationContracts].output).toBeDefined();
+      expect(
+        agentOperationContracts[id as keyof typeof agentOperationContracts]
+          .input
+      ).toBeDefined();
+      expect(
+        agentOperationContracts[id as keyof typeof agentOperationContracts]
+          .output
+      ).toBeDefined();
     }
   });
 
   it("marks operations requiring Desktop cloud connectivity", () => {
     expect(
       agentOperationIds.filter(
-        (id) =>
-          agentOperations[id].offlineAvailability === "cloud-required",
-      ),
+        (id) => agentOperations[id].offlineAvailability === "cloud-required"
+      )
     ).toEqual([
       "list_organization_members",
       "update_organization",
@@ -47,7 +52,7 @@ describe("agent operation catalog", () => {
         idempotencyKey: "request-key",
         name: "Renamed",
         organizationId: "organization-1",
-      }).success,
+      }).success
     ).toBe(false);
     expect(
       agentOperationContracts.update_organization.input.safeParse({
@@ -55,7 +60,7 @@ describe("agent operation catalog", () => {
         idempotencyKey: "request-key",
         name: "Renamed",
         organizationId: "organization-1",
-      }).success,
+      }).success
     ).toBe(true);
   });
 
@@ -65,35 +70,36 @@ describe("agent operation catalog", () => {
       searchResources: "search_resources",
     });
     expect(
-      agentChatSearchResourcesInputSchema.parse({ search: " plan " }),
+      agentChatSearchResourcesInputSchema.parse({ search: " plan " })
     ).toMatchObject({ limit: 50, search: "plan" });
     expect(
-      agentChatGetYjsStorageJsonInputSchema.parse({ storageId: "storage-1" }),
+      agentChatGetYjsStorageJsonInputSchema.parse({ storageId: "storage-1" })
     ).toEqual({ storageId: "storage-1" });
   });
 
   it("validates organization item search inputs and workspace context", () => {
     expect(agentOperations.search_resources.description).toContain(
-      "Organization-wide search is the default",
+      "Organization-wide search is the default"
     );
     expect(agentOperations.search_resources.description).toContain(
-      "exact workspace ID is already known",
+      "exact workspace ID is already known"
     );
     expect(
-      agentOperationContracts.search_resources.input.shape.workspaceId.description,
+      agentOperationContracts.search_resources.input.shape.workspaceId
+        .description
     ).toContain("Omit this field for the default organization-wide search");
     expect(
       agentOperationContracts.search_resources.input.safeParse({
         search: "   ",
         organizationId: "organization-1",
-      }).success,
+      }).success
     ).toBe(false);
     expect(
       agentOperationContracts.search_resources.input.parse({
         workspaceId: "workspace-1",
         search: "  plan  ",
         organizationId: "organization-1",
-      }),
+      })
     ).toMatchObject({
       limit: 50,
       workspaceId: "workspace-1",
@@ -118,56 +124,58 @@ describe("agent operation catalog", () => {
           },
         ],
         nextCursor: null,
-      }).success,
+      }).success
     ).toBe(true);
   });
 
   it("distinguishes content, metadata, and synchronization tools", () => {
-    expect(agentOperations.list_resources.description).toContain("resource metadata");
     expect(agentOperations.list_resources.description).toContain(
-      "does not return document content",
+      "resource metadata"
+    );
+    expect(agentOperations.list_resources.description).toContain(
+      "does not return document content"
     );
     expect(agentOperations.get_resource.description).toContain(
-      "including named storage handles",
+      "including named storage handles"
     );
     expect(agentOperations.get_yjs_storage_json.description).toContain(
-      "structured JSON content",
+      "structured JSON content"
     );
     expect(agentOperations.get_yjs_storage_state.description).toContain(
-      "raw Yjs update-v2",
+      "raw Yjs update-v2"
     );
     expect(agentOperations.list_key_value_storage.description).toContain(
-      "key-value storage handle",
+      "key-value storage handle"
     );
   });
 
   it("describes mutation concurrency and preview requirements", () => {
     expect(agentOperations.update_organization.description).toContain(
-      "expectedRevision",
+      "expectedRevision"
     );
     expect(agentOperations.update_workspace.description).toContain(
-      "expectedRevision",
+      "expectedRevision"
     );
     expect(agentOperations.update_resource.description).toContain(
-      "expectedRevision",
+      "expectedRevision"
     );
     expect(agentOperations.delete_workspace.description).toContain(
-      "preview_delete_workspace",
+      "preview_delete_workspace"
     );
     expect(agentOperations.delete_resource.description).toContain(
-      "preview_delete_resource",
+      "preview_delete_resource"
     );
     expect(
       agentOperationContracts.delete_workspace.input.shape.previewToken
-        .description,
+        .description
     ).toContain("matching preview operation");
     expect(
       agentOperationContracts.update_workspace.input.shape.expectedRevision
-        .description,
+        .description
     ).toContain("latest matching read");
     expect(
       agentOperationContracts.create_workspace.input.shape.idempotencyKey
-        .description,
+        .description
     ).toContain("retrying the identical request");
   });
 
@@ -181,7 +189,7 @@ describe("agent operation catalog", () => {
         name: "Plan",
         workspaceId: "workspace one",
         organizationId: "organization-1",
-      }),
+      })
     ).toEqual({
       body: {
         icon: null,
@@ -201,7 +209,7 @@ describe("agent operation catalog", () => {
         workspaceId: null,
         search: "road map",
         organizationId: "organization-1",
-      }),
+      })
     ).toMatchObject({
       method: "GET",
       query: {
@@ -216,7 +224,7 @@ describe("agent operation catalog", () => {
     expect(() =>
       serializeAgentOperation("get_workspace", {
         organizationId: "organization-1",
-      }),
+      })
     ).toThrow("workspaceId is required");
   });
 });

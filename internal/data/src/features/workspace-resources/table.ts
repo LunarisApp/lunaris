@@ -3,7 +3,9 @@ import type { CreateSchemaTableProps } from "../../core/utils";
 import { localTable } from "../../core/utils";
 
 export const WORKSPACE_RESOURCES_TABLE = "workspace_resources";
-export const LOCAL_WORKSPACE_RESOURCES_TABLE = localTable(WORKSPACE_RESOURCES_TABLE);
+export const LOCAL_WORKSPACE_RESOURCES_TABLE = localTable(
+  WORKSPACE_RESOURCES_TABLE
+);
 
 export const createWorkspaceResourcesTable = ({
   localOnly,

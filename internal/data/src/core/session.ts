@@ -43,14 +43,16 @@ export function createManagedPowerSyncSession({
     const result = operation.then(task, task);
     operation = result.then(
       () => undefined,
-      () => undefined,
+      () => undefined
     );
     return result;
   };
 
   const terminate = (cleanup: () => Promise<void>) =>
     run(async () => {
-      if (closed) return;
+      if (closed) {
+        return;
+      }
       closed = true;
       connected = false;
       await cleanup();
@@ -61,13 +63,17 @@ export function createManagedPowerSyncSession({
     storageName,
     connect: () =>
       run(async () => {
-        if (closed || connected) return;
+        if (closed || connected) {
+          return;
+        }
         await onConnect();
         connected = true;
       }),
     disconnect: () =>
       run(async () => {
-        if (closed || !connected) return;
+        if (closed || !connected) {
+          return;
+        }
         connected = false;
         await onDisconnect();
       }),

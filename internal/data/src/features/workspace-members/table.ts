@@ -16,7 +16,7 @@ export const createWorkspaceMemberTable = () =>
         workspace_members_workspace_idx: ["workspace_id"],
         workspace_members_organization_member_idx: ["organization_member_id"],
       },
-    },
+    }
   );
 
 export type WorkspaceMemberEntity = RowType<

@@ -14,7 +14,9 @@ export class YjsPersistenceTracker {
   private error: Error | null = null;
 
   getState(): YjsPersistenceState {
-    if (this.error) return "error";
+    if (this.error) {
+      return "error";
+    }
     return this.pendingWrites > 0 ? "persisting" : "idle";
   }
 
@@ -25,7 +27,9 @@ export class YjsPersistenceTracker {
   }
 
   failWrite(cause: unknown): Error | null {
-    if (this.error) return null;
+    if (this.error) {
+      return null;
+    }
 
     this.error = cause instanceof Error ? cause : new Error(String(cause));
     this.notifyListeners();
@@ -49,8 +53,12 @@ export class YjsPersistenceTracker {
   }
 
   wait(): Promise<void> {
-    if (this.error) return Promise.reject(this.error);
-    if (this.pendingWrites === 0) return Promise.resolve();
+    if (this.error) {
+      return Promise.reject(this.error);
+    }
+    if (this.pendingWrites === 0) {
+      return Promise.resolve();
+    }
 
     return new Promise<void>((resolve, reject) => {
       this.waiters.add({ resolve, reject });
@@ -62,20 +70,29 @@ export class YjsPersistenceTracker {
   }
 
   private notifyIfChanged(previousState: YjsPersistenceState): void {
-    if (previousState !== this.getState()) this.notifyListeners();
+    if (previousState !== this.getState()) {
+      this.notifyListeners();
+    }
   }
 
   private notifyListeners(): void {
     const state = this.getState();
-    for (const listener of this.listeners) listener(state);
+    for (const listener of this.listeners) {
+      listener(state);
+    }
   }
 
   private settleWaiters(): void {
-    if (!this.error && this.pendingWrites > 0) return;
+    if (!this.error && this.pendingWrites > 0) {
+      return;
+    }
 
     for (const waiter of this.waiters) {
-      if (this.error) waiter.reject(this.error);
-      else waiter.resolve();
+      if (this.error) {
+        waiter.reject(this.error);
+      } else {
+        waiter.resolve();
+      }
     }
     this.waiters.clear();
   }

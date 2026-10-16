@@ -8,7 +8,6 @@
  * Lunaris app-shell binds these capabilities for the active workspace.
  */
 
-import { useCallback, useMemo } from "react";
 import type { PluginResourceReadContext } from "./resource-data";
 import type { PluginEntityReference } from "./entity-references";
 import type { JsonObject } from "./json";
@@ -189,7 +188,10 @@ export interface PluginResourceActions {
   }) => Promise<ResourceCreateResult | null>;
   deleteResource: (resourceId: string) => Promise<void>;
   renameResource: (resourceId: string, name: string) => Promise<void>;
-  reorderResources: (parentId: string, orderedResourceIds: string[]) => Promise<void>;
+  reorderResources: (
+    parentId: string,
+    orderedResourceIds: string[]
+  ) => Promise<void>;
   touchResource: (resourceId: string) => Promise<void>;
 }
 
@@ -295,7 +297,7 @@ export interface PluginDownloads {
 }
 
 export function assertPluginDownloadInput(
-  input: unknown,
+  input: unknown
 ): asserts input is PluginDownloadInput {
   if (!input || typeof input !== "object") {
     throw new Error("Generated download input is invalid");
@@ -314,6 +316,7 @@ export function assertPluginDownloadInput(
     filename.length > 255 ||
     filename === "." ||
     filename === ".." ||
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: Reject control characters in download filenames.
     /[<>:"/\\|?*\0-\x1f]/.test(filename) ||
     /[. ]$/.test(filename)
   ) {
@@ -321,7 +324,9 @@ export function assertPluginDownloadInput(
   }
   if (
     typeof value.mimeType !== "string" ||
-    !/^[a-z0-9][a-z0-9!#$&^_.+-]*\/[a-z0-9][a-z0-9!#$&^_.+-]*$/i.test(value.mimeType)
+    !/^[a-z0-9][a-z0-9!#$&^_.+-]*\/[a-z0-9][a-z0-9!#$&^_.+-]*$/i.test(
+      value.mimeType
+    )
   ) {
     throw new Error("Generated download has an invalid MIME type");
   }
@@ -354,15 +359,17 @@ export interface PluginHostCapabilities {
   useStoredFile: (storage: ResourceStorageHandle) => PluginStoredFileState;
   useWorkspaceChildrenMap: () => PluginResourceChildrenMap;
   useWorkspaceResourceActions: () => PluginResourceActions;
-  useWorkspaceResourceBreadcrumb: (resourceId: string) => PluginResourceBreadcrumbItem[];
+  useWorkspaceResourceBreadcrumb: (
+    resourceId: string
+  ) => PluginResourceBreadcrumbItem[];
   useWorkspaceResourceName: (resourceId: string) => string;
   useWorkspaceResourcesMap: () => PluginResourcesMap;
   useWorkspaceTrashMap: () => PluginResourceTrashMap;
   useYjsStorageLastEdited: (
-    storage: ResourceStorageHandle,
+    storage: ResourceStorageHandle
   ) => PluginYjsStorageLastEditedResult;
   useYjsStorageUpdateRows: () => (
-    storage: ResourceStorageHandle,
+    storage: ResourceStorageHandle
   ) => Promise<PluginYjsStorageUpdateRow[]>;
 }
 
@@ -467,7 +474,7 @@ export function useOrgMembersMap(): {
 }
 
 export function useYjsStorageLastEdited(
-  storage: ResourceStorageHandle,
+  storage: ResourceStorageHandle
 ): PluginYjsStorageLastEditedResult {
   usePluginPermission("content.read");
   return usePluginHostCapabilities().useYjsStorageLastEdited(storage);
@@ -488,7 +495,9 @@ export function useFileStorage(): PluginFileStorage {
 }
 
 /** Observe stored-file state for an extension-owned workspace resource. */
-export function useStoredFile(storage: ResourceStorageHandle): PluginStoredFileState {
+export function useStoredFile(
+  storage: ResourceStorageHandle
+): PluginStoredFileState {
   usePluginPermission("files.read");
   if (storage.kind !== "file") {
     throw new Error("useStoredFile requires a file storage handle");

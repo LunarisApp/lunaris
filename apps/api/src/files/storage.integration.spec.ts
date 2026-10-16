@@ -75,7 +75,8 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
     database = { db, pool };
     storage = new StorageService({
       endpoint: process.env.AWS_ENDPOINT_URL!,
-      publicEndpoint: process.env.AWS_PUBLIC_ENDPOINT_URL ?? process.env.AWS_ENDPOINT_URL!,
+      publicEndpoint:
+        process.env.AWS_PUBLIC_ENDPOINT_URL ?? process.env.AWS_ENDPOINT_URL!,
       region: process.env.AWS_DEFAULT_REGION!,
       bucket: process.env.AWS_S3_BUCKET!,
       accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
@@ -91,18 +92,18 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
         businessYearly: "business-yearly",
       }),
       null,
-      {} as never,
+      {} as never
     );
     uploads = new UploadSessionsService(
       database,
       storage,
       billing,
-      config as never,
+      config as never
     );
     reconciliation = new StorageReconciliationService(
       database,
       storage,
-      uploads,
+      uploads
     );
     files = new FilesService(database, storage);
     await db.insert(user).values(
@@ -113,7 +114,7 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
         emailVerified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-      })),
+      }))
     );
     await db.insert(organization).values({
       id: organizationId,
@@ -144,10 +145,14 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
   }, 60_000);
 
   beforeEach(async () => {
-    for (const session of await database.db.select().from(uploadSessionsDb))
+    for (const session of await database.db.select().from(uploadSessionsDb)) {
       await storage.abortMultipartForKey(session.objectKey);
-    for await (const object of storage.listObjects(`files/${organizationId}/`))
+    }
+    for await (const object of storage.listObjects(
+      `files/${organizationId}/`
+    )) {
       await storage.deleteObject(object.key);
+    }
     await database.db.delete(workspaceResourcesDb);
     await database.db.delete(uploadSessionsDb);
     await database.db.delete(storedFilesDb);
@@ -162,18 +167,20 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
 
   afterAll(async () => {
     if (storage && database) {
-      for (const session of await database.db.select().from(uploadSessionsDb))
+      for (const session of await database.db.select().from(uploadSessionsDb)) {
         await storage.abortMultipartForKey(session.objectKey);
+      }
       for await (const object of storage.listObjects(
-        `files/${organizationId}/`,
-      ))
+        `files/${organizationId}/`
+      )) {
         await storage.deleteObject(object.key);
+      }
       await storage.onModuleDestroy();
     }
     await pool?.end();
     if (admin) {
       await admin.query(
-        `DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`,
+        `DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`
       );
       await admin.end();
     }
@@ -182,14 +189,14 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
   const putPart = async (
     id: string,
     partNumber: number,
-    bytes: Uint8Array<ArrayBuffer>,
+    bytes: Uint8Array<ArrayBuffer>
   ) => {
     const signed = await uploads.signPart(actor, id, partNumber);
     const response = await fetch(signed.url, { method: "PUT", body: bytes });
     if (!response.ok) {
       const body = await response.text();
       throw new Error(
-        `Garage part failed: ${response.status} ${body.match(/<Code>(.*?)<\/Code>/)?.[1]} ${body.match(/<Message>(.*?)<\/Message>/)?.[1]}`,
+        `Garage part failed: ${response.status} ${body.match(/<Code>(.*?)<\/Code>/)?.[1]} ${body.match(/<Message>(.*?)<\/Message>/)?.[1]}`
       );
     }
     return response;
@@ -210,21 +217,21 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
       state: "orphan",
     });
     const results = await Promise.allSettled(
-      Array.from({ length: 12 }, () => uploads.create(actor, input(10))),
+      Array.from({ length: 12 }, () => uploads.create(actor, input(10)))
     );
     expect(
-      results.filter((result) => result.status === "fulfilled"),
+      results.filter((result) => result.status === "fulfilled")
     ).toHaveLength(1);
     expect(
-      (await readStorageAccounting(database.db, organizationId)).reservedBytes,
+      (await readStorageAccounting(database.db, organizationId)).reservedBytes
     ).toBe(10);
     const [session] = await database.db.select().from(uploadSessionsDb);
     const same = { ...input(10, session!.fileId), id: session!.id };
     await Promise.all(
-      Array.from({ length: 4 }, () => uploads.create(actor, same)),
+      Array.from({ length: 4 }, () => uploads.create(actor, same))
     );
     expect(
-      (await readStorageAccounting(database.db, organizationId)).reservedBytes,
+      (await readStorageAccounting(database.db, organizationId)).reservedBytes
     ).toBe(10);
   }, 30_000);
 
@@ -243,7 +250,7 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
     const valid = await storeFile();
     await uploads.complete(actor, valid.id);
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(3);
     await expect(uploads.signPart(actor, valid.id, 1)).rejects.toThrow();
     const [record] = await database.db
@@ -254,7 +261,7 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
     await expect(
       storage.completeMultipart(record!.objectKey, record!.uploadId!, [
         { PartNumber: 1, ETag: "replay" },
-      ]),
+      ])
     ).rejects.toThrow();
   }, 30_000);
 
@@ -273,15 +280,15 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
     });
     await expect(uploads.cancel(actor, request.id)).rejects.toThrow();
     expect(
-      (await readStorageAccounting(database.db, organizationId)).reservedBytes,
+      (await readStorageAccounting(database.db, organizationId)).reservedBytes
     ).toBe(3);
     storage.abortMultipartForKey = original;
     await reconciliation.reconcile();
     expect(
-      (await readStorageAccounting(database.db, organizationId)).reservedBytes,
+      (await readStorageAccounting(database.db, organizationId)).reservedBytes
     ).toBe(0);
     expect(
-      (await fetch(signed.url, { method: "PUT", body: new Uint8Array(3) })).ok,
+      (await fetch(signed.url, { method: "PUT", body: new Uint8Array(3) })).ok
     ).toBe(false);
   });
 
@@ -300,7 +307,7 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
     await storage.completeMultipart(
       session!.objectKey,
       session!.uploadId!,
-      await storage.listParts(session!.objectKey, session!.uploadId!),
+      await storage.listParts(session!.objectKey, session!.uploadId!)
     );
     await reconciliation.reconcile();
     await files.deleteFile({
@@ -310,7 +317,7 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
       filename: "file.bin",
     });
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(3);
     const original = storage.deleteObject.bind(storage);
     storage.deleteObject = mock(async () => {
@@ -318,12 +325,12 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
     });
     await reconciliation.reconcile();
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(3);
     storage.deleteObject = original;
     await reconciliation.reconcile();
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(0);
     await files.deleteFile({
       ...actor,
@@ -332,7 +339,7 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
       filename: "file.bin",
     });
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(0);
     await expect(
       files.getDownloadUrl({
@@ -340,7 +347,7 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
         workspaceId: "workspace",
         fileId: request.fileId,
         filename: "file.bin",
-      }),
+      })
     ).rejects.toThrow();
   });
 
@@ -358,20 +365,20 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
       uploads.create(actor, {
         ...input(2),
         replacementFileId: previous.fileId,
-      }),
+      })
     ).rejects.toThrow();
     expect(
-      (await readStorageAccounting(database.db, organizationId)).reservedBytes,
+      (await readStorageAccounting(database.db, organizationId)).reservedBytes
     ).toBe(0);
     await putPart(request.id, 1, new Uint8Array(3));
     await uploads.complete(actor, request.id);
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(250_000_008);
     await expect(uploads.create(actor, input(1))).rejects.toThrow();
     await reconciliation.reconcile();
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(250_000_003);
   });
 
@@ -386,13 +393,13 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
     };
     try {
       await expect(uploads.complete(actor, request.id)).rejects.toThrow(
-        "Upload was canceled",
+        "Upload was canceled"
       );
     } finally {
       uploads.finish = finish;
     }
     expect(
-      (await readStorageAccounting(database.db, organizationId)).reservedBytes,
+      (await readStorageAccounting(database.db, organizationId)).reservedBytes
     ).toBe(0);
     expect(await database.db.select().from(storedFilesDb)).toHaveLength(0);
     expect((await uploads.cancel(actor, request.id)).state).toBe("canceled");
@@ -416,21 +423,21 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
     };
     try {
       await expect(uploads.complete(actor, request.id)).rejects.toThrow(
-        "Provider response lost",
+        "Provider response lost"
       );
     } finally {
       storage.completeMultipart = complete;
     }
     expect(
-      (await readStorageAccounting(database.db, organizationId)).reservedBytes,
+      (await readStorageAccounting(database.db, organizationId)).reservedBytes
     ).toBe(3);
     await expect(uploads.create(actor, input(2))).rejects.toThrow();
     await reconciliation.reconcile();
     expect(
-      (await readStorageAccounting(database.db, organizationId)).reservedBytes,
+      (await readStorageAccounting(database.db, organizationId)).reservedBytes
     ).toBe(0);
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(249_999_994);
   });
 
@@ -443,21 +450,21 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
     const request = { ...input(3), replacementFileId: previous.fileId };
     await uploads.create(actor, request);
     expect(
-      (await readStorageAccounting(database.db, organizationId)).reservedBytes,
+      (await readStorageAccounting(database.db, organizationId)).reservedBytes
     ).toBe(3);
     await storage.putObject(
       `files/${organizationId}/workspace/orphan.bin`,
-      new Uint8Array(7),
+      new Uint8Array(7)
     );
     await reconciliation.inventoryOrganization(organizationId);
     await reconciliation.inventoryOrganization(organizationId);
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(12);
     await storage.deleteObject(stored!.objectKey);
     await reconciliation.inventoryOrganization(organizationId);
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(12);
   });
 
@@ -520,7 +527,7 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
     await database.db.delete(member).where(eq(member.id, "other-member"));
     await uploads.complete(actor, request.id);
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(10_000_000_000);
     await database.db.insert(member).values({
       id: "other-member",
@@ -557,7 +564,7 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
       response: { code: "STORAGE_QUOTA_EXCEEDED" },
     });
     expect(
-      (await readStorageAccounting(database.db, organizationId)).reservedBytes,
+      (await readStorageAccounting(database.db, organizationId)).reservedBytes
     ).toBe(3);
   });
 
@@ -604,17 +611,17 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
         workspaceId: "workspace",
         trashRootId: fileId,
         trashedAt: now,
-        purgeAt: new Date(now.getTime() + 30 * 86400_000),
+        purgeAt: new Date(now.getTime() + 30 * 86_400_000),
       });
     }
     await reconciliation.inventoryOrganization(organizationId);
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(3);
     const resources = new WorkspaceResourcesService(
       database,
       {} as never,
-      files,
+      files
     );
     await database.db.transaction((tx) =>
       resources.purgeWithDb(
@@ -622,24 +629,24 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
         uploaded.fileId,
         "workspace",
         organizationId,
-        "owner",
-      ),
+        "owner"
+      )
     );
     await reconciliation.reconcile();
     expect(await storage.objectSize(object!.key)).toBe(3);
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(3);
     await database.db.transaction((tx) =>
-      resources.purgeWithDb(tx, "alias", "workspace", organizationId, "owner"),
+      resources.purgeWithDb(tx, "alias", "workspace", organizationId, "owner")
     );
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(3);
     await reconciliation.reconcile();
     expect(await storage.objectSize(object!.key)).toBeNull();
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(0);
   });
 
@@ -671,7 +678,7 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
     await reconciliation.reconcile();
     expect(await storage.objectSize(object!.key)).toBe(3);
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(3);
     await files.deleteFile({
       ...actor,
@@ -682,7 +689,7 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
     await reconciliation.reconcile();
     expect(await storage.objectSize(object!.key)).toBeNull();
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(0);
   });
 
@@ -724,8 +731,8 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
             backingId: "same-id",
           },
           organizationId,
-          "owner",
-        ),
+          "owner"
+        )
       );
     await expect(authorize()).resolves.toBeUndefined();
     await database.db
@@ -733,7 +740,7 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
       .set({ workspaceId: "workspace" })
       .where(eq(storedFilesDb.id, "retired"));
     await expect(authorize()).rejects.toThrow(
-      "File is being replaced or deleted",
+      "File is being replaced or deleted"
     );
   });
 
@@ -744,11 +751,13 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
         organizationId,
         sizeBytes: 1,
         state: "pending_delete" as const,
-      })),
+      }))
     );
     const original = storage.deleteObject.bind(storage);
     storage.deleteObject = async (key) => {
-      if (key !== "cleanup-500") throw new Error("Provider unavailable");
+      if (key !== "cleanup-500") {
+        throw new Error("Provider unavailable");
+      }
     };
     try {
       await reconciliation.reconcile();
@@ -761,10 +770,10 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
           .select()
           .from(fileObjectsDb)
           .where(eq(fileObjectsDb.key, "cleanup-500"))
-      )[0]!.state,
+      )[0]!.state
     ).toBe("deleted");
     expect(
-      (await readStorageAccounting(database.db, organizationId)).committedBytes,
+      (await readStorageAccounting(database.db, organizationId)).committedBytes
     ).toBe(500);
   }, 30_000);
 
@@ -800,21 +809,21 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
         }
         const size = Math.min(
           UPLOAD_PART_BYTES,
-          request.sizeBytes - (number - 1) * UPLOAD_PART_BYTES,
+          request.sizeBytes - (number - 1) * UPLOAD_PART_BYTES
         );
         expect(
-          (await putPart(request.id, number, buffer.subarray(0, size))).ok,
+          (await putPart(request.id, number, buffer.subarray(0, size))).ok
         ).toBe(true);
         peakRss = Math.max(peakRss, process.memoryUsage().rss);
       }
       expect(peakRss - initialRss).toBeLessThan(512_000_000);
       process.stdout.write(
-        `5 GB upload peak RSS increase: ${peakRss - initialRss} bytes\n`,
+        `5 GB upload peak RSS increase: ${peakRss - initialRss} bytes\n`
       );
       await uploads.complete(actor, request.id);
       expect(
         (await readStorageAccounting(database.db, organizationId))
-          .committedBytes,
+          .committedBytes
       ).toBe(5_000_000_000);
       const [session] = await database.db
         .select()
@@ -822,6 +831,6 @@ integration("organization storage (real PostgreSQL and Garage)", () => {
         .where(eq(uploadSessionsDb.id, request.id));
       expect(await storage.objectSize(session!.objectKey)).toBe(5_000_000_000);
     },
-    600_000,
+    600_000
   );
 });

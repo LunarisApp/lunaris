@@ -35,7 +35,9 @@ export function useYMapJson<T>(
 
   const parse = useCallback((): T => {
     const raw = yMap.get(key);
-    if (!raw) return fallbackRef.current;
+    if (!raw) {
+      return fallbackRef.current;
+    }
     try {
       return JSON.parse(raw) as T;
     } catch {

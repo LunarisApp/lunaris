@@ -15,7 +15,9 @@ export function useMoveActivePanelToWindow(
   useHotkey(
     useResolvedHotkeyBinding(hotkey),
     () => {
-      if (activePanelId) void movePanelToWindow(activePanelId);
+      if (activePanelId) {
+        void movePanelToWindow(activePanelId);
+      }
     },
     {
       preventDefault: true,

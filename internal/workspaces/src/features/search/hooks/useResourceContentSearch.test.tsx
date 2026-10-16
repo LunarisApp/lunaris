@@ -53,7 +53,9 @@ vi.mock("@repo/data/core", () => ({
 }));
 
 vi.mock("@repo/data/features/workspace-resources", () => ({
-  useOrganizationWorkspaceResourcesQuery: () => ({ data: mocks.organizationResources }),
+  useOrganizationWorkspaceResourcesQuery: () => ({
+    data: mocks.organizationResources,
+  }),
 }));
 
 vi.mock("@repo/data/features/search-index", () => ({
@@ -117,7 +119,9 @@ describe("useResourceContentSearch hydration", () => {
   });
 
   it("hydrates only workspaces allowed by scoped filters", async () => {
-    renderHook(() => useResourceContentSearch("workspace:Beta roadmap", 0, true));
+    renderHook(() =>
+      useResourceContentSearch("workspace:Beta roadmap", 0, true)
+    );
 
     await waitFor(() => {
       expect(mocks.syncStream).toHaveBeenCalledOnce();
@@ -152,7 +156,7 @@ describe("useResourceContentSearch hydration", () => {
     };
     const { result, rerender } = renderHook(
       ({ query }) => useResourceContentSearch(query, 0, true),
-      { initialProps: { query: "first" } },
+      { initialProps: { query: "first" } }
     );
 
     expect(result.current).toHaveLength(1);

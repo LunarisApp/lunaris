@@ -48,7 +48,7 @@ export class EncryptionKeyMismatchError extends Error {
   constructor(dbFilename: string, cause: unknown) {
     super(
       `Local DB "${dbFilename}" cannot be decrypted with the current key. ` +
-        `Likely a stale file from a prior session — wipe and re-sync.`
+        "Likely a stale file from a prior session — wipe and re-sync."
     );
     this.name = "EncryptionKeyMismatchError";
     this.dbFilename = dbFilename;
@@ -67,7 +67,9 @@ export class EncryptionKeyMismatchError extends Error {
 export function isEncryptionKeyMismatch(
   error: unknown
 ): error is EncryptionKeyMismatchError {
-  if (error instanceof EncryptionKeyMismatchError) return true;
+  if (error instanceof EncryptionKeyMismatchError) {
+    return true;
+  }
   return (
     typeof error === "object" &&
     error !== null &&
@@ -109,11 +111,17 @@ export async function probeEncryption(
 }
 
 export function isNotADbError(error: unknown): boolean {
-  if (!error || typeof error !== "object") return false;
+  if (!error || typeof error !== "object") {
+    return false;
+  }
   const record = error as Record<string, unknown>;
-  if (record.status === SQLITE_NOTADB_STATUS) return true;
+  if (record.status === SQLITE_NOTADB_STATUS) {
+    return true;
+  }
   const code = record.code;
-  if (typeof code === "string" && code.includes("SQLITE_NOTADB")) return true;
+  if (typeof code === "string" && code.includes("SQLITE_NOTADB")) {
+    return true;
+  }
   // Worker boundary strips non-standard props off Error via structured
   // clone, so status/code vanish on the main thread. Fall back to the
   // canonical SQLite NOTADB message — exact match only, never substring.

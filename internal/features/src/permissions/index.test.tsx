@@ -12,7 +12,9 @@ import {
 
 describe("permissions", () => {
   it("allows permissions by default", () => {
-    const { result } = renderHook(() => usePermission(permission.workspace.read));
+    const { result } = renderHook(() =>
+      usePermission(permission.workspace.read)
+    );
 
     expect(result.current).toBe(true);
   });
@@ -40,7 +42,7 @@ describe("permissions", () => {
         ]),
         delete: usePermission(permission.workspace.delete),
       }),
-      { wrapper },
+      { wrapper }
     );
 
     expect(result.current).toEqual({
@@ -52,10 +54,10 @@ describe("permissions", () => {
 
   it("throws consistently at denied mutation boundaries", () => {
     expect(() =>
-      requirePermission(() => false, permission.content.write),
+      requirePermission(() => false, permission.content.write)
     ).toThrow("Permission denied: content.write");
     expect(() =>
-      requirePermission(() => true, permission.content.write),
+      requirePermission(() => true, permission.content.write)
     ).not.toThrow();
   });
 });

@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { ConfirmationDialog } from "@lunarisapp/ui/blocks/confirmation-dialog";
 import { Button } from "@lunarisapp/ui/components/button";
@@ -35,10 +35,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { useAuth } from "../auth/context";
-import {
-  resolveSyncStatus,
-  type SyncStatusDescriptor,
-} from "./resolve-status";
+import { resolveSyncStatus, type SyncStatusDescriptor } from "./resolve-status";
 
 export {
   resolveSyncStatus,
@@ -119,9 +116,7 @@ function SyncStatusContent({
 
   switch (descriptor.kind) {
     case "online":
-      return (
-        <span className="sr-only">{t("syncStatus.onlineStatus")}</span>
-      );
+      return <span className="sr-only">{t("syncStatus.onlineStatus")}</span>;
     case "connecting":
       return null;
     case "offline":
@@ -172,7 +167,7 @@ function SyncStatusContent({
               void navigate(
                 activeOrganization
                   ? `/${activeOrganization.slug}/settings?tab=billing`
-                  : "/",
+                  : "/"
               ),
           }}
           srLabel={t("syncStatus.blockedPermissionStatus")}
@@ -264,18 +259,14 @@ function InlineActionStatus({
     <Button
       aria-label={srLabel}
       className={cn(
-        "h-7 gap-1 px-2 text-xs font-medium transition-colors duration-200",
+        "h-7 gap-1 px-2 font-medium text-xs transition-colors duration-200",
         TONE_CLASSES[tone]
       )}
       onClick={onClick}
       size="sm"
       variant="ghost"
     >
-      <HugeiconsIcon
-        className="h-3.5 w-3.5"
-        icon={icon}
-        strokeWidth={2}
-      />
+      <HugeiconsIcon className="h-3.5 w-3.5" icon={icon} strokeWidth={2} />
       <span>{label}</span>
     </Button>
   );
@@ -283,7 +274,9 @@ function InlineActionStatus({
 
 function LastSyncedLine({ lastSyncedAt }: { lastSyncedAt: Date | undefined }) {
   const { t } = useTranslation();
-  if (!lastSyncedAt) return null;
+  if (!lastSyncedAt) {
+    return null;
+  }
 
   return (
     <p className="text-xs tabular-nums">
@@ -322,7 +315,7 @@ function SimpleStatusCard({
               <LastSyncedLine lastSyncedAt={lastSyncedAt} />
             )}
           </div>
-          {action && (
+          {!!action && (
             <div className="flex gap-2 pt-1">
               <Button onClick={action.onClick} size="sm">
                 {action.label}
@@ -379,7 +372,7 @@ function BlockedStatusCard({
               <LastSyncedLine lastSyncedAt={lastSyncedAt} />
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
-              {primaryAction && (
+              {!!primaryAction && (
                 <Button onClick={primaryAction.onClick} size="sm">
                   {primaryAction.label}
                 </Button>
@@ -434,7 +427,7 @@ function TransientErrorCard({
           </h2>
           <div className="space-y-2 text-muted-foreground text-sm">
             <p>{t("syncStatus.transientErrorMessage")}</p>
-            {reason && (
+            {!!reason && (
               <p className="break-words text-xs">
                 {t("syncStatus.transientErrorReason", { reason })}
               </p>

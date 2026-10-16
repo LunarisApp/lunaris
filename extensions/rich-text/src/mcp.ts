@@ -18,7 +18,7 @@ const idempotencyKey = z
   .min(8)
   .max(200)
   .describe(
-    "Stable unique key for this mutation. Reuse only when retrying the identical request.",
+    "Stable unique key for this mutation. Reuse only when retrying the identical request."
   );
 const pagination = {
   cursor: z
@@ -133,7 +133,11 @@ export const richTextMcpCapabilities = definePluginMcpCapabilities({
         kind: "operation",
         operation: "preview_delete_resource",
       },
-      inputSchema: z.object({ documentResourceId, workspaceId, organizationId }),
+      inputSchema: z.object({
+        documentResourceId,
+        workspaceId,
+        organizationId,
+      }),
       name: "rich_text_preview_delete_document",
     },
     {
@@ -155,7 +159,7 @@ export const richTextMcpCapabilities = definePluginMcpCapabilities({
         documentResourceId,
         idempotencyKey,
         previewToken: id(
-          "Fresh preview token returned by rich_text_preview_delete_document.",
+          "Fresh preview token returned by rich_text_preview_delete_document."
         ),
         workspaceId,
         organizationId,

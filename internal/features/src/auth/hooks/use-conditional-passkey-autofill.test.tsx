@@ -57,7 +57,7 @@ function renderHookHarness({
     </MemoryRouter>
   );
   const rendered = render(
-    strictMode ? <StrictMode>{harness}</StrictMode> : harness,
+    strictMode ? <StrictMode>{harness}</StrictMode> : harness
   );
 
   return { ...rendered, passkeySignIn, supportsPasskeys };
@@ -104,8 +104,8 @@ describe("useConditionalPasskeyAutofill", () => {
 
     await waitFor(() =>
       expect(
-        MockPublicKeyCredential.isConditionalMediationAvailable,
-      ).toHaveBeenCalledOnce(),
+        MockPublicKeyCredential.isConditionalMediationAvailable
+      ).toHaveBeenCalledOnce()
     );
     expect(passkeySignIn).not.toHaveBeenCalled();
     expect(toastError).not.toHaveBeenCalled();
@@ -122,7 +122,7 @@ describe("useConditionalPasskeyAutofill", () => {
     expect(toastError).not.toHaveBeenCalled();
     expect(capture).not.toHaveBeenCalledWith(
       "auth_sign_in_failed",
-      expect.anything(),
+      expect.anything()
     );
   });
 
@@ -155,7 +155,7 @@ describe("useConditionalPasskeyAutofill", () => {
     const { passkeySignIn } = renderHookHarness();
 
     await waitFor(() =>
-      expect(passkeySignIn).toHaveBeenCalledWith({ autoFill: true }),
+      expect(passkeySignIn).toHaveBeenCalledWith({ autoFill: true })
     );
     expect(await screen.findByText("/done")).toBeTruthy();
     expect(capture).toHaveBeenCalledWith("auth_sign_in", {
@@ -178,7 +178,7 @@ describe("useConditionalPasskeyAutofill", () => {
         () =>
           new Promise<boolean>((resolve) => {
             resolveAvailability = resolve;
-          }),
+          })
       );
     }
     vi.stubGlobal("PublicKeyCredential", MockPublicKeyCredential);
@@ -186,8 +186,8 @@ describe("useConditionalPasskeyAutofill", () => {
 
     await waitFor(() =>
       expect(
-        MockPublicKeyCredential.isConditionalMediationAvailable,
-      ).toHaveBeenCalledOnce(),
+        MockPublicKeyCredential.isConditionalMediationAvailable
+      ).toHaveBeenCalledOnce()
     );
     unmount();
     await act(async () => resolveAvailability?.(true));

@@ -11,7 +11,7 @@ import type { ResourceStorageHandle } from "./types";
 
 describe("declared extension storage", () => {
   it("routes resource handles and workspace descriptors through separate scopes", () => {
-    const accesses: Array<[string, string, string]> = [];
+    const accesses: [string, string, string][] = [];
     const empty = <T,>() => ({
       isFetching: false,
       isLoading: false,
@@ -24,7 +24,11 @@ describe("declared extension storage", () => {
         accesses.push(["resource", storageId, key]);
         return empty<T>();
       },
-      useWorkspaceKeyValue: <T,>(pluginId: string, storageId: string, key: string) => {
+      useWorkspaceKeyValue: <T,>(
+        pluginId: string,
+        storageId: string,
+        key: string
+      ) => {
         accesses.push([pluginId, storageId, key]);
         return empty<T>();
       },
@@ -36,9 +40,9 @@ describe("declared extension storage", () => {
         getWorkspaceStorage: vi.fn(),
         getWorkspaceStorages: () => [],
         getResourceType: vi.fn(),
-      getResourceTypes: () => [],
-      getSearchIndexers: () => [],
-      getSearchQueries: () => [],
+        getResourceTypes: () => [],
+        getSearchIndexers: () => [],
+        getSearchQueries: () => [],
         getVersion: () => 0,
         getView: vi.fn(),
         getViews: () => [],
@@ -50,23 +54,35 @@ describe("declared extension storage", () => {
     };
 
     function Consumer({ suffix }: { suffix: string }) {
-      useKeyValue({
-        kind: "key-value",
-        storageId: `resource-${suffix}`,
-      } as ResourceStorageHandle, "setting");
-      useWorkspaceKeyValue({ kind: "key-value", storageId: "preferences" }, "theme");
+      useKeyValue(
+        {
+          kind: "key-value",
+          storageId: `resource-${suffix}`,
+        } as ResourceStorageHandle,
+        "setting"
+      );
+      useWorkspaceKeyValue(
+        { kind: "key-value", storageId: "preferences" },
+        "theme"
+      );
       return null;
     }
 
     render(
       <ExtensionSdkProvider runtime={runtime}>
-        <ExtensionScopeProvider extensionId="acme.alpha" permissions={["content.read", "content.write"]}>
+        <ExtensionScopeProvider
+          extensionId="acme.alpha"
+          permissions={["content.read", "content.write"]}
+        >
           <Consumer suffix="a" />
         </ExtensionScopeProvider>
-        <ExtensionScopeProvider extensionId="acme.beta" permissions={["content.read", "content.write"]}>
+        <ExtensionScopeProvider
+          extensionId="acme.beta"
+          permissions={["content.read", "content.write"]}
+        >
           <Consumer suffix="b" />
         </ExtensionScopeProvider>
-      </ExtensionSdkProvider>,
+      </ExtensionSdkProvider>
     );
 
     expect(accesses).toEqual([

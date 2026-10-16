@@ -6,10 +6,7 @@ import "./instrumentation";
 
 applyStoredAppearance();
 
-import App, {
-  type AppRuntime,
-  type AppUpdateState,
-} from "@repo/app-shell";
+import App, { type AppRuntime, type AppUpdateState } from "@repo/app-shell";
 import { createBrowserPlatform } from "@repo/platform";
 import { proboCookieBannerEnabled } from "./cookie-banner-config";
 import { webPanelWindows } from "./panel-windows";
@@ -23,19 +20,19 @@ const webPlatform = createBrowserPlatform({
 const ProboCookieBanner = lazy(() =>
   import("./cookie-banner").then((module) => ({
     default: module.ProboCookieBanner,
-  })),
+  }))
 );
 const ProboCookieSettingsLink = lazy(() =>
   import("./cookie-banner").then((module) => ({
     default: module.ProboCookieSettingsLink,
-  })),
+  }))
 );
 const WebAppUpdateRegistration = lazy(
-  () => import("./app-update-registration"),
+  () => import("./app-update-registration")
 );
 
 const createWebPowerSyncSession: AppRuntime["createPowerSyncSession"] = async (
-  input,
+  input
 ) => {
   const powerSync = await import("@repo/data/powersync-web");
   return powerSync.createWebPowerSyncSession(input);
@@ -48,7 +45,7 @@ function WebApp() {
   useEffect(
     () =>
       scheduleServiceWorkerRegistration(() => setRegisterServiceWorker(true)),
-    [],
+    []
   );
 
   return (

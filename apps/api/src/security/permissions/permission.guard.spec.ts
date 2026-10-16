@@ -34,7 +34,7 @@ describe("PermissionGuard", () => {
     };
     const guard = new PermissionGuard(
       reflector as unknown as Reflector,
-      permissions as unknown as PermissionService,
+      permissions as unknown as PermissionService
     );
 
     expect(guard.canActivate(context())).toBe(true);
@@ -44,7 +44,7 @@ describe("PermissionGuard", () => {
   it("delegates tagged routes to the permission service", async () => {
     const reflector = {
       getAllAndOverride: mock((key: string) =>
-        key === PERMISSION_METADATA ? permission.workspace.delete : undefined,
+        key === PERMISSION_METADATA ? permission.workspace.delete : undefined
       ),
     };
     const permissions = {
@@ -52,27 +52,27 @@ describe("PermissionGuard", () => {
     };
     const guard = new PermissionGuard(
       reflector as unknown as Reflector,
-      permissions as unknown as PermissionService,
+      permissions as unknown as PermissionService
     );
 
     await expect(guard.canActivate(context())).resolves.toBe(true);
     expect(reflector.getAllAndOverride).toHaveBeenCalledWith(
       PERMISSION_METADATA,
-      expect.any(Array),
+      expect.any(Array)
     );
     expect(permissions.hasPermission).toHaveBeenCalledWith(
       permission.workspace.delete,
       {
         organizationId: "organization-1",
         userId: "user-1",
-      },
+      }
     );
   });
 
   it("skips routes whose local guard establishes the principal", () => {
     const reflector = {
       getAllAndOverride: mock((key: string) =>
-        key === DEFER_PERMISSION_METADATA ? true : undefined,
+        key === DEFER_PERMISSION_METADATA ? true : undefined
       ),
     };
     const permissions = {
@@ -80,7 +80,7 @@ describe("PermissionGuard", () => {
     };
     const guard = new PermissionGuard(
       reflector as unknown as Reflector,
-      permissions as unknown as PermissionService,
+      permissions as unknown as PermissionService
     );
 
     expect(guard.canActivate(context())).toBe(true);

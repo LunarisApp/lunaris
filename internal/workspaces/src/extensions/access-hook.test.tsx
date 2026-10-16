@@ -42,7 +42,9 @@ const {
           onlineSubscribers.push(listener);
           return () => {
             const index = onlineSubscribers.indexOf(listener);
-            if (index >= 0) onlineSubscribers.splice(index, 1);
+            if (index >= 0) {
+              onlineSubscribers.splice(index, 1);
+            }
           };
         }),
       },
@@ -51,57 +53,63 @@ const {
     registriesQuery: vi.fn(),
     workspaceExtensionsQuery: vi.fn(),
     readCachedPluginCatalog: vi.fn(),
-    registries: [{
-      id: "registry-1",
-      manifestUrl: "https://plugins.example/marketplace.json",
-    }],
+    registries: [
+      {
+        id: "registry-1",
+        manifestUrl: "https://plugins.example/marketplace.json",
+      },
+    ],
   };
 });
 
 vi.mock("@repo/data/features/workspace-extensions", () => {
   let previousData: unknown;
-  let previousRows: Array<Record<string, unknown>> = [];
+  let previousRows: Record<string, unknown>[] = [];
   return {
-  resolveEnabledWorkspaceExtensionIds: (
-    rows: Array<{ enabled: number; extension_id: string }>,
-    defaults: string[],
-  ) =>
-    new Set(
-      rows.length
-        ? rows.filter((row) => Boolean(row.enabled)).map((row) => row.extension_id)
-        : defaults,
-    ),
-  toWorkspaceExtensionInstallation: (row: Record<string, unknown>) =>
-    row.registry_id && row.version
-      ? {
-          descriptorBytes: row.descriptor_bytes ?? null,
-          descriptorSha256: row.descriptor_sha256 ?? null,
-          descriptorUrl: row.descriptor_url ?? null,
-          enabled: Boolean(row.enabled),
-          extensionId: row.extension_id,
-          registryId: row.registry_id,
-          version: row.version,
-        }
-      : null,
-  useWorkspaceExtensionsQuery: () => {
-    const query = workspaceExtensionsQuery();
-    if (query.data !== previousData) {
-      previousData = query.data;
-      previousRows = query.data.map((installation: Record<string, unknown>) => ({
-          descriptor_bytes: installation.descriptorBytes,
-          descriptor_sha256: installation.descriptorSha256,
-          descriptor_url: installation.descriptorUrl,
-          enabled: installation.enabled ? 1 : 0,
-          extension_id: installation.extensionId,
-          registry_id: installation.registryId,
-          version: installation.version,
-        }));
-    }
-    return {
-      ...query,
-      data: previousRows,
-    };
-  },
+    resolveEnabledWorkspaceExtensionIds: (
+      rows: Array<{ enabled: number; extension_id: string }>,
+      defaults: string[]
+    ) =>
+      new Set(
+        rows.length
+          ? rows
+              .filter((row) => Boolean(row.enabled))
+              .map((row) => row.extension_id)
+          : defaults
+      ),
+    toWorkspaceExtensionInstallation: (row: Record<string, unknown>) =>
+      row.registry_id && row.version
+        ? {
+            descriptorBytes: row.descriptor_bytes ?? null,
+            descriptorSha256: row.descriptor_sha256 ?? null,
+            descriptorUrl: row.descriptor_url ?? null,
+            enabled: Boolean(row.enabled),
+            extensionId: row.extension_id,
+            registryId: row.registry_id,
+            version: row.version,
+          }
+        : null,
+    useWorkspaceExtensionsQuery: () => {
+      const query = workspaceExtensionsQuery();
+      if (query.data !== previousData) {
+        previousData = query.data;
+        previousRows = query.data.map(
+          (installation: Record<string, unknown>) => ({
+            descriptor_bytes: installation.descriptorBytes,
+            descriptor_sha256: installation.descriptorSha256,
+            descriptor_url: installation.descriptorUrl,
+            enabled: installation.enabled ? 1 : 0,
+            extension_id: installation.extensionId,
+            registry_id: installation.registryId,
+            version: installation.version,
+          })
+        );
+      }
+      return {
+        ...query,
+        data: previousRows,
+      };
+    },
   };
 });
 
@@ -210,13 +218,13 @@ const releaseDescriptor = {
     id: "com.example.tasks",
     name: "Tasks",
     api: "^0.9.0",
-      permissions: [],
+    permissions: [],
     version: "1.0.0",
   },
   runtime: { kind: "iframe", protocol: 6 },
   script: { sha256: "a".repeat(64), size: 1, url: "https://example/script.js" },
   api: "^0.9.0",
-      permissions: [],
+  permissions: [],
   status: "active",
 };
 
@@ -239,16 +247,23 @@ describe("useAvailablePluginRegistry", () => {
   });
 
   it("skips catalog loading when no external extensions are installed", () => {
-    const { result } = renderHook(() => useAvailablePluginRegistry("workspace-1"));
+    const { result } = renderHook(() =>
+      useAvailablePluginRegistry("workspace-1")
+    );
 
     expect(result.current.pending).toBe(false);
     expect(fetchPluginCatalog).not.toHaveBeenCalled();
   });
 
   it("waits for directory sync before resolving external extensions", async () => {
-    workspaceExtensionsQuery.mockReturnValue({ data: installations, isLoading: false });
+    workspaceExtensionsQuery.mockReturnValue({
+      data: installations,
+      isLoading: false,
+    });
     registriesQuery.mockReturnValue({ data: [], isLoading: true });
-    const { result, rerender } = renderHook(() => useAvailablePluginRegistry("workspace-1"));
+    const { result, rerender } = renderHook(() =>
+      useAvailablePluginRegistry("workspace-1")
+    );
     await act(async () => {});
     expect(result.current.pending).toBe(true);
     expect(fetchPluginCatalog).not.toHaveBeenCalled();
@@ -259,15 +274,23 @@ describe("useAvailablePluginRegistry", () => {
     readCachedPluginCatalog.mockResolvedValue(loadableCatalog);
     rerender();
     await waitFor(() => expect(result.current.pending).toBe(false));
-    expect(fetchPluginCatalog).toHaveBeenCalledWith(platform.plugins, registries[0]!.manifestUrl);
+    expect(fetchPluginCatalog).toHaveBeenCalledWith(
+      platform.plugins,
+      registries[0]!.manifestUrl
+    );
   });
 
   it("keeps cached external registries usable while sync catches up", async () => {
-    workspaceExtensionsQuery.mockReturnValue({ data: installations, isLoading: false });
+    workspaceExtensionsQuery.mockReturnValue({
+      data: installations,
+      isLoading: false,
+    });
     registriesQuery.mockReturnValue({ data: registries, isLoading: true });
     readCachedPluginCatalog.mockResolvedValue(loadableCatalog);
     fetchPluginCatalog.mockResolvedValue(loadableCatalog);
-    const { result } = renderHook(() => useAvailablePluginRegistry("workspace-1"));
+    const { result } = renderHook(() =>
+      useAvailablePluginRegistry("workspace-1")
+    );
     await waitFor(() => expect(result.current.pending).toBe(false));
     expect(readCachedPluginCatalog).toHaveBeenCalled();
   });
@@ -277,14 +300,16 @@ describe("useAvailablePluginRegistry", () => {
     fetchPluginCatalog.mockReturnValue(
       new Promise<PluginCatalog>((resolve) => {
         resolveCatalog = resolve;
-      }),
+      })
     );
     workspaceExtensionsQuery.mockReturnValue({
       data: installations,
       isLoading: false,
     });
 
-    const { result } = renderHook(() => useAvailablePluginRegistry("workspace-1"));
+    const { result } = renderHook(() =>
+      useAvailablePluginRegistry("workspace-1")
+    );
 
     await waitFor(() => expect(result.current.pending).toBe(false));
     expect(fetchPluginCatalog).toHaveBeenCalledOnce();
@@ -298,7 +323,9 @@ describe("useAvailablePluginRegistry", () => {
       isLoading: false,
     });
 
-    const { result } = renderHook(() => useAvailablePluginRegistry("workspace-1"));
+    const { result } = renderHook(() =>
+      useAvailablePluginRegistry("workspace-1")
+    );
 
     await waitFor(() => expect(result.current.pending).toBe(false));
   });
@@ -313,7 +340,9 @@ describe("useAvailablePluginRegistry", () => {
       isLoading: false,
     });
 
-    const { result } = renderHook(() => useAvailablePluginRegistry("workspace-1"));
+    const { result } = renderHook(() =>
+      useAvailablePluginRegistry("workspace-1")
+    );
     await waitFor(() => expect(result.current.pending).toBe(false));
 
     expect(result.current.defaultExtensionIds).toEqual(["lunaris.rich-text"]);
@@ -326,13 +355,17 @@ describe("useAvailablePluginRegistry", () => {
       isLoading: false,
     });
 
-    const { result } = renderHook(() => useAvailablePluginRegistry("workspace-1"));
+    const { result } = renderHook(() =>
+      useAvailablePluginRegistry("workspace-1")
+    );
     await waitFor(() => expect(result.current.pending).toBe(false));
 
     expect(result.current.allExtensionIds).toContain("com.example.tasks");
-    expect(result.current.enabledExtensionIds).not.toContain("com.example.tasks");
+    expect(result.current.enabledExtensionIds).not.toContain(
+      "com.example.tasks"
+    );
     expect(result.current.runtimeRevisions["com.example.tasks"]).toContain(
-      "1.0.0",
+      "1.0.0"
     );
   });
 
@@ -342,7 +375,7 @@ describe("useAvailablePluginRegistry", () => {
     cachePluginRelease.mockReturnValue(
       new Promise((resolve) => {
         resolveCache = resolve;
-      }),
+      })
     );
     readCachedPluginCatalog.mockResolvedValue(loadableCatalog);
     fetchPluginCatalog.mockResolvedValue(loadableCatalog);
@@ -352,17 +385,17 @@ describe("useAvailablePluginRegistry", () => {
     });
 
     const { result } = renderHook(() =>
-      useAvailablePluginRegistry("workspace-1"),
+      useAvailablePluginRegistry("workspace-1")
     );
 
     await waitFor(() => expect(result.current.pending).toBe(false));
     expect(loadExternalPluginDescriptor).toHaveBeenCalledWith(
       expect.any(Object),
       platform.plugins,
-      { allowNetwork: true },
+      { allowNetwork: true }
     );
     expect(result.current.extensionAvailability["com.example.tasks"]).toBe(
-      "available",
+      "available"
     );
 
     await act(async () => resolveCache(releaseDescriptor));
@@ -378,25 +411,23 @@ describe("useAvailablePluginRegistry", () => {
     });
 
     const { result } = renderHook(() =>
-      useAvailablePluginRegistry("workspace-1"),
+      useAvailablePluginRegistry("workspace-1")
     );
 
     await waitFor(() => expect(result.current.pending).toBe(false));
     expect(result.current.extensionAvailability["com.example.tasks"]).toBe(
-      "available",
+      "available"
     );
   });
 
   it("disposes a plugin that loads after unmount", async () => {
-    let resolveLoad: (value: {
-      dispose: () => void;
-      plugin: never;
-    }) => void = () => undefined;
+    let resolveLoad: (value: { dispose: () => void; plugin: never }) => void =
+      () => undefined;
     const dispose = vi.fn();
     loadExternalPlugin.mockReturnValue(
       new Promise((resolve) => {
         resolveLoad = resolve;
-      }),
+      })
     );
     fetchPluginCatalog.mockResolvedValue(loadableCatalog);
     workspaceExtensionsQuery.mockReturnValue({
@@ -404,7 +435,7 @@ describe("useAvailablePluginRegistry", () => {
       isLoading: false,
     });
     const { result, unmount } = renderHook(() =>
-      useAvailablePluginRegistry("workspace-1"),
+      useAvailablePluginRegistry("workspace-1")
     );
     await waitFor(() => expect(result.current.pending).toBe(false));
 
@@ -425,10 +456,13 @@ describe("useAvailablePluginRegistry", () => {
       data: installations,
       isLoading: false,
     });
-    const { result } = renderHook(() => useAvailablePluginRegistry("workspace-1"));
+    const { result } = renderHook(() =>
+      useAvailablePluginRegistry("workspace-1")
+    );
     await waitFor(() => expect(result.current.pending).toBe(false));
 
-    let loadedPlugins: Awaited<ReturnType<typeof result.current.loadPlugin>>[] = [];
+    let loadedPlugins: Awaited<ReturnType<typeof result.current.loadPlugin>>[] =
+      [];
     await act(async () => {
       loadedPlugins = await Promise.all([
         result.current.loadPlugin("com.example.tasks"),
@@ -450,7 +484,7 @@ describe("useAvailablePluginRegistry", () => {
     cachePluginRelease.mockReturnValue(
       new Promise((resolve) => {
         resolveRefresh = resolve;
-      }),
+      })
     );
     readCachedPluginCatalog.mockResolvedValue(loadableCatalog);
     fetchPluginCatalog.mockResolvedValue(loadableCatalog);
@@ -461,10 +495,14 @@ describe("useAvailablePluginRegistry", () => {
     const dispose = vi.fn();
     const plugin = {} as never;
     loadExternalPlugin.mockResolvedValue({ dispose, plugin });
-    const { result } = renderHook(() => useAvailablePluginRegistry("workspace-1"));
+    const { result } = renderHook(() =>
+      useAvailablePluginRegistry("workspace-1")
+    );
     await waitFor(() => expect(result.current.pending).toBe(false));
     await act(async () => {
-      await expect(result.current.loadPlugin("com.example.tasks")).resolves.toEqual({
+      await expect(
+        result.current.loadPlugin("com.example.tasks")
+      ).resolves.toEqual({
         id: "com.example.tasks",
         plugin,
       });
@@ -477,10 +515,12 @@ describe("useAvailablePluginRegistry", () => {
     await waitFor(() => {
       expect(dispose).not.toHaveBeenCalled();
       expect(result.current.extensionAvailability["com.example.tasks"]).toBe(
-        "blocked",
+        "blocked"
       );
     });
-    expect(result.current.extensionManifests["com.example.tasks"]).toBeUndefined();
+    expect(
+      result.current.extensionManifests["com.example.tasks"]
+    ).toBeUndefined();
 
     cachePluginRelease.mockResolvedValue(releaseDescriptor);
     await act(async () => {
@@ -491,11 +531,11 @@ describe("useAvailablePluginRegistry", () => {
     });
     await waitFor(() => {
       expect(result.current.extensionAvailability["com.example.tasks"]).toBe(
-        "available",
+        "available"
       );
-      expect(
-        result.current.extensionManifests["com.example.tasks"],
-      ).toEqual(releaseDescriptor.manifest);
+      expect(result.current.extensionManifests["com.example.tasks"]).toEqual(
+        releaseDescriptor.manifest
+      );
     });
   });
 });

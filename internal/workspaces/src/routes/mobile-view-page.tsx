@@ -66,18 +66,22 @@ export default function MobileViewPage() {
 
   // Redirects + folder focus must run in an effect, not during render.
   useEffect(() => {
-    if (!workspaceSlug || !organizationSlug) return;
+    if (!(workspaceSlug && organizationSlug)) {
+      return;
+    }
     if (resolution.kind === "redirect") {
       navigate(resolution.to, { replace: true });
     } else if (resolution.kind === "folder") {
-      navigate(getWorkspacePath(organizationSlug, workspaceSlug), { replace: true });
+      navigate(getWorkspacePath(organizationSlug, workspaceSlug), {
+        replace: true,
+      });
     }
   }, [navigate, organizationSlug, workspaceSlug, resolution]);
 
   // Workspace still loading — render nothing rather than a spurious not-found
   // flash. A later render (once useCurrentWorkspace resolves) will show the
   // correct view.
-  if (!workspaceSlug || !organizationSlug) {
+  if (!(workspaceSlug && organizationSlug)) {
     return null;
   }
 
@@ -95,39 +99,39 @@ export default function MobileViewPage() {
   const renderWithHeader = (title: string, body: ReactNode) => (
     <div className="flex h-dvh flex-col">
       <MobileHeader
-        actions={
-          <MobileUserMenu
-            onLogout={handleLogout}
-          />
-        }
+        actions={<MobileUserMenu onLogout={handleLogout} />}
         backTo={backTo}
         title={title}
         titleTrailing={headerTrailing}
       />
-      <div className="flex-1 min-h-0 overflow-y-auto">{body}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto">{body}</div>
     </div>
   );
 
   switch (resolution.kind) {
     case "none":
-      return <ViewNotFound workspaceSlug={workspaceSlug} organizationSlug={organizationSlug} />;
+      return (
+        <ViewNotFound
+          workspaceSlug={workspaceSlug}
+          organizationSlug={organizationSlug}
+        />
+      );
     case "redirect":
     case "folder":
       // Effect will navigate; render an empty shell while it does.
       return null;
     case "resource": {
       const resourceType = resources.find(
-        ({ resourceTypeId }) => resourceTypeId === resolution.resourceTypeId,
+        ({ resourceTypeId }) => resourceTypeId === resolution.resourceTypeId
       );
       const defaultView = views.find(
-        ({ definition }) =>
-          definition.viewId === resourceType?.defaultViewId,
+        ({ definition }) => definition.viewId === resourceType?.defaultViewId
       );
       const builder = registry.getRenderer(
         defaultView?.extensionId ?? resolution.resourceTypeId,
         defaultView?.definition.viewId ??
-        resourceType?.defaultViewId ??
-        "resource",
+          resourceType?.defaultViewId ??
+          "resource"
       );
       const body = builder ? (
         createElement(builder, {
@@ -140,7 +144,10 @@ export default function MobileViewPage() {
           },
         })
       ) : (
-        <ViewNotFound workspaceSlug={workspaceSlug} organizationSlug={organizationSlug} />
+        <ViewNotFound
+          workspaceSlug={workspaceSlug}
+          organizationSlug={organizationSlug}
+        />
       );
       return renderWithHeader(resolution.title, body);
     }
@@ -159,20 +166,33 @@ export default function MobileViewPage() {
           },
         })
       ) : (
-        <ViewNotFound workspaceSlug={workspaceSlug} organizationSlug={organizationSlug} />
+        <ViewNotFound
+          workspaceSlug={workspaceSlug}
+          organizationSlug={organizationSlug}
+        />
       );
       return renderWithHeader(resolution.title, body);
     }
     case "tool": {
       const { tool } = resolution;
-      if (tool.toolId === AGENT_WORK_TOOL_ID) return renderWithHeader(t(tool.titleKey), <GridLayoutPanel><AgentWorkPanel /></GridLayoutPanel>);
+      if (tool.toolId === AGENT_WORK_TOOL_ID) {
+        return renderWithHeader(
+          t(tool.titleKey),
+          <GridLayoutPanel>
+            <AgentWorkPanel />
+          </GridLayoutPanel>
+        );
+      }
       const toolBuilder = registry.getRenderer(tool.pluginId, tool.renderer);
       const body = toolBuilder ? (
         createElement(toolBuilder, {
           params: { viewId: tool.toolId, toolId: tool.toolId },
         })
       ) : (
-        <ViewNotFound workspaceSlug={workspaceSlug} organizationSlug={organizationSlug} />
+        <ViewNotFound
+          workspaceSlug={workspaceSlug}
+          organizationSlug={organizationSlug}
+        />
       );
       return renderWithHeader(t(tool.titleKey), body);
     }
@@ -190,7 +210,10 @@ export default function MobileViewPage() {
           },
         })
       ) : (
-        <ViewNotFound workspaceSlug={workspaceSlug} organizationSlug={organizationSlug} />
+        <ViewNotFound
+          workspaceSlug={workspaceSlug}
+          organizationSlug={organizationSlug}
+        />
       );
       return renderWithHeader(resolution.title, body);
     }
@@ -213,8 +236,8 @@ function ViewNotFound({
   const { t } = useTranslation();
   return (
     <div className="flex h-dvh flex-col items-center justify-center gap-4 p-8 text-center">
-      <h2 className="text-lg font-semibold">{t("mobile.resourceNotFound")}</h2>
-      <p className="text-sm text-muted-foreground">
+      <h2 className="font-semibold text-lg">{t("mobile.resourceNotFound")}</h2>
+      <p className="text-muted-foreground text-sm">
         {t("mobile.resourceNotFoundDescription")}
       </p>
       <Button

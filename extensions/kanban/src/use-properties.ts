@@ -9,18 +9,21 @@ import {
 } from "./property-state";
 import type { PropertyDefinition } from "./types";
 
-function propertyRevisionKey(propertyMaps: Array<{ get(key: string): unknown }>) {
+function propertyRevisionKey(
+  propertyMaps: Array<{ get(key: string): unknown }>
+) {
   return JSON.stringify(
     propertyMaps.map((property) =>
-      ["id", "name", "type", "options", "order"]
-        .map((key) => property.get(key) ?? "")
+      ["id", "name", "type", "options", "order"].map(
+        (key) => property.get(key) ?? ""
+      )
     )
   );
 }
 
 export function useProperties(yDoc: Doc) {
   const { items } = useYArray(yDoc, "properties");
-  const propertyMaps = orderPropertyMaps(items);
+  const propertyMaps = useMemo(() => orderPropertyMaps(items), [items]);
   const revisionKey = propertyRevisionKey(propertyMaps);
   const properties = useMemo<PropertyDefinition[]>(
     () =>
@@ -28,7 +31,7 @@ export function useProperties(yDoc: Doc) {
         getPropertyDefinitions(propertyMaps),
         propertyMaps.length > 0 || arePropertiesInitialized(yDoc)
       ),
-    [revisionKey]
+    [revisionKey, propertyMaps, yDoc]
   );
 
   return { properties, propertyMaps };

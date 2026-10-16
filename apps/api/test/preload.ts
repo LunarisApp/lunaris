@@ -1,9 +1,12 @@
 import { mock } from "bun:test";
 
 export const mockEvlogLogger = {
-  audit: Object.assign(mock(() => {}), {
-    deny: mock(() => {}),
-  }),
+  audit: Object.assign(
+    mock(() => {}),
+    {
+      deny: mock(() => {}),
+    }
+  ),
   set: mock(() => {}),
   error: mock(() => {}),
   info: mock(() => {}),

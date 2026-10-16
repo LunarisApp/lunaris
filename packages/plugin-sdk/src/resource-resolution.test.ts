@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import * as z from "zod";
-import { resolveResource, type ResourceVersionCommitter } from "./resource-resolution";
+import {
+  resolveResource,
+  type ResourceVersionCommitter,
+} from "./resource-resolution";
 import type { ResourceEnvelope, ResourceTypeDefinition } from "./types";
 
 const envelope = (schemaVersion: number): ResourceEnvelope => ({
@@ -11,7 +14,10 @@ const envelope = (schemaVersion: number): ResourceEnvelope => ({
   schemaVersion,
 });
 
-function definition(payload: { value: number }, write = vi.fn()): ResourceTypeDefinition {
+function definition(
+  payload: { value: number },
+  write = vi.fn()
+): ResourceTypeDefinition {
   return {
     icon: [],
     name: "Note",
@@ -20,8 +26,20 @@ function definition(payload: { value: number }, write = vi.fn()): ResourceTypeDe
       currentVersion: 3,
       id: "acme.note.schema",
       migrations: [
-        { from: 1, migrate: (value) => ({ value: (value as { value: number }).value + 1 }), to: 2 },
-        { from: 2, migrate: (value) => ({ value: (value as { value: number }).value + 1 }), to: 3 },
+        {
+          from: 1,
+          migrate: (value) => ({
+            value: (value as { value: number }).value + 1,
+          }),
+          to: 2,
+        },
+        {
+          from: 2,
+          migrate: (value) => ({
+            value: (value as { value: number }).value + 1,
+          }),
+          to: 3,
+        },
       ],
       read: () => payload,
       versions: {
@@ -38,7 +56,9 @@ function definition(payload: { value: number }, write = vi.fn()): ResourceTypeDe
 function committer(result = true): ResourceVersionCommitter {
   return {
     compareAndSet: vi.fn(async ({ writePayload }) => {
-      if (result) await writePayload();
+      if (result) {
+        await writePayload();
+      }
       return result;
     }),
   };
@@ -51,7 +71,7 @@ describe("resource resolution", () => {
       definition({ value: 3 }, write),
       envelope(3),
       { resourceId: "res_1", storage: {} },
-      committer(),
+      committer()
     );
     expect(result).toMatchObject({ status: "ready", payload: { value: 3 } });
     expect(write).not.toHaveBeenCalled();
@@ -64,7 +84,7 @@ describe("resource resolution", () => {
       definition({ value: 1 }, write),
       envelope(1),
       { resourceId: "res_1", storage: {} },
-      versionCommitter,
+      versionCommitter
     );
     expect(result).toMatchObject({
       envelope: { schemaVersion: 3 },
@@ -72,7 +92,7 @@ describe("resource resolution", () => {
       status: "ready",
     });
     expect(versionCommitter.compareAndSet).toHaveBeenCalledWith(
-      expect.objectContaining({ expectedVersion: 1, nextVersion: 3 }),
+      expect.objectContaining({ expectedVersion: 1, nextVersion: 3 })
     );
     expect(write).toHaveBeenCalledOnce();
   });
@@ -83,7 +103,7 @@ describe("resource resolution", () => {
       definition({ value: 1 }, write),
       envelope(1),
       { resourceId: "res_1", storage: {} },
-      committer(false),
+      committer(false)
     );
     expect(result).toMatchObject({ retryable: true, status: "quarantined" });
     expect(write).not.toHaveBeenCalled();
@@ -105,7 +125,7 @@ describe("resource resolution", () => {
       resource,
       envelope(1),
       { resourceId: "res_1", storage: {} },
-      versionCommitter,
+      versionCommitter
     );
 
     expect(result).toMatchObject({
@@ -124,13 +144,13 @@ describe("resource resolution", () => {
       definition({ value: 4 }, write),
       envelope(4),
       { resourceId: "res_1", storage: {} },
-      versionCommitter,
+      versionCommitter
     );
     const corrupt = await resolveResource(
       definition({ value: 0 }, write),
       envelope(2),
       { resourceId: "res_1", storage: {} },
-      versionCommitter,
+      versionCommitter
     );
     expect(newer).toMatchObject({ retryable: false, status: "quarantined" });
     expect(corrupt).toMatchObject({ retryable: true, status: "quarantined" });

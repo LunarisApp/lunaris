@@ -14,16 +14,18 @@ interface JsonCacheMetadata {
 async function digest(value: Uint8Array): Promise<string> {
   const result = await crypto.subtle.digest("SHA-256", Uint8Array.from(value));
   return Array.from(new Uint8Array(result), (byte) =>
-    byte.toString(16).padStart(2, "0"),
+    byte.toString(16).padStart(2, "0")
   ).join("");
 }
 
 async function readMetadata(
   url: string,
-  plugins: PlatformPlugins,
+  plugins: PlatformPlugins
 ): Promise<JsonCacheMetadata | null> {
   const cached = await plugins.artifacts.get(url);
-  if (!cached) return null;
+  if (!cached) {
+    return null;
+  }
   try {
     return decodeCacheEnvelope(cached).metadata;
   } catch {
@@ -47,23 +49,27 @@ function decodeCacheEnvelope(value: Uint8Array): {
     throw new Error("Invalid JSON cache envelope");
   }
   const metadataEnd = value.indexOf(10, JSON_CACHE_PREFIX.byteLength);
-  if (metadataEnd < 0) throw new Error("Invalid JSON cache metadata");
+  if (metadataEnd < 0) {
+    throw new Error("Invalid JSON cache metadata");
+  }
   const metadata = JSON.parse(
     new TextDecoder().decode(
-      value.subarray(JSON_CACHE_PREFIX.byteLength, metadataEnd),
-    ),
+      value.subarray(JSON_CACHE_PREFIX.byteLength, metadataEnd)
+    )
   ) as JsonCacheMetadata;
-  if (!metadata.sha256) throw new Error("Invalid JSON cache digest");
+  if (!metadata.sha256) {
+    throw new Error("Invalid JSON cache digest");
+  }
   return { bytes: value.subarray(metadataEnd + 1), metadata };
 }
 
 function encodeCacheEnvelope(
   value: Uint8Array,
-  metadata: JsonCacheMetadata,
+  metadata: JsonCacheMetadata
 ): Uint8Array {
   const header = new TextEncoder().encode(`${JSON.stringify(metadata)}\n`);
   const output = new Uint8Array(
-    JSON_CACHE_PREFIX.byteLength + header.byteLength + value.byteLength,
+    JSON_CACHE_PREFIX.byteLength + header.byteLength + value.byteLength
   );
   output.set(JSON_CACHE_PREFIX);
   output.set(header, JSON_CACHE_PREFIX.byteLength);
@@ -73,7 +79,7 @@ function encodeCacheEnvelope(
 
 export async function readResponseBytes(
   response: Response,
-  maximumBytes: number,
+  maximumBytes: number
 ): Promise<Uint8Array> {
   const contentLength = Number(response.headers.get("content-length"));
   if (Number.isFinite(contentLength) && contentLength > maximumBytes) {
@@ -93,7 +99,9 @@ export async function readResponseBytes(
   let bytes = 0;
   while (true) {
     const { done, value } = await reader.read();
-    if (done) break;
+    if (done) {
+      break;
+    }
     bytes += value.byteLength;
     if (bytes > maximumBytes) {
       await reader.cancel();
@@ -114,10 +122,12 @@ export async function readResponseBytes(
 export async function readCachedJson<T>(
   url: string,
   plugins: PlatformPlugins,
-  parse: (value: unknown) => T,
+  parse: (value: unknown) => T
 ): Promise<T | null> {
   const cached = await plugins.artifacts.get(url);
-  if (!cached) return null;
+  if (!cached) {
+    return null;
+  }
   try {
     const { bytes: value, metadata } = decodeCacheEnvelope(cached);
     if (value.byteLength > MAX_PLUGIN_JSON_BYTES) {
@@ -137,7 +147,7 @@ export async function readCachedJson<T>(
 export async function fetchAndCacheJson<T>(
   url: string,
   plugins: PlatformPlugins,
-  parse: (value: unknown) => T,
+  parse: (value: unknown) => T
 ): Promise<T> {
   const cachedMetadata = await readMetadata(url, plugins);
   const headers = new Headers();
@@ -152,10 +162,14 @@ export async function fetchAndCacheJson<T>(
   });
   if (response.status === 304) {
     const cached = await readCachedJson(url, plugins, parse);
-    if (cached) return cached;
+    if (cached) {
+      return cached;
+    }
     throw new Error("Server returned 304 without a valid cached response");
   }
-  if (!response.ok) throw new Error(`Request failed (${response.status})`);
+  if (!response.ok) {
+    throw new Error(`Request failed (${response.status})`);
+  }
   const value = await readResponseBytes(response, MAX_PLUGIN_JSON_BYTES);
   const parsed = parse(decodeJson(value));
   const metadata = {
@@ -170,10 +184,14 @@ export async function fetchCachedJson<T>(
   url: string,
   plugins: PlatformPlugins,
   parse: (value: unknown) => T,
-  { allowNetwork = true }: { allowNetwork?: boolean } = {},
+  { allowNetwork = true }: { allowNetwork?: boolean } = {}
 ): Promise<T> {
   const cached = await readCachedJson(url, plugins, parse);
-  if (cached) return cached;
-  if (!allowNetwork) throw new Error("Cached extension resource unavailable");
+  if (cached) {
+    return cached;
+  }
+  if (!allowNetwork) {
+    throw new Error("Cached extension resource unavailable");
+  }
   return fetchAndCacheJson(url, plugins, parse);
 }

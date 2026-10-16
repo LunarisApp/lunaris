@@ -16,11 +16,11 @@ describe("AuthLayout", () => {
     const { container } = render(
       <AuthLayout description="Choose a sign-in method" title="Sign in">
         <button type="button">Continue</button>
-      </AuthLayout>,
+      </AuthLayout>
     );
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "Sign in" }),
+      screen.getByRole("heading", { level: 1, name: "Sign in" })
     ).toBeTruthy();
 
     const image = container.querySelector("img");

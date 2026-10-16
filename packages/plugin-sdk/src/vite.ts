@@ -11,7 +11,7 @@ import path from "node:path";
 import { runInNewContext } from "node:vm";
 import { fileTypeFromBuffer } from "file-type";
 import type { Plugin, UserConfig } from "vite";
-import { validateManifest, validateSupportedManifest } from "./manifest";
+import { type validateManifest, validateSupportedManifest } from "./manifest";
 
 type OutputBundle = Record<
   string,
@@ -22,7 +22,7 @@ type OutputBundle = Record<
 const MAX_PLUGIN_SCRIPT_BYTES = 10 * 1024 * 1024;
 const MAX_PLUGIN_STYLE_BYTES = 2 * 1024 * 1024;
 const MAX_PLUGIN_ICON_BYTES = 256 * 1024;
-const RUNTIME_VALIDATION_TIMEOUT_MS = 1_000;
+const RUNTIME_VALIDATION_TIMEOUT_MS = 1000;
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
 const VIRTUAL_ENTRY = "virtual:lunaris-plugin-entry";
@@ -41,7 +41,7 @@ function boundaryPlugin(
   entry: string,
   manifestPath: string,
   pluginId: string,
-  root: string,
+  root: string
 ): Plugin {
   function validateExtensionSource(code: string): void {
     if (/\bimport\s*\(/.test(code)) {
@@ -49,13 +49,15 @@ function boundaryPlugin(
     }
     if (/\b(?:Shared)?Worker\s*\(|\bWebAssembly\b/.test(code)) {
       throw new Error(
-        "Extension source contains a worker or WebAssembly runtime",
+        "Extension source contains a worker or WebAssembly runtime"
       );
     }
   }
   function extensionSourceFilename(id: string): string | undefined {
     const filename = id.split("?", 1)[0];
-    if (!filename || !/\.[cm]?[jt]sx?$/.test(filename)) return undefined;
+    if (!(filename && /\.[cm]?[jt]sx?$/.test(filename))) {
+      return undefined;
+    }
     const relativePath = path.relative(root, filename);
     if (
       path.isAbsolute(relativePath) ||
@@ -71,7 +73,9 @@ function boundaryPlugin(
     enforce: "pre",
     name: "lunaris-plugin-boundary",
     resolveId(source, importer) {
-      if (source === VIRTUAL_ENTRY) return RESOLVED_VIRTUAL_ENTRY;
+      if (source === VIRTUAL_ENTRY) {
+        return RESOLVED_VIRTUAL_ENTRY;
+      }
       const sourcePath = source.split("?", 1)[0] ?? source;
       const importerPath = importer?.split("?", 1)[0];
       if (
@@ -81,7 +85,7 @@ function boundaryPlugin(
       ) {
         const relativePath = path.relative(
           root,
-          path.resolve(path.dirname(importerPath), sourcePath),
+          path.resolve(path.dirname(importerPath), sourcePath)
         );
         if (
           path.isAbsolute(relativePath) ||
@@ -101,7 +105,7 @@ function boundaryPlugin(
         workerImport &&
         queryParams.has("inline") &&
         [...queryParams.keys()].every(
-          (key) => key === "inline" || key === "worker",
+          (key) => key === "inline" || key === "worker"
         );
       if (
         isBuiltin(source) ||
@@ -120,8 +124,12 @@ function boundaryPlugin(
     },
     transform(code, id) {
       const query = new URLSearchParams(id.split("?", 2)[1] ?? "");
-      if (query.has("inline") && query.has("worker")) return null;
-      if (!extensionSourceFilename(id)) return null;
+      if (query.has("inline") && query.has("worker")) {
+        return null;
+      }
+      if (!extensionSourceFilename(id)) {
+        return null;
+      }
       validateExtensionSource(code);
       return null;
     },
@@ -131,7 +139,7 @@ function boundaryPlugin(
           `import { assertPluginDefinitionMatchesManifest, installExternalPluginSandboxRuntime } from "@lunarisapp/plugin-sdk/sandbox";`,
           `import definition from ${JSON.stringify(entry)};`,
           `import manifest from ${JSON.stringify(manifestPath)};`,
-          `assertPluginDefinitionMatchesManifest(definition, manifest);`,
+          "assertPluginDefinitionMatchesManifest(definition, manifest);",
           `globalThis.__LUNARIS_PLUGIN_BUILD_REGISTRATION__ = installExternalPluginSandboxRuntime().register(${JSON.stringify(pluginId)}, definition);`,
         ].join("\n");
       }
@@ -153,12 +161,14 @@ function byteLength(source: string | Uint8Array): number {
 
 function singletonPackageRoot(
   moduleId: string,
-  dependency: (typeof SINGLETON_RUNTIME_DEPENDENCIES)[number],
+  dependency: (typeof SINGLETON_RUNTIME_DEPENDENCIES)[number]
 ): string | undefined {
   const normalizedId = moduleId.replaceAll("\\", "/");
   const marker = `/node_modules/${dependency}/`;
   const markerIndex = normalizedId.lastIndexOf(marker);
-  if (markerIndex < 0) return undefined;
+  if (markerIndex < 0) {
+    return undefined;
+  }
   return normalizedId.slice(0, markerIndex + marker.length - 1);
 }
 
@@ -169,23 +179,27 @@ function singletonRuntimeValidationPlugin(): Plugin {
         SINGLETON_RUNTIME_DEPENDENCIES.map((dependency) => [
           dependency,
           new Set<string>(),
-        ]),
+        ])
       );
       for (const moduleId of this.getModuleIds()) {
         for (const dependency of SINGLETON_RUNTIME_DEPENDENCIES) {
           const packageRoot = singletonPackageRoot(moduleId, dependency);
-          if (packageRoot) packageRoots.get(dependency)?.add(packageRoot);
+          if (packageRoot) {
+            packageRoots.get(dependency)?.add(packageRoot);
+          }
         }
       }
       for (const [dependency, roots] of packageRoots) {
-        if (roots.size <= 1) continue;
+        if (roots.size <= 1) {
+          continue;
+        }
         throw new Error(
           `Extension build contains duplicate singleton dependency "${dependency}":\n${[
             ...roots,
           ]
             .sort()
             .map((root) => `- ${root}`)
-            .join("\n")}`,
+            .join("\n")}`
         );
       }
     },
@@ -194,7 +208,9 @@ function singletonRuntimeValidationPlugin(): Plugin {
 }
 
 function assertMaximum(filename: string, bytes: number, maximum: number): void {
-  if (bytes > maximum) throw new Error(`${filename} exceeds ${maximum} bytes`);
+  if (bytes > maximum) {
+    throw new Error(`${filename} exceeds ${maximum} bytes`);
+  }
 }
 
 function isPngRaster(icon: Buffer): boolean {
@@ -209,13 +225,19 @@ function isPngRaster(icon: Buffer): boolean {
     const length = icon.readUInt32BE(offset);
     const type = icon.toString("ascii", offset + 4, offset + 8);
     const nextOffset = offset + 12 + length;
-    if (nextOffset > icon.byteLength) return false;
+    if (nextOffset > icon.byteLength) {
+      return false;
+    }
 
     if (!hasHeader) {
-      if (type !== "IHDR" || length !== 13) return false;
+      if (type !== "IHDR" || length !== 13) {
+        return false;
+      }
       const width = icon.readUInt32BE(offset + 8);
       const height = icon.readUInt32BE(offset + 12);
-      if (width === 0 || height === 0) return false;
+      if (width === 0 || height === 0) {
+        return false;
+      }
       hasHeader = true;
     } else if (type === "IDAT") {
       hasData = true;
@@ -253,15 +275,19 @@ async function resolvePluginIcon(root: string): Promise<
     .filter((entry) => entry.isFile() && /^icon\.[^.]+$/i.test(entry.name))
     .map((entry) => entry.name)
     .sort();
-  if (candidates.length === 0) return undefined;
+  if (candidates.length === 0) {
+    return undefined;
+  }
   if (candidates.length > 1) {
     throw new Error(
-      `Extension root must contain at most one icon file: ${candidates.join(", ")}`,
+      `Extension root must contain at most one icon file: ${candidates.join(", ")}`
     );
   }
 
   const sourceFilename = candidates[0];
-  if (!sourceFilename) return undefined;
+  if (!sourceFilename) {
+    return undefined;
+  }
   const extension = path.extname(sourceFilename).slice(1).toLowerCase();
   const filename = `icon.${extension}`;
   const iconPath = path.join(root, sourceFilename);
@@ -281,7 +307,7 @@ async function resolvePluginIcon(root: string): Promise<
     (normalizeIconExtension(detected.ext) === "png" && !isPngRaster(icon))
   ) {
     throw new Error(
-      `${filename} must be a valid raster image matching its file extension`,
+      `${filename} must be a valid raster image matching its file extension`
     );
   }
 
@@ -291,30 +317,32 @@ async function resolvePluginIcon(root: string): Promise<
 function validateBundle(bundle: OutputBundle): void {
   const filenames = Object.keys(bundle).sort();
   const unexpected = filenames.filter(
-    (filename) => filename !== "main.js" && filename !== "styles.css",
+    (filename) => filename !== "main.js" && filename !== "styles.css"
   );
   if (unexpected.length > 0) {
     throw new Error(
-      `Extension build emitted unexpected files: ${unexpected.join(", ")}`,
+      `Extension build emitted unexpected files: ${unexpected.join(", ")}`
     );
   }
 
   const script = bundle["main.js"];
-  if (!script || script.type !== "chunk" || !script.isEntry) {
+  if (script?.type !== "chunk" || !script.isEntry) {
     throw new Error("Extension build must emit one main.js entry");
   }
   assertMaximum(
     "main.js",
     Buffer.byteLength(script.code),
-    MAX_PLUGIN_SCRIPT_BYTES,
+    MAX_PLUGIN_SCRIPT_BYTES
   );
   const style = bundle["styles.css"];
   if (style) {
-    if (style.type !== "asset") throw new Error("styles.css must be an asset");
+    if (style.type !== "asset") {
+      throw new Error("styles.css must be an asset");
+    }
     assertMaximum(
       "styles.css",
       byteLength(style.source),
-      MAX_PLUGIN_STYLE_BYTES,
+      MAX_PLUGIN_STYLE_BYTES
     );
   }
 }
@@ -377,7 +405,7 @@ globalThis.setTimeout = function () { return 0; };
   });
   runInNewContext(`${prelude}\n${code}`, context, {
     contextCodeGeneration: { strings: false, wasm: false },
-    timeout: 5_000,
+    timeout: 5000,
   });
   let timeout: ReturnType<typeof setTimeout> | undefined;
   const result = await Promise.race([
@@ -385,7 +413,7 @@ globalThis.setTimeout = function () { return 0; };
     new Promise<never>((_, reject) => {
       timeout = setTimeout(
         () => reject(new Error("Extension runtime registration timed out")),
-        RUNTIME_VALIDATION_TIMEOUT_MS,
+        RUNTIME_VALIDATION_TIMEOUT_MS
       );
     }),
   ]).finally(() => clearTimeout(timeout));
@@ -413,18 +441,18 @@ function outputValidationPlugin({
     async writeBundle(_options, bundle) {
       validateBundle(bundle);
       const script = bundle["main.js"];
-      if (!script || script.type !== "chunk") {
+      if (script?.type !== "chunk") {
         throw new Error("Extension build must emit one main.js entry");
       }
       await validateRuntimeDefinition(script.code);
       await mkdir(outDir, { recursive: true });
       await writeFile(
         path.join(outDir, "manifest.json"),
-        `${JSON.stringify(manifest, null, 2)}\n`,
+        `${JSON.stringify(manifest, null, 2)}\n`
       );
       await writeFile(
         path.join(outDir, "runtime.json"),
-        `${JSON.stringify(PLUGIN_SANDBOX_RUNTIME, null, 2)}\n`,
+        `${JSON.stringify(PLUGIN_SANDBOX_RUNTIME, null, 2)}\n`
       );
 
       const icon = await resolvePluginIcon(root);
@@ -436,22 +464,22 @@ function outputValidationPlugin({
 }
 
 export async function defineLunarisPluginConfig(
-  options: LunarisPluginBuildOptions = {},
+  options: LunarisPluginBuildOptions = {}
 ): Promise<UserConfig> {
   const root = path.resolve(options.root ?? process.cwd());
   const manifestPath = path.join(root, "manifest.json");
   const manifest = validateSupportedManifest(
-    JSON.parse(await readFile(manifestPath, "utf8")),
+    JSON.parse(await readFile(manifestPath, "utf8"))
   );
   if (options.expectedId && manifest.id !== options.expectedId) {
     throw new Error(
-      `Extension ID "${manifest.id}" must match registry ID "${options.expectedId}"`,
+      `Extension ID "${manifest.id}" must match registry ID "${options.expectedId}"`
     );
   }
   const tag = options.tag ?? process.env.GITHUB_REF_NAME;
   if (tag && tag !== manifest.version) {
     throw new Error(
-      `Release tag "${tag}" must match extension version "${manifest.version}"`,
+      `Release tag "${tag}" must match extension version "${manifest.version}"`
     );
   }
 

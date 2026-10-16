@@ -9,10 +9,7 @@ import {
   agentOperationIds,
   agentOperations,
 } from "./operations";
-import {
-  type AgentScope,
-  agentScopeSchema,
-} from "./schemas";
+import { type AgentScope, agentScopeSchema } from "./schemas";
 import type { AgentOperationWireDefinition } from "./wire";
 
 type PluginMcpInputBinding = { from: string } | { value: unknown };
@@ -111,24 +108,24 @@ export function findBuiltInPluginMcpTool(
 
 export function findBuiltInPluginMcpProcedure(
   pluginId: string,
-  operation: string,
+  operation: string
 ): BuiltInPluginMcpProcedureTool | undefined {
   return builtInPluginMcpTools.find(
     (tool): tool is BuiltInPluginMcpProcedureTool =>
       isBuiltInPluginMcpProcedureTool(tool) &&
       tool.pluginId === pluginId &&
-      tool.execution.operation === operation,
+      tool.execution.operation === operation
   );
 }
 
 export function isBuiltInPluginMcpOperationTool(
-  tool: BuiltInPluginMcpTool,
+  tool: BuiltInPluginMcpTool
 ): tool is BuiltInPluginMcpOperationTool {
   return tool.execution.kind === "operation";
 }
 
 export function isBuiltInPluginMcpProcedureTool(
-  tool: BuiltInPluginMcpTool,
+  tool: BuiltInPluginMcpTool
 ): tool is BuiltInPluginMcpProcedureTool {
   return tool.execution.kind === "plugin";
 }
@@ -163,7 +160,9 @@ export function resolvePluginMcpInput(
 ): Record<string, unknown> {
   return Object.fromEntries(
     Object.entries(tool.execution.input).flatMap(([target, binding]) => {
-      if ("value" in binding) return [[target, binding.value]];
+      if ("value" in binding) {
+        return [[target, binding.value]];
+      }
       const value = input[binding.from];
       return value === undefined ? [] : [[target, value]];
     })
@@ -181,7 +180,7 @@ export function pluginMcpWire(
           "idempotencyKey",
           "workspaceId",
           "organizationId",
-        ].includes(key),
+        ].includes(key)
     );
     const inputMapping = {
       fixed: {
@@ -245,23 +244,25 @@ function validateHostCompatibility(
   capabilities: (typeof builtInCapabilities)[number]
 ): void {
   for (const tool of capabilities.tools) {
-    if (!("outputSchema" in tool)) continue;
+    if (!("outputSchema" in tool)) {
+      continue;
+    }
     if (!agentScopeSchema.safeParse(tool.execution.scope).success) {
       throw new TypeError(
-        `Extension MCP tool "${tool.name}" has unknown scope "${tool.execution.scope}"`,
+        `Extension MCP tool "${tool.name}" has unknown scope "${tool.execution.scope}"`
       );
     }
     for (const contextInput of ["workspaceId", "organizationId"]) {
       if (!(contextInput in tool.inputSchema.shape)) {
         throw new TypeError(
-          `Extension MCP tool "${tool.name}" needs "${contextInput}"`,
+          `Extension MCP tool "${tool.name}" needs "${contextInput}"`
         );
       }
     }
     const risk = tool.execution.risk as AgentOperationRisk;
     if (risk !== "read" && !("idempotencyKey" in tool.inputSchema.shape)) {
       throw new TypeError(
-        `Extension MCP tool "${tool.name}" needs "idempotencyKey"`,
+        `Extension MCP tool "${tool.name}" needs "idempotencyKey"`
       );
     }
   }

@@ -63,7 +63,9 @@ export function WorkspaceSettingsPanel() {
     setVisibility(workspaceVisibility);
   }, [workspace?.name, workspaceVisibility]);
 
-  if (!workspace) return null;
+  if (!workspace) {
+    return null;
+  }
 
   const isLocal = workspace.visibility === WORKSPACE_VISIBILITY.local;
   const isPrivateOwner =
@@ -77,7 +79,9 @@ export function WorkspaceSettingsPanel() {
 
   const saveName = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!canUpdate || !trimmedName || !nameChanged || !workspace.slug) return;
+    if (!(canUpdate && trimmedName && nameChanged && workspace.slug)) {
+      return;
+    }
     setSavingName(true);
     try {
       await renameWorkspace({
@@ -127,7 +131,9 @@ export function WorkspaceSettingsPanel() {
   };
 
   const deleteWorkspace = async () => {
-    if (!canDelete) return;
+    if (!canDelete) {
+      return;
+    }
     await removeWorkspace({ db, id: workspace.id });
     clearRecentFilesForWorkspace(workspace.id);
     posthog.capture("workspace_deleted");
@@ -142,7 +148,7 @@ export function WorkspaceSettingsPanel() {
     >
       <div className="mx-auto max-w-3xl pb-8">
         <div className="space-y-1 pb-6">
-          <h1 className="text-xl font-semibold">
+          <h1 className="font-semibold text-xl">
             {t("workspaces.settingsTitle")}
           </h1>
           <p className="text-muted-foreground text-sm">

@@ -47,19 +47,25 @@ function writeStoredSession(session: PanelWindowSession) {
   sessionStorage.setItem(storageKey(session.windowId), JSON.stringify(session));
 }
 
-export function readPanelWindowSession(search: string): PanelWindowSession | null {
+export function readPanelWindowSession(
+  search: string
+): PanelWindowSession | null {
   const params = new URLSearchParams(search);
   const windowId = params.get(PANEL_WINDOW_ID_PARAM);
-  if (!windowId) return null;
+  if (!windowId) {
+    return null;
+  }
 
   const encodedDescriptor = params.get(PANEL_WINDOW_DESCRIPTOR_PARAM);
   const transferId = params.get(PANEL_WINDOW_TRANSFER_PARAM);
   const token = params.get(PANEL_WINDOW_TOKEN_PARAM);
-  if (!encodedDescriptor || !transferId || !token) {
-    return readStoredSession(windowId) ?? {
-      descriptor: null,
-      windowId,
-    };
+  if (!(encodedDescriptor && transferId && token)) {
+    return (
+      readStoredSession(windowId) ?? {
+        descriptor: null,
+        windowId,
+      }
+    );
   }
 
   try {
@@ -112,7 +118,10 @@ export function buildPanelWindowPath({
 }) {
   const params = new URLSearchParams();
   params.set(PANEL_WINDOW_ID_PARAM, windowId);
-  params.set(PANEL_WINDOW_DESCRIPTOR_PARAM, encodePanelWindowDescriptor(descriptor));
+  params.set(
+    PANEL_WINDOW_DESCRIPTOR_PARAM,
+    encodePanelWindowDescriptor(descriptor)
+  );
   params.set(PANEL_WINDOW_SOURCE_PARAM, sourceWindowId);
   params.set(PANEL_WINDOW_TOKEN_PARAM, token);
   params.set(PANEL_WINDOW_TRANSFER_PARAM, transferId);

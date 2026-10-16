@@ -57,7 +57,7 @@ export function DeveloperModeSection({
       aria-labelledby={`${id}-heading`}
       className="grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
     >
-      <h2 className="text-base font-semibold" id={`${id}-heading`}>
+      <h2 className="font-semibold text-base" id={`${id}-heading`}>
         {t("organization.developer.title")}
       </h2>
       <div className="max-w-3xl space-y-5">
@@ -67,7 +67,7 @@ export function DeveloperModeSection({
               {t("organization.developer.title")}
             </Label>
             <p
-              className="text-sm text-muted-foreground"
+              className="text-muted-foreground text-sm"
               id={`${id}-description`}
             >
               {t("organization.developer.description")}
@@ -83,15 +83,17 @@ export function DeveloperModeSection({
             }
           />
         </div>
-        {mode.isError && (
-          <p role="alert" className="text-sm text-destructive">
+        {!!mode.isError && (
+          <p role="alert" className="text-destructive text-sm">
             {t("organization.developer.loadError")}
           </p>
         )}
         <AlertDialog
           open={confirmOpen}
           onOpenChange={(open) => {
-            if (!updateMode.isPending) setConfirmOpen(open);
+            if (!updateMode.isPending) {
+              setConfirmOpen(open);
+            }
           }}
         >
           <AlertDialogContent>

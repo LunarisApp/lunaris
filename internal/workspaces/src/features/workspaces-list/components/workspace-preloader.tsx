@@ -13,7 +13,7 @@ export default function WorkspacePreloader({
 }) {
   useWorkspaceSync(
     enabled ? workspace.id : undefined,
-    normalizeWorkspaceVisibility(workspace.visibility),
+    normalizeWorkspaceVisibility(workspace.visibility)
   );
 
   return null;

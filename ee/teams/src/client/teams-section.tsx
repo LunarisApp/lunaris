@@ -40,7 +40,11 @@ import {
   type OrganizationMember,
   useOrganizationMembersQuery,
 } from "@repo/data/features/organizations";
-import { type OrganizationTeam, useOrganizationTeamMembershipsQuery, useOrganizationTeamsQuery } from "./queries";
+import {
+  type OrganizationTeam,
+  useOrganizationTeamMembershipsQuery,
+  useOrganizationTeamsQuery,
+} from "./queries";
 import { getUserFacingDescription, getUserFacingError } from "@repo/data/http";
 import { useAuth, UserAvatar } from "@repo/features/auth";
 import { usePermission } from "@repo/features/permissions";
@@ -66,11 +70,15 @@ function TeamsLoading({ canCreate }: { canCreate: boolean }) {
             <Skeleton className="h-5 w-24" />
             <Skeleton className="h-3.5 w-72 max-w-full" />
           </div>
-          {canCreate && <Skeleton className="h-8 w-full sm:w-28" />}
+          {!!canCreate && <Skeleton className="h-8 w-full sm:w-28" />}
         </div>
         <div className="divide-y border-y">
           {Array.from({ length: 4 }, (_, index) => (
-            <div className="py-4" key={index}>
+            <div
+              className="py-4"
+              // biome-ignore lint/suspicious/noArrayIndexKey: Fixed placeholders or stateless rows; position is the intended identity.
+              key={index}
+            >
               <div className="flex items-center justify-between gap-4">
                 <Skeleton className="h-5 w-32" />
                 <Skeleton className="size-4" />
@@ -116,7 +124,7 @@ function TeamDetails({
   onMembershipChange: (
     team: OrganizationTeam,
     member: OrganizationMember,
-    checked: boolean,
+    checked: boolean
   ) => void;
   onRename: (team: OrganizationTeam, name: string) => Promise<boolean>;
   team: OrganizationTeam;
@@ -128,23 +136,25 @@ function TeamDetails({
   const [editingName, setEditingName] = useState(team.name);
   const [search, setSearch] = useState("");
   const assignedMembers = members.filter((member) =>
-    memberships.has(membershipKey(team.id, member.user.id)),
+    memberships.has(membershipKey(team.id, member.user.id))
   );
   const availableMembers = members.filter(
-    (member) => !memberships.has(membershipKey(team.id, member.user.id)),
+    (member) => !memberships.has(membershipKey(team.id, member.user.id))
   );
   const normalizedSearch = search.trim().toLocaleLowerCase();
   const searchResults = normalizedSearch
     ? availableMembers.filter((member) =>
         `${member.user.name} ${member.user.email}`
           .toLocaleLowerCase()
-          .includes(normalizedSearch),
+          .includes(normalizedSearch)
       )
     : [];
 
   const submitRename = async () => {
     const renamed = await onRename(team, editingName);
-    if (renamed) setEditing(false);
+    if (renamed) {
+      setEditing(false);
+    }
   };
 
   return (
@@ -162,10 +172,12 @@ function TeamDetails({
       </DialogHeader>
 
       <div className="min-h-0 space-y-6 overflow-y-auto overscroll-contain p-5 sm:p-6">
-        {canInspect && canAdd && (
+        {!!(canInspect && canAdd) && (
           <section className="space-y-3">
             <div className="space-y-1">
-              <h3 className="font-medium">{t("organization.teams.addMembers")}</h3>
+              <h3 className="font-medium">
+                {t("organization.teams.addMembers")}
+              </h3>
               <p className="text-muted-foreground text-sm">
                 {t("organization.teams.addMembersDescription")}
               </p>
@@ -173,7 +185,7 @@ function TeamDetails({
             <div className="relative">
               <HugeiconsIcon
                 aria-hidden="true"
-                className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
+                className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
                 icon={Search01Icon}
                 strokeWidth={2}
               />
@@ -189,7 +201,7 @@ function TeamDetails({
             </div>
 
             {availableMembers.length === 0 && (
-              <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-center text-sm">
+              <p className="rounded-lg border border-dashed p-4 text-center text-muted-foreground text-sm">
                 {t("organization.teams.allMembersAdded")}
               </p>
             )}
@@ -198,7 +210,7 @@ function TeamDetails({
               availableMembers.length > 0 && (
                 <p
                   aria-live="polite"
-                  className="text-muted-foreground rounded-lg border border-dashed p-4 text-center text-sm"
+                  className="rounded-lg border border-dashed p-4 text-center text-muted-foreground text-sm"
                   role="status"
                 >
                   {t("organization.teams.noMemberResults")}
@@ -221,10 +233,10 @@ function TeamDetails({
                     >
                       <UserAvatar size="sm" user={member.user} />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">
+                        <p className="truncate font-medium text-sm">
                           {member.user.name}
                         </p>
-                        <p className="text-muted-foreground truncate text-xs">
+                        <p className="truncate text-muted-foreground text-xs">
                           {member.user.email}
                         </p>
                       </div>
@@ -252,7 +264,7 @@ function TeamDetails({
           </section>
         )}
 
-        {canInspect && (
+        {!!canInspect && (
           <section className="space-y-3">
             <div className="flex items-baseline justify-between gap-3">
               <h3 className="font-medium">{t("organization.teams.members")}</h3>
@@ -264,7 +276,7 @@ function TeamDetails({
               </span>
             </div>
             {assignedMembers.length === 0 ? (
-              <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-center text-sm">
+              <p className="rounded-lg border border-dashed p-4 text-center text-muted-foreground text-sm">
                 {t("organization.noMembers")}
               </p>
             ) : (
@@ -282,14 +294,14 @@ function TeamDetails({
                     >
                       <UserAvatar size="sm" user={member.user} />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">
+                        <p className="truncate font-medium text-sm">
                           {member.user.name}
                         </p>
-                        <p className="text-muted-foreground truncate text-xs">
+                        <p className="truncate text-muted-foreground text-xs">
                           {member.user.email}
                         </p>
                       </div>
-                      {canRemove && (
+                      {!!canRemove && (
                         <Button
                           aria-label={t("organization.teams.removeMember", {
                             member: member.user.name,
@@ -317,7 +329,7 @@ function TeamDetails({
           </section>
         )}
 
-        {(canUpdate || canDelete) && (
+        {!!(canUpdate || canDelete) && (
           <section className="space-y-3 border-t pt-5">
             {editing ? (
               <form
@@ -339,7 +351,9 @@ function TeamDetails({
                     maxLength={100}
                     onChange={(event) => setEditingName(event.target.value)}
                     onKeyDown={(event) => {
-                      if (event.key === "Escape") setEditing(false);
+                      if (event.key === "Escape") {
+                        setEditing(false);
+                      }
                     }}
                     pattern=".*\S.*"
                     required
@@ -350,14 +364,12 @@ function TeamDetails({
                 <div className="flex gap-2">
                   <Button
                     disabled={
-                      !online ||
-                      editingName.trim() === team.name ||
-                      updating
+                      !online || editingName.trim() === team.name || updating
                     }
                     size="sm"
                     type="submit"
                   >
-                    {updating && (
+                    {!!updating && (
                       <Spinner aria-hidden="true" role="presentation" />
                     )}
                     {t("common.save")}
@@ -378,7 +390,7 @@ function TeamDetails({
               </form>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {canUpdate && (
+                {!!canUpdate && (
                   <Button
                     disabled={!online}
                     onClick={() => setEditing(true)}
@@ -389,7 +401,7 @@ function TeamDetails({
                     {t("organization.teams.rename")}
                   </Button>
                 )}
-                {canDelete && (
+                {!!canDelete && (
                   <AlertDialog>
                     <AlertDialogTrigger
                       disabled={!online || teamCount <= 1 || deleting}
@@ -427,7 +439,7 @@ function TeamDetails({
                           onClick={() => onDelete(team)}
                           variant="destructive"
                         >
-                          {deleting && (
+                          {!!deleting && (
                             <Spinner aria-hidden="true" role="presentation" />
                           )}
                           {t("organization.teams.delete")}
@@ -452,7 +464,9 @@ export function TeamsSection() {
   const { data: session } = auth.useSession();
   const { data: activeOrgData } = auth.useActiveOrganization();
   const stableOrgRef = useRef(activeOrgData);
-  if (activeOrgData) stableOrgRef.current = activeOrgData;
+  if (activeOrgData) {
+    stableOrgRef.current = activeOrgData;
+  }
   const activeOrg = stableOrgRef.current;
   const orgId = activeOrg?.id ?? "";
 
@@ -476,8 +490,8 @@ export function TeamsSection() {
   const teams = teamsQuery.data ?? [];
   const memberships = new Set(
     (membershipsQuery.data ?? []).map((membership) =>
-      membershipKey(membership.teamId, membership.userId),
-    ),
+      membershipKey(membership.teamId, membership.userId)
+    )
   );
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -487,10 +501,9 @@ export function TeamsSection() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [mutatingMembership, setMutatingMembership] = useState<string | null>(
-    null,
+    null
   );
-  const selectedTeam =
-    teams.find((team) => team.id === selectedTeamId) ?? null;
+  const selectedTeam = teams.find((team) => team.id === selectedTeamId) ?? null;
 
   const showRequestError = (error: unknown) => {
     const userFacingError = getUserFacingError(error);
@@ -501,7 +514,9 @@ export function TeamsSection() {
 
   const handleCreate = async () => {
     const name = newTeamName.trim();
-    if (!online || !canCreate || !activeOrg || !name || creating) return;
+    if (!(online && canCreate && activeOrg && name) || creating) {
+      return;
+    }
     setCreating(true);
 
     try {
@@ -525,8 +540,9 @@ export function TeamsSection() {
 
   const handleUpdate = async (team: OrganizationTeam, nextName: string) => {
     const name = nextName.trim();
-    if (!online || !canUpdate || !name || name === team.name || updatingId)
+    if (!(online && canUpdate && name) || name === team.name || updatingId) {
       return false;
+    }
     setUpdatingId(team.id);
 
     try {
@@ -548,7 +564,9 @@ export function TeamsSection() {
   };
 
   const handleDelete = async (team: OrganizationTeam) => {
-    if (!online || !canDelete || teams.length <= 1 || deletingId) return;
+    if (!(online && canDelete) || teams.length <= 1 || deletingId) {
+      return;
+    }
     setDeletingId(team.id);
 
     try {
@@ -581,12 +599,19 @@ export function TeamsSection() {
   const handleMembershipChange = async (
     team: OrganizationTeam,
     member: OrganizationMember,
-    checked: boolean,
+    checked: boolean
   ) => {
-    if (!online || (checked && !canAddMember) || (!checked && !canRemoveMember))
+    if (
+      !online ||
+      (checked && !canAddMember) ||
+      !(checked || canRemoveMember)
+    ) {
       return;
+    }
     const key = membershipKey(team.id, member.user.id);
-    if (mutatingMembership) return;
+    if (mutatingMembership) {
+      return;
+    }
     setMutatingMembership(key);
 
     try {
@@ -609,23 +634,29 @@ export function TeamsSection() {
       posthog.capture(
         checked
           ? "organization_team_member_added"
-          : "organization_team_member_removed",
+          : "organization_team_member_removed"
       );
       toast.success(
         t(
           checked
             ? "organization.teams.memberAdded"
-            : "organization.teams.memberRemoved",
-        ),
+            : "organization.teams.memberRemoved"
+        )
       );
     } finally {
       setMutatingMembership(null);
     }
   };
 
-  if (membersQuery.error) throw membersQuery.error;
-  if (teamsQuery.error) throw teamsQuery.error;
-  if (membershipsQuery.error) throw membershipsQuery.error;
+  if (membersQuery.error) {
+    throw membersQuery.error;
+  }
+  if (teamsQuery.error) {
+    throw teamsQuery.error;
+  }
+  if (membershipsQuery.error) {
+    throw membershipsQuery.error;
+  }
 
   if (
     teamsQuery.isLoading ||
@@ -637,7 +668,7 @@ export function TeamsSection() {
 
   return (
     <div className="space-y-6">
-      {(!online || !canManageTeams) && (
+      {!(online && canManageTeams) && (
         <div className="space-y-3">
           {!online && (
             <Alert>
@@ -657,17 +688,18 @@ export function TeamsSection() {
           )}
         </div>
       )}
-      <section
-        aria-label={t("organization.teams.tab")}
-        className="space-y-4"
-      >
+      <section aria-label={t("organization.teams.tab")} className="space-y-4">
         {canCreate && (
           <div className="flex justify-end">
             <Dialog
               onOpenChange={(open) => {
-                if (creating) return;
+                if (creating) {
+                  return;
+                }
                 setCreateOpen(open);
-                if (!open) setNewTeamName("");
+                if (!open) {
+                  setNewTeamName("");
+                }
               }}
               open={createOpen}
             >
@@ -720,7 +752,7 @@ export function TeamsSection() {
                       disabled={!online || creating}
                       type="submit"
                     >
-                      {creating && (
+                      {!!creating && (
                         <Spinner aria-hidden="true" role="presentation" />
                       )}
                       {t("organization.teams.createButton")}
@@ -746,23 +778,27 @@ export function TeamsSection() {
                   (memberships.has(membershipKey(team.id, member.user.id))
                     ? 1
                     : 0),
-                0,
+                0
               );
               const memberDescriptionId = `organization-team-${team.id}-members`;
 
               return (
-                <div data-testid="organization-team" key={team.id} role="listitem">
+                <div
+                  data-testid="organization-team"
+                  key={team.id}
+                  role="listitem"
+                >
                   <button
                     aria-describedby={memberDescriptionId}
                     aria-label={t("organization.teams.openDetails", {
                       name: team.name,
                     })}
-                    className="group hover:bg-muted/30 focus-visible:ring-ring/50 flex min-h-20 w-full cursor-pointer items-center gap-4 px-2 py-4 text-left transition-colors outline-none focus-visible:ring-[3px]"
+                    className="group flex min-h-20 w-full cursor-pointer items-center gap-4 px-2 py-4 text-left outline-none transition-colors hover:bg-muted/30 focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     onClick={() => setSelectedTeamId(team.id)}
                     type="button"
                   >
                     <span className="flex min-w-0 flex-1 items-center gap-3">
-                      <span className="text-muted-foreground flex size-8 shrink-0 items-center justify-center">
+                      <span className="flex size-8 shrink-0 items-center justify-center text-muted-foreground">
                         <HugeiconsIcon
                           aria-hidden="true"
                           icon={UserGroupIcon}
@@ -770,7 +806,7 @@ export function TeamsSection() {
                         />
                       </span>
                       <span
-                        className="min-w-0 flex-1 truncate text-sm font-semibold"
+                        className="min-w-0 flex-1 truncate font-semibold text-sm"
                         title={team.name}
                       >
                         {team.name}
@@ -788,7 +824,7 @@ export function TeamsSection() {
                       </span>
                       <HugeiconsIcon
                         aria-hidden="true"
-                        className="text-muted-foreground size-4 transition-transform duration-150 ease-out group-hover:translate-x-0.5"
+                        className="size-4 text-muted-foreground transition-transform duration-150 ease-out group-hover:translate-x-0.5"
                         icon={ArrowRight01Icon}
                         strokeWidth={2}
                       />
@@ -810,7 +846,7 @@ export function TeamsSection() {
         open={selectedTeam !== null}
       >
         <DialogContent className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-2xl">
-          {selectedTeam && (
+          {!!selectedTeam && (
             <TeamDetails
               canAdd={canAddMember}
               canDelete={canDelete}

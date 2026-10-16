@@ -1,8 +1,5 @@
 import { useContext } from "react";
-import {
-  WorkspaceExplorerContext,
-  TreeNavigationContext,
-} from "./contexts";
+import { WorkspaceExplorerContext, TreeNavigationContext } from "./contexts";
 
 function useWorkspaceExplorer() {
   const context = useContext(WorkspaceExplorerContext);

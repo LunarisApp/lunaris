@@ -22,7 +22,7 @@ export function toDeleteTargetName(name: string | null | undefined): string {
 export function resolveDeleteTargets(
   clickedId: string,
   clickedName: string,
-  selected: ReadonlyArray<DeleteTarget>
+  selected: readonly DeleteTarget[]
 ): DeleteTarget[] {
   const inSelection = selected.some((s) => s.id === clickedId);
   const useSelection = inSelection && selected.length > 1;
@@ -35,9 +35,10 @@ export function resolveDeleteTargets(
  * Pick the i18n key + params for the delete-confirmation dialog description
  * based on how many items are being deleted.
  */
-export function getDeleteDescriptionI18n(
-  targets: ReadonlyArray<DeleteTarget>
-): { key: string; params: Record<string, unknown> } {
+export function getDeleteDescriptionI18n(targets: readonly DeleteTarget[]): {
+  key: string;
+  params: Record<string, unknown>;
+} {
   return targets.length === 1
     ? {
         key: "explorer.deleteConfirmation",
@@ -62,9 +63,13 @@ export function filterOutNestedSelections(
     const visited = new Set<string>();
     let cur = resourcesMap.get(id)?.parent_id ?? null;
     while (cur) {
-      if (visited.has(cur)) break;
+      if (visited.has(cur)) {
+        break;
+      }
       visited.add(cur);
-      if (idSet.has(cur)) return false;
+      if (idSet.has(cur)) {
+        return false;
+      }
       cur = resourcesMap.get(cur)?.parent_id ?? null;
     }
     return true;
@@ -80,11 +85,15 @@ export function getAncestorPath(
   let currentId: string | undefined = resourceId;
 
   while (currentId) {
-    if (visited.has(currentId)) break;
+    if (visited.has(currentId)) {
+      break;
+    }
     visited.add(currentId);
 
     const item = resourcesMap.get(currentId);
-    if (!item) break;
+    if (!item) {
+      break;
+    }
 
     if (item.id !== VIRTUAL_ROOT_ID) {
       path.unshift({ id: currentId, item });

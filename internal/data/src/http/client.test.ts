@@ -46,8 +46,7 @@ describe("createApiClient", () => {
     });
 
     it("POST request with JSON body", async () => {
-      fetchSpy
-        .mockResolvedValueOnce(jsonResponse({ id: 1 }, 201));
+      fetchSpy.mockResolvedValueOnce(jsonResponse({ id: 1 }, 201));
 
       await api.post("/v1/items", { body: { name: "new" } });
 
@@ -61,8 +60,7 @@ describe("createApiClient", () => {
     });
 
     it("204 No Content returns undefined", async () => {
-      fetchSpy
-        .mockResolvedValueOnce(new Response(null, { status: 204 }));
+      fetchSpy.mockResolvedValueOnce(new Response(null, { status: 204 }));
 
       const result = await api.delete("/v1/items/1");
 
@@ -97,8 +95,7 @@ describe("createApiClient", () => {
 
   describe("authenticated fetch", () => {
     it("adds session credentials to streamed requests without a token round trip", async () => {
-      fetchSpy
-        .mockResolvedValueOnce(new Response("stream"));
+      fetchSpy.mockResolvedValueOnce(new Response("stream"));
 
       await api.fetch("/v1/ai/chat", {
         body: JSON.stringify({ messages: [] }),
@@ -130,14 +127,14 @@ describe("createApiClient", () => {
             why: "Invalid field",
             fix: "Check docs",
           }),
-          { status: 400 },
-        ),
+          { status: 400 }
+        )
       );
 
       const promise = api.get("/v1/items");
       await expect(promise).rejects.toThrow(ApiError);
 
-      const err = await promise.catch((e) => e) as ApiError;
+      const err = (await promise.catch((e) => e)) as ApiError;
       expect(err.statusCode).toBe(400);
       expect(err.message).toBe("Bad Request");
       expect(err.why).toBe("Invalid field");
@@ -148,14 +145,14 @@ describe("createApiClient", () => {
       fetchSpy.mockResolvedValueOnce(
         new Response(
           JSON.stringify({ statusCode: 500, message: "Internal Server Error" }),
-          { status: 500 },
-        ),
+          { status: 500 }
+        )
       );
 
       const promise = api.get("/v1/items");
       await expect(promise).rejects.toThrow(ApiError);
 
-      const err = await promise.catch((e) => e) as ApiError;
+      const err = (await promise.catch((e) => e)) as ApiError;
       expect(err.statusCode).toBe(500);
     });
 
@@ -165,7 +162,7 @@ describe("createApiClient", () => {
       const promise = api.get("/v1/items");
       await expect(promise).rejects.toThrow(ApiError);
 
-      const err = await promise.catch((e) => e) as ApiError;
+      const err = (await promise.catch((e) => e)) as ApiError;
       expect(err.isOffline).toBe(true);
       expect(err.statusCode).toBe(0);
     });
@@ -174,7 +171,7 @@ describe("createApiClient", () => {
       const original = new Error("Something unexpected");
       fetchSpy.mockRejectedValueOnce(original);
 
-      const err = await api.get("/v1/items").catch((e) => e) as Error;
+      const err = (await api.get("/v1/items").catch((e) => e)) as Error;
 
       expect(err).toBe(original);
       expect(err).not.toBeInstanceOf(ApiError);
@@ -188,24 +185,30 @@ describe("createApiClient", () => {
         if (method === "get") {
           fetchSpy.mockResolvedValueOnce(jsonResponse({}));
         } else {
-          fetchSpy
-            .mockResolvedValueOnce(jsonResponse({}));
+          fetchSpy.mockResolvedValueOnce(jsonResponse({}));
         }
 
         await api[method]("/v1/test");
 
         const [, init] = lastCall();
         expect(init?.method).toBe(method.toUpperCase());
-      },
+      }
     );
 
     it("sends mutations without fetching CSRF tokens", async () => {
-      fetchSpy.mockResolvedValueOnce(jsonResponse({ ok: true })).mockResolvedValueOnce(jsonResponse({ ok: true }));
+      fetchSpy
+        .mockResolvedValueOnce(jsonResponse({ ok: true }))
+        .mockResolvedValueOnce(jsonResponse({ ok: true }));
       await api.post("/v1/items", { body: { name: "one" } });
       await api.patch("/v1/items/1", { body: { name: "two" } });
       expect(fetchSpy).toHaveBeenCalledTimes(2);
-      expect(fetchSpy.mock.calls.map(([url]) => url.toString())).toEqual([`${BASE_URL}/v1/items`, `${BASE_URL}/v1/items/1`]);
-      for (const [, init] of fetchSpy.mock.calls) expect(new Headers(init?.headers).has("x-csrf-token")).toBe(false);
+      expect(fetchSpy.mock.calls.map(([url]) => url.toString())).toEqual([
+        `${BASE_URL}/v1/items`,
+        `${BASE_URL}/v1/items/1`,
+      ]);
+      for (const [, init] of fetchSpy.mock.calls) {
+        expect(new Headers(init?.headers).has("x-csrf-token")).toBe(false);
+      }
     });
   });
 
@@ -217,7 +220,7 @@ describe("createApiClient", () => {
             init?.signal?.addEventListener("abort", () => {
               reject(new DOMException("Aborted", "AbortError"));
             });
-          }),
+          })
       );
 
       const err = (await api

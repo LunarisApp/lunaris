@@ -70,8 +70,9 @@ interface MobileViewRegistryValue {
   ) => RendererBuilder | undefined;
 }
 
-const MobileViewRegistryContext =
-  createContext<MobileViewRegistryValue | null>(null);
+const MobileViewRegistryContext = createContext<MobileViewRegistryValue | null>(
+  null
+);
 
 export function useMobileViewRegistry() {
   const ctx = useContext(MobileViewRegistryContext);
@@ -100,19 +101,19 @@ function useMobileViewRegistryStore() {
   );
 
   const unregister = useCallback((pluginId: string, renderer: string) => {
-    registryRef.current.set(
-      `${pluginId}.${renderer}`,
-      () => <ExtensionPlaceholder extensionId={pluginId} />,
-    );
+    registryRef.current.set(`${pluginId}.${renderer}`, () => (
+      <ExtensionPlaceholder extensionId={pluginId} />
+    ));
   }, []);
 
   const unregisterPlugin = useCallback((pluginId: string) => {
     for (const key of registryRef.current.keys()) {
-      if (!key.startsWith(`${pluginId}.`)) continue;
-      registryRef.current.set(
-        key,
-        () => <ExtensionPlaceholder extensionId={pluginId} />,
-      );
+      if (!key.startsWith(`${pluginId}.`)) {
+        continue;
+      }
+      registryRef.current.set(key, () => (
+        <ExtensionPlaceholder extensionId={pluginId} />
+      ));
     }
   }, []);
 
@@ -136,7 +137,9 @@ interface MobileBootOptions {
   runtimeTarget: PluginRuntimeTarget;
   unloadPlugin: WorkspaceRuntimeController["unloadPlugin"];
   unregisterPlugin: (pluginId: string) => void;
-  unregisterRenderer: NonNullable<InitializePluginsDeps["gridLayoutUnregister"]>;
+  unregisterRenderer: NonNullable<
+    InitializePluginsDeps["gridLayoutUnregister"]
+  >;
 }
 
 function useMobileWorkspaceBoot({
@@ -167,14 +170,18 @@ function useMobileWorkspaceBoot({
   runtimeTargetRef.current = runtimeTarget;
 
   useEffect(() => {
-    if (!enabledPluginIds || initializedRef.current) return;
+    if (!enabledPluginIds || initializedRef.current) {
+      return;
+    }
 
     initializedRef.current = true;
     let cancelled = false;
 
-    registerRenderers(WORKSPACE_TRASH_PLUGIN_ID, WORKSPACE_TRASH_RENDERER, () => (
-      <WorkspaceTrashPanel />
-    ));
+    registerRenderers(
+      WORKSPACE_TRASH_PLUGIN_ID,
+      WORKSPACE_TRASH_RENDERER,
+      () => <WorkspaceTrashPanel />
+    );
 
     reconcile(runtimeTargetRef.current)
       .then(() => {
@@ -184,7 +191,9 @@ function useMobileWorkspaceBoot({
         }
       })
       .catch((error) => {
-        if (!cancelled) reportBootError(error);
+        if (!cancelled) {
+          reportBootError(error);
+        }
       });
 
     return () => {
@@ -200,6 +209,7 @@ function useMobileWorkspaceBoot({
     reconcile,
     markReady,
     registerRuntimeReconciler,
+    registerRenderers,
     reportBootError,
   ]);
 }
@@ -216,13 +226,14 @@ function MobileOrganizationNavigationBridge({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const views = useViews();
-  const { subviewId, subviewPath, viewId, organizationSlug, workspaceSlug } = useParams<{
-    subviewId?: string;
-    subviewPath?: string;
-    viewId?: string;
-    organizationSlug: string;
-    workspaceSlug: string;
-  }>();
+  const { subviewId, subviewPath, viewId, organizationSlug, workspaceSlug } =
+    useParams<{
+      subviewId?: string;
+      subviewPath?: string;
+      viewId?: string;
+      organizationSlug: string;
+      workspaceSlug: string;
+    }>();
   const activeViewInstanceId =
     viewId && subviewPath && subviewId
       ? createPluginSubviewViewInstanceId({
@@ -232,10 +243,7 @@ function MobileOrganizationNavigationBridge({
         })
       : viewId;
   const pluginViewIds = useMemo(
-    () =>
-      new Set(
-        views.map(({ definition }) => definition.viewId)
-      ),
+    () => new Set(views.map(({ definition }) => definition.viewId)),
     [views]
   );
 
@@ -250,13 +258,17 @@ function MobileOrganizationNavigationBridge({
 
   const navigation = useMemo(
     () => ({
-      clearRenamingResource: () => {},
+      clearRenamingResource: () => {
+        /* No action while this capability is unavailable. */
+      },
       closeViewInstances: (viewInstanceIds: string[]) => {
         // Only bump the user to the workspace root if the view they are
         // currently looking at is one of the closed ones — otherwise a
         // background delete (e.g. deleting an unrelated item) would yank
         // them away from their active view for no reason.
-        if (!organizationSlug || !workspaceSlug) return;
+        if (!(organizationSlug && workspaceSlug)) {
+          return;
+        }
         if (
           activeViewInstanceId &&
           viewInstanceIds.includes(activeViewInstanceId)
@@ -269,19 +281,30 @@ function MobileOrganizationNavigationBridge({
         }
       },
       openExplorer: () => {
-        if (!organizationSlug || !workspaceSlug) return;
+        if (!(organizationSlug && workspaceSlug)) {
+          return;
+        }
         navigate(getWorkspacePath(organizationSlug, workspaceSlug));
       },
       openResource: ({ resourceId, replaceCurrent }: OpenResourceInput) => {
-        if (!organizationSlug || !workspaceSlug) return;
-        navigate(getWorkspacePath(organizationSlug, workspaceSlug, resourceId), {
-          replace: replaceCurrent,
-        });
+        if (!(organizationSlug && workspaceSlug)) {
+          return;
+        }
+        navigate(
+          getWorkspacePath(organizationSlug, workspaceSlug, resourceId),
+          {
+            replace: replaceCurrent,
+          }
+        );
       },
       openResourceInNewWindow: reportUnsupportedWindowOpen,
       openView: ({ route, viewId: definitionViewId }: OpenViewInput) => {
-        if (!organizationSlug || !workspaceSlug) return false;
-        if (!route && !pluginViewIds.has(definitionViewId)) return false;
+        if (!(organizationSlug && workspaceSlug)) {
+          return false;
+        }
+        if (!(route || pluginViewIds.has(definitionViewId))) {
+          return false;
+        }
         navigate(
           route
             ? getWorkspaceSubviewPath(
@@ -294,21 +317,33 @@ function MobileOrganizationNavigationBridge({
             : getWorkspacePath(
                 organizationSlug,
                 workspaceSlug,
-                createViewInstanceId(definitionViewId),
+                createViewInstanceId(definitionViewId)
               )
         );
         return true;
       },
       openViewInNewWindow: reportUnsupportedWindowOpen,
       openTool: ({ toolId }: OpenToolInput) => {
-        if (!organizationSlug || !workspaceSlug) return;
+        if (!(organizationSlug && workspaceSlug)) {
+          return;
+        }
         navigate(getWorkspacePath(organizationSlug, workspaceSlug, toolId));
       },
-      requestRenameActiveResource: () => {},
-      setResourceTitle: () => {},
-      setViewInstanceTitle: () => {},
-      toggleFocusMode: () => {},
-      unregisterPlugin: () => {},
+      requestRenameActiveResource: () => {
+        /* No action while this capability is unavailable. */
+      },
+      setResourceTitle: () => {
+        /* No action while this capability is unavailable. */
+      },
+      setViewInstanceTitle: () => {
+        /* No action while this capability is unavailable. */
+      },
+      toggleFocusMode: () => {
+        /* No action while this capability is unavailable. */
+      },
+      unregisterPlugin: () => {
+        /* No action while this capability is unavailable. */
+      },
     }),
     [
       activeViewInstanceId,
@@ -336,7 +371,10 @@ function MobileOrganizationNavigationBridge({
   );
 
   return (
-    <OrganizationNavigationProvider navigation={navigation} viewState={viewState}>
+    <OrganizationNavigationProvider
+      navigation={navigation}
+      viewState={viewState}
+    >
       {children}
     </OrganizationNavigationProvider>
   );
@@ -374,8 +412,10 @@ function MobileBootError({
     <div className="flex h-full items-center justify-center p-6">
       <div className="flex max-w-md flex-col gap-4 rounded-lg border bg-background p-6 text-center">
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold">{t("mobile.workspaceFailedToLoad")}</h2>
-          <p className="text-sm text-muted-foreground">{error}</p>
+          <h2 className="font-semibold text-lg">
+            {t("mobile.workspaceFailedToLoad")}
+          </h2>
+          <p className="text-muted-foreground text-sm">{error}</p>
         </div>
         <Button onClick={onRetry}>{t("common.retry")}</Button>
       </div>
@@ -403,15 +443,14 @@ function MobileWorkspaceFlow({
 }: {
   controller: WorkspaceRuntimeController;
   registerRenderers: InitializePluginsDeps["gridLayoutRegister"];
-  unregisterRenderer: NonNullable<InitializePluginsDeps["gridLayoutUnregister"]>;
+  unregisterRenderer: NonNullable<
+    InitializePluginsDeps["gridLayoutUnregister"]
+  >;
   unregisterPlugin: (pluginId: string) => void;
 }) {
   const { i18n, t } = useTranslation();
-  const {
-    extensionAvailability,
-    registerRuntimeReconciler,
-    runtimeRevisions,
-  } = useOrganizationPluginRuntime();
+  const { extensionAvailability, registerRuntimeReconciler, runtimeRevisions } =
+    useOrganizationPluginRuntime();
   const {
     bootError,
     bootState,
@@ -456,6 +495,7 @@ function MobileWorkspaceFlow({
   return (
     <Suspense fallback={initialLoading}>
       <WorkspaceExplorerContainer>
+        {/* biome-ignore lint/suspicious/noLeakedRender: Both ternary branches intentionally render valid ReactNode/text values. */}
         {bootState === "ready" ? <MobileWorkspaceContent /> : initialLoading}
       </WorkspaceExplorerContainer>
     </Suspense>

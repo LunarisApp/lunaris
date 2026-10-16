@@ -24,7 +24,7 @@ describe("incremental Yjs replica synchronization", () => {
       },
       (error) => {
         throw error;
-      },
+      }
     );
     await sync.request();
     await vi.waitFor(() => expect(replica.getMap("cells").get("late")).toBe(7));
@@ -48,9 +48,11 @@ describe("incremental Yjs replica synchronization", () => {
       () => {},
       failed,
       async (update) => {
-        if (rejectUpload) throw new Error("Disconnected");
+        if (rejectUpload) {
+          throw new Error("Disconnected");
+        }
         Y.applyUpdateV2(host, new Uint8Array(update));
-      },
+      }
     );
     await sync.request();
     replica.getMap("cells").delete("a");
@@ -67,7 +69,9 @@ describe("incremental Yjs replica synchronization", () => {
     const host = new Y.Doc(),
       replica = new Y.Doc();
     host.transact(() => {
-      for (let i = 0; i < 20_000; i++) host.getMap("cells").set(String(i), i);
+      for (let i = 0; i < 20_000; i++) {
+        host.getMap("cells").set(String(i), i);
+      }
     });
     const sizes: number[] = [];
     const fetch = vi.fn(async (vector) => {
@@ -84,7 +88,7 @@ describe("incremental Yjs replica synchronization", () => {
       fetch,
       () => {},
       failed,
-      async (update) => Y.applyUpdateV2(host, new Uint8Array(update)),
+      async (update) => Y.applyUpdateV2(host, new Uint8Array(update))
     );
     await sync.request();
     replica.getMap("cells").set("local", 42);
@@ -105,7 +109,7 @@ describe("incremental Yjs replica synchronization", () => {
       () =>
         new Promise<ArrayBuffer>((r) => {
           resolve = r;
-        }),
+        })
     );
     const ready = vi.fn();
     const failed = vi.fn();

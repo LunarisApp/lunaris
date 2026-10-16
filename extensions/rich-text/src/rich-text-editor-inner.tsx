@@ -37,15 +37,16 @@ export function RichTextEditorInner({
     t("extensions.catalog.lunaris.rich-text.presence.collaborator");
   const identity = useMemo(
     () => ({ id: user?.id, name, color: self?.color ?? "#1d4ed8" }),
-    [user?.id, name, self?.color],
+    [user?.id, name, self?.color]
   );
   const yProvider = useMemo(
     () => (awareness ? { awareness } : undefined),
-    [awareness],
+    [awareness]
   );
   useEffect(() => {
-    if (awareness?.getLocalState())
+    if (awareness?.getLocalState()) {
       awareness.setLocalStateField("user", identity);
+    }
   }, [awareness, identity]);
   const dictionary = BLOCKNOTE_DICTIONARIES[i18n.language];
   const controller = useYjsRichTextEditor({
@@ -53,7 +54,7 @@ export function RichTextEditorInner({
     yProvider,
     user: identity,
     collaboratorLabel: t(
-      "extensions.catalog.lunaris.rich-text.presence.collaborator",
+      "extensions.catalog.lunaris.rich-text.presence.collaborator"
     ),
     options: { dictionary },
     deps: [i18n.language],
@@ -64,11 +65,15 @@ export function RichTextEditorInner({
   const headingInserted = useRef(false);
 
   useEffect(() => {
-    if (!editable || headingInserted.current || !documentName) return;
+    if (!editable || headingInserted.current || !documentName) {
+      return;
+    }
 
     const blocks = controller.document;
     const firstBlock = blocks[0];
-    if (!firstBlock) return;
+    if (!firstBlock) {
+      return;
+    }
     const isEmpty =
       blocks.length === 1 &&
       firstBlock.type === "paragraph" &&

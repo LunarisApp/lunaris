@@ -30,9 +30,7 @@ describe("desktop fetch bridge", () => {
   it("isolates cookies to the selected region API origin", async () => {
     const nativeFetch = vi.fn(async (_input, init) => {
       const headers = new Headers(init?.headers);
-      expect(headers.get("x-tauri-cookie")).toBe(
-        "lunaris.session_token=auth"
-      );
+      expect(headers.get("x-tauri-cookie")).toBe("lunaris.session_token=auth");
       expect(headers.get("tauri-origin")).toBe("lunaris://");
       expect(init?.maxRedirections).toBe(0);
       return new Response();
@@ -43,7 +41,10 @@ describe("desktop fetch bridge", () => {
       sessions: new Map([
         [
           apiOrigin,
-          { regionId: "eu", getAuthCookie: async () => "lunaris.session_token=auth" },
+          {
+            regionId: "eu",
+            getAuthCookie: async () => "lunaris.session_token=auth",
+          },
         ],
       ]),
     });
@@ -94,9 +95,7 @@ describe("desktop fetch bridge", () => {
     const bridge = createDesktopFetchBridge({
       browserFetch: vi.fn() as typeof fetch,
       nativeFetch,
-      sessions: new Map([
-        [apiOrigin, { regionId: "eu", getAuthCookie }],
-      ]),
+      sessions: new Map([[apiOrigin, { regionId: "eu", getAuthCookie }]]),
     });
 
     await bridge(`${apiOrigin}/v1/manifest`, { credentials: "omit" });
@@ -112,7 +111,7 @@ describe("desktop fetch bridge", () => {
         new Response(null, {
           headers: { location: "https://evil.example/collect" },
           status: 302,
-        }),
+        })
     );
     const browserFetch = vi.fn() as typeof fetch;
     const bridge = createDesktopFetchBridge({
@@ -124,7 +123,7 @@ describe("desktop fetch bridge", () => {
     });
 
     await expect(bridge(`${apiOrigin}/redirect`)).rejects.toThrow(
-      "Desktop API redirects are not allowed",
+      "Desktop API redirects are not allowed"
     );
     expect(nativeFetch).toHaveBeenCalledOnce();
     expect(browserFetch).not.toHaveBeenCalled();
@@ -145,7 +144,7 @@ describe("desktop fetch bridge", () => {
     });
 
     await expect(
-      bridge(`${apiOrigin}/redirect`, { redirect: "manual" }),
+      bridge(`${apiOrigin}/redirect`, { redirect: "manual" })
     ).resolves.toBe(response);
     expect(nativeFetch).toHaveBeenCalledOnce();
   });

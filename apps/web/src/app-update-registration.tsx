@@ -14,7 +14,7 @@ export default function WebAppUpdateRegistration({
 
   useEffect(
     () => onChange({ needRefresh: appUpdate.needRefresh, update }),
-    [appUpdate.needRefresh, onChange, update],
+    [appUpdate.needRefresh, onChange, update]
   );
   return null;
 }

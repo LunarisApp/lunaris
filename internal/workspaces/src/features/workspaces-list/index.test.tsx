@@ -6,15 +6,12 @@ import { WorkspacesList } from ".";
 
 const LOADING_DELAY_MS = 250;
 
-const {
-  useWorkspaceSyncMock,
-  useWorkspacesQueryMock,
-  useSyncAccessMock,
-} = vi.hoisted(() => ({
-  useWorkspaceSyncMock: vi.fn(),
-  useWorkspacesQueryMock: vi.fn(),
-  useSyncAccessMock: vi.fn(),
-}));
+const { useWorkspaceSyncMock, useWorkspacesQueryMock, useSyncAccessMock } =
+  vi.hoisted(() => ({
+    useWorkspaceSyncMock: vi.fn(),
+    useWorkspacesQueryMock: vi.fn(),
+    useSyncAccessMock: vi.fn(),
+  }));
 
 vi.mock("@repo/data/core", () => ({
   SYNC_ACCESS: { cloud: "cloud", localOnly: "local-only" },
@@ -48,9 +45,11 @@ vi.mock("./components/workspace-resource", () => ({
     workspace,
     view,
   }: {
-    onWorkspaceIntent: (
-      workspace: { id: string; name: string; slug: string }
-    ) => void;
+    onWorkspaceIntent: (workspace: {
+      id: string;
+      name: string;
+      slug: string;
+    }) => void;
     workspace: { id: string; name: string; slug: string };
     view: "grid" | "list";
   }) => (
@@ -101,7 +100,9 @@ describe("WorkspacesList", () => {
   }
 
   it("shows skeleton while organization is unresolved", () => {
-    render(<WorkspacesList organizationId={undefined} organizationSlug="acme" />);
+    render(
+      <WorkspacesList organizationId={undefined} organizationSlug="acme" />
+    );
 
     expect(screen.queryByTestId("workspaces-list-skeleton")).toBeNull();
     showDelayedLoading();
@@ -171,9 +172,9 @@ describe("WorkspacesList", () => {
     expect(screen.getByTestId("workspaces-list-empty").textContent).toContain(
       "No workspaces yet"
     );
-    expect(screen.getByTestId("workspaces-list-empty").getAttribute("role")).toBe(
-      null,
-    );
+    expect(
+      screen.getByTestId("workspaces-list-empty").getAttribute("role")
+    ).toBe(null);
     expect(screen.getByRole("status").textContent).toBe("No workspaces yet");
     expect(mark).toHaveBeenCalledWith("lunaris:workspaces-interactive");
     mark.mockRestore();
@@ -190,9 +191,9 @@ describe("WorkspacesList", () => {
     render(<WorkspacesList organizationId="org_1" organizationSlug="acme" />);
 
     expect(screen.getByTestId("workspaces-list")).toBeTruthy();
-    expect(screen.getByTestId("workspaces-list-item-atlas").textContent).toContain(
-      "Atlas"
-    );
+    expect(
+      screen.getByTestId("workspaces-list-item-atlas").textContent
+    ).toContain("Atlas");
     expect(screen.queryByTestId("workspaces-list-skeleton")).toBeNull();
   });
 
@@ -247,9 +248,9 @@ describe("WorkspacesList", () => {
       />
     );
 
-    expect(screen.getByTestId("workspaces-list-no-results").textContent).toContain(
-      "No matching workspaces"
-    );
+    expect(
+      screen.getByTestId("workspaces-list-no-results").textContent
+    ).toContain("No matching workspaces");
   });
 
   it("sorts workspaces by name or recent activity", () => {
@@ -275,9 +276,9 @@ describe("WorkspacesList", () => {
         organizationSlug="acme"
       />
     );
-    expect(screen.getAllByTestId(/^workspaces-list-item-/)[0]?.textContent).toBe(
-      "Atlas"
-    );
+    expect(
+      screen.getAllByTestId(/^workspaces-list-item-/)[0]?.textContent
+    ).toBe("Atlas");
 
     rerender(
       <WorkspacesList
@@ -286,9 +287,9 @@ describe("WorkspacesList", () => {
         organizationSlug="acme"
       />
     );
-    expect(screen.getAllByTestId(/^workspaces-list-item-/)[0]?.textContent).toBe(
-      "Beacon"
-    );
+    expect(
+      screen.getAllByTestId(/^workspaces-list-item-/)[0]?.textContent
+    ).toBe("Beacon");
   });
 
   it("renders list view when selected", () => {
@@ -312,7 +313,7 @@ describe("WorkspacesList", () => {
       "list"
     );
     expect(
-      screen.getByRole("list", { name: "Recent Workspaces" }),
+      screen.getByRole("list", { name: "Recent Workspaces" })
     ).toBeTruthy();
   });
 
@@ -355,7 +356,10 @@ describe("WorkspacesList", () => {
         await vi.dynamicImportSettled();
       });
 
-      expect(useWorkspaceSyncMock).toHaveBeenLastCalledWith("workspace_1", "shared");
+      expect(useWorkspaceSyncMock).toHaveBeenLastCalledWith(
+        "workspace_1",
+        "shared"
+      );
     }
   );
 
@@ -380,7 +384,10 @@ describe("WorkspacesList", () => {
       await vi.dynamicImportSettled();
     });
 
-    expect(useWorkspaceSyncMock).toHaveBeenLastCalledWith("workspace_2", "shared");
+    expect(useWorkspaceSyncMock).toHaveBeenLastCalledWith(
+      "workspace_2",
+      "shared"
+    );
   });
 
   it("does not subscribe to cloud content in local-only mode", async () => {
@@ -431,7 +438,10 @@ describe("WorkspacesList", () => {
       await vi.dynamicImportSettled();
     });
 
-    expect(useWorkspaceSyncMock).toHaveBeenLastCalledWith("workspace_1", "local");
+    expect(useWorkspaceSyncMock).toHaveBeenLastCalledWith(
+      "workspace_1",
+      "local"
+    );
     expect(onWorkspaceIntent).toHaveBeenCalledWith(localWorkspace);
   });
 
@@ -460,7 +470,10 @@ describe("WorkspacesList", () => {
     });
 
     expect(onWorkspaceIntent).toHaveBeenCalledWith(workspace);
-    expect(useWorkspaceSyncMock).toHaveBeenLastCalledWith("workspace_1", "shared");
+    expect(useWorkspaceSyncMock).toHaveBeenLastCalledWith(
+      "workspace_1",
+      "shared"
+    );
   });
 
   it("throws query errors", () => {

@@ -3,8 +3,7 @@ export const SYNC_ACCESS = {
   localOnly: "local-only",
 } as const;
 
-export type SyncAccessPolicy =
-  (typeof SYNC_ACCESS)[keyof typeof SYNC_ACCESS];
+export type SyncAccessPolicy = (typeof SYNC_ACCESS)[keyof typeof SYNC_ACCESS];
 
 export const WORKSPACE_VISIBILITY = {
   shared: "shared",
@@ -20,10 +19,11 @@ export const WORKSPACE_ROLE = {
   viewer: "viewer",
 } as const;
 
-export type WorkspaceRole = (typeof WORKSPACE_ROLE)[keyof typeof WORKSPACE_ROLE];
+export type WorkspaceRole =
+  (typeof WORKSPACE_ROLE)[keyof typeof WORKSPACE_ROLE];
 
 export function normalizeWorkspaceVisibility(
-  value: unknown,
+  value: unknown
 ): WorkspaceVisibility | undefined {
   switch (value) {
     case WORKSPACE_VISIBILITY.local:

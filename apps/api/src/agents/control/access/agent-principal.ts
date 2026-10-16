@@ -26,13 +26,14 @@ export type AgentPrincipal =
       organizationIds: null;
     };
 
-export const RequireAgentScope = (scope: AgentScope): MethodDecorator =>
+export const RequireAgentScope =
+  (scope: AgentScope): MethodDecorator =>
   (target, propertyKey, descriptor) => {
     SetMetadata(AGENT_SCOPE_METADATA, scope)(target, propertyKey, descriptor);
     ApiOperation({ operationId: agentOperationId(String(propertyKey)) })(
       target,
       propertyKey,
-      descriptor,
+      descriptor
     );
   };
 

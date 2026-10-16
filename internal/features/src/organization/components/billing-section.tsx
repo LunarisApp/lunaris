@@ -1,13 +1,20 @@
 "use client";
 
 import { OrganizationPlanUsage } from "./organization-plan-usage";
-import { CurrentPlanSummary, type PlanSummaryDetails } from "./current-plan-summary";
+import {
+  CurrentPlanSummary,
+  type PlanSummaryDetails,
+} from "./current-plan-summary";
 import { UpgradeOptions } from "./billing-plan-options";
 import { formatCurrency, PLAN_NAMES } from "./billing-format";
 
 import { Button } from "@lunarisapp/ui/components/button";
 import { HugeiconsIcon, Refresh01Icon } from "@lunarisapp/ui/icons";
-import { BILLING_INTERVAL, type BillingInterval, type PurchasablePlan } from "@repo/auth/billing";
+import {
+  BILLING_INTERVAL,
+  type BillingInterval,
+  type PurchasablePlan,
+} from "@repo/auth/billing";
 import { PLAN, type PlanSlug } from "@repo/auth/entitlements";
 import { permission } from "@repo/auth/permissions";
 import { usePlatform } from "@repo/platform";
@@ -36,7 +43,10 @@ function formatInterval(interval: string, t: TFunction): string {
     : t("organization.billing.monthly");
 }
 
-const FRESHNESS_BADGE_KEYS: Record<Exclude<EntitlementFreshness, "live">, string> = {
+const FRESHNESS_BADGE_KEYS: Record<
+  Exclude<EntitlementFreshness, "live">,
+  string
+> = {
   cached: "organization.billing.cached",
   expired: "organization.billing.verificationExpired",
   unverified: "organization.billing.unverified",
@@ -46,7 +56,7 @@ function getPlanSummaryDetails(
   plan: PlanSlug,
   subscription: Subscription | undefined,
   status: EntitlementStatus,
-  t: TFunction,
+  t: TFunction
 ): PlanSummaryDetails {
   const details: PlanSummaryDetails = {
     badge: t("organization.billing.active"),
@@ -71,9 +81,11 @@ function getPlanSummaryDetails(
     details.badgeVariant = canceling ? "muted" : "active";
     details.description = `${formatCurrency(
       subscription.amount,
-      subscription.currency,
+      subscription.currency
     )} / ${formatInterval(subscription.recurringInterval, t)} · ${seatDescription} · ${
-      canceling ? t("organization.billing.endsOn") : t("organization.billing.renewsOn")
+      canceling
+        ? t("organization.billing.endsOn")
+        : t("organization.billing.renewsOn")
     } ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`;
   } else if (status.freshness !== "live") {
     details.badge = t(FRESHNESS_BADGE_KEYS[status.freshness]);
@@ -107,7 +119,9 @@ export function BillingSection({
   const refreshEntitlements = useRefreshEntitlements();
   const { region } = useRegion();
   const billingEnabled = status.billingManagement === "polar";
-  const [interval, setInterval] = useState<BillingInterval>(BILLING_INTERVAL.year);
+  const [interval, setInterval] = useState<BillingInterval>(
+    BILLING_INTERVAL.year
+  );
   const [portalLoading, setPortalLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
@@ -138,7 +152,9 @@ export function BillingSection({
     setPortalLoading(true);
     try {
       const result = await api.post<{ url: string }>("/v1/entitlements/portal");
-      if (!result.url) throw new Error("Portal URL missing");
+      if (!result.url) {
+        throw new Error("Portal URL missing");
+      }
       navigation.assign(result.url);
     } catch (error) {
       log.error({
@@ -171,7 +187,9 @@ export function BillingSection({
     plan: PurchasablePlan;
     slug: string;
   }) => {
-    if (!organizationId) return;
+    if (!organizationId) {
+      return;
+    }
     posthog.capture(
       hasSelfServeSubscription
         ? "subscription_plan_change_started"
@@ -180,27 +198,39 @@ export function BillingSection({
         interval: choice.interval,
         plan: choice.plan,
         organization_id: organizationId,
-      },
+      }
     );
     setLoadingSlug(choice.slug);
     try {
       if (hasSelfServeSubscription) {
-        const result = await api.post<{ success: true }>("/v1/entitlements/change-plan", {
-          body: { interval: choice.interval, plan: choice.plan },
-        });
-        if (result.success !== true) throw new Error("Plan change failed");
+        const result = await api.post<{ success: true }>(
+          "/v1/entitlements/change-plan",
+          {
+            body: { interval: choice.interval, plan: choice.plan },
+          }
+        );
+        if (result.success !== true) {
+          throw new Error("Plan change failed");
+        }
         await Promise.all([refreshEntitlements(), billingStateQuery.refetch()]);
       } else {
-        const result = await api.post<{ url: string }>("/v1/entitlements/checkout", {
-          body: { interval: choice.interval, plan: choice.plan },
-        });
-        if (!result.url) throw new Error("Checkout URL missing");
+        const result = await api.post<{ url: string }>(
+          "/v1/entitlements/checkout",
+          {
+            body: { interval: choice.interval, plan: choice.plan },
+          }
+        );
+        if (!result.url) {
+          throw new Error("Checkout URL missing");
+        }
         navigation.assign(result.url);
       }
     } catch (error) {
       log.error({
         error: parseError(error),
-        msg: hasSelfServeSubscription ? "plan change failed" : "checkout failed",
+        msg: hasSelfServeSubscription
+          ? "plan change failed"
+          : "checkout failed",
         tag: "Billing",
       });
       toast.error(t("organization.billing.error"));
@@ -209,7 +239,12 @@ export function BillingSection({
     }
   };
 
-  const details = getPlanSummaryDetails(status.displayPlan, currentSubscription, status, t);
+  const details = getPlanSummaryDetails(
+    status.displayPlan,
+    currentSubscription,
+    status,
+    t
+  );
   const canChoosePlan =
     billingEnabled &&
     canManageBilling &&
@@ -235,7 +270,7 @@ export function BillingSection({
           canReadBilling && (
             <Button
               aria-label={t("common.refresh")}
-              className="size-11 @lg/billing:size-8"
+              className="@lg/billing:size-8 size-11"
               data-testid="organization-billing-refresh"
               disabled={refreshing || sessionPending || !status.isOnline}
               onClick={() => void handleRefresh()}
@@ -256,18 +291,22 @@ export function BillingSection({
 
       <OrganizationPlanUsage status={status} />
 
-      {billingEnabled && status.isOnline && billingStateQuery.isError && (
+      {!!(billingEnabled && status.isOnline && billingStateQuery.isError) && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-destructive text-sm" role="alert">
             {t("organization.billing.error")}
           </p>
-          <Button onClick={() => void handleRefresh()} size="sm" variant="outline">
+          <Button
+            onClick={() => void handleRefresh()}
+            size="sm"
+            variant="outline"
+          >
             {t("organization.billing.retry")}
           </Button>
         </div>
       )}
 
-      {canChoosePlan && (
+      {!!canChoosePlan && (
         <UpgradeOptions
           interval={interval}
           loadingSlug={loadingSlug}

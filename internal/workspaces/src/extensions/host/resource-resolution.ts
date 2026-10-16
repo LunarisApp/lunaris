@@ -38,7 +38,9 @@ async function initializeMissingStorage(params: {
   const documents: Doc[] = [];
   try {
     for (const [name, slot] of Object.entries(definition.storage)) {
-      if (storage[name]) continue;
+      if (storage[name]) {
+        continue;
+      }
       const context = {
         createdAt: resource?.created_at ?? new Date().toISOString(),
         parentId: envelope.parentId,
@@ -60,15 +62,21 @@ async function initializeMissingStorage(params: {
       }
     }
   } catch (error) {
-    for (const document of documents) document.destroy();
+    for (const document of documents) {
+      document.destroy();
+    }
     throw error;
   }
 
   let disposed = false;
   return () => {
-    if (disposed) return;
+    if (disposed) {
+      return;
+    }
     disposed = true;
-    for (const document of documents) document.destroy();
+    for (const document of documents) {
+      document.destroy();
+    }
   };
 }
 
@@ -94,13 +102,21 @@ export async function resolveHostResource(params: {
     storage = hydrated.storage;
     const persistedSlots = hydrated.slots;
     for (const slot of persistedSlots) {
-      if (slot.name && definition.storage[slot.name] &&
-        definition.storage[slot.name]?.kind !== slot.kind) {
+      if (
+        slot.name &&
+        definition.storage[slot.name] &&
+        definition.storage[slot.name]?.kind !== slot.kind
+      ) {
         throw new Error(`Storage slot ${slot.name} changed kind`);
       }
     }
-    const missing = Object.keys(definition.storage).filter((name) => !storage[name]);
-    if (missing.length > 0 && envelope.schemaVersion >= definition.schema.currentVersion) {
+    const missing = Object.keys(definition.storage).filter(
+      (name) => !storage[name]
+    );
+    if (
+      missing.length > 0 &&
+      envelope.schemaVersion >= definition.schema.currentVersion
+    ) {
       throw new Error(`Storage slot ${missing[0]} is unavailable`);
     }
     disposeInitializedStorage = await initializeMissingStorage({
@@ -113,7 +129,8 @@ export async function resolveHostResource(params: {
     disposeInitializedStorage();
     disposeStorage();
     return {
-      diagnostic: error instanceof Error ? error.message : "Storage load failed",
+      diagnostic:
+        error instanceof Error ? error.message : "Storage load failed",
       envelope,
       retryable: true,
       status: "quarantined",
@@ -126,16 +143,15 @@ export async function resolveHostResource(params: {
       { resourceId: envelope.resourceId, storage },
       {
         readVersion: async () =>
-          (await getWorkspaceResource({ db, id: envelope.resourceId }))?.schema_version ??
-          undefined,
-        compareAndSet: async ({
-          expectedVersion,
-          nextVersion,
-          payload,
-        }) => {
+          (await getWorkspaceResource({ db, id: envelope.resourceId }))
+            ?.schema_version ?? undefined,
+        compareAndSet: async ({ expectedVersion, nextVersion, payload }) => {
           const visibility = await resolveWorkspaceVisibility(db, workspaceId);
           const tables = resolveWorkspaceScopedTables(visibility);
-          const hydrated = await hydrateResourceStorage(db, envelope.resourceId);
+          const hydrated = await hydrateResourceStorage(
+            db,
+            envelope.resourceId
+          );
           let disposeInitializedStagedStorage: () => void = () => undefined;
           try {
             const { slots, storage: staged } = hydrated;
@@ -155,7 +171,9 @@ export async function resolveHostResource(params: {
                   storage: staged,
                 });
                 for (const slot of slots) {
-                  if (!slot.name) continue;
+                  if (!slot.name) {
+                    continue;
+                  }
                   const before = storage[slot.name];
                   const after = staged[slot.name];
                   if (
@@ -168,26 +186,29 @@ export async function resolveHostResource(params: {
                       slot.backing_id,
                       encodeStateAsUpdateV2(
                         after.document,
-                        encodeStateVector(before.document),
-                      ),
+                        encodeStateVector(before.document)
+                      )
                     );
                   }
                 }
                 const now = new Date().toISOString();
                 const existingNames = new Set(
-                  slots.flatMap((slot) => slot.name ? [slot.name] : []),
+                  slots.flatMap((slot) => (slot.name ? [slot.name] : []))
                 );
-                for (const [name, definitionSlot] of Object.entries(definition.storage)) {
-                  if (existingNames.has(name)) continue;
+                for (const [name, definitionSlot] of Object.entries(
+                  definition.storage
+                )) {
+                  if (existingNames.has(name)) {
+                    continue;
+                  }
                   const storageId = createId("storage");
-                  const backingId = definitionSlot.kind === "yjs"
-                    ? createId("yjs")
-                    : null;
+                  const backingId =
+                    definitionSlot.kind === "yjs" ? createId("yjs") : null;
                   if (backingId) {
                     await tx.execute(
                       `INSERT INTO ${tables.yjsDocuments}
                         (id, workspace_id, created_at, updated_at) VALUES (?, ?, ?, ?)`,
-                      [backingId, workspaceId, now, now],
+                      [backingId, workspaceId, now, now]
                     );
                   }
                   await tx.execute(
@@ -203,7 +224,7 @@ export async function resolveHostResource(params: {
                       backingId,
                       now,
                       now,
-                    ],
+                    ]
                   );
                   const next = staged[name];
                   if (next?.kind === "key-value") {
@@ -220,7 +241,7 @@ export async function resolveHostResource(params: {
                           JSON.stringify(value),
                           now,
                           now,
-                        ],
+                        ]
                       );
                     }
                   } else if (next?.kind === "yjs" && backingId) {
@@ -236,24 +257,34 @@ export async function resolveHostResource(params: {
                         Uint8ArrayTob64(update),
                         now,
                         now,
-                      ],
+                      ]
                     );
                   }
                 }
                 for (const slot of slots) {
-                  if (!slot.name) continue;
+                  if (!slot.name) {
+                    continue;
+                  }
                   const next = staged[slot.name];
                   if (next?.kind === "key-value") {
                     await tx.execute(
                       `DELETE FROM ${tables.workspaceStorageValues} WHERE storage_id = ?`,
-                      [slot.id],
+                      [slot.id]
                     );
                     for (const [key, value] of Object.entries(next.values)) {
                       await tx.execute(
                         `INSERT INTO ${tables.workspaceStorageValues}
                           (id, storage_id, workspace_id, key, value, created_at, updated_at)
                          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                        [createId("storage-value"), slot.id, workspaceId, key, JSON.stringify(value), now, now],
+                        [
+                          createId("storage-value"),
+                          slot.id,
+                          workspaceId,
+                          key,
+                          JSON.stringify(value),
+                          now,
+                          now,
+                        ]
                       );
                     }
                   }
@@ -266,7 +297,7 @@ export async function resolveHostResource(params: {
                       slot.backing_id,
                       workspaceId,
                       Uint8ArrayTob64(update),
-                      null,
+                      null
                     );
                   }
                 }
@@ -277,18 +308,24 @@ export async function resolveHostResource(params: {
             });
             if (committed) {
               for (const entry of storage ? Object.values(storage) : []) {
-                if (entry.kind !== "yjs") continue;
+                if (entry.kind !== "yjs") {
+                  continue;
+                }
                 const slot = slots.find(
                   (candidate) =>
                     candidate.name != null &&
                     staged[candidate.name]?.kind === "yjs" &&
-                    storage[candidate.name] === entry,
+                    storage[candidate.name] === entry
                 );
                 const update = slot?.backing_id
                   ? yjsUpdates.get(slot.backing_id)
                   : undefined;
                 if (update?.byteLength) {
-                  applyUpdateV2(entry.document, update, PERSISTED_YJS_UPDATE_ORIGIN);
+                  applyUpdateV2(
+                    entry.document,
+                    update,
+                    PERSISTED_YJS_UPDATE_ORIGIN
+                  );
                 }
               }
             }
@@ -298,7 +335,7 @@ export async function resolveHostResource(params: {
             hydrated.dispose();
           }
         },
-      },
+      }
     );
   } finally {
     disposeInitializedStorage();

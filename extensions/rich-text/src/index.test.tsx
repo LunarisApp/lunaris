@@ -1,4 +1,10 @@
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import {
   preparePluginActivation,
   type ResourceCommandItem,
@@ -17,9 +23,11 @@ const pendingPromise = new Promise<never>(() => {});
 describe("rich-text search indexer", () => {
   it("reads an unnamed Yjs root after applying persisted updates", async () => {
     const resourceType = richTextActivation.contributions.find(
-      (contribution) => contribution.type === "resource-type",
+      (contribution) => contribution.type === "resource-type"
     );
-    if (!resourceType) throw new Error("Rich text resource was not registered");
+    if (!resourceType) {
+      throw new Error("Rich text resource was not registered");
+    }
 
     const source = new Doc();
     const target = new Doc();
@@ -30,7 +38,7 @@ describe("rich-text search indexer", () => {
       resourceType.schema.read({
         resourceId: "resource-1",
         storage: { content: { document: target, kind: "yjs" } },
-      }),
+      })
     ).toEqual({ "": "Persisted Yjs text" });
 
     source.destroy();
@@ -39,15 +47,17 @@ describe("rich-text search indexer", () => {
 
   it("extracts text from the resource payload", async () => {
     const indexer = richTextActivation.contributions.find(
-      (contribution) => contribution.type === "search-indexer",
+      (contribution) => contribution.type === "search-indexer"
     );
-    if (!indexer) throw new Error("Rich text search indexer was not registered");
+    if (!indexer) {
+      throw new Error("Rich text search indexer was not registered");
+    }
 
     expect(
       await indexer.extractText(
         { payload: { default: "<p>Hello searchable world</p>" } } as never,
-        { readFile: () => Promise.resolve(null) },
-      ),
+        { readFile: () => Promise.resolve(null) }
+      )
     ).toBe("Hello searchable world");
 
     expect(
@@ -57,8 +67,8 @@ describe("rich-text search indexer", () => {
             "": "<blockgroup><paragraph>Persisted Yjs text</paragraph></blockgroup>",
           },
         } as never,
-        { readFile: () => Promise.resolve(null) },
-      ),
+        { readFile: () => Promise.resolve(null) }
+      )
     ).toBe("Persisted Yjs text");
   });
 });
@@ -85,7 +95,9 @@ const actionMocks = vi.hoisted(() => ({
 const testState = vi.hoisted(() => ({
   isLoading: false,
   plainText: "",
-  persistenceListener: null as ((state: "error" | "idle" | "persisting") => void) | null,
+  persistenceListener: null as
+    | ((state: "error" | "idle" | "persisting") => void)
+    | null,
   persistenceState: "idle" as "error" | "idle" | "persisting",
   suspendEditor: false,
   yDoc: null as object | null,
@@ -137,7 +149,8 @@ vi.mock("./markdown-actions", () => ({
   openPageInChat: actionMocks.openInChat,
 }));
 vi.mock("@lunarisapp/plugin-sdk", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@lunarisapp/plugin-sdk")>();
+  const actual =
+    await importOriginal<typeof import("@lunarisapp/plugin-sdk")>();
   const { lazy } = await import("react");
   return {
     ...actual,
@@ -145,7 +158,10 @@ vi.mock("@lunarisapp/plugin-sdk", async (importOriginal) => {
     createPreloadableLazy: (
       loader: () => Promise<{ default: () => ReactNode }>
     ) => ({ Component: lazy(loader), preload: vi.fn(loader) }),
-    useCurrentUser: () => ({ user: { id: "user-1", name: "Ada" }, isLoading: false }),
+    useCurrentUser: () => ({
+      user: { id: "user-1", name: "Ada" },
+      isLoading: false,
+    }),
     useYjsAwareness: () => ({ awareness: null, status: "unavailable" }),
     useOrganizationAccess: () => ({
       canDeleteContent: true,
@@ -250,12 +266,12 @@ function getRichTextResource() {
     throw new Error("Rich text resource was not registered");
   }
   const view = richTextActivation.contributions.find(
-    (contribution) => contribution.type === "view",
+    (contribution) => contribution.type === "view"
   );
   const commands = richTextActivation.contributions.find(
-    (contribution) => contribution.type === "resource-command",
+    (contribution) => contribution.type === "resource-command"
   );
-  if (!view || view.target.kind !== "resource") {
+  if (view?.target.kind !== "resource") {
     throw new Error("Rich text view was not registered");
   }
   const adaptAction = (action: ResourceCommandItem): RegisteredAction => ({
@@ -307,7 +323,7 @@ function getRichTextResource() {
 }
 
 function richTextStatusProps(
-  documentId: string | null,
+  documentId: string | null
 ): ResourceViewStatusProps {
   return {
     params: {},
@@ -335,7 +351,7 @@ function renderRichText(opts: {
 
   const { renderer } = getRichTextResource();
 
-  return render(<>{renderer({ documentId: "doc-1", resourceId: "item-1" })}</>);
+  return render(renderer({ documentId: "doc-1", resourceId: "item-1" }));
 }
 
 afterEach(() => {
@@ -525,10 +541,12 @@ describe("rich-text actions", () => {
       await vi.waitFor(() => {
         expect(waitForDocumentPersistence).toHaveBeenCalledOnce();
       });
-      if (format !== "markdown") {
-        expect(actionMocks.toastLoading).toHaveBeenCalledWith(`Generating ${format.toUpperCase()}…`);
-      } else {
+      if (format === "markdown") {
         expect(actionMocks.toastLoading).not.toHaveBeenCalled();
+      } else {
+        expect(actionMocks.toastLoading).toHaveBeenCalledWith(
+          `Generating ${format.toUpperCase()}…`
+        );
       }
       expect(exportMock).not.toHaveBeenCalled();
 
@@ -542,60 +560,70 @@ describe("rich-text actions", () => {
         });
       });
       if (format !== "markdown") {
-        expect(actionMocks.toastSuccess).toHaveBeenCalledWith(`${format.toUpperCase()} downloaded`, {
-          id: "pdf-export",
-        });
+        expect(actionMocks.toastSuccess).toHaveBeenCalledWith(
+          `${format.toUpperCase()} downloaded`,
+          {
+            id: "pdf-export",
+          }
+        );
       }
     }
   );
 
-  it.each(["pdf", "docx"] as const)("reports %s persistence failures without starting export", async (format) => {
-    const exportGroup = getRichTextResource().actions?.find(
-      (entry) => entry.id === "export-as"
-    );
-    const action = exportGroup?.children?.find(
-      (entry) => entry.id === `export-${format}`
-    );
-    const error = new Error("write failed");
+  it.each(["pdf", "docx"] as const)(
+    "reports %s persistence failures without starting export",
+    async (format) => {
+      const exportGroup = getRichTextResource().actions?.find(
+        (entry) => entry.id === "export-as"
+      );
+      const action = exportGroup?.children?.find(
+        (entry) => entry.id === `export-${format}`
+      );
+      const error = new Error("write failed");
 
-    action?.onClick?.({
-      resourceReadContext: {
-        getAll: vi.fn(() => Promise.resolve([])),
-        getOptional: vi.fn(() => Promise.resolve(null)),
-      },
-      documentId: "yjs_1",
-      itemName: "Chapter One",
-      openRightDockPanel: vi.fn(),
-      waitForDocumentPersistence: vi.fn(() => Promise.reject(error)),
-    });
-
-    await vi.waitFor(() => {
-      expect(actionMocks.capture).toHaveBeenCalledWith("rich_text_exported", {
-        format,
-        success: false,
+      action?.onClick?.({
+        resourceReadContext: {
+          getAll: vi.fn(() => Promise.resolve([])),
+          getOptional: vi.fn(() => Promise.resolve(null)),
+        },
+        documentId: "yjs_1",
+        itemName: "Chapter One",
+        openRightDockPanel: vi.fn(),
+        waitForDocumentPersistence: vi.fn(() => Promise.reject(error)),
       });
-    });
-    expect(actionMocks.exportPdf).not.toHaveBeenCalled();
-    expect(actionMocks.exportDocx).not.toHaveBeenCalled();
-    expect(actionMocks.logError).toHaveBeenCalledWith(
-      expect.objectContaining({
-        resourceId: "item-1",
-        error,
-        format,
-      })
-    );
-    expect(actionMocks.toastError).toHaveBeenCalledWith(
-      "Unable to export document",
-      { id: "pdf-export" },
-    );
-  });
+
+      await vi.waitFor(() => {
+        expect(actionMocks.capture).toHaveBeenCalledWith("rich_text_exported", {
+          format,
+          success: false,
+        });
+      });
+      expect(actionMocks.exportPdf).not.toHaveBeenCalled();
+      expect(actionMocks.exportDocx).not.toHaveBeenCalled();
+      expect(actionMocks.logError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          resourceId: "item-1",
+          error,
+          format,
+        })
+      );
+      expect(actionMocks.toastError).toHaveBeenCalledWith(
+        "Unable to export document",
+        { id: "pdf-export" }
+      );
+    }
+  );
 
   it.each([false, true])(
     "handles DOCX generation outcome (failure=%s)",
     async (failure) => {
-      if (failure)
-        actionMocks.exportDocx.mockRejectedValueOnce(new Error("Packing failed"));
-      else actionMocks.exportDocx.mockResolvedValueOnce({ missingImages: 1 });
+      if (failure) {
+        actionMocks.exportDocx.mockRejectedValueOnce(
+          new Error("Packing failed")
+        );
+      } else {
+        actionMocks.exportDocx.mockResolvedValueOnce({ missingImages: 1 });
+      }
       const action = getRichTextResource()
         .actions?.find((entry) => entry.id === "export-as")
         ?.children?.find((entry) => entry.id === "export-docx");
@@ -611,24 +639,27 @@ describe("rich-text actions", () => {
           format: "docx",
           success: !failure,
         });
-        if (failure)
+        if (failure) {
           expect(actionMocks.toastError).toHaveBeenCalledWith(
             "Unable to export document",
-            { id: "pdf-export" },
+            { id: "pdf-export" }
           );
-        else
+        } else {
           expect(actionMocks.toastWarning).toHaveBeenCalledWith(
             "DOCX downloaded; some images were unavailable",
-            { id: "pdf-export" },
+            { id: "pdf-export" }
           );
+        }
       });
       expect(actionMocks.toastSuccess).not.toHaveBeenCalled();
-    },
+    }
   );
   it("toggles version history inside the matching rich text panel", async () => {
     renderRichText({ isLoading: false, yDoc: {} });
     const resource = getRichTextResource();
-    const action = resource?.actions?.find((entry) => entry.id === "version-history");
+    const action = resource?.actions?.find(
+      (entry) => entry.id === "version-history"
+    );
     const openRightDockPanel = vi.fn();
 
     act(() => {
@@ -676,11 +707,7 @@ describe("rich-text statusbar", () => {
   it("renders nothing without document id", () => {
     const resource = getRichTextResource();
 
-    render(
-      <>
-        {resource.statusBar?.(richTextStatusProps(null))}
-      </>
-    );
+    render(resource.statusBar?.(richTextStatusProps(null)));
 
     expect(screen.queryByText(/word/)).toBeNull();
     expect(screen.queryByText(/char/)).toBeNull();
@@ -691,11 +718,7 @@ describe("rich-text statusbar", () => {
     testState.isLoading = true;
     testState.yDoc = null;
 
-    render(
-      <>
-        {resource.statusBar?.(richTextStatusProps("doc-1"))}
-      </>
-    );
+    render(resource.statusBar?.(richTextStatusProps("doc-1")));
 
     expect(screen.queryByText(/word/)).toBeNull();
     expect(screen.queryByText(/char/)).toBeNull();
@@ -706,11 +729,7 @@ describe("rich-text statusbar", () => {
     testState.isLoading = false;
     testState.yDoc = null;
 
-    render(
-      <>
-        {resource.statusBar?.(richTextStatusProps("doc-1"))}
-      </>
-    );
+    render(resource.statusBar?.(richTextStatusProps("doc-1")));
 
     expect(screen.queryByText(/word/)).toBeNull();
     expect(screen.queryByText(/char/)).toBeNull();
@@ -721,11 +740,7 @@ describe("rich-text statusbar", () => {
     testState.plainText = "Hello world";
     testState.yDoc = createYDoc();
 
-    render(
-      <>
-        {resource.statusBar?.(richTextStatusProps("doc-1"))}
-      </>
-    );
+    render(resource.statusBar?.(richTextStatusProps("doc-1")));
 
     expect(await screen.findByText("2 words")).toBeTruthy();
     expect(await screen.findByText("10 chars")).toBeTruthy();
@@ -736,27 +751,22 @@ describe("rich-text statusbar", () => {
     testState.plainText = "A";
     testState.yDoc = createYDoc();
 
-    render(
-      <>
-        {resource.statusBar?.(richTextStatusProps("doc-1"))}
-      </>
-    );
+    render(resource.statusBar?.(richTextStatusProps("doc-1")));
 
     expect(await screen.findByText("1 word")).toBeTruthy();
     expect(await screen.findByText("1 char")).toBeTruthy();
   });
 
   it("unmounts when idle cancellation is unavailable", () => {
-    vi.stubGlobal("requestIdleCallback", vi.fn(() => 1));
+    vi.stubGlobal(
+      "requestIdleCallback",
+      vi.fn(() => 1)
+    );
     vi.stubGlobal("cancelIdleCallback", undefined);
     const resource = getRichTextResource();
     testState.yDoc = createYDoc();
 
-    const view = render(
-      <>
-        {resource.statusBar?.(richTextStatusProps("doc-1"))}
-      </>
-    );
+    const view = render(resource.statusBar?.(richTextStatusProps("doc-1")));
 
     expect(() => view.unmount()).not.toThrow();
   });
@@ -768,11 +778,7 @@ describe("rich-text statusbar", () => {
     testState.plainText = "Hello world";
     testState.yDoc = yDoc;
 
-    render(
-      <>
-        {resource.statusBar?.(richTextStatusProps("doc-1"))}
-      </>
-    );
+    render(resource.statusBar?.(richTextStatusProps("doc-1")));
     await act(async () => vi.advanceTimersByTimeAsync(0));
     expect(screen.getByText("2 words")).toBeTruthy();
 

@@ -1,6 +1,9 @@
 /** @vitest-environment happy-dom */
 
-import type { ItemInstance, TreeInstance } from "@lunarisapp/ui/components/tree";
+import type {
+  ItemInstance,
+  TreeInstance,
+} from "@lunarisapp/ui/components/tree";
 import type { WorkspaceResourceEntity } from "@repo/data/features/workspace-resources";
 import { act, renderHook } from "@testing-library/react";
 import type { RefObject } from "react";
@@ -64,7 +67,7 @@ vi.mock("@tanstack/react-hotkeys", () => ({
 
 function makeItem(
   id: string,
-  resourceTypeId: string | null,
+  resourceTypeId: string | null
 ): ItemInstance<WorkspaceResourceEntity> {
   return {
     getId: () => id,
@@ -81,9 +84,9 @@ describe("useResourceClipboardShortcuts", () => {
   });
 
   it("registers tree-scoped copy and paste hotkeys", () => {
-    const target = { current: document.createElement("div") } as RefObject<
-      HTMLDivElement | null
-    >;
+    const target = {
+      current: document.createElement("div"),
+    } as RefObject<HTMLDivElement | null>;
     const tree = {
       getSelectedItems: () => [],
     } as unknown as TreeInstance<WorkspaceResourceEntity>;
@@ -119,12 +122,11 @@ describe("useResourceClipboardShortcuts", () => {
       ],
     } as unknown as TreeInstance<WorkspaceResourceEntity>;
 
-    renderHook(
-      () =>
-        useResourceClipboardShortcuts({
-          target: { current: document.createElement("div") },
-          tree,
-        })
+    renderHook(() =>
+      useResourceClipboardShortcuts({
+        target: { current: document.createElement("div") },
+        tree,
+      })
     );
 
     act(() => capturedHotkeys.find(({ key }) => key === "Mod+C")?.handler());

@@ -22,16 +22,19 @@ const views = new Map<
 >();
 
 vi.mock("@lunarisapp/plugin-sdk", () => ({
-  useResourceType: (id: string) => resources.has(id) ? ({
-    resourceTypeId: id,
-    schema: {
-      currentVersion: resources.get(id)?.currentVersion ?? 1,
-      id: `${id}.schema`,
-    },
-    storage: resources.get(id)?.storageKind
-      ? { content: { kind: resources.get(id)!.storageKind! } }
-      : {},
-  }) : undefined,
+  useResourceType: (id: string) =>
+    resources.has(id)
+      ? {
+          resourceTypeId: id,
+          schema: {
+            currentVersion: resources.get(id)?.currentVersion ?? 1,
+            id: `${id}.schema`,
+          },
+          storage: resources.get(id)?.storageKind
+            ? { content: { kind: resources.get(id)!.storageKind! } }
+            : {},
+        }
+      : undefined,
   useView: (id: string) => {
     const view = views.get(id);
     return view
@@ -49,7 +52,7 @@ vi.mock(
     useResourceStorageSlots: () => ({
       data: [{ id: "storage-1", kind: slotKind, name: "content" }],
     }),
-  }),
+  })
 );
 
 function GridSetup({
@@ -66,14 +69,16 @@ function GridSetup({
   viewId?: string;
 }) {
   const markPanelActive = useGridLayoutStore((state) => state.markPanelActive);
-  const openResourcePanel = useGridLayoutStore((state) => state.openResourcePanel);
+  const openResourcePanel = useGridLayoutStore(
+    (state) => state.openResourcePanel
+  );
   const activePanelId = useGridLayoutStore((state) => state.activePanelId);
   const panels = useGridLayoutStore((state) => state.panels);
 
   useEffect(() => {
     openResourcePanel({
       parentId,
-      resourceId: resourceId,
+      resourceId,
       extensionId: pluginId,
       resourceTypeId: pluginId,
       viewId: viewId ?? pluginId,
@@ -90,7 +95,9 @@ function GridSetup({
   ]);
 
   useEffect(() => {
-    const panel = panels.find((entry) => entry.params?.resourceId === resourceId);
+    const panel = panels.find(
+      (entry) => entry.params?.resourceId === resourceId
+    );
     if (panel && activePanelId !== panel.id) {
       markPanelActive(panel.id);
     }
@@ -175,7 +182,7 @@ describe("ActiveResourceStatusBar", () => {
     });
 
     renderStatusbar(
-      <GridSetup pluginId="acme.note" viewId="acme.note.preview" />,
+      <GridSetup pluginId="acme.note" viewId="acme.note.preview" />
     );
 
     expect(await screen.findByText("Preview status")).toBeTruthy();
@@ -195,11 +202,7 @@ describe("ActiveResourceStatusBar", () => {
     });
 
     renderStatusbar(
-      <GridSetup
-        parentId="folder-1"
-        pluginId="acme.file"
-        schemaVersion={0}
-      />,
+      <GridSetup parentId="folder-1" pluginId="acme.file" schemaVersion={0} />
     );
 
     expect(await screen.findByText("File status")).toBeTruthy();

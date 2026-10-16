@@ -106,9 +106,9 @@ describe("user menus", () => {
 
     const settings = screen.getByRole("menuitem", { name: "Settings" });
     expect(settings).toBeTruthy();
-    expect(settings.querySelector("[data-slot=dropdown-menu-shortcut]")?.textContent).toBe(
-      "⌘,"
-    );
+    expect(
+      settings.querySelector("[data-slot=dropdown-menu-shortcut]")?.textContent
+    ).toBe("⌘,");
     expect(screen.getByRole("menuitem", { name: "Add account" })).toBeTruthy();
     expect(screen.getByRole("menuitem", { name: "Log out" })).toBeTruthy();
     expect(screen.queryByText("Switch organization")).toBeNull();

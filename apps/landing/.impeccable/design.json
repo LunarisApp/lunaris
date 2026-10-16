@@ -1,210 +1,410 @@
 {
-  "schemaVersion": 2,
-  "generatedAt": "2026-08-12T18:42:28Z",
-  "title": "Design System: Lunaris Marketing",
-  "extensions": {
-    "colorMeta": {
-      "parchment": {
-        "role": "neutral",
-        "displayName": "Parchment",
-        "tonalRamp": ["oklch(15.3% 0.006 107.1)", "oklch(22.8% 0.013 107.4)", "oklch(28.6% 0.016 107.4)", "oklch(39.4% 0.023 107.4)", "oklch(58% 0.031 107.3)", "oklch(73.7% 0.021 106.9)", "oklch(88% 0.011 106.6)", "oklch(98.8% 0.003 106.5)"]
-      },
-      "warm-paper": {
-        "role": "neutral",
-        "displayName": "Warm Paper",
-        "tonalRamp": ["oklch(15.3% 0.006 107.1)", "oklch(22.8% 0.013 107.4)", "oklch(28.6% 0.016 107.4)", "oklch(39.4% 0.023 107.4)", "oklch(58% 0.031 107.3)", "oklch(73.7% 0.021 106.9)", "oklch(88% 0.011 106.6)", "oklch(96.6% 0.005 106.5)"]
-      },
-      "paper-shadow": {
-        "role": "neutral",
-        "displayName": "Paper Shadow",
-        "tonalRamp": ["oklch(15.3% 0.006 107.1)", "oklch(22.8% 0.013 107.4)", "oklch(28.6% 0.016 107.4)", "oklch(39.4% 0.023 107.4)", "oklch(58% 0.031 107.3)", "oklch(73.7% 0.021 106.9)", "oklch(88% 0.011 106.6)", "oklch(93% 0.007 106.5)"]
-      },
-      "sage-wash": {
-        "role": "secondary",
-        "displayName": "Sage Wash",
-        "tonalRamp": ["oklch(15.3% 0.006 107.1)", "oklch(22.8% 0.013 107.4)", "oklch(28.6% 0.016 107.4)", "oklch(39.4% 0.023 107.4)", "oklch(58% 0.031 107.3)", "oklch(73.7% 0.021 106.9)", "oklch(88% 0.011 106.6)", "oklch(96.6% 0.005 106.5)"]
-      },
-      "dry-sage": {
-        "role": "secondary",
-        "displayName": "Dry Sage",
-        "tonalRamp": ["oklch(15.3% 0.006 107.1)", "oklch(22.8% 0.013 107.4)", "oklch(28.6% 0.016 107.4)", "oklch(39.4% 0.023 107.4)", "oklch(58% 0.031 107.3)", "oklch(73.7% 0.021 106.9)", "oklch(88% 0.011 106.6)", "oklch(96.6% 0.005 106.5)"]
-      },
-      "weathered-olive": {
-        "role": "secondary",
-        "displayName": "Weathered Olive",
-        "tonalRamp": ["oklch(15.3% 0.006 107.1)", "oklch(22.8% 0.013 107.4)", "oklch(28.6% 0.016 107.4)", "oklch(39.4% 0.023 107.4)", "oklch(58% 0.031 107.3)", "oklch(73.7% 0.021 106.9)", "oklch(88% 0.011 106.6)", "oklch(96.6% 0.005 106.5)"]
-      },
-      "olive-bark": {
-        "role": "neutral",
-        "displayName": "Olive Bark",
-        "tonalRamp": ["oklch(15.3% 0.006 107.1)", "oklch(22.8% 0.013 107.4)", "oklch(28.6% 0.016 107.4)", "oklch(39.4% 0.023 107.4)", "oklch(46.6% 0.025 107.3)", "oklch(58% 0.031 107.3)", "oklch(73.7% 0.021 106.9)", "oklch(96.6% 0.005 106.5)"]
-      },
-      "field-ink": {
-        "role": "neutral",
-        "displayName": "Field Ink",
-        "tonalRamp": ["oklch(15.3% 0.006 107.1)", "oklch(22.8% 0.013 107.4)", "oklch(28.6% 0.016 107.4)", "oklch(39.4% 0.023 107.4)", "oklch(46.6% 0.025 107.3)", "oklch(58% 0.031 107.3)", "oklch(73.7% 0.021 106.9)", "oklch(96.6% 0.005 106.5)"]
-      },
-      "deep-grove": {
-        "role": "neutral",
-        "displayName": "Deep Grove",
-        "tonalRamp": ["oklch(15.3% 0.006 107.1)", "oklch(22.8% 0.013 107.4)", "oklch(28.6% 0.016 107.4)", "oklch(39.4% 0.023 107.4)", "oklch(46.6% 0.025 107.3)", "oklch(58% 0.031 107.3)", "oklch(73.7% 0.021 106.9)", "oklch(96.6% 0.005 106.5)"]
-      },
-      "press-ink": {
-        "role": "primary",
-        "displayName": "Press Ink",
-        "tonalRamp": ["oklch(15.3% 0.006 107.1)", "oklch(22.8% 0.013 107.4)", "oklch(28.6% 0.016 107.4)", "oklch(39.4% 0.023 107.4)", "oklch(46.6% 0.025 107.3)", "oklch(58% 0.031 107.3)", "oklch(73.7% 0.021 106.9)", "oklch(96.6% 0.005 106.5)"]
-      },
-      "black-olive": {
-        "role": "primary",
-        "displayName": "Black Olive",
-        "tonalRamp": ["oklch(15.3% 0.006 107.1)", "oklch(22.8% 0.013 107.4)", "oklch(28.6% 0.016 107.4)", "oklch(39.4% 0.023 107.4)", "oklch(46.6% 0.025 107.3)", "oklch(58% 0.031 107.3)", "oklch(73.7% 0.021 106.9)", "oklch(96.6% 0.005 106.5)"]
-      },
-      "clear-white": {
-        "role": "neutral",
-        "displayName": "Clear White",
-        "tonalRamp": ["#262626", "#404040", "#595959", "#737373", "#8c8c8c", "#a6a6a6", "#cccccc", "#f2f2f2"]
-      },
-      "error-red": {
-        "role": "tertiary",
-        "displayName": "Error Red",
-        "tonalRamp": ["oklch(25% 0.12 27)", "oklch(35% 0.16 27)", "oklch(45% 0.2 27)", "oklch(55% 0.23 27)", "oklch(65% 0.2 27)", "oklch(75% 0.16 27)", "oklch(85% 0.1 27)", "oklch(95% 0.04 27)"]
-      }
-    },
-    "typographyMeta": {
-      "display-mobile": {"displayName": "Display — Mobile", "purpose": "Hero claims below the small breakpoint."},
-      "display": {"displayName": "Display", "purpose": "Hero claims from the small breakpoint upward."},
-      "headline-mobile": {"displayName": "Headline — Mobile", "purpose": "Section claims below the small breakpoint."},
-      "headline": {"displayName": "Headline", "purpose": "Section claims from the small breakpoint upward."},
-      "body": {"displayName": "Body", "purpose": "Standard explanations and evidence."},
-      "body-large": {"displayName": "Body Large", "purpose": "Hero support copy and key introductory passages."},
-      "control": {"displayName": "Control", "purpose": "Buttons, navigation, selectors, and form controls."},
-      "label": {"displayName": "Label", "purpose": "Eyebrows, badges, metadata, and fineprint."},
-      "wordmark": {"displayName": "Wordmark", "purpose": "Lunaris brand name only."}
-    },
-    "shadows": [
-      {"name": "paper-lift", "value": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)", "purpose": "Badges, translucent illustration cards, and quiet interactive surfaces."},
-      {"name": "portal-object", "value": "0 0 60px -5px rgba(0,0,0,0.7)", "purpose": "Screenshots and objects placed inside weathered wallpaper."},
-      {"name": "hero-proof", "value": "0 30px 90px -35px rgba(31,31,27,0.55)", "purpose": "The main framed product demonstration."},
-      {"name": "utility-overlay", "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)", "purpose": "Skip links and transient overlay controls."}
-    ],
-    "motion": [
-      {"name": "interaction-standard", "value": "150ms cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Color, border, opacity, and arrow feedback."},
-      {"name": "card-lift", "value": "300ms cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Two-pixel bento-card hover lift."},
-      {"name": "reduced-motion", "value": "none", "purpose": "Remove nonessential movement when reduced motion is requested."}
-    ],
-    "breakpoints": [
-      {"name": "sm", "value": "40rem"},
-      {"name": "md", "value": "48rem"},
-      {"name": "lg", "value": "64rem"},
-      {"name": "xl", "value": "80rem"}
-    ]
-  },
-  "components": [
-    {
-      "name": "Primary Button",
-      "kind": "button",
-      "refersTo": "button-primary",
-      "description": "Assured pill CTA using the darkest olive role.",
-      "html": "<button class=\"ds-button-primary\">Open Lunaris</button>",
-      "css": ".ds-button-primary { display:inline-flex;align-items:center;justify-content:center;gap:.25rem;padding:.5rem 1rem;border:0;border-radius:9999px;background:var(--color-olive-950,oklch(15.3% .006 107.1));color:#fff;font:500 .875rem/1.75rem Inter,system-ui,sans-serif;transition:background 150ms cubic-bezier(.4,0,.2,1); } .ds-button-primary:hover { background:var(--color-olive-800,oklch(28.6% .016 107.4)); } .ds-button-primary:focus-visible { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; } .ds-button-primary:active { background:var(--color-olive-900,oklch(22.8% .013 107.4)); }"
-    },
-    {
-      "name": "Soft Button",
-      "kind": "button",
-      "refersTo": "button-soft",
-      "description": "Low-emphasis pill action with translucent ink fill.",
-      "html": "<button class=\"ds-button-soft\">Learn more</button>",
-      "css": ".ds-button-soft { display:inline-flex;align-items:center;justify-content:center;gap:.25rem;padding:.25rem .75rem;border:0;border-radius:9999px;background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent);color:var(--color-olive-950,oklch(15.3% .006 107.1));font:500 .875rem/1.75rem Inter,system-ui,sans-serif;transition:background 150ms cubic-bezier(.4,0,.2,1); } .ds-button-soft:hover { background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 15%,transparent); } .ds-button-soft:focus-visible { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; } .ds-button-soft:active { background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 20%,transparent); }"
-    },
-    {
-      "name": "Demo Form Field",
-      "kind": "input",
-      "refersTo": "input-default",
-      "description": "Soft white field with an inset editorial ring.",
-      "html": "<label class=\"ds-field-label\" for=\"ds-company\">Company</label><input class=\"ds-field\" id=\"ds-company\" placeholder=\"Your company\" />",
-      "css": ".ds-field-label { display:block;margin-bottom:.375rem;color:var(--color-olive-950,oklch(15.3% .006 107.1));font:500 .875rem/1.5rem Inter,system-ui,sans-serif; } .ds-field { box-sizing:border-box;width:100%;padding:.625rem 1rem;border:0;border-radius:.75rem;background:#fff;color:var(--color-olive-950,oklch(15.3% .006 107.1));box-shadow:inset 0 0 0 1px color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent);font:400 .875rem/1.75rem Inter,system-ui,sans-serif;transition:box-shadow 150ms cubic-bezier(.4,0,.2,1); } .ds-field::placeholder { color:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 40%,transparent); } .ds-field:hover { box-shadow:inset 0 0 0 1px color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 20%,transparent); } .ds-field:focus-visible { outline:none;box-shadow:inset 0 0 0 2px color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 30%,transparent); }"
-    },
-    {
-      "name": "Announcement Pill",
-      "kind": "chip",
-      "refersTo": "announcement-pill",
-      "description": "Translucent editorial capsule with inset badge and directional cue.",
-      "html": "<a class=\"ds-announcement\" href=\"#\"><span class=\"ds-announcement-badge\">New</span><span>Meet the Lunaris MCP</span><svg aria-hidden=\"true\" class=\"ds-announcement-arrow\" fill=\"none\" viewBox=\"0 0 24 24\"><path d=\"M5 12h14m-6-6 6 6-6 6\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\"/></svg></a>",
-      "css": ".ds-announcement { display:inline-flex;align-items:center;gap:.5rem;padding:.25rem .75rem .25rem .25rem;border:1px solid color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent);border-radius:9999px;background:rgb(255 255 255/.5);color:var(--color-olive-800,oklch(28.6% .016 107.4));box-shadow:0 1px 3px rgb(0 0 0/.1);font:500 .875rem/1.5rem Inter,system-ui,sans-serif;text-decoration:none;transition:background 150ms,border-color 150ms; } .ds-announcement-badge { padding:.125rem .5rem;border-radius:9999px;background:var(--color-olive-950,oklch(15.3% .006 107.1));color:#fff;font-size:.75rem;font-weight:600; } .ds-announcement-arrow { width:1rem;height:1rem;transition:transform 150ms; } .ds-announcement:hover { border-color:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 15%,transparent);background:rgb(255 255 255/.8); } .ds-announcement:hover .ds-announcement-arrow { transform:translateX(2px); } .ds-announcement:focus-visible { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; }"
-    },
-    {
-      "name": "Pricing Card",
-      "kind": "card",
-      "refersTo": "pricing-card",
-      "description": "Quiet, barely tinted plan container with no default shadow.",
-      "html": "<article class=\"ds-pricing-card\"><span class=\"ds-pricing-badge\">Popular</span><h3>Studio</h3><p class=\"ds-price\">$12 <small>/ month</small></p><p>For writers and small teams who want private, flexible workspaces.</p></article>",
-      "css": ".ds-pricing-card { position:relative;display:flex;flex-direction:column;gap:1rem;padding:1.5rem;border-radius:.75rem;background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 2.5%,transparent);color:var(--color-olive-700,oklch(39.4% .023 107.4));font:400 .875rem/1.5rem Inter,system-ui,sans-serif;transition:background 150ms; } .ds-pricing-card:hover { background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 5%,transparent); } .ds-pricing-card:focus-within { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; } .ds-pricing-card h3 { margin:0;color:var(--color-olive-950,oklch(15.3% .006 107.1));font-size:1.5rem;line-height:2rem;font-weight:400;letter-spacing:-.025em; } .ds-price { margin:0;color:var(--color-olive-950,oklch(15.3% .006 107.1));font-size:1rem; } .ds-price small { color:var(--color-olive-500,oklch(58% .031 107.3));font-size:inherit; } .ds-pricing-badge { align-self:flex-end;padding:0 .5rem;border-radius:9999px;background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent);color:var(--color-olive-950,oklch(15.3% .006 107.1));font-size:.75rem;font-weight:500; }"
-    },
-    {
-      "name": "Bento Portal Card",
-      "kind": "card",
-      "refersTo": "bento-card",
-      "description": "Signature grainy gradient portal for feature storytelling.",
-      "html": "<article class=\"ds-bento\"><div class=\"ds-bento-art\"><svg aria-hidden=\"true\" fill=\"none\" viewBox=\"0 0 24 24\"><path d=\"M12 3v18M3 12h18M5.64 5.64l12.72 12.72m0-12.72L5.64 18.36\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-width=\"1.25\"/></svg></div><div><h3>Offline first</h3><p>Keep working wherever the day takes you.</p></div></article>",
-      "css": ".ds-bento { position:relative;display:flex;min-height:20rem;overflow:hidden;flex-direction:column;justify-content:space-between;gap:1.5rem;padding:1.75rem;border-radius:1rem;background:linear-gradient(to bottom,#7b627d,#8f6976);color:#fff;box-shadow:0 0 0 1px rgb(20 20 17/.06);font-family:Inter,system-ui,sans-serif;transition:transform 300ms cubic-bezier(.4,0,.2,1); } .ds-bento::before { content:\"\";position:absolute;inset:0;opacity:.13;background-image:radial-gradient(rgb(255 255 255/.35) .5px,transparent .5px);background-size:3px 3px;mix-blend-mode:overlay;pointer-events:none; } .ds-bento:hover { transform:translateY(-2px); } .ds-bento:focus-within { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; } .ds-bento > * { position:relative; } .ds-bento-art { display:grid;place-items:center;min-height:8rem; } .ds-bento-art svg { box-sizing:border-box;width:5rem;height:5rem;padding:1.5rem;border:1px solid rgb(255 255 255/.15);border-radius:1.5rem;background:rgb(255 255 255/.1);box-shadow:0 1px 3px rgb(0 0 0/.1); } .ds-bento h3 { margin:0;font-size:1.125rem;font-weight:500;letter-spacing:-.025em; } .ds-bento p { margin:.5rem 0 0;color:rgb(255 255 255/.7);font-size:.875rem;line-height:1.75rem; }"
-    },
-    {
-      "name": "Product Screenshot Frame",
-      "kind": "custom",
-      "refersTo": "screenshot-frame",
-      "description": "Broad sage mat and nested dark print for hero product evidence.",
-      "html": "<div class=\"ds-screenshot-frame\"><div class=\"ds-screenshot\"><div class=\"ds-screenshot-bar\"></div><div class=\"ds-screenshot-copy\"><span></span><span></span><span></span></div></div></div>",
-      "css": ".ds-screenshot-frame { padding:.5rem;border-radius:1rem;background:color-mix(in oklch,var(--color-olive-300,oklch(88% .011 106.6)) 70%,transparent);box-shadow:0 30px 90px -35px rgba(31,31,27,.55),0 0 0 1px color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent); } .ds-screenshot { overflow:hidden;min-height:12rem;border-radius:.75rem;background:var(--color-olive-950,oklch(15.3% .006 107.1));box-shadow:0 0 0 1px rgb(0 0 0/.15); } .ds-screenshot-bar { height:2rem;border-bottom:1px solid rgb(255 255 255/.12); } .ds-screenshot-copy { display:flex;flex-direction:column;gap:.75rem;padding:2rem; } .ds-screenshot-copy span { display:block;height:.5rem;border-radius:9999px;background:rgb(255 255 255/.3); } .ds-screenshot-copy span:nth-child(2) { width:80%; } .ds-screenshot-copy span:nth-child(3) { width:60%; } .ds-screenshot-frame:hover { box-shadow:0 30px 90px -30px rgba(31,31,27,.6),0 0 0 1px color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 15%,transparent); } .ds-screenshot-frame:focus-within { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; }"
-    },
-    {
-      "name": "Marketing Navigation",
-      "kind": "nav",
-      "refersTo": "navbar",
-      "description": "Sticky warm-paper bar with sparse links and centered canonical wordmark.",
-      "html": "<nav class=\"ds-navbar\"><div class=\"ds-nav-links\"><a href=\"#pricing\">Pricing</a><a href=\"https://docs.lunaris.app\">Documentation</a><a href=\"#mcp\">MCP</a><a href=\"#contact\">Contact</a></div><a class=\"ds-wordmark\" href=\"#\"><svg aria-hidden=\"true\" class=\"ds-mark\" viewBox=\"0 0 24 24\"><path d=\"M4 10.75h3.2c3.2 0 5.8-1.9 7-4.6M4.4 14.2A8 8 0 0 1 7.2 13h3.2c3.5 0 6.6-1.8 8.4-4.5M5.6 17.3A8 8 0 0 1 9 16.5h3.2c2.8 0 5.4-1.2 7.2-3.1M4.2 7.7A13 13 0 0 1 8 7.1h3.2c1.8 0 3.3-1.5 3.3-3.3\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-width=\"1.5\"/></svg><span>Lunaris</span></a><div class=\"ds-nav-actions\"><button>EN</button><button aria-label=\"Change theme\"><svg aria-hidden=\"true\" fill=\"none\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"4\" stroke=\"currentColor\" stroke-width=\"1.5\"/><path d=\"M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-width=\"1.5\"/></svg></button></div></nav>",
-      "css": ".ds-navbar { display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1rem;height:5.25rem;padding:0 1.5rem;background:var(--color-olive-100,oklch(96.6% .005 106.5));color:var(--color-olive-950,oklch(15.3% .006 107.1));font:500 .875rem/1.75rem Inter,system-ui,sans-serif; } .ds-nav-links { display:flex;gap:2rem; } .ds-navbar a { color:inherit;text-decoration:none; } .ds-nav-links a:hover { color:var(--color-olive-700,oklch(39.4% .023 107.4)); } .ds-navbar a:focus-visible,.ds-navbar button:focus-visible { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; } .ds-wordmark { display:inline-flex;align-items:center;gap:.625rem;font:650 1.25rem/1 Inter,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase; } .ds-mark { width:2rem;height:2rem; } .ds-nav-actions { display:flex;justify-content:flex-end;gap:.75rem; } .ds-nav-actions button { display:inline-grid;place-items:center;min-width:2rem;min-height:2rem;padding:.375rem;border:0;border-radius:9999px;background:transparent;color:inherit;font:500 .875rem/1 Inter,system-ui,sans-serif; } .ds-nav-actions button:hover { background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent); } .ds-nav-actions svg { width:1rem;height:1rem; }"
-    },
-    {
-      "name": "FAQ Row",
-      "kind": "custom",
-      "refersTo": "faq-row",
-      "description": "Flat editorial disclosure separated by fine olive rules.",
-      "html": "<details class=\"ds-faq\"><summary>Can I keep files only on my device?<span>+</span></summary><p>Yes. Local-first options let sensitive material remain on device.</p></details>",
-      "css": ".ds-faq { border-top:1px solid color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent);border-bottom:1px solid color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent);color:var(--color-olive-950,oklch(15.3% .006 107.1));font-family:Inter,system-ui,sans-serif; } .ds-faq summary { display:flex;justify-content:space-between;gap:1.5rem;padding:1rem 0;cursor:pointer;font-size:1rem;line-height:1.75rem;list-style:none; } .ds-faq summary:hover { color:var(--color-olive-700,oklch(39.4% .023 107.4)); } .ds-faq summary:focus-visible { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; } .ds-faq summary span { font-size:1.25rem; } .ds-faq[open] summary span { transform:rotate(45deg); } .ds-faq p { margin:-.5rem 3rem 1rem 0;color:var(--color-olive-700,oklch(39.4% .023 107.4));font-size:.875rem;line-height:1.75rem; }"
-    }
-  ],
-  "narrative": {
-    "northStar": "The Living Manuscript",
-    "overview": "Lunaris marketing feels like an editorial object that is still being made: refined, grounded, and quietly confident. Instrument Serif supplies an expressive publishing voice, Inter keeps evidence and actions legible, and the olive paper field gives every page a warm physical atmosphere. Large type and generous pauses persuade without shouting.\n\nWeathered wallpaper portals bring the manuscript to life. Muted, multi-hue gradients with fine grain hold product screenshots, diagrams, and feature illustrations as evidence within the story. The world rejects neon-gradient SaaS spectacle, corporate blue convention, and sterile monochrome minimalism; its color is atmospheric, tactile, and controlled.",
-    "keyCharacteristics": [
-      "Editorial serif headlines paired with precise sans-serif copy.",
-      "Warm olive paper across light and dark themes.",
-      "Pill actions and fine translucent rings rather than hard boxes.",
-      "Weathered gradient portals with grain, illustration, or product evidence.",
-      "Broad content rhythm, restrained copy widths, and strong responsive composition."
-    ],
-    "rules": [
-      {"name": "Printed Olive", "body": "Structural surfaces, navigation, copy, and calls to action stay inside the olive ramp. Multi-hue color belongs inside a wallpaper portal or a purposeful illustration.", "section": "colors"},
-      {"name": "Portal Contrast", "body": "Content inside a wallpaper portal uses clear white, translucent white, and fine dark or light rings; it does not import the page's full olive hierarchy.", "section": "colors"},
-      {"name": "Serif Claims", "body": "Instrument Serif makes claims; Inter explains, proves, labels, and invites action. Do not use the display face for dense data, controls, or body copy.", "section": "typography"},
-      {"name": "Narrow Claim, Wide Proof", "body": "Keep prose constrained enough to read as editorial copy, then allow screenshots, bento grids, tables, and illustrations to use the full container as proof.", "section": "layout"},
-      {"name": "Evidence Casts Shadow", "body": "Shadows belong to product proof, lifted illustration fragments, or active overlays. Headlines and ordinary sections stay on the paper plane.", "section": "elevation"},
-      {"name": "Nested Frame", "body": "Outer portal radius is broader than the screenshot or artwork it contains. Preserve this visible step instead of giving every nested surface the same corners.", "section": "shapes"},
-      {"name": "Softly Tactile", "body": "Interaction should feel like touching paper, ink, or a mounted object: a tonal shift, a fine ring, or a two-pixel lift is enough.", "section": "components"}
-    ],
-    "dos": [
-      "Do pair Instrument Serif claims with concise Inter explanation and evidence.",
-      "Do use the olive ramp for all structural light and dark theme decisions.",
-      "Do contain expressive color inside clipped, grainy wallpaper portals.",
-      "Do keep copy narrow and let product proof occupy the wider composition.",
-      "Do preserve visible keyboard focus, localized expansion, and motion-reduced alternatives."
-    ],
-    "donts": [
-      "Don't introduce neon gradients, corporate blue defaults, or glossy glassmorphism.",
-      "Don't place multicolor atmosphere behind long-form copy or global navigation.",
-      "Don't use large shadows on ordinary text sections, pricing cards, or static page chrome.",
-      "Don't flatten every nested object to the same radius; preserve the portal and print hierarchy.",
-      "Don't use Instrument Serif for controls, tables, form fields, or explanatory paragraphs."
-    ]
-  }
+	"schemaVersion": 2,
+	"generatedAt": "2026-08-12T18:42:28Z",
+	"title": "Design System: Lunaris Marketing",
+	"extensions": {
+		"colorMeta": {
+			"parchment": {
+				"role": "neutral",
+				"displayName": "Parchment",
+				"tonalRamp": [
+					"oklch(15.3% 0.006 107.1)",
+					"oklch(22.8% 0.013 107.4)",
+					"oklch(28.6% 0.016 107.4)",
+					"oklch(39.4% 0.023 107.4)",
+					"oklch(58% 0.031 107.3)",
+					"oklch(73.7% 0.021 106.9)",
+					"oklch(88% 0.011 106.6)",
+					"oklch(98.8% 0.003 106.5)"
+				]
+			},
+			"warm-paper": {
+				"role": "neutral",
+				"displayName": "Warm Paper",
+				"tonalRamp": [
+					"oklch(15.3% 0.006 107.1)",
+					"oklch(22.8% 0.013 107.4)",
+					"oklch(28.6% 0.016 107.4)",
+					"oklch(39.4% 0.023 107.4)",
+					"oklch(58% 0.031 107.3)",
+					"oklch(73.7% 0.021 106.9)",
+					"oklch(88% 0.011 106.6)",
+					"oklch(96.6% 0.005 106.5)"
+				]
+			},
+			"paper-shadow": {
+				"role": "neutral",
+				"displayName": "Paper Shadow",
+				"tonalRamp": [
+					"oklch(15.3% 0.006 107.1)",
+					"oklch(22.8% 0.013 107.4)",
+					"oklch(28.6% 0.016 107.4)",
+					"oklch(39.4% 0.023 107.4)",
+					"oklch(58% 0.031 107.3)",
+					"oklch(73.7% 0.021 106.9)",
+					"oklch(88% 0.011 106.6)",
+					"oklch(93% 0.007 106.5)"
+				]
+			},
+			"sage-wash": {
+				"role": "secondary",
+				"displayName": "Sage Wash",
+				"tonalRamp": [
+					"oklch(15.3% 0.006 107.1)",
+					"oklch(22.8% 0.013 107.4)",
+					"oklch(28.6% 0.016 107.4)",
+					"oklch(39.4% 0.023 107.4)",
+					"oklch(58% 0.031 107.3)",
+					"oklch(73.7% 0.021 106.9)",
+					"oklch(88% 0.011 106.6)",
+					"oklch(96.6% 0.005 106.5)"
+				]
+			},
+			"dry-sage": {
+				"role": "secondary",
+				"displayName": "Dry Sage",
+				"tonalRamp": [
+					"oklch(15.3% 0.006 107.1)",
+					"oklch(22.8% 0.013 107.4)",
+					"oklch(28.6% 0.016 107.4)",
+					"oklch(39.4% 0.023 107.4)",
+					"oklch(58% 0.031 107.3)",
+					"oklch(73.7% 0.021 106.9)",
+					"oklch(88% 0.011 106.6)",
+					"oklch(96.6% 0.005 106.5)"
+				]
+			},
+			"weathered-olive": {
+				"role": "secondary",
+				"displayName": "Weathered Olive",
+				"tonalRamp": [
+					"oklch(15.3% 0.006 107.1)",
+					"oklch(22.8% 0.013 107.4)",
+					"oklch(28.6% 0.016 107.4)",
+					"oklch(39.4% 0.023 107.4)",
+					"oklch(58% 0.031 107.3)",
+					"oklch(73.7% 0.021 106.9)",
+					"oklch(88% 0.011 106.6)",
+					"oklch(96.6% 0.005 106.5)"
+				]
+			},
+			"olive-bark": {
+				"role": "neutral",
+				"displayName": "Olive Bark",
+				"tonalRamp": [
+					"oklch(15.3% 0.006 107.1)",
+					"oklch(22.8% 0.013 107.4)",
+					"oklch(28.6% 0.016 107.4)",
+					"oklch(39.4% 0.023 107.4)",
+					"oklch(46.6% 0.025 107.3)",
+					"oklch(58% 0.031 107.3)",
+					"oklch(73.7% 0.021 106.9)",
+					"oklch(96.6% 0.005 106.5)"
+				]
+			},
+			"field-ink": {
+				"role": "neutral",
+				"displayName": "Field Ink",
+				"tonalRamp": [
+					"oklch(15.3% 0.006 107.1)",
+					"oklch(22.8% 0.013 107.4)",
+					"oklch(28.6% 0.016 107.4)",
+					"oklch(39.4% 0.023 107.4)",
+					"oklch(46.6% 0.025 107.3)",
+					"oklch(58% 0.031 107.3)",
+					"oklch(73.7% 0.021 106.9)",
+					"oklch(96.6% 0.005 106.5)"
+				]
+			},
+			"deep-grove": {
+				"role": "neutral",
+				"displayName": "Deep Grove",
+				"tonalRamp": [
+					"oklch(15.3% 0.006 107.1)",
+					"oklch(22.8% 0.013 107.4)",
+					"oklch(28.6% 0.016 107.4)",
+					"oklch(39.4% 0.023 107.4)",
+					"oklch(46.6% 0.025 107.3)",
+					"oklch(58% 0.031 107.3)",
+					"oklch(73.7% 0.021 106.9)",
+					"oklch(96.6% 0.005 106.5)"
+				]
+			},
+			"press-ink": {
+				"role": "primary",
+				"displayName": "Press Ink",
+				"tonalRamp": [
+					"oklch(15.3% 0.006 107.1)",
+					"oklch(22.8% 0.013 107.4)",
+					"oklch(28.6% 0.016 107.4)",
+					"oklch(39.4% 0.023 107.4)",
+					"oklch(46.6% 0.025 107.3)",
+					"oklch(58% 0.031 107.3)",
+					"oklch(73.7% 0.021 106.9)",
+					"oklch(96.6% 0.005 106.5)"
+				]
+			},
+			"black-olive": {
+				"role": "primary",
+				"displayName": "Black Olive",
+				"tonalRamp": [
+					"oklch(15.3% 0.006 107.1)",
+					"oklch(22.8% 0.013 107.4)",
+					"oklch(28.6% 0.016 107.4)",
+					"oklch(39.4% 0.023 107.4)",
+					"oklch(46.6% 0.025 107.3)",
+					"oklch(58% 0.031 107.3)",
+					"oklch(73.7% 0.021 106.9)",
+					"oklch(96.6% 0.005 106.5)"
+				]
+			},
+			"clear-white": {
+				"role": "neutral",
+				"displayName": "Clear White",
+				"tonalRamp": [
+					"#262626",
+					"#404040",
+					"#595959",
+					"#737373",
+					"#8c8c8c",
+					"#a6a6a6",
+					"#cccccc",
+					"#f2f2f2"
+				]
+			},
+			"error-red": {
+				"role": "tertiary",
+				"displayName": "Error Red",
+				"tonalRamp": [
+					"oklch(25% 0.12 27)",
+					"oklch(35% 0.16 27)",
+					"oklch(45% 0.2 27)",
+					"oklch(55% 0.23 27)",
+					"oklch(65% 0.2 27)",
+					"oklch(75% 0.16 27)",
+					"oklch(85% 0.1 27)",
+					"oklch(95% 0.04 27)"
+				]
+			}
+		},
+		"typographyMeta": {
+			"display-mobile": {
+				"displayName": "Display — Mobile",
+				"purpose": "Hero claims below the small breakpoint."
+			},
+			"display": {
+				"displayName": "Display",
+				"purpose": "Hero claims from the small breakpoint upward."
+			},
+			"headline-mobile": {
+				"displayName": "Headline — Mobile",
+				"purpose": "Section claims below the small breakpoint."
+			},
+			"headline": {
+				"displayName": "Headline",
+				"purpose": "Section claims from the small breakpoint upward."
+			},
+			"body": {
+				"displayName": "Body",
+				"purpose": "Standard explanations and evidence."
+			},
+			"body-large": {
+				"displayName": "Body Large",
+				"purpose": "Hero support copy and key introductory passages."
+			},
+			"control": {
+				"displayName": "Control",
+				"purpose": "Buttons, navigation, selectors, and form controls."
+			},
+			"label": {
+				"displayName": "Label",
+				"purpose": "Eyebrows, badges, metadata, and fineprint."
+			},
+			"wordmark": {
+				"displayName": "Wordmark",
+				"purpose": "Lunaris brand name only."
+			}
+		},
+		"shadows": [
+			{
+				"name": "paper-lift",
+				"value": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+				"purpose": "Badges, translucent illustration cards, and quiet interactive surfaces."
+			},
+			{
+				"name": "portal-object",
+				"value": "0 0 60px -5px rgba(0,0,0,0.7)",
+				"purpose": "Screenshots and objects placed inside weathered wallpaper."
+			},
+			{
+				"name": "hero-proof",
+				"value": "0 30px 90px -35px rgba(31,31,27,0.55)",
+				"purpose": "The main framed product demonstration."
+			},
+			{
+				"name": "utility-overlay",
+				"value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+				"purpose": "Skip links and transient overlay controls."
+			}
+		],
+		"motion": [
+			{
+				"name": "interaction-standard",
+				"value": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
+				"purpose": "Color, border, opacity, and arrow feedback."
+			},
+			{
+				"name": "card-lift",
+				"value": "300ms cubic-bezier(0.4, 0, 0.2, 1)",
+				"purpose": "Two-pixel bento-card hover lift."
+			},
+			{
+				"name": "reduced-motion",
+				"value": "none",
+				"purpose": "Remove nonessential movement when reduced motion is requested."
+			}
+		],
+		"breakpoints": [
+			{ "name": "sm", "value": "40rem" },
+			{ "name": "md", "value": "48rem" },
+			{ "name": "lg", "value": "64rem" },
+			{ "name": "xl", "value": "80rem" }
+		]
+	},
+	"components": [
+		{
+			"name": "Primary Button",
+			"kind": "button",
+			"refersTo": "button-primary",
+			"description": "Assured pill CTA using the darkest olive role.",
+			"html": "<button class=\"ds-button-primary\">Open Lunaris</button>",
+			"css": ".ds-button-primary { display:inline-flex;align-items:center;justify-content:center;gap:.25rem;padding:.5rem 1rem;border:0;border-radius:9999px;background:var(--color-olive-950,oklch(15.3% .006 107.1));color:#fff;font:500 .875rem/1.75rem Inter,system-ui,sans-serif;transition:background 150ms cubic-bezier(.4,0,.2,1); } .ds-button-primary:hover { background:var(--color-olive-800,oklch(28.6% .016 107.4)); } .ds-button-primary:focus-visible { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; } .ds-button-primary:active { background:var(--color-olive-900,oklch(22.8% .013 107.4)); }"
+		},
+		{
+			"name": "Soft Button",
+			"kind": "button",
+			"refersTo": "button-soft",
+			"description": "Low-emphasis pill action with translucent ink fill.",
+			"html": "<button class=\"ds-button-soft\">Learn more</button>",
+			"css": ".ds-button-soft { display:inline-flex;align-items:center;justify-content:center;gap:.25rem;padding:.25rem .75rem;border:0;border-radius:9999px;background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent);color:var(--color-olive-950,oklch(15.3% .006 107.1));font:500 .875rem/1.75rem Inter,system-ui,sans-serif;transition:background 150ms cubic-bezier(.4,0,.2,1); } .ds-button-soft:hover { background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 15%,transparent); } .ds-button-soft:focus-visible { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; } .ds-button-soft:active { background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 20%,transparent); }"
+		},
+		{
+			"name": "Demo Form Field",
+			"kind": "input",
+			"refersTo": "input-default",
+			"description": "Soft white field with an inset editorial ring.",
+			"html": "<label class=\"ds-field-label\" for=\"ds-company\">Company</label><input class=\"ds-field\" id=\"ds-company\" placeholder=\"Your company\" />",
+			"css": ".ds-field-label { display:block;margin-bottom:.375rem;color:var(--color-olive-950,oklch(15.3% .006 107.1));font:500 .875rem/1.5rem Inter,system-ui,sans-serif; } .ds-field { box-sizing:border-box;width:100%;padding:.625rem 1rem;border:0;border-radius:.75rem;background:#fff;color:var(--color-olive-950,oklch(15.3% .006 107.1));box-shadow:inset 0 0 0 1px color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent);font:400 .875rem/1.75rem Inter,system-ui,sans-serif;transition:box-shadow 150ms cubic-bezier(.4,0,.2,1); } .ds-field::placeholder { color:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 40%,transparent); } .ds-field:hover { box-shadow:inset 0 0 0 1px color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 20%,transparent); } .ds-field:focus-visible { outline:none;box-shadow:inset 0 0 0 2px color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 30%,transparent); }"
+		},
+		{
+			"name": "Announcement Pill",
+			"kind": "chip",
+			"refersTo": "announcement-pill",
+			"description": "Translucent editorial capsule with inset badge and directional cue.",
+			"html": "<a class=\"ds-announcement\" href=\"#\"><span class=\"ds-announcement-badge\">New</span><span>Meet the Lunaris MCP</span><svg aria-hidden=\"true\" class=\"ds-announcement-arrow\" fill=\"none\" viewBox=\"0 0 24 24\"><path d=\"M5 12h14m-6-6 6 6-6 6\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\"/></svg></a>",
+			"css": ".ds-announcement { display:inline-flex;align-items:center;gap:.5rem;padding:.25rem .75rem .25rem .25rem;border:1px solid color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent);border-radius:9999px;background:rgb(255 255 255/.5);color:var(--color-olive-800,oklch(28.6% .016 107.4));box-shadow:0 1px 3px rgb(0 0 0/.1);font:500 .875rem/1.5rem Inter,system-ui,sans-serif;text-decoration:none;transition:background 150ms,border-color 150ms; } .ds-announcement-badge { padding:.125rem .5rem;border-radius:9999px;background:var(--color-olive-950,oklch(15.3% .006 107.1));color:#fff;font-size:.75rem;font-weight:600; } .ds-announcement-arrow { width:1rem;height:1rem;transition:transform 150ms; } .ds-announcement:hover { border-color:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 15%,transparent);background:rgb(255 255 255/.8); } .ds-announcement:hover .ds-announcement-arrow { transform:translateX(2px); } .ds-announcement:focus-visible { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; }"
+		},
+		{
+			"name": "Pricing Card",
+			"kind": "card",
+			"refersTo": "pricing-card",
+			"description": "Quiet, barely tinted plan container with no default shadow.",
+			"html": "<article class=\"ds-pricing-card\"><span class=\"ds-pricing-badge\">Popular</span><h3>Studio</h3><p class=\"ds-price\">$12 <small>/ month</small></p><p>For writers and small teams who want private, flexible workspaces.</p></article>",
+			"css": ".ds-pricing-card { position:relative;display:flex;flex-direction:column;gap:1rem;padding:1.5rem;border-radius:.75rem;background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 2.5%,transparent);color:var(--color-olive-700,oklch(39.4% .023 107.4));font:400 .875rem/1.5rem Inter,system-ui,sans-serif;transition:background 150ms; } .ds-pricing-card:hover { background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 5%,transparent); } .ds-pricing-card:focus-within { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; } .ds-pricing-card h3 { margin:0;color:var(--color-olive-950,oklch(15.3% .006 107.1));font-size:1.5rem;line-height:2rem;font-weight:400;letter-spacing:-.025em; } .ds-price { margin:0;color:var(--color-olive-950,oklch(15.3% .006 107.1));font-size:1rem; } .ds-price small { color:var(--color-olive-500,oklch(58% .031 107.3));font-size:inherit; } .ds-pricing-badge { align-self:flex-end;padding:0 .5rem;border-radius:9999px;background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent);color:var(--color-olive-950,oklch(15.3% .006 107.1));font-size:.75rem;font-weight:500; }"
+		},
+		{
+			"name": "Bento Portal Card",
+			"kind": "card",
+			"refersTo": "bento-card",
+			"description": "Signature grainy gradient portal for feature storytelling.",
+			"html": "<article class=\"ds-bento\"><div class=\"ds-bento-art\"><svg aria-hidden=\"true\" fill=\"none\" viewBox=\"0 0 24 24\"><path d=\"M12 3v18M3 12h18M5.64 5.64l12.72 12.72m0-12.72L5.64 18.36\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-width=\"1.25\"/></svg></div><div><h3>Offline first</h3><p>Keep working wherever the day takes you.</p></div></article>",
+			"css": ".ds-bento { position:relative;display:flex;min-height:20rem;overflow:hidden;flex-direction:column;justify-content:space-between;gap:1.5rem;padding:1.75rem;border-radius:1rem;background:linear-gradient(to bottom,#7b627d,#8f6976);color:#fff;box-shadow:0 0 0 1px rgb(20 20 17/.06);font-family:Inter,system-ui,sans-serif;transition:transform 300ms cubic-bezier(.4,0,.2,1); } .ds-bento::before { content:\"\";position:absolute;inset:0;opacity:.13;background-image:radial-gradient(rgb(255 255 255/.35) .5px,transparent .5px);background-size:3px 3px;mix-blend-mode:overlay;pointer-events:none; } .ds-bento:hover { transform:translateY(-2px); } .ds-bento:focus-within { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; } .ds-bento > * { position:relative; } .ds-bento-art { display:grid;place-items:center;min-height:8rem; } .ds-bento-art svg { box-sizing:border-box;width:5rem;height:5rem;padding:1.5rem;border:1px solid rgb(255 255 255/.15);border-radius:1.5rem;background:rgb(255 255 255/.1);box-shadow:0 1px 3px rgb(0 0 0/.1); } .ds-bento h3 { margin:0;font-size:1.125rem;font-weight:500;letter-spacing:-.025em; } .ds-bento p { margin:.5rem 0 0;color:rgb(255 255 255/.7);font-size:.875rem;line-height:1.75rem; }"
+		},
+		{
+			"name": "Product Screenshot Frame",
+			"kind": "custom",
+			"refersTo": "screenshot-frame",
+			"description": "Broad sage mat and nested dark print for hero product evidence.",
+			"html": "<div class=\"ds-screenshot-frame\"><div class=\"ds-screenshot\"><div class=\"ds-screenshot-bar\"></div><div class=\"ds-screenshot-copy\"><span></span><span></span><span></span></div></div></div>",
+			"css": ".ds-screenshot-frame { padding:.5rem;border-radius:1rem;background:color-mix(in oklch,var(--color-olive-300,oklch(88% .011 106.6)) 70%,transparent);box-shadow:0 30px 90px -35px rgba(31,31,27,.55),0 0 0 1px color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent); } .ds-screenshot { overflow:hidden;min-height:12rem;border-radius:.75rem;background:var(--color-olive-950,oklch(15.3% .006 107.1));box-shadow:0 0 0 1px rgb(0 0 0/.15); } .ds-screenshot-bar { height:2rem;border-bottom:1px solid rgb(255 255 255/.12); } .ds-screenshot-copy { display:flex;flex-direction:column;gap:.75rem;padding:2rem; } .ds-screenshot-copy span { display:block;height:.5rem;border-radius:9999px;background:rgb(255 255 255/.3); } .ds-screenshot-copy span:nth-child(2) { width:80%; } .ds-screenshot-copy span:nth-child(3) { width:60%; } .ds-screenshot-frame:hover { box-shadow:0 30px 90px -30px rgba(31,31,27,.6),0 0 0 1px color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 15%,transparent); } .ds-screenshot-frame:focus-within { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; }"
+		},
+		{
+			"name": "Marketing Navigation",
+			"kind": "nav",
+			"refersTo": "navbar",
+			"description": "Sticky warm-paper bar with sparse links and centered canonical wordmark.",
+			"html": "<nav class=\"ds-navbar\"><div class=\"ds-nav-links\"><a href=\"#pricing\">Pricing</a><a href=\"https://docs.lunaris.app\">Documentation</a><a href=\"#mcp\">MCP</a><a href=\"#contact\">Contact</a></div><a class=\"ds-wordmark\" href=\"#\"><svg aria-hidden=\"true\" class=\"ds-mark\" viewBox=\"0 0 24 24\"><path d=\"M4 10.75h3.2c3.2 0 5.8-1.9 7-4.6M4.4 14.2A8 8 0 0 1 7.2 13h3.2c3.5 0 6.6-1.8 8.4-4.5M5.6 17.3A8 8 0 0 1 9 16.5h3.2c2.8 0 5.4-1.2 7.2-3.1M4.2 7.7A13 13 0 0 1 8 7.1h3.2c1.8 0 3.3-1.5 3.3-3.3\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-width=\"1.5\"/></svg><span>Lunaris</span></a><div class=\"ds-nav-actions\"><button>EN</button><button aria-label=\"Change theme\"><svg aria-hidden=\"true\" fill=\"none\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"4\" stroke=\"currentColor\" stroke-width=\"1.5\"/><path d=\"M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-width=\"1.5\"/></svg></button></div></nav>",
+			"css": ".ds-navbar { display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1rem;height:5.25rem;padding:0 1.5rem;background:var(--color-olive-100,oklch(96.6% .005 106.5));color:var(--color-olive-950,oklch(15.3% .006 107.1));font:500 .875rem/1.75rem Inter,system-ui,sans-serif; } .ds-nav-links { display:flex;gap:2rem; } .ds-navbar a { color:inherit;text-decoration:none; } .ds-nav-links a:hover { color:var(--color-olive-700,oklch(39.4% .023 107.4)); } .ds-navbar a:focus-visible,.ds-navbar button:focus-visible { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; } .ds-wordmark { display:inline-flex;align-items:center;gap:.625rem;font:650 1.25rem/1 Inter,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase; } .ds-mark { width:2rem;height:2rem; } .ds-nav-actions { display:flex;justify-content:flex-end;gap:.75rem; } .ds-nav-actions button { display:inline-grid;place-items:center;min-width:2rem;min-height:2rem;padding:.375rem;border:0;border-radius:9999px;background:transparent;color:inherit;font:500 .875rem/1 Inter,system-ui,sans-serif; } .ds-nav-actions button:hover { background:color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent); } .ds-nav-actions svg { width:1rem;height:1rem; }"
+		},
+		{
+			"name": "FAQ Row",
+			"kind": "custom",
+			"refersTo": "faq-row",
+			"description": "Flat editorial disclosure separated by fine olive rules.",
+			"html": "<details class=\"ds-faq\"><summary>Can I keep files only on my device?<span>+</span></summary><p>Yes. Local-first options let sensitive material remain on device.</p></details>",
+			"css": ".ds-faq { border-top:1px solid color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent);border-bottom:1px solid color-mix(in oklch,var(--color-olive-950,oklch(15.3% .006 107.1)) 10%,transparent);color:var(--color-olive-950,oklch(15.3% .006 107.1));font-family:Inter,system-ui,sans-serif; } .ds-faq summary { display:flex;justify-content:space-between;gap:1.5rem;padding:1rem 0;cursor:pointer;font-size:1rem;line-height:1.75rem;list-style:none; } .ds-faq summary:hover { color:var(--color-olive-700,oklch(39.4% .023 107.4)); } .ds-faq summary:focus-visible { outline:2px solid var(--color-olive-600,oklch(46.6% .025 107.3));outline-offset:2px; } .ds-faq summary span { font-size:1.25rem; } .ds-faq[open] summary span { transform:rotate(45deg); } .ds-faq p { margin:-.5rem 3rem 1rem 0;color:var(--color-olive-700,oklch(39.4% .023 107.4));font-size:.875rem;line-height:1.75rem; }"
+		}
+	],
+	"narrative": {
+		"northStar": "The Living Manuscript",
+		"overview": "Lunaris marketing feels like an editorial object that is still being made: refined, grounded, and quietly confident. Instrument Serif supplies an expressive publishing voice, Inter keeps evidence and actions legible, and the olive paper field gives every page a warm physical atmosphere. Large type and generous pauses persuade without shouting.\n\nWeathered wallpaper portals bring the manuscript to life. Muted, multi-hue gradients with fine grain hold product screenshots, diagrams, and feature illustrations as evidence within the story. The world rejects neon-gradient SaaS spectacle, corporate blue convention, and sterile monochrome minimalism; its color is atmospheric, tactile, and controlled.",
+		"keyCharacteristics": [
+			"Editorial serif headlines paired with precise sans-serif copy.",
+			"Warm olive paper across light and dark themes.",
+			"Pill actions and fine translucent rings rather than hard boxes.",
+			"Weathered gradient portals with grain, illustration, or product evidence.",
+			"Broad content rhythm, restrained copy widths, and strong responsive composition."
+		],
+		"rules": [
+			{
+				"name": "Printed Olive",
+				"body": "Structural surfaces, navigation, copy, and calls to action stay inside the olive ramp. Multi-hue color belongs inside a wallpaper portal or a purposeful illustration.",
+				"section": "colors"
+			},
+			{
+				"name": "Portal Contrast",
+				"body": "Content inside a wallpaper portal uses clear white, translucent white, and fine dark or light rings; it does not import the page's full olive hierarchy.",
+				"section": "colors"
+			},
+			{
+				"name": "Serif Claims",
+				"body": "Instrument Serif makes claims; Inter explains, proves, labels, and invites action. Do not use the display face for dense data, controls, or body copy.",
+				"section": "typography"
+			},
+			{
+				"name": "Narrow Claim, Wide Proof",
+				"body": "Keep prose constrained enough to read as editorial copy, then allow screenshots, bento grids, tables, and illustrations to use the full container as proof.",
+				"section": "layout"
+			},
+			{
+				"name": "Evidence Casts Shadow",
+				"body": "Shadows belong to product proof, lifted illustration fragments, or active overlays. Headlines and ordinary sections stay on the paper plane.",
+				"section": "elevation"
+			},
+			{
+				"name": "Nested Frame",
+				"body": "Outer portal radius is broader than the screenshot or artwork it contains. Preserve this visible step instead of giving every nested surface the same corners.",
+				"section": "shapes"
+			},
+			{
+				"name": "Softly Tactile",
+				"body": "Interaction should feel like touching paper, ink, or a mounted object: a tonal shift, a fine ring, or a two-pixel lift is enough.",
+				"section": "components"
+			}
+		],
+		"dos": [
+			"Do pair Instrument Serif claims with concise Inter explanation and evidence.",
+			"Do use the olive ramp for all structural light and dark theme decisions.",
+			"Do contain expressive color inside clipped, grainy wallpaper portals.",
+			"Do keep copy narrow and let product proof occupy the wider composition.",
+			"Do preserve visible keyboard focus, localized expansion, and motion-reduced alternatives."
+		],
+		"donts": [
+			"Don't introduce neon gradients, corporate blue defaults, or glossy glassmorphism.",
+			"Don't place multicolor atmosphere behind long-form copy or global navigation.",
+			"Don't use large shadows on ordinary text sections, pricing cards, or static page chrome.",
+			"Don't flatten every nested object to the same radius; preserve the portal and print hierarchy.",
+			"Don't use Instrument Serif for controls, tables, form fields, or explanatory paragraphs."
+		]
+	}
 }

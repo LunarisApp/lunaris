@@ -23,7 +23,7 @@ describe("LoaderView", () => {
     render(<LoaderView label="Loading organization" />);
 
     expect(
-      screen.getByRole("status", { name: "Loading organization" }),
+      screen.getByRole("status", { name: "Loading organization" })
     ).toBeTruthy();
   });
 });

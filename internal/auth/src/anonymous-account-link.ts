@@ -55,7 +55,9 @@ async function resolveDisposableClaimedOrganization(params: {
     claimedOrganizationId ??
     (await adapter.listOrganizations(claimedUserId))[0]?.id ??
     null;
-  if (!candidateId) return null;
+  if (!candidateId) {
+    return null;
+  }
 
   const members = await adapter.listMembers({
     organizationId: candidateId,
@@ -80,7 +82,9 @@ export async function adoptAnonymousOrganizationOnLink(
     log: logger = log,
   } = params;
 
-  const guestOrganization = (await adapter.listOrganizations(anonymousUserId))[0];
+  const guestOrganization = (
+    await adapter.listOrganizations(anonymousUserId)
+  )[0];
   if (!guestOrganization) {
     logger.warn({
       tag: "Auth",

@@ -1,5 +1,7 @@
 export function formatFileSize(size: number) {
-  if (size < 1024) return `${size} B`;
+  if (size < 1024) {
+    return `${size} B`;
+  }
   const units = ["KB", "MB", "GB"] as const;
   let value = size / 1024;
   let unitIndex = 0;

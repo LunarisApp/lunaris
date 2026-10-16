@@ -46,9 +46,9 @@ async function fixture(source: string) {
       id: "test.plugin",
       name: "Test",
       api: "^0.9.0",
-        permissions: [],
+      permissions: [],
       version: "1.2.3",
-    }),
+    })
   );
   await mkdir(path.join(root, "src"));
   await writeFile(path.join(root, "src/index.tsx"), source);
@@ -61,7 +61,7 @@ async function buildFixture(root: string, options = {}) {
 
 async function installedPackageRoot(
   name: string,
-  resolveFrom?: string,
+  resolveFrom?: string
 ): Promise<string> {
   const resolver = resolveFrom
     ? createRequire(createRequire(import.meta.url).resolve(resolveFrom))
@@ -70,14 +70,18 @@ async function installedPackageRoot(
   while (true) {
     try {
       const packageJson = JSON.parse(
-        await readFile(path.join(current, "package.json"), "utf8"),
+        await readFile(path.join(current, "package.json"), "utf8")
       ) as { name?: string };
-      if (packageJson.name === name) return current;
+      if (packageJson.name === name) {
+        return current;
+      }
     } catch {
       // Continue toward the package root.
     }
     const parent = path.dirname(current);
-    if (parent === current) throw new Error(`Could not resolve package root: ${name}`);
+    if (parent === current) {
+      throw new Error(`Could not resolve package root: ${name}`);
+    }
     current = parent;
   }
 }
@@ -94,7 +98,7 @@ async function copyRuntimePackages(root: string) {
     await cp(
       await installedPackageRoot(name, resolveFrom),
       path.join(root, "node_modules", name),
-      { recursive: true },
+      { recursive: true }
     );
   }
 }
@@ -119,7 +123,7 @@ ${validSource}
       exports: "./index.js",
       name: "linked-runtime-consumer",
       type: "module",
-    }),
+    })
   );
   await writeFile(
     path.join(linkedRoot, "index.js"),
@@ -128,12 +132,12 @@ import { useState as react } from "react";
 import { createPortal as reactDom } from "react-dom";
 import { Doc as yjs } from "yjs";
 export const identities = { react, reactDom, yjs };
-`,
+`
   );
   await symlink(
     linkedRoot,
     path.join(root, "node_modules", "linked-runtime-consumer"),
-    process.platform === "win32" ? "junction" : "dir",
+    process.platform === "win32" ? "junction" : "dir"
   );
   return root;
 }
@@ -145,7 +149,7 @@ beforeEach(() => {
 afterEach(async () => {
   vi.unstubAllEnvs();
   await Promise.all(
-    roots.splice(0).map((root) => rm(root, { force: true, recursive: true })),
+    roots.splice(0).map((root) => rm(root, { force: true, recursive: true }))
   );
 });
 
@@ -156,36 +160,40 @@ describe("Lunaris Vite plugin compiler", () => {
     const output = await readFile(path.join(root, "dist/main.js"), "utf8");
     expect(output).toContain("__LUNARIS_PLUGIN_SANDBOX_V6__");
     expect(output).not.toContain("__LUNARIS_PLUGIN_RUNTIME_V1__");
-    expect(JSON.parse(await readFile(path.join(root, "dist/manifest.json"), "utf8")))
-      .toMatchObject({ id: "test.plugin", version: "1.2.3" });
+    expect(
+      JSON.parse(await readFile(path.join(root, "dist/manifest.json"), "utf8"))
+    ).toMatchObject({ id: "test.plugin", version: "1.2.3" });
   });
 
-  it.each(rasterIcons)("emits CSS and a validated .$extension icon", async ({
-    data,
-    extension,
-  }) => {
-    const root = await fixture(
-      `import "./styles.css"; ${validSource}`,
-    );
-    await writeFile(path.join(root, "src/styles.css"), ".test { color: red; }");
-    await writeFile(
-      path.join(root, `icon.${extension}`),
-      Buffer.from(data, "base64"),
-    );
-    await buildFixture(root);
-    await expect(readFile(path.join(root, "dist/styles.css"))).resolves.toBeTruthy();
-    await expect(
-      readFile(path.join(root, `dist/icon.${extension}`)),
-    ).resolves.toBeTruthy();
-  });
+  it.each(rasterIcons)(
+    "emits CSS and a validated .$extension icon",
+    async ({ data, extension }) => {
+      const root = await fixture(`import "./styles.css"; ${validSource}`);
+      await writeFile(
+        path.join(root, "src/styles.css"),
+        ".test { color: red; }"
+      );
+      await writeFile(
+        path.join(root, `icon.${extension}`),
+        Buffer.from(data, "base64")
+      );
+      await buildFixture(root);
+      await expect(
+        readFile(path.join(root, "dist/styles.css"))
+      ).resolves.toBeTruthy();
+      await expect(
+        readFile(path.join(root, `dist/icon.${extension}`))
+      ).resolves.toBeTruthy();
+    }
+  );
 
   it("rejects tag and registry ID mismatches before building", async () => {
     const root = await fixture(validSource);
     await expect(
-      defineLunarisPluginConfig({ root, tag: "1.2.4" }),
+      defineLunarisPluginConfig({ root, tag: "1.2.4" })
     ).rejects.toThrow("must match extension version");
     await expect(
-      defineLunarisPluginConfig({ expectedId: "other.plugin", root }),
+      defineLunarisPluginConfig({ expectedId: "other.plugin", root })
     ).rejects.toThrow("must match registry ID");
   });
 
@@ -215,18 +223,15 @@ describe("Lunaris Vite plugin compiler", () => {
       expect(message).toContain('duplicate singleton dependency "react"');
       expect(message).toContain(path.join(root, "node_modules", "react"));
       expect(message).toContain(
-        path.join(
-          root,
-          "linked-runtime-consumer",
-          "node_modules",
-          "react",
-        ),
+        path.join(root, "linked-runtime-consumer", "node_modules", "react")
       );
     }
   });
 
   it("does not expose network access while validating runtime code", async () => {
-    const root = await fixture(`void fetch("https://example.com"); ${validSource}`);
+    const root = await fixture(
+      `void fetch("https://example.com"); ${validSource}`
+    );
     await expect(buildFixture(root)).rejects.toThrow("fetch is not defined");
   });
 
@@ -250,7 +255,7 @@ export default { manifest, activate() { return new Promise(() => {}); } };
 `);
 
     await expect(buildFixture(root)).rejects.toThrow(
-      "runtime registration timed out",
+      "runtime registration timed out"
     );
   });
 
@@ -268,23 +273,25 @@ export default { manifest, activate() { return new Promise(() => {}); } };
     'import moduleUrl from "./module.wasm"; void moduleUrl;',
   ])("rejects a forbidden import: %s", async (source) => {
     const root = await fixture(`${source} ${validSource}`);
-    await expect(buildFixture(root)).rejects.toThrow("Forbidden extension import");
+    await expect(buildFixture(root)).rejects.toThrow(
+      "Forbidden extension import"
+    );
   });
 
   it("rejects worker runtime output", async () => {
     const root = await fixture(
-      `void new Worker("https://example.com/worker.js"); ${validSource}`,
+      `void new Worker("https://example.com/worker.js"); ${validSource}`
     );
     await expect(buildFixture(root)).rejects.toThrow("worker or WebAssembly");
   });
 
   it("inlines dedicated worker imports into the single extension script", async () => {
     const root = await fixture(
-      `import TaskWorker from "./task.worker?worker&inline"; void TaskWorker; ${validSource}`,
+      `import TaskWorker from "./task.worker?worker&inline"; void TaskWorker; ${validSource}`
     );
     await writeFile(
       path.join(root, "src/task.worker.ts"),
-      'self.addEventListener("message", ({ data }) => self.postMessage(data));',
+      'self.addEventListener("message", ({ data }) => self.postMessage(data));'
     );
 
     await buildFixture(root);
@@ -295,20 +302,20 @@ export default { manifest, activate() { return new Promise(() => {}); } };
       "runtime.json",
     ]);
     expect(
-      JSON.parse(await readFile(path.join(root, "dist/runtime.json"), "utf8")),
+      JSON.parse(await readFile(path.join(root, "dist/runtime.json"), "utf8"))
     ).toEqual({ kind: "iframe", protocol: 7 });
     expect(await readFile(path.join(root, "dist/main.js"), "utf8")).toContain(
-      "createObjectURL",
+      "createObjectURL"
     );
   });
 
   it("rejects WebAssembly inside inline worker modules", async () => {
     const root = await fixture(
-      `import TaskWorker from "./task.worker?worker&inline"; void TaskWorker; ${validSource}`,
+      `import TaskWorker from "./task.worker?worker&inline"; void TaskWorker; ${validSource}`
     );
     await writeFile(
       path.join(root, "src/task.worker.ts"),
-      "void WebAssembly.compile(new Uint8Array());",
+      "void WebAssembly.compile(new Uint8Array());"
     );
 
     await expect(buildFixture(root)).rejects.toThrow("worker or WebAssembly");
@@ -318,18 +325,19 @@ export default { manifest, activate() { return new Promise(() => {}); } };
     'void new Worker("https://example.com/worker.js");',
     'void new SharedWorker("https://example.com/worker.js");',
     "void WebAssembly.compile(new Uint8Array());",
-  ])("rejects an unsafe runtime in imported extension modules: %s", async (unsafe) => {
-    const root = await fixture(
-      `import "./unsafe"; ${validSource}`,
-    );
-    await writeFile(path.join(root, "src/unsafe.ts"), unsafe);
+  ])(
+    "rejects an unsafe runtime in imported extension modules: %s",
+    async (unsafe) => {
+      const root = await fixture(`import "./unsafe"; ${validSource}`);
+      await writeFile(path.join(root, "src/unsafe.ts"), unsafe);
 
-    await expect(buildFixture(root)).rejects.toThrow("worker or WebAssembly");
-  });
+      await expect(buildFixture(root)).rejects.toThrow("worker or WebAssembly");
+    }
+  );
 
   it("rejects unresolved dynamic imports", async () => {
     const root = await fixture(
-      `const moduleName = "./dynamic"; void import(moduleName); ${validSource}`,
+      `const moduleName = "./dynamic"; void import(moduleName); ${validSource}`
     );
     await expect(buildFixture(root)).rejects.toThrow("dynamic import");
   });
@@ -341,7 +349,7 @@ export default { manifest, activate() { return new Promise(() => {}); } };
     await writeFile(outside, "export const unsafe = true;");
     await writeFile(
       path.join(root, "src/index.tsx"),
-      `import ${JSON.stringify(path.relative(path.join(root, "src"), outside))}; ${validSource}`,
+      `import ${JSON.stringify(path.relative(path.join(root, "src"), outside))}; ${validSource}`
     );
 
     await expect(buildFixture(root)).rejects.toThrow("outside root");
@@ -351,16 +359,13 @@ export default { manifest, activate() { return new Promise(() => {}); } };
     const root = await fixture(validSource);
     await writeFile(
       path.join(root, "icon.png"),
-      Buffer.concat([
-        Buffer.from("89504e470d0a1a0a", "hex"),
-        Buffer.alloc(37),
-      ]),
+      Buffer.concat([Buffer.from("89504e470d0a1a0a", "hex"), Buffer.alloc(37)])
     );
     await expect(buildFixture(root)).rejects.toThrow("valid raster image");
 
     await writeFile(
       path.join(root, "icon.png"),
-      Buffer.alloc(256 * 1024 + 1, 1),
+      Buffer.alloc(256 * 1024 + 1, 1)
     );
     await expect(buildFixture(root)).rejects.toThrow("exceeds");
   });
@@ -369,25 +374,29 @@ export default { manifest, activate() { return new Promise(() => {}); } };
     const root = await fixture(validSource);
     await writeFile(
       path.join(root, "icon.webp"),
-      Buffer.from(rasterIcons[0].data, "base64"),
+      Buffer.from(rasterIcons[0].data, "base64")
     );
 
-    await expect(buildFixture(root)).rejects.toThrow("matching its file extension");
+    await expect(buildFixture(root)).rejects.toThrow(
+      "matching its file extension"
+    );
   });
 
   it("rejects multiple icon files", async () => {
     const root = await fixture(validSource);
     await Promise.all(
-      rasterIcons.slice(0, 2).map(({ data, extension }) =>
-        writeFile(
-          path.join(root, `icon.${extension}`),
-          Buffer.from(data, "base64"),
-        ),
-      ),
+      rasterIcons
+        .slice(0, 2)
+        .map(({ data, extension }) =>
+          writeFile(
+            path.join(root, `icon.${extension}`),
+            Buffer.from(data, "base64")
+          )
+        )
     );
 
     await expect(buildFixture(root)).rejects.toThrow(
-      "Extension root must contain at most one icon file",
+      "Extension root must contain at most one icon file"
     );
   });
 });

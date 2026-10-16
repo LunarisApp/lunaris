@@ -63,7 +63,8 @@ export function WorkspaceTreeItem({
   const { t } = useTranslation();
   const { clipboard, navigation } = usePlatform();
   const { deleteResources, duplicateResource } = useWorkspaceActions();
-  const { canCreate, createFolder, createResource } = useWorkspaceResourceCreation();
+  const { canCreate, createFolder, createResource } =
+    useWorkspaceResourceCreation();
   const canDelete = usePermission(permission.content.delete);
   const canUpdate = usePermission(permission.content.write);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -81,9 +82,7 @@ export function WorkspaceTreeItem({
   const itemData = item.getItemData();
   const resource = useResourceType(itemData.resource_type_id ?? "");
   const canDuplicate =
-    canCreate &&
-    !isFolder(itemData) &&
-    supportsResourceDuplication(resource);
+    canCreate && !isFolder(itemData) && supportsResourceDuplication(resource);
   const defaultView = useView(resource?.defaultViewId ?? "");
   const { ref: preloadRef, ...intentPreloadProps } = useYjsStorageIntentPreload(
     yjsStorage,
@@ -99,13 +98,17 @@ export function WorkspaceTreeItem({
   }, [clipboard, resourcesMap, item]);
 
   const handleCopyUrl = useCallback(() => {
-    if (!(organizationSlug && workspaceSlug)) return;
+    if (!(organizationSlug && workspaceSlug)) {
+      return;
+    }
     const url = `${navigation.origin()}/${organizationSlug}/${workspaceSlug}/${item.getId()}`;
     void clipboard.writeText(url);
   }, [clipboard, navigation, organizationSlug, workspaceSlug, item]);
 
   const handleDeleteRequest = () => {
-    if (!canDelete) return;
+    if (!canDelete) {
+      return;
+    }
     const tree = item.getTree();
     const selected: DeleteTarget[] = tree.getSelectedItems().map((s) => ({
       id: s.getId(),
@@ -122,7 +125,9 @@ export function WorkspaceTreeItem({
   };
 
   const handleDuplicate = async () => {
-    if (!canCreate) return;
+    if (!canCreate) {
+      return;
+    }
     try {
       await duplicateResource(item.getId(), {
         copyLabel: t("common.copy"),
@@ -142,7 +147,9 @@ export function WorkspaceTreeItem({
   };
 
   const handleConfirmDelete = async () => {
-    if (!canDelete || deleteTargets.length === 0) return;
+    if (!canDelete || deleteTargets.length === 0) {
+      return;
+    }
     const ids = deleteTargets.map((target) => target.id);
     setConfirmDeleteOpen(false);
     setDeleteTargets([]);
@@ -157,7 +164,9 @@ export function WorkspaceTreeItem({
 
   const handleAddFolder = async () => {
     const newId = await createFolder(item.getId());
-    if (!newId) return;
+    if (!newId) {
+      return;
+    }
 
     item.expand();
     setTimeout(() => {
@@ -171,7 +180,9 @@ export function WorkspaceTreeItem({
   const handleAddItem = async (resource: ResourceTypeDefinition) => {
     const resourceTypeId = resource.resourceTypeId;
     const result = await createResource(item.getId(), resource);
-    if (!result) return;
+    if (!result) {
+      return;
+    }
     item.expand();
     if (!result.name) {
       setTimeout(
@@ -211,7 +222,7 @@ export function WorkspaceTreeItem({
           key={item.getId()}
           render={
             <div className="flex items-center">
-              <span className="flex-1 min-w-0">{treeItemContent}</span>
+              <span className="min-w-0 flex-1">{treeItemContent}</span>
               <MobileWorkspaceTreeItemActions
                 canCreate={canCreate}
                 canDelete={canDelete}

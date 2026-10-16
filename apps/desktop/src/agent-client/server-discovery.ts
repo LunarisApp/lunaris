@@ -28,10 +28,12 @@ const plannedServerSchema = z.object({
 export const serverDirectorySchema = z
   .object({
     schemaVersion: z.literal(1),
-    servers: z.array(z.discriminatedUnion("status", [
-      availableServerSchema,
-      plannedServerSchema,
-    ])),
+    servers: z.array(
+      z.discriminatedUnion("status", [
+        availableServerSchema,
+        plannedServerSchema,
+      ])
+    ),
   })
   .superRefine((directory, context) => {
     const ids = new Set<string>();
@@ -60,14 +62,14 @@ export interface ServerDiscoveryOptions {
 }
 
 export async function discoverRemoteServers(
-  options: ServerDiscoveryOptions = {},
+  options: ServerDiscoveryOptions = {}
 ): Promise<ServerDirectory> {
   const directoryUrl = options.directoryUrl ?? DEFAULT_SERVER_DIRECTORY_URL;
   const payload = await fetchJson(
     new URL(directoryUrl),
     options,
     "Unable to connect to the Lunaris server directory",
-    "SERVER_DISCOVERY_UNAVAILABLE",
+    "SERVER_DISCOVERY_UNAVAILABLE"
   );
   const parsed = serverDirectorySchema.safeParse(payload);
   if (!parsed.success) {
@@ -75,7 +77,7 @@ export async function discoverRemoteServers(
       "Lunaris server directory returned an invalid response",
       502,
       "INVALID_SERVER_DIRECTORY",
-      parsed.error.issues,
+      parsed.error.issues
     );
   }
   return parsed.data;
@@ -83,7 +85,7 @@ export async function discoverRemoteServers(
 
 export async function discoverServerManifest(
   input: AvailableServer | string,
-  options: ServerDiscoveryOptions = {},
+  options: ServerDiscoveryOptions = {}
 ): Promise<ServerManifest> {
   const manifestUrl =
     typeof input === "string"
@@ -94,22 +96,25 @@ export async function discoverServerManifest(
 
 export async function discoverServerManifestUrl(
   manifestUrl: string | URL,
-  options: ServerDiscoveryOptions = {},
+  options: ServerDiscoveryOptions = {}
 ): Promise<ServerManifest> {
   return fetchServerManifest(new URL(manifestUrl), options);
 }
 
 export function mergeServerDirectories(
   remote: ServerDirectory | undefined,
-  local: AvailableServer | null,
+  local: AvailableServer | null
 ): ServerDirectory {
   const servers = remote ? [...remote.servers] : [];
   if (local) {
     const index = servers.findIndex(
-      (server) => server.serverId === local.serverId,
+      (server) => server.serverId === local.serverId
     );
-    if (index >= 0) servers[index] = local;
-    else servers.push(local);
+    if (index >= 0) {
+      servers[index] = local;
+    } else {
+      servers.push(local);
+    }
   }
   return { schemaVersion: 1, servers };
 }
@@ -126,13 +131,13 @@ export function isLoopbackUrl(url: URL) {
 async function fetchServerManifest(
   manifestUrl: URL,
   options: ServerDiscoveryOptions,
-  expected?: AvailableServer | string,
+  expected?: AvailableServer | string
 ) {
   const payload = await fetchJson(
     manifestUrl,
     options,
     "Unable to connect to the Lunaris server manifest",
-    "SERVER_MANIFEST_UNAVAILABLE",
+    "SERVER_MANIFEST_UNAVAILABLE"
   );
   const parsed = serverManifestSchema.safeParse(payload);
   if (!parsed.success) {
@@ -140,14 +145,17 @@ async function fetchServerManifest(
       "Lunaris server returned an invalid manifest",
       502,
       "INVALID_SERVER_MANIFEST",
-      parsed.error.issues,
+      parsed.error.issues
     );
   }
-  if (typeof expected === "object" && parsed.data.serverId !== expected.serverId) {
+  if (
+    typeof expected === "object" &&
+    parsed.data.serverId !== expected.serverId
+  ) {
     throw new LunarisApiError(
       `Server manifest mismatch: expected ${expected.serverId}, got ${parsed.data.serverId}`,
       502,
-      "SERVER_MANIFEST_MISMATCH",
+      "SERVER_MANIFEST_MISMATCH"
     );
   }
   return parsed.data;
@@ -157,7 +165,7 @@ async function fetchJson(
   url: URL,
   options: ServerDiscoveryOptions,
   message: string,
-  code: string,
+  code: string
 ) {
   const fetcher = options.fetch ?? globalThis.fetch.bind(globalThis);
   const timeout = AbortSignal.timeout(options.timeoutMs ?? 30_000);
@@ -180,7 +188,7 @@ async function fetchJson(
     throw new LunarisApiError(
       `${message}: ${response.status}`,
       response.status,
-      code,
+      code
     );
   }
   return payload;

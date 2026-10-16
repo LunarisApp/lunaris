@@ -5,10 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const { invoke, sessionState } = vi.hoisted(() => ({
   invoke: vi.fn(),
   sessionState: {
-    data: undefined as
-      | { session: { id: string } }
-      | null
-      | undefined,
+    data: undefined as { session: { id: string } } | null | undefined,
     isPending: true,
   },
 }));
@@ -20,10 +17,7 @@ vi.mock("@repo/features/auth", () => ({
 }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke }));
 
-import {
-  DesktopAgentSessionBridge,
-  desktopAgentAccess,
-} from "./agent-access";
+import { DesktopAgentSessionBridge, desktopAgentAccess } from "./agent-access";
 
 let container: HTMLDivElement;
 let root: ReturnType<typeof createRoot>;

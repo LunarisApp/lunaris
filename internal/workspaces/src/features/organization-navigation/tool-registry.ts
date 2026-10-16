@@ -1,13 +1,14 @@
-import { AGENT_WORK_PANEL_ID, AGENT_WORK_RENDERER, AGENT_WORK_TOOL_ID } from "../agent-work/constants";
+import {
+  AGENT_WORK_PANEL_ID,
+  AGENT_WORK_RENDERER,
+  AGENT_WORK_TOOL_ID,
+} from "../agent-work/constants";
 import {
   WORKSPACE_TRASH_PLUGIN_ID,
   WORKSPACE_TRASH_RENDERER,
   WORKSPACE_TRASH_TOOL_ID,
 } from "../workspace-explorer/constants";
-import {
-  DEBUGGER_PLUGIN_ID,
-  DEBUGGER_RENDERER,
-} from "../debugger/constants";
+import { DEBUGGER_PLUGIN_ID, DEBUGGER_RENDERER } from "../debugger/constants";
 import {
   EXTENSIONS_PLUGIN_ID,
   EXTENSIONS_RENDERER,
@@ -54,7 +55,12 @@ function assertValidToolId(toolId: string): void {
 }
 
 const registry = {
-  [AGENT_WORK_TOOL_ID]: { toolId: AGENT_WORK_TOOL_ID, pluginId: AGENT_WORK_PANEL_ID, renderer: AGENT_WORK_RENDERER, titleKey: "editor.agentWork" },
+  [AGENT_WORK_TOOL_ID]: {
+    toolId: AGENT_WORK_TOOL_ID,
+    pluginId: AGENT_WORK_PANEL_ID,
+    renderer: AGENT_WORK_RENDERER,
+    titleKey: "editor.agentWork",
+  },
   debugger: {
     toolId: "debugger",
     pluginId: DEBUGGER_PLUGIN_ID,

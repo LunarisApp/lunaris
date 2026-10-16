@@ -57,7 +57,12 @@ function setup(
         ((async () => Response.json(null)) as unknown as typeof fetch),
     },
   });
-  cleanups.push(() => cleanStores(client.$store.atoms.session, client.$store.atoms.activeOrganization));
+  cleanups.push(() =>
+    cleanStores(
+      client.$store.atoms.session,
+      client.$store.atoms.activeOrganization
+    )
+  );
   return { client, storage };
 }
 const saved = () => ({
@@ -300,7 +305,10 @@ describe("auth startup cache", () => {
     } finally {
       // Let invalidation refetches settle before disposing browser listeners.
       await new Promise((resolve) => setTimeout(resolve, 0));
-      cleanStores(client.$store.atoms.session, client.$store.atoms.activeOrganization);
+      cleanStores(
+        client.$store.atoms.session,
+        client.$store.atoms.activeOrganization
+      );
       if (original) {
         Object.defineProperty(globalThis, "window", original);
       } else {

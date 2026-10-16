@@ -44,7 +44,7 @@ export const agentWorkStateSchema = z.object({
   models: z.array(z.object({ id: z.string(), name: z.string() })),
   sessionId: z.string().nullable(),
   sessions: z.array(
-    z.object({ id: z.string(), title: z.string(), updatedAt: z.string() }),
+    z.object({ id: z.string(), title: z.string(), updatedAt: z.string() })
   ),
 });
 export type AgentWorkState = z.infer<typeof agentWorkStateSchema>;
@@ -91,6 +91,6 @@ export interface AgentWorkConnection {
 export interface AgentWorkManager {
   connect(
     scope: AgentWorkScope,
-    listener: (event: AgentWorkEvent) => void,
+    listener: (event: AgentWorkEvent) => void
   ): Promise<AgentWorkConnection>;
 }

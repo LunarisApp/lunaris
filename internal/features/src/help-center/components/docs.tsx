@@ -12,15 +12,13 @@ export function HelpCenterDocsSection() {
       <Button
         className="h-auto w-full items-center justify-start gap-3 whitespace-normal py-2"
         nativeButton={false}
-        render={(
-          <a href={DOCS_URL} rel="noopener noreferrer" target="_blank" />
-        )}
+        render={<a href={DOCS_URL} rel="noopener noreferrer" target="_blank" />}
         variant="outline"
       >
         <HugeiconsIcon className="shrink-0" icon={BookOpen01Icon} />
         <span className="grid min-w-0 flex-1 gap-0 text-left">
           <span>{t("common.docs")}</span>
-          <span className="-mt-0.5 text-muted-foreground text-xs leading-relaxed font-normal">
+          <span className="-mt-0.5 font-normal text-muted-foreground text-xs leading-relaxed">
             {t("helpCenter.docsDescription")}
           </span>
         </span>

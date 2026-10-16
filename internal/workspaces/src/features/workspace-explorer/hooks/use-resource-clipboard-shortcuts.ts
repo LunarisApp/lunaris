@@ -33,11 +33,12 @@ export function useResourceClipboardShortcuts({
   const { duplicateResource } = useWorkspaceActions();
   const resourceTypes = useResourceTypes();
   const duplicatableResourceTypes = useMemo(
-    () => new Set(
-      resourceTypes
-        .filter(supportsResourceDuplication)
-        .map((resource) => resource.resourceTypeId)
-    ),
+    () =>
+      new Set(
+        resourceTypes
+          .filter(supportsResourceDuplication)
+          .map((resource) => resource.resourceTypeId)
+      ),
     [resourceTypes]
   );
   const canCreate = usePermission(permission.content.write);
@@ -57,7 +58,9 @@ export function useResourceClipboardShortcuts({
   }, [duplicatableResourceTypes, tree]);
 
   const paste = useCallback(async () => {
-    if (!canCreate) return;
+    if (!canCreate) {
+      return;
+    }
     for (const resourceId of copiedResourceIds.current) {
       try {
         await duplicateResource(resourceId, {

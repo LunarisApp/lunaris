@@ -12,7 +12,7 @@ describe("formatDesktopBuildVersion", () => {
         LUNARIS_BUILD_SHA: "1234567890",
         LUNARIS_BUILD_VERSION: "1.2.3",
         LUNARIS_SIGNING_MODE: "signed",
-      }),
+      })
     ).toBe("1.2.3");
   });
 });

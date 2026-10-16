@@ -26,8 +26,9 @@ export class IndexedDbFileStorageAdapter implements LocalStorageAdapter {
         const request = indexedDB.open(this.databaseName, 2);
         request.onupgradeneeded = () => {
           for (const name of [STORE_NAME, CHUNKS, TRANSFERS]) {
-            if (!request.result.objectStoreNames.contains(name))
+            if (!request.result.objectStoreNames.contains(name)) {
               request.result.createObjectStore(name);
+            }
           }
         };
         request.onsuccess = () => {
@@ -54,9 +55,14 @@ export class IndexedDbFileStorageAdapter implements LocalStorageAdapter {
 
   async clear(): Promise<void> {
     const database = await this.database();
-    const tx = database.transaction([STORE_NAME, CHUNKS, TRANSFERS], "readwrite");
+    const tx = database.transaction(
+      [STORE_NAME, CHUNKS, TRANSFERS],
+      "readwrite"
+    );
     const done = transactionDone(tx);
-    for (const name of [STORE_NAME, CHUNKS, TRANSFERS]) tx.objectStore(name).clear();
+    for (const name of [STORE_NAME, CHUNKS, TRANSFERS]) {
+      tx.objectStore(name).clear();
+    }
     await done;
   }
 
@@ -64,7 +70,10 @@ export class IndexedDbFileStorageAdapter implements LocalStorageAdapter {
     return `indexeddb://${this.databaseName}/${STORE_NAME}/${filename}`;
   }
 
-  async saveFile(filePath: string, data: AttachmentData | Blob): Promise<number> {
+  async saveFile(
+    filePath: string,
+    data: AttachmentData | Blob
+  ): Promise<number> {
     const blob =
       data instanceof Blob
         ? data
@@ -75,7 +84,7 @@ export class IndexedDbFileStorageAdapter implements LocalStorageAdapter {
   async saveStream(
     filePath: string,
     stream: ReadableStream<Uint8Array>,
-    type = "application/octet-stream",
+    type = "application/octet-stream"
   ) {
     const version = crypto.randomUUID();
     const previous = await this.readValue<unknown>(STORE_NAME, filePath);
@@ -85,23 +94,38 @@ export class IndexedDbFileStorageAdapter implements LocalStorageAdapter {
     let pending: Uint8Array<ArrayBuffer>[] = [];
     let pendingSize = 0;
     const flush = async () => {
-      if (!pendingSize) return;
-      await this.writeValue(CHUNKS, `${version}/${chunks++}`, new Blob(pending));
+      if (!pendingSize) {
+        return;
+      }
+      await this.writeValue(
+        CHUNKS,
+        `${version}/${chunks++}`,
+        new Blob(pending)
+      );
       pending = [];
       pendingSize = 0;
     };
     try {
       while (true) {
         const next = await reader.read();
-        if (next.done) break;
+        if (next.done) {
+          break;
+        }
         let offset = 0;
         while (offset < next.value.byteLength) {
-          const length = Math.min(FILE_CHUNK_BYTES - pendingSize, next.value.byteLength - offset);
-          pending.push(new Uint8Array(next.value.subarray(offset, offset + length)));
+          const length = Math.min(
+            FILE_CHUNK_BYTES - pendingSize,
+            next.value.byteLength - offset
+          );
+          pending.push(
+            new Uint8Array(next.value.subarray(offset, offset + length))
+          );
           pendingSize += length;
           size += length;
           offset += length;
-          if (pendingSize === FILE_CHUNK_BYTES) await flush();
+          if (pendingSize === FILE_CHUNK_BYTES) {
+            await flush();
+          }
         }
       }
       await flush();
@@ -113,7 +137,9 @@ export class IndexedDbFileStorageAdapter implements LocalStorageAdapter {
       } satisfies ChunkManifest);
       // Publishing the new manifest is the commit point. A stale-chunk cleanup
       // failure must never remove bytes referenced by that committed manifest.
-      if (isManifest(previous)) await this.deleteChunks(previous.version).catch(() => undefined);
+      if (isManifest(previous)) {
+        await this.deleteChunks(previous.version).catch(() => undefined);
+      }
       return size;
     } catch (error) {
       await reader.cancel(error).catch(() => undefined);
@@ -126,11 +152,18 @@ export class IndexedDbFileStorageAdapter implements LocalStorageAdapter {
 
   async readBlob(filePath: string): Promise<Blob> {
     const value = await this.readValue<unknown>(STORE_NAME, filePath);
-    if (!isManifest(value)) throw new Error("File not found");
+    if (!isManifest(value)) {
+      throw new Error("File not found");
+    }
     const parts: Blob[] = [];
     for (let index = 0; index < value.chunks; index++) {
-      const blob = await this.readValue<Blob>(CHUNKS, `${value.version}/${index}`);
-      if (!(blob instanceof Blob)) throw new Error("Local file chunk is missing");
+      const blob = await this.readValue<Blob>(
+        CHUNKS,
+        `${value.version}/${index}`
+      );
+      if (!(blob instanceof Blob)) {
+        throw new Error("Local file chunk is missing");
+      }
       parts.push(blob);
     }
     return new Blob(parts, { type: value.type });
@@ -144,20 +177,28 @@ export class IndexedDbFileStorageAdapter implements LocalStorageAdapter {
   async deleteFile(filePath: string): Promise<void> {
     const value = await this.readValue<unknown>(STORE_NAME, filePath);
     await this.deleteValue(STORE_NAME, filePath);
-    if (isManifest(value)) await this.deleteChunks(value.version);
+    if (isManifest(value)) {
+      await this.deleteChunks(value.version);
+    }
   }
 
   async fileExists(filePath: string) {
     return isManifest(await this.readValue<unknown>(STORE_NAME, filePath));
   }
-  async makeDir(_path: string) {}
+  async makeDir(_path: string) {
+    /* IndexedDB uses flat keys; directories need no record. */
+  }
   async rmDir(path: string) {
     const database = await this.database();
     const tx = database.transaction(STORE_NAME);
     const keys = await requestAsPromise(
-      tx.objectStore(STORE_NAME).getAllKeys(IDBKeyRange.bound(`${path}/`, `${path}/\uffff`)),
+      tx
+        .objectStore(STORE_NAME)
+        .getAllKeys(IDBKeyRange.bound(`${path}/`, `${path}/\uffff`))
     );
-    for (const key of keys) await this.deleteFile(String(key));
+    for (const key of keys) {
+      await this.deleteFile(String(key));
+    }
   }
 
   readTransfer<T>(id: string) {
@@ -173,12 +214,19 @@ export class IndexedDbFileStorageAdapter implements LocalStorageAdapter {
   private async database() {
     await this.initialize();
     const database = await this.databasePromise;
-    if (!database) throw new Error("Attachment storage is not initialized");
+    if (!database) {
+      throw new Error("Attachment storage is not initialized");
+    }
     return database;
   }
-  private async readValue<T>(store: string, key: IDBValidKey): Promise<T | undefined> {
+  private async readValue<T>(
+    store: string,
+    key: IDBValidKey
+  ): Promise<T | undefined> {
     const database = await this.database();
-    return requestAsPromise(database.transaction(store).objectStore(store).get(key));
+    return requestAsPromise(
+      database.transaction(store).objectStore(store).get(key)
+    );
   }
   private async writeValue<T>(store: string, key: IDBValidKey, value: T) {
     const database = await this.database();
@@ -195,17 +243,27 @@ export class IndexedDbFileStorageAdapter implements LocalStorageAdapter {
     await done;
   }
   private deleteChunks(version: string) {
-    return this.deleteValue(CHUNKS, IDBKeyRange.bound(`${version}/`, `${version}/\uffff`));
+    return this.deleteValue(
+      CHUNKS,
+      IDBKeyRange.bound(`${version}/`, `${version}/\uffff`)
+    );
   }
 }
 
 function isManifest(value: unknown): value is ChunkManifest {
-  return !!value && typeof value === "object" && "version" in value && "chunks" in value;
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "version" in value &&
+    "chunks" in value
+  );
 }
 function decodeBase64(value: string): ArrayBuffer {
   const binary = atob(value);
   const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
+  for (let index = 0; index < binary.length; index++) {
+    bytes[index] = binary.charCodeAt(index);
+  }
   return bytes.buffer;
 }
 function requestAsPromise<T>(request: IDBRequest<T>): Promise<T> {
@@ -217,7 +275,9 @@ function requestAsPromise<T>(request: IDBRequest<T>): Promise<T> {
 function transactionDone(tx: IDBTransaction) {
   return new Promise<void>((resolve, reject) => {
     tx.oncomplete = () => resolve();
-    tx.onabort = () => reject(tx.error ?? new Error("Local storage transaction aborted"));
-    tx.onerror = () => reject(tx.error ?? new Error("Local storage transaction failed"));
+    tx.onabort = () =>
+      reject(tx.error ?? new Error("Local storage transaction aborted"));
+    tx.onerror = () =>
+      reject(tx.error ?? new Error("Local storage transaction failed"));
   });
 }

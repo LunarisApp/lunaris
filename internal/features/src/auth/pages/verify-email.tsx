@@ -18,11 +18,8 @@ export default function VerifyEmailPage() {
   const { t } = useTranslation();
   const auth = useAuth();
   const { authUrl, pathWithRegion, selectionRequired } = useRegion();
-  const {
-    isAddingAccount,
-    resolvedRedirectTo,
-    urlWithRedirect,
-  } = useAuthRedirect();
+  const { isAddingAccount, resolvedRedirectTo, urlWithRedirect } =
+    useAuthRedirect();
   const { data: session, isPending, refetch } = auth.useSession();
   const [cooldown, setCooldown] = useState(0);
   const [sending, setSending] = useState(false);
@@ -30,18 +27,22 @@ export default function VerifyEmailPage() {
   const sessionCheckStartedRef = useRef(false);
 
   useEffect(() => {
-    if (isPending || session || sessionCheckStartedRef.current) return;
+    if (isPending || session || sessionCheckStartedRef.current) {
+      return;
+    }
 
     sessionCheckStartedRef.current = true;
     refetch().then(
       () => setSessionCheckComplete(true),
-      () => setSessionCheckComplete(true),
+      () => setSessionCheckComplete(true)
     );
   }, [isPending, refetch, session]);
 
   const sendEmail = useCallback(async () => {
     const email = session?.user?.email;
-    if (!email || sending) return;
+    if (!email || sending) {
+      return;
+    }
     setSending(true);
     try {
       await auth.sendVerificationEmail({
@@ -60,7 +61,9 @@ export default function VerifyEmailPage() {
   }, [session?.user?.email, sending, t, auth, authUrl, urlWithRedirect]);
 
   useEffect(() => {
-    if (cooldown <= 0) return;
+    if (cooldown <= 0) {
+      return;
+    }
     const timer = setInterval(() => {
       setCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
@@ -68,7 +71,9 @@ export default function VerifyEmailPage() {
   }, [cooldown]);
 
   const handleResend = useCallback(async () => {
-    if (cooldown > 0) return;
+    if (cooldown > 0) {
+      return;
+    }
     const sent = await sendEmail();
     if (sent) {
       toast.success(t("auth.verificationSent"));
@@ -76,7 +81,9 @@ export default function VerifyEmailPage() {
     }
   }, [cooldown, sendEmail, t]);
 
-  if (isPending || (!session && !sessionCheckComplete)) return null;
+  if (isPending || !(session || sessionCheckComplete)) {
+    return null;
+  }
 
   if (selectionRequired) {
     return <Navigate replace to={pathWithRegion("/auth")} />;
@@ -92,7 +99,7 @@ export default function VerifyEmailPage() {
         replace
         state={createAccountSwitchNavigationState(
           session.user.id,
-          isAddingAccount,
+          isAddingAccount
         )}
         to={resolvedRedirectTo}
       />
@@ -107,7 +114,10 @@ export default function VerifyEmailPage() {
       description={t("auth.verifyEmailDescription", { email })}
       title={t("auth.verifyEmail")}
     >
-      <div className="flex flex-col items-center gap-4" data-testid="auth-verify-page">
+      <div
+        className="flex flex-col items-center gap-4"
+        data-testid="auth-verify-page"
+      >
         <Button
           className="w-full"
           data-testid="auth-verify-resend"

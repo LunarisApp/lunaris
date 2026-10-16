@@ -127,14 +127,14 @@ function TaskCard({
 }) {
   return (
     <KanbanItem
-      className="group/task data-[dragging=true]:rounded-md data-[dragging=true]:border-2 data-[dragging=true]:border-dashed data-[dragging=true]:border-primary/40 data-[dragging=true]:bg-primary/5"
+      className="group/task data-[dragging=true]:rounded-md data-[dragging=true]:border-2 data-[dragging=true]:border-primary/40 data-[dragging=true]:border-dashed data-[dragging=true]:bg-primary/5"
       disabled={readOnly}
       value={item.id}
     >
       <KanbanItemHandle
         cursor={!readOnly}
         render={
-          <div className="flex min-h-20 rounded-lg border border-border/70 bg-card shadow-xs transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20" />
+          <div className="flex min-h-20 rounded-lg border border-border/70 bg-card shadow-xs transition-[border-color,box-shadow] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 hover:border-foreground/20 hover:shadow-sm" />
         }
       >
         <button
@@ -142,7 +142,7 @@ function TaskCard({
           onClick={onSelect ? () => onSelect(item.id) : undefined}
           type="button"
         >
-          <span className="block text-sm font-medium">
+          <span className="block font-medium text-sm">
             {item.name || untitledLabel}
           </span>
           {item.badges.length > 0 ? (
@@ -170,7 +170,7 @@ function TaskCard({
               render={
                 <Button
                   aria-label={actionsLabel}
-                  className="mr-1 mt-1 size-9 shrink-0 text-muted-foreground sm:opacity-0 sm:group-hover/task:opacity-100 sm:group-focus-within/task:opacity-100"
+                  className="mt-1 mr-1 size-9 shrink-0 text-muted-foreground sm:opacity-0 sm:group-hover/task:opacity-100 sm:group-focus-within/task:opacity-100"
                   onKeyDown={(event) => event.stopPropagation()}
                   onMouseDown={(event) => event.stopPropagation()}
                   onTouchStart={(event) => event.stopPropagation()}
@@ -186,15 +186,15 @@ function TaskCard({
               }
             />
             <ResponsiveDropdownMenuContent align="end" title={actionsLabel}>
-              {!readOnly ? (
+              {readOnly ? null : (
                 <ResponsiveDropdownMenuItem onClick={() => onRename(item.id)}>
                   <HugeiconsIcon icon={Edit02Icon} />
                   {renameLabel}
                 </ResponsiveDropdownMenuItem>
-              ) : null}
+              )}
               {canDelete ? (
                 <>
-                  {!readOnly ? <ResponsiveDropdownMenuSeparator /> : null}
+                  {readOnly ? null : <ResponsiveDropdownMenuSeparator />}
                   <ResponsiveDropdownMenuItem
                     onClick={() => onDelete(item.id)}
                     variant="destructive"
@@ -293,7 +293,7 @@ function ColumnView({
     onCollapseModeChange(mode);
   };
 
-  const addTaskButton = !readOnly ? (
+  const addTaskButton = readOnly ? null : (
     <Button
       aria-label={addTaskLabel}
       className="size-9 shrink-0 text-muted-foreground"
@@ -304,7 +304,7 @@ function ColumnView({
     >
       <HugeiconsIcon icon={Add01Icon} size={16} strokeWidth={2} />
     </Button>
-  ) : null;
+  );
 
   if (collapseMode === "horizontal") {
     return (
@@ -325,10 +325,10 @@ function ColumnView({
           onPointerDown={handlePointerDown}
           title={expandColumnLabel}
         >
-          <span className="text-xs tabular-nums text-muted-foreground">
+          <span className="text-muted-foreground text-xs tabular-nums">
             {items.length}
           </span>
-          <span className="min-h-0 flex-1 truncate py-2 text-sm font-medium [writing-mode:vertical-rl]">
+          <span className="min-h-0 flex-1 truncate py-2 font-medium text-sm [writing-mode:vertical-rl]">
             {label}
           </span>
         </KanbanColumnHandle>
@@ -354,15 +354,17 @@ function ColumnView({
           onPointerDown={handlePointerDown}
           title={collapseLabel}
         >
-          <div className="flex items-center gap-2 min-w-0">
-            {color && (
+          <div className="flex min-w-0 items-center gap-2">
+            {!!color && (
               <span
-                className="size-2.5 rounded-full shrink-0"
+                className="size-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: color }}
               />
             )}
-            <span className="text-sm font-medium truncate">{label}</span>
-            <span className="text-xs text-muted-foreground">{items.length}</span>
+            <span className="truncate font-medium text-sm">{label}</span>
+            <span className="text-muted-foreground text-xs">
+              {items.length}
+            </span>
           </div>
         </KanbanColumnHandle>
         {addTaskButton}
@@ -373,7 +375,7 @@ function ColumnView({
           value={colId}
         >
           {items.length === 0 ? (
-            <div className="flex min-h-20 items-center justify-center rounded-lg border border-dashed border-border/70 px-3 text-center text-xs text-muted-foreground">
+            <div className="flex min-h-20 items-center justify-center rounded-lg border border-border/70 border-dashed px-3 text-center text-muted-foreground text-xs">
               {emptyColumnLabel}
             </div>
           ) : null}
@@ -426,7 +428,10 @@ export function KanbanView({
   groupByPropertyId,
 }: KanbanViewProps) {
   const { t } = useTranslation();
-  const b = (key: string) => t(`extensions.catalog.lunaris.kanban.${key}`);
+  const b = useCallback(
+    (key: string) => t(`extensions.catalog.lunaris.kanban.${key}`),
+    [t]
+  );
   const { i18n } = useTranslation();
   const { user: currentUser } = useCurrentUser();
   const { map: members } = useOrgMembersMap();
@@ -470,6 +475,10 @@ export function KanbanView({
     })
   );
 
+  const yesLabel = b("boolean.yes");
+  const noLabel = b("boolean.no");
+  const untitledLabel = b("untitled");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: peopleRevision captures IDs/names/emails; unstable host map wrappers must not invalidate the drag preview.
   const grouped = useMemo<Record<string, KanbanItemData[]>>(() => {
     const options = property?.options ?? [];
     const result: Record<string, KanbanItemData[]> = {};
@@ -490,17 +499,18 @@ export function KanbanView({
             itemProperty,
             getTaskPropertyValue(assignment, itemProperty),
             (id) => {
-              const user = id === currentUser?.id ? currentUser : members.get(id);
+              const user =
+                id === currentUser?.id ? currentUser : members.get(id);
               return user?.name || user?.email || id;
             },
             i18n.language,
-            b("boolean.yes"),
-            b("boolean.no")
+            yesLabel,
+            noLabel
           )
         ),
         createdAt: task.createdAt,
         id: task.id,
-        name: task.name || b("untitled"),
+        name: task.name || untitledLabel,
       };
       const val = assignment?.get(propKey);
       if (typeof val === "string" && val && result[val]) {
@@ -517,6 +527,9 @@ export function KanbanView({
     i18n.language,
     itemsRevision,
     peopleRevision,
+    yesLabel,
+    noLabel,
+    untitledLabel,
     properties,
     property?.options,
     propKey,
@@ -574,7 +587,9 @@ export function KanbanView({
 
   const handleValueChange = useCallback(
     (newValue: Record<string, KanbanItemData[]>) => {
-      if (readOnly) return;
+      if (readOnly) {
+        return;
+      }
       setPreview({ base: grouped, committed: false, value: newValue });
     },
     [grouped, readOnly]
@@ -585,7 +600,9 @@ export function KanbanView({
       newValue: Record<string, KanbanItemData[]>,
       meta: KanbanCommitMeta<KanbanItemData>
     ) => {
-      if (readOnly) return;
+      if (readOnly) {
+        return;
+      }
 
       setPreview((current) => ({
         base: current?.value === newValue ? current.base : grouped,
@@ -611,25 +628,25 @@ export function KanbanView({
       }
 
       const item = meta.previousValue[meta.activeContainer]?.[meta.activeIndex];
-      if (!item) return;
+      if (!item) {
+        return;
+      }
       if (meta.activeContainer !== meta.overContainer) {
         onAssignmentChange(
           item.id,
           groupByPropertyId,
-          meta.overContainer === UNASSIGNED_COLUMN_ID ? null : meta.overContainer
+          meta.overContainer === UNASSIGNED_COLUMN_ID
+            ? null
+            : meta.overContainer
         );
       }
       const reorder = persistTaskOrder(newValue);
       if (!reorder) {
-        setPreview((current) =>
-          current?.value === newValue ? null : current
-        );
+        setPreview((current) => (current?.value === newValue ? null : current));
         return;
       }
       void reorder.catch(() => {
-        setPreview((current) =>
-          current?.value === newValue ? null : current
-        );
+        setPreview((current) => (current?.value === newValue ? null : current));
       });
     },
     [
@@ -647,7 +664,9 @@ export function KanbanView({
   const unassignedLabel = b("unassigned");
   const getColumnLabel = useCallback(
     (colId: string) => {
-      if (colId === UNASSIGNED_COLUMN_ID) return unassignedLabel;
+      if (colId === UNASSIGNED_COLUMN_ID) {
+        return unassignedLabel;
+      }
       return optionsMap[colId]?.name ?? colId;
     },
     [optionsMap, unassignedLabel]
@@ -662,7 +681,7 @@ export function KanbanView({
       restoreOnCancel
       value={displayedColumns}
     >
-      <KanbanBoard className="flex h-full w-max snap-x snap-mandatory scroll-px-3 items-start gap-3 p-3 sm:grid-cols-none sm:scroll-px-4 sm:p-4">
+      <KanbanBoard className="flex h-full w-max snap-x snap-mandatory scroll-px-3 items-start gap-3 p-3 sm:scroll-px-4 sm:grid-cols-none sm:p-4">
         {Object.keys(displayedColumns).map((colId) => {
           const option = optionsMap[colId];
           const label = getColumnLabel(colId);
@@ -703,7 +722,7 @@ export function KanbanView({
           );
         })}
       </KanbanBoard>
-      <KanbanOverlay className="bg-muted/10 rounded-md border-2 border-dashed">
+      <KanbanOverlay className="rounded-md border-2 border-dashed bg-muted/10">
         <div className="size-full" />
       </KanbanOverlay>
     </Kanban>
@@ -718,30 +737,36 @@ function propertyBadges(
   booleanTrue: string,
   booleanFalse: string
 ): PropertyBadgeData[] {
-  if (!hasPropertyValue(value)) return [];
+  if (!hasPropertyValue(value)) {
+    return [];
+  }
   if (property.type === "select" && typeof value === "string") {
     const option = property.options.find((candidate) => candidate.id === value);
     return option
-      ? [{
-          color: option.color,
-          id: `${property.id}:${option.id}`,
-          propertyId: property.id,
-          propertyName: property.name,
-          value: option.name,
-        }]
+      ? [
+          {
+            color: option.color,
+            id: `${property.id}:${option.id}`,
+            propertyId: property.id,
+            propertyName: property.name,
+            value: option.name,
+          },
+        ]
       : [];
   }
   if (property.type === "multi-select" && Array.isArray(value)) {
     return value.flatMap((id) => {
       const option = property.options.find((candidate) => candidate.id === id);
       return option
-        ? [{
-            color: option.color,
-            id: `${property.id}:${option.id}`,
-            propertyId: property.id,
-            propertyName: property.name,
-            value: option.name,
-          }]
+        ? [
+            {
+              color: option.color,
+              id: `${property.id}:${option.id}`,
+              propertyId: property.id,
+              propertyName: property.name,
+              value: option.name,
+            },
+          ]
         : [];
     });
   }
@@ -752,12 +777,14 @@ function propertyBadges(
     resolvePerson,
   });
   return formatted
-    ? [{
-        color: "#6b7280",
-        id: property.id,
-        propertyId: property.id,
-        propertyName: property.name,
-        value: formatted,
-      }]
+    ? [
+        {
+          color: "#6b7280",
+          id: property.id,
+          propertyId: property.id,
+          propertyName: property.name,
+          value: formatted,
+        },
+      ]
     : [];
 }

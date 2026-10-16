@@ -31,7 +31,9 @@ vi.mock("@repo/data/core", () => ({
 }));
 
 vi.mock("@repo/data/features/search-index", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@repo/data/features/search-index")>()),
+  ...(await importOriginal<
+    typeof import("@repo/data/features/search-index")
+  >()),
   deleteStaleSearchIndexEntries: mocks.deleteStaleSearchIndexEntries,
   getSearchIndexRevisions: mocks.getSearchIndexRevisions,
 }));
@@ -88,7 +90,7 @@ beforeEach(() => {
   mocks.resourceTypes = [];
   mocks.runSearchIndexJob.mockResolvedValue(undefined);
   mocks.getSearchIndexRevisions.mockResolvedValue(
-    new Map([["acme.note.indexer\u001fresource-1", "revision-1"]]),
+    new Map([["acme.note.indexer\u001fresource-1", "revision-1"]])
   );
 });
 
@@ -107,7 +109,7 @@ describe("SearchIndexCoordinator readiness", () => {
         mocks.database,
         "organization-1",
         new Set(),
-        expect.anything(),
+        expect.anything()
       );
     });
   });
@@ -147,7 +149,7 @@ describe("SearchIndexCoordinator readiness", () => {
         return new Promise<void>((resolve) => {
           finishJob = resolve;
         });
-      },
+      }
     );
     const view = render(<SearchIndexCoordinator enabled />);
 
@@ -155,7 +157,7 @@ describe("SearchIndexCoordinator readiness", () => {
       () => {
         expect(mocks.runSearchIndexJob).toHaveBeenCalledOnce();
       },
-      { timeout: 1000 },
+      { timeout: 1000 }
     );
     expect(isCurrent?.()).toBe(true);
 
@@ -195,8 +197,10 @@ describe("SearchIndexCoordinator readiness", () => {
       () => {
         expect(mocks.runSearchIndexJob).toHaveBeenCalledOnce();
       },
-      { timeout: 1000 },
+      { timeout: 1000 }
     );
-    expect(mocks.runSearchIndexJob.mock.calls[0]?.[0].job.row).toEqual(changedRow);
+    expect(mocks.runSearchIndexJob.mock.calls[0]?.[0].job.row).toEqual(
+      changedRow
+    );
   });
 });

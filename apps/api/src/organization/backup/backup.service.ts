@@ -9,14 +9,8 @@ import {
 } from "@nestjs/common";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { member, organization } from "../../auth/auth.entity";
-import {
-  type BackupExport,
-  backupExportsDb,
-} from "./backup.entity";
-import type {
-  BackupDownloadResponseDto,
-  BackupDto,
-} from "./backup.schema";
+import { type BackupExport, backupExportsDb } from "./backup.entity";
+import type { BackupDownloadResponseDto, BackupDto } from "./backup.schema";
 
 const DOWNLOAD_URL_TTL_SECONDS = 10 * 60;
 
@@ -24,7 +18,7 @@ const DOWNLOAD_URL_TTL_SECONDS = 10 * 60;
 export class BackupService {
   constructor(
     private readonly databaseService: DatabaseService,
-    private readonly storage: StorageService,
+    private readonly storage: StorageService
   ) {}
 
   async create(userId: string, organizationId: string) {
@@ -32,7 +26,7 @@ export class BackupService {
 
     const backup = await this.databaseService.db.transaction(async (tx) => {
       await tx.execute(
-        sql`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`,
+        sql`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`
       );
       const active = await tx
         .select()
@@ -40,13 +34,15 @@ export class BackupService {
         .where(
           and(
             eq(backupExportsDb.organizationId, organizationId),
-            inArray(backupExportsDb.status, ["queued", "processing"]),
-          ),
+            inArray(backupExportsDb.status, ["queued", "processing"])
+          )
         )
         .orderBy(desc(backupExportsDb.createdAt))
         .limit(1)
         .then((rows) => rows[0]);
-      if (active) return active;
+      if (active) {
+        return active;
+      }
 
       return tx
         .insert(backupExportsDb)
@@ -67,7 +63,9 @@ export class BackupService {
       .orderBy(desc(backupExportsDb.createdAt))
       .limit(1)
       .then((rows) => rows[0]);
-    if (!backup) return null;
+    if (!backup) {
+      return null;
+    }
     return toBackupDto(await this.expireIfNeeded(backup));
   }
 
@@ -80,11 +78,11 @@ export class BackupService {
   async getDownloadUrl(
     userId: string,
     organizationId: string,
-    backupId: string,
+    backupId: string
   ): Promise<BackupDownloadResponseDto> {
     await this.assertOwner(userId, organizationId);
     const backup = await this.expireIfNeeded(
-      await this.findBackup(organizationId, backupId),
+      await this.findBackup(organizationId, backupId)
     );
 
     if (backup.status === "expired") {
@@ -104,7 +102,7 @@ export class BackupService {
       downloadUrl: await this.storage.getSignedDownloadUrl(
         backup.objectKey,
         DOWNLOAD_URL_TTL_SECONDS,
-        `attachment; filename="${backup.filename}"`,
+        `attachment; filename="${backup.filename}"`
       ),
       expiresAt: expiresAt.toISOString(),
       filename: backup.filename,
@@ -119,16 +117,16 @@ export class BackupService {
         member,
         and(
           eq(member.organizationId, organization.id),
-          eq(member.userId, userId),
-        ),
+          eq(member.userId, userId)
+        )
       )
       .where(eq(organization.id, organizationId))
       .limit(1)
       .then((rows) => rows[0]);
 
-    if (!result || result.role !== "owner") {
+    if (result?.role !== "owner") {
       throw new ForbiddenException(
-        "Only organization owners can export organization backups",
+        "Only organization owners can export organization backups"
       );
     }
   }
@@ -140,12 +138,14 @@ export class BackupService {
       .where(
         and(
           eq(backupExportsDb.id, backupId),
-          eq(backupExportsDb.organizationId, organizationId),
-        ),
+          eq(backupExportsDb.organizationId, organizationId)
+        )
       )
       .limit(1)
       .then((rows) => rows[0]);
-    if (!backup) throw new NotFoundException("Organization backup not found");
+    if (!backup) {
+      throw new NotFoundException("Organization backup not found");
+    }
     return backup;
   }
 
@@ -163,13 +163,14 @@ export class BackupService {
       .set({ phase: "expired", status: "expired" })
       .where(eq(backupExportsDb.id, backup.id))
       .returning()
-      .then((rows) => rows[0] ?? { ...backup, phase: "expired", status: "expired" as const });
+      .then(
+        (rows) =>
+          rows[0] ?? { ...backup, phase: "expired", status: "expired" as const }
+      );
   }
 }
 
-export function toBackupDto(
-  backup: BackupExport,
-): BackupDto {
+export function toBackupDto(backup: BackupExport): BackupDto {
   return {
     id: backup.id,
     status: backup.status,

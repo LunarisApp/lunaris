@@ -28,7 +28,9 @@ export interface ExtensionPlaceholderProps {
  * Placeholder shown when content requires an unloaded extension.
  * Displays a message and button to enable the required extension.
  */
-export function ExtensionPlaceholder({ extensionId }: ExtensionPlaceholderProps) {
+export function ExtensionPlaceholder({
+  extensionId,
+}: ExtensionPlaceholderProps) {
   const { t } = useTranslation();
   const {
     allExtensionIds,
@@ -52,18 +54,20 @@ export function ExtensionPlaceholder({ extensionId }: ExtensionPlaceholderProps)
       })
     : extensionId;
   const availability = metadata
-    ? extensionAvailability[extensionId] ?? "unknown-release"
+    ? (extensionAvailability[extensionId] ?? "unknown-release")
     : null;
   const canEnable = availability === "available";
   const hasError = availability !== null && availability !== "available";
   const extensionIcon = hasError
     ? Alert02Icon
-    : metadata?.icon ?? BlockGameIcon;
+    : (metadata?.icon ?? BlockGameIcon);
   const isLoading =
     enabledExtensionIds.includes(extensionId) && availability === "available";
 
   const handleEnableExtension = useCallback(async () => {
-    if (!canWrite) return;
+    if (!canWrite) {
+      return;
+    }
 
     const service = createWorkspaceExtensionsService(db, workspaceId);
     const initialState = {
@@ -121,13 +125,13 @@ export function ExtensionPlaceholder({ extensionId }: ExtensionPlaceholderProps)
           className="size-8 text-muted-foreground"
           role="presentation"
         />
-        <p className="text-sm text-muted-foreground">{loadingLabel}</p>
+        <p className="text-muted-foreground text-sm">{loadingLabel}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-4 p-6 text-center">
+    <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
       <div
         className={
           hasError
@@ -145,16 +149,23 @@ export function ExtensionPlaceholder({ extensionId }: ExtensionPlaceholderProps)
         />
       </div>
       <div className="space-y-2">
-        <h3 className="text-lg font-medium">
+        <h3 className="font-medium text-lg">
           {t("extensions.extensionRequired")}
         </h3>
-        <p className="text-sm text-muted-foreground max-w-sm">
+        <p className="max-w-sm text-muted-foreground text-sm">
           {availability && availability !== "available"
-            ? t(`extensions.placeholder.${availability}`, { name: extensionName })
-            : t("extensions.extensionRequiredDescription", { name: extensionName })}
+            ? t(`extensions.placeholder.${availability}`, {
+                name: extensionName,
+              })
+            : t("extensions.extensionRequiredDescription", {
+                name: extensionName,
+              })}
         </p>
       </div>
-      <Button disabled={!canWrite || !canEnable} onClick={handleEnableExtension}>
+      <Button
+        disabled={!(canWrite && canEnable)}
+        onClick={handleEnableExtension}
+      >
         <HugeiconsIcon icon={BlockGameIcon} />
         {canEnable
           ? t("extensions.enableExtension")

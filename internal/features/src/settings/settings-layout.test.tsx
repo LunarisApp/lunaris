@@ -26,13 +26,13 @@ describe("SettingsLayout accessibility", () => {
         >
           Account settings
         </SettingsLayout>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(
-      screen.getByRole("link", { name: "Skip to main content" }).getAttribute(
-        "href",
-      ),
+      screen
+        .getByRole("link", { name: "Skip to main content" })
+        .getAttribute("href")
     ).toBe("#settings-content");
     const main = screen.getByRole("main");
     expect(main.id).toBe("settings-content");

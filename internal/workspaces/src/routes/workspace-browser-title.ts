@@ -58,7 +58,7 @@ export function useWorkspaceBrowserTitle({
       return providedResolution;
     }
 
-    if (!workspace?.slug || !organizationSlug) {
+    if (!(workspace?.slug && organizationSlug)) {
       return null;
     }
 

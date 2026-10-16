@@ -41,7 +41,9 @@ interface ControllerChangeTarget {
 export function createRunOnce(callback: () => void): () => void {
   let called = false;
   return () => {
-    if (called) return;
+    if (called) {
+      return;
+    }
     called = true;
     callback();
   };
@@ -50,15 +52,17 @@ export function createRunOnce(callback: () => void): () => void {
 export function activateWaitingServiceWorker(
   worker: Pick<ServiceWorker, "postMessage">,
   serviceWorkers: ControllerChangeTarget,
-  onControllerChange: () => void,
+  onControllerChange: () => void
 ): () => void {
   let listening = true;
   const cleanup = () => {
-    if (!listening) return;
+    if (!listening) {
+      return;
+    }
     listening = false;
     serviceWorkers.removeEventListener(
       "controllerchange",
-      handleControllerChange,
+      handleControllerChange
     );
   };
   const handleControllerChange = () => {
@@ -77,18 +81,22 @@ export function activateWaitingServiceWorker(
 }
 
 export function isReloadNavigation(
-  performanceObject: Performance = window.performance,
+  performanceObject: Performance = window.performance
 ): boolean {
-  const navigationEntry = performanceObject.getEntriesByType(
-    "navigation",
-  )[0] as PerformanceNavigationTiming | undefined;
-  if (navigationEntry) return navigationEntry.type === "reload";
+  const navigationEntry = performanceObject.getEntriesByType("navigation")[0] as
+    | PerformanceNavigationTiming
+    | undefined;
+  if (navigationEntry) {
+    return navigationEntry.type === "reload";
+  }
 
   return (
-    performanceObject as unknown as {
-      navigation?: { type: number };
-    }
-  ).navigation?.type === 1;
+    (
+      performanceObject as unknown as {
+        navigation?: { type: number };
+      }
+    ).navigation?.type === 1
+  );
 }
 
 export function startWebAppUpdateChecks(
@@ -98,7 +106,7 @@ export function startWebAppUpdateChecks(
     document,
     navigator,
     window,
-  },
+  }
 ): () => void {
   let disposed = false;
   let updatePromise: Promise<void> | null = null;
@@ -118,15 +126,21 @@ export function startWebAppUpdateChecks(
   };
 
   const observeWorker = (worker: ServiceWorker | null) => {
-    if (!worker || observedWorkers.has(worker)) return;
+    if (!worker || observedWorkers.has(worker)) {
+      return;
+    }
 
     const handleStateChange = () => {
-      if (worker.state === "installed") reportWaitingWorker();
+      if (worker.state === "installed") {
+        reportWaitingWorker();
+      }
     };
     worker.addEventListener("statechange", handleStateChange);
     observedWorkers.set(worker, handleStateChange);
 
-    if (worker.state === "installed") reportWaitingWorker();
+    if (worker.state === "installed") {
+      reportWaitingWorker();
+    }
   };
 
   const handleUpdateFound = () => observeWorker(registration.installing);
@@ -144,7 +158,9 @@ export function startWebAppUpdateChecks(
     ) {
       return Promise.resolve();
     }
-    if (updatePromise) return updatePromise;
+    if (updatePromise) {
+      return updatePromise;
+    }
 
     updatePromise = registration
       .update()
@@ -181,11 +197,11 @@ export function startWebAppUpdateChecks(
   requestUpdateCheck();
   const intervalId = environment.window.setInterval(
     requestUpdateCheck,
-    UPDATE_CHECK_INTERVAL_MS,
+    UPDATE_CHECK_INTERVAL_MS
   );
   environment.document.addEventListener(
     "visibilitychange",
-    handleVisibilityChange,
+    handleVisibilityChange
   );
   environment.window.addEventListener("online", requestUpdateCheck);
   environment.window.addEventListener("pageshow", requestUpdateCheck);
@@ -195,7 +211,7 @@ export function startWebAppUpdateChecks(
     environment.window.clearInterval(intervalId);
     environment.document.removeEventListener(
       "visibilitychange",
-      handleVisibilityChange,
+      handleVisibilityChange
     );
     environment.window.removeEventListener("online", requestUpdateCheck);
     environment.window.removeEventListener("pageshow", requestUpdateCheck);
@@ -209,7 +225,7 @@ export function startWebAppUpdateChecks(
 
 export function createWebAppUpdateState(
   needRefresh: boolean,
-  updateServiceWorker: (reloadPage?: boolean) => Promise<void>,
+  updateServiceWorker: (reloadPage?: boolean) => Promise<void>
 ): AppUpdateState {
   return {
     needRefresh,
@@ -221,7 +237,7 @@ export function useWebAppUpdate({ immediate = false } = {}): AppUpdateState {
   const [registration, setRegistration] =
     useState<ServiceWorkerRegistration | null>(null);
   const [reloadPageOnce] = useState(() =>
-    createRunOnce(() => window.location.reload()),
+    createRunOnce(() => window.location.reload())
   );
   const reloadedByUser = useRef(isReloadNavigation());
   const automaticUpdateAttempted = useRef(false);
@@ -241,7 +257,9 @@ export function useWebAppUpdate({ immediate = false } = {}): AppUpdateState {
       });
     },
     onRegisteredSW: (_serviceWorkerUrl, nextRegistration) => {
-      if (nextRegistration) setRegistration(nextRegistration);
+      if (nextRegistration) {
+        setRegistration(nextRegistration);
+      }
     },
   });
 
@@ -250,7 +268,9 @@ export function useWebAppUpdate({ immediate = false } = {}): AppUpdateState {
   }, [setNeedRefresh]);
 
   useEffect(() => {
-    if (!registration) return;
+    if (!registration) {
+      return;
+    }
     return startWebAppUpdateChecks(registration, markUpdateAvailable);
   }, [markUpdateAvailable, registration]);
 
@@ -259,7 +279,9 @@ export function useWebAppUpdate({ immediate = false } = {}): AppUpdateState {
       const waitingWorker = registration?.waiting;
       if (!waitingWorker) {
         await updateServiceWorker(true);
-        if (trigger === "manual") reloadPageOnce();
+        if (trigger === "manual") {
+          reloadPageOnce();
+        }
         return;
       }
 
@@ -272,7 +294,7 @@ export function useWebAppUpdate({ immediate = false } = {}): AppUpdateState {
           () => {
             controllerChangeCleanup.current = null;
             reloadPageOnce();
-          },
+          }
         );
       } catch (error) {
         log.warn({
@@ -288,7 +310,7 @@ export function useWebAppUpdate({ immediate = false } = {}): AppUpdateState {
         // Keep the visible update action available for another attempt.
       }
     },
-    [registration, reloadPageOnce, updateServiceWorker],
+    [registration, reloadPageOnce, updateServiceWorker]
   );
 
   useEffect(
@@ -296,13 +318,12 @@ export function useWebAppUpdate({ immediate = false } = {}): AppUpdateState {
       controllerChangeCleanup.current?.();
       controllerChangeCleanup.current = null;
     },
-    [],
+    []
   );
 
   useEffect(() => {
     if (
-      !needRefresh ||
-      !reloadedByUser.current ||
+      !(needRefresh && reloadedByUser.current) ||
       automaticUpdateAttempted.current
     ) {
       return;
@@ -339,8 +360,8 @@ export function useWebAppUpdate({ immediate = false } = {}): AppUpdateState {
             },
           });
           throw error;
-        }),
+        })
       ),
-    [applyUpdate, needRefresh, registration?.waiting?.state],
+    [applyUpdate, needRefresh, registration?.waiting?.state]
   );
 }

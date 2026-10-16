@@ -52,7 +52,7 @@ export function WorkspaceOptionsMenu({
           <HugeiconsIcon aria-hidden="true" icon={Settings01Icon} />
           {t("common.settings")}
         </ResponsiveDropdownMenuItem>
-        {canDelete && (
+        {!!canDelete && (
           <ResponsiveDropdownMenuItem
             data-testid="workspaces-options-delete"
             onClick={onDelete}

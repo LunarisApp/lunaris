@@ -63,11 +63,11 @@ function ProfileSection() {
     setNameInitialized(true);
   }
 
-  const handleFileSelect = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
     try {
       await upload(file);
       toast.success(t("settings.account.avatarUpdated"));
@@ -84,7 +84,9 @@ function ProfileSection() {
   };
 
   const handleBlur = async () => {
-    if (!name.trim() || name === user?.name) return;
+    if (!name.trim() || name === user?.name) {
+      return;
+    }
     try {
       await auth.updateUser({ name: name.trim() });
       toast.success(t("organization.updated"));
@@ -106,7 +108,7 @@ function ProfileSection() {
       className="grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
       data-testid="settings-account-profile"
     >
-      <h2 className="text-base font-semibold" id="account-profile-heading">
+      <h2 className="font-semibold text-base" id="account-profile-heading">
         {t("settings.account.profile")}
       </h2>
       <div className="flex max-w-3xl flex-col items-start gap-5 sm:flex-row sm:gap-6">
@@ -117,7 +119,7 @@ function ProfileSection() {
             <button
               aria-busy={uploading}
               aria-label={t("settings.account.changeAvatar")}
-              className="relative cursor-pointer rounded-full focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:opacity-80 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="relative cursor-pointer rounded-full transition-all duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
               disabled={uploading}
               onClick={() => fileInputRef.current?.click()}
               type="button"
@@ -156,9 +158,7 @@ function ProfileSection() {
         <div className="w-full flex-1 space-y-4">
           {isAnonymous ? (
             <>
-              <p className="font-medium">
-                {t("settings.account.anonymous")}
-              </p>
+              <p className="font-medium">{t("settings.account.anonymous")}</p>
               <p className="text-muted-foreground text-sm">
                 {t("settings.account.anonymousDescription")}
               </p>
@@ -252,17 +252,17 @@ function DangerZoneSection() {
       className="grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
     >
       <h2
-        className="text-base font-semibold text-destructive"
+        className="font-semibold text-base text-destructive"
         id="account-danger-zone-heading"
       >
         {t("settings.account.dangerZone")}
       </h2>
-      <div className="border-destructive/20 bg-destructive/[0.025] flex max-w-3xl flex-col gap-4 rounded-xl border p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex max-w-3xl flex-col gap-4 rounded-xl border border-destructive/20 bg-destructive/[0.025] p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-destructive">
+          <p className="font-medium text-destructive text-sm">
             {t("settings.account.deleteAccount")}
           </p>
-          <p className="text-sm text-destructive/80">
+          <p className="text-destructive/80 text-sm">
             {t("settings.account.deleteConfirmDescription")}
           </p>
         </div>
@@ -299,7 +299,7 @@ function ClaimAccountSection() {
       aria-labelledby="account-claim-heading"
       className="grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
     >
-      <h2 className="text-base font-semibold" id="account-claim-heading">
+      <h2 className="font-semibold text-base" id="account-claim-heading">
         {t("settings.account.claimAccount")}
       </h2>
       <div className="max-w-3xl space-y-4">
@@ -318,11 +318,7 @@ function ClaimAccountSection() {
           onClick={() => navigation.assign(pathWithRegion("/auth/register"))}
           variant="outline"
         >
-          <HugeiconsIcon
-            aria-hidden="true"
-            icon={Mail01Icon}
-            strokeWidth={2}
-          />
+          <HugeiconsIcon aria-hidden="true" icon={Mail01Icon} strokeWidth={2} />
           {t("auth.continueWithEmail")}
         </Button>
       </div>
@@ -357,7 +353,7 @@ export function AccountContent() {
           >
             <header className="space-y-1.5">
               <h2
-                className="text-base font-semibold"
+                className="font-semibold text-base"
                 id="account-security-heading"
               >
                 {t("settings.security.title")}

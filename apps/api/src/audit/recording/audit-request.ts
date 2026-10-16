@@ -53,7 +53,7 @@ export function auditInputForRequest(
   actionName: AuditActionName,
   outcome: AuditInput["outcome"],
   reason?: string,
-  result?: unknown,
+  result?: unknown
 ): AuditInput {
   const request = context.switchToHttp().getRequest<AuditRequest>();
   const action = AuditActions[actionName];
@@ -66,7 +66,7 @@ export function auditInputForRequest(
     findTargetId(
       request.body && typeof request.body === "object"
         ? (request.body as Record<string, unknown>)
-        : undefined,
+        : undefined
     ) ??
     (action.target === "user" || action.target === "account"
       ? actor.id
@@ -90,7 +90,7 @@ export function auditInputForRequest(
 
 function semanticTargetId(
   actionName: AuditActionName,
-  params: Record<string, unknown> | undefined,
+  params: Record<string, unknown> | undefined
 ): string | undefined {
   const targetKey = TARGET_PARAM_BY_ACTION[actionName];
   return targetKey ? stringValue(params?.[targetKey]) : undefined;
@@ -98,9 +98,11 @@ function semanticTargetId(
 
 function targetDetails(
   actionName: AuditActionName,
-  body: unknown,
+  body: unknown
 ): Record<string, unknown> {
-  if (actionName !== "syncIngested") return {};
+  if (actionName !== "syncIngested") {
+    return {};
+  }
   if (!body || typeof body !== "object" || !("transactions" in body)) {
     return { mutations: [] };
   }
@@ -117,7 +119,9 @@ function targetDetails(
       return [];
     }
     return transaction.crud.flatMap((entry) => {
-      if (!entry || typeof entry !== "object") return [];
+      if (!entry || typeof entry !== "object") {
+        return [];
+      }
       const id = "id" in entry ? stringValue(entry.id) : undefined;
       const op = "op" in entry ? stringValue(entry.op) : undefined;
       const type = "type" in entry ? stringValue(entry.type) : undefined;
@@ -131,7 +135,9 @@ function resultId(result: unknown): string | undefined {
   if (!result || typeof result !== "object") {
     return undefined;
   }
-  if ("id" in result) return stringValue(result.id);
+  if ("id" in result) {
+    return stringValue(result.id);
+  }
   if (
     "user" in result &&
     result.user &&
@@ -160,17 +166,23 @@ function resultUserId(result: unknown): string | undefined {
 export function getTenantId(request: AuditRequest): string | undefined {
   const params = request.params;
   const parameterId = stringValue(params?.organizationId);
-  if (parameterId) return parameterId;
+  if (parameterId) {
+    return parameterId;
+  }
   if (request.body && typeof request.body === "object") {
     const body = request.body as Record<string, unknown>;
     const bodyId = stringValue(body.organizationId);
-    if (bodyId) return bodyId;
+    if (bodyId) {
+      return bodyId;
+    }
   }
   return stringValue(request.session?.session?.activeOrganizationId);
 }
 
 function getActor(request: AuditRequest, result?: unknown): AuditActor {
-  if (request.auditActor) return request.auditActor;
+  if (request.auditActor) {
+    return request.auditActor;
+  }
   const principal = request.agentPrincipal;
   if (principal) {
     return {
@@ -188,28 +200,34 @@ function getActor(request: AuditRequest, result?: unknown): AuditActor {
 }
 
 function changedFields(body: unknown): AuditInput["changes"] {
-  if (!body || typeof body !== "object" || Array.isArray(body)) return undefined;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return undefined;
+  }
   const fields = Object.keys(body).sort();
   return fields.length ? { after: { fields } } : undefined;
 }
 
 function findTargetId(
-  params: Record<string, unknown> | undefined,
+  params: Record<string, unknown> | undefined
 ): string | undefined {
   for (const key of TARGET_ID_KEYS) {
     const value = stringValue(params?.[key]);
-    if (value) return value;
+    if (value) {
+      return value;
+    }
   }
   return undefined;
 }
 
 function targetReferences(
-  params: Record<string, unknown> | undefined,
+  params: Record<string, unknown> | undefined
 ): Record<string, string> {
   const references: Record<string, string> = {};
   for (const key of TARGET_ID_KEYS) {
     const value = stringValue(params?.[key]);
-    if (value) references[key] = value;
+    if (value) {
+      references[key] = value;
+    }
   }
   return references;
 }

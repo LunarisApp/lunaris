@@ -15,11 +15,13 @@ describe("Agent Work routes", () => {
         kind: "redirect",
         to: "/team/notes/agent-work",
       });
-    },
+    }
   );
 
   it("resolves the built-in panel without registered extension views", () => {
-    expect(resolveWorkspaceView({ ...context, viewId: "agent-work" })).toMatchObject({
+    expect(
+      resolveWorkspaceView({ ...context, viewId: "agent-work" })
+    ).toMatchObject({
       kind: "tool",
       tool: { toolId: "agent-work", pluginId: "system-agent-work" },
     });

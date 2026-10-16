@@ -2,7 +2,7 @@ import { BlockNoteEditor } from "@blocknote/core";
 import { blocksToYDoc } from "@blocknote/core/yjs";
 import type { PluginYjsStorageUpdateRow } from "@lunarisapp/plugin-sdk";
 import { describe, expect, it } from "vitest";
-import { Doc, encodeStateAsUpdateV2 } from "yjs";
+import { type Doc, encodeStateAsUpdateV2 } from "yjs";
 import { buildRichTextVersionHistory } from "./version-history";
 
 describe("buildRichTextVersionHistory", () => {
@@ -209,10 +209,10 @@ function makeUpdate({
   userId: string | null;
 }): PluginYjsStorageUpdateRow {
   return {
-    createdAt: createdAt,
+    createdAt,
     id,
     updateBase64: uint8ArrayToB64(makeStateUpdate(lines)),
-    userId: userId,
+    userId,
   };
 }
 
@@ -244,10 +244,10 @@ function makeCapturedUpdate({
   userId: string | null;
 }): PluginYjsStorageUpdateRow {
   return {
-    createdAt: createdAt,
+    createdAt,
     id,
     updateBase64: uint8ArrayToB64(captureDocUpdate(doc, mutate)),
-    userId: userId,
+    userId,
   };
 }
 
@@ -263,10 +263,10 @@ function makeUpdateFromDoc({
   userId: string | null;
 }): PluginYjsStorageUpdateRow {
   return {
-    createdAt: createdAt,
+    createdAt,
     id,
     updateBase64: uint8ArrayToB64(encodeStateAsUpdateV2(doc)),
-    userId: userId,
+    userId,
   };
 }
 

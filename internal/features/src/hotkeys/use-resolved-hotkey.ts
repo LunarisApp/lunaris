@@ -11,11 +11,11 @@ import type { HotkeyDefinition, HotkeyId, HotkeyPlatform } from "./registry";
  * so `useHotkey` consumers re-register when a user customizes the shortcut.
  */
 export function useResolvedHotkeyBinding(
-	hotkey: HotkeyDefinition | HotkeyId,
-	platform: HotkeyPlatform | undefined = getHotkeyPlatform(),
+  hotkey: HotkeyDefinition | HotkeyId,
+  platform: HotkeyPlatform | undefined = getHotkeyPlatform()
 ): Hotkey {
-	const overrides = useHotkeyOverrides((s) => s.overrides);
-	return getHotkeyBinding(hotkey, platform, overrides);
+  const overrides = useHotkeyOverrides((s) => s.overrides);
+  return getHotkeyBinding(hotkey, platform, overrides);
 }
 
 /**
@@ -23,9 +23,9 @@ export function useResolvedHotkeyBinding(
  * override changes so UI labels (menus, badges) stay in sync after rebinding.
  */
 export function useHotkeyDisplay(
-	hotkey: HotkeyDefinition | HotkeyId,
-	platform: HotkeyPlatform | undefined = getHotkeyPlatform(),
+  hotkey: HotkeyDefinition | HotkeyId,
+  platform: HotkeyPlatform | undefined = getHotkeyPlatform()
 ): string {
-	const binding = useResolvedHotkeyBinding(hotkey, platform);
-	return formatHotkeyDisplay(binding, platform);
+  const binding = useResolvedHotkeyBinding(hotkey, platform);
+  return formatHotkeyDisplay(binding, platform);
 }

@@ -26,16 +26,16 @@ afterEach(async () => {
 describe("desktop auth cookie bridge", () => {
   it("allows configured origins and local development only", () => {
     expect(
-      isAllowedDesktopCookieOrigin("tauri://localhost", productionConfig),
+      isAllowedDesktopCookieOrigin("tauri://localhost", productionConfig)
     ).toBe(true);
     expect(
-      isAllowedDesktopCookieOrigin("https://web.lunaris.app", productionConfig),
+      isAllowedDesktopCookieOrigin("https://web.lunaris.app", productionConfig)
     ).toBe(false);
     expect(
       isAllowedDesktopCookieOrigin("http://localhost:1420", {
         ...productionConfig,
         nodeEnv: "development",
-      }),
+      })
     ).toBe(true);
   });
 
@@ -110,11 +110,11 @@ async function createApp() {
   registerDesktopCookieBridge(app, productionConfig);
   app.get("/cookies", (request) => ({
     ...(request.headers.cookie?.match(
-      /(?:^|;\s*)lunaris\.session_token=([^;]+)/,
+      /(?:^|;\s*)lunaris\.session_token=([^;]+)/
     )?.[1]
       ? {
           session: request.headers.cookie?.match(
-            /(?:^|;\s*)lunaris\.session_token=([^;]+)/,
+            /(?:^|;\s*)lunaris\.session_token=([^;]+)/
           )?.[1],
         }
       : {}),
@@ -122,7 +122,7 @@ async function createApp() {
   app.get("/authenticated", (request, reply) => {
     if (
       request.headers.cookie?.match(
-        /(?:^|;\s*)lunaris\.session_token=([^;]+)/,
+        /(?:^|;\s*)lunaris\.session_token=([^;]+)/
       )?.[1] !== "desktop-session"
     ) {
       return reply.code(401).send({ error: "unauthorized" });
@@ -132,11 +132,11 @@ async function createApp() {
   app.get("/request", (request) => ({
     origin: request.headers.origin,
     ...(request.headers.cookie?.match(
-      /(?:^|;\s*)lunaris\.session_token=([^;]+)/,
+      /(?:^|;\s*)lunaris\.session_token=([^;]+)/
     )?.[1]
       ? {
           session: request.headers.cookie?.match(
-            /(?:^|;\s*)lunaris\.session_token=([^;]+)/,
+            /(?:^|;\s*)lunaris\.session_token=([^;]+)/
           )?.[1],
         }
       : {}),

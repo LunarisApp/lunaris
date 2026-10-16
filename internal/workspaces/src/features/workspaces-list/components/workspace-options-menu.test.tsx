@@ -16,7 +16,7 @@ describe("WorkspaceOptionsMenu", () => {
         onDelete={vi.fn()}
         onSettings={vi.fn()}
         workspaceName="Atlas"
-      />,
+      />
     );
 
     fireEvent.click(screen.getByTestId("workspaces-options-trigger"));
@@ -26,7 +26,7 @@ describe("WorkspaceOptionsMenu", () => {
     expect(screen.queryByText("common.rename")).toBeNull();
     expect(screen.queryByText("workspaces.shareWorkspace")).toBeNull();
     expect(
-      screen.getByRole("button", { name: "common.actions: Atlas" }),
+      screen.getByRole("button", { name: "common.actions: Atlas" })
     ).toBeTruthy();
   });
 });

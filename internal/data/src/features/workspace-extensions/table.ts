@@ -4,7 +4,7 @@ import { localTable } from "../../core/utils";
 
 export const WORKSPACE_EXTENSIONS_TABLE = "workspace_extensions";
 export const LOCAL_WORKSPACE_EXTENSIONS_TABLE = localTable(
-  WORKSPACE_EXTENSIONS_TABLE,
+  WORKSPACE_EXTENSIONS_TABLE
 );
 
 export const createWorkspaceExtensionsTable = ({
@@ -29,9 +29,12 @@ export const createWorkspaceExtensionsTable = ({
       viewName,
       indexes: {
         workspace_extensions_workspace_idx: ["workspace_id"],
-        workspace_extensions_workspace_extension_idx: ["workspace_id", "extension_id"],
+        workspace_extensions_workspace_extension_idx: [
+          "workspace_id",
+          "extension_id",
+        ],
       },
-    },
+    }
   );
 
 export type WorkspaceExtensionEntity = RowType<

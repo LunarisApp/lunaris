@@ -153,7 +153,7 @@ export default defineConfig({
 
   define: {
     __BUILD_VERSION__: JSON.stringify(
-      (process.env.RAILWAY_GIT_COMMIT_SHA ?? "local").slice(0, 7),
+      (process.env.RAILWAY_GIT_COMMIT_SHA ?? "local").slice(0, 7)
     ),
     // @react-pdf/renderer requires Buffer in browser
     "global.Buffer": "globalThis.Buffer",
@@ -170,14 +170,14 @@ export default defineConfig({
         find: "@repo/app-shell",
         replacement: path.resolve(
           import.meta.dirname,
-          "../../internal/app-shell/src",
+          "../../internal/app-shell/src"
         ),
       },
       {
         find: "@repo/data",
         replacement: path.resolve(
           import.meta.dirname,
-          "../../internal/data/src",
+          "../../internal/data/src"
         ),
       },
       {
@@ -188,7 +188,7 @@ export default defineConfig({
         find: "@repo/features",
         replacement: path.resolve(
           import.meta.dirname,
-          "../../internal/features/src",
+          "../../internal/features/src"
         ),
       },
     ],

@@ -56,7 +56,9 @@ describe("workspaces/create-workspace", () => {
     cy.get('[data-testid="workspaces-create-name"]').type("ab");
     cy.get('[data-testid="workspaces-create-submit"]').should("be.disabled");
     cy.get('[data-testid="workspaces-create-name"]').type("c");
-    cy.get('[data-testid="workspaces-create-submit"]').should("not.be.disabled");
+    cy.get('[data-testid="workspaces-create-submit"]').should(
+      "not.be.disabled"
+    );
   });
 
   it("blocks slug collisions and recovers after a unique slug", () => {
@@ -64,7 +66,10 @@ describe("workspaces/create-workspace", () => {
 
     openCreateDialog();
     cy.get('[data-testid="workspaces-create-name"]').type("Notes");
-    cy.get('[data-testid="workspaces-create-slug"]').should("have.value", "notes");
+    cy.get('[data-testid="workspaces-create-slug"]').should(
+      "have.value",
+      "notes"
+    );
     cy.get('[data-testid="workspaces-create-slug-error"]').should(
       "contain",
       "Slug already exists"
@@ -73,7 +78,9 @@ describe("workspaces/create-workspace", () => {
 
     cy.get('[data-testid="workspaces-create-slug"]').clear().type("notes-2");
     cy.get('[data-testid="workspaces-create-slug-error"]').should("not.exist");
-    cy.get('[data-testid="workspaces-create-submit"]').should("not.be.disabled");
+    cy.get('[data-testid="workspaces-create-submit"]').should(
+      "not.be.disabled"
+    );
   });
 
   it("resets the dialog form after closing", () => {

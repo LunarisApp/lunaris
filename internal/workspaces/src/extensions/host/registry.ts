@@ -59,7 +59,7 @@ const folderResourceType: ResourceTypeContribution = {
 
 function isCompatibleServiceVersion(
   providerVersion: string,
-  consumerVersion: string,
+  consumerVersion: string
 ): boolean {
   return satisfies(providerVersion, `^${consumerVersion}`);
 }
@@ -99,7 +99,9 @@ export class PluginRegistry {
 
   registerPlugin(plugin: PluginDefinition): PluginDisposable {
     const id = plugin.manifest.id;
-    if (this.plugins.has(id)) throw new Error(`Extension "${id}" is already registered`);
+    if (this.plugins.has(id)) {
+      throw new Error(`Extension "${id}" is already registered`);
+    }
     this.plugins.set(id, plugin);
     this.notifyListeners();
     return () => this.unregister(this.plugins, id);
@@ -107,11 +109,13 @@ export class PluginRegistry {
 
   registerResourceType(
     extensionId: string,
-    definition: ResourceTypeContribution,
+    definition: ResourceTypeContribution
   ): PluginDisposable {
     for (const resourceType of this.resourceTypes.values()) {
       if (resourceType.definition.schema.id === definition.schema.id) {
-        throw new Error(`Resource schema "${definition.schema.id}" is already registered`);
+        throw new Error(
+          `Resource schema "${definition.schema.id}" is already registered`
+        );
       }
     }
     return this.registerContribution(
@@ -119,64 +123,75 @@ export class PluginRegistry {
       "Resource type",
       extensionId,
       definition,
-      definition.resourceTypeId,
+      definition.resourceTypeId
     );
   }
 
   registerWorkspaceStorage(
     extensionId: string,
-    definition: WorkspaceStorageContribution,
+    definition: WorkspaceStorageContribution
   ): PluginDisposable {
     return this.registerContribution(
       this.workspaceStorages,
       "Workspace storage",
       extensionId,
       definition,
-      definition.storageId,
+      definition.storageId
     );
   }
 
-  registerView(extensionId: string, definition: ViewContribution): PluginDisposable {
+  registerView(
+    extensionId: string,
+    definition: ViewContribution
+  ): PluginDisposable {
     return this.registerContribution(
       this.views,
       "View",
       extensionId,
       definition,
-      definition.viewId,
+      definition.viewId
     );
   }
 
   registerCommand(
     extensionId: string,
-    definition: ResourceCommandRegistration,
+    definition: ResourceCommandRegistration
   ): PluginDisposable {
     return this.registerContribution(
       this.commands,
       "Resource command",
       extensionId,
       definition,
-      definition.id,
+      definition.id
     );
   }
 
   registerService(
     extensionId: string,
-    registration: PluginServiceProviderRegistration,
+    registration: PluginServiceProviderRegistration
   ): PluginDisposable {
     const plugin = this.plugins.get(extensionId);
-    if (!plugin) throw new Error(`Extension "${extensionId}" is not registered`);
+    if (!plugin) {
+      throw new Error(`Extension "${extensionId}" is not registered`);
+    }
     const { definition, implementation } = registration;
     if (
       definition.id !== extensionId &&
       !definition.id.startsWith(`${extensionId}.`)
     ) {
-      throw new Error(`Extension "${extensionId}" cannot provide service "${definition.id}"`);
+      throw new Error(
+        `Extension "${extensionId}" cannot provide service "${definition.id}"`
+      );
     }
     if (definition.version !== plugin.manifest.version) {
-      throw new Error(`Service "${definition.id}" version does not match its provider`);
+      throw new Error(
+        `Service "${definition.id}" version does not match its provider`
+      );
     }
     if (this.services.has(definition.id)) {
-      throw new Error(`Extension service "${definition.id}" is already registered`);
+      throw new Error(
+        `Extension service "${definition.id}" is already registered`
+      );
     }
     this.services.set(definition.id, {
       definition,
@@ -190,20 +205,24 @@ export class PluginRegistry {
 
   registerSlotContribution(
     extensionId: string,
-    registration: PluginServiceSlotRegistration,
+    registration: PluginServiceSlotRegistration
   ): PluginDisposable {
     const plugin = this.plugins.get(extensionId);
-    if (!plugin) throw new Error(`Extension "${extensionId}" is not registered`);
+    if (!plugin) {
+      throw new Error(`Extension "${extensionId}" is not registered`);
+    }
     const { contribution, slot } = registration;
     const range = this.dependencyRange(plugin, slot.serviceId);
-    if (!range || !satisfies(slot.serviceVersion, range)) {
+    if (!(range && satisfies(slot.serviceVersion, range))) {
       throw new Error(
-        `Extension "${extensionId}" cannot contribute to service "${slot.serviceId}"`,
+        `Extension "${extensionId}" cannot contribute to service "${slot.serviceId}"`
       );
     }
     const key = this.slotKey(slot, extensionId, contribution.id);
     if (this.slots.has(key)) {
-      throw new Error(`Extension service slot contribution "${contribution.id}" is already registered`);
+      throw new Error(
+        `Extension service slot contribution "${contribution.id}" is already registered`
+      );
     }
     this.slots.set(key, {
       contributorId: extensionId,
@@ -211,7 +230,7 @@ export class PluginRegistry {
       id: contribution.id,
       invoke: async (input) => {
         const output = await contribution.invoke(
-          cloneSandboxWireValue(input, "Extension slot input") as never,
+          cloneSandboxWireValue(input, "Extension slot input") as never
         );
         return cloneSandboxWireValue(output, "Extension slot result") as never;
       },
@@ -224,27 +243,27 @@ export class PluginRegistry {
 
   registerSearchIndexer(
     extensionId: string,
-    definition: SearchIndexerRegistration,
+    definition: SearchIndexerRegistration
   ): PluginDisposable {
     return this.registerContribution(
       this.searchIndexers,
       "Search indexer",
       extensionId,
       definition,
-      definition.id,
+      definition.id
     );
   }
 
   registerSearchQuery(
     extensionId: string,
-    definition: SearchQueryRegistration,
+    definition: SearchQueryRegistration
   ): PluginDisposable {
     return this.registerContribution(
       this.searchQueries,
       "Search query provider",
       extensionId,
       definition,
-      definition.id,
+      definition.id
     );
   }
 
@@ -278,7 +297,9 @@ export class PluginRegistry {
     return [...this.workspaceStorages.values()];
   }
 
-  getWorkspaceStorage(storageId: string): RegisteredWorkspaceStorage | undefined {
+  getWorkspaceStorage(
+    storageId: string
+  ): RegisteredWorkspaceStorage | undefined {
     return this.workspaceStorages.get(storageId);
   }
 
@@ -300,19 +321,17 @@ export class PluginRegistry {
 
   getService<TMethods extends PluginServiceMethods>(
     consumerId: string,
-    definition: PluginServiceDefinition<TMethods>,
+    definition: PluginServiceDefinition<TMethods>
   ): RegisteredPluginService<TMethods> | undefined {
     const service = this.services.get(definition.id);
     if (
-      !service ||
-      !isCompatibleServiceVersion(
-        service.definition.version,
-        definition.version,
-      ) ||
-      !this.canConsume(
-        consumerId,
-        service.providerId,
-        service.providerVersion,
+      !(
+        service &&
+        isCompatibleServiceVersion(
+          service.definition.version,
+          definition.version
+        ) &&
+        this.canConsume(consumerId, service.providerId, service.providerVersion)
       )
     ) {
       return undefined;
@@ -320,25 +339,19 @@ export class PluginRegistry {
     return service as unknown as RegisteredPluginService<TMethods>;
   }
 
-  getSlotContributions<
-    TMetadata extends object,
-    TInput,
-    TOutput,
-  >(
+  getSlotContributions<TMetadata extends object, TInput, TOutput>(
     consumerId: string,
-    slot: PluginServiceSlotDefinition<TMetadata, TInput, TOutput>,
+    slot: PluginServiceSlotDefinition<TMetadata, TInput, TOutput>
   ): RegisteredPluginServiceSlotContribution<TMetadata, TInput, TOutput>[] {
     const service = this.services.get(slot.serviceId);
     if (
-      !service ||
-      !isCompatibleServiceVersion(
-        service.definition.version,
-        slot.serviceVersion,
-      ) ||
-      !this.canConsume(
-        consumerId,
-        service.providerId,
-        service.providerVersion,
+      !(
+        service &&
+        isCompatibleServiceVersion(
+          service.definition.version,
+          slot.serviceVersion
+        ) &&
+        this.canConsume(consumerId, service.providerId, service.providerVersion)
       )
     ) {
       return [];
@@ -349,43 +362,43 @@ export class PluginRegistry {
           entry.slot.serviceId === slot.serviceId &&
           isCompatibleServiceVersion(
             slot.serviceVersion,
-            entry.slot.serviceVersion,
+            entry.slot.serviceVersion
           ) &&
-          entry.slot.id === slot.id,
+          entry.slot.id === slot.id
       )
       .sort((left, right) =>
         `${left.contributorId}:${left.id}`.localeCompare(
-          `${right.contributorId}:${right.id}`,
-        ),
+          `${right.contributorId}:${right.id}`
+        )
       ) as unknown as RegisteredPluginServiceSlotContribution<
-        TMetadata,
-        TInput,
-        TOutput
-      >[];
+      TMetadata,
+      TInput,
+      TOutput
+    >[];
   }
 
   async invokeService(
     consumerId: string,
     serviceId: string,
     method: string,
-    input: SandboxWireValue,
+    input: SandboxWireValue
   ): Promise<SandboxWireValue | undefined> {
     const service = this.services.get(serviceId);
     if (
-      !service ||
-      !this.canConsume(
-        consumerId,
-        service.providerId,
-        service.providerVersion,
+      !(
+        service &&
+        this.canConsume(consumerId, service.providerId, service.providerVersion)
       )
     ) {
       throw new Error(`Extension service "${serviceId}" is unavailable`);
     }
     if (!service.definition.methods.includes(method)) {
-      throw new Error(`Extension service "${serviceId}" has no method "${method}"`);
+      throw new Error(
+        `Extension service "${serviceId}" has no method "${method}"`
+      );
     }
     const output = await service.implementation[method]?.(
-      cloneSandboxWireValue(input, "Extension service input"),
+      cloneSandboxWireValue(input, "Extension service input")
     );
     return output === undefined
       ? undefined
@@ -395,24 +408,26 @@ export class PluginRegistry {
   async invokeSlot(
     consumerId: string,
     registrationId: string,
-    input: SandboxWireValue,
+    input: SandboxWireValue
   ): Promise<SandboxWireValue> {
     const registration = this.slots.get(registrationId);
-    if (!registration) throw new Error("Extension service slot is unavailable");
+    if (!registration) {
+      throw new Error("Extension service slot is unavailable");
+    }
     const service = this.services.get(registration.slot.serviceId);
     if (
-      !service ||
-      !isCompatibleServiceVersion(
-        service.definition.version,
-        registration.slot.serviceVersion,
-      ) ||
-      !this.canConsume(
-        consumerId,
-        service.providerId,
-        service.providerVersion,
+      !(
+        service &&
+        isCompatibleServiceVersion(
+          service.definition.version,
+          registration.slot.serviceVersion
+        ) &&
+        this.canConsume(consumerId, service.providerId, service.providerVersion)
       )
     ) {
-      throw new Error(`Extension service "${registration.slot.serviceId}" is unavailable`);
+      throw new Error(
+        `Extension service "${registration.slot.serviceId}" is unavailable`
+      );
     }
     return registration.invoke(input);
   }
@@ -420,11 +435,7 @@ export class PluginRegistry {
   snapshot(consumerId: string) {
     const providers = [...this.services.values()]
       .filter((service) =>
-        this.canConsume(
-          consumerId,
-          service.providerId,
-          service.providerVersion,
-        ),
+        this.canConsume(consumerId, service.providerId, service.providerVersion)
       )
       .map((service) => ({
         id: service.definition.id,
@@ -432,15 +443,14 @@ export class PluginRegistry {
         version: service.providerVersion,
       }));
     const providerVersions = new Map(
-      providers.map(({ id, version }) => [id, version]),
+      providers.map(({ id, version }) => [id, version])
     );
     const slots = [...this.slots.entries()]
-      .filter(
-        ([, entry]) =>
-          isCompatibleServiceVersion(
-            providerVersions.get(entry.slot.serviceId) ?? "",
-            entry.slot.serviceVersion,
-          ),
+      .filter(([, entry]) =>
+        isCompatibleServiceVersion(
+          providerVersions.get(entry.slot.serviceId) ?? "",
+          entry.slot.serviceVersion
+        )
       )
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([registrationId, entry]) => ({
@@ -472,7 +482,7 @@ export class PluginRegistry {
     label: string,
     extensionId: string,
     definition: T,
-    id: string,
+    id: string
   ): PluginDisposable {
     if (registry.has(id)) {
       throw new Error(`${label} "${id}" is already registered`);
@@ -489,20 +499,22 @@ export class PluginRegistry {
   private canConsume(
     consumerId: string,
     providerId: string,
-    providerVersion: string,
+    providerVersion: string
   ): boolean {
-    if (consumerId === providerId) return true;
+    if (consumerId === providerId) {
+      return true;
+    }
     const consumer = this.plugins.get(consumerId);
     const range = consumer
-      ? consumer.manifest.dependencies[providerId] ??
-        consumer.manifest.optionalDependencies[providerId]
+      ? (consumer.manifest.dependencies[providerId] ??
+        consumer.manifest.optionalDependencies[providerId])
       : undefined;
     return Boolean(range && satisfies(providerVersion, range));
   }
 
   private dependencyRange(
     plugin: PluginDefinition,
-    serviceId: string,
+    serviceId: string
   ): string | undefined {
     return Object.entries({
       ...plugin.manifest.optionalDependencies,
@@ -510,8 +522,7 @@ export class PluginRegistry {
     })
       .filter(
         ([dependencyId]) =>
-          serviceId === dependencyId ||
-          serviceId.startsWith(`${dependencyId}.`),
+          serviceId === dependencyId || serviceId.startsWith(`${dependencyId}.`)
       )
       .sort(([left], [right]) => right.length - left.length)[0]?.[1];
   }
@@ -519,13 +530,15 @@ export class PluginRegistry {
   private slotKey(
     slot: PluginServiceSlotDefinition,
     contributorId: string,
-    contributionId: string,
+    contributionId: string
   ): string {
     return `${slot.serviceId}:${slot.id}:${contributorId}:${contributionId}`;
   }
 
   private unregister<T>(registry: Map<string, T>, id: string): void {
-    if (registry.delete(id)) this.notifyListeners();
+    if (registry.delete(id)) {
+      this.notifyListeners();
+    }
   }
 
   private notifyListeners(): void {
@@ -534,7 +547,9 @@ export class PluginRegistry {
       return;
     }
     this.version += 1;
-    for (const listener of this.listeners) listener();
+    for (const listener of this.listeners) {
+      listener();
+    }
   }
 }
 

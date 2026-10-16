@@ -143,7 +143,7 @@ const CURRENT_INDEXABLE_RESOURCE_QUERY = `${INDEXABLE_RESOURCES_QUERY.trim()}
 
 function sourceRevision(
   row: IndexableResourceRow,
-  indexer: RegisteredSearchIndexer,
+  indexer: RegisteredSearchIndexer
 ): string {
   return JSON.stringify([
     indexer.extensionId,
@@ -163,10 +163,12 @@ function sourceRevision(
 
 function isContentAvailable(
   row: IndexableResourceRow,
-  definition: ResourceTypeContribution,
+  definition: ResourceTypeContribution
 ): boolean {
   const expectedSlots = Object.values(definition.storage);
-  const expectedYjsSlots = expectedSlots.filter((slot) => slot.kind === "yjs").length;
+  const expectedYjsSlots = expectedSlots.filter(
+    (slot) => slot.kind === "yjs"
+  ).length;
   return (
     row.storage_count >= expectedSlots.length &&
     row.yjs_slot_count >= expectedYjsSlots &&
@@ -178,7 +180,7 @@ function isContentAvailable(
 function getSourceState(
   row: IndexableResourceRow,
   definition: ResourceTypeContribution,
-  indexer: RegisteredSearchIndexer,
+  indexer: RegisteredSearchIndexer
 ): SearchIndexSourceState {
   return {
     available: isContentAvailable(row, definition),
@@ -190,7 +192,7 @@ export function planSearchIndexUpdates(
   rows: IndexableResourceRow[],
   definitions: ReadonlyMap<string, ResourceTypeContribution>,
   indexers: RegisteredSearchIndexer[],
-  revisions: ReadonlyMap<string, string>,
+  revisions: ReadonlyMap<string, string>
 ): {
   activeEntryKeys: Set<string>;
   entryStates: Map<string, SearchIndexSourceState>;
@@ -203,7 +205,9 @@ export function planSearchIndexUpdates(
   for (const row of rows) {
     const resourceTypeId = row.resource_type_id ?? "lunaris.folder";
     const definition = definitions.get(resourceTypeId);
-    if (!definition) continue;
+    if (!definition) {
+      continue;
+    }
     const resource: ResourceEnvelope = {
       parentId: row.parent_id,
       resourceId: row.id,
@@ -213,13 +217,19 @@ export function planSearchIndexUpdates(
     };
 
     for (const indexer of indexers) {
-      if (!matchesResourceTarget(indexer.definition, resource)) continue;
+      if (!matchesResourceTarget(indexer.definition, resource)) {
+        continue;
+      }
       const entryKey = searchIndexEntryKey(indexer.definition.id, row.id);
       const state = getSourceState(row, definition, indexer);
       activeEntryKeys.add(entryKey);
       entryStates.set(entryKey, state);
-      if (revisions.get(entryKey) === state.revision) continue;
-      if (!state.available) continue;
+      if (revisions.get(entryKey) === state.revision) {
+        continue;
+      }
+      if (!state.available) {
+        continue;
+      }
       jobs.push({
         definition,
         entryKey,
@@ -237,11 +247,11 @@ export function planSearchIndexUpdates(
 async function readCurrentSourceState(
   db: DatabaseOrTx,
   organizationId: string,
-  job: SearchIndexJob,
+  job: SearchIndexJob
 ): Promise<SearchIndexSourceState | null> {
   const row = await db.getOptional<IndexableResourceRow>(
     CURRENT_INDEXABLE_RESOURCE_QUERY,
-    [organizationId, job.row.id],
+    [organizationId, job.row.id]
   );
   return row ? getSourceState(row, job.definition, job.indexer) : null;
 }
@@ -250,7 +260,7 @@ async function readIndexFile(
   db: DatabaseOrTx,
   workspaceId: string,
   resourceId: string,
-  storageId: string,
+  storageId: string
 ) {
   const slot = await getStorageSlot(db, storageId);
   if (
@@ -264,13 +274,17 @@ async function readIndexFile(
   const { query, params } = buildFileAttachmentQuery(resourceId, storageId);
   const row = await db.getOptional<AttachmentRowWithValue>(query, params);
   const metadata = parseAttachmentMetadata<FileMetadata>(row?.value);
-  if (!row?.local_uri) return null;
+  if (!row?.local_uri) {
+    return null;
+  }
   // Indexers consume buffers. Keep background indexing from allocating a large
   // upload in memory; these resources remain searchable by their names.
-  if ((metadata?.size ?? 0) > 25_000_000) return null;
+  if ((metadata?.size ?? 0) > 25_000_000) {
+    return null;
+  }
   const mediaType = getFileMediaType(
     metadata?.mediaType ?? row.media_type ?? "",
-    metadata?.filename ?? `file.${metadata?.fileExtension ?? "bin"}`,
+    metadata?.filename ?? `file.${metadata?.fileExtension ?? "bin"}`
   );
   return {
     bytes: await readAttachmentFile({
@@ -284,7 +298,7 @@ async function readIndexFile(
 
 async function readPayload(
   db: DatabaseOrTx,
-  job: SearchIndexJob,
+  job: SearchIndexJob
 ): Promise<{ payload: unknown; storage: ResourceStorageHandles }> {
   const { definition, resource, row } = job;
   const hydrated = await hydrateResourceStorage(db, resource.resourceId);
@@ -294,9 +308,13 @@ async function readPayload(
       storage: hydrated.storage,
     });
     const validator = definition.schema.versions[resource.schemaVersion];
-    if (!validator) throw new Error("Resource schema version is unavailable");
+    if (!validator) {
+      throw new Error("Resource schema version is unavailable");
+    }
     const validation = await validator["~standard"].validate(payload);
-    if (validation.issues) throw new Error("Resource payload failed validation");
+    if (validation.issues) {
+      throw new Error("Resource payload failed validation");
+    }
     return { payload: validation.value, storage: hydrated.handles };
   } finally {
     hydrated.dispose();
@@ -310,28 +328,26 @@ export async function runSearchIndexJob(input: {
   organizationId: string;
 }): Promise<void> {
   const { db, isCurrent, job, organizationId } = input;
-  if (!isCurrent()) return;
+  if (!isCurrent()) {
+    return;
+  }
   const { payload, storage } = await readPayload(db, job);
   const text = (
     await job.indexer.definition.extractText(
       { payload, resource: job.resource, storage },
       {
         readFile: (handle) =>
-          readIndexFile(
-            db,
-            job.row.workspace_id,
-            job.row.id,
-            handle.storageId,
-          ),
-      },
+          readIndexFile(db, job.row.workspace_id, job.row.id, handle.storageId),
+      }
     )
   )?.trim();
-  if (!isCurrent()) return;
+  if (!isCurrent()) {
+    return;
+  }
   await ensureTx(db, async (tx) => {
     const currentSource = await readCurrentSourceState(tx, organizationId, job);
     if (
-      !isCurrent() ||
-      !currentSource?.available ||
+      !(isCurrent() && currentSource?.available) ||
       currentSource.revision !== job.revision
     ) {
       return;

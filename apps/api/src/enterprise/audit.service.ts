@@ -4,7 +4,11 @@ import { Injectable } from "@nestjs/common";
 import { AuditService as EnterpriseAuditService } from "@repo/ee-audit/server";
 import { and, eq } from "drizzle-orm";
 import { member } from "../auth/auth.entity";
-import { flushLogDrain, registerAuditDrain, unregisterAuditDrain } from "../instrument";
+import {
+  flushLogDrain,
+  registerAuditDrain,
+  unregisterAuditDrain,
+} from "../instrument";
 
 /** Nest adapter; compliance implementation lives in @repo/ee-audit/server. */
 @Injectable()
@@ -18,9 +22,12 @@ export class AuditService extends EnterpriseAuditService {
       registerAuditDrain,
       unregisterAuditDrain,
       getMemberRole: async (userId, tenantId) => {
-        const [membership] = await database.db.select({ role: member.role })
+        const [membership] = await database.db
+          .select({ role: member.role })
           .from(member)
-          .where(and(eq(member.userId, userId), eq(member.organizationId, tenantId)))
+          .where(
+            and(eq(member.userId, userId), eq(member.organizationId, tenantId))
+          )
           .limit(1);
         return membership?.role;
       },

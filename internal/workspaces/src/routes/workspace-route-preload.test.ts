@@ -19,7 +19,10 @@ vi.mock("./workspace-mobile-shell", () => {
   return { MobileWorkspaceShell: () => null };
 });
 
-import { loadWorkspacePage, preloadWorkspaceRoute } from "./workspace-route-preload";
+import {
+  loadWorkspacePage,
+  preloadWorkspaceRoute,
+} from "./workspace-route-preload";
 
 describe("workspace route preload", () => {
   it("loads the workspace route and exact shell concurrently", async () => {

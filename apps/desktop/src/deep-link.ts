@@ -22,13 +22,17 @@ interface DeepLinkOptions {
 
 export function parseDesktopDeepLink(value: string): ParsedDeepLink | null {
   const callback = parseLunarisAuthCallbackUrl(value);
-  if (!callback) return null;
+  if (!callback) {
+    return null;
+  }
   const { path, url } = callback;
 
   let authCookie: string | undefined;
   for (const [name, value] of [...url.searchParams.entries()]) {
     const normalized = name.toLowerCase();
-    if (normalized === "cookie") authCookie = value;
+    if (normalized === "cookie") {
+      authCookie = value;
+    }
     if (normalized.includes("cookie") || normalized.includes("session")) {
       url.searchParams.delete(name);
     }
@@ -39,7 +43,9 @@ export function parseDesktopDeepLink(value: string): ParsedDeepLink | null {
     rawRegionId && isValidLunarisRegionId(rawRegionId)
       ? rawRegionId
       : undefined;
-  if (rawRegionId && !regionId) url.searchParams.delete("region");
+  if (rawRegionId && !regionId) {
+    url.searchParams.delete("region");
+  }
 
   return {
     ...(authCookie && regionId ? { authCookie, regionId } : {}),
@@ -58,11 +64,13 @@ function routeInBrowser(route: string) {
 
 export async function processDesktopDeepLinks(
   urls: string[],
-  options: DeepLinkOptions,
+  options: DeepLinkOptions
 ) {
   for (const value of urls) {
     const parsed = parseDesktopDeepLink(value);
-    if (!parsed) continue;
+    if (!parsed) {
+      continue;
+    }
 
     let persistenceError: unknown;
     if (parsed.authCookie && parsed.regionId) {
@@ -91,7 +99,7 @@ export async function processDesktopDeepLinks(
 export async function registerDesktopDeepLinks(options: DeepLinkOptions) {
   const reportError = (error: unknown) => {
     options.onError?.(
-      error instanceof Error ? error : new Error("Desktop deep-link failed"),
+      error instanceof Error ? error : new Error("Desktop deep-link failed")
     );
   };
   const handleOpenUrl = (urls: string[]) => {

@@ -14,7 +14,7 @@ export class AccountDeletionController {
     operation: { summary: "Request account deletion" },
   })
   async requestDeletion(
-    @Session() session: UserSession,
+    @Session() session: UserSession
   ): Promise<DeletionRequestResponseDto> {
     return this.deletionService.requestDeletion(session.user);
   }

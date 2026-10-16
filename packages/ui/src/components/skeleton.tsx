@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 function Skeleton({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
-      className={cn("bg-muted rounded-md animate-pulse", className)}
+      className={cn("animate-pulse rounded-md bg-muted", className)}
       data-slot="skeleton"
       {...props}
     />

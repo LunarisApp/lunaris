@@ -52,11 +52,11 @@ describe("PDF worker client", () => {
         workspaceName: "Workspace",
         theme: DEFAULT_PDF_THEME,
       },
-      { timeoutMs: 60_000 },
+      { timeoutMs: 60_000 }
     );
     expect(mocks.downloadBlob).toHaveBeenCalledWith(
       expect.any(Blob),
-      "workspace-export.pdf",
+      "workspace-export.pdf"
     );
   });
 

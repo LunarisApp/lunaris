@@ -23,7 +23,7 @@ export class BackupController {
   create(@Session() session: UserSession): Promise<BackupDto> {
     return this.backups.create(
       session.user.id,
-      requireActiveOrganization(session),
+      requireActiveOrganization(session)
     );
   }
 
@@ -34,12 +34,12 @@ export class BackupController {
   })
   @RequirePermission(permission.backup.read)
   async getCurrent(
-    @Session() session: UserSession,
+    @Session() session: UserSession
   ): Promise<CurrentBackupResponseDto> {
     return {
       backup: await this.backups.getCurrent(
         session.user.id,
-        requireActiveOrganization(session),
+        requireActiveOrganization(session)
       ),
     };
   }
@@ -52,12 +52,12 @@ export class BackupController {
   @RequirePermission(permission.backup.read)
   getDownloadUrl(
     @Session() session: UserSession,
-    @Param("id") id: string,
+    @Param("id") id: string
   ): Promise<BackupDownloadResponseDto> {
     return this.backups.getDownloadUrl(
       session.user.id,
       requireActiveOrganization(session),
-      id,
+      id
     );
   }
 
@@ -69,18 +69,20 @@ export class BackupController {
   @RequirePermission(permission.backup.read)
   getById(
     @Session() session: UserSession,
-    @Param("id") id: string,
+    @Param("id") id: string
   ): Promise<BackupDto> {
     return this.backups.getById(
       session.user.id,
       requireActiveOrganization(session),
-      id,
+      id
     );
   }
 }
 
 function requireActiveOrganization(session: UserSession) {
   const organizationId = session.session.activeOrganizationId;
-  if (!organizationId) throw new NoActiveOrganizationError();
+  if (!organizationId) {
+    throw new NoActiveOrganizationError();
+  }
   return organizationId;
 }

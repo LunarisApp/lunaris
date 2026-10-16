@@ -5,9 +5,7 @@ export interface OpenDebuggerDeps {
   t: (key: string) => string;
 }
 
-export function createOpenDebuggerPanelAction({
-  openTool,
-}: OpenDebuggerDeps) {
+export function createOpenDebuggerPanelAction({ openTool }: OpenDebuggerDeps) {
   return () => {
     openTool({ toolId: "debugger" });
   };

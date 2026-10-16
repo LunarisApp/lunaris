@@ -52,12 +52,7 @@ describe("rich-text Markdown actions", () => {
       location: { href: "about:blank" },
     } as Window;
 
-    const result = await openPageInChat(
-      db,
-      "doc-1",
-      "chatgpt",
-      targetWindow
-    );
+    const result = await openPageInChat(db, "doc-1", "chatgpt", targetWindow);
 
     expect(targetWindow.location.href).toContain("https://chatgpt.com/");
     expect(targetWindow.location.href).toContain("prompt=%23+Workspace+notes");
@@ -72,12 +67,7 @@ describe("rich-text Markdown actions", () => {
     } as Window;
     mocks.compileMarkdown.mockResolvedValue(markdown);
 
-    const result = await openPageInChat(
-      db,
-      "doc-1",
-      "claude",
-      targetWindow
-    );
+    const result = await openPageInChat(db, "doc-1", "claude", targetWindow);
 
     expect(writeText).toHaveBeenCalledWith(markdown);
     expect(targetWindow.location.href).toBe("https://claude.ai/new");

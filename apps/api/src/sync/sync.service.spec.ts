@@ -10,7 +10,6 @@ import { PermissionService } from "../security/permissions/permission.service";
 import { organization } from "../auth/auth.entity";
 import { SyncService } from "./sync.service";
 
-// biome-ignore lint/suspicious/noExplicitAny: test mocks
 const mockSignJWT = mock() as Mock<(...args: any[]) => any>;
 
 const mockValues = mock() as Mock<(...args: unknown[]) => unknown>;
@@ -40,19 +39,20 @@ function makeQueryableRows() {
     limit: mock(() => Promise.resolve(getRows())),
     then: (
       resolve: (value: unknown[]) => unknown,
-      reject?: (reason: unknown) => unknown,
+      reject?: (reason: unknown) => unknown
     ) => Promise.resolve(getRows()).then(resolve, reject),
   };
 }
 
-const mockFromChain = (table?: unknown) => table === organization
-  ? { where: () => ({ for: async () => [{ id: ORG_ID }] }) }
-  : ({
-  where: mock(() => makeQueryableRows()),
-  innerJoin: mock(() => ({
-    where: mock(() => makeQueryableRows()),
-  })),
-});
+const mockFromChain = (table?: unknown) =>
+  table === organization
+    ? { where: () => ({ for: async () => [{ id: ORG_ID }] }) }
+    : {
+        where: mock(() => makeQueryableRows()),
+        innerJoin: mock(() => ({
+          where: mock(() => makeQueryableRows()),
+        })),
+      };
 const mockSelect = mock(() => ({
   from: mock(mockFromChain),
 })) as Mock<(...args: unknown[]) => unknown>;
@@ -70,19 +70,22 @@ function makeAwaitableRows() {
 
   return {
     for: mock(() => Promise.resolve(getRows())),
-    then: (resolve: (value: unknown[]) => unknown, reject?: (reason: unknown) => unknown) =>
-      Promise.resolve(getRows()).then(resolve, reject),
+    then: (
+      resolve: (value: unknown[]) => unknown,
+      reject?: (reason: unknown) => unknown
+    ) => Promise.resolve(getRows()).then(resolve, reject),
   };
 }
 
-const mockLockedFromChain = (table?: unknown) => table === organization
-  ? { where: () => ({ for: async () => [{ id: ORG_ID }] }) }
-  : ({
-  where: mock(() => makeAwaitableRows()),
-  innerJoin: mock(() => ({
-    where: mock(() => Promise.resolve(resolveSelectResult())),
-  })),
-});
+const mockLockedFromChain = (table?: unknown) =>
+  table === organization
+    ? { where: () => ({ for: async () => [{ id: ORG_ID }] }) }
+    : {
+        where: mock(() => makeAwaitableRows()),
+        innerJoin: mock(() => ({
+          where: mock(() => Promise.resolve(resolveSelectResult())),
+        })),
+      };
 
 const mockDb = {
   execute: mock(() => Promise.resolve()),
@@ -119,20 +122,23 @@ describe("SyncService", () => {
 
   beforeEach(async () => {
     mockSignJWT.mockReset();
-    mockOnConflictDoUpdate.mockReset().mockImplementation(() =>
-      Promise.resolve(undefined)
-    );
+    mockOnConflictDoUpdate
+      .mockReset()
+      .mockImplementation(() => Promise.resolve(undefined));
     mockValues.mockReset().mockImplementation(() => ({
       onConflictDoUpdate: mockOnConflictDoUpdate,
     }));
     mockSelectResult = [];
     mockSelectResultsQueue = [];
-    mockSelect.mockReset().mockImplementation(() => ({
-      from: mock(mockFromChain),
-    }) as never);
-    mockDb.transaction.mockReset().mockImplementation(async (callback) =>
-      callback(mockDb)
+    mockSelect.mockReset().mockImplementation(
+      () =>
+        ({
+          from: mock(mockFromChain),
+        }) as never
     );
+    mockDb.transaction
+      .mockReset()
+      .mockImplementation(async (callback) => callback(mockDb));
     mockWhere.mockReset().mockImplementation(() => Promise.resolve(undefined));
     mockDb.insert
       .mockReset()
@@ -169,20 +175,54 @@ describe("SyncService", () => {
   });
 
   it("does not let activity hints bypass permissions on mixed patches", async () => {
-    requirePermission.mockImplementationOnce(async () => { throw new Error("permission denied"); });
-    await expect(service.ingest([{ crud: [{
-      op: "PATCH", type: "workspaces", id: "workspace-1",
-      data: { name: "Unauthorized", last_activity_at: "2026-09-09T10:00:00.000Z" },
-    }] }], ORG_ID, USER_ID)).rejects.toThrow("permission denied");
-    expect(requirePermission).toHaveBeenCalledWith(permission.workspace.update, expect.anything());
+    requirePermission.mockImplementationOnce(async () => {
+      throw new Error("permission denied");
+    });
+    await expect(
+      service.ingest(
+        [
+          {
+            crud: [
+              {
+                op: "PATCH",
+                type: "workspaces",
+                id: "workspace-1",
+                data: {
+                  name: "Unauthorized",
+                  last_activity_at: "2026-09-09T10:00:00.000Z",
+                },
+              },
+            ],
+          },
+        ],
+        ORG_ID,
+        USER_ID
+      )
+    ).rejects.toThrow("permission denied");
+    expect(requirePermission).toHaveBeenCalledWith(
+      permission.workspace.update,
+      expect.anything()
+    );
     expect(mockDb.update).not.toHaveBeenCalled();
   });
 
   it("acknowledges activity-only hints without requiring owner permissions or writing", async () => {
-    await service.ingest([{ crud: [{
-      op: "PATCH", type: "workspaces", id: "workspace-1",
-      data: { last_activity_at: "2026-09-09T10:00:00.000Z" },
-    }] }], ORG_ID, USER_ID);
+    await service.ingest(
+      [
+        {
+          crud: [
+            {
+              op: "PATCH",
+              type: "workspaces",
+              id: "workspace-1",
+              data: { last_activity_at: "2026-09-09T10:00:00.000Z" },
+            },
+          ],
+        },
+      ],
+      ORG_ID,
+      USER_ID
+    );
     expect(requirePermission).not.toHaveBeenCalled();
     expect(mockDb.update).not.toHaveBeenCalled();
   });
@@ -220,7 +260,7 @@ describe("SyncService", () => {
         organizationId: ORG_ID,
         role: "owner",
         userId: undefined,
-      },
+      }
     );
   });
 
@@ -244,14 +284,14 @@ describe("SyncService", () => {
         },
       ],
       ORG_ID,
-      USER_ID,
+      USER_ID
     );
 
     expect(mockValues).toHaveBeenCalledWith(
       expect.objectContaining({
         ownerId: USER_ID,
         visibility: WORKSPACE_VISIBILITY.private,
-      }),
+      })
     );
   });
 
@@ -275,8 +315,8 @@ describe("SyncService", () => {
             ],
           },
         ],
-        ORG_ID,
-      ),
+        ORG_ID
+      )
     ).rejects.toThrow("Private workspace owner is required");
 
     expect(mockDb.insert).not.toHaveBeenCalled();
@@ -302,14 +342,14 @@ describe("SyncService", () => {
         },
       ],
       ORG_ID,
-      USER_ID,
+      USER_ID
     );
 
     expect(mockValues).toHaveBeenCalledWith(
       expect.objectContaining({
         ownerId: null,
         visibility: WORKSPACE_VISIBILITY.shared,
-      }),
+      })
     );
   });
 
@@ -320,23 +360,27 @@ describe("SyncService", () => {
 
     await expect(
       service.ingest(
-        [{
-          crud: [{
-            op: "PUT",
-            type: "workspace_resources",
-            id: "item-26",
-            data: {
-              workspace_id: "workspace-1",
-              name: "Blocked",
-              position: 25,
-              parent_id: null,
-              created_at: "2026-07-19T00:00:00.000Z",
-              updated_at: "2026-07-19T00:00:00.000Z",
-            },
-          }],
-        }],
-        ORG_ID,
-      ),
+        [
+          {
+            crud: [
+              {
+                op: "PUT",
+                type: "workspace_resources",
+                id: "item-26",
+                data: {
+                  workspace_id: "workspace-1",
+                  name: "Blocked",
+                  position: 25,
+                  parent_id: null,
+                  created_at: "2026-07-19T00:00:00.000Z",
+                  updated_at: "2026-07-19T00:00:00.000Z",
+                },
+              },
+            ],
+          },
+        ],
+        ORG_ID
+      )
     ).rejects.toThrow(OrganizationResourceLimitError);
     expect(assertCanCreateResource).toHaveBeenCalledTimes(1);
     expect(mockDb.insert).not.toHaveBeenCalled();
@@ -352,20 +396,24 @@ describe("SyncService", () => {
     });
 
     await service.ingest(
-      [{
-        crud: [{
-          op: "PUT",
-          type: "workspace_resources",
-          id: "item-25",
-          data: {
-            workspace_id: "workspace-1",
-            name: "Already synced",
-            position: 24,
-            parent_id: null,
-          },
-        }],
-      }],
-      ORG_ID,
+      [
+        {
+          crud: [
+            {
+              op: "PUT",
+              type: "workspace_resources",
+              id: "item-25",
+              data: {
+                workspace_id: "workspace-1",
+                name: "Already synced",
+                position: 24,
+                parent_id: null,
+              },
+            },
+          ],
+        },
+      ],
+      ORG_ID
     );
 
     expect(assertCanCreateResource).not.toHaveBeenCalled();
@@ -380,21 +428,25 @@ describe("SyncService", () => {
 
     await expect(
       service.ingest(
-        [{
-          crud: [{
-            op: "PUT",
-            type: "workspace_resources",
-            id: "item-25",
-            data: {
-              workspace_id: "workspace-1",
-              name: "Foreign item",
-              position: 24,
-              parent_id: null,
-            },
-          }],
-        }],
-        ORG_ID,
-      ),
+        [
+          {
+            crud: [
+              {
+                op: "PUT",
+                type: "workspace_resources",
+                id: "item-25",
+                data: {
+                  workspace_id: "workspace-1",
+                  name: "Foreign item",
+                  position: 24,
+                  parent_id: null,
+                },
+              },
+            ],
+          },
+        ],
+        ORG_ID
+      )
     ).rejects.toThrow("Child entity does not belong to organization");
 
     expect(assertCanCreateResource).not.toHaveBeenCalled();
@@ -542,9 +594,12 @@ describe("SyncService", () => {
     });
 
     it("workspace_resources PATCH rejects cross-workspace parent moves", async () => {
-      mockSelect.mockImplementation(() => ({
-        from: mock(mockLockedFromChain),
-      }) as never);
+      mockSelect.mockImplementation(
+        () =>
+          ({
+            from: mock(mockLockedFromChain),
+          }) as never
+      );
       mockSelectResultsQueue = [
         [{ orgId: ORG_ID, visibility: WORKSPACE_VISIBILITY.shared }],
         [{ id: "item-1", workspaceId: "workspace-1" }],
@@ -589,8 +644,8 @@ describe("SyncService", () => {
               ],
             },
           ],
-          ORG_ID,
-        ),
+          ORG_ID
+        )
       ).rejects.toThrow("Child entity does not belong to organization");
 
       expect(mockDb.execute).not.toHaveBeenCalled();
@@ -598,9 +653,12 @@ describe("SyncService", () => {
     });
 
     it("workspace_resources PATCH rejects self-parenting", async () => {
-      mockSelect.mockImplementation(() => ({
-        from: mock(mockLockedFromChain),
-      }) as never);
+      mockSelect.mockImplementation(
+        () =>
+          ({
+            from: mock(mockLockedFromChain),
+          }) as never
+      );
       mockSelectResultsQueue = [
         [{ orgId: ORG_ID, visibility: WORKSPACE_VISIBILITY.shared }],
         [{ id: "item-1", workspaceId: "workspace-1" }],
@@ -628,9 +686,12 @@ describe("SyncService", () => {
     });
 
     it("workspace_resources PATCH rejects descendant-parent cycles", async () => {
-      mockSelect.mockImplementation(() => ({
-        from: mock(mockLockedFromChain),
-      }) as never);
+      mockSelect.mockImplementation(
+        () =>
+          ({
+            from: mock(mockLockedFromChain),
+          }) as never
+      );
       mockSelectResultsQueue = [
         [{ orgId: ORG_ID, visibility: WORKSPACE_VISIBILITY.shared }],
         [{ id: "folder-1", workspaceId: "workspace-1", parentId: null }],
@@ -693,9 +754,12 @@ describe("SyncService", () => {
     });
 
     it("workspace_resources PATCH allows same-workspace parent moves", async () => {
-      mockSelect.mockImplementation(() => ({
-        from: mock(mockLockedFromChain),
-      }) as never);
+      mockSelect.mockImplementation(
+        () =>
+          ({
+            from: mock(mockLockedFromChain),
+          }) as never
+      );
       mockSelectResultsQueue = [
         [{ orgId: ORG_ID, visibility: WORKSPACE_VISIBILITY.shared }],
         [{ id: "item-1", workspaceId: "workspace-1" }],
@@ -777,8 +841,8 @@ describe("SyncService", () => {
               ],
             },
           ],
-          ORG_ID,
-        ),
+          ORG_ID
+        )
       ).rejects.toThrow("must be trashed before permanent deletion");
       expect(mockDb.delete).not.toHaveBeenCalled();
     });
@@ -793,12 +857,10 @@ describe("SyncService", () => {
       await service.ingest(
         [
           {
-            crud: [
-              { op: "DELETE", type: "workspace_resources", id: "item-1" },
-            ],
+            crud: [{ op: "DELETE", type: "workspace_resources", id: "item-1" }],
           },
         ],
-        ORG_ID,
+        ORG_ID
       );
 
       expect(mockDb.delete).toHaveBeenCalled();
@@ -822,8 +884,8 @@ describe("SyncService", () => {
               ],
             },
           ],
-          ORG_ID,
-        ),
+          ORG_ID
+        )
       ).rejects.toThrow("Expired workspace resource trash cannot be restored");
       expect(mockDb.delete).not.toHaveBeenCalled();
     });
@@ -846,7 +908,7 @@ describe("SyncService", () => {
             ],
           },
         ],
-        ORG_ID,
+        ORG_ID
       );
 
       expect(assertCanCreateResource).toHaveBeenCalledTimes(1);
@@ -895,7 +957,6 @@ describe("SyncService", () => {
         ],
         ORG_ID
       );
-      // biome-ignore lint/suspicious/noExplicitAny: test mock introspection
       const updateSetCall = mockDb.update.mock.results[0]?.value as any;
       if (updateSetCall?.set?.mock?.calls?.[0]) {
         const setData = updateSetCall.set.mock.calls[0][0];
@@ -926,7 +987,6 @@ describe("SyncService", () => {
         ],
         ORG_ID
       );
-      // biome-ignore lint/suspicious/noExplicitAny: test mock introspection
       const updateSetCall = mockDb.update.mock.results[0]?.value as any;
       if (updateSetCall?.set?.mock?.calls?.[0]) {
         const setData = updateSetCall.set.mock.calls[0][0];
@@ -961,7 +1021,6 @@ describe("SyncService", () => {
 
       expect(mockValues).toHaveBeenCalledTimes(2);
       expect(mockDb.transaction).toHaveBeenCalledTimes(3);
-      // biome-ignore lint/suspicious/noExplicitAny: test mock introspection
       const secondSlug = (mockValues.mock.calls[1][0] as any).slug;
       expect(secondSlug).toMatch(/^test-[0-9a-f]{4}$/);
     });
@@ -1074,7 +1133,6 @@ describe("SyncService", () => {
         USER_ID
       );
 
-      // biome-ignore lint/suspicious/noExplicitAny: test mock introspection
       const inserted = mockValues.mock.calls[0][0] as any;
       expect(inserted.updateData).toBeInstanceOf(Buffer);
       expect(inserted.updateData.toString()).toBe("hello");
@@ -1106,7 +1164,6 @@ describe("SyncService", () => {
         USER_ID
       );
 
-      // biome-ignore lint/suspicious/noExplicitAny: test mock introspection
       const inserted = mockValues.mock.calls[0][0] as any;
       expect(inserted.updateData).toBe("raw");
       expect(inserted.updateB64).toBeUndefined();
@@ -1138,7 +1195,6 @@ describe("SyncService", () => {
         USER_ID
       );
 
-      // biome-ignore lint/suspicious/noExplicitAny: test mock introspection
       const inserted = mockValues.mock.calls[0][0] as any;
       expect(inserted.userId).toBe(USER_ID);
     });
@@ -1166,7 +1222,6 @@ describe("SyncService", () => {
         ORG_ID
       );
 
-      // biome-ignore lint/suspicious/noExplicitAny: test mock introspection
       const inserted = mockValues.mock.calls[0][0] as any;
       expect(inserted.userId).toBeNull();
     });
@@ -1455,6 +1510,5 @@ describe("SyncService", () => {
       expect(result.expiresAt).toBeGreaterThanOrEqual(now + 239);
       expect(result.expiresAt).toBeLessThanOrEqual(now + 240);
     });
-
   });
 });

@@ -22,10 +22,10 @@ describe("stored appearance", () => {
 
     expect(document.documentElement.classList.contains("dark")).toBe(true);
     expect(
-      document.documentElement.classList.contains("font-family-dyslexic"),
+      document.documentElement.classList.contains("font-family-dyslexic")
     ).toBe(true);
     expect(
-      document.documentElement.classList.contains("font-size-extra-large"),
+      document.documentElement.classList.contains("font-size-extra-large")
     ).toBe(true);
     expect(document.documentElement.style.colorScheme).toBe("dark");
   });

@@ -7,7 +7,7 @@ const mediaTypeSchema = z
   .max(255)
   .regex(
     /^[!#$%&'*+.^_`|~0-9A-Za-z-]+\/[!#$%&'*+.^_`|~0-9A-Za-z-]+$/,
-    "Invalid media type",
+    "Invalid media type"
   );
 
 const fileExtensionSchema = z

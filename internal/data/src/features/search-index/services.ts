@@ -1,8 +1,5 @@
 import type { DatabaseOrTx } from "../../core/utils";
-import {
-  SEARCH_INDEX_ENTRIES_TABLE,
-  SEARCH_INDEX_FTS_TABLE,
-} from "./setup";
+import { SEARCH_INDEX_ENTRIES_TABLE, SEARCH_INDEX_FTS_TABLE } from "./setup";
 
 export const SEARCH_INDEX_RESULT_LIMIT = 50;
 
@@ -47,22 +44,29 @@ export interface SearchIndexQueryInput {
   workspaceIds?: readonly string[];
 }
 
-export function searchIndexEntryKey(indexerId: string, resourceId: string): string {
+export function searchIndexEntryKey(
+  indexerId: string,
+  resourceId: string
+): string {
   return `${indexerId}\u001f${resourceId}`;
 }
 
 export function buildSearchMatchQuery(
-  terms: readonly SearchIndexTextTerm[],
+  terms: readonly SearchIndexTextTerm[]
 ): string | null {
   const fragments: string[] = [];
   let remainingTokens = 10;
 
   for (const term of terms) {
-    if (remainingTokens === 0) break;
+    if (remainingTokens === 0) {
+      break;
+    }
     const tokens = (term.value.normalize("NFKC").match(/[\p{L}\p{N}]+/gu) ?? [])
       .slice(0, remainingTokens)
       .map((token) => [...token].slice(0, 64).join(""));
-    if (tokens.length === 0) continue;
+    if (tokens.length === 0) {
+      continue;
+    }
     remainingTokens -= tokens.length;
 
     if (term.exact) {
@@ -83,19 +87,21 @@ function addBoundListFilter(
   filters: string[],
   params: unknown[],
   column: string,
-  values: readonly string[] | undefined,
+  values: readonly string[] | undefined
 ): void {
-  if (!values) return;
+  if (!values) {
+    return;
+  }
   filters.push(`${column} IN (SELECT value FROM json_each(?))`);
   params.push(JSON.stringify(values));
 }
 
 export function buildSearchIndexQuery(input: SearchIndexQueryInput) {
-  const { workspaceIds, resourceIds, resourceTypeIds, terms, organizationId } = input;
+  const { workspaceIds, resourceIds, resourceTypeIds, terms, organizationId } =
+    input;
   const match = buildSearchMatchQuery(terms);
   if (
-    !match ||
-    !organizationId ||
+    !(match && organizationId) ||
     hasEmptyFilter(workspaceIds) ||
     hasEmptyFilter(resourceIds) ||
     hasEmptyFilter(resourceTypeIds)
@@ -114,7 +120,7 @@ export function buildSearchIndexQuery(input: SearchIndexQueryInput) {
     filters,
     params,
     "entries.resource_type_id",
-    resourceTypeIds,
+    resourceTypeIds
   );
   params.push(SEARCH_INDEX_RESULT_LIMIT);
 
@@ -194,19 +200,19 @@ export function parseSearchSnippet(value: string): SearchSnippet {
 
 export async function getSearchIndexRevisions(
   db: DatabaseOrTx,
-  organizationId: string,
+  organizationId: string
 ): Promise<Map<string, string>> {
   const rows = await db.getAll<{ entry_key: string; source_revision: string }>(
     `SELECT entry_key, source_revision FROM ${SEARCH_INDEX_ENTRIES_TABLE}
      WHERE organization_id = ?`,
-    [organizationId],
+    [organizationId]
   );
   return new Map(rows.map((row) => [row.entry_key, row.source_revision]));
 }
 
 export async function upsertSearchIndexEntry(
   db: DatabaseOrTx,
-  entry: SearchIndexEntry,
+  entry: SearchIndexEntry
 ): Promise<void> {
   await db.execute(
     `INSERT INTO ${SEARCH_INDEX_ENTRIES_TABLE} (
@@ -232,14 +238,14 @@ export async function upsertSearchIndexEntry(
       entry.sourceRevision,
       entry.content,
       entry.indexedAt,
-    ],
+    ]
   );
 }
 
 export async function deleteSearchIndexEntry(
   db: DatabaseOrTx,
   entryKey: string,
-  expected?: { indexedAt: string; sourceRevision: string },
+  expected?: { indexedAt: string; sourceRevision: string }
 ): Promise<void> {
   await db.execute(
     `DELETE FROM ${SEARCH_INDEX_ENTRIES_TABLE} WHERE entry_key = ?${
@@ -247,7 +253,7 @@ export async function deleteSearchIndexEntry(
     }`,
     expected
       ? [entryKey, expected.sourceRevision, expected.indexedAt]
-      : [entryKey],
+      : [entryKey]
   );
 }
 
@@ -255,24 +261,24 @@ export async function deleteStaleSearchIndexEntries(
   db: DatabaseOrTx,
   organizationId: string,
   activeEntryKeys: ReadonlySet<string>,
-  existingEntryKeys: Iterable<string>,
+  existingEntryKeys: Iterable<string>
 ): Promise<void> {
   if (!activeEntryKeys.size) {
     await db.execute(
       `DELETE FROM ${SEARCH_INDEX_ENTRIES_TABLE} WHERE organization_id = ?`,
-      [organizationId],
+      [organizationId]
     );
     return;
   }
   const staleKeys = [...existingEntryKeys].filter(
-    (entryKey) => !activeEntryKeys.has(entryKey),
+    (entryKey) => !activeEntryKeys.has(entryKey)
   );
   for (let offset = 0; offset < staleKeys.length; offset += 400) {
     const chunk = staleKeys.slice(offset, offset + 400);
     await db.execute(
       `DELETE FROM ${SEARCH_INDEX_ENTRIES_TABLE}
        WHERE organization_id = ? AND entry_key IN (${chunk.map(() => "?").join(", ")})`,
-      [organizationId, ...chunk],
+      [organizationId, ...chunk]
     );
   }
 }

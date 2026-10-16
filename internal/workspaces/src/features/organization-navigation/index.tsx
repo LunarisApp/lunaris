@@ -78,13 +78,11 @@ export interface OrganizationViewState {
   renamingResourceId: string | null;
 }
 
-const OrganizationNavigationContext = createContext<OrganizationNavigation | null>(
-  null
-);
+const OrganizationNavigationContext =
+  createContext<OrganizationNavigation | null>(null);
 
-const OrganizationViewStateContext = createContext<OrganizationViewState | null>(
-  null
-);
+const OrganizationViewStateContext =
+  createContext<OrganizationViewState | null>(null);
 
 interface OrganizationNavigationProviderProps {
   children: ReactNode;

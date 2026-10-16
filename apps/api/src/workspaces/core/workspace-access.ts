@@ -11,7 +11,7 @@ export type WorkspaceAccessLevel = "read" | "write" | "owner";
 export function workspaceAccessCondition(
   organizationId: string,
   userId?: string,
-  access: WorkspaceAccessLevel = "read",
+  access: WorkspaceAccessLevel = "read"
 ) {
   return and(
     eq(workspacesDb.organizationId, organizationId),
@@ -27,18 +27,18 @@ export function workspaceAccessCondition(
                 eq(workspacesDb.ownerId, userId),
                 access === "owner"
                   ? undefined
-                  : workspaceMembershipCondition(userId, access),
-              ),
-            ),
-          ),
+                  : workspaceMembershipCondition(userId, access)
+              )
+            )
+          )
         )
-      : eq(workspacesDb.visibility, WORKSPACE_VISIBILITY.shared),
+      : eq(workspacesDb.visibility, WORKSPACE_VISIBILITY.shared)
   )!;
 }
 
 function organizationMembershipCondition(
   organizationId: string,
-  userId: string,
+  userId: string
 ) {
   return sql`EXISTS (
     SELECT 1
@@ -50,7 +50,7 @@ function organizationMembershipCondition(
 
 function workspaceMembershipCondition(
   userId: string,
-  access: Exclude<WorkspaceAccessLevel, "owner">,
+  access: Exclude<WorkspaceAccessLevel, "owner">
 ) {
   return sql`EXISTS (
     SELECT 1
@@ -68,7 +68,7 @@ export async function assertWorkspaceAccess(
   workspaceId: string,
   organizationId: string,
   userId?: string,
-  access: WorkspaceAccessLevel = "read",
+  access: WorkspaceAccessLevel = "read"
 ) {
   const [workspace] = await db
     .select({ id: workspacesDb.id })
@@ -76,9 +76,11 @@ export async function assertWorkspaceAccess(
     .where(
       and(
         eq(workspacesDb.id, workspaceId),
-        workspaceAccessCondition(organizationId, userId, access),
-      ),
+        workspaceAccessCondition(organizationId, userId, access)
+      )
     )
     .limit(1);
-  if (!workspace) throw new NotFoundException("Workspace not found");
+  if (!workspace) {
+    throw new NotFoundException("Workspace not found");
+  }
 }

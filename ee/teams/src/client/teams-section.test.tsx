@@ -36,7 +36,9 @@ const {
   useOrganizationTeamsQuery: vi.fn(),
 }));
 
-vi.mock("@repo/data/features/organizations", () => ({ useOrganizationMembersQuery }));
+vi.mock("@repo/data/features/organizations", () => ({
+  useOrganizationMembersQuery,
+}));
 
 vi.mock("./queries", () => ({
   useOrganizationTeamMembershipsQuery,
@@ -69,7 +71,7 @@ function renderSection() {
   return render(
     <QueryClientProvider client={queryClient}>
       <TeamsSection />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
 
@@ -155,11 +157,11 @@ describe("TeamsSection", () => {
     const memberDescriptionId = teamButton.getAttribute("aria-describedby");
     expect(memberDescriptionId).toBeTruthy();
     expect(
-      document.getElementById(memberDescriptionId ?? "")?.textContent,
+      document.getElementById(memberDescriptionId ?? "")?.textContent
     ).toContain("1");
 
     fireEvent.click(
-      screen.getByRole("button", { name: "organization.teams.createButton" }),
+      screen.getByRole("button", { name: "organization.teams.createButton" })
     );
     fireEvent.change(await screen.findByTestId("organization-team-name"), {
       target: { value: "  Design  " },
@@ -188,11 +190,11 @@ describe("TeamsSection", () => {
     renderSection();
 
     await user.click(
-      screen.getByRole("button", { name: "organization.teams.createButton" }),
+      screen.getByRole("button", { name: "organization.teams.createButton" })
     );
     await user.type(
       await screen.findByTestId("organization-team-name"),
-      "Design{enter}",
+      "Design{enter}"
     );
 
     await waitFor(() => {
@@ -208,13 +210,13 @@ describe("TeamsSection", () => {
     renderSection();
 
     await user.click(
-      screen.getByRole("button", { name: "organization.teams.openDetails" }),
+      screen.getByRole("button", { name: "organization.teams.openDetails" })
     );
     await user.type(
       await screen.findByRole("searchbox", {
         name: "organization.teams.searchMembers",
       }),
-      "Editor",
+      "Editor"
     );
     const addButton = screen.getByRole("button", {
       name: "organization.teams.addMember",
@@ -233,11 +235,20 @@ describe("TeamsSection", () => {
 
   it("removes a team member and reports success", async () => {
     const user = userEvent.setup();
-    auth.organization.removeTeamMember.mockResolvedValue({ data: {}, error: null });
+    auth.organization.removeTeamMember.mockResolvedValue({
+      data: {},
+      error: null,
+    });
     renderSection();
 
-    await user.click(screen.getByRole("button", { name: "organization.teams.openDetails" }));
-    await user.click(await screen.findByRole("button", { name: "organization.teams.removeMember" }));
+    await user.click(
+      screen.getByRole("button", { name: "organization.teams.openDetails" })
+    );
+    await user.click(
+      await screen.findByRole("button", {
+        name: "organization.teams.removeMember",
+      })
+    );
 
     await waitFor(() => {
       expect(auth.organization.removeTeamMember).toHaveBeenCalledWith({
@@ -245,7 +256,9 @@ describe("TeamsSection", () => {
         teamId: "team-1",
         userId: "user-1",
       });
-      expect(toast.success).toHaveBeenCalledWith("organization.teams.memberRemoved");
+      expect(toast.success).toHaveBeenCalledWith(
+        "organization.teams.memberRemoved"
+      );
     });
     expect(auth.organization.addTeamMember).not.toHaveBeenCalled();
   });
@@ -279,16 +292,16 @@ describe("TeamsSection", () => {
         await screen.findAllByRole("button", {
           name: "organization.teams.openDetails",
         })
-      )[0]!,
+      )[0]!
     );
     await user.click(
       await screen.findByRole("button", {
         name: "organization.teams.delete",
-      }),
+      })
     );
     const dialog = await screen.findByRole("alertdialog");
     await user.click(
-      within(dialog).getByRole("button", { name: "organization.teams.delete" }),
+      within(dialog).getByRole("button", { name: "organization.teams.delete" })
     );
 
     await waitFor(() => {
@@ -329,16 +342,16 @@ describe("TeamsSection", () => {
         await screen.findAllByRole("button", {
           name: "organization.teams.openDetails",
         })
-      )[0]!,
+      )[0]!
     );
     await user.click(
       await screen.findByRole("button", {
         name: "organization.teams.delete",
-      }),
+      })
     );
     const dialog = await screen.findByRole("alertdialog");
     await user.click(
-      within(dialog).getByRole("button", { name: "organization.teams.delete" }),
+      within(dialog).getByRole("button", { name: "organization.teams.delete" })
     );
 
     await waitFor(() => {
@@ -351,7 +364,7 @@ describe("TeamsSection", () => {
       });
     });
     expect(
-      auth.organization.setActiveTeam.mock.invocationCallOrder[0],
+      auth.organization.setActiveTeam.mock.invocationCallOrder[0]
     ).toBeLessThan(auth.organization.removeTeam.mock.invocationCallOrder[0]!);
   });
 });

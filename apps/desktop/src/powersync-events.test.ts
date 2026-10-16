@@ -67,7 +67,7 @@ describe("native PowerSync upload events", () => {
     listenMock.mockRejectedValueOnce(new Error("listener unavailable"));
 
     await expect(
-      subscribeToPowerSyncUploads(7, createBlocker()),
+      subscribeToPowerSyncUploads(7, createBlocker())
     ).rejects.toThrow("listener unavailable");
   });
 });

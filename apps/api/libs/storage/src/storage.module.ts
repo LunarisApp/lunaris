@@ -3,7 +3,7 @@ import { StorageService } from "./storage.service";
 
 @Global()
 @Module({
-	providers: [StorageService],
-	exports: [StorageService],
+  providers: [StorageService],
+  exports: [StorageService],
 })
 export class StorageModule {}

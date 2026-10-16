@@ -37,7 +37,14 @@ import JsonView from "@uiw/react-json-view";
 import { darkTheme } from "@uiw/react-json-view/dark";
 import { lightTheme } from "@uiw/react-json-view/light";
 import { useTheme } from "next-themes";
-import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from "react";
+import {
+  type CSSProperties,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "@repo/features/locale";
 import { useCurrentWorkspace } from "../workspace";
@@ -55,8 +62,12 @@ interface Column<T> {
   label: string;
 }
 
-function formatCellValue(value: ReactNode | string | number | null | undefined) {
-  if (value === null || value === undefined || value === "") return "—";
+function formatCellValue(
+  value: ReactNode | string | number | null | undefined
+) {
+  if (value === null || value === undefined || value === "") {
+    return "—";
+  }
   return typeof value === "string" || typeof value === "number"
     ? String(value)
     : value;
@@ -134,19 +145,27 @@ function DebuggerTable<T>({
       <TableBody>
         {rows.length > 0 ? (
           rows.map((row, index) => (
-            <TableRow key={index}>
+            <TableRow
+              // biome-ignore lint/suspicious/noArrayIndexKey: Fixed placeholders or stateless rows; position is the intended identity.
+              key={index}
+            >
               {columns.map((column) => {
                 const rawValue =
                   column.cell?.(row) ??
-                  (row as Record<string, ReactNode | string | number | null | undefined>)[
-                    column.key
-                  ];
+                  (
+                    row as Record<
+                      string,
+                      ReactNode | string | number | null | undefined
+                    >
+                  )[column.key];
                 const value = formatCellValue(rawValue);
                 const isLongText = column.key === "value";
                 const title = typeof value === "string" ? value : undefined;
                 return (
                   <TableCell
-                    className={isLongText ? "max-w-[24rem] truncate" : undefined}
+                    className={
+                      isLongText ? "max-w-[24rem] truncate" : undefined
+                    }
                     key={column.key}
                     title={title}
                   >
@@ -222,7 +241,7 @@ function YjsJsonDialog({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isOpen || !meta) {
+    if (!(isOpen && meta)) {
       setStatus("idle");
       setCompiledJson({});
       setErrorMessage(null);
@@ -237,11 +256,15 @@ function YjsJsonDialog({
 
       try {
         const result = await compileYjsDocumentJson(db, meta.documentId);
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         setCompiledJson(result);
         setStatus("success");
       } catch (error) {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         setErrorMessage(
           error instanceof Error ? error.message : t("debugger.json.error")
         );
@@ -265,12 +288,10 @@ function YjsJsonDialog({
         </DialogHeader>
 
         <div className="min-h-0 flex-1 overflow-auto p-4">
-          {status === "loading" ? (
-            <p>{t("debugger.json.loading")}</p>
-          ) : null}
+          {status === "loading" ? <p>{t("debugger.json.loading")}</p> : null}
 
           {status === "error" ? (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-destructive text-sm">
               {errorMessage ?? t("debugger.json.error")}
             </div>
           ) : null}
@@ -278,7 +299,7 @@ function YjsJsonDialog({
           {status === "success" ? (
             <div className="space-y-3">
               {isEmptyCompiledJson(compiledJson) ? (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   {t("debugger.json.noUpdates")}
                 </p>
               ) : null}
@@ -314,7 +335,9 @@ function UploadQueueJsonDialog({
   const { resolvedTheme } = useTheme();
 
   const parsed = useMemo(() => {
-    if (!meta) return null;
+    if (!meta) {
+      return null;
+    }
     try {
       return JSON.parse(meta.data) as Record<string, unknown>;
     } catch {
@@ -343,7 +366,7 @@ function UploadQueueJsonDialog({
               value={toJsonViewValue(parsed)}
             />
           ) : (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               {t("debugger.json.error")}
             </p>
           )}
@@ -356,7 +379,8 @@ function UploadQueueJsonDialog({
 export function DebuggerPanelContent({ workspaceId }: { workspaceId: string }) {
   const { t } = useTranslation();
   const { locale } = useLocale();
-  const { data: workspaceResources = [] } = useWorkspaceResourcesQuery(workspaceId);
+  const { data: workspaceResources = [] } =
+    useWorkspaceResourcesQuery(workspaceId);
   const { data: yjsDocuments = [] } = useYjsDocumentsQuery(workspaceId);
   const { data: uploadQueue = [] } = useQuery<PsCrudRow>(
     "SELECT id, tx_id, data FROM ps_crud ORDER BY id",
@@ -373,19 +397,24 @@ export function DebuggerPanelContent({ workspaceId }: { workspaceId: string }) {
     useState<UploadQueueDialogMeta | null>(null);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
 
-  const openYjsJsonDialog = (row: (typeof yjsDocuments)[number]) => {
-    setSelectedYjsDocument({
-      documentId: row.id,
-    });
-    setIsJsonDialogOpen(true);
-  };
+  const openYjsJsonDialog = useCallback(
+    (row: (typeof yjsDocuments)[number]) => {
+      setSelectedYjsDocument({
+        documentId: row.id,
+      });
+      setIsJsonDialogOpen(true);
+    },
+    []
+  );
 
-  const openUploadDialog = (row: PsCrudRow) => {
+  const openUploadDialog = useCallback((row: PsCrudRow) => {
     setSelectedUploadEntry({ id: row.id, data: row.data });
     setIsUploadDialogOpen(true);
-  };
+  }, []);
 
-  const workspaceResourcesColumns = useMemo<Column<(typeof workspaceResources)[number]>[]>(
+  const workspaceResourcesColumns = useMemo<
+    Column<(typeof workspaceResources)[number]>[]
+  >(
     () => [
       { key: "id", label: "id" },
       { key: "name", label: "name" },
@@ -429,7 +458,7 @@ export function DebuggerPanelContent({ workspaceId }: { workspaceId: string }) {
         ),
       },
     ],
-    [locale, t]
+    [locale, t, openYjsJsonDialog]
   );
 
   const uploadQueueColumns = useMemo<Column<PsCrudRow>[]>(() => {
@@ -472,7 +501,7 @@ export function DebuggerPanelContent({ workspaceId }: { workspaceId: string }) {
         ),
       },
     ];
-  }, [t]);
+  }, [t, openUploadDialog]);
 
   const attachmentColumns = useMemo<Column<DebuggerAttachmentRow>[]>(
     () => [
@@ -495,7 +524,10 @@ export function DebuggerPanelContent({ workspaceId }: { workspaceId: string }) {
 
   return (
     <div className="flex h-full flex-col gap-3 p-3">
-      <Tabs className="h-full" defaultValue={"workspace-resources" satisfies DebuggerTab}>
+      <Tabs
+        className="h-full"
+        defaultValue={"workspace-resources" satisfies DebuggerTab}
+      >
         <TabsList variant="line">
           <TabsTrigger value="workspace-resources">
             {t("debugger.tabs.workspaceResources")}

@@ -20,13 +20,7 @@ import {
   HugeiconsIcon,
   Task01Icon,
 } from "@lunarisapp/ui/icons";
-import {
-  type FormEvent,
-  useEffect,
-  useId,
-  useMemo,
-  useState,
-} from "react";
+import { type FormEvent, useEffect, useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { PropertyDefinition, PropertyValue } from "../types";
 import { PropertyValueField } from "./property-value-field";
@@ -49,7 +43,8 @@ interface CreateTaskDialogProps {
 type CreateError = "item-limit" | "unknown";
 
 function getCreateError(error: unknown): CreateError {
-  return error instanceof Error && error.name === "ResourceCapacityExceededError"
+  return error instanceof Error &&
+    error.name === "ResourceCapacityExceededError"
     ? "item-limit"
     : "unknown";
 }
@@ -68,7 +63,9 @@ export function CreateTaskDialog({
   const { map: members } = useOrgMembersMap();
   const people = useMemo(() => {
     const result = new Map<string, PluginUser>(members);
-    if (currentUser?.id) result.set(currentUser.id, currentUser);
+    if (currentUser?.id) {
+      result.set(currentUser.id, currentUser);
+    }
     return result;
   }, [currentUser, members]);
   const [taskName, setTaskName] = useState("");
@@ -81,7 +78,9 @@ export function CreateTaskDialog({
   const createErrorId = useId();
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
     setPropertyValues({ ...initialPropertyValues });
   }, [initialPropertyValues, open]);
 
@@ -94,14 +93,18 @@ export function CreateTaskDialog({
   };
 
   const changeOpen = (nextOpen: boolean) => {
-    if (!nextOpen) reset();
+    if (!nextOpen) {
+      reset();
+    }
     onOpenChange(nextOpen);
   };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     const name = taskName.trim();
-    if (!name || isCreating) return;
+    if (!name || isCreating) {
+      return;
+    }
     setCreateError(null);
     setIsCreating(true);
     try {
@@ -110,8 +113,11 @@ export function CreateTaskDialog({
         name,
         propertyValues,
       });
-      if (created) changeOpen(false);
-      else setCreateError("unknown");
+      if (created) {
+        changeOpen(false);
+      } else {
+        setCreateError("unknown");
+      }
     } catch (error) {
       setCreateError(getCreateError(error));
     } finally {
@@ -130,6 +136,7 @@ export function CreateTaskDialog({
         }
       />
       <DialogContent className="max-h-[min(42rem,var(--available-height))] w-[min(52rem,calc(100vw-2rem))] max-w-(--available-width) gap-0 overflow-hidden p-0 sm:max-w-[min(52rem,var(--available-width))]">
+        {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: Form handles bubbled Enter keys to prevent accidental submission from property inputs. */}
         <form
           className="flex min-h-[min(20rem,var(--available-height))] flex-col"
           onKeyDown={(event) => {
@@ -144,7 +151,7 @@ export function CreateTaskDialog({
           onSubmit={submit}
         >
           <header className="flex min-w-0 items-center gap-2 px-4 pt-4 pr-12 pb-2 sm:px-5">
-            <span className="flex min-w-0 items-center gap-1.5 rounded-lg bg-muted/70 px-2 py-1 text-sm text-muted-foreground">
+            <span className="flex min-w-0 items-center gap-1.5 rounded-lg bg-muted/70 px-2 py-1 text-muted-foreground text-sm">
               <HugeiconsIcon
                 className="shrink-0"
                 icon={Task01Icon}
@@ -169,7 +176,7 @@ export function CreateTaskDialog({
               aria-describedby={createError ? createErrorId : undefined}
               aria-label={b("taskName")}
               autoFocus
-              className="h-auto rounded-none border-0 bg-transparent px-0 py-4 text-xl font-semibold shadow-none ring-0 placeholder:font-semibold focus-visible:border-transparent focus-visible:ring-0 md:text-xl dark:bg-transparent"
+              className="h-auto rounded-none border-0 bg-transparent px-0 py-4 font-semibold text-xl shadow-none ring-0 placeholder:font-semibold focus-visible:border-transparent focus-visible:ring-0 md:text-xl dark:bg-transparent"
               data-task-title="true"
               disabled={isCreating}
               maxLength={120}
@@ -189,7 +196,7 @@ export function CreateTaskDialog({
 
             {createError ? (
               <p
-                className="text-sm text-destructive"
+                className="text-destructive text-sm"
                 id={createErrorId}
                 role="alert"
               >

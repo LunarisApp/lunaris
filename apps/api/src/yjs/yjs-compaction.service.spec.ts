@@ -139,7 +139,9 @@ describe("YjsCompactionService", () => {
 
     const statement = (execute.mock.calls[0]?.[0]?.queryChunks ?? [])
       .map((chunk: number | { value?: string[] }) =>
-        typeof chunk === "number" ? String(chunk) : chunk.value?.join("") ?? ""
+        typeof chunk === "number"
+          ? String(chunk)
+          : (chunk.value?.join("") ?? "")
       )
       .join(" ");
     expect(statement).toContain("yjs_retention_days");
@@ -187,7 +189,9 @@ describe("YjsCompactionService", () => {
     }
 
     it("skips a day bucket with a single old update", async () => {
-      const rows = [createRow(1, undefined, new Date(Date.UTC(2025, 11, 20, 12, 0, 0)))];
+      const rows = [
+        createRow(1, undefined, new Date(Date.UTC(2025, 11, 20, 12, 0, 0))),
+      ];
       const tx = createMockTx(rows);
       databaseService.db.transaction.mockImplementation(
         async (fn: (txArg: unknown) => unknown) => fn(tx)
@@ -206,8 +210,18 @@ describe("YjsCompactionService", () => {
     it("compacts all updates inside an eligible old day bucket", async () => {
       const bucketStart = new Date(Date.UTC(2025, 11, 20, 0, 0, 0));
       const rows = [
-        createRow(1, undefined, new Date(Date.UTC(2025, 11, 20, 10, 0, 0)), "user_A"),
-        createRow(2, undefined, new Date(Date.UTC(2025, 11, 20, 11, 0, 0)), "user_A"),
+        createRow(
+          1,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 10, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          2,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 11, 0, 0)),
+          "user_A"
+        ),
       ];
       const insertValues = mock().mockResolvedValue(undefined);
       const tx = createMockTx(rows, insertValues);
@@ -225,9 +239,24 @@ describe("YjsCompactionService", () => {
     it("anchors the merged row to the newest compacted timestamp and preserves the group's user", async () => {
       const bucketStart = new Date(Date.UTC(2025, 11, 20, 0, 0, 0));
       const rows = [
-        createRow(1, undefined, new Date(Date.UTC(2025, 11, 20, 9, 0, 0)), "user_A"),
-        createRow(2, undefined, new Date(Date.UTC(2025, 11, 20, 12, 0, 0)), "user_A"),
-        createRow(3, undefined, new Date(Date.UTC(2025, 11, 20, 10, 0, 0)), "user_A"),
+        createRow(
+          1,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 9, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          2,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 12, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          3,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 10, 0, 0)),
+          "user_A"
+        ),
       ];
       const insertValues = mock().mockResolvedValue(undefined);
       const tx = createMockTx(rows, insertValues);
@@ -248,12 +277,42 @@ describe("YjsCompactionService", () => {
     it("produces one compacted row per user when the bucket contains multiple authors", async () => {
       const bucketStart = new Date(Date.UTC(2025, 11, 20, 0, 0, 0));
       const rows = [
-        createRow(1, undefined, new Date(Date.UTC(2025, 11, 20, 9, 0, 0)), "user_A"),
-        createRow(2, undefined, new Date(Date.UTC(2025, 11, 20, 10, 0, 0)), "user_A"),
-        createRow(3, undefined, new Date(Date.UTC(2025, 11, 20, 11, 0, 0)), "user_A"),
-        createRow(4, undefined, new Date(Date.UTC(2025, 11, 20, 12, 0, 0)), "user_B"),
-        createRow(5, undefined, new Date(Date.UTC(2025, 11, 20, 13, 0, 0)), "user_B"),
-        createRow(6, undefined, new Date(Date.UTC(2025, 11, 20, 14, 0, 0)), "user_B"),
+        createRow(
+          1,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 9, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          2,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 10, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          3,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 11, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          4,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 12, 0, 0)),
+          "user_B"
+        ),
+        createRow(
+          5,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 13, 0, 0)),
+          "user_B"
+        ),
+        createRow(
+          6,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 14, 0, 0)),
+          "user_B"
+        ),
       ];
       const insertValues = mock().mockResolvedValue(undefined);
       const tx = createMockTx(rows, insertValues);
@@ -264,7 +323,9 @@ describe("YjsCompactionService", () => {
       const result = await service.compactBucket("doc_1", bucketStart);
 
       expect(result).toBe(true);
-      const inserted = insertValues.mock.calls[0]?.[0] as Array<{ userId: string | null }>;
+      const inserted = insertValues.mock.calls[0]?.[0] as Array<{
+        userId: string | null;
+      }>;
       expect(inserted).toHaveLength(2);
       const userIds = inserted.map((r) => r.userId).sort();
       expect(userIds).toEqual(["user_A", "user_B"]);
@@ -273,10 +334,30 @@ describe("YjsCompactionService", () => {
     it("leaves a lone-author row untouched and merges the majority author's rows", async () => {
       const bucketStart = new Date(Date.UTC(2025, 11, 20, 0, 0, 0));
       const rows = [
-        createRow(1, undefined, new Date(Date.UTC(2025, 11, 20, 9, 0, 0)), "user_A"),
-        createRow(2, undefined, new Date(Date.UTC(2025, 11, 20, 10, 0, 0)), "user_A"),
-        createRow(3, undefined, new Date(Date.UTC(2025, 11, 20, 11, 0, 0)), "user_A"),
-        createRow(4, undefined, new Date(Date.UTC(2025, 11, 20, 12, 0, 0)), "user_B"),
+        createRow(
+          1,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 9, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          2,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 10, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          3,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 11, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          4,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 12, 0, 0)),
+          "user_B"
+        ),
       ];
       const insertValues = mock().mockResolvedValue(undefined);
       const tx = createMockTx(rows, insertValues);
@@ -287,9 +368,13 @@ describe("YjsCompactionService", () => {
       const result = await service.compactBucket("doc_1", bucketStart);
 
       expect(result).toBe(true);
-      const deleteWhereCall = (tx.delete.mock.results[0]?.value as { where: ReturnType<typeof mock> }).where;
+      const deleteWhereCall = (
+        tx.delete.mock.results[0]!.value as { where: ReturnType<typeof mock> }
+      ).where;
       expect(deleteWhereCall).toHaveBeenCalledTimes(1);
-      const inserted = insertValues.mock.calls[0]?.[0] as Array<{ userId: string | null }>;
+      const inserted = insertValues.mock.calls[0]?.[0] as Array<{
+        userId: string | null;
+      }>;
       expect(inserted).toHaveLength(1);
       expect(inserted[0]?.userId).toBe("user_A");
     });
@@ -297,9 +382,24 @@ describe("YjsCompactionService", () => {
     it("returns false when no userId group has at least two rows", async () => {
       const bucketStart = new Date(Date.UTC(2025, 11, 20, 0, 0, 0));
       const rows = [
-        createRow(1, undefined, new Date(Date.UTC(2025, 11, 20, 9, 0, 0)), "user_A"),
-        createRow(2, undefined, new Date(Date.UTC(2025, 11, 20, 10, 0, 0)), "user_B"),
-        createRow(3, undefined, new Date(Date.UTC(2025, 11, 20, 11, 0, 0)), "user_C"),
+        createRow(
+          1,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 9, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          2,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 10, 0, 0)),
+          "user_B"
+        ),
+        createRow(
+          3,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 11, 0, 0)),
+          "user_C"
+        ),
       ];
       const tx = createMockTx(rows);
       databaseService.db.transaction.mockImplementation(
@@ -316,8 +416,18 @@ describe("YjsCompactionService", () => {
     it("groups null-user rows together under one compacted null-user row", async () => {
       const bucketStart = new Date(Date.UTC(2025, 11, 20, 0, 0, 0));
       const rows = [
-        createRow(1, undefined, new Date(Date.UTC(2025, 11, 20, 9, 0, 0)), null),
-        createRow(2, undefined, new Date(Date.UTC(2025, 11, 20, 10, 0, 0)), null),
+        createRow(
+          1,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 9, 0, 0)),
+          null
+        ),
+        createRow(
+          2,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 10, 0, 0)),
+          null
+        ),
       ];
       const insertValues = mock().mockResolvedValue(undefined);
       const tx = createMockTx(rows, insertValues);
@@ -328,7 +438,9 @@ describe("YjsCompactionService", () => {
       const result = await service.compactBucket("doc_1", bucketStart);
 
       expect(result).toBe(true);
-      const inserted = insertValues.mock.calls[0]?.[0] as Array<{ userId: string | null }>;
+      const inserted = insertValues.mock.calls[0]?.[0] as Array<{
+        userId: string | null;
+      }>;
       expect(inserted).toHaveLength(1);
       expect(inserted[0]?.userId).toBeNull();
     });
@@ -336,23 +448,41 @@ describe("YjsCompactionService", () => {
     it("rolls back when insert fails after delete", async () => {
       const bucketStart = new Date(Date.UTC(2025, 11, 20, 0, 0, 0));
       const rows = [
-        createRow(1, undefined, new Date(Date.UTC(2025, 11, 20, 10, 0, 0)), "user_A"),
-        createRow(2, undefined, new Date(Date.UTC(2025, 11, 20, 11, 0, 0)), "user_A"),
+        createRow(
+          1,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 10, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          2,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 11, 0, 0)),
+          "user_A"
+        ),
       ];
-      const tx = createMockTx(rows, mock().mockRejectedValue(new Error("insert failed")));
+      const tx = createMockTx(
+        rows,
+        mock().mockRejectedValue(new Error("insert failed"))
+      );
       databaseService.db.transaction.mockImplementation(
         async (fn: (txArg: unknown) => unknown) => fn(tx)
       );
 
-      await expect(
-        service.compactBucket("doc_1", bucketStart)
-      ).rejects.toThrow("insert failed");
+      await expect(service.compactBucket("doc_1", bucketStart)).rejects.toThrow(
+        "insert failed"
+      );
     });
 
     it("throws on malformed update data", async () => {
       const bucketStart = new Date(Date.UTC(2025, 11, 20, 0, 0, 0));
       const rows = [
-        createRow(1, undefined, new Date(Date.UTC(2025, 11, 20, 10, 0, 0)), "user_A"),
+        createRow(
+          1,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 10, 0, 0)),
+          "user_A"
+        ),
         createRow(
           2,
           Buffer.from("bad"),
@@ -365,16 +495,38 @@ describe("YjsCompactionService", () => {
         async (fn: (txArg: unknown) => unknown) => fn(tx)
       );
 
-      await expect(service.compactBucket("doc_1", bucketStart)).rejects.toThrow();
+      await expect(
+        service.compactBucket("doc_1", bucketStart)
+      ).rejects.toThrow();
     });
 
     it("preserves the same reconstructed Yjs state after day-bucket compaction across multiple users", async () => {
       const bucketStart = new Date(Date.UTC(2025, 11, 20, 0, 0, 0));
       const rows = [
-        createRow(1, undefined, new Date(Date.UTC(2025, 11, 20, 9, 0, 0)), "user_A"),
-        createRow(2, undefined, new Date(Date.UTC(2025, 11, 20, 10, 0, 0)), "user_A"),
-        createRow(3, undefined, new Date(Date.UTC(2025, 11, 20, 11, 0, 0)), "user_B"),
-        createRow(4, undefined, new Date(Date.UTC(2025, 11, 20, 12, 0, 0)), "user_B"),
+        createRow(
+          1,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 9, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          2,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 10, 0, 0)),
+          "user_A"
+        ),
+        createRow(
+          3,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 11, 0, 0)),
+          "user_B"
+        ),
+        createRow(
+          4,
+          undefined,
+          new Date(Date.UTC(2025, 11, 20, 12, 0, 0)),
+          "user_B"
+        ),
       ];
       const insertValues = mock().mockResolvedValue(undefined);
       const tx = createMockTx(rows, insertValues);
@@ -384,7 +536,9 @@ describe("YjsCompactionService", () => {
 
       await service.compactBucket("doc_1", bucketStart);
 
-      const mergedRows = insertValues.mock.calls[0]?.[0] as Array<{ updateData: Buffer }>;
+      const mergedRows = insertValues.mock.calls[0]?.[0] as Array<{
+        updateData: Buffer;
+      }>;
       const docBefore = new Doc();
       const docAfter = new Doc();
 
@@ -461,7 +615,10 @@ describe("Context-based compaction", () => {
   });
 
   describe("compactCluster", () => {
-    function createMockTx(rows: ReturnType<typeof createRow>[], insertValues?: ReturnType<typeof mock>) {
+    function createMockTx(
+      rows: ReturnType<typeof createRow>[],
+      insertValues?: ReturnType<typeof mock>
+    ) {
       return {
         execute: mock().mockResolvedValue({ rows: [{ acquired: true }] }),
         select: mock().mockReturnValue({
@@ -535,7 +692,10 @@ describe("Context-based compaction", () => {
         userId: string | null;
       }>;
       expect(inserted).toHaveLength(2);
-      expect(inserted.map((r) => r.userId).sort()).toEqual(["user_A", "user_B"]);
+      expect(inserted.map((r) => r.userId).sort()).toEqual([
+        "user_A",
+        "user_B",
+      ]);
     });
 
     it("skips when advisory lock is not acquired", async () => {
@@ -607,7 +767,10 @@ describe("Context-based compaction", () => {
       const clusterRows = Array.from({ length: 3 }, (_, i) =>
         createRow(i + 1, undefined, undefined, "user_A")
       );
-      const tx = createMockTx(clusterRows, mock().mockRejectedValue(new Error("insert failed")));
+      const tx = createMockTx(
+        clusterRows,
+        mock().mockRejectedValue(new Error("insert failed"))
+      );
 
       databaseService.db.transaction.mockImplementation(
         async (fn: (txArg: unknown) => unknown) => fn(tx)
@@ -624,11 +787,16 @@ describe("Context-based compaction", () => {
 
   describe("compactRecentClusters", () => {
     it("compacts all clusters returned by findCompactableClusters", async () => {
-      const findSpy = spyOn(service, "findCompactableClusters").mockResolvedValue([
+      const findSpy = spyOn(
+        service,
+        "findCompactableClusters"
+      ).mockResolvedValue([
         { documentId: "doc_1", ids: ["u1", "u2", "u3"] },
         { documentId: "doc_2", ids: ["u4", "u5", "u6"] },
       ]);
-      const compactSpy = spyOn(service, "compactCluster").mockResolvedValue(true);
+      const compactSpy = spyOn(service, "compactCluster").mockResolvedValue(
+        true
+      );
 
       await service.compactRecentClusters();
 

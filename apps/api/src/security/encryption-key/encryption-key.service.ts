@@ -24,7 +24,10 @@ export class EncryptionKeyService {
    * files become unreadable).
    */
   derive(sessionId: string): string {
-    const master = Buffer.from(this.appConfig.localDbEncryptionMasterKey, "hex");
+    const master = Buffer.from(
+      this.appConfig.localDbEncryptionMasterKey,
+      "hex"
+    );
     const keyBytes = hkdfSync(
       "sha256",
       master,

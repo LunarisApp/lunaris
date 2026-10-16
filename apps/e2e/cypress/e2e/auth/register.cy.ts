@@ -73,7 +73,7 @@ describe("auth/register", () => {
 
       cy.location("pathname", { timeout: 15_000 }).should(
         "eq",
-        "/auth/verify-email",
+        "/auth/verify-email"
       );
       cy.location("search").should("include", "redirectTo=");
 

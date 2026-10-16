@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 const { useQuery } = vi.hoisted(() => ({ useQuery: vi.fn() }));
 vi.mock("@powersync/react", () => ({ useQuery }));
 import { ORGANIZATION_DIRECTORY_SYNC_STREAMS } from "@repo/data/features/organizations";
-import { useOrganizationTeamMembershipsQuery, useOrganizationTeamsQuery } from "./queries";
+import {
+  useOrganizationTeamMembershipsQuery,
+  useOrganizationTeamsQuery,
+} from "./queries";
 describe("team queries", () => {
   it("maps synced teams and memberships", () => {
     useQuery.mockReturnValueOnce({
@@ -46,10 +49,10 @@ describe("team queries", () => {
     ]);
     expect(useQuery).toHaveBeenLastCalledWith(
       expect.stringMatching(
-        /INNER JOIN team team ON team.id = team_member.team_id[\s\S]*WHERE team.organization_id = \?/,
+        /INNER JOIN team team ON team.id = team_member.team_id[\s\S]*WHERE team.organization_id = \?/
       ),
       ["organization-1"],
-      { streams: ORGANIZATION_DIRECTORY_SYNC_STREAMS },
+      { streams: ORGANIZATION_DIRECTORY_SYNC_STREAMS }
     );
   });
   it("keeps queries tenant-scoped while the active organization is unavailable", () => {
@@ -62,7 +65,7 @@ describe("team queries", () => {
     expect(useQuery).toHaveBeenLastCalledWith(
       expect.stringContaining("WHERE organization_id = ?"),
       [""],
-      { streams: ORGANIZATION_DIRECTORY_SYNC_STREAMS },
+      { streams: ORGANIZATION_DIRECTORY_SYNC_STREAMS }
     );
 
     expect(useOrganizationTeamMembershipsQuery(undefined)).toMatchObject({
@@ -72,7 +75,7 @@ describe("team queries", () => {
     expect(useQuery).toHaveBeenLastCalledWith(
       expect.stringContaining("WHERE team.organization_id = ?"),
       [""],
-      { streams: ORGANIZATION_DIRECTORY_SYNC_STREAMS },
+      { streams: ORGANIZATION_DIRECTORY_SYNC_STREAMS }
     );
   });
 });

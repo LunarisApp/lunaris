@@ -11,7 +11,7 @@ const blockIdSchema = z
 
 const blockPropsSchema = z.record(
   z.string(),
-  z.union([z.string(), z.number(), z.boolean(), z.null()]),
+  z.union([z.string(), z.number(), z.boolean(), z.null()])
 );
 
 export interface RichTextBlockInput {
@@ -38,7 +38,7 @@ export const richTextBlockInputSchema: z.ZodType<RichTextBlockInput> = z.lazy(
       id: blockIdSchema,
       props: blockPropsSchema.optional(),
       type: z.enum(RICH_TEXT_BLOCK_TYPES),
-    }),
+    })
 );
 
 export const richTextBlockSchema: z.ZodType<RichTextBlockData> = z.lazy(() =>
@@ -48,7 +48,7 @@ export const richTextBlockSchema: z.ZodType<RichTextBlockData> = z.lazy(() =>
     id: blockIdSchema,
     props: blockPropsSchema,
     type: z.enum(RICH_TEXT_BLOCK_TYPES),
-  }),
+  })
 );
 
 export const richTextReadMeOperationInputSchema = z.object({});
@@ -87,7 +87,7 @@ export const richTextUpdateDocumentOperationInputSchema = z.object({
     .min(1)
     .max(RICH_TEXT_MAX_DOCUMENT_BLOCKS)
     .describe(
-      "Complete replacement BlockNote document. Preserve IDs from rich_text_get_document for unchanged blocks.",
+      "Complete replacement BlockNote document. Preserve IDs from rich_text_get_document for unchanged blocks."
     ),
   documentResourceId: z
     .string()
@@ -105,7 +105,7 @@ export const richTextUpdateDocumentInputSchema =
       .min(8)
       .max(200)
       .describe(
-        "Stable unique key for this mutation. Reuse only when retrying the identical request.",
+        "Stable unique key for this mutation. Reuse only when retrying the identical request."
       ),
     workspaceId: z
       .string()

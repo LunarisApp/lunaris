@@ -1,12 +1,7 @@
 import { Button } from "@lunarisapp/ui/components/button";
-import {
-  HugeiconsIcon,
-  Shield01Icon,
-} from "@lunarisapp/ui/icons";
+import { HugeiconsIcon, Shield01Icon } from "@lunarisapp/ui/icons";
 import type { AgentWorkScope } from "@repo/platform";
-import type {
-  DockviewApi,
-} from "dockview";
+import type { DockviewApi } from "dockview";
 import {
   DockviewReact,
   type IDockviewHeaderActionsProps,
@@ -158,8 +153,14 @@ function LayoutHost({
               apiRef.current = api;
               let widths: Record<string, unknown> = {};
               try {
-                const saved: unknown = JSON.parse(localStorage.getItem(storageKey) ?? "{}");
-                if (saved && typeof saved === "object" && !Array.isArray(saved)) {
+                const saved: unknown = JSON.parse(
+                  localStorage.getItem(storageKey) ?? "{}"
+                );
+                if (
+                  saved &&
+                  typeof saved === "object" &&
+                  !Array.isArray(saved)
+                ) {
                   widths = saved as Record<string, unknown>;
                 }
               } catch {
@@ -172,14 +173,28 @@ function LayoutHost({
                   component: "agent",
                   title: t(`agentWork.${id}`),
                   renderer: "onlyWhenVisible",
-                  initialWidth: typeof width === "number" && Number.isFinite(width) && width >= 220
-                    ? width
-                    : id === "conversations" ? 256 : id === "activity" ? 304 : 600,
+                  initialWidth:
+                    typeof width === "number" &&
+                    Number.isFinite(width) &&
+                    width >= 220
+                      ? width
+                      : id === "conversations"
+                        ? 256
+                        : id === "activity"
+                          ? 304
+                          : 600,
                   minimumWidth: compact ? 0 : 220,
-                  position: id === "chat" ? undefined : {
-                    referencePanel: "chat",
-                    direction: compact ? "within" : id === "conversations" ? "left" : "right",
-                  },
+                  position:
+                    id === "chat"
+                      ? undefined
+                      : {
+                          referencePanel: "chat",
+                          direction: compact
+                            ? "within"
+                            : id === "conversations"
+                              ? "left"
+                              : "right",
+                        },
                 });
               }
               api.getPanel("chat")?.api.setActive();
@@ -196,7 +211,11 @@ function LayoutHost({
                 }
               };
               const listener = api.onDidLayoutChange(() => {
-                serialized = JSON.stringify(Object.fromEntries(api.panels.map((panel) => [panel.id, panel.api.width])));
+                serialized = JSON.stringify(
+                  Object.fromEntries(
+                    api.panels.map((panel) => [panel.id, panel.api.width])
+                  )
+                );
                 clearTimeout(timer);
                 timer = setTimeout(save, 150);
               });
@@ -208,7 +227,6 @@ function LayoutHost({
               };
             }}
           />
-
         </div>
       </LayoutControls.Provider>
     </main>

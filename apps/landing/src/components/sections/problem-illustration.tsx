@@ -68,7 +68,10 @@ function FeatureBloatGraphic() {
 					y="84"
 				/>
 				<path d="M154 97h25" opacity="0.44" strokeWidth="3" />
-				<path d="M154 109h54M154 119h47M154 129h52M154 139h39M154 149h45" opacity="0.2" />
+				<path
+					d="M154 109h54M154 119h47M154 129h52M154 139h39M154 149h45"
+					opacity="0.2"
+				/>
 				<path
 					className="stroke-[#8f5f5f] dark:stroke-[#aa7676]"
 					d="M204 113v10"

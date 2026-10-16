@@ -18,12 +18,14 @@ export class BackupEmailService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly appConfig: AppConfig,
-    @Inject(RESEND_CLIENT) private readonly resend: Resend | null,
+    @Inject(RESEND_CLIENT) private readonly resend: Resend | null
   ) {}
 
-  @Interval(30000)
+  @Interval(30_000)
   async sendNext() {
-    if (this.running) return;
+    if (this.running) {
+      return;
+    }
     this.running = true;
     try {
       await this.databaseService.db
@@ -34,12 +36,14 @@ export class BackupEmailService {
             eq(backupExportsDb.notificationStatus, "processing"),
             lt(
               backupExportsDb.notificationLastAttemptAt,
-              new Date(Date.now() - 2 * 60 * 1000),
-            ),
-          ),
+              new Date(Date.now() - 2 * 60 * 1000)
+            )
+          )
         );
       const backup = await this.claimNext();
-      if (!backup) return;
+      if (!backup) {
+        return;
+      }
       const log = createLogger({ task: "backup-notification" });
       log.set({
         backup: {
@@ -62,24 +66,21 @@ export class BackupEmailService {
           .from(backupExportsDb)
           .innerJoin(
             organization,
-            eq(organization.id, backupExportsDb.organizationId),
+            eq(organization.id, backupExportsDb.organizationId)
           )
-          .innerJoin(
-            user,
-            eq(user.id, backupExportsDb.requestedByUserId),
-          )
+          .innerJoin(user, eq(user.id, backupExportsDb.requestedByUserId))
           .innerJoin(
             member,
             and(
               eq(member.organizationId, backupExportsDb.organizationId),
-              eq(member.userId, backupExportsDb.requestedByUserId),
-            ),
+              eq(member.userId, backupExportsDb.requestedByUserId)
+            )
           )
           .where(eq(backupExportsDb.id, backup.id))
           .limit(1)
           .then((rows) => rows[0]);
 
-        if (!recipient || recipient.role !== "owner" || !backup.expiresAt) {
+        if (recipient?.role !== "owner" || !backup.expiresAt) {
           await this.markNotification(backup.id, "skipped");
           log.set({ backup: { notificationStatus: "skipped" } });
           return;
@@ -141,21 +142,17 @@ export class BackupEmailService {
         .where(
           and(
             eq(backupExportsDb.status, "ready"),
-            inArray(backupExportsDb.notificationStatus, [
-              "pending",
-              "failed",
-            ]),
-            lt(
-              backupExportsDb.notificationAttempts,
-              MAX_NOTIFICATION_ATTEMPTS,
-            ),
-          ),
+            inArray(backupExportsDb.notificationStatus, ["pending", "failed"]),
+            lt(backupExportsDb.notificationAttempts, MAX_NOTIFICATION_ATTEMPTS)
+          )
         )
         .orderBy(asc(backupExportsDb.completedAt))
         .limit(1)
         .for("update", { skipLocked: true })
         .then((rows) => rows[0]);
-      if (!backup) return null;
+      if (!backup) {
+        return null;
+      }
 
       return tx
         .update(backupExportsDb)
@@ -172,7 +169,7 @@ export class BackupEmailService {
 
   private async markNotification(
     backupId: string,
-    status: "failed" | "sent" | "skipped",
+    status: "failed" | "sent" | "skipped"
   ) {
     await this.databaseService.db
       .update(backupExportsDb)
@@ -191,7 +188,7 @@ export function buildBackupReadyEmail(params: {
 }) {
   const url = new URL(
     `/${encodeURIComponent(params.organizationSlug)}/settings`,
-    params.frontendUrl,
+    params.frontendUrl
   );
   url.searchParams.set("tab", "backups");
   url.searchParams.set("backup", params.backupId);
@@ -208,7 +205,7 @@ export function buildBackupReadyEmail(params: {
       timeZone: "UTC",
       timeZoneName: "short",
       year: "numeric",
-    }),
+    })
   );
 
   return {

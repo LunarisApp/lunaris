@@ -24,19 +24,23 @@ const { kanbanState, propertyMaps } = vi.hoisted(() => {
 
   return {
     kanbanState: {
-      onValueChange: null as null | ((value: Record<string, MockKanbanItem[]>) => void),
-      onValueCommit: null as null | ((
-        value: Record<string, MockKanbanItem[]>,
-        meta: {
-          activeContainer: string;
-          activeIndex: number;
-          event: unknown;
-          kind: "item" | "column";
-          overContainer: string;
-          overIndex: number;
-          previousValue: Record<string, MockKanbanItem[]>;
-        }
-      ) => void),
+      onValueChange: null as
+        | null
+        | ((value: Record<string, MockKanbanItem[]>) => void),
+      onValueCommit: null as
+        | null
+        | ((
+            value: Record<string, MockKanbanItem[]>,
+            meta: {
+              activeContainer: string;
+              activeIndex: number;
+              event: unknown;
+              kind: "item" | "column";
+              overContainer: string;
+              overIndex: number;
+              previousValue: Record<string, MockKanbanItem[]>;
+            }
+          ) => void),
       value: {} as Record<string, MockKanbanItem[]>,
     },
     propertyMaps: [
@@ -52,7 +56,9 @@ const { kanbanState, propertyMaps } = vi.hoisted(() => {
       makeMap({
         id: "priority",
         name: "Priority",
-        options: JSON.stringify([{ id: "high", name: "High", color: "#ef4444" }]),
+        options: JSON.stringify([
+          { id: "high", name: "High", color: "#ef4444" },
+        ]),
         type: "select",
       }),
     ],
@@ -110,7 +116,7 @@ vi.mock("react-i18next", () => ({
     i18n: { language: "en" },
     t: (key: string) =>
       (
-        {
+        ({
           "extensions.catalog.lunaris.kanban.addTaskToColumn": "Add item",
           "extensions.catalog.lunaris.kanban.created": "Created",
           "extensions.catalog.lunaris.kanban.collapseColumn": "Collapse",
@@ -122,7 +128,7 @@ vi.mock("react-i18next", () => ({
           "extensions.catalog.lunaris.kanban.taskActions": "Task actions",
           "extensions.catalog.lunaris.kanban.unassigned": "Unassigned",
           "extensions.catalog.lunaris.kanban.untitled": "Untitled",
-        } as Record<string, string>
+        }) as Record<string, string>
       )[key] ?? key,
   }),
 }));
@@ -133,7 +139,9 @@ vi.mock("@lunarisapp/plugin-sdk", () => ({
 }));
 
 vi.mock("@lunarisapp/ui/blocks/responsive-dropdown-menu", () => ({
-  ResponsiveDropdownMenu: ({ children }: { children: ReactNode }) => <>{children}</>,
+  ResponsiveDropdownMenu: ({ children }: { children: ReactNode }) => (
+    <>{children}</>
+  ),
   ResponsiveDropdownMenuContent: ({ children }: { children: ReactNode }) => (
     <div>{children}</div>
   ),
@@ -188,10 +196,7 @@ vi.mock("@lunarisapp/ui/components/tooltip", () => ({
 }));
 
 vi.mock("@lunarisapp/ui/components/button", () => ({
-  Button: ({
-    children,
-    ...props
-  }: ButtonHTMLAttributes<HTMLButtonElement>) => (
+  Button: ({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) => (
     <button type="button" {...props}>
       {children}
     </button>
@@ -251,7 +256,7 @@ vi.mock("@lunarisapp/ui/components/kanban", () => ({
     render?: (props: HTMLAttributes<HTMLDivElement>) => ReactNode;
   } & HTMLAttributes<HTMLDivElement>) =>
     render ? (
-      <>{render(props)}</>
+      render(props)
     ) : (
       <div data-slot="kanban-column-handle" role="button" {...props}>
         {children}
@@ -265,7 +270,11 @@ vi.mock("@lunarisapp/ui/components/kanban", () => ({
     children: ReactNode;
     className?: string;
     value: string;
-  }) => <article className={className} data-item={value}>{children}</article>,
+  }) => (
+    <article className={className} data-item={value}>
+      {children}
+    </article>
+  ),
   KanbanItemHandle: ({
     children,
   }: {
@@ -302,7 +311,12 @@ vi.mock("./task-created-at", () => ({
   }: {
     createdAt?: string;
     prefix: string;
-  }) => (createdAt ? <span>{prefix} {createdAt}</span> : null),
+  }) =>
+    createdAt ? (
+      <span>
+        {prefix} {createdAt}
+      </span>
+    ) : null,
 }));
 
 describe("KanbanView", () => {
@@ -318,14 +332,18 @@ describe("KanbanView", () => {
     overContainer: string;
     overIndex: number;
   }) => {
-    if (activeContainer === overContainer && activeIndex === overIndex) return;
+    if (activeContainer === overContainer && activeIndex === overIndex) {
+      return;
+    }
 
     const previousValue = kanbanState.value;
     const nextValue = Object.fromEntries(
       Object.entries(previousValue).map(([key, items]) => [key, [...items]])
     );
     const [item] = nextValue[activeContainer]!.splice(activeIndex, 1);
-    if (!item) throw new Error("Dragged item not found");
+    if (!item) {
+      throw new Error("Dragged item not found");
+    }
     nextValue[overContainer]!.splice(overIndex, 0, item);
 
     expect(kanbanState.onValueChange).toBeTypeOf("function");
@@ -420,9 +438,9 @@ describe("KanbanView", () => {
     expect(
       document.querySelector('[data-column="done"]')?.textContent
     ).toContain("Write docs");
-    expect(screen.getByText("Write docs").closest("article")?.className).toContain(
-      "data-[dragging=true]:border-dashed"
-    );
+    expect(
+      screen.getByText("Write docs").closest("article")?.className
+    ).toContain("data-[dragging=true]:border-dashed");
     expect(onAssignmentChange).not.toHaveBeenCalled();
   });
 
@@ -524,7 +542,9 @@ describe("KanbanView", () => {
       />
     );
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Task actions" })[0]!);
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Task actions" })[0]!
+    );
     expect(onSelectTask).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getAllByRole("button", { name: "Rename task" })[0]!);
@@ -592,11 +612,7 @@ describe("KanbanView", () => {
     });
 
     expect(onAssignmentChange).not.toHaveBeenCalled();
-    expect(onReorderTasks).toHaveBeenCalledWith([
-      "item-3",
-      "item-1",
-      "item-2",
-    ]);
+    expect(onReorderTasks).toHaveBeenCalledWith(["item-3", "item-1", "item-2"]);
   });
 
   it("persists exact item placement when moving between columns", () => {
@@ -625,16 +641,8 @@ describe("KanbanView", () => {
       overIndex: 1,
     });
 
-    expect(onAssignmentChange).toHaveBeenCalledWith(
-      "item-1",
-      "status",
-      "done"
-    );
-    expect(onReorderTasks).toHaveBeenCalledWith([
-      "item-3",
-      "item-2",
-      "item-1",
-    ]);
+    expect(onAssignmentChange).toHaveBeenCalledWith("item-1", "status", "done");
+    expect(onReorderTasks).toHaveBeenCalledWith(["item-3", "item-2", "item-1"]);
   });
 
   it("keeps the drop preview stable while cross-column order persists", async () => {
@@ -673,27 +681,21 @@ describe("KanbanView", () => {
     view.rerender(renderView());
     expect(
       Array.from(
-        document.querySelectorAll(
-          '[data-column-content="done"] [data-item]'
-        )
+        document.querySelectorAll('[data-column-content="done"] [data-item]')
       ).map((item) => item.getAttribute("data-item"))
     ).toEqual(["item-2", "item-1"]);
 
     await act(async () => resolveReorder());
     expect(
       Array.from(
-        document.querySelectorAll(
-          '[data-column-content="done"] [data-item]'
-        )
+        document.querySelectorAll('[data-column-content="done"] [data-item]')
       ).map((item) => item.getAttribute("data-item"))
     ).toEqual(["item-2", "item-1"]);
 
     view.rerender(renderView([tasks[1]!, tasks[2]!, tasks[0]!]));
     expect(
       Array.from(
-        document.querySelectorAll(
-          '[data-column-content="done"] [data-item]'
-        )
+        document.querySelectorAll('[data-column-content="done"] [data-item]')
       ).map((item) => item.getAttribute("data-item"))
     ).toEqual(["item-2", "item-1"]);
 
@@ -727,11 +729,7 @@ describe("KanbanView", () => {
     });
 
     expect(onAssignmentChange).toHaveBeenCalledWith("item-3", "status", null);
-    expect(onReorderTasks).toHaveBeenCalledWith([
-      "item-3",
-      "item-1",
-      "item-2",
-    ]);
+    expect(onReorderTasks).toHaveBeenCalledWith(["item-3", "item-1", "item-2"]);
   });
 
   it("does not persist a same-position drop", () => {

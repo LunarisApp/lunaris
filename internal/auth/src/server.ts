@@ -3,7 +3,12 @@ import { apiKey } from "@better-auth/api-key";
 import { oauthProvider } from "@better-auth/oauth-provider";
 import { passkey } from "@better-auth/passkey";
 import { redisStorage } from "@better-auth/redis-storage";
-import { polar, portal, type WebhooksOptions, webhooks } from "@polar-sh/better-auth";
+import {
+  polar,
+  portal,
+  type WebhooksOptions,
+  webhooks,
+} from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
 import type { Auth as BetterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -68,7 +73,8 @@ export {
 
 type DrizzleDb = Parameters<typeof drizzleAdapter>[0];
 const ANONYMOUS_EMAIL_DOMAIN = "anon.lunaris.app";
-const ORGANIZATION_BILLING_OWNER_REQUIRED = "ORGANIZATION_BILLING_OWNER_REQUIRED";
+const ORGANIZATION_BILLING_OWNER_REQUIRED =
+  "ORGANIZATION_BILLING_OWNER_REQUIRED";
 const WELCOME_EMAIL_REPLY_TO = "Roman <roman@lunaris.app>";
 const WELCOME_EMAIL_DELAY_MS = 5 * 60 * 1000;
 
@@ -128,22 +134,23 @@ interface CreateAuthOptions {
     password?: string;
   };
   resend?: Resend | null;
-  schema?: Record<string, any>;
+  schema?: Record<string, unknown>;
   signupsAllowed?: boolean;
   socialProviders?: {
     google?: SocialProviderConfig;
   };
 }
 
-function bodyString(
-  body: unknown,
-  ...keys: string[]
-): string | undefined {
-  if (!body || typeof body !== "object") return undefined;
+function bodyString(body: unknown, ...keys: string[]): string | undefined {
+  if (!body || typeof body !== "object") {
+    return undefined;
+  }
   const record = body as Record<string, unknown>;
   for (const key of keys) {
     const value = record[key];
-    if (typeof value === "string" && value.length > 0) return value;
+    if (typeof value === "string" && value.length > 0) {
+      return value;
+    }
   }
   return undefined;
 }
@@ -164,7 +171,9 @@ function authTargetId(path: string, body: unknown): string | undefined {
 
 function authTenantId(body: unknown): string | undefined {
   const direct = bodyString(body, "organizationId");
-  if (direct || !body || typeof body !== "object") return direct;
+  if (direct || !body || typeof body !== "object") {
+    return direct;
+  }
   return bodyString((body as Record<string, unknown>).data, "organizationId");
 }
 
@@ -199,12 +208,18 @@ function createEmailSender(resend: Resend | null, options: CreateAuthOptions) {
     if (resend) {
       const result = await resend.emails.send({
         from: options.emailFrom ?? "Lunaris <noreply@mail.lunaris.app>",
-        replyTo: options.emailReplyTo ?? (process.env.DEPLOYMENT_MODE === "self-hosted" ? undefined : "Lunaris <hello@lunaris.app>"),
+        replyTo:
+          options.emailReplyTo ??
+          (process.env.DEPLOYMENT_MODE === "self-hosted"
+            ? undefined
+            : "Lunaris <hello@lunaris.app>"),
         to: opts.to,
         subject: opts.subject,
         html: opts.html,
       });
-      if (result.error) throw new Error("Email delivery failed");
+      if (result.error) {
+        throw new Error("Email delivery failed");
+      }
     } else {
       // Cypress needs the one-time URL to exercise email auth flows. Keep this
       // outside evlog so the compliance redactor remains enabled for every
@@ -218,11 +233,13 @@ function createEmailSender(resend: Resend | null, options: CreateAuthOptions) {
               html: opts.html,
             },
             task: "auth",
-          })}\n`,
+          })}\n`
         );
       }
       const emailLog = createLogger({ task: "auth" });
-      emailLog.set({ auth: { action: opts.action, email: opts.to, html: opts.html } });
+      emailLog.set({
+        auth: { action: opts.action, email: opts.to, html: opts.html },
+      });
       emailLog.warn("Resend not configured, email not sent");
       emailLog.emit();
     }
@@ -236,7 +253,7 @@ async function scheduleWelcomeEmail(
     id: string;
     isAnonymous?: boolean | null;
     name: string;
-  },
+  }
 ) {
   if (
     process.env.DEPLOYMENT_MODE === "self-hosted" ||
@@ -263,7 +280,7 @@ async function scheduleWelcomeEmail(
         from: "Lunaris <noreply@mail.lunaris.app>",
         replyTo: WELCOME_EMAIL_REPLY_TO,
         scheduledAt: new Date(
-          Date.now() + WELCOME_EMAIL_DELAY_MS,
+          Date.now() + WELCOME_EMAIL_DELAY_MS
         ).toISOString(),
         subject: "Welcome to Lunaris",
         text,
@@ -271,7 +288,7 @@ async function scheduleWelcomeEmail(
       },
       {
         idempotencyKey: `welcome-user/${user.id}`,
-      },
+      }
     );
     if (result.error) {
       log.error({
@@ -316,9 +333,7 @@ export function buildAuthServerOptions(backendUrl?: string) {
   const baseURL = backendUrl?.replace(/\/$/, "");
   return {
     baseURL,
-    jwt: baseURL
-      ? { jwt: { issuer: `${baseURL}${BASE_PATH}` } }
-      : undefined,
+    jwt: baseURL ? { jwt: { issuer: `${baseURL}${BASE_PATH}` } } : undefined,
   };
 }
 
@@ -327,7 +342,11 @@ export function buildSelfHostedCookieOptions(backendUrl: string) {
   return {
     useSecureCookies: secure,
     crossSubDomainCookies: { enabled: false },
-    defaultCookieAttributes: { sameSite: "lax" as const, secure, httpOnly: true },
+    defaultCookieAttributes: {
+      sameSite: "lax" as const,
+      secure,
+      httpOnly: true,
+    },
   };
 }
 
@@ -344,7 +363,11 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
     basePath: BASE_PATH,
     logger: {
       log: (level, message, ...args) => {
-        const event = { context: "BetterAuth", message, args: args.length ? args : undefined };
+        const event = {
+          context: "BetterAuth",
+          message,
+          args: args.length ? args : undefined,
+        };
         switch (level) {
           case "error":
             log.error(event);
@@ -361,10 +384,12 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
         }
       },
     },
-    database: options.database ?? drizzleAdapter(db, {
-      provider: "pg",
-      schema: options.schema,
-    }),
+    database:
+      options.database ??
+      drizzleAdapter(db, {
+        provider: "pg",
+        schema: options.schema,
+      }),
     onAPIError: {
       onError: async (error, ctx) => {
         const session = ctx.session ?? ctx.newSession;
@@ -383,14 +408,21 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
     },
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
-        if (ctx.path === "/request-password-reset" && !options.resend && process.env.E2E_AUTH_EMAIL_LOGS !== "true") {
+        if (
+          ctx.path === "/request-password-reset" &&
+          !options.resend &&
+          process.env.E2E_AUTH_EMAIL_LOGS !== "true"
+        ) {
           throw new APIError("FORBIDDEN", {
             code: "EMAIL_RECOVERY_DISABLED",
-            message: "Email recovery is unavailable. Contact your server administrator.",
+            message:
+              "Email recovery is unavailable. Contact your server administrator.",
           });
         }
-        if (options.signupsAllowed === false &&
-            (ctx.path === "/sign-up/email" || ctx.path === "/sign-in/anonymous")) {
+        if (
+          options.signupsAllowed === false &&
+          (ctx.path === "/sign-up/email" || ctx.path === "/sign-in/anonymous")
+        ) {
           throw new APIError("FORBIDDEN", {
             code: "SIGNUP_DISABLED",
             message: "Registration is disabled on this server.",
@@ -410,19 +442,23 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
             activeOrganizationId: current?.session.activeOrganizationId,
           });
         }
-        if (ctx.path !== "/customer/portal") return;
+        if (ctx.path !== "/customer/portal") {
+          return;
+        }
         const session = await getAuthoritativeSessionFromCtx<
           Record<never, never>,
           { activeOrganizationId?: string | null }
         >(ctx);
         const organizationId = session?.session.activeOrganizationId;
         if (
-          !organizationId ||
-          !options.organizationPlans ||
-          !(await options.organizationPlans.canManageBilling(
-            session.user.id,
-            organizationId,
-          ))
+          !(
+            organizationId &&
+            options.organizationPlans &&
+            (await options.organizationPlans.canManageBilling(
+              session.user.id,
+              organizationId
+            ))
+          )
         ) {
           throw new APIError("FORBIDDEN", {
             code: ORGANIZATION_BILLING_OWNER_REQUIRED,
@@ -445,7 +481,10 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
     },
     socialProviders: {
       ...(options.socialProviders?.google && {
-        google: { ...options.socialProviders.google, disableSignUp: options.signupsAllowed === false },
+        google: {
+          ...options.socialProviders.google,
+          disableSignUp: options.signupsAllowed === false,
+        },
       }),
     },
     account: {
@@ -583,10 +622,15 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
         teams: { enabled: options.organizationTeams?.enabled ?? false },
         organizationLimit: async (user) =>
           options.organizationPlans
-            ? !(await options.organizationPlans.canCreateOwnedOrganization(user.id))
+            ? !(await options.organizationPlans.canCreateOwnedOrganization(
+                user.id
+              ))
             : false,
         sendInvitationEmail: async (data) => {
-          const invitationUrl = buildInvitationLink(options.frontendUrl, data.id);
+          const invitationUrl = buildInvitationLink(
+            options.frontendUrl,
+            data.id
+          );
           const inviterName = escapeHtml(data.inviter.user.name);
           const orgName = escapeHtml(data.organization.name);
           const role = escapeHtml(data.role);
@@ -600,7 +644,12 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
         schema: {
           invitation: {
             additionalFields: {
-              seatReserved: { type: "boolean", required: false, defaultValue: false, input: false },
+              seatReserved: {
+                type: "boolean",
+                required: false,
+                defaultValue: false,
+                input: false,
+              },
             },
           },
           organization: {
@@ -649,11 +698,16 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
           beforeCreateInvitation: async ({ invitation, organization }) => {
             assertOrganizationIsJoinable(organization);
             assertCanAddOrganizationRole(invitation.role, true);
-            if (!options.organizationPlans) return;
+            if (!options.organizationPlans) {
+              return;
+            }
             assertOrganizationMemberCapacity(
-              await options.organizationPlans.hasMemberCapacity(organization.id, {
-                includePendingInvitations: true,
-              }),
+              await options.organizationPlans.hasMemberCapacity(
+                organization.id,
+                {
+                  includePendingInvitations: true,
+                }
+              )
             );
           },
           beforeAcceptInvitation: async ({ organization }) => {
@@ -663,33 +717,47 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
             });
           },
           afterAcceptInvitation: async ({ organization }) =>
-            syncOrganizationMemberSeats(options.organizationPlans, organization.id),
+            syncOrganizationMemberSeats(
+              options.organizationPlans,
+              organization.id
+            ),
           beforeAddMember: async ({ member, organization }) => {
             assertOrganizationIsJoinable(organization);
             assertCanAddOrganizationRole(
               member.role,
               (await options.organizationPlans?.hasMembers(organization.id)) ??
-                false,
+                false
             );
-            if (!options.organizationPlans) return;
+            if (!options.organizationPlans) {
+              return;
+            }
             assertOrganizationMemberCapacity(
-              await options.organizationPlans.hasMemberCapacity(organization.id, {
-                includePendingInvitations: true,
-              }),
+              await options.organizationPlans.hasMemberCapacity(
+                organization.id,
+                {
+                  includePendingInvitations: true,
+                }
+              )
             );
           },
           afterAddMember: async ({ organization }) =>
-            syncOrganizationMemberSeats(options.organizationPlans, organization.id),
+            syncOrganizationMemberSeats(
+              options.organizationPlans,
+              organization.id
+            ),
           beforeRemoveMember: async ({ member, organization }) => {
             assertOrganizationIsJoinable(organization);
             assertCanRemoveOrganizationMember(member.role);
             await options.organizationPlans?.assertCanRemoveMember?.(
               member.userId,
-              organization.id,
+              organization.id
             );
           },
           afterRemoveMember: async ({ organization }) =>
-            syncOrganizationMemberSeats(options.organizationPlans, organization.id),
+            syncOrganizationMemberSeats(
+              options.organizationPlans,
+              organization.id
+            ),
           beforeUpdateMemberRole: async ({ member, newRole }) => {
             assertCanUpdateOrganizationRole(member.role, newRole);
           },
@@ -701,9 +769,9 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
               client: new Polar({
                 accessToken: options.polarConfig.accessToken,
                 server:
-                  options.polarConfig.sandbox !== false
-                    ? "sandbox"
-                    : "production",
+                  options.polarConfig.sandbox === false
+                    ? "production"
+                    : "sandbox",
               }),
               createCustomerOnSignUp: true,
               use: [
@@ -737,7 +805,9 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
                 message: "Registration is disabled on this server.",
               });
             }
-            if (!emailVerificationDisabled) return;
+            if (!emailVerificationDisabled) {
+              return;
+            }
             return {
               data: {
                 ...user,
@@ -749,7 +819,9 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
             if (user.emailVerified) {
               await scheduleWelcomeEmail(options.resend ?? null, user);
             }
-            if (!ctx) return;
+            if (!ctx) {
+              return;
+            }
             const adapter = getOrgAdapter(ctx.context);
             const name = "Personal";
             const slug = crypto.randomBytes(4).toString("hex");
@@ -787,11 +859,15 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
       session: {
         create: {
           before: async (session, ctx) => {
-            if (!ctx || session.activeOrganizationId) return;
+            if (!ctx || session.activeOrganizationId) {
+              return;
+            }
             const adapter = getOrgAdapter(ctx.context);
             const orgs = await adapter.listOrganizations(session.userId);
             const firstOrg = orgs[0];
-            if (!firstOrg) return;
+            if (!firstOrg) {
+              return;
+            }
             return {
               data: { ...session, activeOrganizationId: firstOrg.id },
             };
@@ -802,9 +878,9 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
     trustedOrigins: [
       options.frontendUrl,
       ...(options.desktopOrigins ?? []),
-      ...(process.env.NODE_ENV !== "production"
-        ? ["http://localhost:*", "http://127.0.0.1:*"]
-        : []),
+      ...(process.env.NODE_ENV === "production"
+        ? []
+        : ["http://localhost:*", "http://127.0.0.1:*"]),
     ],
     secondaryStorage: options.redisConfig
       ? redisStorage({
@@ -821,22 +897,22 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
       ...(process.env.DEPLOYMENT_MODE === "self-hosted"
         ? buildSelfHostedCookieOptions(backendUrl!)
         : process.env.NODE_ENV === "production"
-        ? {
-            crossSubDomainCookies: {
-              enabled: true,
-              domain: ".lunaris.app",
-            },
-            defaultCookieAttributes: {
-              sameSite: "none" as const,
-              secure: true,
-              httpOnly: true,
-            },
-          }
-        : {
-            defaultCookieAttributes: {
-              httpOnly: true,
-            },
-          }),
+          ? {
+              crossSubDomainCookies: {
+                enabled: true,
+                domain: ".lunaris.app",
+              },
+              defaultCookieAttributes: {
+                sameSite: "none" as const,
+                secure: true,
+                httpOnly: true,
+              },
+            }
+          : {
+              defaultCookieAttributes: {
+                httpOnly: true,
+              },
+            }),
     },
   }) as unknown as Auth;
 }

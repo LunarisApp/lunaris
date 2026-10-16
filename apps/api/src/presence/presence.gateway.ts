@@ -22,7 +22,7 @@ import { PresenceRelay, type PresenceTicket } from "./presence-relay";
 
 const hello = z.object({
   ticket: z.string().regex(/^[a-f0-9]{64}$/),
-  clientId: z.number().int().min(0).max(0xffffffff),
+  clientId: z.number().int().min(0).max(0xff_ff_ff_ff),
 });
 
 @Injectable()
@@ -39,13 +39,13 @@ export class PresenceGateway
     private readonly adapter: HttpAdapterHost,
     private readonly config: AppConfig,
     private readonly relay: PresenceRelay,
-    private readonly access: PresenceAccessService,
+    private readonly access: PresenceAccessService
   ) {}
 
   private upgrade = (
     request: IncomingMessage,
     socket: Duplex,
-    head: Buffer,
+    head: Buffer
   ) => {
     // This API has no other upgrade routes. An ignored upgrade leaves its raw
     // socket open outside the WebSocket server's limits and authentication timer.
@@ -54,8 +54,10 @@ export class PresenceGateway
       return;
     }
     if (
-      !request.headers.origin ||
-      !isAllowedOrigin(request.headers.origin, this.config) ||
+      !(
+        request.headers.origin &&
+        isAllowedOrigin(request.headers.origin, this.config)
+      ) ||
       this.sockets.clients.size >= 1000
     ) {
       socket.destroy();
@@ -83,7 +85,9 @@ export class PresenceGateway
     let closed = false;
     let checking = false;
     const send = (entry: AwarenessEntry) => {
-      if (socket.readyState !== WebSocket.OPEN) return;
+      if (socket.readyState !== WebSocket.OPEN) {
+        return;
+      }
       if (socket.bufferedAmount > 256 * 1024) {
         socket.close(1013, "Presence overloaded");
         return;
@@ -93,14 +97,16 @@ export class PresenceGateway
     const fail = () => socket.close(1011, "Presence unavailable");
     const authTimer = setTimeout(
       () => socket.close(1008, "Authentication required"),
-      5000,
+      5000
     );
     const health = setInterval(() => {
-      if (Date.now() - lastMessage > 30000) {
+      if (Date.now() - lastMessage > 30_000) {
         socket.terminate();
         return;
       }
-      if (!ticket || checking) return;
+      if (!ticket || checking) {
+        return;
+      }
       checking = true;
       void this.access
         .authorize({ ...ticket, userId: ticket.user.id })
@@ -108,15 +114,16 @@ export class PresenceGateway
           if (
             next.documentId !== ticket?.documentId ||
             next.resourceId !== ticket?.resourceId
-          )
+          ) {
             throw new Error("Storage changed");
+          }
           ticket = next;
         })
         .catch(() => socket.close(1008, "Presence access expired"))
         .finally(() => {
           checking = false;
         });
-    }, 15000);
+    }, 15_000);
     // Serialize messages, including async authentication, without unbounded buffering.
     let queue = Promise.resolve();
     socket.on("message", (data: RawData, binary: boolean) => {
@@ -130,12 +137,38 @@ export class PresenceGateway
       }
       queue = queue
         .then(async () => {
-          if (closed) return;
-          if (!ticket) {
-            if (binary) throw new Error("Expected presence ticket");
+          if (closed) {
+            return;
+          }
+          if (ticket) {
+            if (!binary) {
+              throw new Error("Expected awareness update");
+            }
+            const bytes = Buffer.isBuffer(data)
+              ? data
+              : data instanceof ArrayBuffer
+                ? Buffer.from(data)
+                : Buffer.concat(data);
+            const entry = readOwnedAwareness(
+              bytes,
+              clientId,
+              ticket.user,
+              ticket.kind
+            );
+            if (latest && entry.clock <= latest.clock) {
+              return;
+            }
+            await this.relay.update(room, owner, entry);
+            latest = entry;
+          } else {
+            if (binary) {
+              throw new Error("Expected presence ticket");
+            }
             const message = hello.parse(JSON.parse(data.toString()));
             const consumed = await this.relay.consume(message.ticket);
-            if (!consumed) throw new Error("Invalid presence ticket");
+            if (!consumed) {
+              throw new Error("Invalid presence ticket");
+            }
             ticket = await this.access.authorize({
               ...consumed,
               userId: consumed.user.id,
@@ -143,8 +176,9 @@ export class PresenceGateway
             if (
               ticket.documentId !== consumed.documentId ||
               ticket.resourceId !== consumed.resourceId
-            )
+            ) {
               throw new Error("Storage changed");
+            }
             clientId = message.clientId;
             room = this.relay.room(ticket);
             unsubscribe = await this.relay.subscribe(room, send, fail);
@@ -153,21 +187,13 @@ export class PresenceGateway
               return;
             }
             const snapshot = await this.relay.snapshot(room);
-            for (const entry of snapshot) send(entry);
-            if (socket.readyState === WebSocket.OPEN)
+            for (const entry of snapshot) {
+              send(entry);
+            }
+            if (socket.readyState === WebSocket.OPEN) {
               socket.send(JSON.stringify({ type: "ready", user: ticket.user }));
+            }
             clearTimeout(authTimer);
-          } else {
-            if (!binary) throw new Error("Expected awareness update");
-            const bytes = Buffer.isBuffer(data)
-              ? data
-              : data instanceof ArrayBuffer
-                ? Buffer.from(data)
-                : Buffer.concat(data);
-            const entry = readOwnedAwareness(bytes, clientId, ticket.user, ticket.kind);
-            if (latest && entry.clock <= latest.clock) return;
-            await this.relay.update(room, owner, entry);
-            latest = entry;
           }
           lastMessage = Date.now();
         })
@@ -191,7 +217,9 @@ export class PresenceGateway
       unsubscribe?.();
       void queue.finally(async () => {
         unsubscribe?.();
-        if (!latest || !room) return;
+        if (!(latest && room)) {
+          return;
+        }
         try {
           await this.relay.update(room, owner, {
             clientId,
@@ -207,7 +235,9 @@ export class PresenceGateway
 
   onModuleDestroy() {
     this.server?.off("upgrade", this.upgrade);
-    for (const socket of this.sockets.clients) socket.terminate();
+    for (const socket of this.sockets.clients) {
+      socket.terminate();
+    }
     this.sockets.close();
   }
 }

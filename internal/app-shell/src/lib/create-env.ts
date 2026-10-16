@@ -2,7 +2,7 @@ import type { ZodSchema } from "zod";
 
 export const createEnv = (
   schema: ZodSchema,
-  envVars: Record<string, unknown>,
+  envVars: Record<string, unknown>
 ) => {
   const parsedEnv = schema.safeParse(envVars);
 

@@ -21,7 +21,7 @@ describe("Lunaris Tauri client adapter", () => {
   it("uses fixed Lunaris storage conventions", () => {
     const { storage } = memoryStorage();
     expect(createLunarisTauriClient({ regionId: "eu", storage }).id).toBe(
-      "tauri",
+      "tauri"
     );
     expect(lunarisAuthCookieKey("eu")).toBe("lunaris-auth-eu_cookie");
     expect(() => lunarisAuthCookieKey("../secret")).toThrow();
@@ -37,7 +37,7 @@ describe("Lunaris Tauri client adapter", () => {
     });
 
     await persistLunarisAuthCookies({
-      now: 1_000,
+      now: 1000,
       regionId: "eu",
       setCookie:
         "__Secure-lunaris.session_token=new; Max-Age=60; Path=/, __Secure-lunaris.session_token_multi-abc_123=signed; Max-Age=60; Path=/, __Host-lunaris.session_data.0=chunk; Path=/, lunaris.last_used_login_method=google; Max-Age=2592000; Path=/, foreign=value; Path=/",
@@ -84,11 +84,13 @@ describe("Lunaris Tauri client adapter", () => {
       }),
     });
     const plugin = createLunarisTauriClient({ regionId: "eu", storage });
-    if (!plugin.getActions) throw new Error("Tauri client actions are missing");
+    if (!plugin.getActions) {
+      throw new Error("Tauri client actions are missing");
+    }
     const actions = plugin.getActions({} as never, {} as never, undefined);
 
     await expect(actions.getCookie()).resolves.toBe(
-      "lunaris.last_used_login_method=email",
+      "lunaris.last_used_login_method=email"
     );
   });
 

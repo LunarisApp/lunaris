@@ -22,15 +22,17 @@ export function distributionNotices(options: { serviceWorker?: boolean } = {}) {
     ...inventory(),
     name: "lunaris-distribution-notices",
     configResolved(config) {
-      if (!options.serviceWorker) return;
+      if (!options.serviceWorker) {
+        return;
+      }
       const appRequire = createRequire(join(config.root, "package.json"));
       const pwaRequire = createRequire(appRequire.resolve("vite-plugin-pwa"));
       const workboxRequire = createRequire(pwaRequire.resolve("workbox-build"));
       const manifest = JSON.parse(
         readFileSync(
           workboxRequire.resolve("workbox-build/package.json"),
-          "utf8",
-        ),
+          "utf8"
+        )
       ) as { dependencies: Record<string, string> };
       additionalModules = Object.keys(manifest.dependencies)
         .filter((name) => name.startsWith("workbox-"))
@@ -41,11 +43,17 @@ export function distributionNotices(options: { serviceWorker?: boolean } = {}) {
     },
     generateBundle(_options, bundle) {
       if (readEdition() === "enterprise") {
-        this.emitFile({ type: "asset", fileName: "EE-LICENSE.txt", source: readFileSync(join(root, "ee/LICENSE"), "utf8") });
+        this.emitFile({
+          type: "asset",
+          fileName: "EE-LICENSE.txt",
+          source: readFileSync(join(root, "ee/LICENSE"), "utf8"),
+        });
       }
       for (const entry of Object.values(bundle)) {
         if (entry.type === "chunk") {
-          for (const id of entry.moduleIds) modules.add(id);
+          for (const id of entry.moduleIds) {
+            modules.add(id);
+          }
         }
       }
       this.emitFile({

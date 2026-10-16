@@ -42,7 +42,10 @@ import { useTranslation } from "react-i18next";
 import { useGridLayoutStore } from "../grid-layout/context";
 import { formatHotkeyDisplay } from "@repo/features/hotkeys";
 import { usePermission } from "@repo/features/permissions";
-import { useWorkspaceActions, useWorkspaceResourcesMap } from "../workspace-explorer";
+import {
+  useWorkspaceActions,
+  useWorkspaceResourcesMap,
+} from "../workspace-explorer";
 import {
   useOrganizationNavigation,
   useOrganizationViewState,
@@ -62,7 +65,7 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
   const resourceId = resource.resourceId;
   const { t } = useTranslation();
   const commands = useResourceCommands(resource).flatMap(
-    ({ definition }) => definition.commands,
+    ({ definition }) => definition.commands
   );
   const views = useViews();
   const runtime = usePluginSdkRuntime();
@@ -70,18 +73,21 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
   const fileStorage = runtime.host.useFileStorage();
   const storageSlots = useResourceStorageSlots(resource.resourceId);
   const storage = useMemo(
-    () => Object.fromEntries(
-      storageSlots.data
-        .filter((slot) => slot.name && slot.kind)
-        .map((slot) => [slot.name!, { kind: slot.kind!, storageId: slot.id }]),
-    ) as ResourceStorageHandles,
-    [storageSlots.data],
+    () =>
+      Object.fromEntries(
+        storageSlots.data
+          .filter((slot) => slot.name && slot.kind)
+          .map((slot) => [slot.name!, { kind: slot.kind!, storageId: slot.id }])
+      ) as ResourceStorageHandles,
+    [storageSlots.data]
   );
   const resourceReadContext = runtime.host.useResourceReadContext();
   const { deleteResource, renameResource } = useWorkspaceActions();
   const canDelete = usePermission(permission.content.delete);
   const canUpdate = usePermission(permission.content.write);
-  const openRightDockPanel = useGridLayoutStore((state) => state.openRightDockPanel);
+  const openRightDockPanel = useGridLayoutStore(
+    (state) => state.openRightDockPanel
+  );
   const resourcesMap = useWorkspaceResourcesMap();
   const { clearRenamingResource, openResource, toggleFocusMode } =
     useOrganizationNavigation();
@@ -108,9 +114,11 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
     storage,
     openView: ({ viewId, params, titleKey }) => {
       const registered = views.find(
-        ({ definition }) => definition.viewId === viewId,
+        ({ definition }) => definition.viewId === viewId
       );
-      if (!registered) return;
+      if (!registered) {
+        return;
+      }
       const isResourceView = registered.definition.target.kind === "resource";
       openRightDockPanel({
         extensionId: registered.extensionId,
@@ -129,7 +137,9 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
       });
     },
     waitForYjsPersistence: async (handle) => {
-      const slot = storageSlots.data.find((candidate) => candidate.id === handle.storageId);
+      const slot = storageSlots.data.find(
+        (candidate) => candidate.id === handle.storageId
+      );
       if (!slot?.backing_id || slot.kind !== "yjs") {
         throw new Error("Invalid Yjs storage handle");
       }
@@ -149,10 +159,14 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
     <>
       <ResponsiveDropdownMenu
         onOpenChange={(open: boolean) => {
-          if (!open) setMobileActionGroupId(null);
+          if (!open) {
+            setMobileActionGroupId(null);
+          }
         }}
       >
-        <ResponsiveDropdownMenuTrigger render={<Button size="icon" variant="ghost" />}>
+        <ResponsiveDropdownMenuTrigger
+          render={<Button size="icon" variant="ghost" />}
+        >
           <HugeiconsIcon icon={MoreHorizontal} />
           <span className="sr-only">{t("editor.openOptions")}</span>
         </ResponsiveDropdownMenuTrigger>
@@ -168,7 +182,7 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
                 >
                   <HugeiconsIcon icon={ArrowLeft01Icon} />
                 </Button>
-                <span className="text-sm font-medium">
+                <span className="font-medium text-sm">
                   {t(mobileActionGroup.labelKey)}
                 </span>
               </div>
@@ -187,10 +201,8 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
             </>
           ) : (
             <>
-              {resourceId && canUpdate && (
-                <ResponsiveDropdownMenuItem
-                  onClick={() => setRenameOpen(true)}
-                >
+              {!!(resourceId && canUpdate) && (
+                <ResponsiveDropdownMenuItem onClick={() => setRenameOpen(true)}>
                   <HugeiconsIcon icon={Edit02Icon} />
                   <span className="flex-1">{t("common.rename")}</span>
                   {!isMobile && (
@@ -211,7 +223,9 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
               )}
               {commands.map((action) => {
                 if (isCommandGroup(action)) {
-                  if (action.children.length === 0) return null;
+                  if (action.children.length === 0) {
+                    return null;
+                  }
 
                   if (isMobile) {
                     return (
@@ -264,12 +278,14 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
                     variant={action.variant}
                   >
                     {action.iconElement ??
-                      (action.icon ? <HugeiconsIcon icon={action.icon} /> : null)}
+                      (action.icon ? (
+                        <HugeiconsIcon icon={action.icon} />
+                      ) : null)}
                     <span>{t(action.labelKey)}</span>
                   </ResponsiveDropdownMenuItem>
                 );
               })}
-              {resourceId && canDelete && (
+              {!!(resourceId && canDelete) && (
                 <>
                   <ResponsiveDropdownMenuSeparator />
                   <ResponsiveDropdownMenuItem
@@ -285,7 +301,7 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
           )}
         </ResponsiveDropdownMenuContent>
       </ResponsiveDropdownMenu>
-      {resourceId && canDelete && (
+      {!!(resourceId && canDelete) && (
         <ConfirmationDialog
           cancelLabel={t("common.cancel")}
           confirmLabel={t("common.continue")}
@@ -310,7 +326,7 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
           title={t("common.areYouSure")}
         />
       )}
-      {resourceId && canUpdate && (
+      {!!(resourceId && canUpdate) && (
         <RenameDialog
           cancelLabel={t("common.cancel")}
           initialName={itemName}

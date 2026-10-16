@@ -22,10 +22,10 @@ const banners: Banner[] = [
 ];
 
 export function AnnouncementsBanner() {
-  const autoplay = useRef(Autoplay({ delay: 10000, stopOnInteraction: true }));
+  const autoplay = useRef(Autoplay({ delay: 10_000, stopOnInteraction: true }));
   const startIndex = useMemo(
     () => Math.floor(Math.random() * banners.length),
-    [],
+    []
   );
 
   return (

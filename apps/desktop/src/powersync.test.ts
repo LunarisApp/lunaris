@@ -9,27 +9,29 @@ const {
   unlisten,
   wipeLocalDbMock,
 } = vi.hoisted(() => ({
-    database: {
-      close: vi.fn(),
-      disconnect: vi.fn(),
-      execute: vi.fn(),
-      getAll: vi.fn(),
-      getOptional: vi.fn(),
-      init: vi.fn(),
-      rustHandle: 7,
-      updateSchema: vi.fn(),
-      writeTransaction: vi.fn(),
-    },
-    databaseOptions: { values: [] as unknown[] },
-    hashUserIdMock: vi.fn(async (value: string) => {
-      if (value === '["eu","user"]') return "fedcba9876543210";
-      return "0123456789abcdef";
-    }),
-    invokeMock: vi.fn(),
-    listenMock: vi.fn(),
-    unlisten: vi.fn(),
-    wipeLocalDbMock: vi.fn(),
-  }));
+  database: {
+    close: vi.fn(),
+    disconnect: vi.fn(),
+    execute: vi.fn(),
+    getAll: vi.fn(),
+    getOptional: vi.fn(),
+    init: vi.fn(),
+    rustHandle: 7,
+    updateSchema: vi.fn(),
+    writeTransaction: vi.fn(),
+  },
+  databaseOptions: { values: [] as unknown[] },
+  hashUserIdMock: vi.fn(async (value: string) => {
+    if (value === '["eu","user"]') {
+      return "fedcba9876543210";
+    }
+    return "0123456789abcdef";
+  }),
+  invokeMock: vi.fn(),
+  listenMock: vi.fn(),
+  unlisten: vi.fn(),
+  wipeLocalDbMock: vi.fn(),
+}));
 
 vi.mock("@powersync/tauri-plugin", () => ({
   PowerSyncTauriDatabase: class {
@@ -83,7 +85,7 @@ describe("createNativePowerSyncSession", () => {
     database.getOptional.mockResolvedValue(undefined);
     database.writeTransaction.mockImplementation(
       async (callback: (tx: typeof database) => Promise<unknown>) =>
-        callback(database),
+        callback(database)
     );
     invokeMock.mockResolvedValue(undefined);
     listenMock.mockResolvedValue(unlisten);
@@ -140,10 +142,10 @@ describe("createNativePowerSyncSession", () => {
     const deleteCall = invokeMock.mock.calls.findIndex(
       ([command, input]) =>
         command === "powersync_delete_database" &&
-        input.storageName === "lunaris.v2.fedcba9876543210.db",
+        input.storageName === "lunaris.v2.fedcba9876543210.db"
     );
     expect(database.close.mock.invocationCallOrder[0]).toBeLessThan(
-      invokeMock.mock.invocationCallOrder[deleteCall]!,
+      invokeMock.mock.invocationCallOrder[deleteCall]!
     );
   });
 
@@ -173,7 +175,7 @@ describe("createNativePowerSyncSession", () => {
         sessionId: "session",
         syncBlocker: createBlocker(),
         userId: "user",
-      }),
+      })
     ).rejects.toThrow("listener unavailable");
     expect(database.close).toHaveBeenCalledTimes(1);
   });

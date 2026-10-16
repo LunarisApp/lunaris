@@ -20,7 +20,7 @@ export const createOrganizationExtensionRegistriesTable = () =>
       indexes: {
         organization_extension_registries_org_idx: ["organization_id"],
       },
-    },
+    }
   );
 
 export type OrganizationExtensionRegistryEntity = RowType<

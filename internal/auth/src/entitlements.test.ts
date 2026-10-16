@@ -36,7 +36,7 @@ describe("organization plans", () => {
       const result = resolveEntitlements(plan);
       expect(result.limit(LIMIT.maxResources)).toBe(UNLIMITED);
       expect(result.limit(LIMIT.maxMembers)).toBe(UNLIMITED);
-    },
+    }
   );
 
   it("requires Agent Work approval on every plan", () => {
@@ -47,7 +47,9 @@ describe("organization plans", () => {
   });
 
   it("reads legacy snapshots without retaining Assistant access", () => {
-    expect(entitlementSnapshotSchema.shape.features.parse({ assistant: true })).toEqual({ "agent-work": false });
+    expect(
+      entitlementSnapshotSchema.shape.features.parse({ assistant: true })
+    ).toEqual({ "agent-work": false });
   });
 
   it("keeps the owned-organization fair-use cap explicit", () => {
@@ -56,9 +58,13 @@ describe("organization plans", () => {
 
   it("defines per-member monthly and annual pricing", () => {
     expect(
-      PUBLIC_PLAN_CATALOG.map(({ interval, plan, pricePerMemberMonthlyCents }) =>
-        ({ interval, plan, pricePerMemberMonthlyCents }),
-      ),
+      PUBLIC_PLAN_CATALOG.map(
+        ({ interval, plan, pricePerMemberMonthlyCents }) => ({
+          interval,
+          plan,
+          pricePerMemberMonthlyCents,
+        })
+      )
     ).toEqual([
       { interval: "month", plan: PLAN.plus, pricePerMemberMonthlyCents: 1000 },
       { interval: "year", plan: PLAN.plus, pricePerMemberMonthlyCents: 800 },
@@ -91,27 +97,31 @@ describe("organization plans", () => {
         businessYearly: "business-yearly",
         plusMonthly: "duplicate",
         plusYearly: "plus-yearly",
-      }),
+      })
     ).toThrow("Polar product IDs must be non-empty and unique.");
   });
 
   it.each(["toString", "constructor", "__proto__", "unknown"])(
     "rejects invalid product plan %s",
     (plan) => {
-      expect(resolvePlanSlug("product", [{ plan, productId: "product" }])).toBeNull();
-    },
+      expect(
+        resolvePlanSlug("product", [{ plan, productId: "product" }])
+      ).toBeNull();
+    }
   );
 
   it.each([-1, 1.5, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1])(
     "rejects invalid snapshot limit %s",
     (limit) => {
       for (const limitId of Object.values(LIMIT)) {
-        expect(entitlementSnapshotSchema.shape.limits.safeParse({
-          ...resolveEntitlements().limits,
-          [limitId]: limit,
-        }).success).toBe(false);
+        expect(
+          entitlementSnapshotSchema.shape.limits.safeParse({
+            ...resolveEntitlements().limits,
+            [limitId]: limit,
+          }).success
+        ).toBe(false);
       }
-    },
+    }
   );
 
   it("validates organization-scoped snapshots", () => {
@@ -126,7 +136,7 @@ describe("organization plans", () => {
         plan: PLAN.free,
         verifiedAt: "2026-07-19T10:00:00.000Z",
         organizationId: "organization-1",
-      }).organizationId,
+      }).organizationId
     ).toBe("organization-1");
   });
 });

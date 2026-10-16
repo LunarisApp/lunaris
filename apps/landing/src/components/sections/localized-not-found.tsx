@@ -7,11 +7,7 @@ import { useEffect } from "react";
 import { Link } from "@/components/elements/link";
 import { ArrowNarrowRightIcon } from "@/components/icons/arrow-narrow-right-icon";
 import { HeroSimpleCentered } from "@/components/sections/hero-simple-centered";
-import {
-	defaultLocale,
-	type Locale,
-	locales,
-} from "@/i18n/config";
+import { defaultLocale, type Locale, locales } from "@/i18n/config";
 import { localePath } from "@/i18n/locale-path";
 
 const copy: Record<

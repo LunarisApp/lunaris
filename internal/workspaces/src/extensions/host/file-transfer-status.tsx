@@ -14,13 +14,17 @@ import { useTranslation } from "react-i18next";
 /** Only the current workspace's local transfer state is displayed. */
 export function FileTransferStatus({ workspaceId }: { workspaceId: string }) {
   const db = usePowerSync();
-  const [transfers, setTransfers] = useState<Awaited<ReturnType<typeof getFileTransferStates>>>([]);
+  const [transfers, setTransfers] = useState<
+    Awaited<ReturnType<typeof getFileTransferStates>>
+  >([]);
   useEffect(() => {
     let mounted = true;
     const refresh = () => {
       void getFileTransferStates(db, workspaceId)
         .then((rows) => {
-          if (mounted) setTransfers(rows);
+          if (mounted) {
+            setTransfers(rows);
+          }
         })
         .catch((error) => {
           log.warn({
@@ -53,10 +57,15 @@ export function FileTransferStatusView({
   onRetry: () => Promise<void>;
 }) {
   const { t } = useTranslation();
-  if (!transfers.length) return null;
+  if (!transfers.length) {
+    return null;
+  }
   const blocked = transfers.filter((transfer) => transfer.state === "blocked");
   const active = transfers.filter((transfer) => transfer.state === "uploading");
-  const uploaded = active.reduce((sum, transfer) => sum + transfer.uploadedBytes, 0);
+  const uploaded = active.reduce(
+    (sum, transfer) => sum + transfer.uploadedBytes,
+    0
+  );
   const total = active.reduce((sum, transfer) => sum + transfer.totalBytes, 0);
   return (
     <div className="border-b bg-background px-4 py-2 text-sm" role="status">

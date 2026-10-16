@@ -14,7 +14,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@repo/data/features/search-index", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@repo/data/features/search-index")>()),
+  ...(await importOriginal<
+    typeof import("@repo/data/features/search-index")
+  >()),
   upsertSearchIndexEntry: mocks.upsertSearchIndexEntry,
 }));
 
@@ -34,7 +36,8 @@ const definition = {
   storage: {},
 } as unknown as ResourceTypeContribution;
 
-const extractText = vi.fn<RegisteredSearchIndexer["definition"]["extractText"]>();
+const extractText =
+  vi.fn<RegisteredSearchIndexer["definition"]["extractText"]>();
 const indexer = {
   definition: {
     extractText,
@@ -68,10 +71,12 @@ function createJob() {
     [row],
     new Map([[definition.resourceTypeId, definition]]),
     [indexer],
-    new Map(),
+    new Map()
   );
   const job = plan.jobs[0];
-  if (!job) throw new Error("Expected search index job");
+  if (!job) {
+    throw new Error("Expected search index job");
+  }
   return job;
 }
 
@@ -124,7 +129,7 @@ describe("search index job source guards", () => {
         content: "",
         entryKey: "acme.note.indexer\u001fresource-1",
         sourceRevision: createJob().revision,
-      }),
+      })
     );
   });
 
@@ -139,7 +144,7 @@ describe("search index job source guards", () => {
         content: "indexed text",
         resourceId: "resource-1",
         organizationId: "organization-1",
-      }),
+      })
     );
   });
 

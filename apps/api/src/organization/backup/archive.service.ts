@@ -174,7 +174,7 @@ const DATASETS = [
 export class ArchiveService {
   constructor(
     private readonly databaseService: DatabaseService,
-    private readonly storage: StorageService,
+    private readonly storage: StorageService
   ) {}
 
   async createArchive(params: {
@@ -188,13 +188,17 @@ export class ArchiveService {
     const integrity: IntegrityRecord[] = [];
     const abortController = new AbortController();
     const archive = new archiver.ZipArchive({ zlib: { level: 6 } });
-    const archiveStream = Readable.toWeb(archive) as unknown as ReadableStream<
-      Uint8Array
-    >;
-    const uploadPromise = this.storage.putObjectStream(objectKey, archiveStream, {
-      contentType: "application/zip",
-      signal: abortController.signal,
-    });
+    const archiveStream = Readable.toWeb(
+      archive
+    ) as unknown as ReadableStream<Uint8Array>;
+    const uploadPromise = this.storage.putObjectStream(
+      objectKey,
+      archiveStream,
+      {
+        contentType: "application/zip",
+        signal: abortController.signal,
+      }
+    );
     void uploadPromise.catch(() => archive.abort());
 
     let client: PoolClient | null = null;
@@ -215,16 +219,19 @@ export class ArchiveService {
 
       const organization = await this.getOrganization(
         client,
-        params.organizationId,
+        params.organizationId
       );
-      const filename = buildBackupFilename(organization.slug, snapshotStartedAt);
+      const filename = buildBackupFilename(
+        organization.slug,
+        snapshotStartedAt
+      );
       const organizationBody = serializeJson(organization);
       this.appendBuffer(
         archive,
         "data/organization.json",
         organizationBody,
         snapshotStartedAt,
-        integrity,
+        integrity
       );
 
       for (const dataset of DATASETS) {
@@ -237,14 +244,14 @@ export class ArchiveService {
             ? [params.organizationId, params.userId ?? null]
             : [params.organizationId],
           snapshotStartedAt,
-          integrity,
+          integrity
         );
       }
 
       const referencedFiles = await this.readReferencedFiles(
         client,
         params.organizationId,
-        params.userId,
+        params.userId
       );
       await client.query("COMMIT");
       transactionOpen = false;
@@ -256,16 +263,22 @@ export class ArchiveService {
       const sources = new Set(referencedFiles.values());
       const available = new Map<string, StoredFile>();
       for await (const object of this.storage.listObjects(prefix)) {
-        if (sources.has(object.key)) available.set(object.key, object);
+        if (sources.has(object.key)) {
+          available.set(object.key, object);
+        }
       }
       // Archive paths retain logical file identities even when physical objects
       // use immutable multipart keys or are shared by multiple identities.
       for (const [archiveKey, sourceKey] of referencedFiles) {
         const source = available.get(sourceKey);
-        if (!source) throw new MissingBackupFileError(sourceKey);
+        if (!source) {
+          throw new MissingBackupFileError(sourceKey);
+        }
         objects.push({ ...source, archiveKey });
       }
-      objects.sort((left, right) => left.archiveKey.localeCompare(right.archiveKey));
+      objects.sort((left, right) =>
+        left.archiveKey.localeCompare(right.archiveKey)
+      );
 
       const totalBytes = objects.reduce((sum, object) => sum + object.size, 0);
       let processedBytes = 0;
@@ -291,11 +304,11 @@ export class ArchiveService {
               totalFiles: objects.length,
               processedBytes: processedBytes + currentObjectBytes,
               totalBytes,
-            }),
+            })
           ).catch(() => undefined);
         });
         const nodeSource = Readable.fromWeb(
-          source as unknown as NodeReadableStream<Uint8Array>,
+          source as unknown as NodeReadableStream<Uint8Array>
         );
         nodeSource.on("error", (error) => hashed.destroy(error));
         nodeSource.pipe(hashed);
@@ -331,7 +344,7 @@ export class ArchiveService {
 
       const integrityBody = Buffer.from(
         integrity.map((entry) => JSON.stringify(entry)).join("\n") +
-          (integrity.length > 0 ? "\n" : ""),
+          (integrity.length > 0 ? "\n" : "")
       );
       archive.append(integrityBody, {
         date: snapshotStartedAt,
@@ -408,10 +421,12 @@ export class ArchiveService {
         yjs_retention_days
       FROM organization
       WHERE id = $1`,
-      [organizationId],
+      [organizationId]
     );
     const organization = result.rows[0];
-    if (!organization) throw new Error("Organization not found during backup");
+    if (!organization) {
+      throw new Error("Organization not found during backup");
+    }
     return organization;
   }
 
@@ -422,13 +437,13 @@ export class ArchiveService {
     sql: string,
     queryParams: unknown[],
     date: Date,
-    integrity: IntegrityRecord[],
+    integrity: IntegrityRecord[]
   ) {
     const query = client.query(
       new QueryStream(sql, queryParams, {
         batchSize: 250,
         highWaterMark: 250,
-      }),
+      })
     );
     const ndjson = new Transform({
       writableObjectMode: true,
@@ -451,7 +466,7 @@ export class ArchiveService {
   private async readReferencedFiles(
     client: PoolClient,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     const files = new Map<string, string>();
     const query = client.query(
@@ -468,8 +483,8 @@ export class ArchiveService {
         WHERE ${WORKSPACE_ACCESS_SQL}
         ORDER BY files.id`,
         [organizationId, userId ?? null],
-        { batchSize: 250, highWaterMark: 250 },
-      ),
+        { batchSize: 250, highWaterMark: 250 }
+      )
     );
 
     for await (const row of query as AsyncIterable<{
@@ -478,7 +493,9 @@ export class ArchiveService {
       object_key?: string;
     }>) {
       const metadata = parseFileMetadata(row.value);
-      if (!metadata) continue;
+      if (!metadata) {
+        continue;
+      }
       const identityKey = `files/${organizationId}/${row.workspace_id}/${metadata.attachmentId}.${metadata.fileExtension}`;
       files.set(identityKey, row.object_key ?? identityKey);
     }
@@ -490,7 +507,7 @@ export class ArchiveService {
     path: string,
     body: Buffer,
     date: Date,
-    integrity: IntegrityRecord[],
+    integrity: IntegrityRecord[]
   ) {
     integrity.push({
       path,
@@ -511,7 +528,7 @@ export class MissingBackupFileError extends Error {
 function createIntegrityStream(
   path: string,
   integrity: IntegrityRecord[],
-  onChunk?: (chunkSize: number) => void,
+  onChunk?: (chunkSize: number) => void
 ) {
   const hash = createHash("sha256");
   let size = 0;
@@ -578,7 +595,7 @@ function serializeJson(value: unknown) {
 
 function serializeJsonValue(value: unknown) {
   return JSON.stringify(value, (_key, item) =>
-    typeof item === "bigint" ? item.toString() : item,
+    typeof item === "bigint" ? item.toString() : item
   );
 }
 

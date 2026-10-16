@@ -23,7 +23,7 @@ export interface CloudClientOptions {
 
 export type Fetcher = (
   input: RequestInfo | URL,
-  init?: RequestInit,
+  init?: RequestInit
 ) => Promise<Response>;
 
 export class LunarisApiError extends Error {
@@ -35,7 +35,7 @@ export class LunarisApiError extends Error {
     message: string,
     status: number,
     code = "API_ERROR",
-    details?: unknown,
+    details?: unknown
   ) {
     super(message);
     this.code = code;
@@ -63,66 +63,60 @@ export class CloudLunarisControlClient implements LunarisControlClient {
 
   listOrganizations: LunarisControlClient["listOrganizations"] = (
     input = {},
-    options?: RequestOptions,
-  ) =>
-    this.operation("list_organizations", { ...input }, options);
+    options?: RequestOptions
+  ) => this.operation("list_organizations", { ...input }, options);
 
   getOrganization: LunarisControlClient["getOrganization"] = (
     organizationId: string,
-    options?: RequestOptions,
-  ) =>
-    this.operation("get_organization", { organizationId }, options);
+    options?: RequestOptions
+  ) => this.operation("get_organization", { organizationId }, options);
 
   listOrganizationMembers: LunarisControlClient["listOrganizationMembers"] = (
     organizationId: string,
     input = {},
-    options?: RequestOptions,
+    options?: RequestOptions
   ) =>
     this.operation(
       "list_organization_members",
       { ...input, organizationId },
-      options,
+      options
     );
 
   updateOrganization: LunarisControlClient["updateOrganization"] = (
     organizationId,
     input,
-    options,
-  ) => {
-    return this.operation(
+    options
+  ) =>
+    this.operation(
       "update_organization",
       { ...input, idempotencyKey: options?.idempotencyKey, organizationId },
-      options,
+      options
     );
-  };
 
   inviteOrganizationMember: LunarisControlClient["inviteOrganizationMember"] = (
     organizationId,
     input,
-    options,
+    options
   ) =>
     this.operation(
       "invite_organization_member",
       { ...input, idempotencyKey: options?.idempotencyKey, organizationId },
-      options,
+      options
     );
 
-  previewRemoveOrganizationMember: LunarisControlClient["previewRemoveOrganizationMember"] = (
-    organizationId,
-    memberId,
-    options,
-  ) =>
-    this.operation(
-      "preview_remove_organization_member",
-      { memberId, organizationId },
-      options,
-    );
+  previewRemoveOrganizationMember: LunarisControlClient["previewRemoveOrganizationMember"] =
+    (organizationId, memberId, options) =>
+      this.operation(
+        "preview_remove_organization_member",
+        { memberId, organizationId },
+        options
+      );
 
   removeOrganizationMember: LunarisControlClient["removeOrganizationMember"] = (
     organizationId,
     memberId,
     previewToken,
-    options,
+    options
   ) =>
     this.operation(
       "remove_organization_member",
@@ -132,41 +126,40 @@ export class CloudLunarisControlClient implements LunarisControlClient {
         previewToken,
         organizationId,
       },
-      options,
+      options
     );
 
   listWorkspaces: LunarisControlClient["listWorkspaces"] = (
     organizationId: string,
     input = {},
-    options?: RequestOptions,
-  ) =>
-    this.operation("list_workspaces", { ...input, organizationId }, options);
+    options?: RequestOptions
+  ) => this.operation("list_workspaces", { ...input, organizationId }, options);
 
   getWorkspace: LunarisControlClient["getWorkspace"] = (
     organizationId: string,
     workspaceId: string,
-    options?: RequestOptions,
+    options?: RequestOptions
   ) =>
     this.operation("get_workspace", { workspaceId, organizationId }, options);
 
   createWorkspace: LunarisControlClient["createWorkspace"] = (
     organizationId: string,
     input: Parameters<LunarisControlClient["createWorkspace"]>[1],
-    options?: RequestOptions,
+    options?: RequestOptions
   ) =>
     this.operation(
       "create_workspace",
       { ...input, idempotencyKey: options?.idempotencyKey, organizationId },
-      options,
+      options
     );
 
   updateWorkspace: LunarisControlClient["updateWorkspace"] = (
     organizationId: string,
     workspaceId: string,
     input: Parameters<LunarisControlClient["updateWorkspace"]>[2],
-    options?: RequestOptions,
-  ) => {
-    return this.operation(
+    options?: RequestOptions
+  ) =>
+    this.operation(
       "update_workspace",
       {
         ...input,
@@ -174,26 +167,25 @@ export class CloudLunarisControlClient implements LunarisControlClient {
         workspaceId,
         organizationId,
       },
-      options,
+      options
     );
-  };
 
   listWorkspaceResources: LunarisControlClient["listWorkspaceResources"] = (
     organizationId: string,
     workspaceId: string,
     input = {},
-    options?: RequestOptions,
+    options?: RequestOptions
   ) =>
     this.operation(
       "list_resources",
       { ...input, workspaceId, organizationId },
-      options,
+      options
     );
 
   searchResources: LunarisControlClient["searchResources"] = (
     organizationId: string,
     input,
-    options?: RequestOptions,
+    options?: RequestOptions
   ) =>
     this.operation("search_resources", { ...input, organizationId }, options);
 
@@ -201,19 +193,19 @@ export class CloudLunarisControlClient implements LunarisControlClient {
     organizationId: string,
     workspaceId: string,
     resourceId: string,
-    options?: RequestOptions,
+    options?: RequestOptions
   ) =>
     this.operation(
       "get_resource",
       { resourceId, workspaceId, organizationId },
-      options,
+      options
     );
 
   createWorkspaceResource: LunarisControlClient["createWorkspaceResource"] = (
     organizationId: string,
     workspaceId: string,
     input: Parameters<LunarisControlClient["createWorkspaceResource"]>[2],
-    options?: Parameters<LunarisControlClient["createWorkspaceResource"]>[3],
+    options?: Parameters<LunarisControlClient["createWorkspaceResource"]>[3]
   ) =>
     this.operation(
       "create_resource",
@@ -224,7 +216,7 @@ export class CloudLunarisControlClient implements LunarisControlClient {
         workspaceId,
         organizationId,
       },
-      options,
+      options
     );
 
   updateWorkspaceResource: LunarisControlClient["updateWorkspaceResource"] = (
@@ -232,9 +224,9 @@ export class CloudLunarisControlClient implements LunarisControlClient {
     workspaceId: string,
     resourceId: string,
     input: Parameters<LunarisControlClient["updateWorkspaceResource"]>[3],
-    options?: RequestOptions,
-  ) => {
-    return this.operation(
+    options?: RequestOptions
+  ) =>
+    this.operation(
       "update_resource",
       {
         ...input,
@@ -243,20 +235,19 @@ export class CloudLunarisControlClient implements LunarisControlClient {
         workspaceId,
         organizationId,
       },
-      options,
+      options
     );
-  };
 
   getYjsStorageJson: LunarisControlClient["getYjsStorageJson"] = (
     organizationId: string,
     workspaceId: string,
     storageId: string,
-    options?: RequestOptions,
+    options?: RequestOptions
   ) =>
     this.operation(
       "get_yjs_storage_json",
       { workspaceId, storageId, organizationId },
-      options,
+      options
     );
 
   getYjsStorageState: LunarisControlClient["getYjsStorageState"] = (
@@ -264,73 +255,74 @@ export class CloudLunarisControlClient implements LunarisControlClient {
     workspaceId: string,
     storageId: string,
     stateVectorB64?: string,
-    options?: RequestOptions,
+    options?: RequestOptions
   ) =>
     this.operation(
       "get_yjs_storage_state",
       { workspaceId, stateVectorB64, storageId, organizationId },
-      options,
+      options
     );
 
   listKeyValueStorage: LunarisControlClient["listKeyValueStorage"] = (
     organizationId: string,
     workspaceId: string,
     storageId: string,
-    options?: RequestOptions,
+    options?: RequestOptions
   ) =>
     this.operation(
       "list_key_value_storage",
       { workspaceId, storageId, organizationId },
-      options,
+      options
     );
 
   getFileDownloadUrl: LunarisControlClient["getFileDownloadUrl"] = (
     organizationId: string,
     workspaceId: string,
     storageId: string,
-    options?: RequestOptions,
+    options?: RequestOptions
   ) =>
     this.operation(
       "get_file_download_url",
       { workspaceId, storageId, organizationId },
-      options,
+      options
     );
 
   previewDeleteWorkspace: LunarisControlClient["previewDeleteWorkspace"] = (
     organizationId: string,
     workspaceId: string,
-    options?: RequestOptions,
+    options?: RequestOptions
   ) =>
     this.operation(
       "preview_delete_workspace",
       { workspaceId, organizationId },
-      options,
+      options
     );
 
-  previewDeleteWorkspaceResource: LunarisControlClient["previewDeleteWorkspaceResource"] = (
-    organizationId: string,
-    workspaceId: string,
-    resourceId: string,
-    options?: Parameters<
-      LunarisControlClient["previewDeleteWorkspaceResource"]
-    >[3],
-  ) =>
-    this.operation(
-      "preview_delete_resource",
-      {
-        expectedResourceTypeId: options?.expectedResourceTypeId,
-        resourceId,
-        workspaceId,
-        organizationId,
-      },
-      options,
-    );
+  previewDeleteWorkspaceResource: LunarisControlClient["previewDeleteWorkspaceResource"] =
+    (
+      organizationId: string,
+      workspaceId: string,
+      resourceId: string,
+      options?: Parameters<
+        LunarisControlClient["previewDeleteWorkspaceResource"]
+      >[3]
+    ) =>
+      this.operation(
+        "preview_delete_resource",
+        {
+          expectedResourceTypeId: options?.expectedResourceTypeId,
+          resourceId,
+          workspaceId,
+          organizationId,
+        },
+        options
+      );
 
   deleteWorkspace: LunarisControlClient["deleteWorkspace"] = (
     organizationId: string,
     workspaceId: string,
     previewToken: string,
-    options?: RequestOptions,
+    options?: RequestOptions
   ) =>
     this.operation(
       "delete_workspace",
@@ -340,7 +332,7 @@ export class CloudLunarisControlClient implements LunarisControlClient {
         workspaceId,
         organizationId,
       },
-      options,
+      options
     );
 
   deleteWorkspaceResource: LunarisControlClient["deleteWorkspaceResource"] = (
@@ -348,7 +340,7 @@ export class CloudLunarisControlClient implements LunarisControlClient {
     workspaceId: string,
     resourceId: string,
     previewToken: string,
-    options?: Parameters<LunarisControlClient["deleteWorkspaceResource"]>[4],
+    options?: Parameters<LunarisControlClient["deleteWorkspaceResource"]>[4]
   ) =>
     this.operation(
       "delete_resource",
@@ -360,7 +352,7 @@ export class CloudLunarisControlClient implements LunarisControlClient {
         workspaceId,
         organizationId,
       },
-      options,
+      options
     );
 
   executePluginOperation: LunarisControlClient["executePluginOperation"] = (
@@ -369,12 +361,14 @@ export class CloudLunarisControlClient implements LunarisControlClient {
     pluginId,
     operation,
     input,
-    options,
+    options
   ) => {
     const definition = findBuiltInPluginMcpProcedure(pluginId, operation);
     if (!definition) {
       return Promise.reject(
-        new TypeError(`Unknown built-in extension operation: ${pluginId}:${operation}`),
+        new TypeError(
+          `Unknown built-in extension operation: ${pluginId}:${operation}`
+        )
       );
     }
     return this.request(
@@ -387,20 +381,20 @@ export class CloudLunarisControlClient implements LunarisControlClient {
         organizationId,
       }),
       definition.outputSchema,
-      options,
+      options
     );
   };
 
   private operation<T>(
     operation: AgentOperationId,
     input: Record<string, unknown>,
-    options?: RequestOptions,
+    options?: RequestOptions
   ): Promise<T> {
     return this.request(
       operation,
       serializeAgentOperation(operation, input),
       agentOperationContracts[operation].output,
-      options,
+      options
     );
   }
 
@@ -408,7 +402,7 @@ export class CloudLunarisControlClient implements LunarisControlClient {
     operation: string,
     wire: SerializedAgentOperation,
     outputSchema: z.ZodType,
-    options: RequestOptions = {},
+    options: RequestOptions = {}
   ): Promise<T> {
     const url = new URL(`${this.baseUrl}${wire.path}`);
     for (const [key, value] of Object.entries(wire.query)) {
@@ -434,9 +428,7 @@ export class CloudLunarisControlClient implements LunarisControlClient {
         ...(this.options.apiKey
           ? { "X-Lunaris-API-Key": this.options.apiKey }
           : {}),
-        ...(accessToken
-          ? { Authorization: `Bearer ${accessToken}` }
-          : {}),
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         ...((options.consistency ?? this.options.consistency)
           ? {
               "X-Lunaris-Consistency":
@@ -457,7 +449,7 @@ export class CloudLunarisControlClient implements LunarisControlClient {
         error?.message ?? `Lunaris API returned ${response.status}`,
         response.status,
         error?.code,
-        error?.details,
+        error?.details
       );
     }
     const parsed = outputSchema.safeParse(payload);
@@ -466,7 +458,7 @@ export class CloudLunarisControlClient implements LunarisControlClient {
         `Lunaris API returned an invalid ${operation} response`,
         502,
         "INVALID_API_RESPONSE",
-        parsed.error.issues,
+        parsed.error.issues
       );
     }
     return parsed.data as T;

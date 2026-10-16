@@ -43,8 +43,9 @@ export function usePowerSyncBoot({
 }: UsePowerSyncBootOptions) {
   const { network } = usePlatform();
   const [boot, setBoot] = useState<ScopedPowerSyncBoot | null>(null);
-  const [scopedError, setScopedError] =
-    useState<ScopedPowerSyncError | null>(null);
+  const [scopedError, setScopedError] = useState<ScopedPowerSyncError | null>(
+    null
+  );
   const [attempt, setAttempt] = useState(0);
   const retry = useCallback(() => setAttempt((current) => current + 1), []);
   const scopeKey = JSON.stringify([
@@ -58,14 +59,18 @@ export function usePowerSyncBoot({
   const error = scopedError?.scopeKey === scopeKey ? scopedError.error : null;
 
   useEffect(() => {
-    if (!isOfflineEncryptionKeyError(error)) return;
+    if (!isOfflineEncryptionKeyError(error)) {
+      return;
+    }
     return network.subscribeOnline(retry);
   }, [error, network, retry]);
 
   useEffect(() => {
     setBoot(null);
     setScopedError(null);
-    if (!userId || !sessionId || !organizationId) return;
+    if (!(userId && sessionId && organizationId)) {
+      return;
+    }
 
     let cancelled = false;
     let creation: Promise<PowerSyncSession> | null = null;
@@ -74,7 +79,9 @@ export function usePowerSyncBoot({
     // the replay cleanup cancel the first pass before it opens a second worker
     // for the same database.
     queueMicrotask(() => {
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
       const syncBlocker = createSyncBlocker();
       creation = powerSyncSessionCoordinator.create(() =>
         createPowerSyncSession({
@@ -83,17 +90,21 @@ export function usePowerSyncBoot({
           sessionId,
           syncBlocker,
           userId,
-        }),
+        })
       );
 
       void creation
         .then((session) => {
-          if (cancelled) return;
+          if (cancelled) {
+            return;
+          }
           powerSyncSessionCoordinator.activate(session);
           setBoot({ scopeKey, session, syncBlocker });
         })
         .catch((cause) => {
-          if (cancelled) return;
+          if (cancelled) {
+            return;
+          }
           const normalized =
             cause instanceof Error ? cause : new Error("PowerSync boot failed");
           const isOfflineKeyError = isOfflineEncryptionKeyError(normalized);
@@ -107,15 +118,20 @@ export function usePowerSyncBoot({
             },
             error: parseError(normalized),
           };
-          if (isOfflineKeyError) log.warn(event);
-          else log.error(event);
+          if (isOfflineKeyError) {
+            log.warn(event);
+          } else {
+            log.error(event);
+          }
           setScopedError({ error: normalized, scopeKey });
         });
     });
 
     return () => {
       cancelled = true;
-      if (creation) powerSyncSessionCoordinator.release(creation);
+      if (creation) {
+        powerSyncSessionCoordinator.release(creation);
+      }
     };
   }, [
     apiUrl,

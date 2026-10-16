@@ -51,10 +51,14 @@ vi.mock("./provider", () => {
       const entry = {
         documentId,
         emitSynced: () => {
-          for (const cb of this.listeners.get("synced") ?? []) cb();
+          for (const cb of this.listeners.get("synced") ?? []) {
+            cb();
+          }
         },
         emitError: (error: Error) => {
-          for (const cb of this.listeners.get("error") ?? []) cb(error);
+          for (const cb of this.listeners.get("error") ?? []) {
+            cb(error);
+          }
         },
         workspaceId,
         get destroyed() {
@@ -66,13 +70,14 @@ vi.mock("./provider", () => {
         setUserId,
         waitForPersistence: this.waitForPersistence,
       };
-      // biome-ignore lint/complexity/noUselessThisAlias: shared closure getter
       const self = this;
       providerInstances.push(entry as (typeof providerInstances)[number]);
     }
 
     on(event: string, cb: (...args: unknown[]) => void) {
-      if (!this.listeners.has(event)) this.listeners.set(event, new Set());
+      if (!this.listeners.has(event)) {
+        this.listeners.set(event, new Set());
+      }
       this.listeners.get(event)!.add(cb);
     }
     off(event: string, cb: (...args: unknown[]) => void) {
@@ -96,8 +101,7 @@ const createYjsDocumentWithIdMock = vi.fn(
 );
 
 vi.mock("./services", () => ({
-  yjsDocumentExists: (db: unknown, id: string) =>
-    yjsDocumentExistsMock(db, id),
+  yjsDocumentExists: (db: unknown, id: string) => yjsDocumentExistsMock(db, id),
   createYjsDocumentWithId: (db: unknown, id: string, workspaceId: string) =>
     createYjsDocumentWithIdMock(db, id, workspaceId),
   watchYjsDocumentUpdates: vi.fn(),
@@ -110,12 +114,15 @@ const {
   useReadyYjsDocument,
 } = await import("./hooks");
 
-function flushMicrotasks(times = 5) {
+function _flushMicrotasks(times = 5) {
   return new Promise<void>((resolve) => {
     let remaining = times;
     const tick = () => {
-      if (remaining-- <= 0) resolve();
-      else queueMicrotask(tick);
+      if (remaining-- <= 0) {
+        resolve();
+      } else {
+        queueMicrotask(tick);
+      }
     };
     tick();
   });
@@ -178,7 +185,9 @@ describe("useReadyYjsDocument", () => {
   });
 
   it("returns synced cached doc on warm remount without a null loading frame", async () => {
-    const first = renderHook(() => useReadyYjsDocument("doc_warm", "workspace_1"));
+    const first = renderHook(() =>
+      useReadyYjsDocument("doc_warm", "workspace_1")
+    );
     await waitFor(() => expect(providerInstances).toHaveLength(1));
 
     act(() => {
@@ -190,7 +199,9 @@ describe("useReadyYjsDocument", () => {
     const cachedProvider = first.result.current.yProvider;
     first.unmount();
 
-    const second = renderHook(() => useReadyYjsDocument("doc_warm", "workspace_1"));
+    const second = renderHook(() =>
+      useReadyYjsDocument("doc_warm", "workspace_1")
+    );
 
     expect(second.result.current).toMatchObject({
       error: null,
@@ -222,9 +233,9 @@ describe("useReadyYjsDocument", () => {
     act(() => providerInstances[0]!.emitSynced());
     await preload.done;
     await waitFor(() =>
-      expect(consumers.result.current.every((result) => !result.isLoading)).toBe(
-        true
-      )
+      expect(
+        consumers.result.current.every((result) => !result.isLoading)
+      ).toBe(true)
     );
     expect(providerInstances[0]!.userId).toBe("user_1");
   });
@@ -248,7 +259,9 @@ describe("useReadyYjsDocument", () => {
   });
 
   it("does not reuse warm cache for a different workspace", async () => {
-    const first = renderHook(() => useReadyYjsDocument("doc_workspace", "workspace_1"));
+    const first = renderHook(() =>
+      useReadyYjsDocument("doc_workspace", "workspace_1")
+    );
     await waitFor(() => expect(providerInstances).toHaveLength(1));
     act(() => {
       providerInstances[0]!.emitSynced();
@@ -256,7 +269,9 @@ describe("useReadyYjsDocument", () => {
     await waitFor(() => expect(first.result.current.isLoading).toBe(false));
     first.unmount();
 
-    const second = renderHook(() => useReadyYjsDocument("doc_workspace", "workspace_2"));
+    const second = renderHook(() =>
+      useReadyYjsDocument("doc_workspace", "workspace_2")
+    );
 
     expect(second.result.current.yDoc).toBeNull();
     expect(second.result.current.isLoading).toBe(true);
@@ -266,7 +281,9 @@ describe("useReadyYjsDocument", () => {
 
   it("does not reuse warm cache for a different db", async () => {
     const firstDb = dbState.current;
-    const first = renderHook(() => useReadyYjsDocument("doc_db", "workspace_1"));
+    const first = renderHook(() =>
+      useReadyYjsDocument("doc_db", "workspace_1")
+    );
     await waitFor(() => expect(providerInstances).toHaveLength(1));
     act(() => {
       providerInstances[0]!.emitSynced();
@@ -276,7 +293,9 @@ describe("useReadyYjsDocument", () => {
 
     dbState.current = {};
     expect(dbState.current).not.toBe(firstDb);
-    const second = renderHook(() => useReadyYjsDocument("doc_db", "workspace_1"));
+    const second = renderHook(() =>
+      useReadyYjsDocument("doc_db", "workspace_1")
+    );
 
     expect(second.result.current.yDoc).toBeNull();
     expect(second.result.current.isLoading).toBe(true);

@@ -1,11 +1,6 @@
 /** @vitest-environment happy-dom */
 
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { MouseEventHandler, ReactNode, RefObject } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -52,7 +47,9 @@ vi.mock("@lunarisapp/ui/blocks/confirmation-dialog", () => ({
 
 vi.mock("@lunarisapp/ui/components/context-menu", () => ({
   ContextMenu: ({ children }: { children: ReactNode }) => <>{children}</>,
-  ContextMenuContent: ({ children }: { children: ReactNode }) => <>{children}</>,
+  ContextMenuContent: ({ children }: { children: ReactNode }) => (
+    <>{children}</>
+  ),
   ContextMenuTrigger: ({
     children,
     className,
@@ -261,11 +258,12 @@ describe("WorkspaceExplorerTree", () => {
     const leading = screen.getByTestId("workspace-explorer-footer-leading");
     const trailing = screen.getByTestId("workspace-explorer-footer-trailing");
 
-    expect(leading.querySelector("[data-testid='workspace-trash-trigger']")).not.toBeNull();
-    expect(Array.from(trailing.children).map((child) => child.textContent)).toEqual([
-      "Extensions",
-      "Settings",
-    ]);
+    expect(
+      leading.querySelector("[data-testid='workspace-trash-trigger']")
+    ).not.toBeNull();
+    expect(
+      Array.from(trailing.children).map((child) => child.textContent)
+    ).toEqual(["Extensions", "Settings"]);
   });
 
   it("clears the tree hotkey target when search results replace the tree", () => {

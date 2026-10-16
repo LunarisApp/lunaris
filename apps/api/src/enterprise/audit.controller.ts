@@ -27,13 +27,15 @@ export class AuditController {
   @Audited("auditEventsRead")
   async list(
     @Session() session: UserSession,
-    @Query({ schema: AuditEventsQueryDto }) query: AuditEventsQueryDto,
+    @Query({ schema: AuditEventsQueryDto }) query: AuditEventsQueryDto
   ): Promise<AuditEventsListResponseDto> {
     const tenantId = session.session.activeOrganizationId;
-    if (!tenantId) throw new NoActiveOrganizationError();
+    if (!tenantId) {
+      throw new NoActiveOrganizationError();
+    }
     if (isSessionAnonymous(session)) {
       throw new ForbiddenException(
-        "Signed-in organization owner required to review audit events",
+        "Signed-in organization owner required to review audit events"
       );
     }
     useLogger().set({

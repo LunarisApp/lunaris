@@ -102,7 +102,7 @@ describe("generatePdf", () => {
   it("generates correct filename", async () => {
     const result = await generatePdf(
       makeContent([{ type: "paragraph", text: "Hi" }]),
-      "My Workspace!",
+      "My Workspace!"
     );
     expect(result.filename).toBe("my-workspace-export.pdf");
   });
@@ -110,7 +110,7 @@ describe("generatePdf", () => {
   it("falls back to 'export' for empty workspace name", async () => {
     const result = await generatePdf(
       makeContent([{ type: "paragraph", text: "Hi" }]),
-      "!!!",
+      "!!!"
     );
     expect(result.filename).toBe("export-export.pdf");
   });
@@ -132,7 +132,10 @@ describe("heading section", () => {
 
 describe("paragraph section", () => {
   it("renders text", async () => {
-    const section: ParagraphSection = { type: "paragraph", text: "Hello world" };
+    const section: ParagraphSection = {
+      type: "paragraph",
+      text: "Hello world",
+    };
     const result = await generatePdf(makeContent([section]), "test");
     expect(result.success).toBe(true);
   });
@@ -221,7 +224,11 @@ describe("blocknote section", () => {
       type: "extension",
       kind: "blocknote",
       data: [
-        { id: "3", type: "paragraph", content: [{ type: "text", text: "", styles: {} }] },
+        {
+          id: "3",
+          type: "paragraph",
+          content: [{ type: "text", text: "", styles: {} }],
+        },
       ],
     };
     const result = await generatePdf(makeContent([section]), "test");

@@ -48,7 +48,9 @@ export class AppError extends EvlogError {
 
   constructor(opts: ClientErrorOptions | string) {
     super(typeof opts === "string" ? { message: opts } : opts);
-    if (typeof opts === "object") this.reason = opts.reason;
+    if (typeof opts === "object") {
+      this.reason = opts.reason;
+    }
     this.name = "AppError";
   }
 }

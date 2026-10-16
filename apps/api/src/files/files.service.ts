@@ -1,11 +1,19 @@
 import { randomUUID } from "node:crypto";
 import { lockOrganizationCapacity } from "../entitlements/seats/organization-capacity";
-import { fileObjectsDb, storedFilesDb, uploadSessionsDb } from "./file-storage.entity";
+import {
+  fileObjectsDb,
+  storedFilesDb,
+  uploadSessionsDb,
+} from "./file-storage.entity";
 import { inArray, ne, or } from "drizzle-orm";
 import { storageError } from "./storage-policy";
 import { DatabaseService } from "@app/db";
 import { StorageService } from "@app/storage";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { and, eq } from "drizzle-orm";
 import { workspacesDb } from "../workspaces/core/workspaces.entity";
 import { OrganizationMismatchError } from "../sync/sync.errors";
@@ -33,7 +41,7 @@ export class FilesService {
       params.workspaceId,
       params.organizationId,
       params.userId,
-      "read",
+      "read"
     );
     const key = await this.resolveObjectKey(params);
     return { downloadUrl: await this.storage.getSignedDownloadUrl(key, 600) };
@@ -51,58 +59,133 @@ export class FilesService {
       params.workspaceId,
       params.organizationId,
       params.userId,
-      "write",
+      "write"
     );
     await this.db.db.transaction(async (tx) => {
       await lockOrganizationCapacity(tx, params.organizationId);
-      const [active] = await tx.select({ id: uploadSessionsDb.id }).from(uploadSessionsDb).where(and(
-        eq(uploadSessionsDb.organizationId, params.organizationId), eq(uploadSessionsDb.workspaceId, params.workspaceId),
-        inArray(uploadSessionsDb.state, ["creating", "uploading", "completing", "canceling"]),
-        or(eq(uploadSessionsDb.fileId, params.fileId), eq(uploadSessionsDb.replacementFileId, params.fileId)),
-      ));
-      if (active) storageError("UPLOAD_IN_PROGRESS", "Cancel the active upload before deleting this file");
-      const [file] = await tx.select().from(storedFilesDb).where(and(eq(storedFilesDb.organizationId, params.organizationId),
-        eq(storedFilesDb.workspaceId, params.workspaceId), eq(storedFilesDb.fileId, params.fileId)));
-      const key = file?.objectKey ?? this.buildKey({ ...params, extension: this.resolveExtension(params) });
+      const [active] = await tx
+        .select({ id: uploadSessionsDb.id })
+        .from(uploadSessionsDb)
+        .where(
+          and(
+            eq(uploadSessionsDb.organizationId, params.organizationId),
+            eq(uploadSessionsDb.workspaceId, params.workspaceId),
+            inArray(uploadSessionsDb.state, [
+              "creating",
+              "uploading",
+              "completing",
+              "canceling",
+            ]),
+            or(
+              eq(uploadSessionsDb.fileId, params.fileId),
+              eq(uploadSessionsDb.replacementFileId, params.fileId)
+            )
+          )
+        );
+      if (active) {
+        storageError(
+          "UPLOAD_IN_PROGRESS",
+          "Cancel the active upload before deleting this file"
+        );
+      }
+      const [file] = await tx
+        .select()
+        .from(storedFilesDb)
+        .where(
+          and(
+            eq(storedFilesDb.organizationId, params.organizationId),
+            eq(storedFilesDb.workspaceId, params.workspaceId),
+            eq(storedFilesDb.fileId, params.fileId)
+          )
+        );
+      const key =
+        file?.objectKey ??
+        this.buildKey({ ...params, extension: this.resolveExtension(params) });
       if (!file) {
         const size = await this.storage.objectSize(key);
-        if (size === null) return;
-        await tx.insert(fileObjectsDb).values({ key, organizationId: params.organizationId,
-          workspaceId: params.workspaceId, sizeBytes: size, state: "pending_delete" }).onConflictDoNothing();
-        await tx.insert(storedFilesDb).values({ id: randomUUID(), organizationId: params.organizationId,
-          workspaceId: params.workspaceId, fileId: params.fileId, objectKey: key }).onConflictDoNothing();
+        if (size === null) {
+          return;
+        }
+        await tx
+          .insert(fileObjectsDb)
+          .values({
+            key,
+            organizationId: params.organizationId,
+            workspaceId: params.workspaceId,
+            sizeBytes: size,
+            state: "pending_delete",
+          })
+          .onConflictDoNothing();
+        await tx
+          .insert(storedFilesDb)
+          .values({
+            id: randomUUID(),
+            organizationId: params.organizationId,
+            workspaceId: params.workspaceId,
+            fileId: params.fileId,
+            objectKey: key,
+          })
+          .onConflictDoNothing();
       }
-      const references = await tx.select({ id: storedFilesDb.id }).from(storedFilesDb).where(eq(storedFilesDb.objectKey, key));
+      const references = await tx
+        .select({ id: storedFilesDb.id })
+        .from(storedFilesDb)
+        .where(eq(storedFilesDb.objectKey, key));
       if (references.length > 1) {
-        await tx.delete(storedFilesDb).where(and(eq(storedFilesDb.organizationId, params.organizationId),
-          eq(storedFilesDb.workspaceId, params.workspaceId), eq(storedFilesDb.fileId, params.fileId)));
+        await tx
+          .delete(storedFilesDb)
+          .where(
+            and(
+              eq(storedFilesDb.organizationId, params.organizationId),
+              eq(storedFilesDb.workspaceId, params.workspaceId),
+              eq(storedFilesDb.fileId, params.fileId)
+            )
+          );
         return;
       }
-      await tx.update(fileObjectsDb).set({ state: "pending_delete" }).where(and(
-        eq(fileObjectsDb.key, key), ne(fileObjectsDb.state, "deleted"),
-      ));
+      await tx
+        .update(fileObjectsDb)
+        .set({ state: "pending_delete" })
+        .where(
+          and(eq(fileObjectsDb.key, key), ne(fileObjectsDb.state, "deleted"))
+        );
     });
 
     return { id: params.fileId };
   }
 
   async resolveObjectKey(params: {
-    organizationId: string; workspaceId: string; fileId: string; fileExtension?: string; filename?: string;
+    organizationId: string;
+    workspaceId: string;
+    fileId: string;
+    fileExtension?: string;
+    filename?: string;
   }) {
-    const [file] = await this.db.db.select({ key: storedFilesDb.objectKey, state: fileObjectsDb.state })
-      .from(storedFilesDb).innerJoin(fileObjectsDb, eq(storedFilesDb.objectKey, fileObjectsDb.key)).where(and(
-        eq(storedFilesDb.organizationId, params.organizationId), eq(storedFilesDb.workspaceId, params.workspaceId),
-        eq(storedFilesDb.fileId, params.fileId),
-      ));
-    if (file?.state === "deleted") throw new NotFoundException("File not found");
-    return file?.key ?? this.buildKey({ ...params, extension: this.resolveExtension(params) });
+    const [file] = await this.db.db
+      .select({ key: storedFilesDb.objectKey, state: fileObjectsDb.state })
+      .from(storedFilesDb)
+      .innerJoin(fileObjectsDb, eq(storedFilesDb.objectKey, fileObjectsDb.key))
+      .where(
+        and(
+          eq(storedFilesDb.organizationId, params.organizationId),
+          eq(storedFilesDb.workspaceId, params.workspaceId),
+          eq(storedFilesDb.fileId, params.fileId)
+        )
+      );
+    if (file?.state === "deleted") {
+      throw new NotFoundException("File not found");
+    }
+    return (
+      file?.key ??
+      this.buildKey({ ...params, extension: this.resolveExtension(params) })
+    );
   }
 
   private async assertWorkspaceOwnership(
     workspaceId: string,
     organizationId: string,
     userId?: string,
-    access: "read" | "write" = "read",
+    access: "read" | "write" = "read"
   ) {
     const rows = await this.db.db
       .select({ id: workspacesDb.id })
@@ -110,11 +193,15 @@ export class FilesService {
       .where(
         and(
           eq(workspacesDb.id, workspaceId),
-          workspaceAccessCondition(organizationId, userId, access),
+          workspaceAccessCondition(organizationId, userId, access)
         )
       );
     if (rows.length === 0) {
-      throw new OrganizationMismatchError("Workspace", workspaceId, organizationId);
+      throw new OrganizationMismatchError(
+        "Workspace",
+        workspaceId,
+        organizationId
+      );
     }
   }
 
@@ -133,7 +220,10 @@ export class FilesService {
     return `files/${params.organizationId}/${params.workspaceId}/${params.fileId}.${params.extension}`;
   }
 
-  private resolveExtension(params: { fileExtension?: string; filename?: string }) {
+  private resolveExtension(params: {
+    fileExtension?: string;
+    filename?: string;
+  }) {
     if (params.fileExtension) {
       return this.validateExtension(params.fileExtension.toLowerCase());
     }

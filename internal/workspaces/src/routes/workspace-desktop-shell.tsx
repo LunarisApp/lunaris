@@ -1,6 +1,9 @@
 import { AgentWorkLauncher } from "../features/agent-work/launcher";
 import { AgentWorkPanel } from "../features/agent-work/panel";
-import { AGENT_WORK_PANEL_ID, AGENT_WORK_RENDERER } from "../features/agent-work/constants";
+import {
+  AGENT_WORK_PANEL_ID,
+  AGENT_WORK_RENDERER,
+} from "../features/agent-work/constants";
 import { migrateAgentWorkDescriptor } from "../features/agent-work/compatibility";
 import {
   createPluginSubviewViewInstanceId,
@@ -89,11 +92,7 @@ import {
   useRef,
 } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useLocation,
-  useNavigate,
-  useParams,
-} from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { AppUpdateButton } from "@repo/features/app-update";
 import { BuildVersion } from "@repo/features/build-version";
 import { ExtensionViewLaunchers } from "../components/extension-view-launchers";
@@ -134,20 +133,29 @@ import {
 } from "./workspace-panel-window-lifecycle";
 import type { useWorkspaceRuntimeController } from "./workspace-runtime";
 
-type WorkspaceRuntimeController = ReturnType<typeof useWorkspaceRuntimeController>;
+type WorkspaceRuntimeController = ReturnType<
+  typeof useWorkspaceRuntimeController
+>;
 const noopUnregisterPlugin = () => undefined;
 const noopRegisterRuntimeReconciler = () => () => undefined;
 
 export function filterPanelWindowSession(
   session: PanelWindowSession | null,
-  allowedPluginIds: readonly string[],
+  allowedPluginIds: readonly string[]
 ): PanelWindowSession | null {
   if (session?.descriptor) {
     const descriptor = migrateAgentWorkDescriptor(session.descriptor);
-    if (descriptor !== session.descriptor) session = { ...session, descriptor };
+    if (descriptor !== session.descriptor) {
+      session = { ...session, descriptor };
+    }
   }
   const pluginId = session?.descriptor?.extensionId;
-  if (session && pluginId && pluginId !== AGENT_WORK_PANEL_ID && !allowedPluginIds.includes(pluginId)) {
+  if (
+    session &&
+    pluginId &&
+    pluginId !== AGENT_WORK_PANEL_ID &&
+    !allowedPluginIds.includes(pluginId)
+  ) {
     return { ...session, descriptor: null };
   }
   return session;
@@ -173,7 +181,9 @@ interface DesktopWorkspaceBootOptions {
   t: ReturnType<typeof useTranslation>["t"];
   unloadPlugin: WorkspaceRuntimeController["unloadPlugin"];
   unregisterPlugin?: (pluginId: string) => void;
-  unregisterRenderer: NonNullable<InitializePluginsDeps["gridLayoutUnregister"]>;
+  unregisterRenderer: NonNullable<
+    InitializePluginsDeps["gridLayoutUnregister"]
+  >;
 }
 
 function ensureDesktopExplorerPanel({
@@ -227,7 +237,7 @@ export function useDesktopWorkspaceBoot({
     enabledExtensionIds: enabledPluginIds ?? [],
     extensionAvailability: {},
     runtimeRevisions: Object.fromEntries(
-      (enabledPluginIds ?? []).map((id) => [id, "current"]),
+      (enabledPluginIds ?? []).map((id) => [id, "current"])
     ),
   },
 }: DesktopWorkspaceBootOptions) {
@@ -235,18 +245,16 @@ export function useDesktopWorkspaceBoot({
   const initializedRef = useRef(false);
   const layoutInitializedRef = useRef(false);
   const runtimeCleanupRef = useRef<(() => void) | null>(null);
-  const {
-    dispose: disposePlugins,
-    reconcile: reconcilePlugins,
-  } = usePluginRuntimeHost({
-    resourceViewLayoutWrapper: ResourceViewLayout,
-    i18n,
-    loadPlugin,
-    registerRenderers,
-    unloadPlugin,
-    unregisterPlugin,
-    unregisterRenderer,
-  });
+  const { dispose: disposePlugins, reconcile: reconcilePlugins } =
+    usePluginRuntimeHost({
+      resourceViewLayoutWrapper: ResourceViewLayout,
+      i18n,
+      loadPlugin,
+      registerRenderers,
+      unloadPlugin,
+      unregisterPlugin,
+      unregisterRenderer,
+    });
   const runtimeTargetRef = useRef(runtimeTarget);
   runtimeTargetRef.current = runtimeTarget;
 
@@ -255,7 +263,9 @@ export function useDesktopWorkspaceBoot({
   }, [allExtensionIds, setKnownPluginIds]);
 
   useEffect(() => {
-    if (layoutInitializedRef.current) return;
+    if (layoutInitializedRef.current) {
+      return;
+    }
     layoutInitializedRef.current = true;
     registerRenderers(
       WORKSPACE_EXPLORER_PLUGIN_ID,
@@ -272,20 +282,24 @@ export function useDesktopWorkspaceBoot({
         />
       )
     );
-    registerRenderers(WORKSPACE_TRASH_PLUGIN_ID, WORKSPACE_TRASH_RENDERER, () => (
-      <WorkspaceTrashPanel />
-    ));
+    registerRenderers(
+      WORKSPACE_TRASH_PLUGIN_ID,
+      WORKSPACE_TRASH_RENDERER,
+      () => <WorkspaceTrashPanel />
+    );
     registerRenderers(EXTENSIONS_PLUGIN_ID, EXTENSIONS_RENDERER, () => (
       <ExtensionsPanel />
     ));
-    registerRenderers(AGENT_WORK_PANEL_ID, AGENT_WORK_RENDERER, () => <AgentWorkPanel />);
+    registerRenderers(AGENT_WORK_PANEL_ID, AGENT_WORK_RENDERER, () => (
+      <AgentWorkPanel />
+    ));
     registerRenderers(DEBUGGER_PLUGIN_ID, DEBUGGER_RENDERER, () => (
       <DebuggerPanel />
     ));
     registerRenderers(
       WORKSPACE_SETTINGS_PLUGIN_ID,
       WORKSPACE_SETTINGS_RENDERER,
-      () => <WorkspaceSettingsPanel />,
+      () => <WorkspaceSettingsPanel />
     );
     // Normal shell starts with explorer. Panel windows start empty until
     // extension initialization makes their requested renderer available.
@@ -322,7 +336,9 @@ export function useDesktopWorkspaceBoot({
   ]);
 
   useEffect(() => {
-    if (!enabledPluginIds || initializedRef.current) return;
+    if (!enabledPluginIds || initializedRef.current) {
+      return;
+    }
 
     initializedRef.current = true;
     let cancelled = false;
@@ -333,7 +349,8 @@ export function useDesktopWorkspaceBoot({
     reconcilePlugins(runtimeTargetRef.current)
       .then(() => {
         if (!cancelled) {
-          const unregisterReconciler = registerRuntimeReconciler(reconcilePlugins);
+          const unregisterReconciler =
+            registerRuntimeReconciler(reconcilePlugins);
           runtimeCleanupRef.current = unregisterReconciler;
           if (panelWindowSession?.descriptor) {
             addPanel({
@@ -392,8 +409,8 @@ function WorkspaceRuntimeStatus({
     <div className="flex h-full items-center justify-center p-6">
       <div className="flex max-w-md flex-col gap-4 rounded-lg border bg-background p-6 text-center">
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold">Workspace failed to load</h2>
-          <p className="text-sm text-muted-foreground">{error}</p>
+          <h2 className="font-semibold text-lg">Workspace failed to load</h2>
+          <p className="text-muted-foreground text-sm">{error}</p>
         </div>
         <Button onClick={onRetry}>Retry</Button>
       </div>
@@ -419,13 +436,14 @@ function DesktopOrganizationNavigationBridge({
   // listeners, which is both wasteful and racy.
   const locationRef = useRef(location);
   locationRef.current = location;
-  const { subviewId, subviewPath, viewId, organizationSlug, workspaceSlug } = useParams<{
-    subviewId?: string;
-    subviewPath?: string;
-    viewId?: string;
-    organizationSlug: string;
-    workspaceSlug: string;
-  }>();
+  const { subviewId, subviewPath, viewId, organizationSlug, workspaceSlug } =
+    useParams<{
+      subviewId?: string;
+      subviewPath?: string;
+      viewId?: string;
+      organizationSlug: string;
+      workspaceSlug: string;
+    }>();
   const addGroup = useGridLayoutStore((state) => state.addGroup);
   const addPanel = useGridLayoutStore((state) => state.addPanel);
   const clearRenamingResource = useGridLayoutStore(
@@ -433,7 +451,9 @@ function DesktopOrganizationNavigationBridge({
   );
   const dockviewApi = useGridLayoutStore((state) => state.dockviewApi);
   const isFocusMode = useGridLayoutStore((state) => state.isFocusMode);
-  const openResourcePanel = useGridLayoutStore((state) => state.openResourcePanel);
+  const openResourcePanel = useGridLayoutStore(
+    (state) => state.openResourcePanel
+  );
   const openPluginPanel = useGridLayoutStore((state) => state.openPluginPanel);
   const openToolPanel = useGridLayoutStore((state) => state.openToolPanel);
   const panels = useGridLayoutStore((state) => state.panels);
@@ -451,15 +471,12 @@ function DesktopOrganizationNavigationBridge({
         resourceTypes.map((resourceType) => [
           resourceType.resourceTypeId,
           resourceType,
-        ]),
+        ])
       ),
     [resourceTypes]
   );
   const viewMap = useMemo(
-    () =>
-      new Map(
-        resourceViews.map((view) => [view.definition.viewId, view]),
-      ),
+    () => new Map(resourceViews.map((view) => [view.definition.viewId, view])),
     [resourceViews]
   );
   const activePanelId = useGridLayoutStore((state) => state.activePanelId);
@@ -479,7 +496,9 @@ function DesktopOrganizationNavigationBridge({
     (state) => state.requestRenameActiveResource
   );
   const toggleFocusMode = useGridLayoutStore((state) => state.toggleFocusMode);
-  const unregisterPlugin = useGridLayoutStore((state) => state.unregisterByPlugin);
+  const unregisterPlugin = useGridLayoutStore(
+    (state) => state.unregisterByPlugin
+  );
   const updatePanelTitleByResourceId = useGridLayoutStore(
     (state) => state.updatePanelTitleByResourceId
   );
@@ -498,16 +517,22 @@ function DesktopOrganizationNavigationBridge({
   useEffect(() => {
     for (const panel of panels) {
       const resourceTypeId = panel.params?.resourceTypeId;
-      if (typeof resourceTypeId !== "string") continue;
+      if (typeof resourceTypeId !== "string") {
+        continue;
+      }
 
       const resourceType = resourceTypeMap.get(resourceTypeId);
       const defaultView = viewMap.get(resourceType?.defaultViewId ?? "");
-      if (!defaultView) continue;
+      if (!defaultView) {
+        continue;
+      }
       const component = getRendererComponent(
         defaultView.extensionId,
         defaultView.definition.viewId
       );
-      if (!componentRenderers[component]) continue;
+      if (!componentRenderers[component]) {
+        continue;
+      }
 
       resolvePanelRenderer(
         panel.id,
@@ -551,7 +576,9 @@ function DesktopOrganizationNavigationBridge({
 
   const closeViewInstances = useCallback(
     (ids: string[]) => {
-      if (ids.length === 0) return;
+      if (ids.length === 0) {
+        return;
+      }
       removePanelsByViewIds(ids);
     },
     [removePanelsByViewIds]
@@ -610,8 +637,9 @@ function DesktopOrganizationNavigationBridge({
         ) {
           removePanelsByViewIds([previousViewId]);
         }
-        if (isResourceViewReady(resourceId))
+        if (isResourceViewReady(resourceId)) {
           reportResourceOpenReady(resourceId);
+        }
       },
       openResourceInNewWindow: async ({
         parentId,
@@ -620,7 +648,9 @@ function DesktopOrganizationNavigationBridge({
         schemaVersion,
         title,
       }: OpenResourceInput) => {
-        if (!organizationSlug || !workspaceSlug) return false;
+        if (!(organizationSlug && workspaceSlug)) {
+          return false;
+        }
         const resourceType = resourceTypeMap.get(resourceTypeId);
         const defaultView = viewMap.get(resourceType?.defaultViewId ?? "");
 
@@ -642,7 +672,11 @@ function DesktopOrganizationNavigationBridge({
           },
           errorMessage: t("gridLayout.tab.openInNewWindowError"),
           manager: panelWindows,
-          workspacePath: getWorkspacePath(organizationSlug, workspaceSlug, resourceId),
+          workspacePath: getWorkspacePath(
+            organizationSlug,
+            workspaceSlug,
+            resourceId
+          ),
         });
       },
       openView: ({
@@ -683,7 +717,9 @@ function DesktopOrganizationNavigationBridge({
         title,
         viewId: definitionViewId,
       }: OpenViewInput) => {
-        if (!organizationSlug || !workspaceSlug) return false;
+        if (!(organizationSlug && workspaceSlug)) {
+          return false;
+        }
 
         return openWorkspacePanelInNewWindow({
           descriptor: {
@@ -739,6 +775,7 @@ function DesktopOrganizationNavigationBridge({
     [
       clearRenamingResource,
       closeViewInstances,
+      removePanelsByViewIds,
       resourceTypeMap,
       openExplorer,
       openResourcePanel,
@@ -766,14 +803,16 @@ function DesktopOrganizationNavigationBridge({
               path: subviewPath,
               subviewId,
             })
-          : viewId ?? null,
+          : (viewId ?? null),
       isFocusMode,
       isExplorerOpen: panels.some(
         (panel) => panel.pluginId === WORKSPACE_EXPLORER_PLUGIN_ID
       ),
       isToolOpen: (toolId: string) => {
         const tool = getTool(toolId);
-        if (!tool) return false;
+        if (!tool) {
+          return false;
+        }
         return panels.some((panel) => panel.params?.viewId === tool.toolId);
       },
       renamingResourceId,
@@ -783,10 +822,7 @@ function DesktopOrganizationNavigationBridge({
 
   useEffect(() => {
     if (
-      !routeSyncEnabled ||
-      !dockviewApi ||
-      !organizationSlug ||
-      !workspaceSlug
+      !(routeSyncEnabled && dockviewApi && organizationSlug && workspaceSlug)
     ) {
       return;
     }
@@ -824,7 +860,9 @@ function DesktopOrganizationNavigationBridge({
         nextPath,
         nextSearch
       );
-      if (!nextLocation) return;
+      if (!nextLocation) {
+        return;
+      }
       locationRef.current = nextLocation;
       navigate({ pathname: nextPath, search: nextSearch }, { replace: true });
     });
@@ -845,10 +883,7 @@ function DesktopOrganizationNavigationBridge({
   // active is explorer chrome (or nothing), drop the viewId from the URL.
   useEffect(() => {
     if (
-      !routeSyncEnabled ||
-      !dockviewApi ||
-      !organizationSlug ||
-      !workspaceSlug
+      !(routeSyncEnabled && dockviewApi && organizationSlug && workspaceSlug)
     ) {
       return;
     }
@@ -871,7 +906,9 @@ function DesktopOrganizationNavigationBridge({
         nextPath,
         nextSearch
       );
-      if (!nextLocation) return;
+      if (!nextLocation) {
+        return;
+      }
       locationRef.current = nextLocation;
       navigate({ pathname: nextPath, search: nextSearch }, { replace: true });
     });
@@ -887,7 +924,10 @@ function DesktopOrganizationNavigationBridge({
   ]);
 
   return (
-    <OrganizationNavigationProvider navigation={navigation} viewState={viewState}>
+    <OrganizationNavigationProvider
+      navigation={navigation}
+      viewState={viewState}
+    >
       {children}
     </OrganizationNavigationProvider>
   );
@@ -901,11 +941,8 @@ function DesktopWorkspaceContent({
   panelWindowSession: PanelWindowSession | null;
 }) {
   const { i18n, t } = useTranslation();
-  const {
-    extensionAvailability,
-    registerRuntimeReconciler,
-    runtimeRevisions,
-  } = useOrganizationPluginRuntime();
+  const { extensionAvailability, registerRuntimeReconciler, runtimeRevisions } =
+    useOrganizationPluginRuntime();
   const {
     allExtensionIds = [],
     bootError,
@@ -920,13 +957,14 @@ function DesktopWorkspaceContent({
   const { panelWindows } = usePlatform();
   const location = useLocation();
   const navigate = useNavigate();
-  const { subviewId, subviewPath, viewId, organizationSlug, workspaceSlug } = useParams<{
-    subviewId?: string;
-    subviewPath?: string;
-    viewId?: string;
-    organizationSlug: string;
-    workspaceSlug: string;
-  }>();
+  const { subviewId, subviewPath, viewId, organizationSlug, workspaceSlug } =
+    useParams<{
+      subviewId?: string;
+      subviewPath?: string;
+      viewId?: string;
+      organizationSlug: string;
+      workspaceSlug: string;
+    }>();
   const resourcesMap = useWorkspaceResourcesMap();
   const navigateToTreeItem = useNavigateToResource();
   const addGroup = useGridLayoutStore((state) => state.addGroup);
@@ -937,9 +975,11 @@ function DesktopWorkspaceContent({
   const registerRenderers = useGridLayoutStore((state) => state.register);
   const unregisterRenderer = useGridLayoutStore((state) => state.unregister);
   const unregisterPlugin = useGridLayoutStore(
-    (state) => state.unregisterByPlugin,
+    (state) => state.unregisterByPlugin
   );
-  const setKnownPluginIds = useGridLayoutStore((state) => state.setKnownPluginIds);
+  const setKnownPluginIds = useGridLayoutStore(
+    (state) => state.setKnownPluginIds
+  );
   const { openResource, openTool } = useOrganizationNavigation();
   const { openView } = useOrganizationNavigation();
   const lastRoutedViewInstanceIdRef = useRef<string | null>(null);
@@ -1014,14 +1054,15 @@ function DesktopWorkspaceContent({
   // Reset the dedupe ref whenever the active workspace changes — otherwise a
   // stale resourceId from workspace A could cause the first mount effect on workspace
   // B to short-circuit and leave the user on a blank workspace.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally
   // resetting on workspaceSlug change only.
   useEffect(() => {
-        lastRoutedViewInstanceIdRef.current = null;
+    lastRoutedViewInstanceIdRef.current = null;
   }, [workspaceSlug]);
 
   useEffect(() => {
-    if (!workspaceSlug || !organizationSlug) return;
+    if (!(workspaceSlug && organizationSlug)) {
+      return;
+    }
 
     if (resolution.kind === "none") {
       lastRoutedViewInstanceIdRef.current = null;
@@ -1044,18 +1085,23 @@ function DesktopWorkspaceContent({
         navigate(resolution.to, { replace: true });
         return;
       case "folder":
-        navigate(getWorkspacePath(organizationSlug, workspaceSlug), { replace: true });
+        navigate(getWorkspacePath(organizationSlug, workspaceSlug), {
+          replace: true,
+        });
         navigateToTreeItem(resolution.resourceId);
         return;
       case "resource": {
-        if (lastRoutedViewInstanceIdRef.current === resolution.resourceId) return;
+        if (lastRoutedViewInstanceIdRef.current === resolution.resourceId) {
+          return;
+        }
         lastRoutedViewInstanceIdRef.current = resolution.resourceId;
         // Selecting a panel also updates the URL. Do not reopen that panel and
         // replace its in-flight resource-open measurement with a route echo.
         if (
           dockviewApi?.activePanel?.params?.viewId === resolution.resourceId
-        )
+        ) {
           return;
+        }
         openResource({
           resourceId: resolution.resourceId,
           resourceTypeId: resolution.resourceTypeId,
@@ -1067,7 +1113,9 @@ function DesktopWorkspaceContent({
         return;
       }
       case "plugin-subview": {
-        if (lastRoutedViewInstanceIdRef.current === resolution.viewInstanceId) return;
+        if (lastRoutedViewInstanceIdRef.current === resolution.viewInstanceId) {
+          return;
+        }
         lastRoutedViewInstanceIdRef.current = resolution.viewInstanceId;
         const existingSubviewPanel = panels.find(
           (panel) => panel.params?.viewId === resolution.viewInstanceId
@@ -1092,13 +1140,17 @@ function DesktopWorkspaceContent({
         return;
       }
       case "tool": {
-        if (lastRoutedViewInstanceIdRef.current === resolution.tool.toolId) return;
+        if (lastRoutedViewInstanceIdRef.current === resolution.tool.toolId) {
+          return;
+        }
         lastRoutedViewInstanceIdRef.current = resolution.tool.toolId;
         openTool({ toolId: resolution.tool.toolId });
         return;
       }
       case "view": {
-        if (lastRoutedViewInstanceIdRef.current === resolution.viewInstanceId) return;
+        if (lastRoutedViewInstanceIdRef.current === resolution.viewInstanceId) {
+          return;
+        }
         lastRoutedViewInstanceIdRef.current = resolution.viewInstanceId;
         openView({
           extensionId: resolution.extensionId,
@@ -1132,12 +1184,7 @@ function DesktopWorkspaceContent({
   ]);
 
   if (bootState === "error") {
-    return (
-      <WorkspaceRuntimeStatus
-        error={bootError}
-        onRetry={retryBoot}
-      />
-    );
+    return <WorkspaceRuntimeStatus error={bootError} onRetry={retryBoot} />;
   }
 
   return <GridLayoutView />;
@@ -1166,7 +1213,7 @@ export function DesktopWorkspaceShell({
     () =>
       filterPanelWindowSession(
         readPanelWindowSession(location.search),
-        controller.allExtensionIds,
+        controller.allExtensionIds
       ),
     [controller.allExtensionIds, location.search]
   );

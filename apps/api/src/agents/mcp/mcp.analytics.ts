@@ -28,9 +28,11 @@ export function mcpAnalyticsOptions(actorId: string): MCPAnalyticsOptions {
 export function instrumentMcpServer(
   server: McpServer,
   posthog: PostHog | null,
-  actorId: string,
+  actorId: string
 ) {
-  if (!posthog) return;
+  if (!posthog) {
+    return;
+  }
   // @posthog/mcp still checks for v1's removed McpServer.tool() helper.
   // Its low-level Server instrumentation works with both SDK generations.
   instrument(server.server, posthog, mcpAnalyticsOptions(actorId));

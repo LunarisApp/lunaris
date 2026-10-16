@@ -15,8 +15,8 @@ describe("extension permission scope", () => {
       render(
         <ExtensionScopeProvider extensionId="acme.notes" permissions={[]}>
           <NetworkConsumer />
-        </ExtensionScopeProvider>,
-      ),
+        </ExtensionScopeProvider>
+      )
     ).toThrow('has not declared permission "network.https"');
   });
 
@@ -28,8 +28,8 @@ describe("extension permission scope", () => {
           permissions={["network.https"]}
         >
           <NetworkConsumer />
-        </ExtensionScopeProvider>,
-      ),
+        </ExtensionScopeProvider>
+      )
     ).not.toThrow();
   });
 });

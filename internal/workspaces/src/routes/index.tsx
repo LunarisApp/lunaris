@@ -51,7 +51,10 @@ export function createWorkspaceRoutes({
           index: true,
           lazy: async () => {
             const [{ default: WorkspacesPage }, { WorkspacesEntry }] =
-              await Promise.all([import("./workspaces"), import("./workspaces-entry")]);
+              await Promise.all([
+                import("./workspaces"),
+                import("./workspaces-entry"),
+              ]);
             return {
               Component: () => (
                 <WorkspacesEntry initialLocationKey={initialLocationKey}>

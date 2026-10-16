@@ -48,10 +48,10 @@ const result = (id: string, isError = false): Message => ({
 
 describe("tool transcript projection", () => {
   it("preserves original user and assistant timestamps", () => {
-    const rows = projectMessages([
-      { role: "user", content: "Hello", timestamp: 123 },
-      assistant,
-    ], new Set());
+    const rows = projectMessages(
+      [{ role: "user", content: "Hello", timestamp: 123 }, assistant],
+      new Set()
+    );
     expect(rows[0].timestamp).toBe(123);
     expect(rows[1].timestamp).toBe(assistant.timestamp);
   });

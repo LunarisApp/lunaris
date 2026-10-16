@@ -8,7 +8,7 @@ describe("workspaceMembersDb", () => {
     const uniqueGrant = config.uniqueConstraints.find(
       (constraint) =>
         constraint.getName() ===
-        "workspace_members_workspace_organization_member_unique",
+        "workspace_members_workspace_organization_member_unique"
     );
 
     expect(uniqueGrant?.columns.map((column) => column.name)).toEqual([
@@ -22,7 +22,7 @@ describe("workspaceMembersDb", () => {
       (foreignKey) => ({
         column: foreignKey.reference().columns[0]?.name,
         onDelete: foreignKey.onDelete,
-      }),
+      })
     );
 
     expect(references).toContainEqual({

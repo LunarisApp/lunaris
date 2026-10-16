@@ -36,35 +36,41 @@ const clearOpfsStorage = () => {
   });
 };
 
-const deletePowerSyncDb = () => {
-  return cy.window({ log: false }).then((win) => {
-    return new Cypress.Promise<void>((resolve, reject) => {
-      const attemptDelete = (attempt: number) => {
-        const request = win.indexedDB.deleteDatabase("lunaris.v1.db");
+const deletePowerSyncDb = () =>
+  cy.window({ log: false }).then(
+    (win) =>
+      new Cypress.Promise<void>((resolve, reject) => {
+        const attemptDelete = (attempt: number) => {
+          const request = win.indexedDB.deleteDatabase("lunaris.v1.db");
 
-        request.onsuccess = () => resolve();
-        request.onerror = () => {
-          if (attempt >= 4) {
-            reject(request.error ?? new Error("Failed to delete lunaris.v1.db"));
-            return;
-          }
+          request.onsuccess = () => resolve();
+          request.onerror = () => {
+            if (attempt >= 4) {
+              reject(
+                request.error ?? new Error("Failed to delete lunaris.v1.db")
+              );
+              return;
+            }
 
-          win.setTimeout(() => attemptDelete(attempt + 1), 400);
+            win.setTimeout(() => attemptDelete(attempt + 1), 400);
+          };
+          request.onblocked = () => {
+            if (attempt >= 4) {
+              reject(
+                new Error(
+                  `lunaris.v1.db delete blocked on attempt ${attempt + 1}`
+                )
+              );
+              return;
+            }
+
+            win.setTimeout(() => attemptDelete(attempt + 1), 400);
+          };
         };
-        request.onblocked = () => {
-          if (attempt >= 4) {
-            reject(new Error(`lunaris.v1.db delete blocked on attempt ${attempt + 1}`));
-            return;
-          }
 
-          win.setTimeout(() => attemptDelete(attempt + 1), 400);
-        };
-      };
-
-      attemptDelete(0);
-    });
-  });
-};
+        attemptDelete(0);
+      })
+  );
 
 // Unload the application before changing its session or deleting databases.
 // Visiting /auth can redirect back into the app and reopen workers mid-reset.
@@ -94,7 +100,15 @@ Cypress.Commands.add("uniqueEmail", (prefix = "e2e") => {
 
 Cypress.Commands.add(
   "register",
-  ({ name, email, password }: { name: string; email: string; password: string }) => {
+  ({
+    name,
+    email,
+    password,
+  }: {
+    name: string;
+    email: string;
+    password: string;
+  }) => {
     cy.visit("/auth/register");
     cy.get('[data-testid="auth-register-name"]').clear().type(name);
     cy.get('[data-testid="auth-register-email"]').clear().type(email);
@@ -137,7 +151,7 @@ Cypress.Commands.add("acceptInvitationViaLog", (email: string) => {
     }).click();
     cy.location("pathname", { timeout: 15_000 }).should(
       "not.include",
-      "/auth/accept-invitation",
+      "/auth/accept-invitation"
     );
   });
 });
@@ -154,19 +168,20 @@ Cypress.Commands.add("requestPasswordReset", (email: string) => {
 Cypress.Commands.add(
   "resetPasswordViaLog",
   ({ email, newPassword }: { email: string; newPassword: string }) => {
-    cy.task<string>("getAuthEmailUrl", { email, action: "reset-password" }).then(
-      (url) => {
-        cy.visit(url);
-        cy.get('[data-testid="auth-reset-password"]').clear().type(newPassword, {
-          log: false,
-        });
-        cy.get('[data-testid="auth-reset-confirm"]').clear().type(newPassword, {
-          log: false,
-        });
-        cy.get('[data-testid="auth-reset-submit"]').click();
-        cy.url({ timeout: 15_000 }).should("match", /\/auth(?!\/reset-password)/);
-      }
-    );
+    cy.task<string>("getAuthEmailUrl", {
+      email,
+      action: "reset-password",
+    }).then((url) => {
+      cy.visit(url);
+      cy.get('[data-testid="auth-reset-password"]').clear().type(newPassword, {
+        log: false,
+      });
+      cy.get('[data-testid="auth-reset-confirm"]').clear().type(newPassword, {
+        log: false,
+      });
+      cy.get('[data-testid="auth-reset-submit"]').click();
+      cy.url({ timeout: 15_000 }).should("match", /\/auth(?!\/reset-password)/);
+    });
   }
 );
 
@@ -202,7 +217,9 @@ Cypress.Commands.add("signOut", (options: { clearCookies?: boolean } = {}) => {
     url: "http://localhost:3000/auth/sign-out",
     headers: { Origin: "http://localhost:5173" },
   });
-  if (options.clearCookies !== false) cy.clearAllCookies();
+  if (options.clearCookies !== false) {
+    cy.clearAllCookies();
+  }
   cy.clearAllLocalStorage();
   cy.clearAllSessionStorage();
 });
@@ -229,9 +246,8 @@ Cypress.Commands.add("bootstrapWorkspacesPage", () => {
     timeout: 30_000,
   }).should("be.visible");
   cy.window({ timeout: 30_000 }).should((win) => {
-    expect(
-      win.localStorage.getItem("lunaris_pending_default_workspace_seed")
-    ).to.be.null;
+    expect(win.localStorage.getItem("lunaris_pending_default_workspace_seed"))
+      .to.be.null;
   });
 });
 
@@ -277,13 +293,7 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   "createWorkspace",
-  ({
-    name,
-    slug,
-  }: {
-    name: string;
-    slug?: string;
-  }) => {
+  ({ name, slug }: { name: string; slug?: string }) => {
     const workspaceSlug = slug ?? toWorkspaceSlug(name);
 
     cy.get('[data-testid="workspaces-create-launcher-header"]').click();

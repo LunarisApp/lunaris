@@ -34,11 +34,11 @@ describe("DOCX images", () => {
     const fetchMock = fetchImage("image/png");
     const result = await loadDocxImage(
       "https://example.com/private-image",
-      2000,
+      2000
     );
     expect(fetchMock).toHaveBeenCalledWith(
       "https://example.com/private-image",
-      { signal: expect.any(AbortSignal) },
+      { signal: expect.any(AbortSignal) }
     );
     expect(result.transformation).toEqual({ width: 624, height: 312 });
     expect(result.type).toBe("png");
@@ -48,7 +48,7 @@ describe("DOCX images", () => {
   it("uses configured preview width", async () => {
     fetchImage("image/jpeg");
     expect(
-      (await loadDocxImage("data:image/jpeg;base64,a", 100)).transformation,
+      (await loadDocxImage("data:image/jpeg;base64,a", 100)).transformation
     ).toEqual({ width: 100, height: 50 });
   });
 
@@ -62,7 +62,7 @@ describe("DOCX images", () => {
       toBlob: (callback: BlobCallback) => callback(new Blob(["png"])),
     };
     vi.spyOn(document, "createElement").mockReturnValue(
-      canvas as unknown as HTMLCanvasElement,
+      canvas as unknown as HTMLCanvasElement
     );
     const result = await loadDocxImage("https://example.com/a.webp");
     expect(result.type).toBe("png");
@@ -71,7 +71,7 @@ describe("DOCX images", () => {
       0,
       0,
       624,
-      312,
+      312
     );
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:test-image");
   });
@@ -79,10 +79,10 @@ describe("DOCX images", () => {
   it("rejects HTTP failures", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(new Response(null, { status: 404 })),
+      vi.fn().mockResolvedValue(new Response(null, { status: 404 }))
     );
     await expect(loadDocxImage("https://example.com/missing")).rejects.toThrow(
-      "Image request failed (404)",
+      "Image request failed (404)"
     );
     expect(URL.createObjectURL).not.toHaveBeenCalled();
   });
@@ -91,7 +91,7 @@ describe("DOCX images", () => {
     fetchImage("image/png");
     decodeFails = true;
     await expect(loadDocxImage("blob:broken")).rejects.toThrow(
-      "Image could not be decoded",
+      "Image could not be decoded"
     );
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:test-image");
   });

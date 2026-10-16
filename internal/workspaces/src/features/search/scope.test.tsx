@@ -1,6 +1,6 @@
 /** @vitest-environment happy-dom */
 import { cleanup, renderHook } from "@testing-library/react";
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SearchOrganizationContext, useSearchScope } from "./scope";
 

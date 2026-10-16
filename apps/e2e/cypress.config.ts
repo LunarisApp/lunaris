@@ -8,10 +8,7 @@ import { defineConfig } from "cypress";
 // is not defined. Derive it from import.meta.url instead.
 const DIRNAME = fileURLToPath(new URL(".", import.meta.url));
 
-type AuthAction =
-  | "organization-invitation"
-  | "reset-password"
-  | "verify-email";
+type AuthAction = "organization-invitation" | "reset-password" | "verify-email";
 
 interface GetAuthEmailUrlArgs {
   action: AuthAction;
@@ -47,7 +44,9 @@ function scanLogForUrl(
   email: string,
   action: AuthAction
 ): string | null {
-  if (!existsSync(filePath)) return null;
+  if (!existsSync(filePath)) {
+    return null;
+  }
 
   const raw = readFileSync(filePath, "utf8");
   const contents = raw.includes("\0") ? raw.replace(/\0+/g, "") : raw;
@@ -61,10 +60,18 @@ function scanLogForUrl(
 
   for (let i = lines.length - 1; i >= 0; i--) {
     const line = lines[i]?.trim();
-    if (!line) continue;
-    if (!line.startsWith("{")) continue;
-    if (!line.includes(`"action":"${action}"`)) continue;
-    if (!line.toLowerCase().includes(`"email":"${normalizedEmail}"`)) continue;
+    if (!line) {
+      continue;
+    }
+    if (!line.startsWith("{")) {
+      continue;
+    }
+    if (!line.includes(`"action":"${action}"`)) {
+      continue;
+    }
+    if (!line.toLowerCase().includes(`"email":"${normalizedEmail}"`)) {
+      continue;
+    }
 
     let parsed: unknown;
     try {
@@ -76,12 +83,16 @@ function scanLogForUrl(
     // Walk the parsed object to find the `auth.html` field, regardless of
     // how deeply evlog nested it in `properties` / `context` / etc.
     const html = findHtml(parsed, action, normalizedEmail);
-    if (!html) continue;
+    if (!html) {
+      continue;
+    }
 
     const match = html.match(
       new RegExp(`href="([^"]*${escapeRegex(pathPattern[action])}[^"]*)"`, "i")
     );
-    if (match?.[1]) return decodeHtmlEntities(match[1]);
+    if (match?.[1]) {
+      return decodeHtmlEntities(match[1]);
+    }
   }
 
   return null;
@@ -92,7 +103,9 @@ function hasSyncOperationSince(
   logOffset: number,
   operation: string
 ): boolean {
-  if (!existsSync(filePath)) return false;
+  if (!existsSync(filePath)) {
+    return false;
+  }
 
   const contents = readFileSync(filePath);
   const offset = logOffset <= contents.byteLength ? logOffset : 0;
@@ -104,7 +117,9 @@ function findHtml(
   action: AuthAction,
   email: string
 ): string | null {
-  if (!node || typeof node !== "object") return null;
+  if (!node || typeof node !== "object") {
+    return null;
+  }
   const obj = node as Record<string, unknown>;
   const auth = obj.auth;
   if (
@@ -112,7 +127,8 @@ function findHtml(
     typeof auth === "object" &&
     (auth as Record<string, unknown>).action === action &&
     typeof (auth as Record<string, unknown>).email === "string" &&
-    ((auth as Record<string, unknown>).email as string).toLowerCase() === email &&
+    ((auth as Record<string, unknown>).email as string).toLowerCase() ===
+      email &&
     typeof (auth as Record<string, unknown>).html === "string"
   ) {
     return (auth as Record<string, unknown>).html as string;
@@ -120,7 +136,9 @@ function findHtml(
   for (const value of Object.values(obj)) {
     if (value && typeof value === "object") {
       const nested = findHtml(value, action, email);
-      if (nested) return nested;
+      if (nested) {
+        return nested;
+      }
     }
   }
   return null;
@@ -141,11 +159,13 @@ function decodeHtmlEntities(url: string): string {
 
 function decodeBase32(value: string): Buffer {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-  const normalized = value.toUpperCase().replace(/=+$/g, "");
+  const normalized = value.toUpperCase().replace(/[=]+$/g, "");
   let bits = "";
   for (const character of normalized) {
     const index = alphabet.indexOf(character);
-    if (index < 0) throw new Error("Invalid base32 TOTP secret");
+    if (index < 0) {
+      throw new Error("Invalid base32 TOTP secret");
+    }
     bits += index.toString(2).padStart(5, "0");
   }
 
@@ -163,7 +183,7 @@ function generateTotp(secret: string, timestamp = Date.now()): string {
   const digest = createHmac("sha1", decodeBase32(secret))
     .update(counterBuffer)
     .digest();
-  const offset = digest[digest.length - 1]! & 0x0f;
+  const offset = digest.at(-1)! & 0x0f;
   const binary =
     ((digest[offset]! & 0x7f) << 24) |
     ((digest[offset + 1]! & 0xff) << 16) |
@@ -191,7 +211,9 @@ export default defineConfig({
 
       on("task", {
         backendLogOffset(): number {
-          if (!existsSync(logPath)) return 0;
+          if (!existsSync(logPath)) {
+            return 0;
+          }
           return readFileSync(logPath).byteLength;
         },
 
@@ -211,7 +233,9 @@ export default defineConfig({
           const interval = 250;
           while (Date.now() < deadline) {
             const url = scanLogForUrl(logPath, email, action);
-            if (url) return url;
+            if (url) {
+              return url;
+            }
             await new Promise((resolveP) => setTimeout(resolveP, interval));
           }
           throw new Error(
@@ -227,7 +251,9 @@ export default defineConfig({
           const deadline = Date.now() + timeoutMs;
           const interval = 250;
           while (Date.now() < deadline) {
-            if (hasSyncOperationSince(logPath, logOffset, operation)) return true;
+            if (hasSyncOperationSince(logPath, logOffset, operation)) {
+              return true;
+            }
             await new Promise((resolveP) => setTimeout(resolveP, interval));
           }
           throw new Error(

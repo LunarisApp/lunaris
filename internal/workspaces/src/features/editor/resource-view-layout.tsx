@@ -39,7 +39,7 @@ export function ResourceViewLayout({
       <EditorHeader className="editor-header mb-3">
         <EditorHeader.Leading />
         <EditorHeader.Middle className="hidden md:flex">
-          {resourceId && <EditorBreadcrumb resourceId={resourceId} />}
+          {!!resourceId && <EditorBreadcrumb resourceId={resourceId} />}
         </EditorHeader.Middle>
         <EditorHeader.Trailing>
           {yjsStorage && (
@@ -49,14 +49,12 @@ export function ResourceViewLayout({
               storageId={yjsStorage.storageId}
             />
           )}
-          {presence && <PresenceBadges {...presence} />}
-          <EditorOptions
-            resource={resource}
-          />
+          {!!presence && <PresenceBadges {...presence} />}
+          <EditorOptions resource={resource} />
         </EditorHeader.Trailing>
       </EditorHeader>
       <div
-        className="resource-view-layout-content flex-1 min-h-0 overflow-auto"
+        className="resource-view-layout-content min-h-0 flex-1 overflow-auto"
         ref={outerRef}
       >
         <div

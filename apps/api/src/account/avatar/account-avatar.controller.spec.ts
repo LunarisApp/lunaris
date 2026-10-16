@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, spyOn } from "bun:test";
 import { Test, type TestingModule } from "@nestjs/testing";
-import { AppConfig } from "../../app.config";
 import { AvatarController } from "./account-avatar.controller";
 import { AvatarService } from "./account-avatar.service";
 
@@ -36,7 +35,6 @@ describe("AvatarController", () => {
   describe("getUploadUrl", () => {
     it("should call service.getUploadUrl with correct args", async () => {
       const spy = spyOn(service, "getUploadUrl");
-      // biome-ignore lint/suspicious/noExplicitAny: test mock
       const session = { user: { id: "user-1" } } as any;
       const body = { resource: "image/webp" as const };
 
@@ -50,7 +48,6 @@ describe("AvatarController", () => {
   describe("confirmUpload", () => {
     it("should call service.confirmUpload with correct args", async () => {
       const spy = spyOn(service, "confirmUpload");
-      // biome-ignore lint/suspicious/noExplicitAny: test mock
       const session = { user: { id: "user-1" } } as any;
       const body = { key: "avatars/user-1/123.webp" };
 
@@ -58,7 +55,7 @@ describe("AvatarController", () => {
 
       expect(spy).toHaveBeenCalledWith("user-1", "avatars/user-1/123.webp");
       expect(result.imageUrl).toBe(
-        "https://s3.example.com/test-bucket/avatars/user-1/123.webp",
+        "https://s3.example.com/test-bucket/avatars/user-1/123.webp"
       );
     });
   });

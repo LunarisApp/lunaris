@@ -85,13 +85,13 @@ export class AgentControlService {
     private readonly workspaces: WorkspacesService,
     private readonly safety: AgentSafetyService,
     private readonly yjs: YjsDocumentsService,
-    @Inject(RESEND_CLIENT) private readonly resend: Resend | null,
+    @Inject(RESEND_CLIENT) private readonly resend: Resend | null
   ) {}
 
   async listOrganizations(
     principal: AgentPrincipal,
     limit: number,
-    cursor?: string,
+    cursor?: string
   ) {
     const filters = [eq(member.userId, principal.actorId)];
     if (principal.organizationIds) {
@@ -104,9 +104,9 @@ export class AgentControlService {
           gt(organization.name, decoded.name),
           and(
             eq(organization.name, decoded.name),
-            gt(organization.id, decoded.id),
-          ),
-        )!,
+            gt(organization.id, decoded.id)
+          )
+        )!
       );
     }
     const rows = await this.database.db
@@ -122,16 +122,18 @@ export class AgentControlService {
       .where(and(...filters))
       .orderBy(asc(organization.name), asc(organization.id))
       .limit(limit + 1);
-    return withCloudPage(toPage({
-      encode: (row) => ({ id: row.id, name: row.name }),
-      limit,
-      map: (row) => ({
-        ...row,
-        createdAt: row.createdAt.toISOString(),
-        revision: organizationRevision(row),
-      }),
-      rows,
-    }));
+    return withCloudPage(
+      toPage({
+        encode: (row) => ({ id: row.id, name: row.name }),
+        limit,
+        map: (row) => ({
+          ...row,
+          createdAt: row.createdAt.toISOString(),
+          revision: organizationRevision(row),
+        }),
+        rows,
+      })
+    );
   }
 
   async getOrganization(organizationId: string) {
@@ -146,7 +148,9 @@ export class AgentControlService {
       .from(organization)
       .where(eq(organization.id, organizationId))
       .limit(1);
-    if (!row) throw new NotFoundException("Organization not found");
+    if (!row) {
+      throw new NotFoundException("Organization not found");
+    }
     return withCloudProvenance({
       ...row,
       createdAt: row.createdAt.toISOString(),
@@ -157,7 +161,7 @@ export class AgentControlService {
   async updateOrganization(
     organizationId: string,
     input: { logo?: string | null; name?: string },
-    expectedRevision: string,
+    expectedRevision: string
   ) {
     return this.database.db.transaction(async (tx) => {
       const [current] = await tx
@@ -172,9 +176,13 @@ export class AgentControlService {
         .where(eq(organization.id, organizationId))
         .for("update")
         .limit(1);
-      if (!current) throw new NotFoundException("Organization not found");
+      if (!current) {
+        throw new NotFoundException("Organization not found");
+      }
       if (organizationRevision(current) !== expectedRevision) {
-        throw new ConflictException("Resource revision does not match If-Match");
+        throw new ConflictException(
+          "Resource revision does not match If-Match"
+        );
       }
       const [row] = await tx
         .update(organization)
@@ -200,8 +208,8 @@ export class AgentControlService {
       filters.push(
         or(
           gt(member.createdAt, createdAt),
-          and(eq(member.createdAt, createdAt), gt(member.id, decoded.id)),
-        )!,
+          and(eq(member.createdAt, createdAt), gt(member.id, decoded.id))
+        )!
       );
     }
     const rows = await this.database.db
@@ -218,15 +226,20 @@ export class AgentControlService {
       .where(and(...filters))
       .orderBy(asc(member.createdAt), asc(member.id))
       .limit(limit + 1);
-    return withCloudPage(toPage({
-      encode: (row) => ({ createdAt: row.createdAt.toISOString(), id: row.id }),
-      limit,
-      map: (row) => ({
-        ...row,
-        createdAt: row.createdAt.toISOString(),
-      }),
-      rows,
-    }));
+    return withCloudPage(
+      toPage({
+        encode: (row) => ({
+          createdAt: row.createdAt.toISOString(),
+          id: row.id,
+        }),
+        limit,
+        map: (row) => ({
+          ...row,
+          createdAt: row.createdAt.toISOString(),
+        }),
+        rows,
+      })
+    );
   }
 
   async assertOrganizationOwner(actorId: string, organizationId: string) {
@@ -236,11 +249,11 @@ export class AgentControlService {
       .where(
         and(
           eq(member.organizationId, organizationId),
-          eq(member.userId, actorId),
-        ),
+          eq(member.userId, actorId)
+        )
       )
       .limit(1);
-    if (!membership || membership.role !== "owner") {
+    if (membership?.role !== "owner") {
       throw new ForbiddenException("Organization owner role required");
     }
   }
@@ -259,67 +272,74 @@ export class AgentControlService {
   async inviteMember(
     organizationId: string,
     body: { email: string; role: "editor" | "viewer" },
-    actorId: string,
+    actorId: string
   ) {
     const email = body.email.trim().toLowerCase();
-    const details = await this.entitlements.withMemberCapacity(organizationId, async (tx) => {
-      const [organizationRow] = await tx
-        .select({
-          isPersonal: organization.isPersonal,
-          name: organization.name,
-        })
-        .from(organization)
-        .where(eq(organization.id, organizationId))
-        .limit(1);
-      if (!organizationRow) throw new NotFoundException("Organization not found");
-      if (organizationRow.isPersonal) {
-        throw new ForbiddenException(
-          "Personal organizations cannot invite members",
-        );
-      }
-      const [inviter] = await tx
-        .select({ name: user.name })
-        .from(user)
-        .where(eq(user.id, actorId))
-        .limit(1);
-      if (!inviter) throw new NotFoundException("Inviter not found");
-      const existing = await tx
-        .select({ id: invitation.id })
-        .from(invitation)
-        .where(
-          and(
-            eq(invitation.organizationId, organizationId),
-            eq(invitation.email, email),
-            eq(invitation.status, "pending"),
-          ),
-        )
-        .limit(1);
-      if (existing.length > 0) {
-        throw new ConflictException("Invitation already pending");
-      }
+    const details = await this.entitlements.withMemberCapacity(
+      organizationId,
+      async (tx) => {
+        const [organizationRow] = await tx
+          .select({
+            isPersonal: organization.isPersonal,
+            name: organization.name,
+          })
+          .from(organization)
+          .where(eq(organization.id, organizationId))
+          .limit(1);
+        if (!organizationRow) {
+          throw new NotFoundException("Organization not found");
+        }
+        if (organizationRow.isPersonal) {
+          throw new ForbiddenException(
+            "Personal organizations cannot invite members"
+          );
+        }
+        const [inviter] = await tx
+          .select({ name: user.name })
+          .from(user)
+          .where(eq(user.id, actorId))
+          .limit(1);
+        if (!inviter) {
+          throw new NotFoundException("Inviter not found");
+        }
+        const existing = await tx
+          .select({ id: invitation.id })
+          .from(invitation)
+          .where(
+            and(
+              eq(invitation.organizationId, organizationId),
+              eq(invitation.email, email),
+              eq(invitation.status, "pending")
+            )
+          )
+          .limit(1);
+        if (existing.length > 0) {
+          throw new ConflictException("Invitation already pending");
+        }
 
-      const id = createId("invitation");
-      const [created] = await tx
-        .insert(invitation)
-        .values({
-          email,
-          expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
-          id,
-          inviterId: actorId,
-          organizationId: organizationId,
-          role: body.role,
-          status: "pending",
-        })
-        .returning();
-      if (!created) {
-        throw new InternalServerErrorException("Invitation was not created");
+        const id = createId("invitation");
+        const [created] = await tx
+          .insert(invitation)
+          .values({
+            email,
+            expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
+            id,
+            inviterId: actorId,
+            organizationId,
+            role: body.role,
+            status: "pending",
+          })
+          .returning();
+        if (!created) {
+          throw new InternalServerErrorException("Invitation was not created");
+        }
+        return {
+          created,
+          inviterName: inviter.name,
+          organizationName: organizationRow.name,
+        };
       }
-      return {
-        created,
-        inviterName: inviter.name,
-        organizationName: organizationRow.name,
-      };
-    });
+    );
     try {
       await this.sendInvitation({
         email,
@@ -350,25 +370,27 @@ export class AgentControlService {
     organizationId: string,
     workspaceId: string,
     filters: WorkspaceResourceFilters,
-    userId?: string,
+    userId?: string
   ) {
     if (
-      !filters.name &&
-      !filters.resourceTypeId &&
+      !(filters.name || filters.resourceTypeId) &&
       filters.parentId === undefined
     ) {
       return withCloudPage(
         await this.items.list({
           cursor: filters.cursor,
           limit: filters.limit ?? 50,
-          organizationId: organizationId,
+          organizationId,
           workspaceId,
           userId,
-        }),
+        })
       );
     }
     await this.workspaces.get(workspaceId, organizationId, userId);
-    const cursor = decodeCursor(filters.cursor, workspaceResourceCursorSchema.parse);
+    const cursor = decodeCursor(
+      filters.cursor,
+      workspaceResourceCursorSchema.parse
+    );
     const cursorDate = cursor ? new Date(cursor.createdAt) : undefined;
     const where: SQL[] = [
       eq(workspaceResourcesDb.workspaceId, workspaceId),
@@ -376,16 +398,22 @@ export class AgentControlService {
         this.database.db
           .select({ id: workspaceResourceTrashDb.id })
           .from(workspaceResourceTrashDb)
-          .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)),
+          .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id))
       ),
     ];
-    if (filters.name) where.push(ilike(workspaceResourcesDb.name, `%${filters.name}%`));
-    if (filters.resourceTypeId) where.push(eq(workspaceResourcesDb.resourceTypeId, filters.resourceTypeId));
+    if (filters.name) {
+      where.push(ilike(workspaceResourcesDb.name, `%${filters.name}%`));
+    }
+    if (filters.resourceTypeId) {
+      where.push(
+        eq(workspaceResourcesDb.resourceTypeId, filters.resourceTypeId)
+      );
+    }
     if (filters.parentId !== undefined) {
       where.push(
         filters.parentId === null
           ? isNull(workspaceResourcesDb.parentId)
-          : eq(workspaceResourcesDb.parentId, filters.parentId),
+          : eq(workspaceResourcesDb.parentId, filters.parentId)
       );
     }
     if (cursor && cursorDate) {
@@ -394,14 +422,14 @@ export class AgentControlService {
           gt(workspaceResourcesDb.position, cursor.position),
           and(
             eq(workspaceResourcesDb.position, cursor.position),
-            gt(workspaceResourcesDb.createdAt, cursorDate),
+            gt(workspaceResourcesDb.createdAt, cursorDate)
           ),
           and(
             eq(workspaceResourcesDb.position, cursor.position),
             eq(workspaceResourcesDb.createdAt, cursorDate),
-            gt(workspaceResourcesDb.id, cursor.id),
-          ),
-        )!,
+            gt(workspaceResourcesDb.id, cursor.id)
+          )
+        )!
       );
     }
     const rows = await this.database.db
@@ -411,10 +439,13 @@ export class AgentControlService {
       .orderBy(
         asc(workspaceResourcesDb.position),
         asc(workspaceResourcesDb.createdAt),
-        asc(workspaceResourcesDb.id),
+        asc(workspaceResourcesDb.id)
       )
       .limit((filters.limit ?? 50) + 1);
-    const storage = await getStorageHandles(this.database.db, rows.map((row) => row.id));
+    const storage = await getStorageHandles(
+      this.database.db,
+      rows.map((row) => row.id)
+    );
     return withCloudPage(
       toPage({
         encode: (row: typeof workspaceResourcesDb.$inferSelect) => ({
@@ -425,14 +456,14 @@ export class AgentControlService {
         limit: filters.limit ?? 50,
         map: (row) => toWorkspaceResourceDto(row, storage.get(row.id)),
         rows: rows as (typeof workspaceResourcesDb.$inferSelect)[],
-      }),
+      })
     );
   }
 
   async searchResources(
     organizationId: string,
     input: WorkspaceResourceSearchInput,
-    userId?: string,
+    userId?: string
   ) {
     if (input.workspaceId) {
       await this.workspaces.get(input.workspaceId, organizationId, userId);
@@ -450,18 +481,21 @@ export class AgentControlService {
     end`;
     const itemSortName = sql<string>`lower(${workspaceResourcesDb.name})`;
     const workspaceSortName = sql<string>`lower(${workspacesDb.name})`;
-    const cursor = decodeCursor(input.cursor, workspaceResourceSearchCursorSchema.parse);
+    const cursor = decodeCursor(
+      input.cursor,
+      workspaceResourceSearchCursorSchema.parse
+    );
     const filters: SQL[] = [
       workspaceAccessCondition(organizationId, userId),
       notExists(
         this.database.db
           .select({ id: workspaceResourceTrashDb.id })
           .from(workspaceResourceTrashDb)
-          .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)),
+          .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id))
       ),
       or(
         sql`${workspaceResourcesDb.name} ilike ${`%${escapedSearch}%`} escape ${escapeCharacter}`,
-        sql`${workspacesDb.name} ilike ${`%${escapedSearch}%`} escape ${escapeCharacter}`,
+        sql`${workspacesDb.name} ilike ${`%${escapedSearch}%`} escape ${escapeCharacter}`
       )!,
     ];
     if (input.workspaceId) {
@@ -491,17 +525,23 @@ export class AgentControlService {
         rank,
       })
       .from(workspaceResourcesDb)
-      .innerJoin(workspacesDb, eq(workspaceResourcesDb.workspaceId, workspacesDb.id))
+      .innerJoin(
+        workspacesDb,
+        eq(workspaceResourcesDb.workspaceId, workspacesDb.id)
+      )
       .where(and(...filters))
       .orderBy(
         asc(rank),
         asc(itemSortName),
         asc(workspaceSortName),
-        asc(workspaceResourcesDb.id),
+        asc(workspaceResourcesDb.id)
       )
       .limit(limit + 1);
 
-    const storage = await getStorageHandles(this.database.db, rows.map((row) => row.id));
+    const storage = await getStorageHandles(
+      this.database.db,
+      rows.map((row) => row.id)
+    );
     return withCloudPage(
       toPage({
         encode: (row) => ({
@@ -516,28 +556,32 @@ export class AgentControlService {
           workspaceName: row.workspaceName,
         }),
         rows: rows as WorkspaceResourceSearchRow[],
-      }),
+      })
     );
   }
 
   async listWorkspaces(
     organizationId: string,
     input: PaginationInput = {},
-    userId?: string,
+    userId?: string
   ) {
     return withCloudPage(
       await this.workspaces.list({
         ...input,
         limit: input.limit ?? 50,
-        organizationId: organizationId,
+        organizationId,
         userId,
-      }),
+      })
     );
   }
 
-  async getWorkspace(organizationId: string, workspaceId: string, userId?: string) {
+  async getWorkspace(
+    organizationId: string,
+    workspaceId: string,
+    userId?: string
+  ) {
     return withCloudProvenance(
-      await this.workspaces.get(workspaceId, organizationId, userId),
+      await this.workspaces.get(workspaceId, organizationId, userId)
     );
   }
 
@@ -545,10 +589,10 @@ export class AgentControlService {
     organizationId: string,
     workspaceId: string,
     resourceId: string,
-    userId?: string,
+    userId?: string
   ) {
     return withCloudProvenance(
-      await this.items.get(resourceId, workspaceId, organizationId, userId),
+      await this.items.get(resourceId, workspaceId, organizationId, userId)
     );
   }
 
@@ -564,7 +608,7 @@ export class AgentControlService {
         params.input,
         params.workspaceId,
         params.organizationId,
-        params.actorId,
+        params.actorId
       );
     }
     return this.database.db.transaction(async (tx) => {
@@ -574,7 +618,7 @@ export class AgentControlService {
           params.workspaceId,
           params.organizationId,
           params.actorId,
-          "write",
+          "write"
         );
         if (!params.input.parentId) {
           throw new NotFoundException("Parent workspace resource not found");
@@ -588,9 +632,9 @@ export class AgentControlService {
               eq(workspaceResourcesDb.workspaceId, params.workspaceId),
               eq(
                 workspaceResourcesDb.resourceTypeId,
-                params.expectedParentResourceTypeId,
-              ),
-            ),
+                params.expectedParentResourceTypeId
+              )
+            )
           )
           .limit(1);
         if (!parent) {
@@ -602,7 +646,7 @@ export class AgentControlService {
         params.input,
         params.workspaceId,
         params.organizationId,
-        params.actorId,
+        params.actorId
       );
     });
   }
@@ -611,20 +655,20 @@ export class AgentControlService {
     organizationId: string,
     workspaceId: string,
     storageId: string,
-    userId?: string,
+    userId?: string
   ) {
     const slot = await this.resolveStorage(
       organizationId,
       workspaceId,
       storageId,
       "yjs",
-      userId,
+      userId
     );
     const document = await this.yjs.getJson(
       slot.backingId,
       workspaceId,
       organizationId,
-      userId,
+      userId
     );
     return {
       data: document.data,
@@ -649,7 +693,7 @@ export class AgentControlService {
       params.workspaceId,
       params.storageId,
       "yjs",
-      params.userId,
+      params.userId
     );
     const state = await this.yjs.getState({
       documentId: slot.backingId,
@@ -672,14 +716,14 @@ export class AgentControlService {
     organizationId: string,
     workspaceId: string,
     storageId: string,
-    userId?: string,
+    userId?: string
   ) {
     const slot = await this.resolveStorage(
       organizationId,
       workspaceId,
       storageId,
       "key-value",
-      userId,
+      userId
     );
     const items = await this.database.db
       .select({
@@ -691,8 +735,8 @@ export class AgentControlService {
       .where(
         and(
           eq(workspaceStorageValuesDb.workspaceId, workspaceId),
-          eq(workspaceStorageValuesDb.storageId, storageId),
-        ),
+          eq(workspaceStorageValuesDb.storageId, storageId)
+        )
       )
       .orderBy(asc(workspaceStorageValuesDb.key));
     return withCloudProvenance({
@@ -709,17 +753,17 @@ export class AgentControlService {
     organizationId: string,
     workspaceId: string,
     storageId: string,
-    userId?: string,
+    userId?: string
   ) {
     const slot = await this.resolveStorage(
       organizationId,
       workspaceId,
       storageId,
       "file",
-      userId,
+      userId
     );
     const metadata = fileStorageMetadataSchema.safeParse(
-      parseJson(slot.metadata),
+      parseJson(slot.metadata)
     );
     if (!metadata.success) {
       throw new BadRequestException("File storage metadata is invalid");
@@ -729,23 +773,23 @@ export class AgentControlService {
         fileExtension: metadata.data.fileExtension,
         fileId: slot.backingId,
         filename: metadata.data.filename,
-        organizationId: organizationId,
+        organizationId,
         workspaceId,
         userId,
-      }),
+      })
     );
   }
 
   async previewWorkspace(
     organizationId: string,
     workspaceId: string,
-    actorId: string,
+    actorId: string
   ) {
     const snapshot = await this.workspaceSnapshot(
       organizationId,
       workspaceId,
       undefined,
-      actorId,
+      actorId
     );
     return this.safety.issuePreview({
       action: "delete_workspace",
@@ -784,8 +828,8 @@ export class AgentControlService {
                 params.organizationId,
                 params.workspaceId,
                 tx,
-                params.actorId,
-              ),
+                params.actorId
+              )
             ),
           previewToken: params.previewToken,
           run: async (tx) => {
@@ -797,12 +841,14 @@ export class AgentControlService {
                   workspaceAccessCondition(
                     params.organizationId,
                     params.actorId,
-                    "owner",
-                  ),
-                ),
+                    "owner"
+                  )
+                )
               )
               .returning({ id: workspacesDb.id });
-            if (!removed) throw new NotFoundException("Workspace not found");
+            if (!removed) {
+              throw new NotFoundException("Workspace not found");
+            }
             return removed;
           },
           targetId: params.workspaceId,
@@ -816,7 +862,7 @@ export class AgentControlService {
     workspaceId: string,
     resourceId: string,
     actorId: string,
-    expectedResourceTypeId?: string,
+    expectedResourceTypeId?: string
   ) {
     const snapshot = await this.resourceSnapshot(
       organizationId,
@@ -824,7 +870,7 @@ export class AgentControlService {
       resourceId,
       undefined,
       actorId,
-      expectedResourceTypeId,
+      expectedResourceTypeId
     );
     return this.safety.issuePreview({
       action: "delete_resource",
@@ -855,8 +901,8 @@ export class AgentControlService {
       key: params.idempotencyKey,
       operation: "delete_resource",
       request: params,
-      run: async () => {
-        return this.safety.executePreview({
+      run: async () =>
+        this.safety.executePreview({
           action: "delete_resource",
           actorId: params.actorId,
           fingerprint: (tx) =>
@@ -867,8 +913,8 @@ export class AgentControlService {
                 params.resourceId,
                 tx,
                 params.actorId,
-                params.expectedResourceTypeId,
-              ),
+                params.expectedResourceTypeId
+              )
             ),
           previewToken: params.previewToken,
           run: (tx) =>
@@ -878,19 +924,18 @@ export class AgentControlService {
               params.workspaceId,
               params.organizationId,
               params.actorId,
-              params.expectedResourceTypeId,
+              params.expectedResourceTypeId
             ),
           targetId: params.resourceId,
           organizationId: params.organizationId,
-        });
-      },
+        }),
     });
   }
 
   async previewRemoveMember(
     organizationId: string,
     memberId: string,
-    actorId: string,
+    actorId: string
   ) {
     const target = await this.memberSnapshot(organizationId, memberId);
     if (target.role === "owner") {
@@ -927,11 +972,11 @@ export class AgentControlService {
               const target = await this.memberSnapshot(
                 params.organizationId,
                 params.memberId,
-                tx,
+                tx
               );
               if (target.role === "owner") {
                 throw new ForbiddenException(
-                  "Organization owner cannot be removed",
+                  "Organization owner cannot be removed"
                 );
               }
               return target;
@@ -944,8 +989,8 @@ export class AgentControlService {
               .where(
                 and(
                   eq(member.id, params.memberId),
-                  eq(member.organizationId, params.organizationId),
-                ),
+                  eq(member.organizationId, params.organizationId)
+                )
               )
               .returning({ id: member.id });
             if (!target) {
@@ -956,7 +1001,10 @@ export class AgentControlService {
           targetId: params.memberId,
           organizationId: params.organizationId,
         });
-        await syncOrganizationMemberSeats(this.entitlements, params.organizationId);
+        await syncOrganizationMemberSeats(
+          this.entitlements,
+          params.organizationId
+        );
         return removed;
       },
     });
@@ -967,7 +1015,7 @@ export class AgentControlService {
     workspaceId: string,
     db: DatabaseOrTx = this.database.db,
     userId?: string,
-    expectedResourceTypeId?: string,
+    _expectedResourceTypeId?: string
   ) {
     const [workspace] = await db
       .select({ id: workspacesDb.id, updatedAt: workspacesDb.updatedAt })
@@ -975,11 +1023,13 @@ export class AgentControlService {
       .where(
         and(
           eq(workspacesDb.id, workspaceId),
-          workspaceAccessCondition(organizationId, userId, "owner"),
-        ),
+          workspaceAccessCondition(organizationId, userId, "owner")
+        )
       )
       .limit(1);
-    if (!workspace) throw new NotFoundException("Workspace not found");
+    if (!workspace) {
+      throw new NotFoundException("Workspace not found");
+    }
     const [items, documents, extensions, slots, values] = await Promise.all([
       db
         .select({
@@ -994,9 +1044,9 @@ export class AgentControlService {
               db
                 .select({ id: workspaceResourceTrashDb.id })
                 .from(workspaceResourceTrashDb)
-                .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)),
-            ),
-          ),
+                .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id))
+            )
+          )
         )
         .orderBy(asc(workspaceResourcesDb.id)),
       db
@@ -1020,12 +1070,18 @@ export class AgentControlService {
         .where(eq(workspaceExtensionsDb.workspaceId, workspaceId))
         .orderBy(asc(workspaceExtensionsDb.id)),
       db
-        .select({ id: workspaceStorageSlotsDb.id, updatedAt: workspaceStorageSlotsDb.updatedAt })
+        .select({
+          id: workspaceStorageSlotsDb.id,
+          updatedAt: workspaceStorageSlotsDb.updatedAt,
+        })
         .from(workspaceStorageSlotsDb)
         .where(eq(workspaceStorageSlotsDb.workspaceId, workspaceId))
         .orderBy(asc(workspaceStorageSlotsDb.id)),
       db
-        .select({ id: workspaceStorageValuesDb.id, updatedAt: workspaceStorageValuesDb.updatedAt })
+        .select({
+          id: workspaceStorageValuesDb.id,
+          updatedAt: workspaceStorageValuesDb.updatedAt,
+        })
         .from(workspaceStorageValuesDb)
         .where(eq(workspaceStorageValuesDb.workspaceId, workspaceId))
         .orderBy(asc(workspaceStorageValuesDb.id)),
@@ -1035,7 +1091,10 @@ export class AgentControlService {
         id: document.id,
         updatedAt: document.updatedAt.toISOString(),
       })),
-      items: items.map((item) => ({ id: item.id, updatedAt: item.updatedAt.toISOString() })),
+      items: items.map((item) => ({
+        id: item.id,
+        updatedAt: item.updatedAt.toISOString(),
+      })),
       workspaceId,
       workspaceExtensions: extensions.map((extension) => ({
         descriptorBytes: extension.descriptorBytes,
@@ -1066,7 +1125,7 @@ export class AgentControlService {
     resourceId: string,
     db: DatabaseOrTx = this.database.db,
     userId?: string,
-    expectedResourceTypeId?: string,
+    expectedResourceTypeId?: string
   ) {
     await assertWorkspaceAccess(db, workspaceId, organizationId, userId);
     const rows = await db
@@ -1084,9 +1143,9 @@ export class AgentControlService {
             db
               .select({ id: workspaceResourceTrashDb.id })
               .from(workspaceResourceTrashDb)
-              .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)),
-          ),
-        ),
+              .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id))
+          )
+        )
       );
     const target = rows.find((row) => row.id === resourceId);
     if (
@@ -1101,7 +1160,11 @@ export class AgentControlService {
     while (changed) {
       changed = false;
       for (const row of rows) {
-        if (row.parentId && included.has(row.parentId) && !included.has(row.id)) {
+        if (
+          row.parentId &&
+          included.has(row.parentId) &&
+          !included.has(row.id)
+        ) {
           included.add(row.id);
           changed = true;
         }
@@ -1118,13 +1181,13 @@ export class AgentControlService {
     workspaceId: string,
     storageId: string,
     kind: "file" | "key-value" | "yjs",
-    userId?: string,
+    userId?: string
   ) {
     await assertWorkspaceAccess(
       this.database.db,
       workspaceId,
       organizationId,
-      userId,
+      userId
     );
     const [slot] = await this.database.db
       .select({
@@ -1139,8 +1202,11 @@ export class AgentControlService {
         workspaceResourcesDb,
         and(
           eq(workspaceStorageSlotsDb.resourceId, workspaceResourcesDb.id),
-          eq(workspaceStorageSlotsDb.workspaceId, workspaceResourcesDb.workspaceId),
-        ),
+          eq(
+            workspaceStorageSlotsDb.workspaceId,
+            workspaceResourcesDb.workspaceId
+          )
+        )
       )
       .where(
         and(
@@ -1151,12 +1217,12 @@ export class AgentControlService {
             this.database.db
               .select({ id: workspaceResourceTrashDb.id })
               .from(workspaceResourceTrashDb)
-              .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)),
-          ),
-        ),
+              .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id))
+          )
+        )
       )
       .limit(1);
-    if (!slot || !slot.resourceId) {
+    if (!slot?.resourceId) {
       throw new NotFoundException(`${kind} storage not found`);
     }
     if (kind !== "key-value" && !slot.backingId) {
@@ -1172,16 +1238,18 @@ export class AgentControlService {
   private async memberSnapshot(
     organizationId: string,
     memberId: string,
-    db: DatabaseOrTx = this.database.db,
+    db: DatabaseOrTx = this.database.db
   ) {
     const [target] = await db
       .select({ id: member.id, role: member.role, userId: member.userId })
       .from(member)
       .where(
-        and(eq(member.id, memberId), eq(member.organizationId, organizationId)),
+        and(eq(member.id, memberId), eq(member.organizationId, organizationId))
       )
       .limit(1);
-    if (!target) throw new NotFoundException("Organization member not found");
+    if (!target) {
+      throw new NotFoundException("Organization member not found");
+    }
     return target;
   }
 
@@ -1236,7 +1304,9 @@ const fileStorageMetadataSchema = z.object({
 });
 
 function parseJson(value: string | null) {
-  if (!value) return {};
+  if (!value) {
+    return {};
+  }
   try {
     return JSON.parse(value) as unknown;
   } catch {

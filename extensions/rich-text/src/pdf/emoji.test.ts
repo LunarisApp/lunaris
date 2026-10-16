@@ -85,7 +85,7 @@ describe("PDF emoji source", () => {
           ],
           title: "Emoji",
         },
-      ]),
+      ])
     ).toEqual({
       "1f350": "data:image/png;base64,emoji",
       "2764-fe0f-200d-1f525": "data:image/png;base64,emoji",
@@ -99,7 +99,7 @@ describe("PDF emoji source", () => {
 
     expect(registration.builder("1f350")).toBe("data:image/png;base64,pear");
     expect(() => registration.builder("1f525")).toThrow(
-      "Missing prepared PDF emoji",
+      "Missing prepared PDF emoji"
     );
   });
 });

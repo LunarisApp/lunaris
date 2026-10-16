@@ -32,7 +32,7 @@ function updateB64(text: string) {
 
 function documentQuery(
   rows = [documentRow()],
-  lock = mock(() => Promise.resolve(rows)),
+  lock = mock(() => Promise.resolve(rows))
 ) {
   return {
     from: mock(() => ({
@@ -56,7 +56,7 @@ describe("YjsDocumentsService", () => {
     } as never);
 
     await expect(
-      service.get("foreign_yjs", "workspace_1", "org_1"),
+      service.get("foreign_yjs", "workspace_1", "org_1")
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 
@@ -85,7 +85,7 @@ describe("YjsDocumentsService", () => {
     const service = new YjsDocumentsService({
       db: {
         transaction: mock((callback: (value: typeof tx) => unknown) =>
-          callback(tx),
+          callback(tx)
         ),
       },
     } as never);
@@ -94,7 +94,7 @@ describe("YjsDocumentsService", () => {
       { initialUpdateB64: updateB64("hello") },
       "workspace_1",
       "org_1",
-      "user_1",
+      "user_1"
     );
 
     expect(result).toEqual({
@@ -131,7 +131,7 @@ describe("YjsDocumentsService", () => {
                   documentId: "yjs_1",
                   id: "update_1",
                 },
-              ]),
+              ])
             ),
           };
         }),
@@ -147,7 +147,7 @@ describe("YjsDocumentsService", () => {
     const service = new YjsDocumentsService({
       db: {
         transaction: mock((callback: (value: typeof tx) => unknown) =>
-          callback(tx),
+          callback(tx)
         ),
       },
     } as never);
@@ -166,13 +166,13 @@ describe("YjsDocumentsService", () => {
         workspaceId: "workspace_1",
         updateData: expect.any(Buffer),
         userId: "user_1",
-      }),
+      })
     );
     expect(updated).toEqual(
       expect.objectContaining({
         syncedUpdatedAt: expect.any(Date),
         updatedAt: expect.any(Date),
-      }),
+      })
     );
     expect(result).toEqual({
       createdAt: now.toISOString(),
@@ -201,7 +201,7 @@ describe("YjsDocumentsService", () => {
                   Promise.resolve([
                     { updateData: firstUpdate },
                     { updateData: secondUpdate },
-                  ]),
+                  ])
                 ),
               })),
             })),
@@ -210,8 +210,8 @@ describe("YjsDocumentsService", () => {
         return documentQuery();
       }),
     };
-    const transaction = mock(
-      (callback: (value: typeof tx) => unknown) => callback(tx),
+    const transaction = mock((callback: (value: typeof tx) => unknown) =>
+      callback(tx)
     );
     const service = new YjsDocumentsService({
       db: { transaction },
@@ -266,13 +266,13 @@ describe("YjsDocumentsService", () => {
     const service = new YjsDocumentsService({
       db: {
         transaction: mock((callback: (value: typeof tx) => unknown) =>
-          callback(tx),
+          callback(tx)
         ),
       },
     } as never);
 
     await expect(
-      service.getJson("yjs_1", "workspace_1", "org_1"),
+      service.getJson("yjs_1", "workspace_1", "org_1")
     ).resolves.toEqual({
       data: {
         assets: { payload: { $binaryB64: "AQID" } },
@@ -290,7 +290,9 @@ describe("YjsDocumentsService", () => {
       execute: mock(() => Promise.resolve()),
       select: mock(() => {
         selectCall += 1;
-        if (selectCall === 1) return documentQuery();
+        if (selectCall === 1) {
+          return documentQuery();
+        }
         return {
           from: mock(() => ({
             where: mock(() => ({
@@ -305,13 +307,13 @@ describe("YjsDocumentsService", () => {
     const service = new YjsDocumentsService({
       db: {
         transaction: mock((callback: (value: typeof tx) => unknown) =>
-          callback(tx),
+          callback(tx)
         ),
       },
     } as never);
 
     await expect(
-      service.delete("yjs_1", "workspace_1", "org_1"),
+      service.delete("yjs_1", "workspace_1", "org_1")
     ).rejects.toBeInstanceOf(ConflictException);
   });
 
@@ -326,7 +328,9 @@ describe("YjsDocumentsService", () => {
       execute: mock(() => Promise.resolve()),
       select: mock(() => {
         selectCall += 1;
-        if (selectCall === 1) return documentQuery();
+        if (selectCall === 1) {
+          return documentQuery();
+        }
         return {
           from: mock(() => ({
             where: mock(() => ({
@@ -341,13 +345,13 @@ describe("YjsDocumentsService", () => {
     const service = new YjsDocumentsService({
       db: {
         transaction: mock((callback: (value: typeof tx) => unknown) =>
-          callback(tx),
+          callback(tx)
         ),
       },
     } as never);
 
     await expect(
-      service.delete("yjs_1", "workspace_1", "org_1"),
+      service.delete("yjs_1", "workspace_1", "org_1")
     ).resolves.toEqual({ id: "yjs_1" });
     expect(tx.delete).toHaveBeenCalledWith(yjsDocumentsDb);
   });

@@ -32,18 +32,18 @@ describe("preference services", () => {
         key: "theme",
         options,
         pluginId: "acme.notes",
-      }),
+      })
     );
 
     expect(useQuery).toHaveBeenCalledWith(
       expect.stringContaining("WHERE plugin_id = ?"),
       ["acme.notes"],
-      options,
+      options
     );
     expect(useSuspenseQuery).toHaveBeenCalledWith(
       expect.stringContaining("AND key = ?"),
       ["acme.notes", "theme"],
-      options,
+      options
     );
   });
 
@@ -53,16 +53,20 @@ describe("preference services", () => {
       getOptional: vi.fn().mockResolvedValue({ key: "theme", value: "dark" }),
     };
 
-    await getPreference({ db: db as never, key: "theme", pluginId: "acme.notes" });
+    await getPreference({
+      db: db as never,
+      key: "theme",
+      pluginId: "acme.notes",
+    });
     await getAllPreferences({ db: db as never, pluginId: "acme.notes" });
 
     expect(db.getOptional).toHaveBeenCalledWith(
       expect.stringContaining("plugin_id = ? AND key = ?"),
-      ["acme.notes", "theme"],
+      ["acme.notes", "theme"]
     );
     expect(db.getAll).toHaveBeenCalledWith(
       expect.stringContaining("WHERE plugin_id = ?"),
-      ["acme.notes"],
+      ["acme.notes"]
     );
   });
 
@@ -79,7 +83,7 @@ describe("preference services", () => {
     });
     expect(insertDb.execute).toHaveBeenCalledWith(
       expect.stringContaining("INSERT INTO preferences"),
-      expect.arrayContaining(["acme.notes", "theme", "dark"]),
+      expect.arrayContaining(["acme.notes", "theme", "dark"])
     );
 
     const updateDb = {
@@ -94,7 +98,7 @@ describe("preference services", () => {
     });
     expect(updateDb.execute).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE preferences SET value = ?"),
-      ["light", "acme.notes", "theme"],
+      ["light", "acme.notes", "theme"]
     );
   });
 
@@ -113,7 +117,7 @@ describe("preference services", () => {
 
     expect(db.execute).toHaveBeenCalledWith(
       expect.stringContaining("DELETE FROM preferences"),
-      ["acme.notes", "theme"],
+      ["acme.notes", "theme"]
     );
   });
 
@@ -128,7 +132,7 @@ describe("preference services", () => {
 
     expect(db.execute).toHaveBeenCalledWith(
       expect.stringContaining("DELETE FROM preferences"),
-      ["acme.notes", "theme"],
+      ["acme.notes", "theme"]
     );
   });
 });

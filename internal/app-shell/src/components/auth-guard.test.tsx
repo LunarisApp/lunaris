@@ -85,14 +85,17 @@ vi.mock("./power-sync-boundary", () => ({
 function guardRoutes(
   initialEntry:
     | string
-    | { pathname: string; state: Record<string, unknown> } = "/",
+    | { pathname: string; state: Record<string, unknown> } = "/"
 ) {
   return (
     <MemoryRouter initialEntries={[initialEntry]}>
       <Routes>
         <Route element={<AuthGuard />}>
           <Route element={<div data-testid="outlet" />} index />
-          <Route element={<div data-testid="outlet" />} path=":organizationSlug" />
+          <Route
+            element={<div data-testid="outlet" />}
+            path=":organizationSlug"
+          />
         </Route>
       </Routes>
     </MemoryRouter>
@@ -100,9 +103,7 @@ function guardRoutes(
 }
 
 function renderGuard(
-  initialEntry?:
-    | string
-    | { pathname: string; state: Record<string, unknown> },
+  initialEntry?: string | { pathname: string; state: Record<string, unknown> }
 ) {
   return render(<StrictMode>{guardRoutes(initialEntry)}</StrictMode>);
 }
@@ -111,10 +112,7 @@ function createOrganization(id: string, slug = id) {
   return { id, name: slug, slug };
 }
 
-function createSession(
-  userId: string,
-  activeOrganizationId: string | null,
-) {
+function createSession(userId: string, activeOrganizationId: string | null) {
   return {
     session: { activeOrganizationId },
     user: {
@@ -177,7 +175,7 @@ describe("AuthGuard routing", () => {
     renderGuard();
 
     await waitFor(() =>
-      expect(refetchActiveOrganization).toHaveBeenCalledTimes(1),
+      expect(refetchActiveOrganization).toHaveBeenCalledTimes(1)
     );
     expect(listOrganizations).toHaveBeenCalledTimes(1);
     expect(setActiveOrganization).toHaveBeenCalledTimes(1);
@@ -196,7 +194,7 @@ describe("AuthGuard routing", () => {
         () =>
           new Promise((resolve) => {
             finishFirstList = resolve;
-          }),
+          })
       )
       .mockResolvedValue({
         data: [createOrganization("org-2", "second")],
@@ -222,7 +220,7 @@ describe("AuthGuard routing", () => {
     await waitFor(() =>
       expect(setActiveOrganization).toHaveBeenCalledWith({
         organizationId: "org-2",
-      }),
+      })
     );
     finishFirstList?.({
       data: [createOrganization("org-1", "first")],
@@ -275,8 +273,12 @@ describe("AuthGuard routing", () => {
     const rendered = renderGuard();
 
     expect(rendered.getByTestId("loader")).toBeTruthy();
-    expect(await rendered.findByRole("button", { name: "common.retry" })).toBeTruthy();
-    expect(refetchSession).toHaveBeenCalledWith({ query: { disableCookieCache: true } });
+    expect(
+      await rendered.findByRole("button", { name: "common.retry" })
+    ).toBeTruthy();
+    expect(refetchSession).toHaveBeenCalledWith({
+      query: { disableCookieCache: true },
+    });
     expect(refetchActiveOrganization).toHaveBeenCalled();
     expect(rendered.queryByTestId("loader")).toBeNull();
   });
@@ -311,7 +313,7 @@ describe("AuthGuard routing", () => {
     const rendered = renderGuard();
 
     expect(
-      await rendered.findByRole("button", { name: "common.retry" }),
+      await rendered.findByRole("button", { name: "common.retry" })
     ).toBeTruthy();
     expect(logout).not.toHaveBeenCalled();
     expect(rendered.queryByTestId("power-sync")).toBeNull();

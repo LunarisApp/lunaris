@@ -8,7 +8,8 @@ import type { WorkspaceResourcesMap } from "../types";
 import { useWorkspaceTreeNavigationState } from "./use-workspace-tree-navigation-state";
 
 function createResource(
-  overrides: Partial<WorkspaceResourceEntity> & Pick<WorkspaceResourceEntity, "id">
+  overrides: Partial<WorkspaceResourceEntity> &
+    Pick<WorkspaceResourceEntity, "id">
 ): WorkspaceResourceEntity {
   return {
     created_at: "",
@@ -51,7 +52,10 @@ describe("useWorkspaceTreeNavigationState", () => {
     } as unknown as TreeInstance<WorkspaceResourceEntity>;
     const view = renderHook(
       ({ resourcesMap }) =>
-        useWorkspaceTreeNavigationState({ resourcesMap, workspaceId: "workspace-1" }),
+        useWorkspaceTreeNavigationState({
+          resourcesMap,
+          workspaceId: "workspace-1",
+        }),
       { initialProps: { resourcesMap: new Map() as WorkspaceResourcesMap } }
     );
 
@@ -65,7 +69,10 @@ describe("useWorkspaceTreeNavigationState", () => {
       resourcesMap: new Map([
         [
           "folder-new",
-          createResource({ id: "folder-new", resource_type_id: "lunaris.folder" }),
+          createResource({
+            id: "folder-new",
+            resource_type_id: "lunaris.folder",
+          }),
         ],
       ]),
     });
@@ -84,9 +91,11 @@ describe("useWorkspaceTreeNavigationState", () => {
       setSelectedItems: vi.fn(),
     } as unknown as TreeInstance<WorkspaceResourceEntity>;
     const view = renderHook(
-      ({ resourcesMap }) => useWorkspaceTreeNavigationState({
-        resourcesMap, workspaceId: "workspace-1",
-      }),
+      ({ resourcesMap }) =>
+        useWorkspaceTreeNavigationState({
+          resourcesMap,
+          workspaceId: "workspace-1",
+        }),
       { initialProps: { resourcesMap: new Map() as WorkspaceResourcesMap } }
     );
     act(() => view.result.current.registerTree(tree, onOpenResource));
@@ -96,7 +105,10 @@ describe("useWorkspaceTreeNavigationState", () => {
     });
     expect(onOpenResource).not.toHaveBeenCalled();
     expect(itemInstance.startRenaming).not.toHaveBeenCalled();
-    const resource = createResource({ id: "new-board", resource_type_id: "kanban" });
+    const resource = createResource({
+      id: "new-board",
+      resource_type_id: "kanban",
+    });
     view.rerender({ resourcesMap: new Map([[resource.id, resource]]) });
     expect(onOpenResource).toHaveBeenCalledExactlyOnceWith(resource);
     expect(itemInstance.startRenaming).toHaveBeenCalledOnce();

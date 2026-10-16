@@ -35,7 +35,9 @@ export function RenameDialog({
   const [name, setName] = useState(initialName);
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) setName(initialName);
+    if (isOpen) {
+      setName(initialName);
+    }
     onOpenChange(isOpen);
   };
 

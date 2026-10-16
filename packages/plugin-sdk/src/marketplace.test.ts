@@ -54,7 +54,7 @@ function marketplace(overrides: Record<string, unknown> = {}) {
 describe("extension marketplace", () => {
   it("normalizes GitHub and generic HTTPS sources", () => {
     expect(
-      normalizeMarketplaceSource("https://github.com/Example/extensions.git/"),
+      normalizeMarketplaceSource("https://github.com/Example/extensions.git/")
     ).toEqual({
       kind: "github",
       location: "https://github.com/Example/extensions",
@@ -62,7 +62,9 @@ describe("extension marketplace", () => {
         "https://raw.githubusercontent.com/Example/extensions/HEAD/marketplace.json",
     });
     expect(
-      normalizeMarketplaceSource("https://extensions.example.com/marketplace.json"),
+      normalizeMarketplaceSource(
+        "https://extensions.example.com/marketplace.json"
+      )
     ).toEqual({
       kind: "https",
       location: "https://extensions.example.com/marketplace.json",
@@ -71,25 +73,25 @@ describe("extension marketplace", () => {
   });
 
   it("rejects unsafe or ambiguous marketplace sources", () => {
-    expect(() => normalizeMarketplaceSource("http://example.com/marketplace.json")).toThrow(
-      "must use HTTPS",
-    );
-    expect(() => normalizeMarketplaceSource("https://user@example.com/marketplace.json")).toThrow(
-      "must not include credentials",
-    );
-    expect(() => normalizeMarketplaceSource("https://github.com/example/repo/tree/main")).toThrow(
-      "one repository",
-    );
+    expect(() =>
+      normalizeMarketplaceSource("http://example.com/marketplace.json")
+    ).toThrow("must use HTTPS");
+    expect(() =>
+      normalizeMarketplaceSource("https://user@example.com/marketplace.json")
+    ).toThrow("must not include credentials");
+    expect(() =>
+      normalizeMarketplaceSource("https://github.com/example/repo/tree/main")
+    ).toThrow("one repository");
   });
 
   it("resolves relative descriptor URLs and checks compatibility", () => {
     const parsed = parseExtensionMarketplace(
       marketplace(),
-      "https://cdn.example.com/marketplace.json",
+      "https://cdn.example.com/marketplace.json"
     );
 
     expect(parsed.extensions[0]?.versions[0]?.descriptor.url).toBe(
-      "https://cdn.example.com/releases/example.calendar/1.0.0.json",
+      "https://cdn.example.com/releases/example.calendar/1.0.0.json"
     );
     expect(isMarketplaceVersionCompatible("0.7.0", version)).toBe(true);
     expect(isMarketplaceVersionCompatible("0.6.0", version)).toBe(false);
@@ -112,12 +114,12 @@ describe("extension marketplace", () => {
 
     const parsed = parseExtensionMarketplace(
       historicalMarketplace,
-      "https://cdn.example.com/marketplace.json",
+      "https://cdn.example.com/marketplace.json"
     );
 
     expect(parsed.extensions[0]?.versions[0]?.runtime.protocol).toBe(5);
     expect(isMarketplaceVersionCompatible("0.8.0", historicalVersion)).toBe(
-      false,
+      false
     );
   });
 
@@ -126,16 +128,16 @@ describe("extension marketplace", () => {
     expect(() =>
       parseExtensionMarketplace(
         marketplace({ extensions: [entry, entry] }),
-        "https://cdn.example.com/marketplace.json",
-      ),
+        "https://cdn.example.com/marketplace.json"
+      )
     ).toThrow("Duplicate extension ID");
     expect(() =>
       parseExtensionMarketplace(
         marketplace({
           extensions: [{ ...entry, versions: [version, version] }],
         }),
-        "https://cdn.example.com/marketplace.json",
-      ),
+        "https://cdn.example.com/marketplace.json"
+      )
     ).toThrow("Duplicate extension version");
   });
 
@@ -150,13 +152,16 @@ describe("extension marketplace", () => {
               versions: [
                 {
                   ...version,
-                  descriptor: { ...version.descriptor, url: "http://example.com/release.json" },
+                  descriptor: {
+                    ...version.descriptor,
+                    url: "http://example.com/release.json",
+                  },
                 },
               ],
             },
           ],
-        }),
-      ),
+        })
+      )
     ).toThrow("must use HTTPS");
   });
 
@@ -176,8 +181,8 @@ describe("extension marketplace", () => {
           },
           status: "active",
         },
-        { id: "other.plugin", version: "1.0.0" },
-      ),
+        { id: "other.plugin", version: "1.0.0" }
+      )
     ).toThrow("does not match");
   });
 
@@ -205,14 +210,14 @@ describe("extension marketplace", () => {
         status: "active",
       },
       { id: manifest.id, version: manifest.version },
-      descriptorUrl,
+      descriptorUrl
     );
 
     expect(parsed.script.url).toBe(
-      "https://raw.githubusercontent.com/example/extensions/abc123/artifacts/example.calendar/1.0.0/main.js",
+      "https://raw.githubusercontent.com/example/extensions/abc123/artifacts/example.calendar/1.0.0/main.js"
     );
     expect(parsed.icon?.url).toBe(
-      "https://raw.githubusercontent.com/example/extensions/abc123/artifacts/example.calendar/1.0.0/icon.png",
+      "https://raw.githubusercontent.com/example/extensions/abc123/artifacts/example.calendar/1.0.0/icon.png"
     );
   });
 
@@ -233,8 +238,8 @@ describe("extension marketplace", () => {
           status: "active",
         },
         { id: manifest.id, version: manifest.version },
-        "https://cdn.example.com/release.json",
-      ),
+        "https://cdn.example.com/release.json"
+      )
     ).toThrow("asset URL must use HTTPS");
   });
 });

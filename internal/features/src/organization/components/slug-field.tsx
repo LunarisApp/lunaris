@@ -31,13 +31,19 @@ export function SlugField({ slug }: SlugFieldProps) {
   const changed = value !== slug;
   const error =
     changed && !isValid
-      ? t(value.trim() ? "organization.slugInvalid" : "organization.slugRequired")
+      ? t(
+          value.trim()
+            ? "organization.slugInvalid"
+            : "organization.slugRequired"
+        )
       : null;
   const errorId = useId();
   const hintId = useId();
 
   const handleBlur = async () => {
-    if (!canUpdate || !activeOrg || !changed) return;
+    if (!(canUpdate && activeOrg && changed)) {
+      return;
+    }
     if (!isValid) {
       toast.error(t("organization.slugInvalid"));
       setValue(slug);
@@ -86,7 +92,7 @@ export function SlugField({ slug }: SlugFieldProps) {
       <p className="text-muted-foreground text-xs" id={hintId}>
         {t("organization.slugHint")}
       </p>
-      {error && (
+      {!!error && (
         <p className="text-destructive text-xs" id={errorId} role="alert">
           {error}
         </p>

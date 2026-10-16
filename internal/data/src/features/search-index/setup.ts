@@ -14,7 +14,7 @@ const TRIGGERS = [
 
 /** Creates host-owned local FTS storage after PowerSync initializes SQLite. */
 export async function configureSearchIndex(
-  db: AbstractPowerSyncDatabase,
+  db: AbstractPowerSyncDatabase
 ): Promise<void> {
   await db.execute(`
     CREATE TABLE IF NOT EXISTS ${SEARCH_INDEX_METADATA_TABLE} (
@@ -25,13 +25,13 @@ export async function configureSearchIndex(
 
   const stored = await db.getOptional<{ value: string }>(
     `SELECT value FROM ${SEARCH_INDEX_METADATA_TABLE} WHERE key = ?`,
-    ["schema_version"],
+    ["schema_version"]
   );
   const existingObjects = await db.getAll<{ name: string; type: string }>(
     `SELECT name, type FROM sqlite_master
      WHERE (type = 'table' AND name IN (?, ?))
        OR (type = 'trigger' AND name IN (?, ?, ?))`,
-    [SEARCH_INDEX_ENTRIES_TABLE, SEARCH_INDEX_FTS_TABLE, ...TRIGGERS],
+    [SEARCH_INDEX_ENTRIES_TABLE, SEARCH_INDEX_FTS_TABLE, ...TRIGGERS]
   );
   const existingNames = new Set(existingObjects.map(({ name }) => name));
   const resetEntries = stored?.value !== SEARCH_INDEX_SCHEMA_VERSION;
@@ -67,11 +67,11 @@ export async function configureSearchIndex(
     `);
     await tx.execute(
       `CREATE INDEX IF NOT EXISTS search_index_entries_organization_resource
-       ON ${SEARCH_INDEX_ENTRIES_TABLE}(organization_id, resource_id)`,
+       ON ${SEARCH_INDEX_ENTRIES_TABLE}(organization_id, resource_id)`
     );
     await tx.execute(
       `CREATE INDEX IF NOT EXISTS search_index_entries_indexer
-       ON ${SEARCH_INDEX_ENTRIES_TABLE}(organization_id, indexer_id)`,
+       ON ${SEARCH_INDEX_ENTRIES_TABLE}(organization_id, indexer_id)`
     );
 
     await tx.execute(`
@@ -109,12 +109,12 @@ export async function configureSearchIndex(
 
     if (rebuild) {
       await tx.execute(
-        `INSERT INTO ${SEARCH_INDEX_FTS_TABLE}(${SEARCH_INDEX_FTS_TABLE}) VALUES ('rebuild')`,
+        `INSERT INTO ${SEARCH_INDEX_FTS_TABLE}(${SEARCH_INDEX_FTS_TABLE}) VALUES ('rebuild')`
       );
       await tx.execute(
         `INSERT INTO ${SEARCH_INDEX_METADATA_TABLE}(key, value) VALUES (?, ?)
          ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
-        ["schema_version", SEARCH_INDEX_SCHEMA_VERSION],
+        ["schema_version", SEARCH_INDEX_SCHEMA_VERSION]
       );
     }
   });

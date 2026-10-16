@@ -87,13 +87,13 @@ describe("isResourceTypeIconLoading", () => {
       isResourceTypeIconLoading({
         ...runtime,
         resourceTypeId: "lunaris.kanban",
-      }),
+      })
     ).toBe(true);
     expect(
       isResourceTypeIconLoading({
         ...runtime,
         resourceTypeId: "lunaris.kanban.task",
-      }),
+      })
     ).toBe(true);
   });
 
@@ -103,14 +103,14 @@ describe("isResourceTypeIconLoading", () => {
         enabledExtensionIds: [],
         extensionAvailability: {},
         resourceTypeId: "acme.uninstalled",
-      }),
+      })
     ).toBe(false);
     expect(
       isResourceTypeIconLoading({
         enabledExtensionIds: ["acme.failed"],
         extensionAvailability: { "acme.failed": "load-failure" },
         resourceTypeId: "acme.failed",
-      }),
+      })
     ).toBe(false);
   });
 });
@@ -130,8 +130,9 @@ describe("resolveWorkspaceResourceIcon", () => {
       id: "a",
       resource_type_id: "lunaris.rich-text",
     });
-    expect(resolveWorkspaceResourceIcon({ resourceIcon: UserAccountIcon, item }))
-      .toBe(UserAccountIcon);
+    expect(
+      resolveWorkspaceResourceIcon({ resourceIcon: UserAccountIcon, item })
+    ).toBe(UserAccountIcon);
   });
 
   it("returns undefined while an enabled extension resource type loads", () => {
@@ -139,8 +140,9 @@ describe("resolveWorkspaceResourceIcon", () => {
       id: "a",
       resource_type_id: "lunaris.rich-text",
     });
-    expect(resolveWorkspaceResourceIcon({ item, resourceIconLoading: true }))
-      .toBeUndefined();
+    expect(
+      resolveWorkspaceResourceIcon({ item, resourceIconLoading: true })
+    ).toBeUndefined();
   });
 
   it("uses unknown icon when an extension resource type is unavailable", () => {
@@ -178,9 +180,7 @@ describe("getAncestorPath", () => {
   });
 
   it("returns single-item path for top-level doc", () => {
-    const map = makeMap([
-      { id: "doc", parent_id: null, name: "Doc" },
-    ]);
+    const map = makeMap([{ id: "doc", parent_id: null, name: "Doc" }]);
     const path = getAncestorPath(map, "doc");
     expect(path).toHaveLength(1);
     expect(path[0]?.id).toBe("doc");

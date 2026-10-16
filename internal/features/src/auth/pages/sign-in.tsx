@@ -1,15 +1,15 @@
 import { Badge } from "@lunarisapp/ui/components/badge";
 import { Button } from "@lunarisapp/ui/components/button";
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from "@lunarisapp/ui/components/field";
+import { Field, FieldError, FieldLabel } from "@lunarisapp/ui/components/field";
 import { useForm, zodResolver } from "@lunarisapp/ui/components/form";
 import { Input } from "@lunarisapp/ui/components/input";
 import { Separator } from "@lunarisapp/ui/components/separator";
 import { Spinner } from "@lunarisapp/ui/components/spinner";
-import { AnonymousIcon, ArrowRight01Icon, HugeiconsIcon } from "@lunarisapp/ui/icons";
+import {
+  AnonymousIcon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+} from "@lunarisapp/ui/icons";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,7 +20,7 @@ import {
   useSearchParams,
 } from "react-router";
 import { toast } from "sonner";
-import { object, string, z } from "zod";
+import { object, string, type z } from "zod";
 import { useRegion } from "../../region";
 import { AuthLayout } from "../components/auth-layout";
 import { SsoButtons } from "../components/sso-buttons";
@@ -56,7 +56,9 @@ export default function SignInPage({
   const logoutPending = isLogoutNavigationState(location.state);
 
   useEffect(() => {
-    if (session || !logoutPending) return;
+    if (session || !logoutPending) {
+      return;
+    }
     navigate(`${location.pathname}${location.search}${location.hash}`, {
       replace: true,
       state: null,
@@ -77,20 +79,15 @@ export default function SignInPage({
   return <AuthForm onAnonymousSessionCreated={onAnonymousSessionCreated} />;
 }
 
-function AuthForm({
-  onAnonymousSessionCreated,
-}: SignInPageProps) {
+function AuthForm({ onAnonymousSessionCreated }: SignInPageProps) {
   const { t } = useTranslation();
   const auth = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { selectionRequired, manifest } = useRegion();
   const signupsAllowed = manifest?.signupsAllowed !== false;
-  const {
-    isAddingAccount,
-    pathWithRedirect,
-    resolvedRedirectTo,
-  } = useAuthRedirect();
+  const { isAddingAccount, pathWithRedirect, resolvedRedirectTo } =
+    useAuthRedirect();
   const [searchParams] = useSearchParams();
   const [guestLoading, setGuestLoading] = useState(false);
   const [ssoLoading, setSsoLoading] = useState(false);
@@ -122,7 +119,9 @@ function AuthForm({
     setGuestLoading(true);
     try {
       const { data, error } = await auth.signIn.anonymous();
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       onAnonymousSessionCreated?.();
       posthog.capture("auth_sign_in", { method: "anonymous" });
       if (isAddingAccount && data?.user.id) {
@@ -163,7 +162,9 @@ function AuthForm({
 
   return (
     <AuthLayout
-      description={t(signupsAllowed ? "auth.description" : "auth.registrationDisabled")}
+      description={t(
+        signupsAllowed ? "auth.description" : "auth.registrationDisabled"
+      )}
       regionControl="full"
       title={t("auth.title")}
     >
@@ -190,7 +191,7 @@ function AuthForm({
               />
               {lastLoginMethod === "email" ? (
                 <Badge
-                  className="pointer-events-none absolute right-12 top-0 -translate-y-1/2"
+                  className="pointer-events-none absolute top-0 right-12 -translate-y-1/2"
                   data-testid="auth-last-used-email"
                   variant="secondary"
                 >
@@ -199,7 +200,7 @@ function AuthForm({
               ) : null}
               <Button
                 aria-label={t("auth.continueWithEmail")}
-                className="absolute right-1 top-1 size-9"
+                className="absolute top-1 right-1 size-9"
                 data-testid="auth-entry-email-submit"
                 disabled={formDisabled || !isValid}
                 size="icon-lg"
@@ -221,30 +222,34 @@ function AuthForm({
           </Field>
         </form>
       </div>
-      {signupsAllowed && <>
-      <div
-        className="my-4 flex items-center gap-3"
-        data-testid="auth-entry-divider"
-      >
-        <Separator className="flex-1" />
-        <span className="text-muted-foreground text-sm">{t("auth.or")}</span>
-        <Separator className="flex-1" />
-      </div>
-      <Button
-        className="h-11 w-full"
-        data-testid="auth-entry-guest"
-        disabled={formDisabled}
-        onClick={handleContinueAsGuest}
-        variant="outline"
-      >
-        {guestLoading ? (
-          <Spinner className="size-5" />
-        ) : (
-          <HugeiconsIcon aria-hidden="true" icon={AnonymousIcon} />
-        )}
-        {t("auth.continueAsGuest")}
-      </Button>
-      </>}
+      {signupsAllowed && (
+        <>
+          <div
+            className="my-4 flex items-center gap-3"
+            data-testid="auth-entry-divider"
+          >
+            <Separator className="flex-1" />
+            <span className="text-muted-foreground text-sm">
+              {t("auth.or")}
+            </span>
+            <Separator className="flex-1" />
+          </div>
+          <Button
+            className="h-11 w-full"
+            data-testid="auth-entry-guest"
+            disabled={formDisabled}
+            onClick={handleContinueAsGuest}
+            variant="outline"
+          >
+            {guestLoading ? (
+              <Spinner className="size-5" />
+            ) : (
+              <HugeiconsIcon aria-hidden="true" icon={AnonymousIcon} />
+            )}
+            {t("auth.continueAsGuest")}
+          </Button>
+        </>
+      )}
     </AuthLayout>
   );
 }

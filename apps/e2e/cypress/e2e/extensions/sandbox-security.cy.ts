@@ -21,8 +21,11 @@ describe("extensions/sandbox security", () => {
     cy.window().then(
       (hostWindow) =>
         new Promise<void>((resolve, reject) => {
-          hostWindow.document.cookie = "lunaris_sandbox_secret=host; SameSite=Lax";
-          Object.assign(hostWindow, { __LUNARIS_SANDBOX_HOST_SECRET__: "host" });
+          hostWindow.document.cookie =
+            "lunaris_sandbox_secret=host; SameSite=Lax";
+          Object.assign(hostWindow, {
+            __LUNARIS_SANDBOX_HOST_SECRET__: "host",
+          });
 
           const script = `
             const blocked = (run) => { try { run(); return false; } catch { return true; } };
@@ -87,11 +90,11 @@ describe("extensions/sandbox security", () => {
             'if(origin!=="null")throw new Error("Sandbox bootstrap requires an opaque origin");const decode=id=>Uint8Array.from(atob(document.getElementById(id)?.textContent||""),value=>value.charCodeAt(0));const style=document.createElement("style");style.textContent=new TextDecoder().decode(decode("lunaris-plugin-style"));document.head.append(style);const scriptUrl=URL.createObjectURL(new Blob([decode("lunaris-plugin-script")],{type:"text/javascript"}));const script=document.createElement("script");script.src=scriptUrl;script.onload=script.onerror=()=>URL.revokeObjectURL(scriptUrl);document.head.append(script);';
           const scriptBase64 = hostWindow.btoa(script);
           const styleBase64 = hostWindow.btoa(
-            "body{background:rgb(255,0,0)!important}",
+            "body{background:rgb(255,0,0)!important}"
           );
           const html = `<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg='; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; worker-src blob:; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'"><script type="application/octet-stream" id="lunaris-plugin-script">${scriptBase64}</script><script type="application/octet-stream" id="lunaris-plugin-style">${styleBase64}</script><script>${bootstrap}</script>`;
           const documentUrl = hostWindow.URL.createObjectURL(
-            new hostWindow.Blob([html], { type: "text/html" }),
+            new hostWindow.Blob([html], { type: "text/html" })
           );
           const iframe = hostWindow.document.createElement("iframe");
           iframe.setAttribute("allow", "");
@@ -100,7 +103,7 @@ describe("extensions/sandbox security", () => {
 
           const timeout = hostWindow.setTimeout(
             () => reject(new Error("Sandbox security fixture timed out")),
-            5_000,
+            5000
           );
           const cleanup = () => {
             hostWindow.clearTimeout(timeout);
@@ -108,9 +111,9 @@ describe("extensions/sandbox security", () => {
             iframe.remove();
             hostWindow.URL.revokeObjectURL(documentUrl);
           };
-          const receive = (event: MessageEvent<
-            SandboxSecurityResult & { type?: string }
-          >) => {
+          const receive = (
+            event: MessageEvent<SandboxSecurityResult & { type?: string }>
+          ) => {
             if (event.data?.type !== "lunaris-sandbox-security-result") {
               return;
             }
@@ -128,8 +131,10 @@ describe("extensions/sandbox security", () => {
                 workerExecuted: true,
                 workerFetchBlocked: true,
               });
-              expect(hostWindow.getComputedStyle(hostWindow.document.body).backgroundColor)
-                .not.to.eq("rgb(255, 0, 0)");
+              expect(
+                hostWindow.getComputedStyle(hostWindow.document.body)
+                  .backgroundColor
+              ).not.to.eq("rgb(255, 0, 0)");
               cleanup();
               resolve();
             } catch (error) {
@@ -140,7 +145,7 @@ describe("extensions/sandbox security", () => {
           hostWindow.addEventListener("message", receive);
           iframe.src = documentUrl;
           hostWindow.document.body.append(iframe);
-        }),
+        })
     );
   });
 });

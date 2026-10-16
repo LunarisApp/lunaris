@@ -40,7 +40,7 @@ export const organizationQueryKeys = {
 export function auditEventsInfiniteQueryOptions(
   api: ApiClient,
   orgId: string,
-  filters: AuditEventFilters,
+  filters: AuditEventFilters
 ) {
   return {
     getNextPageParam: (lastPage: AuditEventsListResponse) =>

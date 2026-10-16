@@ -27,8 +27,8 @@ export const useYjsRichTextEditor = ({
   };
   options?: Omit<RichTextEditorProps[0], "collaboration">;
   deps?: RichTextEditorProps[1];
-}): RichTextEditorController => {
-  return useCreateBlockNote(
+}): RichTextEditorController =>
+  useCreateBlockNote(
     withCollaboration({
       ...options,
       schema: richTextSchema,
@@ -42,12 +42,11 @@ export const useYjsRichTextEditor = ({
     }),
     [...deps, yDoc, yProvider]
   ) as RichTextEditorController;
-};
 
 // Use BlockNote cursor classes while keeping anonymous labels localized and text safe.
 function renderPresenceCursor(
   user: { name: string; color: string },
-  fallback: string,
+  fallback: string
 ) {
   const base = document.createElement("span");
   base.className = "bn-collaboration-cursor__base";

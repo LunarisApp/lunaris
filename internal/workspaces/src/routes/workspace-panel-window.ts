@@ -34,9 +34,7 @@ function reportWindowFailure(
     panelWindow: {
       failureReason: properties.failure_reason,
       operation: eventName.startsWith("panel_move") ? "move" : "open",
-      ...(properties.panel_kind
-        ? { panelKind: properties.panel_kind }
-        : {}),
+      ...(properties.panel_kind ? { panelKind: properties.panel_kind } : {}),
       ...(properties.platform ? { platform: properties.platform } : {}),
     },
     ...(properties.plugin_id || properties.renderer
@@ -115,12 +113,17 @@ export async function moveWorkspacePanelToWindow({
   try {
     descriptor = panelWindowDescriptorFromPanel(panel);
   } catch (error) {
-    return reportWindowFailure(errorMessage, "panel_move_to_window_failed", {
-      failure_reason: "invalid_descriptor",
-      platform: manager.platform,
-      plugin_id: panel.pluginId,
-      renderer: panel.renderer,
-    }, error);
+    return reportWindowFailure(
+      errorMessage,
+      "panel_move_to_window_failed",
+      {
+        failure_reason: "invalid_descriptor",
+        platform: manager.platform,
+        plugin_id: panel.pluginId,
+        renderer: panel.renderer,
+      },
+      error
+    );
   }
 
   return openWorkspacePanelWindow({
@@ -148,7 +151,6 @@ async function openWorkspacePanelWindow({
   workspacePath: string;
   successEventName: string;
 }) {
-
   let handle;
   try {
     const request = createOpenRequest({

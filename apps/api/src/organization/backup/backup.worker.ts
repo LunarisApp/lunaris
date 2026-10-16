@@ -24,17 +24,21 @@ export class BackupWorker {
     private readonly databaseService: DatabaseService,
     private readonly archiveService: ArchiveService,
     private readonly storage: StorageService,
-    @Inject(POSTHOG_CLIENT) private readonly posthog: PostHog | null,
+    @Inject(POSTHOG_CLIENT) private readonly posthog: PostHog | null
   ) {}
 
   @Interval(5000)
   async processNext() {
-    if (this.running) return;
+    if (this.running) {
+      return;
+    }
     this.running = true;
     try {
       await this.recoverExpiredLeases();
       const backup = await this.claimNext();
-      if (backup) await this.process(backup);
+      if (backup) {
+        await this.process(backup);
+      }
     } catch (error) {
       const log = createLogger({ task: "backup-poll" });
       log.error(asError(error));
@@ -57,10 +61,10 @@ export class BackupWorker {
             eq(backupExportsDb.status, "ready"),
             and(
               eq(backupExportsDb.status, "expired"),
-              isNotNull(backupExportsDb.objectKey),
-            ),
-          ),
-        ),
+              isNotNull(backupExportsDb.objectKey)
+            )
+          )
+        )
       );
 
     for (const backup of expired) {
@@ -99,8 +103,8 @@ export class BackupWorker {
         and(
           eq(backupExportsDb.status, "processing"),
           lt(backupExportsDb.leaseExpiresAt, now),
-          lt(backupExportsDb.attemptCount, MAX_ATTEMPTS),
-        ),
+          lt(backupExportsDb.attemptCount, MAX_ATTEMPTS)
+        )
       );
     await this.databaseService.db
       .update(backupExportsDb)
@@ -114,8 +118,8 @@ export class BackupWorker {
         and(
           eq(backupExportsDb.status, "processing"),
           lt(backupExportsDb.leaseExpiresAt, now),
-          eq(backupExportsDb.attemptCount, MAX_ATTEMPTS),
-        ),
+          eq(backupExportsDb.attemptCount, MAX_ATTEMPTS)
+        )
       );
   }
 
@@ -127,14 +131,16 @@ export class BackupWorker {
         .where(
           and(
             eq(backupExportsDb.status, "queued"),
-            sql`EXISTS (SELECT 1 FROM ${organization} WHERE ${organization.id} = ${backupExportsDb.organizationId} AND ${organization.deletionRequestedAt} IS NULL)`,
-          ),
+            sql`EXISTS (SELECT 1 FROM ${organization} WHERE ${organization.id} = ${backupExportsDb.organizationId} AND ${organization.deletionRequestedAt} IS NULL)`
+          )
         )
         .orderBy(asc(backupExportsDb.createdAt))
         .limit(1)
         .for("update", { skipLocked: true })
         .then((rows) => rows[0]);
-      if (!backup) return null;
+      if (!backup) {
+        return null;
+      }
 
       return tx
         .update(backupExportsDb)
@@ -166,8 +172,8 @@ export class BackupWorker {
         .where(
           and(
             eq(backupExportsDb.id, backup.id),
-            eq(backupExportsDb.status, "processing"),
-          ),
+            eq(backupExportsDb.status, "processing")
+          )
         )
         .catch(() => undefined);
     }, HEARTBEAT_INTERVAL_MS);
@@ -263,7 +269,7 @@ export class BackupWorker {
           {
             failure_code: failureCode,
             $process_person_profile: Boolean(backup.requestedByUserId),
-          },
+          }
         );
       }
     } finally {

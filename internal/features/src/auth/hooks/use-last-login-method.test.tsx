@@ -13,14 +13,14 @@ function MethodProbe() {
 
 function renderMethod(
   client: Record<string, unknown>,
-  platformKind: "desktop" | "web" = "web",
+  platformKind: "desktop" | "web" = "web"
 ) {
   return render(
     <PlatformProvider platform={createBrowserPlatform({ kind: platformKind })}>
       <AuthProvider client={client as never}>
         <MethodProbe />
       </AuthProvider>
-    </PlatformProvider>,
+    </PlatformProvider>
   );
 }
 
@@ -31,7 +31,7 @@ describe("useLastLoginMethod", () => {
       renderMethod({ getLastUsedLoginMethod: () => method });
 
       expect(screen.getByText(method)).toBeTruthy();
-    },
+    }
   );
 
   it.each(["anonymous", "passkey", "unknown", null])(
@@ -40,14 +40,14 @@ describe("useLastLoginMethod", () => {
       renderMethod({ getLastUsedLoginMethod: () => method });
 
       expect(screen.getByText("none")).toBeTruthy();
-    },
+    }
   );
 
   it("falls back to persisted Tauri cookies", async () => {
     const getCookie = vi
       .fn()
       .mockResolvedValue(
-        "lunaris.session_token=secret; lunaris.last_used_login_method=google",
+        "lunaris.session_token=secret; lunaris.last_used_login_method=google"
       );
     renderMethod({ getCookie, getLastUsedLoginMethod: () => null }, "desktop");
 
@@ -61,7 +61,7 @@ describe("useLastLoginMethod", () => {
         getCookie: vi.fn().mockRejectedValue(new Error("keychain unavailable")),
         getLastUsedLoginMethod: () => null,
       },
-      "desktop",
+      "desktop"
     );
 
     expect(await screen.findByText("none")).toBeTruthy();
@@ -80,11 +80,11 @@ describe("readLastLoginMethodCookie", () => {
   it("matches only the exact Lunaris cookie", () => {
     expect(
       readLastLoginMethodCookie(
-        "other.last_used_login_method=google; lunaris.last_used_login_method=email",
-      ),
+        "other.last_used_login_method=google; lunaris.last_used_login_method=email"
+      )
     ).toBe("email");
     expect(
-      readLastLoginMethodCookie("lunaris.last_used_login_method=passkey"),
+      readLastLoginMethodCookie("lunaris.last_used_login_method=passkey")
     ).toBeNull();
   });
 });

@@ -27,10 +27,14 @@ function performTreeAction({
   const { resourceId, kind } = action;
   const { tree, onOpenResource } = registration;
   const resource = resourcesMap.get(resourceId);
-  if (!resource) return false;
+  if (!resource) {
+    return false;
+  }
 
   const itemInstance = tree.getItemInstance(resourceId);
-  if (!itemInstance) return false;
+  if (!itemInstance) {
+    return false;
+  }
 
   tree.setSelectedItems([resourceId]);
 
@@ -55,7 +59,11 @@ function performTreeAction({
 
   if (kind === "rename") {
     itemInstance.startRenaming();
-  } else if (!isFolder(resource) && resource.resource_type_id && onOpenResource) {
+  } else if (
+    !isFolder(resource) &&
+    resource.resource_type_id &&
+    onOpenResource
+  ) {
     onOpenResource(resource);
   }
 
@@ -115,7 +123,9 @@ export function useWorkspaceTreeNavigationState({
   const navigateToResource = useCallback(
     (resourceId: string) => {
       const action = { resourceId, kind: "navigate" } as const;
-      if (treeRegistration && runAction(action, treeRegistration)) return;
+      if (treeRegistration && runAction(action, treeRegistration)) {
+        return;
+      }
       pendingActionsRef.current.push(action);
     },
     [runAction, treeRegistration]
@@ -124,14 +134,18 @@ export function useWorkspaceTreeNavigationState({
   const startRenamingResource = useCallback(
     (resourceId: string) => {
       const action = { resourceId, kind: "rename" } as const;
-      if (treeRegistration && runAction(action, treeRegistration)) return;
+      if (treeRegistration && runAction(action, treeRegistration)) {
+        return;
+      }
       pendingActionsRef.current.push(action);
     },
     [runAction, treeRegistration]
   );
 
   useEffect(() => {
-    if (treeRegistration) flushPendingAction(treeRegistration);
+    if (treeRegistration) {
+      flushPendingAction(treeRegistration);
+    }
   }, [flushPendingAction, resourcesMap, treeRegistration]);
 
   return useMemo(

@@ -51,7 +51,9 @@ const {
   };
 });
 
-vi.mock("./chunked-attachment-queue", () => ({ ChunkedAttachmentQueue: attachmentQueueMock }));
+vi.mock("./chunked-attachment-queue", () => ({
+  ChunkedAttachmentQueue: attachmentQueueMock,
+}));
 
 vi.mock("../../core", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../core")>()),
@@ -60,22 +62,22 @@ vi.mock("../../core", async (importOriginal) => ({
 
 vi.mock("../../storage/indexeddb-file-storage", () => ({
   IndexedDbFileStorageAdapter: class {
-      initialize() {
-        return initializeMock();
-      }
-      readBlob(localUri: string) {
-        return readFileMock(localUri);
-      }
-      readFile(localUri: string) {
-        return readFileMock(localUri);
-      }
-      getLocalUri(filename: string) {
-        return `indexeddb://lunaris-files-workspace_1/files/${filename}`;
-      }
-      fileExists(localUri: string) {
-        return fileExistsMock(localUri);
-      }
-    },
+    initialize() {
+      return initializeMock();
+    }
+    readBlob(localUri: string) {
+      return readFileMock(localUri);
+    }
+    readFile(localUri: string) {
+      return readFileMock(localUri);
+    }
+    getLocalUri(filename: string) {
+      return `indexeddb://lunaris-files-workspace_1/files/${filename}`;
+    }
+    fileExists(localUri: string) {
+      return fileExistsMock(localUri);
+    }
+  },
 }));
 
 interface FakeIdbRequest {
@@ -115,7 +117,9 @@ function createSuccessfulFileStorageOpen() {
     result: {
       close: vi.fn(),
       createObjectStore: vi.fn(),
-      objectStoreNames: Object.assign(["files"], { contains: vi.fn(() => true) }),
+      objectStoreNames: Object.assign(["files"], {
+        contains: vi.fn(() => true),
+      }),
       transaction: vi.fn(() => tx),
     },
   };
@@ -138,11 +142,15 @@ describe("attachment storage helpers", () => {
   });
 
   it("scopes local file storage by workspace id", () => {
-    expect(getFileStorageDatabaseName("workspace_1")).toBe("lunaris-files-workspace_1");
+    expect(getFileStorageDatabaseName("workspace_1")).toBe(
+      "lunaris-files-workspace_1"
+    );
   });
 
   it("parses valid metadata and rejects malformed values", () => {
-    expect(parseAttachmentMetadata<{ filename: string }>('{' + '"filename":"note.txt"}')).toEqual({
+    expect(
+      parseAttachmentMetadata<{ filename: string }>('{"filename":"note.txt"}')
+    ).toEqual({
       filename: "note.txt",
     });
     expect(parseAttachmentMetadata("not-json")).toBeNull();
@@ -345,7 +353,11 @@ describe("attachment storage helpers", () => {
       open: vi.fn(() => createSuccessfulFileStorageOpen()),
     });
 
-    await deleteFileStorageDatabases(["workspace_1", "workspace_2", "workspace_1"]);
+    await deleteFileStorageDatabases([
+      "workspace_1",
+      "workspace_2",
+      "workspace_1",
+    ]);
 
     expect(deleteDatabase).toHaveBeenCalledTimes(2);
     expect(deleteDatabase).toHaveBeenCalledWith("lunaris-files-workspace_1");
@@ -385,7 +397,9 @@ describe("attachment storage helpers", () => {
 
   it("handles missing IndexedDB and empty cleanup lists", async () => {
     vi.stubGlobal("indexedDB", undefined);
-    await expect(deleteFileStorageDatabases(["workspace_1"])).resolves.toBeUndefined();
+    await expect(
+      deleteFileStorageDatabases(["workspace_1"])
+    ).resolves.toBeUndefined();
 
     const deleteDatabase = vi.fn();
     vi.stubGlobal("indexedDB", { deleteDatabase });
@@ -403,13 +417,17 @@ describe("attachment storage helpers", () => {
       }),
     });
 
-    await expect(deleteFileStorageDatabases(["workspace_1"])).resolves.toBeUndefined();
+    await expect(
+      deleteFileStorageDatabases(["workspace_1"])
+    ).resolves.toBeUndefined();
   });
 
   it("creates the file store during upgrade and contains open failures", async () => {
     const upgradeRequest = createSuccessfulFileStorageOpen();
     upgradeRequest.result.objectStoreNames.contains.mockReturnValue(false);
-    queueMicrotask(() => upgradeRequest.onupgradeneeded?.(new Event("upgrade")));
+    queueMicrotask(() =>
+      upgradeRequest.onupgradeneeded?.(new Event("upgrade"))
+    );
 
     const failedRequest = createSuccessfulFileStorageOpen();
     failedRequest.error = new Error("open failed") as unknown as DOMException;
@@ -434,7 +452,9 @@ describe("attachment storage helpers", () => {
 
     await deleteFileStorageDatabases(["workspace_upgrade", "workspace_failed"]);
 
-    expect(upgradeRequest.result.createObjectStore).toHaveBeenCalledWith("files");
+    expect(upgradeRequest.result.createObjectStore).toHaveBeenCalledWith(
+      "files"
+    );
     expect(deleteDatabase).toHaveBeenCalledTimes(2);
   });
 
@@ -450,7 +470,9 @@ describe("attachment storage helpers", () => {
         }),
       })),
     };
-    transactionErrorRequest.result.transaction.mockReturnValue(transactionError);
+    transactionErrorRequest.result.transaction.mockReturnValue(
+      transactionError
+    );
 
     const transactionThrowRequest = createSuccessfulFileStorageOpen();
     transactionThrowRequest.result.transaction.mockImplementation(() => {
@@ -474,7 +496,7 @@ describe("attachment storage helpers", () => {
     vi.stubGlobal("indexedDB", { deleteDatabase, open });
 
     await expect(
-      deleteFileStorageDatabases(["workspace_tx_error", "workspace_tx_throw"]),
+      deleteFileStorageDatabases(["workspace_tx_error", "workspace_tx_throw"])
     ).resolves.toBeUndefined();
     expect(transactionErrorRequest.result.close).toHaveBeenCalled();
     expect(transactionThrowRequest.result.close).toHaveBeenCalled();
@@ -485,12 +507,27 @@ describe("attachment storage helpers", () => {
     const api = {} as never;
     const watchAttachments = vi.fn() as never;
 
-    const created = createAttachmentQueue({ api, db, workspaceId: "workspace_1", watchAttachments });
+    const created = createAttachmentQueue({
+      api,
+      db,
+      workspaceId: "workspace_1",
+      watchAttachments,
+    });
     expect(queueInstances).toHaveLength(1);
     expect(queueInstances[0]?.options).toMatchObject({ db, watchAttachments });
 
-    const first = getAttachmentQueue({ api, db, workspaceId: "workspace_1", watchAttachments });
-    const again = getAttachmentQueue({ api, db, workspaceId: "workspace_1", watchAttachments });
+    const first = getAttachmentQueue({
+      api,
+      db,
+      workspaceId: "workspace_1",
+      watchAttachments,
+    });
+    const again = getAttachmentQueue({
+      api,
+      db,
+      workspaceId: "workspace_1",
+      watchAttachments,
+    });
     const secondary = getAttachmentQueue({
       api,
       db,
@@ -503,17 +540,26 @@ describe("attachment storage helpers", () => {
     expect(created).not.toBe(first);
 
     await expect(
-      startAttachmentQueue({ api, db, workspaceId: "workspace_2", watchAttachments }),
+      startAttachmentQueue({
+        api,
+        db,
+        workspaceId: "workspace_2",
+        watchAttachments,
+      })
     ).resolves.toBe(queueInstances.at(-1));
     expect(queueInstances.at(-1)?.startSync).toHaveBeenCalledOnce();
 
     await stopAttachmentQueue({ db, workspaceId: "workspace_2" });
     expect(queueInstances.at(-1)?.stopSync).toHaveBeenCalledOnce();
-    await expect(stopAttachmentQueue({ db, workspaceId: "missing" })).resolves.toBeUndefined();
+    await expect(
+      stopAttachmentQueue({ db, workspaceId: "missing" })
+    ).resolves.toBeUndefined();
   });
 
   it("creates object URLs from local attachment bytes", async () => {
-    const urlMock = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:file");
+    const urlMock = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:file");
     readFileMock.mockResolvedValue(new ArrayBuffer(1));
 
     await expect(
@@ -529,7 +575,9 @@ describe("attachment storage helpers", () => {
 
   it("downloads local attachment bytes through a generated link", async () => {
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:file");
-    const revokeMock = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
+    const revokeMock = vi
+      .spyOn(URL, "revokeObjectURL")
+      .mockImplementation(() => undefined);
     const clickMock = vi.fn();
     const appendMock = vi
       .spyOn(document.body, "append")
@@ -556,29 +604,32 @@ describe("attachment storage helpers", () => {
     expect(revokeMock).toHaveBeenCalledWith("blob:file");
   });
 
-
-
-
-
   it("skips incomplete query downloads and downloads complete rows", async () => {
-    const missingDb = { getOptional: vi.fn().mockResolvedValue({ value: null }) };
+    const missingDb = {
+      getOptional: vi.fn().mockResolvedValue({ value: null }),
+    };
     await expect(
       downloadAttachmentFromQuery({
         db: missingDb,
         workspaceId: "workspace_1",
         query: "SELECT 1",
         queryParams: [],
-      }),
+      })
     ).resolves.toBe(false);
 
     readFileMock.mockResolvedValue(new ArrayBuffer(1));
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:file");
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
-    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(
+      () => undefined
+    );
     const db = {
       getOptional: vi.fn().mockResolvedValue({
         local_uri: "indexeddb://file",
-        value: JSON.stringify({ filename: "note.txt", mediaType: "text/plain" }),
+        value: JSON.stringify({
+          filename: "note.txt",
+          mediaType: "text/plain",
+        }),
       }),
     };
 
@@ -588,7 +639,7 @@ describe("attachment storage helpers", () => {
         workspaceId: "workspace_1",
         query: "SELECT attachment",
         queryParams: ["att_1"],
-      }),
+      })
     ).resolves.toBe(true);
   });
 
@@ -608,7 +659,7 @@ describe("attachment storage helpers", () => {
         workspaceId: "workspace_1",
         query: "SELECT attachment",
         queryParams: ["att_1"],
-      }),
+      })
     ).resolves.toBe(false);
     expect(metadataFromRow).toHaveBeenCalled();
   });
@@ -629,7 +680,7 @@ describe("attachment storage helpers", () => {
       useAttachmentQueryState<{ filename: string }>({
         query: "SELECT attachment",
         queryParams,
-      }),
+      })
     );
 
     await waitFor(() => expect(result.current.attachment).toEqual(row));
@@ -649,10 +700,12 @@ describe("attachment storage helpers", () => {
         metadataFromRow,
         query: "SELECT attachment",
         queryParams: [],
-      }),
+      })
     );
 
-    await waitFor(() => expect(result.current.metadata).toEqual({ filename: "fallback.txt" }));
+    await waitFor(() =>
+      expect(result.current.metadata).toEqual({ filename: "fallback.txt" })
+    );
     expect(result.current.attachment).toBeNull();
   });
 
@@ -681,7 +734,7 @@ describe("attachment storage helpers", () => {
           mediaType: "image/png",
           workspaceId: "workspace_1",
         }),
-      { initialProps: { attachment: first } },
+      { initialProps: { attachment: first } }
     );
     await waitFor(() => expect(result.current).toBe("blob:first"));
 
@@ -709,7 +762,11 @@ describe("attachment storage helpers", () => {
     } as never;
 
     const failed = renderHook(() =>
-      useAttachmentObjectUrl({ attachment, resourceId: "item_1", workspaceId: "workspace_1" }),
+      useAttachmentObjectUrl({
+        attachment,
+        resourceId: "item_1",
+        workspaceId: "workspace_1",
+      })
     );
     await waitFor(() => expect(readFileMock).toHaveBeenCalledOnce());
     expect(failed.result.current).toBeNull();
@@ -717,13 +774,14 @@ describe("attachment storage helpers", () => {
 
     let resolveRead: ((buffer: ArrayBuffer) => void) | undefined;
     readFileMock.mockImplementationOnce(
-      () => new Promise<ArrayBuffer>((resolve) => {
-        resolveRead = resolve;
-      }),
+      () =>
+        new Promise<ArrayBuffer>((resolve) => {
+          resolveRead = resolve;
+        })
     );
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:late");
     const pending = renderHook(() =>
-      useAttachmentObjectUrl({ attachment, workspaceId: "workspace_1" }),
+      useAttachmentObjectUrl({ attachment, workspaceId: "workspace_1" })
     );
     await waitFor(() => expect(readFileMock).toHaveBeenCalledTimes(2));
     pending.unmount();
@@ -747,12 +805,11 @@ describe("attachment storage helpers", () => {
     await expect(
       handler.onDeleteError(attachment, { statusCode: 404 })
     ).resolves.toBe(true);
-    await expect(handler.onUploadError(attachment, new Error("offline"))).resolves.toBe(true);
-    await expect(handler.onDownloadError(attachment, "offline")).resolves.toBe(true);
+    await expect(
+      handler.onUploadError(attachment, new Error("offline"))
+    ).resolves.toBe(true);
+    await expect(handler.onDownloadError(attachment, "offline")).resolves.toBe(
+      true
+    );
   });
-
-
-
-
-
 });

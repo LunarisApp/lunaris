@@ -18,14 +18,18 @@ describe("syncRequestSchema", () => {
 
   it("parses DELETE without data", () => {
     const result = syncRequestSchema.safeParse({
-      transactions: [{ crud: [{ op: "DELETE", type: "workspaces", id: "p1" }] }],
+      transactions: [
+        { crud: [{ op: "DELETE", type: "workspaces", id: "p1" }] },
+      ],
     });
     expect(result.success).toBe(true);
   });
 
   it("rejects invalid op", () => {
     const result = syncRequestSchema.safeParse({
-      transactions: [{ crud: [{ op: "UPSERT", type: "workspaces", id: "p1" }] }],
+      transactions: [
+        { crud: [{ op: "UPSERT", type: "workspaces", id: "p1" }] },
+      ],
     });
     expect(result.success).toBe(false);
   });

@@ -11,7 +11,7 @@ import { compileBlockNoteBlocks } from "./yjs-compile";
 
 function context(
   updates: string[],
-  hasStorage = true,
+  hasStorage = true
 ): PluginResourceReadContext {
   return {
     getWorkspaceResource: vi.fn(
@@ -27,11 +27,11 @@ function context(
         storage: hasStorage
           ? { content: { kind: "yjs" as const, storageId: "storage-1" } }
           : {},
-      }),
+      })
     ),
     getWorkspaceResourceChildren: vi.fn(async () => []),
     getYjsStorageUpdates: vi.fn(async () =>
-      updates.map((updateBase64) => ({ updateBase64 })),
+      updates.map((updateBase64) => ({ updateBase64 }))
     ),
     resolveResource: vi.fn(async () => ({ status: "ready" as const })),
   };
@@ -70,16 +70,16 @@ describe("BlockNote block compilation", () => {
 
   it("returns no blocks for missing storage or updates", async () => {
     await expect(
-      compileBlockNoteBlocks(context([], false), "resource-1"),
+      compileBlockNoteBlocks(context([], false), "resource-1")
     ).resolves.toEqual([]);
     await expect(
-      compileBlockNoteBlocks(context([]), "resource-1"),
+      compileBlockNoteBlocks(context([]), "resource-1")
     ).resolves.toEqual([]);
   });
 
   it("propagates invalid Yjs updates", async () => {
     await expect(
-      compileBlockNoteBlocks(context(["not base64!"]), "resource-1"),
+      compileBlockNoteBlocks(context(["not base64!"]), "resource-1")
     ).rejects.toThrow();
   });
 });

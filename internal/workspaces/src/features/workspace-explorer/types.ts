@@ -16,12 +16,17 @@ export type { WorkspaceResourceEntity };
 
 export type WorkspaceResourcesMap = Map<string, WorkspaceResourceEntity>;
 export type ChildrenMap = Map<string | null, WorkspaceResourceEntity[]>;
-export type WorkspaceResourceTrashMap = Map<string, WorkspaceResourceTrashEntity>;
+export type WorkspaceResourceTrashMap = Map<
+  string,
+  WorkspaceResourceTrashEntity
+>;
 
 export function parseResourceIcon(
   item: WorkspaceResourceEntity
 ): IconSvgObject | undefined {
-  if (!item.icon) return undefined;
+  if (!item.icon) {
+    return undefined;
+  }
   try {
     return JSON.parse(item.icon) as IconSvgObject;
   } catch {
@@ -34,12 +39,12 @@ export function isFolder(item: WorkspaceResourceEntity): boolean {
 }
 
 export function supportsResourceDuplication(
-  resource: ResourceTypeDefinition | undefined,
+  resource: ResourceTypeDefinition | undefined
 ): boolean {
-  if (!resource) return false;
-  return Object.values(resource.storage).every(
-    (slot) => slot.kind !== "file",
-  );
+  if (!resource) {
+    return false;
+  }
+  return Object.values(resource.storage).every((slot) => slot.kind !== "file");
 }
 
 export function isResourceTypeIconLoading({
@@ -57,7 +62,7 @@ export function isResourceTypeIconLoading({
     (extensionId) =>
       extensionAvailability[extensionId] === "available" &&
       (resourceTypeId === extensionId ||
-        resourceTypeId?.startsWith(`${extensionId}.`)),
+        resourceTypeId?.startsWith(`${extensionId}.`))
   );
 }
 
@@ -73,13 +78,17 @@ export function resolveWorkspaceResourceIcon({
   item: WorkspaceResourceEntity;
 }): PluginIconSource | undefined {
   const customIcon = parseResourceIcon(item);
-  if (customIcon) return customIcon;
+  if (customIcon) {
+    return customIcon;
+  }
 
   if (isFolder(item)) {
     return isExpanded ? Folder02Icon : Folder01Icon;
   }
 
-  if (item.resource_type_id && resourceIconLoading) return resourceIcon;
+  if (item.resource_type_id && resourceIconLoading) {
+    return resourceIcon;
+  }
 
   return resourceIcon ?? FileUnknownIcon;
 }

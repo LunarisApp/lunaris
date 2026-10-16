@@ -25,10 +25,7 @@ export const workspaceResourceTrashHandler: EntityHandler = {
     if (op === "PUT") {
       const workspaceId = data?.workspaceId;
       const trashRootId = data?.trashRootId;
-      if (
-        typeof workspaceId !== "string" ||
-        typeof trashRootId !== "string"
-      ) {
+      if (typeof workspaceId !== "string" || typeof trashRootId !== "string") {
         throw new BadRequestError({
           message: "Invalid resource trash marker",
           reason: "validation.failed",
@@ -41,8 +38,8 @@ export const workspaceResourceTrashHandler: EntityHandler = {
         .where(
           and(
             eq(workspaceResourcesDb.workspaceId, workspaceId),
-            eq(workspaceResourcesDb.id, id),
-          ),
+            eq(workspaceResourcesDb.id, id)
+          )
         );
       const roots = await tx
         .select({ id: workspaceResourcesDb.id })
@@ -50,8 +47,8 @@ export const workspaceResourceTrashHandler: EntityHandler = {
         .where(
           and(
             eq(workspaceResourcesDb.workspaceId, workspaceId),
-            eq(workspaceResourcesDb.id, trashRootId),
-          ),
+            eq(workspaceResourcesDb.id, trashRootId)
+          )
         );
       if (resources.length === 0 || roots.length === 0) {
         throw new BadRequestError({
@@ -68,7 +65,7 @@ export const workspaceResourceTrashHandler: EntityHandler = {
         workspaceResourceTrashDb.id,
         id,
         organizationId,
-        userId,
+        userId
       );
       const trashRootId = data?.trashRootId;
       if (typeof trashRootId !== "string") {
@@ -88,8 +85,8 @@ export const workspaceResourceTrashHandler: EntityHandler = {
             .where(
               and(
                 eq(workspaceResourcesDb.workspaceId, marker.workspaceId),
-                eq(workspaceResourcesDb.id, trashRootId),
-              ),
+                eq(workspaceResourcesDb.id, trashRootId)
+              )
             )
         : [];
       if (roots.length === 0) {
@@ -106,11 +103,13 @@ export const workspaceResourceTrashHandler: EntityHandler = {
       workspaceResourceTrashDb.id,
       id,
       organizationId,
-      userId,
+      userId
     );
   },
   prepareAudit: async (_tx, op, id, data, organizationId, userId) => {
-    if (op !== "PUT" || data?.trashRootId !== id) return undefined;
+    if (op !== "PUT" || data?.trashRootId !== id) {
+      return;
+    }
     return () =>
       recordStandaloneComplianceAudit(
         AuditActions.workspaceResourceTrashed({
@@ -124,7 +123,7 @@ export const workspaceResourceTrashHandler: EntityHandler = {
             tenantId: organizationId,
           },
         }),
-        { tenantId: organizationId },
+        { tenantId: organizationId }
       );
   },
   patch: async (tx, id, mapped) => {

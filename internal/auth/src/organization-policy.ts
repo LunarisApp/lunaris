@@ -1,9 +1,6 @@
 import { APIError } from "better-auth/api";
 import { log, parseError } from "evlog";
-import {
-  ORGANIZATION_ROLE,
-  type OrganizationRole,
-} from "./permissions";
+import { ORGANIZATION_ROLE, type OrganizationRole } from "./permissions";
 
 export const DEFAULT_YJS_RETENTION_DAYS = 7;
 
@@ -16,17 +13,17 @@ const ORGANIZATION_TYPE_IMMUTABLE = "ORGANIZATION_TYPE_IMMUTABLE";
 export interface OrganizationPlanCallbacks {
   assertCanRemoveMember?: (
     userId: string,
-    organizationId: string,
+    organizationId: string
   ) => Promise<void>;
   canCreateOwnedOrganization: (userId: string) => Promise<boolean>;
   canManageBilling: (
     userId: string,
-    organizationId: string,
+    organizationId: string
   ) => Promise<boolean>;
   getMemberLimit: (organizationId: string) => Promise<number>;
   hasMemberCapacity: (
     organizationId: string,
-    options: { includePendingInvitations: boolean },
+    options: { includePendingInvitations: boolean }
   ) => Promise<boolean>;
   hasMembers: (organizationId: string) => Promise<boolean>;
   syncMemberSeats: (organizationId: string) => Promise<void>;
@@ -36,26 +33,31 @@ export async function syncOrganizationMemberSeats(
   organizationPlans:
     | Pick<OrganizationPlanCallbacks, "syncMemberSeats">
     | undefined,
-  organizationId: string,
+  organizationId: string
 ): Promise<void> {
-  if (!organizationPlans) return;
+  if (!organizationPlans) {
+    return;
+  }
   try {
     await organizationPlans.syncMemberSeats(organizationId);
   } catch (error) {
     log.error({
-      args: [{
-        error: parseError(error),
-        organizationId,
-      }],
+      args: [
+        {
+          error: parseError(error),
+          organizationId,
+        },
+      ],
       context: "BetterAuth",
-      message: "Deferred failed organization seat sync to reconciliation worker",
+      message:
+        "Deferred failed organization seat sync to reconciliation worker",
     });
   }
 }
 
 export function applyRetentionDefaults(
   data: Record<string, unknown>,
-  mode: "create" | "update",
+  mode: "create" | "update"
 ) {
   const nextData = { ...data };
 
@@ -65,7 +67,7 @@ export function applyRetentionDefaults(
     }
   } else {
     nextData.yjsRetentionDays = normalizeYjsRetentionDays(
-      nextData.yjsRetentionDays,
+      nextData.yjsRetentionDays
     );
   }
 
@@ -82,7 +84,7 @@ function normalizeYjsRetentionDays(value: unknown) {
 }
 
 export function assertOrganizationIsJoinable(
-  organization: Record<string, unknown>,
+  organization: Record<string, unknown>
 ) {
   if (organization.isPersonal) {
     throw new APIError("BAD_REQUEST", {
@@ -112,7 +114,7 @@ function organizationRoles(role: unknown): string[] {
           .split(",")
           .map((item) => item.trim())
           .filter(Boolean)
-      : [],
+      : []
   );
 }
 
@@ -130,7 +132,9 @@ export function isOrganizationRole(value: unknown): value is OrganizationRole {
 
 function assertStandardOrganizationRole(role: unknown): OrganizationRole {
   const roles = organizationRoles(role);
-  if (roles.length === 1 && isOrganizationRole(roles[0])) return roles[0];
+  if (roles.length === 1 && isOrganizationRole(roles[0])) {
+    return roles[0];
+  }
   throw new APIError("BAD_REQUEST", {
     code: ORGANIZATION_ROLE_INVALID,
     message: "Organization role must be owner, editor, or viewer.",
@@ -138,9 +142,11 @@ function assertStandardOrganizationRole(role: unknown): OrganizationRole {
 }
 
 export function assertOrganizationTypeImmutable(
-  update: Record<string, unknown>,
+  update: Record<string, unknown>
 ): void {
-  if (!Object.hasOwn(update, "isPersonal")) return;
+  if (!Object.hasOwn(update, "isPersonal")) {
+    return;
+  }
   throw new APIError("BAD_REQUEST", {
     code: ORGANIZATION_TYPE_IMMUTABLE,
     message: "Organization type cannot be changed.",
@@ -149,11 +155,15 @@ export function assertOrganizationTypeImmutable(
 
 export function assertCanAddOrganizationRole(
   role: unknown,
-  organizationHasMembers: boolean,
+  organizationHasMembers: boolean
 ): void {
   const nextRole = assertStandardOrganizationRole(role);
-  if (nextRole !== ORGANIZATION_ROLE.owner) return;
-  if (!organizationHasMembers) return;
+  if (nextRole !== ORGANIZATION_ROLE.owner) {
+    return;
+  }
+  if (!organizationHasMembers) {
+    return;
+  }
   throw new APIError("BAD_REQUEST", {
     code: ORGANIZATION_OWNER_ROLE_RESERVED,
     message: "Organization owner role cannot be added.",
@@ -162,11 +172,13 @@ export function assertCanAddOrganizationRole(
 
 export function assertCanUpdateOrganizationRole(
   currentRole: unknown,
-  nextRole: unknown,
+  nextRole: unknown
 ): void {
   const currentIsOwner = hasOrganizationRole(currentRole, "owner");
   const next = assertStandardOrganizationRole(nextRole);
-  if (!currentIsOwner && next !== ORGANIZATION_ROLE.owner) return;
+  if (!currentIsOwner && next !== ORGANIZATION_ROLE.owner) {
+    return;
+  }
   if (currentIsOwner && next === ORGANIZATION_ROLE.owner) {
     return;
   }
@@ -177,7 +189,9 @@ export function assertCanUpdateOrganizationRole(
 }
 
 export function assertCanRemoveOrganizationMember(role: unknown): void {
-  if (!hasOrganizationRole(role, "owner")) return;
+  if (!hasOrganizationRole(role, "owner")) {
+    return;
+  }
   throw new APIError("BAD_REQUEST", {
     code: ORGANIZATION_OWNER_ROLE_RESERVED,
     message: "Organization owner cannot be removed.",
@@ -192,10 +206,12 @@ export async function assertCanAcceptOrganizationInvitation({
   organizationPlans?: OrganizationPlanCallbacks;
 }) {
   assertOrganizationIsJoinable(organization);
-  if (!organizationPlans || !organization.id) return;
+  if (!(organizationPlans && organization.id)) {
+    return;
+  }
   assertOrganizationMemberCapacity(
     await organizationPlans.hasMemberCapacity(organization.id, {
       includePendingInvitations: false,
-    }),
+    })
   );
 }

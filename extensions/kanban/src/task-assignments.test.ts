@@ -13,7 +13,9 @@ function addAssignment(
   values: Record<string, unknown>
 ) {
   const assignment = new YMap<unknown>();
-  for (const [key, value] of Object.entries(values)) assignment.set(key, value);
+  for (const [key, value] of Object.entries(values)) {
+    assignment.set(key, value);
+  }
   getTaskAssignments(doc).set(taskId, assignment);
 }
 

@@ -1,10 +1,7 @@
 import type { AbstractPowerSyncDatabase } from "@powersync/common";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Doc } from "yjs";
-import {
-  PERSISTED_YJS_UPDATE_ORIGIN,
-  YjsPowersyncProvider,
-} from "./provider";
+import { PERSISTED_YJS_UPDATE_ORIGIN, YjsPowersyncProvider } from "./provider";
 
 const mocks = vi.hoisted(() => ({
   deleteUpdates: vi.fn(),
@@ -59,7 +56,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  for (const doc of docs.splice(0)) doc.destroy();
+  for (const doc of docs.splice(0)) {
+    doc.destroy();
+  }
 });
 
 describe("YjsPowersyncProvider persistence state", () => {
@@ -147,7 +146,7 @@ describe("YjsPowersyncProvider persistence state", () => {
 
     doc.transact(
       () => doc.getText("content").insert(0, "migrated"),
-      PERSISTED_YJS_UPDATE_ORIGIN,
+      PERSISTED_YJS_UPDATE_ORIGIN
     );
 
     expect(mocks.insertUpdate).not.toHaveBeenCalled();

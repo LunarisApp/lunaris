@@ -42,7 +42,7 @@ describe("validateMcpTools", () => {
     });
 
     expect(() => validateMcpTools(listedTools, expectedTools)).toThrow(
-      "missing=[list_organizations]; extra=[unexpected_tool]",
+      "missing=[list_organizations]; extra=[unexpected_tool]"
     );
   });
 
@@ -54,7 +54,7 @@ describe("validateMcpTools", () => {
     };
 
     expect(() => validateMcpTools(listedTools, expectedTools)).toThrow(
-      "update_organization.app.lunaris/offlineAvailability expected=cloud-required actual=supported",
+      "update_organization.app.lunaris/offlineAvailability expected=cloud-required actual=supported"
     );
   });
 
@@ -69,7 +69,7 @@ describe("validateMcpTools", () => {
     };
 
     expect(() => validateMcpTools(listedTools, expectedTools)).toThrow(
-      "kanban_list_boards.app.lunaris/pluginId expected=lunaris.kanban actual=lunaris.other",
+      "kanban_list_boards.app.lunaris/pluginId expected=lunaris.kanban actual=lunaris.other"
     );
   });
 });

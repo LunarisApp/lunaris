@@ -1,9 +1,11 @@
 import { type AuditInput, defineAuditAction } from "evlog";
 
 type AuditActionFactory = {
-  (input: Omit<AuditInput, "action" | "target"> & {
-    target?: { id: string; type?: string; [key: string]: unknown };
-  }): AuditInput;
+  (
+    input: Omit<AuditInput, "action" | "target"> & {
+      target?: { id: string; type?: string; [key: string]: unknown };
+    }
+  ): AuditInput;
   readonly action: string;
   readonly target?: string;
 };
@@ -12,7 +14,7 @@ function action(
   name: string,
   target: string,
   severity: "low" | "medium" | "high" | "critical",
-  requiresChanges = false,
+  requiresChanges = false
 ): AuditActionFactory {
   return defineAuditAction(name, {
     target,
@@ -25,14 +27,14 @@ export const AuditActions = {
   accountDeletionRequested: action(
     "account.deletion.requested",
     "account",
-    "critical",
+    "critical"
   ),
   accountCreated: action("account.created", "account", "high"),
   accountDeleted: action("account.deleted", "account", "critical"),
   accountIdentityChanged: action(
     "account.identity.changed",
     "account",
-    "critical",
+    "critical"
   ),
   accountUpdated: action("account.updated", "account", "medium", true),
   aiChatRequested: action("ai.chat.requested", "organization", "high"),
@@ -44,56 +46,49 @@ export const AuditActions = {
   authPasswordResetRequested: action(
     "auth.password-reset.requested",
     "account",
-    "high",
+    "high"
   ),
   authSignedIn: action("auth.signed-in", "account", "high"),
   authSignedOut: action("auth.signed-out", "account", "medium"),
-  authSessionsRevoked: action(
-    "auth.sessions.revoked",
-    "account",
-    "critical",
-  ),
+  authSessionsRevoked: action("auth.sessions.revoked", "account", "critical"),
   authTwoFactorChanged: action(
     "auth.two-factor.changed",
     "account",
-    "critical",
+    "critical"
   ),
-  authTwoFactorVerified: action(
-    "auth.two-factor.verified",
-    "account",
-    "high",
-  ),
+  authTwoFactorVerified: action("auth.two-factor.verified", "account", "high"),
   backupCreated: action("backup.created", "organization", "critical"),
   backupDownloadUrlIssued: action(
     "backup.download-url.issued",
     "backup",
-    "critical",
+    "critical"
   ),
   billingCheckoutCreated: action(
     "billing.checkout.created",
     "organization",
-    "high",
+    "high"
   ),
-  billingPlanChanged: action("billing.plan.changed", "organization", "critical", true),
+  billingPlanChanged: action(
+    "billing.plan.changed",
+    "organization",
+    "critical",
+    true
+  ),
   billingPortalOpened: action("billing.portal.opened", "organization", "high"),
   billingSubscriptionSynchronized: action(
     "billing.subscription.synchronized",
     "subscription",
     "critical",
-    true,
+    true
   ),
-  workspaceStorageRead: action("workspace-storage.read", "workspaceStorage", "high"),
-  encryptionKeyIssued: action(
-    "encryption-key.issued",
-    "user",
-    "critical",
+  workspaceStorageRead: action(
+    "workspace-storage.read",
+    "workspaceStorage",
+    "high"
   ),
+  encryptionKeyIssued: action("encryption-key.issued", "user", "critical"),
   fileDeleted: action("file.deleted", "file", "high"),
-  fileDownloadUrlIssued: action(
-    "file.download-url.issued",
-    "file",
-    "medium",
-  ),
+  fileDownloadUrlIssued: action("file.download-url.issued", "file", "medium"),
   fileUploadCreated: action("file.upload.created", "file", "medium"),
   fileUploadResumed: action("file.upload.resumed", "file", "medium"),
   fileUploadPartSigned: action("file.upload.part-signed", "file", "medium"),
@@ -104,7 +99,7 @@ export const AuditActions = {
   oauthConsentChanged: action(
     "oauth-consent.changed",
     "oauthConsent",
-    "critical",
+    "critical"
   ),
   oauthTokenIssued: action("oauth-token.issued", "account", "high"),
   workspaceCreated: action("workspace.created", "workspace", "medium", true),
@@ -113,132 +108,166 @@ export const AuditActions = {
     "workspace-member.granted",
     "workspaceMember",
     "high",
-    true,
+    true
   ),
   workspaceMemberRevoked: action(
     "workspace-member.revoked",
     "workspaceMember",
-    "high",
+    "high"
   ),
   workspaceMemberRoleUpdated: action(
     "workspace-member.role.updated",
     "workspaceMember",
     "high",
-    true,
+    true
   ),
   workspaceOwnershipTransferred: action(
     "workspace.ownership.transferred",
     "workspace",
     "critical",
-    true,
+    true
   ),
-  workspaceResourceCreated: action("workspace-resource.created", "workspaceResource", "medium"),
-  workspaceResourceDeleted: action("workspace-resource.deleted", "workspaceResource", "high"),
-  workspaceResourceTrashed: action("workspace-resource.trashed", "workspaceResource", "high"),
-  workspaceResourceRestored: action("workspace-resource.restored", "workspaceResource", "medium"),
-  workspaceResourcePurged: action("workspace-resource.purged", "workspaceResource", "critical"),
+  workspaceResourceCreated: action(
+    "workspace-resource.created",
+    "workspaceResource",
+    "medium"
+  ),
+  workspaceResourceDeleted: action(
+    "workspace-resource.deleted",
+    "workspaceResource",
+    "high"
+  ),
+  workspaceResourceTrashed: action(
+    "workspace-resource.trashed",
+    "workspaceResource",
+    "high"
+  ),
+  workspaceResourceRestored: action(
+    "workspace-resource.restored",
+    "workspaceResource",
+    "medium"
+  ),
+  workspaceResourcePurged: action(
+    "workspace-resource.purged",
+    "workspaceResource",
+    "critical"
+  ),
   workspaceResourceAutomaticallyPurged: action(
     "workspace-resource.automatically-purged",
     "workspaceResource",
-    "high",
+    "high"
   ),
-  workspaceResourceUpdated: action("workspace-resource.updated", "workspaceResource", "medium", true),
+  workspaceResourceUpdated: action(
+    "workspace-resource.updated",
+    "workspaceResource",
+    "medium",
+    true
+  ),
   workspaceExtensionInstalled: action(
     "workspace-extension.installed",
     "workspaceExtension",
     "critical",
-    true,
+    true
   ),
   workspaceExtensionUninstalled: action(
     "workspace-extension.uninstalled",
     "workspaceExtension",
     "critical",
-    true,
+    true
   ),
   workspaceExtensionUpdated: action(
     "workspace-extension.updated",
     "workspaceExtension",
     "critical",
-    true,
+    true
   ),
   workspaceUpdated: action("workspace.updated", "workspace", "medium", true),
   syncIngested: action("sync.ingested", "organization", "medium"),
-  organizationDeletionRestored: action("organization.deletion.restored", "organization", "critical"),
+  organizationDeletionRestored: action(
+    "organization.deletion.restored",
+    "organization",
+    "critical"
+  ),
   organizationPurged: action("organization.purged", "organization", "critical"),
   organizationDeletionRequested: action(
     "organization.deletion.requested",
     "organization",
-    "critical",
+    "critical"
   ),
   organizationCreated: action("organization.created", "organization", "high"),
   organizationExtensionRegistryAdded: action(
     "organization-extension-registry.added",
     "organizationExtensionRegistry",
     "critical",
-    true,
+    true
   ),
   organizationExtensionRegistryRemoved: action(
     "organization-extension-registry.removed",
     "organizationExtensionRegistry",
     "critical",
-    true,
+    true
   ),
   organizationInvitationAccepted: action(
     "organization-invitation.accepted",
     "organizationInvitation",
-    "high",
+    "high"
   ),
   organizationInvitationRevoked: action(
     "organization-invitation.revoked",
     "organizationInvitation",
-    "high",
+    "high"
   ),
   organizationInvitationCreated: action(
     "organization-invitation.created",
     "organization",
-    "high",
+    "high"
   ),
   organizationMemberRemoved: action(
     "organization-member.removed",
     "organizationMember",
-    "critical",
+    "critical"
   ),
   organizationMemberRoleUpdated: action(
     "organization-member.role.updated",
     "organizationMember",
     "critical",
-    true,
+    true
   ),
   organizationTeamCreated: action(
     "organization-team.created",
     "organization",
     "high",
-    true,
+    true
   ),
   organizationTeamDeleted: action(
     "organization-team.deleted",
     "organizationTeam",
-    "high",
+    "high"
   ),
   organizationTeamMemberAdded: action(
     "organization-team.member-added",
     "organizationTeam",
     "high",
-    true,
+    true
   ),
   organizationTeamMemberRemoved: action(
     "organization-team.member-removed",
     "organizationTeam",
     "high",
-    true,
+    true
   ),
   organizationTeamUpdated: action(
     "organization-team.updated",
     "organizationTeam",
     "high",
-    true,
+    true
   ),
-  organizationUpdated: action("organization.updated", "organization", "high", true),
+  organizationUpdated: action(
+    "organization.updated",
+    "organization",
+    "high",
+    true
+  ),
 } as const;
 
 export type AuditActionName = keyof typeof AuditActions;
@@ -274,7 +303,8 @@ const routeActions: Readonly<Record<string, AuditActionName>> = {
   "WorkspaceMembersController.update": "workspaceMemberRoleUpdated",
   "SyncController.ingest": "syncIngested",
   "OrganizationDeletionController.restore": "organizationDeletionRestored",
-  "OrganizationDeletionController.requestDeletion": "organizationDeletionRequested",
+  "OrganizationDeletionController.requestDeletion":
+    "organizationDeletionRequested",
   "AgentControlController.createResource": "workspaceResourceCreated",
   "AgentControlController.createWorkspace": "workspaceCreated",
   "AgentControlController.deleteResource": "workspaceResourceTrashed",
@@ -292,7 +322,7 @@ const routeActions: Readonly<Record<string, AuditActionName>> = {
 
 export function routeAuditAction(
   controllerName: string,
-  handlerName: string,
+  handlerName: string
 ): AuditActionName | undefined {
   return routeActions[`${controllerName}.${handlerName}`];
 }
@@ -332,7 +362,8 @@ const authRouteActions: ReadonlyArray<{
   },
   {
     action: "passkeyChanged",
-    pattern: /\/passkey\/(?:verify-registration|delete-passkey|update-passkey)$/,
+    pattern:
+      /\/passkey\/(?:verify-registration|delete-passkey|update-passkey)$/,
   },
   {
     action: "authSignedIn",
@@ -403,7 +434,11 @@ const authRouteActions: ReadonlyArray<{
   { action: "billingPortalOpened", pattern: /\/customer\/portal$/ },
 ];
 
-export function authRouteAuditAction(path: string): AuditActionName | undefined {
-  if (!path.includes("/api/auth/")) return undefined;
+export function authRouteAuditAction(
+  path: string
+): AuditActionName | undefined {
+  if (!path.includes("/api/auth/")) {
+    return undefined;
+  }
   return authRouteActions.find(({ pattern }) => pattern.test(path))?.action;
 }

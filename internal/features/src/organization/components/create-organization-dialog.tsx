@@ -41,7 +41,9 @@ export function CreateOrganizationDialog({
   const [slugError, setSlugError] = useState<string>();
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
 
     setName("");
     setSlug("");
@@ -94,13 +96,17 @@ export function CreateOrganizationDialog({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (submitting || !trimmedName) return;
+    if (submitting || !trimmedName) {
+      return;
+    }
 
     setSubmitting(true);
 
     try {
       const slugOk = await validateSlug();
-      if (!slugOk) return;
+      if (!slugOk) {
+        return;
+      }
 
       const { data, error } = await auth.organization.create({
         keepCurrentActiveOrganization: true,
@@ -181,7 +187,9 @@ export function CreateOrganizationDialog({
               data-testid="organization-create-slug"
               id="create-organization-slug"
               onBlur={() => {
-                if (!trimmedSlug) return;
+                if (!trimmedSlug) {
+                  return;
+                }
                 void validateSlug();
               }}
               onChange={(event) => handleSlugChange(event.target.value)}

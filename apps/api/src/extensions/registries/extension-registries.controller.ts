@@ -26,7 +26,7 @@ import { ExtensionRegistriesService } from "./extension-registries.service";
 export class ExtensionRegistriesController {
   constructor(
     private readonly access: UserDataAccessService,
-    private readonly registries: ExtensionRegistriesService,
+    private readonly registries: ExtensionRegistriesService
   ) {}
 
   @RetrieveApi({
@@ -36,11 +36,11 @@ export class ExtensionRegistriesController {
   })
   async getDeveloperMode(
     @Session() session: UserSession,
-    @Param("organizationId") organizationId: string,
+    @Param("organizationId") organizationId: string
   ) {
     const organization = await this.requireOrganization(
       session,
-      organizationId,
+      organizationId
     );
     return this.registries.getDeveloperMode(organization.organizationId);
   }
@@ -54,19 +54,19 @@ export class ExtensionRegistriesController {
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
     @Body({ schema: OrganizationDeveloperModeDto })
-    body: OrganizationDeveloperModeDto,
+    body: OrganizationDeveloperModeDto
   ) {
     const organization = await this.requireOrganization(
       session,
-      organizationId,
+      organizationId
     );
     await this.registries.requireOwner(
       organization.organizationId,
-      organization.userId,
+      organization.userId
     );
     const result = await this.registries.setDeveloperMode(
       organization.organizationId,
-      body.enabled,
+      body.enabled
     );
     recordComplianceAudit(
       useLogger(),
@@ -78,7 +78,7 @@ export class ExtensionRegistriesController {
           id: organization.organizationId,
           tenantId: organization.organizationId,
         },
-      }),
+      })
     );
     return result;
   }
@@ -89,11 +89,11 @@ export class ExtensionRegistriesController {
   })
   async list(
     @Session() session: UserSession,
-    @Param("organizationId") organizationId: string,
+    @Param("organizationId") organizationId: string
   ): Promise<OrganizationExtensionRegistryDto[]> {
     const organization = await this.requireOrganization(
       session,
-      organizationId,
+      organizationId
     );
     return this.registries.list(organization.organizationId);
   }
@@ -106,20 +106,20 @@ export class ExtensionRegistriesController {
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
     @Body({ schema: AddOrganizationExtensionRegistryDto })
-    body: AddOrganizationExtensionRegistryDto,
+    body: AddOrganizationExtensionRegistryDto
   ): Promise<OrganizationExtensionRegistryDto> {
     const organization = await this.requireOrganization(
       session,
-      organizationId,
+      organizationId
     );
     await this.registries.requireOwner(
       organization.organizationId,
-      organization.userId,
+      organization.userId
     );
     const registry = await this.registries.add(
       organization.organizationId,
       body.url,
-      organization.userId,
+      organization.userId
     );
     recordComplianceAudit(
       useLogger(),
@@ -128,7 +128,7 @@ export class ExtensionRegistriesController {
         changes: { after: registry },
         outcome: "success",
         target: { id: registry.id, tenantId: organization.organizationId },
-      }),
+      })
     );
     return registry;
   }
@@ -140,19 +140,19 @@ export class ExtensionRegistriesController {
   async remove(
     @Session() session: UserSession,
     @Param({ schema: OrganizationExtensionRegistryParamsDto })
-    params: OrganizationExtensionRegistryParamsDto,
+    params: OrganizationExtensionRegistryParamsDto
   ): Promise<{ registryId: string }> {
     const organization = await this.requireOrganization(
       session,
-      params.organizationId,
+      params.organizationId
     );
     await this.registries.requireOwner(
       organization.organizationId,
-      organization.userId,
+      organization.userId
     );
     const result = await this.registries.remove(
       organization.organizationId,
-      params.registryId,
+      params.registryId
     );
     recordComplianceAudit(
       useLogger(),
@@ -164,19 +164,19 @@ export class ExtensionRegistriesController {
           id: result.registryId,
           tenantId: organization.organizationId,
         },
-      }),
+      })
     );
     return result;
   }
 
   private async requireOrganization(
     session: UserSession,
-    organizationId: string,
+    organizationId: string
   ) {
     const organization = await this.access.requireOrganization(session);
     if (organization.organizationId !== organizationId) {
       throw new ForbiddenException(
-        "Organization marketplace management is unavailable",
+        "Organization marketplace management is unavailable"
       );
     }
     return organization;

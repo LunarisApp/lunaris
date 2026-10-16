@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import {
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -29,17 +25,13 @@ function createDistributionFixture(
   temporaryDirectories.push(directory);
   writeFileSync(join(directory, assetName), contents);
   const sha256 = createHash("sha256").update(contents).digest("hex");
-  writeFileSync(
-    join(directory, "SHA256SUMS"),
-    `${sha256}  ${assetName}\n`
-  );
+  writeFileSync(join(directory, "SHA256SUMS"), `${sha256}  ${assetName}\n`);
   return directory;
 }
 
 describe("buildDistributionManifest", () => {
   test("describes a signed CLI artifact at an immutable object key", () => {
-    const assetName =
-      "lunaris-cli-1.2.3-universal-apple-darwin.zip";
+    const assetName = "lunaris-cli-1.2.3-universal-apple-darwin.zip";
     const distDirectory = createDistributionFixture(assetName);
 
     expect(

@@ -131,6 +131,7 @@ describe("resolveSyncStatus", () => {
       resolveSyncStatus({
         ...baseInput,
         connected: true,
+        // biome-ignore lint/suspicious/useErrorMessage: Blank error message is the input under test.
         uploadError: new Error("   "),
       })
     ).toEqual({

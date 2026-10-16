@@ -39,7 +39,7 @@ export interface SearchResourceTypeMetadata {
 export function getSearchableResources(
   resources: SearchableWorkspaceResource[],
   untitledWorkspaceName = "Untitled",
-  resourceTypes: ReadonlyMap<string, SearchResourceTypeMetadata> = new Map(),
+  resourceTypes: ReadonlyMap<string, SearchResourceTypeMetadata> = new Map()
 ): SearchableResource[] {
   return resources.flatMap((resource) => {
     if (
@@ -70,23 +70,23 @@ export function getSearchableResources(
 
 export function matchesResourceFilters(
   resource: SearchableResource,
-  query: ParsedSearchQuery,
+  query: ParsedSearchQuery
 ): boolean {
   return (
     matchesSearchTerms(
       [resource.workspaceName, resource.workspaceSlug],
-      getSearchTerms(query, "workspace"),
+      getSearchTerms(query, "workspace")
     ) &&
     matchesSearchTerms([resource.name], getSearchTerms(query, "title")) &&
     matchesSearchTerms(
       resource.extensionId ? [resource.extensionId] : [],
-      getSearchTerms(query, "extension"),
+      getSearchTerms(query, "extension")
     ) &&
     matchesSearchTerms(
       resource.resourceTypeName
         ? [resource.pluginId, resource.resourceTypeName]
         : [resource.pluginId],
-      getSearchTerms(query, "resource-type"),
+      getSearchTerms(query, "resource-type")
     )
   );
 }
@@ -111,13 +111,13 @@ export function getCloudContentWorkspaceIds(
 export function searchResourcesByTitle(
   resources: SearchableResource[],
   query: string,
-  options: { includeAllWhenEmpty?: boolean } = {},
+  options: { includeAllWhenEmpty?: boolean } = {}
 ): ResourceSearchResult[] {
   const parsedQuery = parseSearchQuery(query);
   const unscopedTerms = getSearchTerms(parsedQuery, null);
   const titleTerms = getSearchTerms(parsedQuery, "title");
   const resourceFilterTerms = parsedQuery.terms.filter(
-    (term) => term.field === "extension" || term.field === "resource-type",
+    (term) => term.field === "extension" || term.field === "resource-type"
   );
   const workspaceTerms = getSearchTerms(parsedQuery, "workspace");
   const isWorkspaceOnly =
@@ -136,7 +136,7 @@ export function searchResourcesByTitle(
     .filter(
       (resource) =>
         matchesResourceFilters(resource, parsedQuery) &&
-        matchesSearchTerms(resource.name ? [resource.name] : [], unscopedTerms),
+        matchesSearchTerms(resource.name ? [resource.name] : [], unscopedTerms)
     )
     .map((resource) => ({
       id: resource.resourceId,

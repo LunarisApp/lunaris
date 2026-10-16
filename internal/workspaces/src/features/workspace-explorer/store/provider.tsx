@@ -21,10 +21,7 @@ import type {
   WorkspaceResourceTrashMap,
 } from "../types";
 import { createBoundActions } from "./actions";
-import {
-  WorkspaceExplorerContext,
-  TreeNavigationContext,
-} from "./contexts";
+import { WorkspaceExplorerContext, TreeNavigationContext } from "./contexts";
 import { useWorkspaceTreeNavigationState } from "./use-workspace-tree-navigation-state";
 
 export function WorkspaceExplorerProvider({
@@ -46,7 +43,7 @@ export function WorkspaceExplorerProvider({
   );
   const { data: trash } = useWorkspaceResourceTrashSuspenseQuery(
     workspaceId,
-    itemStreams ? { streams: itemStreams } : undefined,
+    itemStreams ? { streams: itemStreams } : undefined
   );
   const db = usePowerSync();
   const api = useApi();
@@ -63,7 +60,9 @@ export function WorkspaceExplorerProvider({
       workspaceId,
     });
 
-    if (previousDebugSnapshotRef.current === snapshot) return;
+    if (previousDebugSnapshotRef.current === snapshot) {
+      return;
+    }
     previousDebugSnapshotRef.current = snapshot;
 
     log.debug({
@@ -89,12 +88,14 @@ export function WorkspaceExplorerProvider({
   }, [resources]);
   const trashMap: WorkspaceResourceTrashMap = useMemo(
     () => new Map(trash.map((entry) => [entry.id, entry])),
-    [trash],
+    [trash]
   );
 
   useEffect(() => {
     const trashedIds = [...trashMap.keys()];
-    if (trashedIds.length === 0) return;
+    if (trashedIds.length === 0) {
+      return;
+    }
     closeViewInstances(trashedIds);
     removeRecentFilesByResourceIds(workspaceId, trashedIds);
   }, [closeViewInstances, workspaceId, trashMap]);
@@ -132,7 +133,9 @@ export function WorkspaceExplorerProvider({
   );
 
   useEffect(() => {
-    if (!permissionCheck(permission.content.delete)) return;
+    if (!permissionCheck(permission.content.delete)) {
+      return;
+    }
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
@@ -157,7 +160,7 @@ export function WorkspaceExplorerProvider({
       .filter((entry) => entry.id === entry.trash_root_id && entry.purge_at)
       .reduce(
         (nearest, entry) => Math.min(nearest, Date.parse(entry.purge_at ?? "")),
-        Number.POSITIVE_INFINITY,
+        Number.POSITIVE_INFINITY
       );
     if (Number.isFinite(nearestDeadline)) {
       const scheduleNearestDeadline = () => {
@@ -168,18 +171,22 @@ export function WorkspaceExplorerProvider({
               scheduleNearestDeadline();
             }
           },
-          Math.min(Math.max(0, nearestDeadline - Date.now()), 60 * 60 * 1000),
+          Math.min(Math.max(0, nearestDeadline - Date.now()), 60 * 60 * 1000)
         );
       };
       scheduleNearestDeadline();
     }
     const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") void purgeExpired();
+      if (document.visibilityState === "visible") {
+        void purgeExpired();
+      }
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       cancelled = true;
-      if (timeoutId) clearTimeout(timeoutId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [actions, db, permissionCheck, workspaceId, trash]);

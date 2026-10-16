@@ -13,7 +13,9 @@ export function useLogout() {
   const navigate = useNavigate();
 
   return useCallback(async () => {
-    if (!authClient || !manifest) return;
+    if (!(authClient && manifest)) {
+      return;
+    }
 
     const authPath = pathWithRegion("/auth");
     const previousPath = `${location.pathname}${location.search}${location.hash}`;

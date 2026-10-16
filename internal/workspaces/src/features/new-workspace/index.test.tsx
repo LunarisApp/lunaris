@@ -7,7 +7,7 @@ import {
   type ComponentProps,
   createContext,
   forwardRef,
-  InputHTMLAttributes,
+  type InputHTMLAttributes,
   type ReactNode,
   useContext,
 } from "react";
@@ -49,7 +49,10 @@ const {
 vi.mock("@repo/features/entitlements", () => {
   class ResourceCapacityExceededError extends Error {}
   return {
-    getResourceCapacityErrorMessageKey: (error: unknown, fallbackKey: string) =>
+    getResourceCapacityErrorMessageKey: (
+      error: unknown,
+      fallbackKey: string
+    ) =>
       error instanceof ResourceCapacityExceededError
         ? "errors.reason.entitlements.resourceLimit.desc"
         : fallbackKey,
@@ -74,19 +77,17 @@ vi.mock("@repo/data/features/workspace-extensions", () => ({
   replaceWorkspaceExtensions: replaceWorkspaceExtensionsMock,
 }));
 
-vi.mock("@repo/data/features/workspaces", async () => {
-  return {
-    createWorkspace: createWorkspaceMock,
-    createWorkspaceSchema: object({
-      name: string().min(3),
-      organizationId: string(),
-      slug: string().optional(),
-      visibility: string(),
-    }),
-    workspaceSlugSchema: string().min(3),
-    useWorkspaceSlugCollision: useWorkspaceSlugCollisionMock,
-  };
-});
+vi.mock("@repo/data/features/workspaces", async () => ({
+  createWorkspace: createWorkspaceMock,
+  createWorkspaceSchema: object({
+    name: string().min(3),
+    organizationId: string(),
+    slug: string().optional(),
+    visibility: string(),
+  }),
+  workspaceSlugSchema: string().min(3),
+  useWorkspaceSlugCollision: useWorkspaceSlugCollisionMock,
+}));
 
 vi.mock("@lunarisapp/ui/brand-icons", () => ({
   Obsidian: (props: Record<string, unknown>) => (
@@ -101,17 +102,20 @@ vi.mock("@lunarisapp/ui/components/button", () => ({
 }));
 
 vi.mock("@lunarisapp/ui/components/dialog", () => ({
-  Dialog: ({
-    children,
-    open,
-  }: {
-    children: ReactNode;
-    open: boolean;
-  }) => (open ? <div>{children}</div> : null),
-  DialogContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  DialogDescription: ({ children }: { children: ReactNode }) => <p>{children}</p>,
-  DialogFooter: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  DialogHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  Dialog: ({ children, open }: { children: ReactNode; open: boolean }) =>
+    open ? <div>{children}</div> : null,
+  DialogContent: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DialogDescription: ({ children }: { children: ReactNode }) => (
+    <p>{children}</p>
+  ),
+  DialogFooter: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DialogHeader: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
   DialogTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
 }));
 
@@ -144,7 +148,9 @@ vi.mock("@lunarisapp/ui/blocks/responsive-dropdown-menu", () => ({
 }));
 
 vi.mock("@lunarisapp/ui/components/dropdown-menu", () => ({
-  DropdownMenu: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DropdownMenu: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
   DropdownMenuContent: ({ children }: { children: ReactNode }) => (
     <div>{children}</div>
   ),
@@ -164,7 +170,9 @@ vi.mock("@lunarisapp/ui/components/dropdown-menu", () => ({
   DropdownMenuShortcut: ({ children }: { children: ReactNode }) => (
     <span>{children}</span>
   ),
-  DropdownMenuTrigger: ({ render }: { render: ReactNode }) => <div>{render}</div>,
+  DropdownMenuTrigger: ({ render }: { render: ReactNode }) => (
+    <div>{render}</div>
+  ),
 }));
 
 vi.mock("@lunarisapp/ui/components/field", () => ({
@@ -176,11 +184,19 @@ vi.mock("@lunarisapp/ui/components/field", () => ({
     errors?: Array<{ message?: string } | undefined>;
     id?: string;
   }) => {
-    const messages = [...new Set(errors?.map((error) => error?.message).filter(Boolean))];
+    const messages = [
+      ...new Set(errors?.map((error) => error?.message).filter(Boolean)),
+    ];
 
-    if (!messages.length) return null;
+    if (!messages.length) {
+      return null;
+    }
 
-    return <div id={id} role="alert">{messages.join(", ")}</div>;
+    return (
+      <div id={id} role="alert">
+        {messages.join(", ")}
+      </div>
+    );
   },
   FieldLabel: ({
     children,
@@ -215,31 +231,20 @@ vi.mock("@lunarisapp/ui/components/select", () => ({
       <div>{children}</div>
     </SelectContext.Provider>
   ),
-  SelectContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  SelectItem: ({
-    children,
-    value,
-  }: {
-    children: ReactNode;
-    value: string;
-  }) => {
+  SelectContent: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
+  SelectItem: ({ children, value }: { children: ReactNode; value: string }) => {
     const context = useContext(SelectContext);
     return (
-      <button
-        onClick={() => context?.onValueChange?.(value)}
-        type="button"
-      >
+      <button onClick={() => context?.onValueChange?.(value)} type="button">
         {children}
       </button>
     );
   },
-  SelectTrigger: ({
-    children,
-    id,
-  }: {
-    children: ReactNode;
-    id?: string;
-  }) => <div id={id}>{children}</div>,
+  SelectTrigger: ({ children, id }: { children: ReactNode; id?: string }) => (
+    <div id={id}>{children}</div>
+  ),
   SelectValue: ({
     children,
     placeholder,
@@ -296,10 +301,12 @@ vi.mock("react-i18next", () => ({
           "workspaces.createWorkspace": "Create Workspace",
           "workspaces.creating": "Creating...",
           "workspaces.importFailed": "Import failed",
-          "errors.reason.entitlements.resourceLimit.desc": "Upgrade to add more items",
+          "errors.reason.entitlements.resourceLimit.desc":
+            "Upgrade to add more items",
           "workspaces.importFolder": "Folder",
           "workspaces.importFromObsidian": "Import from Obsidian",
-          "workspaces.importFromObsidianDescription": "Import a Markdown folder",
+          "workspaces.importFromObsidianDescription":
+            "Import a Markdown folder",
           "workspaces.importWorkspace": "Import Workspace",
           "workspaces.importing": "Importing...",
           "workspaces.noFolderSelected": "No folder selected",
@@ -321,7 +328,8 @@ vi.mock("react-i18next", () => ({
             "Cloud sync is not available for this account. New workspaces stay local.",
           "workspaces.workspaceSlug": "Slug",
           "workspaces.workspaceSlugPlaceholder": "my-workspace",
-          "workspaces.workspaceSlugTaken": "Slug already exists in this organization",
+          "workspaces.workspaceSlugTaken":
+            "Slug already exists in this organization",
         } as Record<string, string>
       )[key];
     },
@@ -330,11 +338,7 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("../extensions/extension-registry-context", () => ({
   useExtensionRegistry: () => ({
-    allExtensionIds: [
-      "lunaris.rich-text",
-      "lunaris.kanban",
-      "lunaris.file",
-    ],
+    allExtensionIds: ["lunaris.rich-text", "lunaris.kanban", "lunaris.file"],
   }),
 }));
 
@@ -453,8 +457,11 @@ describe("ImportObsidianWorkspaceDialog", () => {
     );
 
     expect(
-      (screen.getByRole("button", { name: "Import Workspace" }) as HTMLButtonElement)
-        .disabled
+      (
+        screen.getByRole("button", {
+          name: "Import Workspace",
+        }) as HTMLButtonElement
+      ).disabled
     ).toBe(true);
 
     await user.click(screen.getByRole("button", { name: "Choose folder" }));
@@ -469,7 +476,10 @@ describe("ImportObsidianWorkspaceDialog", () => {
 
     await waitFor(() => {
       expect(importObsidianWorkspaceMock).toHaveBeenCalledWith({
-        allExtensionIds: expect.arrayContaining(["lunaris.rich-text", "lunaris.file"]),
+        allExtensionIds: expect.arrayContaining([
+          "lunaris.rich-text",
+          "lunaris.file",
+        ]),
         data: {
           name: "My Vault",
           organizationId: "org_1",
@@ -497,7 +507,9 @@ describe("ImportObsidianWorkspaceDialog", () => {
 
   it("preflights item capacity before importing", async () => {
     const user = userEvent.setup();
-    reserveResourceCapacityMock.mockRejectedValue(new ResourceCapacityExceededError(25));
+    reserveResourceCapacityMock.mockRejectedValue(
+      new ResourceCapacityExceededError(25)
+    );
 
     render(
       <ImportObsidianWorkspaceDialog
@@ -513,7 +525,9 @@ describe("ImportObsidianWorkspaceDialog", () => {
     );
     await user.click(screen.getByRole("button", { name: "Import Workspace" }));
 
-    await waitFor(() => expect(reserveResourceCapacityMock).toHaveBeenCalledWith(3));
+    await waitFor(() =>
+      expect(reserveResourceCapacityMock).toHaveBeenCalledWith(3)
+    );
     expect(importObsidianWorkspaceMock).not.toHaveBeenCalled();
     expect(toastErrorMock).toHaveBeenCalledWith("Upgrade to add more items");
   });
@@ -542,18 +556,21 @@ describe("ImportObsidianWorkspaceDialog", () => {
       ).toBeTruthy();
     });
     expect(screen.getByLabelText("Slug").getAttribute("aria-invalid")).toBe(
-      "true",
+      "true"
     );
     const describedBy = screen
       .getByLabelText("Slug")
       .getAttribute("aria-describedby");
     expect(describedBy).toBe("workspace-import-slug-error");
-    expect(document.getElementById(describedBy ?? "")?.getAttribute("role")).toBe(
-      "alert",
-    );
     expect(
-      (screen.getByRole("button", { name: "Import Workspace" }) as HTMLButtonElement)
-        .disabled
+      document.getElementById(describedBy ?? "")?.getAttribute("role")
+    ).toBe("alert");
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "Import Workspace",
+        }) as HTMLButtonElement
+      ).disabled
     ).toBe(true);
   });
 
@@ -582,19 +599,13 @@ describe("CreateWorkspaceDialog", () => {
     const user = userEvent.setup();
     createWorkspaceMock.mockResolvedValue("workspace_1");
 
-    render(
-      <CreateWorkspaceDialog
-        onOpenChange={vi.fn()}
-        open
-        orgId="org_1"
-      />
-    );
+    render(<CreateWorkspaceDialog onOpenChange={vi.fn()} open orgId="org_1" />);
 
     await user.type(screen.getByLabelText("Name"), "Launch Plan");
     await waitFor(() => {
-      expect(
-        (screen.getByLabelText("Slug") as HTMLInputElement).value
-      ).toBe("launch-plan");
+      expect((screen.getByLabelText("Slug") as HTMLInputElement).value).toBe(
+        "launch-plan"
+      );
     });
 
     await user.click(screen.getByRole("button", { name: "Create Workspace" }));
@@ -613,7 +624,7 @@ describe("CreateWorkspaceDialog", () => {
       expect(installWorkspaceExtensionMock).toHaveBeenCalledWith(
         "lunaris.excalidraw",
         expect.objectContaining({ version: "0.0.1" }),
-        expect.any(Object),
+        expect.any(Object)
       );
       expect(createWorkspaceMock).toHaveBeenCalledWith({
         db: {},
@@ -631,13 +642,7 @@ describe("CreateWorkspaceDialog", () => {
   });
 
   it("removes the template picker from the creation form", async () => {
-    render(
-      <CreateWorkspaceDialog
-        onOpenChange={vi.fn()}
-        open
-        orgId="org_1"
-      />
-    );
+    render(<CreateWorkspaceDialog onOpenChange={vi.fn()} open orgId="org_1" />);
     await act(async () => {});
 
     expect(screen.getByLabelText("Name")).toBeTruthy();
@@ -652,13 +657,7 @@ describe("CreateWorkspaceDialog", () => {
     const user = userEvent.setup();
     createWorkspaceMock.mockResolvedValue("workspace_private");
 
-    render(
-      <CreateWorkspaceDialog
-        onOpenChange={vi.fn()}
-        open
-        orgId="org_1"
-      />
-    );
+    render(<CreateWorkspaceDialog onOpenChange={vi.fn()} open orgId="org_1" />);
 
     await user.type(screen.getByLabelText("Name"), "Private Notes");
     await user.click(screen.getByText("Private"));
@@ -669,7 +668,7 @@ describe("CreateWorkspaceDialog", () => {
         expect.objectContaining({
           organizationId: "org_1",
           visibility: "private",
-        }),
+        })
       );
     });
   });
@@ -677,13 +676,7 @@ describe("CreateWorkspaceDialog", () => {
   it("shows a collision error and disables submit for matching organization slugs", async () => {
     const user = userEvent.setup();
 
-    render(
-      <CreateWorkspaceDialog
-        onOpenChange={vi.fn()}
-        open
-        orgId="org_1"
-      />
-    );
+    render(<CreateWorkspaceDialog onOpenChange={vi.fn()} open orgId="org_1" />);
 
     await user.type(screen.getByLabelText("Name"), "Taken Workspace");
 
@@ -693,32 +686,28 @@ describe("CreateWorkspaceDialog", () => {
       ).toBeTruthy();
     });
     expect(screen.getByLabelText("Slug").getAttribute("aria-invalid")).toBe(
-      "true",
+      "true"
     );
     const describedBy = screen
       .getByLabelText("Slug")
       .getAttribute("aria-describedby");
     expect(describedBy).toBe("workspace-slug-error");
-    expect(document.getElementById(describedBy ?? "")?.getAttribute("role")).toBe(
-      "alert",
-    );
     expect(
-      (screen.getByRole("button", {
-        name: "Create Workspace",
-      }) as HTMLButtonElement).disabled
+      document.getElementById(describedBy ?? "")?.getAttribute("role")
+    ).toBe("alert");
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "Create Workspace",
+        }) as HTMLButtonElement
+      ).disabled
     ).toBe(true);
   });
 
   it("allows the same slug in another organization", async () => {
     const user = userEvent.setup();
 
-    render(
-      <CreateWorkspaceDialog
-        onOpenChange={vi.fn()}
-        open
-        orgId="org_2"
-      />
-    );
+    render(<CreateWorkspaceDialog onOpenChange={vi.fn()} open orgId="org_2" />);
 
     await user.type(screen.getByLabelText("Name"), "Taken Workspace");
 
@@ -728,22 +717,18 @@ describe("CreateWorkspaceDialog", () => {
       ).toBeNull();
     });
     expect(
-      (screen.getByRole("button", {
-        name: "Create Workspace",
-      }) as HTMLButtonElement).disabled
+      (
+        screen.getByRole("button", {
+          name: "Create Workspace",
+        }) as HTMLButtonElement
+      ).disabled
     ).toBe(false);
   });
 
   it("keeps a manual slug when the name changes again", async () => {
     const user = userEvent.setup();
 
-    render(
-      <CreateWorkspaceDialog
-        onOpenChange={vi.fn()}
-        open
-        orgId="org_1"
-      />
-    );
+    render(<CreateWorkspaceDialog onOpenChange={vi.fn()} open orgId="org_1" />);
 
     const nameInput = screen.getByLabelText("Name") as HTMLInputElement;
     const slugInput = screen.getByLabelText("Slug") as HTMLInputElement;

@@ -3,10 +3,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as z from "zod";
 import { agentOperationContracts } from "../src/contracts";
-import {
-  agentOperationIds,
-  agentOperations,
-} from "../src/operations";
+import { agentOperationIds, agentOperations } from "../src/operations";
 import {
   type BuiltInPluginMcpProcedureTool,
   builtInPluginMcpTools,
@@ -18,7 +15,7 @@ import { agentResourceDefinitions } from "../src/resources";
 const packageDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outputPath = resolve(
   packageDirectory,
-  "generated/agent-mcp-manifest.json",
+  "generated/agent-mcp-manifest.json"
 );
 
 export function createMcpManifest() {
@@ -46,15 +43,13 @@ export function createMcpManifest() {
               pluginId: tool.pluginId,
               wire: pluginMcpWire(tool),
             })
-          : pluginToolManifest(tool),
+          : pluginToolManifest(tool)
       ),
     ],
   };
 }
 
-function pluginToolManifest(
-  tool: BuiltInPluginMcpProcedureTool,
-) {
+function pluginToolManifest(tool: BuiltInPluginMcpProcedureTool) {
   return {
     annotations: {
       destructiveHint: tool.execution.risk === "destructive",
@@ -120,7 +115,7 @@ if (process.argv.includes("--check")) {
   const existing = await readFile(outputPath, "utf8").catch(() => "");
   if (existing !== generated) {
     throw new Error(
-      "Generated MCP manifest is stale. Run `bun run generate:mcp` in internal/agent-contracts.",
+      "Generated MCP manifest is stale. Run `bun run generate:mcp` in internal/agent-contracts."
     );
   }
 } else {

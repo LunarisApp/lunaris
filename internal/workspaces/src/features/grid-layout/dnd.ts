@@ -24,13 +24,19 @@ export function decodeResourceDragPayload(
 ): LunarisResourceDragPayload | null {
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return null;
+    if (!parsed || typeof parsed !== "object") {
+      return null;
+    }
     const value = parsed as Record<string, unknown>;
-    if (value.v !== 3 || !Array.isArray(value.resources)) return null;
+    if (value.v !== 3 || !Array.isArray(value.resources)) {
+      return null;
+    }
 
     const resources: LunarisResourceDragEntry[] = [];
     for (const rawResource of value.resources) {
-      if (!rawResource || typeof rawResource !== "object") return null;
+      if (!rawResource || typeof rawResource !== "object") {
+        return null;
+      }
       const resource = rawResource as Record<string, unknown>;
       if (
         typeof resource.resourceId !== "string" ||

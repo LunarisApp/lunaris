@@ -31,7 +31,9 @@ describe("auth/passkey", () => {
   let authenticatorId: string | undefined;
 
   before(function () {
-    if (Cypress.browser.family !== "chromium") this.skip();
+    if (Cypress.browser.family !== "chromium") {
+      this.skip();
+    }
   });
 
   beforeEach(() => {
@@ -49,7 +51,7 @@ describe("auth/passkey", () => {
             protocol: "ctap2",
             transport: "internal",
           },
-        },
+        }
       );
       authenticatorId = authenticator.authenticatorId;
     });
@@ -85,19 +87,16 @@ describe("auth/passkey", () => {
         .and("contain.text", "Chrome virtual passkey");
 
       cy.signOut();
-      cy.intercept(
-        "GET",
-        "**/auth/passkey/generate-authenticate-options",
-      ).as("passkeyOptions");
+      cy.intercept("GET", "**/auth/passkey/generate-authenticate-options").as(
+        "passkeyOptions"
+      );
       cy.visit("/auth");
       cy.window()
         .then((win) =>
-          win.PublicKeyCredential.isConditionalMediationAvailable(),
+          win.PublicKeyCredential.isConditionalMediationAvailable()
         )
         .should("eq", true);
-      cy.wait("@passkeyOptions")
-        .its("response.statusCode")
-        .should("eq", 200);
+      cy.wait("@passkeyOptions").its("response.statusCode").should("eq", 200);
       cy.get('[data-testid="auth-entry-email"]')
         .should("have.attr", "autocomplete", "username webauthn")
         .focus();
@@ -115,7 +114,7 @@ describe("auth/passkey", () => {
       });
       cy.location("pathname", { timeout: 15_000 }).should(
         "not.match",
-        /^\/auth(\/|$)/,
+        /^\/auth(\/|$)/
       );
 
       cy.visit("/");
@@ -128,7 +127,7 @@ describe("auth/passkey", () => {
         .contains("button", "Remove")
         .click();
       cy.get('[data-testid="settings-security-passkey-row"]').should(
-        "not.exist",
+        "not.exist"
       );
     });
   });

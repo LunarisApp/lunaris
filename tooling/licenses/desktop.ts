@@ -12,10 +12,15 @@ for (const file of [
 ]) {
   copyFileSync(join(root, "apps/desktop/dist", file), join(destination, file));
 }
-const { edition } = JSON.parse(readFileSync(join(root, "apps/desktop/dist/edition.json"), "utf8"));
+const { edition } = JSON.parse(
+  readFileSync(join(root, "apps/desktop/dist/edition.json"), "utf8")
+);
 const enterpriseNotice = join(destination, "EE-LICENSE.txt");
 if (edition === "enterprise") {
-  copyFileSync(join(root, "apps/desktop/dist/EE-LICENSE.txt"), enterpriseNotice);
+  copyFileSync(
+    join(root, "apps/desktop/dist/EE-LICENSE.txt"),
+    enterpriseNotice
+  );
 } else {
   rmSync(enterpriseNotice, { force: true });
 }
@@ -34,6 +39,8 @@ const result = Bun.spawnSync(
     join(destination, "RUST-LICENSES.txt"),
     "tooling/licenses/about.hbs",
   ],
-  { cwd: root, stdout: "inherit", stderr: "inherit" },
+  { cwd: root, stdout: "inherit", stderr: "inherit" }
 );
-if (result.exitCode !== 0) process.exit(result.exitCode);
+if (result.exitCode !== 0) {
+  process.exit(result.exitCode);
+}

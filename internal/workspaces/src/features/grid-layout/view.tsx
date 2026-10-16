@@ -1,8 +1,8 @@
 import { cn } from "@lunarisapp/ui/lib/utils";
-import {
-  type DockviewApi,
-  type DockviewDidDropEvent,
-  type DockviewReadyEvent,
+import type {
+  DockviewApi,
+  DockviewDidDropEvent,
+  DockviewReadyEvent,
 } from "dockview";
 import { DockviewReact } from "dockview-react";
 import { useEffect, useRef } from "react";
@@ -18,7 +18,11 @@ import { useGridLayoutSync } from "./hooks/use-grid-layout-sync";
 import { useMoveActivePanelToWindow } from "./hooks/use-move-active-panel-to-window";
 import { useNewTabHotkey } from "./hooks/use-new-tab-hotkey";
 import { getRendererComponent } from "./types";
-import { hasLunarisResourceMime, isDragEvent, mapDidDropToTarget } from "./view-utils";
+import {
+  hasLunarisResourceMime,
+  isDragEvent,
+  mapDidDropToTarget,
+} from "./view-utils";
 
 import "dockview-react/dist/styles/dockview.css";
 import "./focus-mode.css";
@@ -49,7 +53,9 @@ export function GridLayoutView({ className }: { className?: string }) {
   const emptyPanelReady = Boolean(componentRenderers[emptyPanelComponent]);
 
   useEffect(() => {
-    if (emptyPanelReady) return;
+    if (emptyPanelReady) {
+      return;
+    }
     register(EMPTY_PANEL_PLUGIN_ID, EMPTY_PANEL_RENDERER, (props) => (
       <GridLayoutEmptyPanel {...props} />
     ));
@@ -76,7 +82,7 @@ export function GridLayoutView({ className }: { className?: string }) {
       dockviewRef.current = null;
       setDockviewApi(null);
     },
-    [setDockviewApi],
+    [setDockviewApi]
   );
 
   // Store dockview API reference - useGridLayoutSync handles the actual sync
@@ -98,9 +104,13 @@ export function GridLayoutView({ className }: { className?: string }) {
   };
 
   const onDidDrop = (event: DockviewDidDropEvent) => {
-    if (!isDragEvent(event.nativeEvent)) return;
+    if (!isDragEvent(event.nativeEvent)) {
+      return;
+    }
     const payload = readResourceDragPayload(event.nativeEvent);
-    if (!payload) return;
+    if (!payload) {
+      return;
+    }
     const target = mapDidDropToTarget(event);
     for (const entry of payload.resources) {
       openResource({

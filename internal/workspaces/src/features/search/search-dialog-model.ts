@@ -82,7 +82,9 @@ export function getNextGroupItemValue(
   selectedValue: string,
   direction: "next" | "previous"
 ): string | null {
-  if (groups.length <= 1) return null;
+  if (groups.length <= 1) {
+    return null;
+  }
 
   let currentGroupIndex = groups.findIndex((group) =>
     group.items.includes(selectedValue)

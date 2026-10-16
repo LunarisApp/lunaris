@@ -9,7 +9,6 @@ export function captureExceptionSafe(error: unknown): void {
   try {
     posthog.captureException(scrubError(error));
   } catch (telemetryError) {
-    // biome-ignore lint/suspicious/noConsole: last-resort local diagnostic
     console.error("[telemetry]", scrubError(telemetryError));
   }
 }

@@ -24,7 +24,7 @@ export async function loadWorkspacePluginIds({
   const rows = await getWorkspaceExtensions(db, workspaceId);
   const enabledIds = resolveEnabledWorkspaceExtensionIds(
     rows,
-    defaultExtensionIds,
+    defaultExtensionIds
   );
   return [...enabledIds].filter((id) => allExtensionIds.includes(id));
 }

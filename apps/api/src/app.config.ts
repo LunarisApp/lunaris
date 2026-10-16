@@ -7,7 +7,7 @@ const desktopOriginsSchema = string()
     value
       .split(",")
       .map((origin) => origin.trim())
-      .filter(Boolean),
+      .filter(Boolean)
   )
   .pipe(array(string().url()).min(1));
 
@@ -17,7 +17,7 @@ export class AppConfig {
     this.appRegion = string().min(1).parse(config.get("APP_REGION"));
     this.desktopAppOrigins = desktopOriginsSchema.parse(
       config.get("DESKTOP_APP_ORIGINS") ??
-        "lunaris://,tauri://localhost,http://tauri.localhost",
+        "lunaris://,tauri://localhost,http://tauri.localhost"
     );
     this.frontendUrl = string().url().parse(config.get("FRONTEND_URL"));
     this.localDbEncryptionMasterKey = string()

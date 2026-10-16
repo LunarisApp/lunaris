@@ -22,19 +22,21 @@ describe("recordAuthAudit", () => {
       tenantId: "organization_1",
     });
 
-    expect(captured.events).toContainEqual(expect.objectContaining({
-      action: "organization-member.removed",
-      actor: { id: "user_1", type: "user" },
-      context: { tenantId: "organization_1" },
-      idempotencyKey: expect.any(String),
-      outcome: "success",
-      version: 1,
-      target: {
-        id: "member_1",
-        tenantId: "organization_1",
-        type: "organizationMember",
-      },
-    }));
+    expect(captured.events).toContainEqual(
+      expect.objectContaining({
+        action: "organization-member.removed",
+        actor: { id: "user_1", type: "user" },
+        context: { tenantId: "organization_1" },
+        idempotencyKey: expect.any(String),
+        outcome: "success",
+        version: 1,
+        target: {
+          id: "member_1",
+          tenantId: "organization_1",
+          type: "organizationMember",
+        },
+      })
+    );
   });
 
   it("ignores non-critical auth reads", () => {
@@ -53,14 +55,18 @@ describe("recordAuthAudit", () => {
       reason: "Invalid credentials",
     });
 
-    expect(captured.toIncludeAuditOf({
-      action: "auth.signed-in",
-      actor: { id: "anonymous", type: "user" },
-      outcome: "denied",
-    })).toBe(true);
-    expect(captured.assertAudit({
-      action: "auth.signed-in",
-    }).reason).toBe("Invalid credentials");
+    expect(
+      captured.toIncludeAuditOf({
+        action: "auth.signed-in",
+        actor: { id: "anonymous", type: "user" },
+        outcome: "denied",
+      })
+    ).toBe(true);
+    expect(
+      captured.assertAudit({
+        action: "auth.signed-in",
+      }).reason
+    ).toBe("Invalid credentials");
   });
 
   it("records team membership changes against the team and tenant", () => {
@@ -73,17 +79,19 @@ describe("recordAuthAudit", () => {
       tenantId: "organization_1",
     });
 
-    expect(captured.events).toContainEqual(expect.objectContaining({
-      action: "organization-team.member-added",
-      actor: { id: "user_1", type: "user" },
-      context: { tenantId: "organization_1" },
-      outcome: "success",
-      target: {
-        id: "team_1",
-        tenantId: "organization_1",
-        type: "organizationTeam",
-      },
-    }));
+    expect(captured.events).toContainEqual(
+      expect.objectContaining({
+        action: "organization-team.member-added",
+        actor: { id: "user_1", type: "user" },
+        context: { tenantId: "organization_1" },
+        outcome: "success",
+        target: {
+          id: "team_1",
+          tenantId: "organization_1",
+          type: "organizationTeam",
+        },
+      })
+    );
   });
 
   it("records team creation against the organization tenant", () => {
@@ -94,16 +102,18 @@ describe("recordAuthAudit", () => {
       tenantId: "organization_1",
     });
 
-    expect(captured.events).toContainEqual(expect.objectContaining({
-      action: "organization-team.created",
-      actor: { id: "user_1", type: "user" },
-      context: { tenantId: "organization_1" },
-      outcome: "success",
-      target: {
-        id: "organization_1",
-        tenantId: "organization_1",
-        type: "organization",
-      },
-    }));
+    expect(captured.events).toContainEqual(
+      expect.objectContaining({
+        action: "organization-team.created",
+        actor: { id: "user_1", type: "user" },
+        context: { tenantId: "organization_1" },
+        outcome: "success",
+        target: {
+          id: "organization_1",
+          tenantId: "organization_1",
+          type: "organization",
+        },
+      })
+    );
   });
 });

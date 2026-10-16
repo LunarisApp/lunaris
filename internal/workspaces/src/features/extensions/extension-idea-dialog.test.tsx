@@ -1,4 +1,10 @@
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -44,42 +50,55 @@ describe("ExtensionIdeaDialog", () => {
     apiPost.mockResolvedValue({});
     render(<ExtensionIdeaDialog />);
 
-    await user.click(screen.getByRole("button", {
-      name: "extensions.interestTrigger",
-    }));
+    await user.click(
+      screen.getByRole("button", {
+        name: "extensions.interestTrigger",
+      })
+    );
     const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByRole("button", {
-      name: "common.close",
-    })).toBeTruthy();
+    expect(
+      within(dialog).getByRole("button", {
+        name: "common.close",
+      })
+    ).toBeTruthy();
     const submit = within(dialog).getByRole("button", {
       name: "extensions.interestSubmit",
     });
     expect((submit as HTMLButtonElement).disabled).toBe(true);
 
-    await user.type(within(dialog).getByLabelText(
-      "extensions.interestIdeaLabel",
-    ), "  Keep backlinks when importing  ");
+    await user.type(
+      within(dialog).getByLabelText("extensions.interestIdeaLabel"),
+      "  Keep backlinks when importing  "
+    );
     await user.click(submit);
 
-    expect(await within(dialog).findByText(
-      "extensions.interestSuccessTitle",
-    )).toBeTruthy();
+    expect(
+      await within(dialog).findByText("extensions.interestSuccessTitle")
+    ).toBeTruthy();
     expect(apiPost).toHaveBeenCalledWith("/v1/extension-requests", {
       body: { idea: "Keep backlinks when importing" },
     });
     expect(capture).toHaveBeenCalledWith("extension_idea_submitted");
 
-    await user.click(within(dialog).getByRole("button", {
-      name: "common.done",
-    }));
+    await user.click(
+      within(dialog).getByRole("button", {
+        name: "common.done",
+      })
+    );
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 
-    await user.click(screen.getByRole("button", {
-      name: "extensions.interestTrigger",
-    }));
-    expect((await screen.findByLabelText(
-      "extensions.interestIdeaLabel",
-    ) as HTMLTextAreaElement).value).toBe("");
+    await user.click(
+      screen.getByRole("button", {
+        name: "extensions.interestTrigger",
+      })
+    );
+    expect(
+      (
+        (await screen.findByLabelText(
+          "extensions.interestIdeaLabel"
+        )) as HTMLTextAreaElement
+      ).value
+    ).toBe("");
   });
 
   it("keeps the dialog open and reports submission failure", async () => {
@@ -88,24 +107,31 @@ describe("ExtensionIdeaDialog", () => {
     apiPost.mockRejectedValue(error);
     render(<ExtensionIdeaDialog />);
 
-    await user.click(screen.getByRole("button", {
-      name: "extensions.interestTrigger",
-    }));
+    await user.click(
+      screen.getByRole("button", {
+        name: "extensions.interestTrigger",
+      })
+    );
     const dialog = await screen.findByRole("dialog");
-    await user.type(within(dialog).getByLabelText(
-      "extensions.interestIdeaLabel",
-    ), "A citation manager");
-    await user.click(within(dialog).getByRole("button", {
-      name: "extensions.interestSubmit",
-    }));
+    await user.type(
+      within(dialog).getByLabelText("extensions.interestIdeaLabel"),
+      "A citation manager"
+    );
+    await user.click(
+      within(dialog).getByRole("button", {
+        name: "extensions.interestSubmit",
+      })
+    );
 
     expect((await within(dialog).findByRole("alert")).textContent).toBe(
-      "extensions.interestError",
+      "extensions.interestError"
     );
-    expect(logError).toHaveBeenCalledWith(expect.objectContaining({
-      msg: "extension idea submission failed",
-      tag: "Extensions",
-    }));
+    expect(logError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        msg: "extension idea submission failed",
+        tag: "Extensions",
+      })
+    );
     expect(capture).toHaveBeenCalledWith("extension_idea_failed");
   });
 
@@ -116,31 +142,44 @@ describe("ExtensionIdeaDialog", () => {
       () =>
         new Promise((resolve) => {
           resolveRequest = () => resolve({});
-        }),
+        })
     );
     render(<ExtensionIdeaDialog />);
 
-    await user.click(screen.getByRole("button", {
-      name: "extensions.interestTrigger",
-    }));
+    await user.click(
+      screen.getByRole("button", {
+        name: "extensions.interestTrigger",
+      })
+    );
     const dialog = await screen.findByRole("dialog");
-    await user.type(within(dialog).getByLabelText(
-      "extensions.interestIdeaLabel",
-    ), "A citation manager");
-    await user.click(within(dialog).getByRole("button", {
-      name: "extensions.interestSubmit",
-    }));
+    await user.type(
+      within(dialog).getByLabelText("extensions.interestIdeaLabel"),
+      "A citation manager"
+    );
+    await user.click(
+      within(dialog).getByRole("button", {
+        name: "extensions.interestSubmit",
+      })
+    );
 
-    expect((within(dialog).getByRole("button", {
-      name: "common.close",
-    }) as HTMLButtonElement).disabled).toBe(true);
-    expect((within(dialog).getByRole("button", {
-      name: "common.cancel",
-    }) as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      (
+        within(dialog).getByRole("button", {
+          name: "common.close",
+        }) as HTMLButtonElement
+      ).disabled
+    ).toBe(true);
+    expect(
+      (
+        within(dialog).getByRole("button", {
+          name: "common.cancel",
+        }) as HTMLButtonElement
+      ).disabled
+    ).toBe(true);
 
     resolveRequest?.();
-    expect(await within(dialog).findByText(
-      "extensions.interestSuccessTitle",
-    )).toBeTruthy();
+    expect(
+      await within(dialog).findByText("extensions.interestSuccessTitle")
+    ).toBeTruthy();
   });
 });

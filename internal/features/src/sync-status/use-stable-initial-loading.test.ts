@@ -44,8 +44,12 @@ describe("useStableInitialLoading", () => {
 
   it("does not settle workspace reads when only global sync is ready", () => {
     syncStatus.hasSynced = true;
-    const { result } = renderHook(() => useStableInitialLoading({ dataEmpty: true }));
-    act(() => { vi.advanceTimersByTime(GRACE_MS * 2); });
+    const { result } = renderHook(() =>
+      useStableInitialLoading({ dataEmpty: true })
+    );
+    act(() => {
+      vi.advanceTimersByTime(GRACE_MS * 2);
+    });
     expect(result.current).toEqual({ showSkeleton: true, showEmpty: false });
   });
 

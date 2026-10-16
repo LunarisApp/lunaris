@@ -1,9 +1,6 @@
 import { definePluginMcpCapabilities } from "@lunarisapp/plugin-sdk/mcp";
 import * as z from "zod";
-import {
-  KANBAN_PLUGIN_ID,
-  KANBAN_TASK_RESOURCE_TYPE_ID,
-} from "./constants";
+import { KANBAN_PLUGIN_ID, KANBAN_TASK_RESOURCE_TYPE_ID } from "./constants";
 import {
   kanbanCreateTaskInputSchema,
   kanbanCreateTaskOutputSchema,
@@ -190,7 +187,7 @@ export const kanbanMcpCapabilities = definePluginMcpCapabilities({
       inputSchema: z.object({
         idempotencyKey,
         previewToken: id(
-          "Fresh preview token returned by kanban_preview_delete_task.",
+          "Fresh preview token returned by kanban_preview_delete_task."
         ),
         workspaceId,
         taskId: id("Exact Kanban task item ID."),

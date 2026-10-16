@@ -9,11 +9,15 @@ import {
 const LEGACY_EXTENSION_ID = "lunaris.ai-chat";
 
 export function isLegacyAgentWorkView(viewId: string) {
-  return viewId === LEGACY_EXTENSION_ID || viewId === `view:${LEGACY_EXTENSION_ID}`;
+  return (
+    viewId === LEGACY_EXTENSION_ID || viewId === `view:${LEGACY_EXTENSION_ID}`
+  );
 }
 
 export function migrateAgentWorkPanel<T extends AddPanel>(panel: T): T {
-  if (panel.pluginId !== LEGACY_EXTENSION_ID) return panel;
+  if (panel.pluginId !== LEGACY_EXTENSION_ID) {
+    return panel;
+  }
   return {
     ...panel,
     pluginId: AGENT_WORK_PANEL_ID,
@@ -29,9 +33,11 @@ export function migrateAgentWorkPanel<T extends AddPanel>(panel: T): T {
 }
 
 export function migrateAgentWorkDescriptor(
-  descriptor: PanelWindowDescriptor,
+  descriptor: PanelWindowDescriptor
 ): PanelWindowDescriptor {
-  if (descriptor.extensionId !== LEGACY_EXTENSION_ID) return descriptor;
+  if (descriptor.extensionId !== LEGACY_EXTENSION_ID) {
+    return descriptor;
+  }
   const panel = migrateAgentWorkPanel({
     pluginId: descriptor.extensionId,
     renderer: descriptor.viewId,

@@ -14,14 +14,16 @@ describe("default workspace seed marker", () => {
   it("reads the current registered marker", () => {
     localStorage.setItem(
       DEFAULT_WORKSPACE_SEED_MARKER_KEY,
-      JSON.stringify({ kind: "registered", email: "ada@example.com" }),
+      JSON.stringify({ kind: "registered", email: "ada@example.com" })
     );
 
     expect(readDefaultWorkspaceSeedMarker()).toEqual({
       kind: "registered",
       email: "ada@example.com",
     });
-    expect(localStorage.getItem(DEFAULT_WORKSPACE_SEED_MARKER_KEY)).not.toBeNull();
+    expect(
+      localStorage.getItem(DEFAULT_WORKSPACE_SEED_MARKER_KEY)
+    ).not.toBeNull();
   });
 
   it("writes and clears only the current marker", () => {

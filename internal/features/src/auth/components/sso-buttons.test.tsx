@@ -22,14 +22,12 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) =>
       (
-        {
+        ({
           "auth.continueWithGoogle": "Continue with Google",
           "auth.lastUsed": "Last used",
           "common.error": "Something went wrong",
-        } as const
-      )[key as
-        | "auth.continueWithGoogle"
-        | "common.error"] ?? key,
+        }) as const
+      )[key as "auth.continueWithGoogle" | "common.error"] ?? key,
   }),
 }));
 
@@ -55,8 +53,8 @@ function renderSsoButtons({
       }),
       {
         headers: { "Content-Type": "application/json" },
-      },
-    ),
+      }
+    )
   );
 
   render(
@@ -94,8 +92,12 @@ function renderSsoButtons({
 describe("SsoButtons", () => {
   it("hides Google when the server has no enabled social providers", async () => {
     const { socialSignIn } = renderSsoButtons({ socialProviders: [] });
-    await waitFor(() => expect(localStorage.getItem("lunaris.regionManifest")).not.toBeNull());
-    expect(screen.queryByRole("button", { name: "Continue with Google" })).toBeNull();
+    await waitFor(() =>
+      expect(localStorage.getItem("lunaris.regionManifest")).not.toBeNull()
+    );
+    expect(
+      screen.queryByRole("button", { name: "Continue with Google" })
+    ).toBeNull();
     expect(socialSignIn).not.toHaveBeenCalled();
   });
 
@@ -109,17 +111,19 @@ describe("SsoButtons", () => {
     expect(badge.className).toContain("top-0");
     expect(badge.className).toContain("-translate-y-1/2");
     await waitFor(() =>
-      expect(localStorage.getItem("lunaris.regionManifest")).not.toBeNull(),
+      expect(localStorage.getItem("lunaris.regionManifest")).not.toBeNull()
     );
   });
 
   it("renders the Google provider button", async () => {
     renderSsoButtons();
 
-    expect(await screen.findByRole("button", { name: "Continue with Google" })).toBeTruthy();
+    expect(
+      await screen.findByRole("button", { name: "Continue with Google" })
+    ).toBeTruthy();
     expect(screen.getByText("Continue with Google")).toBeTruthy();
     await waitFor(() =>
-      expect(localStorage.getItem("lunaris.regionManifest")).not.toBeNull(),
+      expect(localStorage.getItem("lunaris.regionManifest")).not.toBeNull()
     );
   });
 
@@ -127,7 +131,9 @@ describe("SsoButtons", () => {
     const user = userEvent.setup();
     const { socialSignIn } = renderSsoButtons();
 
-    await user.click(await screen.findByRole("button", { name: "Continue with Google" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Continue with Google" })
+    );
 
     expect(socialSignIn).toHaveBeenCalledWith({
       provider: "google",
@@ -143,7 +149,7 @@ describe("SsoButtons", () => {
     });
 
     await user.click(
-      await screen.findByRole("button", { name: "Continue with Google" }),
+      await screen.findByRole("button", { name: "Continue with Google" })
     );
 
     expect(socialSignIn).toHaveBeenCalledWith({
@@ -163,9 +169,15 @@ describe("SsoButtons", () => {
 
     renderSsoButtons({ socialSignIn });
 
-    await user.click(await screen.findByRole("button", { name: "Continue with Google" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Continue with Google" })
+    );
 
-    expect(screen.getAllByRole("button").every((button) => button.hasAttribute("disabled"))).toBe(true);
+    expect(
+      screen
+        .getAllByRole("button")
+        .every((button) => button.hasAttribute("disabled"))
+    ).toBe(true);
     expect(screen.getByRole("status", { name: "Loading" })).toBeTruthy();
   });
 
@@ -176,8 +188,8 @@ describe("SsoButtons", () => {
       expect(
         screen
           .getByRole("button", { name: "Continue with Google" })
-          .hasAttribute("disabled"),
-      ).toBe(false),
+          .hasAttribute("disabled")
+      ).toBe(false)
     );
   });
 });

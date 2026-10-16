@@ -19,7 +19,9 @@ describe("useGravatarUrl", () => {
       { initialProps: { email: " USER@example.com " } }
     );
 
-    await waitFor(() => expect(result.current).toContain("gravatar.com/avatar"));
+    await waitFor(() =>
+      expect(result.current).toContain("gravatar.com/avatar")
+    );
     const firstUrl = result.current;
 
     rerender({ email: "user@example.com" });
@@ -48,7 +50,9 @@ describe("useGravatarUrl", () => {
       { initialProps: { size: undefined as number | undefined } }
     );
 
-    await waitFor(() => expect(result.current).toContain("gravatar.com/avatar"));
+    await waitFor(() =>
+      expect(result.current).toContain("gravatar.com/avatar")
+    );
     const defaultSizeUrl = result.current;
 
     rerender({ size: 128 });
@@ -58,7 +62,9 @@ describe("useGravatarUrl", () => {
   });
 
   it("does not warn after unmounting before hash resolution", async () => {
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     const { unmount } = renderHook(() => useGravatarUrl("cancel@example.com"));
 
     unmount();

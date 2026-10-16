@@ -12,7 +12,9 @@ export const RESEND_CLIENT = "RESEND_CLIENT";
       inject: [ResendConfig],
       useFactory: (config: ResendConfig): Resend | null => {
         const values = config.values;
-        if (!values) return null;
+        if (!values) {
+          return null;
+        }
         return new Resend(values.apiKey);
       },
     },

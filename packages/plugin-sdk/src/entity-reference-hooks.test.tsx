@@ -200,7 +200,9 @@ describe("useEntityReferenceSearch", () => {
         items: [{ id: "workspace_2", name: "Product" }],
         nextCursor: null,
       }),
-      searchResources: vi.fn().mockResolvedValue({ items: [], nextCursor: null }),
+      searchResources: vi
+        .fn()
+        .mockResolvedValue({ items: [], nextCursor: null }),
     };
 
     mocks.currentRuntime = nextRuntime;

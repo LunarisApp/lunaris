@@ -27,7 +27,7 @@ import { WorkspaceMembersService } from "./workspace-members.service";
 export class WorkspaceMembersController {
   constructor(
     private readonly access: UserDataAccessService,
-    private readonly workspaceMembers: WorkspaceMembersService,
+    private readonly workspaceMembers: WorkspaceMembersService
   ) {}
 
   @RetrieveApi({
@@ -38,14 +38,14 @@ export class WorkspaceMembersController {
   async list(
     @Session() session: UserSession,
     @Param({ schema: WorkspaceMembersParamsDto })
-    params: WorkspaceMembersParamsDto,
+    params: WorkspaceMembersParamsDto
   ): Promise<WorkspaceMembersDto> {
     const organization = await this.access.requireOrganization(session);
     this.log("list", params.workspaceId);
     return this.workspaceMembers.list(
       params.workspaceId,
       organization.organizationId,
-      organization.userId,
+      organization.userId
     );
   }
 
@@ -58,7 +58,7 @@ export class WorkspaceMembersController {
     @Session() session: UserSession,
     @Param({ schema: WorkspaceMembersParamsDto })
     params: WorkspaceMembersParamsDto,
-    @Body({ schema: AddWorkspaceMemberDto }) body: AddWorkspaceMemberDto,
+    @Body({ schema: AddWorkspaceMemberDto }) body: AddWorkspaceMemberDto
   ): Promise<WorkspaceMemberDto> {
     const organization = await this.access.requireOrganization(session);
     this.log("add", params.workspaceId);
@@ -80,7 +80,7 @@ export class WorkspaceMembersController {
     @Session() session: UserSession,
     @Param({ schema: WorkspaceMemberParamsDto })
     params: WorkspaceMemberParamsDto,
-    @Body({ schema: UpdateWorkspaceMemberDto }) body: UpdateWorkspaceMemberDto,
+    @Body({ schema: UpdateWorkspaceMemberDto }) body: UpdateWorkspaceMemberDto
   ): Promise<WorkspaceMemberDto> {
     const organization = await this.access.requireOrganization(session);
     this.log("update", params.workspaceId);
@@ -99,7 +99,7 @@ export class WorkspaceMembersController {
   async remove(
     @Session() session: UserSession,
     @Param({ schema: WorkspaceMemberParamsDto })
-    params: WorkspaceMemberParamsDto,
+    params: WorkspaceMemberParamsDto
   ): Promise<{ id: string }> {
     const organization = await this.access.requireOrganization(session);
     this.log("remove", params.workspaceId);
@@ -119,7 +119,7 @@ export class WorkspaceMembersController {
     @Session() session: UserSession,
     @Param({ schema: WorkspaceMembersParamsDto })
     params: WorkspaceMembersParamsDto,
-    @Body({ schema: TransferWorkspaceDto }) body: TransferWorkspaceDto,
+    @Body({ schema: TransferWorkspaceDto }) body: TransferWorkspaceDto
   ): Promise<{ id: string }> {
     const organization = await this.access.requireOrganization(session);
     this.log("transfer", params.workspaceId);

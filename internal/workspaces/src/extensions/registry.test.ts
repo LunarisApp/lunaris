@@ -12,11 +12,7 @@ import {
 const repoRoot = resolve(import.meta.dirname, "../../../..");
 const extensionsRoot = resolve(repoRoot, "extensions");
 
-const extensionDirs = [
-  "file",
-  "kanban",
-  "rich-text",
-] as const;
+const extensionDirs = ["file", "kanban", "rich-text"] as const;
 
 const allowedSdkImports = new Set([
   "@lunarisapp/plugin-sdk",
@@ -80,7 +76,9 @@ describe("extension import boundaries", () => {
       violations.push(...findForbiddenRepoReferences(sourceRoot));
 
       for (const file of files) {
-        if (file.endsWith(".test.ts") || file.endsWith(".test.tsx")) continue;
+        if (file.endsWith(".test.ts") || file.endsWith(".test.tsx")) {
+          continue;
+        }
         const absoluteFile = resolve(sourceRoot, file);
         const source = readFileSync(absoluteFile, "utf8");
         for (const match of source.matchAll(importPattern)) {
@@ -116,7 +114,10 @@ describe("extension import boundaries", () => {
     for (const packageName of ["data", "features", "plugin-runtime"]) {
       const source = resolve(repoRoot, `internal/${packageName}/src`);
       expect(
-        findForbiddenRepoImports(source, ["@repo/app-shell", "@repo/workspaces"]),
+        findForbiddenRepoImports(source, [
+          "@repo/app-shell",
+          "@repo/workspaces",
+        ])
       ).toEqual([]);
     }
   });
@@ -181,9 +182,15 @@ function isAllowedImport(input: {
     return true;
   }
 
-  if (specifier === `@extension/${extensionDir}`) return true;
-  if (specifier.startsWith("@extension/")) return false;
-  if (specifier.startsWith("@repo/")) return false;
+  if (specifier === `@extension/${extensionDir}`) {
+    return true;
+  }
+  if (specifier.startsWith("@extension/")) {
+    return false;
+  }
+  if (specifier.startsWith("@repo/")) {
+    return false;
+  }
 
   return declaredPackages.has(packageNameFromSpecifier(specifier));
 }
@@ -205,7 +212,9 @@ function listSourceFiles(dir: string, prefix = ""): string[] {
 }
 
 function packageNameFromSpecifier(specifier: string): string {
-  if (!specifier.startsWith("@")) return specifier.split("/")[0] ?? specifier;
+  if (!specifier.startsWith("@")) {
+    return specifier.split("/")[0] ?? specifier;
+  }
   const [scope, name] = specifier.split("/");
   return `${scope}/${name}`;
 }

@@ -29,10 +29,9 @@ describe("createHybridControlClient", () => {
       snapshot: complete,
     }));
 
-    const result = await createHybridControlClient(
-      local,
-      cloud,
-    ).listWorkspaces("organization");
+    const result = await createHybridControlClient(local, cloud).listWorkspaces(
+      "organization"
+    );
 
     expect(result.items.map(({ id }) => id)).toEqual(["local"]);
     expect(cloud.listWorkspaces).not.toHaveBeenCalled();
@@ -48,11 +47,11 @@ describe("createHybridControlClient", () => {
     }));
 
     await expect(
-      createHybridControlClient(local, cloud).listOrganizations(),
+      createHybridControlClient(local, cloud).listOrganizations()
     ).resolves.toMatchObject({ snapshot: complete });
     expect(local.listOrganizations).toHaveBeenCalledWith(
       { cursor: undefined, limit: 51 },
-      { consistency: "cached", signal: undefined },
+      { consistency: "cached", signal: undefined }
     );
     expect(cloud.listOrganizations).not.toHaveBeenCalled();
   });
@@ -79,7 +78,10 @@ describe("createHybridControlClient", () => {
     const local = client();
     const cloud = client();
     let snapshot = complete;
-    const organizations = [organization("alice", "Alice"), organization("bob", "Bob")];
+    const organizations = [
+      organization("alice", "Alice"),
+      organization("bob", "Bob"),
+    ];
     local.listOrganizations = vi.fn(async () => ({
       items: organizations,
       nextCursor: null,
@@ -103,7 +105,7 @@ describe("createHybridControlClient", () => {
     expect(second.items.map(({ id }) => id)).toEqual(["bob"]);
     expect(cloud.listOrganizations).toHaveBeenCalledWith(
       { cursor: undefined, limit: 2 },
-      undefined,
+      undefined
     );
   });
 
@@ -126,10 +128,9 @@ describe("createHybridControlClient", () => {
       nextCursor: null,
     }));
 
-    const result = await createHybridControlClient(
-      local,
-      cloud,
-    ).listWorkspaces("organization");
+    const result = await createHybridControlClient(local, cloud).listWorkspaces(
+      "organization"
+    );
 
     expect(result.items.map(({ id }) => id)).toEqual([
       "shared",
@@ -149,10 +150,7 @@ describe("createHybridControlClient", () => {
       snapshot: partial,
     }));
     cloud.listWorkspaces = vi.fn(async () => ({
-      items: [
-        workspace("one", "shared", 3),
-        workspace("two", "shared", 2),
-      ],
+      items: [workspace("one", "shared", 3), workspace("two", "shared", 2)],
       nextCursor: null,
     }));
     const hybrid = createHybridControlClient(local, cloud);
@@ -167,7 +165,7 @@ describe("createHybridControlClient", () => {
     expect(first.nextCursor).not.toBeNull();
     expect(second.items.map(({ id }) => id)).toEqual(["two"]);
     await expect(
-      hybrid.listWorkspaces("organization", { cursor: "cloud-cursor" }),
+      hybrid.listWorkspaces("organization", { cursor: "cloud-cursor" })
     ).rejects.toMatchObject({ code: "INVALID_CURSOR", status: 400 });
   });
 
@@ -190,10 +188,7 @@ describe("createHybridControlClient", () => {
     const hybrid = createHybridControlClient(local, cloud);
 
     const first = await hybrid.listWorkspaces("organization", { limit: 2 });
-    cloudWorkspaces = [
-      workspace("new", "shared", 5),
-      ...cloudWorkspaces,
-    ];
+    cloudWorkspaces = [workspace("new", "shared", 5), ...cloudWorkspaces];
     const second = await hybrid.listWorkspaces("organization", {
       cursor: first.nextCursor ?? undefined,
       limit: 2,
@@ -207,9 +202,7 @@ describe("createHybridControlClient", () => {
     const local = client();
     const cloud = client();
     local.listWorkspaces = vi.fn(async () => ({
-      items: [
-        workspace("updated", "shared", 2, "Pending local", "stale"),
-      ],
+      items: [workspace("updated", "shared", 2, "Pending local", "stale")],
       nextCursor: null,
       snapshot: partial,
     }));
@@ -228,10 +221,9 @@ describe("createHybridControlClient", () => {
       nextCursor: null,
     }));
 
-    const result = await createHybridControlClient(
-      local,
-      cloud,
-    ).listWorkspaces("organization");
+    const result = await createHybridControlClient(local, cloud).listWorkspaces(
+      "organization"
+    );
 
     expect(result.items).toHaveLength(1);
     expect(result.items[0]).toMatchObject({
@@ -244,7 +236,7 @@ describe("createHybridControlClient", () => {
     const local = client();
     const cloud = client();
     local.getWorkspace = vi.fn(async () =>
-      workspace("shared", "shared", 2, "Shared", "stale"),
+      workspace("shared", "shared", 2, "Shared", "stale")
     );
     local.getWorkspaceResource = vi.fn(async () => ({
       createdAt: "2026-01-01T00:00:00.000Z",
@@ -276,8 +268,8 @@ describe("createHybridControlClient", () => {
       createHybridControlClient(local, cloud).getWorkspaceResource(
         "organization",
         "shared",
-        "item",
-      ),
+        "item"
+      )
     ).resolves.toMatchObject({ name: "Pending local" });
     expect(cloud.getWorkspaceResource).not.toHaveBeenCalled();
   });
@@ -300,11 +292,7 @@ describe("createHybridControlClient", () => {
       snapshot: partial,
     });
     await expect(
-      hybrid.listWorkspaces(
-        "organization",
-        {},
-        { consistency: "confirmed" },
-      ),
+      hybrid.listWorkspaces("organization", {}, { consistency: "confirmed" })
     ).rejects.toMatchObject({ code: "INCOMPLETE_SYNC", status: 409 });
   });
 
@@ -312,34 +300,31 @@ describe("createHybridControlClient", () => {
     const local = client();
     const cloud = client();
     local.getWorkspace = vi.fn(async () =>
-      workspace("shared", "shared", 2, "Shared", "current"),
+      workspace("shared", "shared", 2, "Shared", "current")
     );
-    local.getYjsStorageJson = vi.fn(async (
-      _organizationId,
-      _workspaceId,
-      _storageId,
-      options,
-    ) => {
-      if (options?.consistency === "confirmed") {
-        throw Object.assign(new Error("not hydrated"), {
-          code: "INCOMPLETE_SYNC",
-          status: 409,
-        });
+    local.getYjsStorageJson = vi.fn(
+      async (_organizationId, _workspaceId, _storageId, options) => {
+        if (options?.consistency === "confirmed") {
+          throw Object.assign(new Error("not hydrated"), {
+            code: "INCOMPLETE_SYNC",
+            status: 409,
+          });
+        }
+        return {
+          resourceTypeId: "rich-text",
+          data: { text: "cached" },
+          resourceId: "resource",
+          storageId: "storage",
+          provenance: {
+            asOf: "2026-01-01T00:00:00.000Z",
+            source: "cloud-cache" as const,
+            syncState: "stale" as const,
+          },
+          revision: "cached",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        };
       }
-      return {
-        resourceTypeId: "rich-text",
-        data: { text: "cached" },
-        resourceId: "resource",
-        storageId: "storage",
-        provenance: {
-          asOf: "2026-01-01T00:00:00.000Z",
-          source: "cloud-cache" as const,
-          syncState: "stale" as const,
-        },
-        revision: "cached",
-        updatedAt: "2026-01-01T00:00:00.000Z",
-      };
-    });
+    );
     cloud.getYjsStorageJson = vi.fn(async () => ({
       resourceTypeId: "rich-text",
       data: { text: "live" },
@@ -358,8 +343,8 @@ describe("createHybridControlClient", () => {
       createHybridControlClient(local, cloud).getYjsStorageJson(
         "organization",
         "shared",
-        "storage",
-      ),
+        "storage"
+      )
     ).resolves.toMatchObject({ data: { text: "live" } });
     expect(cloud.getYjsStorageJson).toHaveBeenCalledOnce();
   });
@@ -379,7 +364,7 @@ describe("createHybridControlClient", () => {
     }));
 
     await expect(
-      createHybridControlClient(local, cloud).listWorkspaces("inactive"),
+      createHybridControlClient(local, cloud).listWorkspaces("inactive")
     ).resolves.toMatchObject({ items: [{ id: "remote" }] });
     expect(cloud.listWorkspaces).toHaveBeenCalled();
   });
@@ -397,7 +382,7 @@ describe("createHybridControlClient", () => {
     });
 
     await expect(
-      createHybridControlClient(local, cloud).listWorkspaces("organization"),
+      createHybridControlClient(local, cloud).listWorkspaces("organization")
     ).rejects.toMatchObject({
       code: "FORBIDDEN",
       exposeToAgent: true,
@@ -415,7 +400,7 @@ describe("createHybridControlClient", () => {
     const hybrid = createHybridControlClient(local, cloud);
 
     await expect(
-      hybrid.listOrganizationMembers("organization"),
+      hybrid.listOrganizationMembers("organization")
     ).resolves.toMatchObject({ items: [] });
     expect(local.listOrganizationMembers).not.toHaveBeenCalled();
 
@@ -423,10 +408,9 @@ describe("createHybridControlClient", () => {
       throw new TypeError("offline");
     });
     await expect(
-      createHybridControlClient(
-        local,
-        cloud,
-      ).listOrganizationMembers("organization"),
+      createHybridControlClient(local, cloud).listOrganizationMembers(
+        "organization"
+      )
     ).rejects.toMatchObject({
       code: "CLOUD_UNAVAILABLE",
       status: 503,
@@ -444,15 +428,19 @@ describe("createHybridControlClient", () => {
     });
     const hybrid = createHybridControlClient(local, cloud);
 
-    await expect(
-      hybrid.getWorkspace("organization", "local"),
-    ).resolves.toEqual(localWorkspace);
+    await expect(hybrid.getWorkspace("organization", "local")).resolves.toEqual(
+      localWorkspace
+    );
     await expect(
       hybrid.createWorkspace(
         "organization",
-        { name: "Local workspace", slug: "local-workspace", visibility: "local" },
-        { idempotencyKey: "local-create" },
-      ),
+        {
+          name: "Local workspace",
+          slug: "local-workspace",
+          visibility: "local",
+        },
+        { idempotencyKey: "local-create" }
+      )
     ).resolves.toEqual(localWorkspace);
     expect(cloud.getWorkspace).not.toHaveBeenCalled();
     expect(cloud.createWorkspace).not.toHaveBeenCalled();
@@ -471,7 +459,7 @@ describe("createHybridControlClient", () => {
       "workspace",
       "lunaris.kanban",
       "get_board_properties",
-      { boardId: "board-1" },
+      { boardId: "board-1" }
     );
 
     expect(local.executePluginOperation).toHaveBeenCalledOnce();
@@ -486,7 +474,9 @@ function client(): PendingAwareControlClient {
     {
       get: (_target, property) => {
         const existing = methods.get(property);
-        if (existing) return existing;
+        if (existing) {
+          return existing;
+        }
         const method = vi.fn();
         methods.set(property, method);
         return method;
@@ -495,7 +485,7 @@ function client(): PendingAwareControlClient {
         methods.set(property, value);
         return true;
       },
-    },
+    }
   ) as PendingAwareControlClient;
 }
 
@@ -504,7 +494,7 @@ function workspace(
   visibility: "local" | "shared",
   order: number,
   name = id,
-  syncState: "current" | "stale" = "stale",
+  syncState: "current" | "stale" = "stale"
 ): Workspace {
   const updatedAt = `2026-01-0${order}T00:00:00.000Z`;
   return {

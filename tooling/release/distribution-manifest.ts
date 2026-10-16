@@ -1,8 +1,4 @@
-import {
-  readdirSync,
-  readFileSync,
-  statSync,
-} from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, resolve } from "node:path";
 
 export type DistributionComponent = "cli" | "desktop";
@@ -153,7 +149,9 @@ if (import.meta.main) {
   }
 
   const sourceCommit = process.env.GITHUB_SHA;
-  if (!sourceCommit) throw new Error("GITHUB_SHA is required");
+  if (!sourceCommit) {
+    throw new Error("GITHUB_SHA is required");
+  }
 
   const manifest = buildDistributionManifest({
     component,

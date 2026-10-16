@@ -5,7 +5,7 @@ import { PluginRegistry } from "./registry";
 function plugin(
   id: string,
   optionalDependencies: Record<string, string> = {},
-  version = "1.0.0",
+  version = "1.0.0"
 ) {
   return definePlugin({
     activate: () => undefined,
@@ -39,7 +39,9 @@ describe("PluginRegistry", () => {
       methods: ["echo"],
       version: "1.0.0",
     });
-    const slot = service.slot<{ label: string }, string, string>("representations");
+    const slot = service.slot<{ label: string }, string, string>(
+      "representations"
+    );
     const provider = plugin("acme.exporter");
     const consumer = plugin("acme.rich-text", { "acme.exporter": "^1.0.0" });
     registry.registerPlugin(consumer);
@@ -52,57 +54,101 @@ describe("PluginRegistry", () => {
       slot,
     });
 
-    expect(registry.getSlotContributions(consumer.manifest.id, slot)).toEqual([]);
+    expect(registry.getSlotContributions(consumer.manifest.id, slot)).toEqual(
+      []
+    );
     const removeProvider = registry.registerPlugin(provider);
     const removeService = registry.registerService(provider.manifest.id, {
       definition: service,
       implementation: { echo: (input) => input },
     });
-    const [contribution] = registry.getSlotContributions(consumer.manifest.id, slot);
+    const [contribution] = registry.getSlotContributions(
+      consumer.manifest.id,
+      slot
+    );
     await expect(contribution?.invoke("note")).resolves.toBe("NOTE");
 
     removeService();
     removeProvider();
-    expect(registry.getSlotContributions(consumer.manifest.id, slot)).toEqual([]);
+    expect(registry.getSlotContributions(consumer.manifest.id, slot)).toEqual(
+      []
+    );
 
     registry.registerPlugin(provider);
     registry.registerService(provider.manifest.id, {
       definition: service,
       implementation: { echo: (input) => input },
     });
-    expect(registry.getSlotContributions(consumer.manifest.id, slot)).toHaveLength(1);
+    expect(
+      registry.getSlotContributions(consumer.manifest.id, slot)
+    ).toHaveLength(1);
   });
 
   it("denies undeclared access and isolates slot invocation failures", async () => {
     const registry = new PluginRegistry();
-    const service = definePluginService({ id: "acme.exporter", methods: [], version: "1.0.0" });
-    const slot = service.slot<{ order: number }, string, string>("representations");
+    const service = definePluginService({
+      id: "acme.exporter",
+      methods: [],
+      version: "1.0.0",
+    });
+    const slot = service.slot<{ order: number }, string, string>(
+      "representations"
+    );
     const provider = plugin("acme.exporter");
     const declared = plugin("acme.declared", { "acme.exporter": "^1.0.0" });
     const undeclared = plugin("acme.undeclared");
     registry.registerPlugin(provider);
     registry.registerPlugin(declared);
     registry.registerPlugin(undeclared);
-    registry.registerService(provider.manifest.id, { definition: service, implementation: {} });
+    registry.registerService(provider.manifest.id, {
+      definition: service,
+      implementation: {},
+    });
 
-    expect(registry.getService(undeclared.manifest.id, service)).toBeUndefined();
-    expect(() => registry.registerSlotContribution(undeclared.manifest.id, {
-      contribution: { id: "acme.undeclared.exporter", invoke: (input) => input, metadata: { order: 1 } },
-      slot,
-    })).toThrow("cannot contribute");
+    expect(
+      registry.getService(undeclared.manifest.id, service)
+    ).toBeUndefined();
+    expect(() =>
+      registry.registerSlotContribution(undeclared.manifest.id, {
+        contribution: {
+          id: "acme.undeclared.exporter",
+          invoke: (input) => input,
+          metadata: { order: 1 },
+        },
+        slot,
+      })
+    ).toThrow("cannot contribute");
 
-    const fail = vi.fn(() => { throw new Error("handler failed"); });
+    const fail = vi.fn(() => {
+      throw new Error("handler failed");
+    });
     registry.registerSlotContribution(declared.manifest.id, {
-      contribution: { id: "acme.declared.z", invoke: fail, metadata: { order: 2 } },
+      contribution: {
+        id: "acme.declared.z",
+        invoke: fail,
+        metadata: { order: 2 },
+      },
       slot,
     });
     registry.registerSlotContribution(declared.manifest.id, {
-      contribution: { id: "acme.declared.a", invoke: (input) => input, metadata: { order: 1 } },
+      contribution: {
+        id: "acme.declared.a",
+        invoke: (input) => input,
+        metadata: { order: 1 },
+      },
       slot,
     });
-    const contributions = registry.getSlotContributions(declared.manifest.id, slot);
-    expect(contributions.map(({ id }) => id)).toEqual(["acme.declared.a", "acme.declared.z"]);
-    await expect(contributions[1]?.invoke("value")).rejects.toThrow("handler failed");
+    const contributions = registry.getSlotContributions(
+      declared.manifest.id,
+      slot
+    );
+    expect(contributions.map(({ id }) => id)).toEqual([
+      "acme.declared.a",
+      "acme.declared.z",
+    ]);
+    await expect(contributions[1]?.invoke("value")).rejects.toThrow(
+      "handler failed"
+    );
     await expect(contributions[0]?.invoke("value")).resolves.toBe("value");
   });
 
@@ -158,8 +204,8 @@ describe("PluginRegistry", () => {
     expect(
       registry.getSlotContributions(
         provider.manifest.id,
-        serviceV1_1.slot("documents"),
-      ),
+        serviceV1_1.slot("documents")
+      )
     ).toHaveLength(1);
   });
 
@@ -198,16 +244,18 @@ describe("PluginRegistry", () => {
     expect(
       registry.getSlotContributions(
         consumer.manifest.id,
-        serviceV1.slot("documents"),
-      ),
+        serviceV1.slot("documents")
+      )
     ).toEqual([]);
-    expect(registry.getService(consumer.manifest.id, serviceV2)).toBeUndefined();
+    expect(
+      registry.getService(consumer.manifest.id, serviceV2)
+    ).toBeUndefined();
     await expect(
       registry.invokeSlot(
         consumer.manifest.id,
         `acme.exporter:documents:acme.consumer:${contributionId}`,
-        "value",
-      ),
+        "value"
+      )
     ).rejects.toThrow("unavailable");
   });
 
@@ -239,10 +287,10 @@ describe("PluginRegistry", () => {
 
     const [contribution] = registry.getSlotContributions(
       consumer.manifest.id,
-      service.slot("documents"),
+      service.slot("documents")
     );
     await expect(contribution?.invoke("value")).rejects.toThrow(
-      "structured-clone-safe",
+      "structured-clone-safe"
     );
   });
 });

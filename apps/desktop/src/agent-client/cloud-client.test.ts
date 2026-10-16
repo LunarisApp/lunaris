@@ -8,14 +8,14 @@ describe("CloudLunarisControlClient", () => {
         new CloudLunarisControlClient({
           apiKey: "secret-key",
           baseUrl: "http://api.lunaris.test",
-        }),
+        })
     ).toThrow("must use HTTPS");
     expect(
       () =>
         new CloudLunarisControlClient({
           apiKey: "secret-key",
           baseUrl: "https://user:pass@api.lunaris.test",
-        }),
+        })
     ).toThrow("unsupported components");
   });
 
@@ -25,7 +25,7 @@ describe("CloudLunarisControlClient", () => {
         new CloudLunarisControlClient({
           apiKey: "secret-key",
           baseUrl: "http://127.0.0.1:3000",
-        }),
+        })
     ).not.toThrow();
   });
 
@@ -43,7 +43,7 @@ describe("CloudLunarisControlClient", () => {
     await client.listWorkspaces("organization one", { limit: 20 });
 
     expect(request?.url).toBe(
-      "https://api.lunaris.test/v1/organizations/organization%20one/workspaces?limit=20",
+      "https://api.lunaris.test/v1/organizations/organization%20one/workspaces?limit=20"
     );
     expect(request?.headers.get("X-Lunaris-API-Key")).toBe("secret-key");
     expect(request?.url).not.toContain("secret-key");
@@ -103,27 +103,34 @@ describe("CloudLunarisControlClient", () => {
       "organization-1",
       "workspace-1",
       { expectedRevision: "revision-1", name: "Renamed" },
-      { idempotencyKey: "request-key" },
+      { idempotencyKey: "request-key" }
     );
     await client.updateOrganization(
       "organization-1",
-      { expectedRevision: "organization-revision", name: "Renamed organization" },
-      { idempotencyKey: "organization-key" },
+      {
+        expectedRevision: "organization-revision",
+        name: "Renamed organization",
+      },
+      { idempotencyKey: "organization-key" }
     );
     await client.deleteWorkspace(
       "organization-1",
       "workspace-1",
       "preview-secret",
-      { idempotencyKey: "delete-key" },
+      { idempotencyKey: "delete-key" }
     );
 
-    expect(requests[0]?.headers.get("Authorization")).toBe("Bearer oauth-token");
+    expect(requests[0]?.headers.get("Authorization")).toBe(
+      "Bearer oauth-token"
+    );
     expect(requests[0]?.headers.get("If-Match")).toBe('"revision-1"');
     expect(requests[0]?.headers.get("Idempotency-Key")).toBe("request-key");
     expect(requests[1]?.headers.get("If-Match")).toBe(
-      '"organization-revision"',
+      '"organization-revision"'
     );
-    expect(requests[2]?.headers.get("X-Lunaris-Preview")).toBe("preview-secret");
+    expect(requests[2]?.headers.get("X-Lunaris-Preview")).toBe(
+      "preview-secret"
+    );
     expect(requests[2]?.url).not.toContain("preview-secret");
   });
 
@@ -144,10 +151,10 @@ describe("CloudLunarisControlClient", () => {
     await client.listOrganizations();
 
     expect(requests[0]?.headers.get("Authorization")).toBe(
-      "Bearer first-token",
+      "Bearer first-token"
     );
     expect(requests[1]?.headers.get("Authorization")).toBe(
-      "Bearer refreshed-token",
+      "Bearer refreshed-token"
     );
   });
 
@@ -158,18 +165,20 @@ describe("CloudLunarisControlClient", () => {
       baseUrl: "https://api.lunaris.test",
       fetch: async (input, init) => {
         request = new Request(input, init);
-        return Response.json({ downloadUrl: "https://files.lunaris.test/file" });
+        return Response.json({
+          downloadUrl: "https://files.lunaris.test/file",
+        });
       },
     });
 
     await client.getFileDownloadUrl(
       "organization-1",
       "workspace-1",
-      "attachment-1",
+      "attachment-1"
     );
 
     expect(request?.url).toBe(
-      "https://api.lunaris.test/v1/organizations/organization-1/workspaces/workspace-1/storage/attachment-1/file/download-url",
+      "https://api.lunaris.test/v1/organizations/organization-1/workspaces/workspace-1/storage/attachment-1/file/download-url"
     );
   });
 
@@ -201,11 +210,11 @@ describe("CloudLunarisControlClient", () => {
         properties: { Status: "Done" },
         taskId: "task-1",
       },
-      { idempotencyKey: "request-key" },
+      { idempotencyKey: "request-key" }
     );
 
     expect(request?.url).toBe(
-      "https://api.lunaris.test/v1/organizations/organization-1/workspaces/workspace-1/plugins/lunaris.kanban/operations/update_task",
+      "https://api.lunaris.test/v1/organizations/organization-1/workspaces/workspace-1/plugins/lunaris.kanban/operations/update_task"
     );
     expect(request?.headers.get("If-Match")).toBe('"revision-1"');
     expect(request?.headers.get("Idempotency-Key")).toBe("request-key");
@@ -242,12 +251,12 @@ describe("CloudLunarisControlClient", () => {
       "workspace-1",
       "lunaris.kanban",
       "get_board_properties",
-      { boardId: "board-1" },
+      { boardId: "board-1" }
     );
 
     expect(request?.method).toBe("GET");
     expect(request?.url).toBe(
-      "https://api.lunaris.test/v1/organizations/organization-1/workspaces/workspace-1/plugins/lunaris.kanban/operations/get_board_properties?boardId=board-1",
+      "https://api.lunaris.test/v1/organizations/organization-1/workspaces/workspace-1/plugins/lunaris.kanban/operations/get_board_properties?boardId=board-1"
     );
     expect(request?.headers.get("Idempotency-Key")).toBeNull();
   });
@@ -278,11 +287,11 @@ describe("CloudLunarisControlClient", () => {
       "organization-1",
       "workspace-1",
       "task-1",
-      { expectedResourceTypeId: "lunaris.kanban.task" },
+      { expectedResourceTypeId: "lunaris.kanban.task" }
     );
 
     expect(request?.url).toContain(
-      "expectedResourceTypeId=lunaris.kanban.task",
+      "expectedResourceTypeId=lunaris.kanban.task"
     );
   });
 
@@ -322,11 +331,11 @@ describe("CloudLunarisControlClient", () => {
       {
         expectedParentResourceTypeId: "lunaris.kanban",
         idempotencyKey: "request-1",
-      },
+      }
     );
 
     expect(request?.url).toContain(
-      "expectedParentResourceTypeId=lunaris.kanban",
+      "expectedParentResourceTypeId=lunaris.kanban"
     );
   });
 
@@ -349,7 +358,7 @@ describe("CloudLunarisControlClient", () => {
     });
 
     expect(request?.url).toBe(
-      "https://api.lunaris.test/v1/organizations/organization%20one/resources?cursor=next+page&limit=20&workspaceId=workspace+one&search=road+map",
+      "https://api.lunaris.test/v1/organizations/organization%20one/resources?cursor=next+page&limit=20&workspaceId=workspace+one&search=road+map"
     );
   });
 

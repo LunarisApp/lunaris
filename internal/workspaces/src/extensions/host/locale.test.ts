@@ -20,8 +20,8 @@ describe("extension locale", () => {
           renderer: "renderer:lunaris.demo:default",
           type: "render",
         },
-        "Host RPC request",
-      ),
+        "Host RPC request"
+      )
     ).toEqual({
       host,
       id: "render-1",
@@ -32,8 +32,8 @@ describe("extension locale", () => {
     expect(
       cloneSandboxWireValue(
         { host, id: "render-1", type: "snapshot" },
-        "Host RPC snapshot",
-      ),
+        "Host RPC snapshot"
+      )
     ).toEqual({ host, id: "render-1", type: "snapshot" });
     expect(runtimeLocale.setLocale).not.toHaveBeenCalled();
   });

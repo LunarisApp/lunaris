@@ -15,14 +15,15 @@ const developmentPlanSchema = z
 export class EntitlementsConfig {
   constructor(config: ConfigService) {
     this.selfHosted = config.get("DEPLOYMENT_MODE") === "self-hosted";
-    this.selfHostedPlan = developmentPlanSchema.parse(config.get("SELF_HOSTED_PLAN") ?? "enterprise");
+    this.selfHostedPlan = developmentPlanSchema.parse(
+      config.get("SELF_HOSTED_PLAN") ?? "enterprise"
+    );
     this.nodeEnv = configZ
       .string()
       .parse(config.get("NODE_ENV") ?? "development");
     this.configuredDevelopmentPlan = developmentPlanSchema.parse(
-      config.get("DEV_ENTITLEMENT_PLAN") ?? "",
+      config.get("DEV_ENTITLEMENT_PLAN") ?? ""
     );
-
   }
 
   private selfHosted: boolean;
@@ -34,8 +35,12 @@ export class EntitlementsConfig {
   private configuredDevelopmentPlan: PlanSlug | null;
 
   get developmentPlan(): PlanSlug | null {
-    if (this.selfHosted) return this.selfHostedPlan;
-    if (this.nodeEnv === "production") return null;
+    if (this.selfHosted) {
+      return this.selfHostedPlan;
+    }
+    if (this.nodeEnv === "production") {
+      return null;
+    }
     return this.configuredDevelopmentPlan;
   }
 }

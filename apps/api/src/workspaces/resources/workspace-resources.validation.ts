@@ -10,7 +10,7 @@ import {
 export async function getWorkspaceResource(
   tx: DatabaseOrTx,
   id: string,
-  options: { lock?: boolean; workspaceId?: string } = {},
+  options: { lock?: boolean; workspaceId?: string } = {}
 ) {
   const { lock = false, workspaceId } = options;
   const query = tx
@@ -26,8 +26,8 @@ export async function getWorkspaceResource(
         eq(workspaceResourcesDb.id, id),
         workspaceId === undefined
           ? undefined
-          : eq(workspaceResourcesDb.workspaceId, workspaceId),
-      ),
+          : eq(workspaceResourcesDb.workspaceId, workspaceId)
+      )
     );
 
   const rows = lock ? await query.for("update") : await query;
@@ -41,11 +41,23 @@ export async function assertValidWorkspaceResourceParent(params: {
   workspaceId: string;
   tx: DatabaseOrTx;
 }) {
-  const { tx, resourceId, lockAncestors = false, parentId, workspaceId } = params;
-  if (parentId == null) return;
+  const {
+    tx,
+    resourceId,
+    lockAncestors = false,
+    parentId,
+    workspaceId,
+  } = params;
+  if (parentId == null) {
+    return;
+  }
 
   if (parentId === resourceId) {
-    throw new InvalidParentError(resourceId, parentId, "resource cannot parent itself");
+    throw new InvalidParentError(
+      resourceId,
+      parentId,
+      "resource cannot parent itself"
+    );
   }
 
   const parent = await getWorkspaceResource(tx, parentId, {
@@ -71,12 +83,14 @@ export async function assertValidWorkspaceResourceParent(params: {
       throw new InvalidParentError(
         resourceId,
         parentId,
-        "parent ancestry contains a cycle",
+        "parent ancestry contains a cycle"
       );
     }
 
     visited.add(currentParent.id);
-    if (currentParent.parentId == null) return;
+    if (currentParent.parentId == null) {
+      return;
+    }
     const ancestor = await getWorkspaceResource(tx, currentParent.parentId, {
       lock: lockAncestors,
       workspaceId,

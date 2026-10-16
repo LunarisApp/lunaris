@@ -28,7 +28,9 @@ export function useYjsStorageIntentPreload(
   }, []);
   const warm = useCallback(
     (priority: YjsPreloadPriority) => {
-      if (!storage?.documentId || !workspaceId) return;
+      if (!(storage?.documentId && workspaceId)) {
+        return;
+      }
       // Acquire again instead of promoting a handle whose resource may have been evicted.
       const next = preloadYjsDocument({
         db,
@@ -49,8 +51,11 @@ export function useYjsStorageIntentPreload(
       release();
       if (element) {
         stopObserving.current = observe?.(element, (visible) => {
-          if (visible) warm("background");
-          else release();
+          if (visible) {
+            warm("background");
+          } else {
+            release();
+          }
         });
       }
     },
@@ -63,7 +68,9 @@ export function useYjsStorageIntentPreload(
   }, [preloadRenderer, warm]);
   const preloadOnTouch = useCallback<PointerEventHandler>(
     (event) => {
-      if (event.pointerType === "touch") preload();
+      if (event.pointerType === "touch") {
+        preload();
+      }
     },
     [preload]
   );

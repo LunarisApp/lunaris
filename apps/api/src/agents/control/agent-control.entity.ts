@@ -24,7 +24,7 @@ export const agentIdempotencyDb = pgTable(
   (table) => [
     unique("agent_idempotency_actor_key_unique").on(table.actorId, table.key),
     index("agent_idempotency_expires_idx").on(table.expiresAt),
-  ],
+  ]
 );
 
 export const agentActionPreviewsDb = pgTable(
@@ -45,7 +45,7 @@ export const agentActionPreviewsDb = pgTable(
   (table) => [
     index("agent_action_previews_actor_idx").on(table.actorId),
     index("agent_action_previews_expires_idx").on(table.expiresAt),
-  ],
+  ]
 );
 
 export const agentAuditEventsDb = pgTable(
@@ -66,11 +66,11 @@ export const agentAuditEventsDb = pgTable(
   (table) => [
     index("agent_audit_events_actor_created_idx").on(
       table.actorId,
-      table.createdAt,
+      table.createdAt
     ),
     index("agent_audit_events_organization_created_idx").on(
       table.organizationId,
-      table.createdAt,
+      table.createdAt
     ),
-  ],
+  ]
 );

@@ -41,7 +41,7 @@ function setup(loadPlugin = vi.fn(async () => ({ plugin }))) {
       unloadPlugin,
       unregisterPlugin,
       unregisterRenderer: vi.fn(),
-    }),
+    })
   );
   return { result, unloadPlugin, unregisterPlugin };
 }
@@ -64,21 +64,25 @@ describe("plugin runtime host", () => {
     ]);
     const { result, unloadPlugin } = setup();
 
-    const results = await act(() => result.current.initialize([plugin.manifest.id]));
+    const results = await act(() =>
+      result.current.initialize([plugin.manifest.id])
+    );
 
     expect(results[0]).toMatchObject({ success: false });
     expect(unloadPlugin).toHaveBeenCalledWith(plugin.manifest.id);
   });
 
   it("cleans initialization that finishes after disposal", async () => {
-    let resolveInitialization: (results: Array<{
-      pluginId: string;
-      success: boolean;
-    }>) => void = () => undefined;
+    let resolveInitialization: (
+      results: Array<{
+        pluginId: string;
+        success: boolean;
+      }>
+    ) => void = () => undefined;
     lifecycle.initializePlugins.mockReturnValue(
       new Promise((resolve) => {
         resolveInitialization = resolve;
-      }),
+      })
     );
     const { result, unloadPlugin } = setup();
     const initialization = result.current.initialize([plugin.manifest.id]);
@@ -89,7 +93,9 @@ describe("plugin runtime host", () => {
     const results = await initialization;
 
     expect(results[0]).toMatchObject({
-      error: expect.objectContaining({ message: expect.stringContaining("cancelled") }),
+      error: expect.objectContaining({
+        message: expect.stringContaining("cancelled"),
+      }),
       success: false,
     });
     expect(lifecycle.cleanupPlugins).toHaveBeenCalledWith([plugin]);
@@ -123,12 +129,9 @@ describe("plugin runtime host", () => {
 
     expect(lifecycle.disablePlugin).toHaveBeenCalledWith(
       plugin.manifest.id,
-      unregisterPlugin,
+      unregisterPlugin
     );
-    expect(unloadPlugin).toHaveBeenCalledWith(
-      plugin.manifest.id,
-      "release-1",
-    );
+    expect(unloadPlugin).toHaveBeenCalledWith(plugin.manifest.id, "release-1");
   });
 
   it("replaces one active revision and unloads the old artifact afterward", async () => {
@@ -162,12 +165,9 @@ describe("plugin runtime host", () => {
     expect(lifecycle.reloadPlugin).toHaveBeenCalledWith(
       nextPlugin,
       expect.any(Object),
-      expect.any(Function),
+      expect.any(Function)
     );
-    expect(unloadPlugin).toHaveBeenCalledWith(
-      plugin.manifest.id,
-      "release-1",
-    );
+    expect(unloadPlugin).toHaveBeenCalledWith(plugin.manifest.id, "release-1");
   });
 
   it("unloads a replacement artifact when reconciliation throws", async () => {
@@ -196,10 +196,7 @@ describe("plugin runtime host", () => {
     });
 
     expect(errors[plugin.manifest.id]?.message).toBe("replace crashed");
-    expect(unloadPlugin).toHaveBeenCalledWith(
-      plugin.manifest.id,
-      "release-2",
-    );
+    expect(unloadPlugin).toHaveBeenCalledWith(plugin.manifest.id, "release-2");
   });
 
   it("deactivates an enabled extension when its release becomes unavailable", async () => {
@@ -221,7 +218,7 @@ describe("plugin runtime host", () => {
 
     expect(lifecycle.disablePlugin).toHaveBeenCalledWith(
       plugin.manifest.id,
-      expect.any(Function),
+      expect.any(Function)
     );
     expect(errors[plugin.manifest.id]?.message).toContain("blocked");
   });

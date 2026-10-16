@@ -9,19 +9,32 @@ function canUseLocalStorage() {
   return typeof window !== "undefined" && typeof localStorage !== "undefined";
 }
 
-export function markDefaultWorkspaceSeedPending(marker: DefaultWorkspaceSeedMarker) {
-  if (!canUseLocalStorage()) return;
-  localStorage.setItem(DEFAULT_WORKSPACE_SEED_MARKER_KEY, JSON.stringify(marker));
+export function markDefaultWorkspaceSeedPending(
+  marker: DefaultWorkspaceSeedMarker
+) {
+  if (!canUseLocalStorage()) {
+    return;
+  }
+  localStorage.setItem(
+    DEFAULT_WORKSPACE_SEED_MARKER_KEY,
+    JSON.stringify(marker)
+  );
 }
 
 export function readDefaultWorkspaceSeedMarker(): DefaultWorkspaceSeedMarker | null {
-  if (!canUseLocalStorage()) return null;
+  if (!canUseLocalStorage()) {
+    return null;
+  }
   const raw = localStorage.getItem(DEFAULT_WORKSPACE_SEED_MARKER_KEY);
-  if (!raw) return null;
+  if (!raw) {
+    return null;
+  }
   try {
     const parsed = JSON.parse(raw) as Partial<DefaultWorkspaceSeedMarker>;
     let marker: DefaultWorkspaceSeedMarker | null = null;
-    if (parsed.kind === "anonymous") marker = { kind: "anonymous" };
+    if (parsed.kind === "anonymous") {
+      marker = { kind: "anonymous" };
+    }
     if (
       parsed.kind === "registered" &&
       typeof parsed.email === "string" &&
@@ -36,6 +49,8 @@ export function readDefaultWorkspaceSeedMarker(): DefaultWorkspaceSeedMarker | n
 }
 
 export function clearDefaultWorkspaceSeedMarker() {
-  if (!canUseLocalStorage()) return;
+  if (!canUseLocalStorage()) {
+    return;
+  }
   localStorage.removeItem(DEFAULT_WORKSPACE_SEED_MARKER_KEY);
 }

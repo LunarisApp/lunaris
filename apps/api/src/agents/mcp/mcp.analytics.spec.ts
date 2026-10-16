@@ -6,10 +6,7 @@ import {
   PostHogMCPAnalyticsProperty,
 } from "@posthog/mcp";
 import type { PostHog } from "posthog-node";
-import {
-  instrumentMcpServer,
-  mcpAnalyticsOptions,
-} from "./mcp.analytics";
+import { instrumentMcpServer, mcpAnalyticsOptions } from "./mcp.analytics";
 
 describe("mcpAnalyticsOptions", () => {
   it("identifies the actor without changing tool schemas or duplicating errors", () => {
@@ -34,7 +31,7 @@ describe("mcpAnalyticsOptions", () => {
     } as unknown as PostHog;
 
     expect(() =>
-      instrumentMcpServer(server, mcpPosthog, "user_123"),
+      instrumentMcpServer(server, mcpPosthog, "user_123")
     ).not.toThrow();
     expect(applicationPosthog.getLibraryId()).toBe("posthog-node");
     expect(mcpPosthog.getLibraryId()).toBe("posthog-node-mcp");
@@ -69,8 +66,8 @@ describe("mcpAnalyticsOptions", () => {
 
     expect(
       captures.find(
-        (event) => event.event === PostHogMCPAnalyticsEvent.ToolCall,
-      ),
+        (event) => event.event === PostHogMCPAnalyticsEvent.ToolCall
+      )
     ).toMatchObject({
       distinctId: "user_123",
       properties: {

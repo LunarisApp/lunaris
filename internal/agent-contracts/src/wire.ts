@@ -169,7 +169,7 @@ export interface SerializedAgentOperation {
 
 export function serializeAgentOperation(
   operation: AgentOperationId,
-  input: Record<string, unknown>,
+  input: Record<string, unknown>
 ): SerializedAgentOperation {
   const definition = agentOperationWire[operation];
   return serializeAgentWire(definition, input);
@@ -177,12 +177,13 @@ export function serializeAgentOperation(
 
 export function serializeAgentWire(
   definition: AgentOperationWireDefinition,
-  rawInput: Record<string, unknown>,
+  rawInput: Record<string, unknown>
 ): SerializedAgentOperation {
   const input = applyAgentWireInputMapping(definition, rawInput);
   const path = definition.path.replaceAll(
     /\{([^{}]+)\}/gu,
-    (_match, name: string) => encodeURIComponent(requiredString(input[name], name)),
+    (_match, name: string) =>
+      encodeURIComponent(requiredString(input[name], name))
   );
   const query = pick(input, definition.query);
   const body = pick(input, definition.body);
@@ -190,9 +191,16 @@ export function serializeAgentWire(
     Object.entries(definition.headers ?? {}).flatMap(([name, rawHeader]) => {
       const header = String(rawHeader);
       const value = input[name];
-      if (value === undefined || value === null || value === "") return [];
-      return [[header, header === "If-Match" ? quoteEtag(String(value)) : String(value)]];
-    }),
+      if (value === undefined || value === null || value === "") {
+        return [];
+      }
+      return [
+        [
+          header,
+          header === "If-Match" ? quoteEtag(String(value)) : String(value),
+        ],
+      ];
+    })
   );
   return {
     ...(Object.keys(body).length > 0 ? { body } : {}),
@@ -205,13 +213,15 @@ export function serializeAgentWire(
 
 export function applyAgentWireInputMapping(
   definition: AgentOperationWireDefinition,
-  input: Record<string, unknown>,
+  input: Record<string, unknown>
 ): Record<string, unknown> {
   const resolved = { ...input };
   for (const [target, source] of Object.entries(
-    definition.inputMapping?.renamed ?? {},
+    definition.inputMapping?.renamed ?? {}
   )) {
-    if (input[source] !== undefined) resolved[target] = input[source];
+    if (input[source] !== undefined) {
+      resolved[target] = input[source];
+    }
   }
   Object.assign(resolved, definition.inputMapping?.fixed);
   return resolved;
@@ -219,13 +229,13 @@ export function applyAgentWireInputMapping(
 
 function pick(
   input: Record<string, unknown>,
-  keys?: readonly string[],
+  keys?: readonly string[]
 ): Record<string, unknown> {
   return Object.fromEntries(
     (keys ?? []).flatMap((key) => {
       const value = input[key];
       return value === undefined ? [] : [[key, value]];
-    }),
+    })
   );
 }
 

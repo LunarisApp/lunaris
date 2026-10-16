@@ -8,14 +8,14 @@ import {
 } from "./yjs-documents.schema";
 
 const updateB64 = Buffer.from(encodeStateAsUpdateV2(new Doc())).toString(
-  "base64",
+  "base64"
 );
 
 describe("Yjs document schemas", () => {
   it("accepts empty and initialized document creation", () => {
     expect(createYjsDocumentSchema.parse({})).toEqual({});
     expect(
-      createYjsDocumentSchema.parse({ initialUpdateB64: updateB64 }),
+      createYjsDocumentSchema.parse({ initialUpdateB64: updateB64 })
     ).toEqual({ initialUpdateB64: updateB64 });
   });
 
@@ -24,7 +24,7 @@ describe("Yjs document schemas", () => {
       updateB64,
     });
     expect(() =>
-      appendYjsDocumentUpdateSchema.parse({ updateB64: "not base64" }),
+      appendYjsDocumentUpdateSchema.parse({ updateB64: "not base64" })
     ).toThrow();
   });
 
@@ -36,10 +36,10 @@ describe("Yjs document schemas", () => {
   it("validates optional state-vector base64", () => {
     expect(YjsDocumentStateQueryDto.parse({})).toEqual({});
     expect(() =>
-      YjsDocumentStateQueryDto.parse({ stateVectorB64: "%%%" }),
+      YjsDocumentStateQueryDto.parse({ stateVectorB64: "%%%" })
     ).toThrow();
     expect(() =>
-      YjsDocumentStateQueryDto.parse({ stateVectorB64: "AB==" }),
+      YjsDocumentStateQueryDto.parse({ stateVectorB64: "AB==" })
     ).toThrow();
   });
 });

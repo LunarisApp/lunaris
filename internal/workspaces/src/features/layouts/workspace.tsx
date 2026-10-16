@@ -9,7 +9,7 @@ export function WorkspaceLayout({
     <div
       className={cn(
         "flex h-dvh w-dvw flex-col overflow-hidden overscroll-none bg-sidebar px-2.5",
-        className,
+        className
       )}
       id="workspace-layout"
       {...props}

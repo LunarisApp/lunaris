@@ -24,17 +24,20 @@ describe("auth/claim-account", () => {
         cy.get('[data-testid="auth-register-submit"]').click();
         // The email can be logged before signup finishes replacing the guest
         // session. Follow verification only after the new session is installed.
-        cy.location("pathname", { timeout: 15_000 }).should("eq", "/auth/verify-email");
+        cy.location("pathname", { timeout: 15_000 }).should(
+          "eq",
+          "/auth/verify-email"
+        );
         cy.verifyEmailViaLog(email);
 
         cy.get('[data-testid="auth-onboarding"]', { timeout: 15_000 }).should(
-          "be.visible",
+          "be.visible"
         );
         cy.get('[data-testid="auth-onboarding-writing"]').click();
         cy.get('[data-testid="auth-onboarding-continue"]').click();
         cy.location("pathname", { timeout: 15_000 }).should(
           "eq",
-          guestOrganizationPath,
+          guestOrganizationPath
         );
         cy.get('[data-testid="organization-selector-trigger"]').click();
         cy.get('[role="menuitemradio"]').should("have.length", 1);

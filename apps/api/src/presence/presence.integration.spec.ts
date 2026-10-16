@@ -25,11 +25,13 @@ const config = new RedisConfig(
     REDIS_HOST: "127.0.0.1",
     REDIS_PORT: 6379,
     REDIS_PASSWORD: "lunaris-local",
-  }),
+  })
 );
 const disposals: (() => void | Promise<void>)[] = [];
 afterEach(async () => {
-  for (const dispose of disposals.splice(0).reverse()) await dispose();
+  for (const dispose of disposals.splice(0).reverse()) {
+    await dispose();
+  }
 });
 function ticket(documentId = randomUUID()): PresenceTicket {
   return {
@@ -50,20 +52,24 @@ function relay() {
 async function until(predicate: () => boolean, timeout = 3000) {
   const deadline = Date.now() + timeout;
   while (!predicate()) {
-    if (Date.now() >= deadline) throw new Error("Presence test timed out");
+    if (Date.now() >= deadline) {
+      throw new Error("Presence test timed out");
+    }
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
 }
 async function gateway(
   relay: PresenceRelay,
   identity: PresenceTicket,
-  allowed = () => true,
+  allowed = () => true
 ) {
   const server = createServer();
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const access = {
     authorize: async () => {
-      if (!allowed()) throw new Error("Revoked");
+      if (!allowed()) {
+        throw new Error("Revoked");
+      }
       return identity;
     },
   } as unknown as PresenceAccessService;
@@ -75,7 +81,7 @@ async function gateway(
       nodeEnv: "test",
     } as unknown as AppConfig,
     relay,
-    access,
+    access
   );
   gateway.onApplicationBootstrap();
   disposals.push(async () => {
@@ -89,20 +95,22 @@ async function connect(
   server: Server,
   relay: PresenceRelay,
   identity: PresenceTicket,
-  token?: string,
+  token?: string
 ) {
   const doc = new Doc();
   const awareness = new Awareness(doc);
   awareness.setLocalState(null);
   const socket = new WebSocket(
     `ws://127.0.0.1:${(server.address() as AddressInfo).port}/v1/presence`,
-    { headers: { Origin: "http://localhost:5173" } },
+    { headers: { Origin: "http://localhost:5173" } }
   );
   let ready = false;
   socket.on("message", (data, binary) => {
-    if (binary)
+    if (binary) {
       applyAwarenessUpdate(awareness, new Uint8Array(data as Buffer), "remote");
-    else if (JSON.parse(data.toString()).type === "ready") ready = true;
+    } else if (JSON.parse(data.toString()).type === "ready") {
+      ready = true;
+    }
   });
   disposals.push(() => {
     socket.terminate();
@@ -114,7 +122,7 @@ async function connect(
     JSON.stringify({
       ticket: token ?? (await relay.issue(identity)),
       clientId: doc.clientID,
-    }),
+    })
   );
   const publish = () => {
     awareness.setLocalState({ user: { id: "forged", name: "Wrong" } });
@@ -136,10 +144,10 @@ integration("presence with real Redis and two API replicas", () => {
     expect(consumed.filter(Boolean)).toHaveLength(1);
     const membership = { ...identity, kind: "resource" as const };
     expect(first.room(membership)).toBe(
-      first.room({ ...membership, documentId: "different-storage" }),
+      first.room({ ...membership, documentId: "different-storage" })
     );
     expect(first.room(membership)).not.toBe(
-      first.room({ ...membership, resourceId: "different-resource" }),
+      first.room({ ...membership, resourceId: "different-resource" })
     );
     const channel = {
       ...membership,
@@ -148,10 +156,10 @@ integration("presence with real Redis and two API replicas", () => {
       channel: "pointer",
     };
     expect(first.room(channel)).not.toBe(
-      first.room({ ...channel, extensionId: "two" }),
+      first.room({ ...channel, extensionId: "two" })
     );
     expect(first.room(channel)).not.toBe(
-      first.room({ ...channel, channel: "selection" }),
+      first.room({ ...channel, channel: "selection" })
     );
     const room = first.room(identity);
     expect(room).not.toBe(first.room({ ...identity, organizationId: "other" }));
@@ -162,14 +170,14 @@ integration("presence with real Redis and two API replicas", () => {
     });
     await second.update(room, "owner", { clientId: 10, clock: 0, state: null });
     expect((await second.snapshot(room))[0]?.state?.user.id).toBe(
-      identity.user.id,
+      identity.user.id
     );
     await expect(
       second.update(room, "other-owner", {
         clientId: 10,
         clock: 2,
         state: null,
-      }),
+      })
     ).rejects.toThrow();
     const redis = new Redis(config.values!);
     disposals.push(() => redis.disconnect());
@@ -196,7 +204,7 @@ integration("presence with real Redis and two API replicas", () => {
     await until(reader.ready);
     await until(() => reader.awareness.getStates().has(writer.doc.clientID));
     expect(reader.awareness.getStates().get(writer.doc.clientID)?.user).toEqual(
-      identity.user,
+      identity.user
     );
     writer.socket.close();
     await until(() => !reader.awareness.getStates().has(writer.doc.clientID));
@@ -221,7 +229,7 @@ integration("presence with real Redis and two API replicas", () => {
         data: { selected: "card" },
       });
       writer.socket.send(
-        encodeAwarenessUpdate(writer.awareness, [writer.doc.clientID]),
+        encodeAwarenessUpdate(writer.awareness, [writer.doc.clientID])
       );
       const reader = await connect(b, second, identity);
       await until(reader.ready);
@@ -229,20 +237,19 @@ integration("presence with real Redis and two API replicas", () => {
       const state = reader.awareness.getStates().get(writer.doc.clientID);
       expect(state?.user).toEqual(identity.user);
       expect(state?.data).toEqual(
-        kind === "channel" ? { selected: "card" } : undefined,
+        kind === "channel" ? { selected: "card" } : undefined
       );
       if (kind === "channel") {
         writer.awareness.setLocalStateField("data", null);
         writer.socket.send(
-          encodeAwarenessUpdate(writer.awareness, [writer.doc.clientID]),
+          encodeAwarenessUpdate(writer.awareness, [writer.doc.clientID])
         );
         await until(
           () =>
-            reader.awareness.getStates().get(writer.doc.clientID)?.data ===
-            null,
+            reader.awareness.getStates().get(writer.doc.clientID)?.data === null
         );
         expect(
-          reader.awareness.getStates().get(writer.doc.clientID)?.user,
+          reader.awareness.getStates().get(writer.doc.clientID)?.user
         ).toEqual(identity.user);
       }
       writer.socket.close();
@@ -263,8 +270,8 @@ integration("presence with real Redis and two API replicas", () => {
     await until(() => replay.socket.readyState === WebSocket.CLOSED);
     expect(replay.ready()).toBe(false);
     allowed = false;
-    await until(() => client.socket.readyState === WebSocket.CLOSED, 17000);
-  }, 20000);
+    await until(() => client.socket.readyState === WebSocket.CLOSED, 17_000);
+  }, 20_000);
 
   it("closes upgrades outside the presence endpoint", async () => {
     const first = relay();
@@ -273,7 +280,7 @@ integration("presence with real Redis and two API replicas", () => {
       `ws://127.0.0.1:${(server.address() as AddressInfo).port}/unknown`,
       {
         headers: { Origin: "http://localhost:5173" },
-      },
+      }
     );
     socket.on("error", () => {});
     disposals.push(() => socket.terminate());

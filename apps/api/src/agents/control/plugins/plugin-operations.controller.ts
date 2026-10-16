@@ -40,7 +40,7 @@ export class BuiltInPluginControlController {
   constructor(
     private readonly access: UserDataAccessService,
     private readonly operations: BuiltInPluginOperationsService,
-    private readonly safety: AgentSafetyService,
+    private readonly safety: AgentSafetyService
   ) {}
 
   @Get(":pluginId/operations/:operation")
@@ -53,12 +53,12 @@ export class BuiltInPluginControlController {
     @Param("workspaceId") workspaceId: string,
     @Param("pluginId") pluginId: string,
     @Param("operation") operation: string,
-    @Query() input: Record<string, unknown>,
+    @Query() input: Record<string, unknown>
   ) {
     assertProcedureMode(pluginId, operation, "read");
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     principal(request);
     return this.operations.execute({
@@ -83,12 +83,12 @@ export class BuiltInPluginControlController {
     @Param("operation") operation: string,
     @Body() body: Record<string, unknown>,
     @Headers("if-match") expectedRevision?: string,
-    @Headers("idempotency-key") idempotencyKey?: string,
+    @Headers("idempotency-key") idempotencyKey?: string
   ) {
     assertProcedureMode(pluginId, operation, "mutation");
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     const input = {
       ...body,
@@ -117,7 +117,7 @@ export class BuiltInPluginControlController {
 function assertProcedureMode(
   pluginId: string,
   operation: string,
-  mode: "mutation" | "read",
+  mode: "mutation" | "read"
 ) {
   const procedure = findBuiltInPluginMcpProcedure(pluginId, operation);
   if (
@@ -136,6 +136,8 @@ function principal(request: AgentRequest) {
 }
 
 function requiredHeader(value: string | undefined, name: string) {
-  if (!value) throw new BadRequestException(`${name} header is required`);
+  if (!value) {
+    throw new BadRequestException(`${name} header is required`);
+  }
   return value;
 }

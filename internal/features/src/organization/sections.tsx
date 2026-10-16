@@ -7,7 +7,8 @@ export interface OrganizationSections {
 }
 
 const OrganizationSectionsContext = createContext<OrganizationSections>({});
-export const OrganizationSectionsProvider = OrganizationSectionsContext.Provider;
+export const OrganizationSectionsProvider =
+  OrganizationSectionsContext.Provider;
 export function useOrganizationSections() {
   return useContext(OrganizationSectionsContext);
 }

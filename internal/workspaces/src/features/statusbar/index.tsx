@@ -1,5 +1,8 @@
 import { useResourceType, useView } from "@lunarisapp/plugin-sdk";
-import type { ResourceStorageHandles, ResourceViewDefinition } from "@lunarisapp/plugin-sdk";
+import type {
+  ResourceStorageHandles,
+  ResourceViewDefinition,
+} from "@lunarisapp/plugin-sdk";
 import { useResourceStorageSlots } from "@repo/data/features/workspace-storage-slots";
 import { cn } from "@lunarisapp/ui/lib/utils";
 import { createElement, type HTMLAttributes } from "react";
@@ -12,7 +15,7 @@ export function Statusbar({
   return (
     <footer
       className={cn(
-        "h-8 flex justify-between items-center px-2.5 text-muted-foreground text-xs",
+        "flex h-8 items-center justify-between px-2.5 text-muted-foreground text-xs",
         className
       )}
       {...props}
@@ -26,7 +29,7 @@ function StatusbarSection({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex flex-1 min-w-0 items-center gap-3", className)}
+      className={cn("flex min-w-0 flex-1 items-center gap-3", className)}
       {...props}
     />
   );
@@ -81,7 +84,7 @@ export function ActiveResourceStatusBar() {
   const storage = Object.fromEntries(
     slots.data
       .filter((slot) => slot.name && slot.kind)
-      .map((slot) => [slot.name!, { kind: slot.kind!, storageId: slot.id }]),
+      .map((slot) => [slot.name!, { kind: slot.kind!, storageId: slot.id }])
   ) as ResourceStorageHandles;
 
   const resource =
@@ -96,20 +99,24 @@ export function ActiveResourceStatusBar() {
             definition.schema.currentVersion,
         }
       : undefined;
-  if (!resource || !view?.statusBar) {
+  if (!(resource && view?.statusBar)) {
     return null;
   }
 
   const requirements =
     (view as ResourceViewDefinition).storageRequirements ?? {};
-  if (Object.entries(requirements).some(([name, kind]) => storage[name]?.kind !== kind)) {
+  if (
+    Object.entries(requirements).some(
+      ([name, kind]) => storage[name]?.kind !== kind
+    )
+  ) {
     return null;
   }
   return createElement(view.statusBar, {
     params: activePanel?.params ?? {},
     resource,
     storage: Object.fromEntries(
-      Object.keys(requirements).map((name) => [name, storage[name]]),
+      Object.keys(requirements).map((name) => [name, storage[name]])
     ) as ResourceStorageHandles,
   });
 }

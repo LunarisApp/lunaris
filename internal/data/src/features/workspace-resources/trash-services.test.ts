@@ -1,4 +1,6 @@
-vi.mock("../activity/services", () => ({ recordActivity: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("../activity/services", () => ({
+  recordActivity: vi.fn().mockResolvedValue(undefined),
+}));
 import { WORKSPACE_VISIBILITY } from "@repo/auth/sync-access";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resolveWorkspaceVisibility } from "../workspaces/services";
@@ -23,7 +25,9 @@ const resolveWorkspaceVisibilityMock = vi.mocked(resolveWorkspaceVisibility);
 describe("workspace resource trash lifecycle", () => {
   beforeEach(() => {
     resolveWorkspaceVisibilityMock.mockReset();
-    resolveWorkspaceVisibilityMock.mockResolvedValue(WORKSPACE_VISIBILITY.shared);
+    resolveWorkspaceVisibilityMock.mockResolvedValue(
+      WORKSPACE_VISIBILITY.shared
+    );
   });
   it("marks every subtree row with one root and a 30-day deadline", async () => {
     const now = new Date("2026-09-04T10:00:00.000Z");
@@ -34,10 +38,9 @@ describe("workspace resource trash lifecycle", () => {
         .mockResolvedValueOnce({ rowsAffected: 1 })
         .mockResolvedValueOnce({ rowsAffected: 0 })
         .mockResolvedValueOnce({ rowsAffected: 1 }),
-      getAll: vi.fn().mockResolvedValue([
-        { id: "folder_1" },
-        { id: "document_1" },
-      ]),
+      getAll: vi
+        .fn()
+        .mockResolvedValue([{ id: "folder_1" }, { id: "document_1" }]),
     };
 
     await expect(
@@ -46,24 +49,26 @@ describe("workspace resource trash lifecycle", () => {
         now,
         workspaceId: "workspace_1",
         rootIds: ["folder_1"],
-      }),
+      })
     ).resolves.toEqual(["folder_1", "document_1"]);
 
-    const purgeAt = new Date(now.getTime() + RESOURCE_TRASH_RETENTION_MS).toISOString();
+    const purgeAt = new Date(
+      now.getTime() + RESOURCE_TRASH_RETENTION_MS
+    ).toISOString();
     expect(db.execute).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining("UPDATE workspace_resource_trash"),
-      ["workspace_1", "folder_1", now.toISOString(), purgeAt, "folder_1"],
+      ["workspace_1", "folder_1", now.toISOString(), purgeAt, "folder_1"]
     );
     expect(db.execute).toHaveBeenNthCalledWith(
       2,
       expect.stringContaining("INSERT INTO workspace_resource_trash"),
-      ["folder_1", "workspace_1", "folder_1", now.toISOString(), purgeAt],
+      ["folder_1", "workspace_1", "folder_1", now.toISOString(), purgeAt]
     );
     expect(db.execute).toHaveBeenNthCalledWith(
       4,
       expect.stringContaining("INSERT INTO workspace_resource_trash"),
-      ["document_1", "workspace_1", "folder_1", now.toISOString(), purgeAt],
+      ["document_1", "workspace_1", "folder_1", now.toISOString(), purgeAt]
     );
   });
 
@@ -95,17 +100,17 @@ describe("workspace resource trash lifecycle", () => {
         now,
         workspaceId: "workspace_1",
         rootIds: ["document_1"],
-      }),
+      })
     ).resolves.toBe(2);
     expect(db.execute).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining("SET parent_id = NULL"),
-      [4, now.toISOString(), "document_1"],
+      [4, now.toISOString(), "document_1"]
     );
     expect(db.execute).toHaveBeenNthCalledWith(
       2,
       expect.stringContaining("DELETE FROM workspace_resource_trash"),
-      ["workspace_1", "document_1"],
+      ["workspace_1", "document_1"]
     );
   });
 
@@ -115,17 +120,19 @@ describe("workspace resource trash lifecycle", () => {
       getAll: vi.fn().mockResolvedValue([{ id: "folder_1" }]),
     };
 
-    resolveWorkspaceVisibilityMock.mockResolvedValueOnce(WORKSPACE_VISIBILITY.local);
+    resolveWorkspaceVisibilityMock.mockResolvedValueOnce(
+      WORKSPACE_VISIBILITY.local
+    );
     await expect(
       getExpiredLocalTrashRootIds({
         db: db as never,
         now,
         workspaceId: "workspace_1",
-      }),
+      })
     ).resolves.toEqual(["folder_1"]);
     expect(db.getAll).toHaveBeenCalledWith(
       expect.stringContaining("trash_root_id = id AND purge_at <= ?"),
-      ["workspace_1", now.toISOString()],
+      ["workspace_1", now.toISOString()]
     );
   });
 
@@ -136,7 +143,7 @@ describe("workspace resource trash lifecycle", () => {
       getExpiredLocalTrashRootIds({
         db: db as never,
         workspaceId: "workspace_1",
-      }),
+      })
     ).resolves.toEqual([]);
     expect(db.getAll).not.toHaveBeenCalled();
   });

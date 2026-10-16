@@ -69,7 +69,9 @@ export function TaskDetail({
   const { map: members } = useOrgMembersMap();
   const people = useMemo(() => {
     const result = new Map(members);
-    if (currentUser?.id) result.set(currentUser.id, currentUser);
+    if (currentUser?.id) {
+      result.set(currentUser.id, currentUser);
+    }
     return result;
   }, [currentUser, members]);
   const { properties } = useProperties(boardDoc);
@@ -85,8 +87,8 @@ export function TaskDetail({
 
   return (
     <div className="@container flex h-full min-h-0 flex-col bg-background">
-      <div className="grid min-h-0 flex-1 overflow-y-auto @3xl:grid-cols-[minmax(0,1fr)_20rem] @3xl:overflow-hidden">
-        <main className="min-h-0 p-5 md:p-6 @3xl:overflow-y-auto">
+      <div className="grid min-h-0 flex-1 @3xl:grid-cols-[minmax(0,1fr)_20rem] @3xl:overflow-hidden overflow-y-auto">
+        <main className="min-h-0 @3xl:overflow-y-auto p-5 md:p-6">
           <div className="mx-auto max-w-2xl space-y-4">
             <TaskFields
               canRename={Boolean(onRename)}
@@ -97,13 +99,15 @@ export function TaskDetail({
             />
           </div>
         </main>
-        <aside className="min-h-0 px-5 pb-5 md:px-6 md:pb-6 @3xl:overflow-y-auto @3xl:py-6 @3xl:pr-6 @3xl:pl-0">
+        <aside className="min-h-0 @3xl:overflow-y-auto px-5 @3xl:py-6 @3xl:pr-6 pb-5 @3xl:pl-0 md:px-6 md:pb-6">
           <dl className="@container divide-y divide-border/60 overflow-hidden rounded-xl border border-border/70 bg-card px-3">
             {properties.map((property) => (
               <MetadataRow
                 key={property.id}
                 label={
-                  <MetadataLabel icon={<PropertyTypeIcon type={property.type} />}>
+                  <MetadataLabel
+                    icon={<PropertyTypeIcon type={property.type} />}
+                  >
                     {property.name}
                   </MetadataLabel>
                 }
@@ -111,9 +115,7 @@ export function TaskDetail({
                 <PropertyValueField
                   appearance="metadata"
                   className={
-                    property.type === "checkbox"
-                      ? undefined
-                      : "max-w-full"
+                    property.type === "checkbox" ? undefined : "max-w-full"
                   }
                   disabled={readOnly}
                   onValueChange={(value) =>
@@ -149,7 +151,7 @@ export function TaskDetail({
               }
             >
               <TaskCreatedAt
-                className="text-sm text-foreground"
+                className="text-foreground text-sm"
                 createdAt={task.createdAt ?? ""}
               />
             </MetadataRow>
@@ -162,7 +164,7 @@ export function TaskDetail({
             >
               <Button
                 aria-label={`${b("metadata.board")}: ${boardTitle}`}
-                className="h-7 max-w-full min-w-0 justify-start gap-1.5 px-1.5 font-normal"
+                className="h-7 min-w-0 max-w-full justify-start gap-1.5 px-1.5 font-normal"
                 onClick={() => onOpenBoard(boardTitle)}
                 size="sm"
                 variant="ghost"
@@ -245,8 +247,12 @@ function getUploadedAvatarUrl(
   apiBaseUrl: string,
   user: PluginUser | undefined
 ): string | undefined {
-  if (!user?.image) return undefined;
-  if (!user.id) return user.image;
+  if (!user?.image) {
+    return undefined;
+  }
+  if (!user.id) {
+    return user.image;
+  }
 
   const baseUrl = apiBaseUrl.replace(/\/+$/, "");
   return `${baseUrl}/v1/account/avatar/${encodeURIComponent(user.id)}`;
@@ -264,11 +270,11 @@ function MetadataRow({
   return (
     <div
       className={cn(
-        "grid gap-x-3 gap-y-1.5 py-2.5 @min-[17rem]:grid-cols-[6.5rem_minmax(0,1fr)]",
+        "grid @min-[17rem]:grid-cols-[6.5rem_minmax(0,1fr)] gap-x-3 gap-y-1.5 py-2.5",
         className
       )}
     >
-      <dt className="min-w-0 break-words text-xs font-medium text-muted-foreground @min-[17rem]:pt-1.5">
+      <dt className="min-w-0 break-words @min-[17rem]:pt-1.5 font-medium text-muted-foreground text-xs">
         {label}
       </dt>
       <dd className="min-w-0 break-words text-sm">{children}</dd>
@@ -303,7 +309,9 @@ function TaskFields({
       return;
     }
     setTitleDraft(trimmed);
-    if (trimmed !== initialName) onRename?.(trimmed);
+    if (trimmed !== initialName) {
+      onRename?.(trimmed);
+    }
   }, [initialName, onRename, titleDraft]);
 
   return (
@@ -311,7 +319,7 @@ function TaskFields({
       <h1 className="m-0">
         <Textarea
           aria-label={b("fields.name")}
-          className="field-sizing-content min-h-0 resize-none border-0 bg-transparent px-0 py-1 text-2xl font-semibold leading-tight shadow-none ring-0 focus-visible:border-transparent focus-visible:ring-0 md:text-2xl dark:bg-transparent"
+          className="field-sizing-content min-h-0 resize-none border-0 bg-transparent px-0 py-1 font-semibold text-2xl leading-tight shadow-none ring-0 focus-visible:border-transparent focus-visible:ring-0 md:text-2xl dark:bg-transparent"
           disabled={!canRename}
           id="item-name"
           maxLength={120}
@@ -320,7 +328,9 @@ function TaskFields({
             setTitleDraft(event.target.value.replace(/\n/g, " "))
           }
           onKeyDown={(event) => {
-            if (event.key !== "Enter") return;
+            if (event.key !== "Enter") {
+              return;
+            }
             event.preventDefault();
             commitTitle();
             event.currentTarget.blur();
@@ -350,10 +360,15 @@ export function resolveCreator(
   members: Map<string, PluginUser>,
   unknownLabel: string
 ): { label: string; user: PluginUser | undefined } {
-  if (!creatorId) return { label: unknownLabel, user: undefined };
+  if (!creatorId) {
+    return { label: unknownLabel, user: undefined };
+  }
 
-  const user = creatorId === currentUser?.id ? currentUser : members.get(creatorId);
-  if (!user) return { label: unknownLabel, user: { id: creatorId } };
+  const user =
+    creatorId === currentUser?.id ? currentUser : members.get(creatorId);
+  if (!user) {
+    return { label: unknownLabel, user: { id: creatorId } };
+  }
 
   return {
     label: user.name || user.email || unknownLabel,

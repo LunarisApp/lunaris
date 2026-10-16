@@ -160,7 +160,9 @@ export class YjsDocumentResourceStore {
     done.catch(() => undefined);
 
     const release = () => {
-      if (flags.released) return;
+      if (flags.released) {
+        return;
+      }
       flags.released = true;
       this.releasePreloadToken(resource, token);
       if (!flags.settled) {
@@ -171,12 +173,16 @@ export class YjsDocumentResourceStore {
 
     resource.ready
       .then(() => {
-        if (flags.released || flags.settled) return;
+        if (flags.released || flags.settled) {
+          return;
+        }
         flags.settled = true;
         resolveDone();
       })
       .catch((error: unknown) => {
-        if (flags.released || flags.settled) return;
+        if (flags.released || flags.settled) {
+          return;
+        }
         flags.settled = true;
         rejectDone(error);
       });
@@ -202,18 +208,24 @@ export class YjsDocumentResourceStore {
       )
       .map((resource) => resource.provider!);
 
-    await Promise.all(providers.map((provider) => provider.waitForPersistence()));
+    await Promise.all(
+      providers.map((provider) => provider.waitForPersistence())
+    );
   }
 
   setLimitsForTests(options: { concurrency?: number; lru?: number }): void {
-    if (options.lru !== undefined) this.preloadLruCap = options.lru;
+    if (options.lru !== undefined) {
+      this.preloadLruCap = options.lru;
+    }
     if (options.concurrency !== undefined) {
       this.preloadConcurrency = options.concurrency;
     }
   }
 
   resetForTests(): void {
-    for (const resource of [...this.allResources]) this.destroy(resource);
+    for (const resource of [...this.allResources]) {
+      this.destroy(resource);
+    }
     this.preloadLRU.length = 0;
     this.preloadQueue.length = 0;
     this.preloadInFlight = 0;
@@ -282,12 +294,21 @@ export class YjsDocumentResourceStore {
     resource: YjsDocumentResource,
     priority: YjsPreloadPriority
   ): void {
-    if (resource.status !== "idle") return;
-    if (priority === "intent") resource.priority = "intent";
+    if (resource.status !== "idle") {
+      return;
+    }
+    if (priority === "intent") {
+      resource.priority = "intent";
+    }
     const existingIndex = this.preloadQueue.indexOf(resource);
-    if (existingIndex >= 0) this.preloadQueue.splice(existingIndex, 1);
-    if (resource.priority === "intent") this.preloadQueue.unshift(resource);
-    else this.preloadQueue.push(resource);
+    if (existingIndex >= 0) {
+      this.preloadQueue.splice(existingIndex, 1);
+    }
+    if (resource.priority === "intent") {
+      this.preloadQueue.unshift(resource);
+    } else {
+      this.preloadQueue.push(resource);
+    }
     this.drainQueue();
   }
 
@@ -303,28 +324,42 @@ export class YjsDocumentResourceStore {
           resource.priority === "intent" ||
           this.backgroundInFlight < backgroundLimit
       );
-      if (index < 0) break;
+      if (index < 0) {
+        break;
+      }
       const [resource] = this.preloadQueue.splice(index, 1);
-      if (!resource) break;
-      if (resource.status !== "idle") continue;
+      if (!resource) {
+        break;
+      }
+      if (resource.status !== "idle") {
+        continue;
+      }
       const background = resource.priority === "background";
-      if (background) this.backgroundInFlight++;
+      if (background) {
+        this.backgroundInFlight++;
+      }
       this.preloadInFlight++;
       void this.load(resource).finally(() => {
         this.preloadInFlight--;
-        if (background) this.backgroundInFlight--;
+        if (background) {
+          this.backgroundInFlight--;
+        }
         this.drainQueue();
       });
     }
   }
 
   private async load(resource: YjsDocumentResource): Promise<void> {
-    if (resource.status !== "idle") return resource.ready;
+    if (resource.status !== "idle") {
+      return resource.ready;
+    }
     resource.status = "loading";
     resource.loadStartedAt = performance.now();
     try {
       await this.ensureDocumentExists(resource);
-      if (this.isDestroyed(resource)) return;
+      if (this.isDestroyed(resource)) {
+        return;
+      }
 
       const provider = new YjsPowersyncProvider(
         resource.doc,
@@ -334,11 +369,15 @@ export class YjsDocumentResourceStore {
       );
       resource.provider = provider;
       await this.waitForProvider(provider, resource.loadAbortController.signal);
-      if (this.isDestroyed(resource)) return;
+      if (this.isDestroyed(resource)) {
+        return;
+      }
       resource.status = "ready";
       resource.resolveReady();
     } catch (error) {
-      if (this.isDestroyed(resource)) return;
+      if (this.isDestroyed(resource)) {
+        return;
+      }
       this.fail(resource, error);
     }
   }
@@ -346,7 +385,9 @@ export class YjsDocumentResourceStore {
   private async ensureDocumentExists(
     resource: YjsDocumentResource
   ): Promise<void> {
-    if (await yjsDocumentExists(resource.db, resource.documentId)) return;
+    if (await yjsDocumentExists(resource.db, resource.documentId)) {
+      return;
+    }
     try {
       await createYjsDocumentWithId(
         resource.db,
@@ -372,7 +413,9 @@ export class YjsDocumentResourceStore {
         signal.removeEventListener("abort", onAbort);
       }
       function settle(callback: () => void) {
-        if (settled) return;
+        if (settled) {
+          return;
+        }
         settled = true;
         cleanup();
         callback();
@@ -389,7 +432,9 @@ export class YjsDocumentResourceStore {
       provider.on("synced", onSynced);
       provider.on("error", onError);
       signal.addEventListener("abort", onAbort, { once: true });
-      if (signal.aborted) onAbort();
+      if (signal.aborted) {
+        onAbort();
+      }
     });
   }
 
@@ -411,14 +456,20 @@ export class YjsDocumentResourceStore {
   }
 
   private destroy(resource: YjsDocumentResource, error?: Error): void {
-    if (resource.status === "destroyed") return;
+    if (resource.status === "destroyed") {
+      return;
+    }
     const previousStatus = resource.status;
     resource.status = "destroyed";
-    if (resource.destroyTimer) clearTimeout(resource.destroyTimer);
+    if (resource.destroyTimer) {
+      clearTimeout(resource.destroyTimer);
+    }
     resource.destroyTimer = null;
     this.removeFromLRU(resource);
     const queuedIndex = this.preloadQueue.indexOf(resource);
-    if (queuedIndex >= 0) this.preloadQueue.splice(queuedIndex, 1);
+    if (queuedIndex >= 0) {
+      this.preloadQueue.splice(queuedIndex, 1);
+    }
     this.getDatabaseResources(resource.db).delete(resource.key);
     this.allResources.delete(resource);
     resource.loadAbortController.abort();
@@ -431,11 +482,15 @@ export class YjsDocumentResourceStore {
 
   private scheduleCleanup(resource: YjsDocumentResource): void {
     if (resource.mountRefs > 0 || resource.preloadRefs > 0) {
-      if (resource.destroyTimer) clearTimeout(resource.destroyTimer);
+      if (resource.destroyTimer) {
+        clearTimeout(resource.destroyTimer);
+      }
       resource.destroyTimer = null;
       return;
     }
-    if (resource.destroyTimer) clearTimeout(resource.destroyTimer);
+    if (resource.destroyTimer) {
+      clearTimeout(resource.destroyTimer);
+    }
     resource.destroyTimer = setTimeout(() => {
       if (resource.mountRefs === 0 && resource.preloadRefs === 0) {
         this.destroy(resource);
@@ -447,11 +502,15 @@ export class YjsDocumentResourceStore {
     resource: YjsDocumentResource,
     token: PreloadToken
   ): void {
-    if (!token.active) return;
+    if (!token.active) {
+      return;
+    }
     token.active = false;
     resource.preloadTokens.delete(token);
     resource.preloadRefs = Math.max(0, resource.preloadRefs - 1);
-    if (resource.preloadRefs === 0) this.removeFromLRU(resource);
+    if (resource.preloadRefs === 0) {
+      this.removeFromLRU(resource);
+    }
     this.cancelQueuedLoadIfUnused(resource);
     this.scheduleCleanup(resource);
   }
@@ -465,7 +524,9 @@ export class YjsDocumentResourceStore {
       return;
     }
     const index = this.preloadQueue.indexOf(resource);
-    if (index >= 0) this.preloadQueue.splice(index, 1);
+    if (index >= 0) {
+      this.preloadQueue.splice(index, 1);
+    }
   }
 
   private touchLRU(resource: YjsDocumentResource): void {
@@ -475,14 +536,20 @@ export class YjsDocumentResourceStore {
 
   private removeFromLRU(resource: YjsDocumentResource): void {
     const index = this.preloadLRU.indexOf(resource);
-    if (index >= 0) this.preloadLRU.splice(index, 1);
+    if (index >= 0) {
+      this.preloadLRU.splice(index, 1);
+    }
   }
 
   private evictLRUIfOverCap(keep: YjsDocumentResource): void {
     while (this.preloadLRU.length > this.preloadLruCap) {
       const victim = this.preloadLRU.shift();
-      if (!victim || victim === keep) continue;
-      for (const token of victim.preloadTokens) token.active = false;
+      if (!victim || victim === keep) {
+        continue;
+      }
+      for (const token of victim.preloadTokens) {
+        token.active = false;
+      }
       victim.preloadTokens.clear();
       victim.preloadRefs = 0;
       this.cancelQueuedLoadIfUnused(victim);

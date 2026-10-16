@@ -46,7 +46,7 @@ function invalidWorkspaceExtension(why: string): never {
 async function validateMarketplaceRelease(
   tx: Parameters<EntityHandler["authorize"]>[0],
   data: Record<string, unknown>,
-  organizationId: string,
+  organizationId: string
 ) {
   const registryId = data.registryId;
   const version = data.version;
@@ -55,10 +55,12 @@ async function validateMarketplaceRelease(
   const descriptorSha256 = data.descriptorSha256;
   const descriptorValues = [descriptorUrl, descriptorBytes, descriptorSha256];
   const hasDescriptor = descriptorValues.some(
-    (value) => value !== null && value !== undefined,
+    (value) => value !== null && value !== undefined
   );
 
-  if (registryId == null && version == null && !hasDescriptor) return;
+  if (registryId == null && version == null && !hasDescriptor) {
+    return;
+  }
   if (typeof registryId !== "string" || registryId.length === 0) {
     invalidWorkspaceExtension("Marketplace ID is required");
   }
@@ -86,12 +88,14 @@ async function validateMarketplaceRelease(
     .where(
       and(
         eq(organizationExtensionRegistriesDb.organizationId, organizationId),
-        eq(organizationExtensionRegistriesDb.id, registryId),
-      ),
+        eq(organizationExtensionRegistriesDb.id, registryId)
+      )
     )
     .limit(1)
     .for("share");
-  if (!registry) invalidWorkspaceExtension("Extension marketplace was not found");
+  if (!registry) {
+    invalidWorkspaceExtension("Extension marketplace was not found");
+  }
 
   const extensionId = data.extensionId;
   if (typeof extensionId !== "string" || extensionId.length === 0) {
@@ -104,7 +108,7 @@ async function validateMarketplaceRelease(
   const release = await extensionCatalogService.requireActiveVersion(
     registry.manifestUrl,
     extensionId,
-    version,
+    version
   );
   if (
     hasDescriptor &&
@@ -112,7 +116,9 @@ async function validateMarketplaceRelease(
       release.descriptor.bytes !== descriptorBytes ||
       release.descriptor.sha256 !== descriptorSha256)
   ) {
-    invalidWorkspaceExtension("Extension provenance does not match marketplace");
+    invalidWorkspaceExtension(
+      "Extension provenance does not match marketplace"
+    );
   }
 }
 
@@ -175,7 +181,7 @@ export const workspaceExtensionsHandler: EntityHandler = {
               },
             },
           }),
-          { tenantId: organizationId },
+          { tenantId: organizationId }
         );
     }
     if (op === "DELETE" && before?.registryId) {
@@ -185,7 +191,7 @@ export const workspaceExtensionsHandler: EntityHandler = {
             ...common,
             changes: { before },
           }),
-          { tenantId: organizationId },
+          { tenantId: organizationId }
         );
     }
     if (
@@ -194,9 +200,7 @@ export const workspaceExtensionsHandler: EntityHandler = {
       after.registryId &&
       RELEASE_KEYS.some(
         (key) =>
-          data &&
-          Object.hasOwn(data, key) &&
-          after[key] !== before?.[key],
+          data && Object.hasOwn(data, key) && after[key] !== before?.[key]
       )
     ) {
       return () =>
@@ -220,10 +224,9 @@ export const workspaceExtensionsHandler: EntityHandler = {
               },
             },
           }),
-          { tenantId: organizationId },
+          { tenantId: organizationId }
         );
     }
-    return undefined;
   },
   put: async (tx, id, mapped) => {
     await tx
@@ -231,12 +234,18 @@ export const workspaceExtensionsHandler: EntityHandler = {
       .values({ ...mapped, id })
       .onConflictDoUpdate({
         set: { ...mapped, id, syncedUpdatedAt: new Date() },
-        target: [workspaceExtensionsDb.workspaceId, workspaceExtensionsDb.extensionId],
+        target: [
+          workspaceExtensionsDb.workspaceId,
+          workspaceExtensionsDb.extensionId,
+        ],
       });
   },
   authorize: async (tx, op, id, data, organizationId, userId) => {
     if (op === "PUT") {
-      if (typeof data?.extensionId !== "string" || data.extensionId.length === 0) {
+      if (
+        typeof data?.extensionId !== "string" ||
+        data.extensionId.length === 0
+      ) {
         throw new BadRequestError({
           message: "Invalid workspace extension",
           reason: "validation.failed",
@@ -247,7 +256,7 @@ export const workspaceExtensionsHandler: EntityHandler = {
         tx,
         data?.workspaceId as string,
         organizationId,
-        userId,
+        userId
       );
       await validateMarketplaceRelease(tx, data, organizationId);
       return;
@@ -258,7 +267,7 @@ export const workspaceExtensionsHandler: EntityHandler = {
       workspaceExtensionsDb.id,
       id,
       organizationId,
-      userId,
+      userId
     );
     // Offline runtime rollback can leave a queued disable before a later retry.
     // Validate marketplace provenance when enabling or changing the release.
@@ -273,11 +282,13 @@ export const workspaceExtensionsHandler: EntityHandler = {
         .from(workspaceExtensionsDb)
         .where(eq(workspaceExtensionsDb.id, id))
         .limit(1);
-      if (!existing) invalidWorkspaceExtension("Workspace extension was not found");
+      if (!existing) {
+        invalidWorkspaceExtension("Workspace extension was not found");
+      }
       await validateMarketplaceRelease(
         tx,
         { ...existing, ...data },
-        organizationId,
+        organizationId
       );
     }
   },

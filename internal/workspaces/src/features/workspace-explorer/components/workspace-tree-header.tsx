@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  type ResourceTypeDefinition,
-} from "@lunarisapp/plugin-sdk";
+import type { ResourceTypeDefinition } from "@lunarisapp/plugin-sdk";
 import { Icon } from "@lunarisapp/ui/components/icon";
 import {
   ResponsiveDropdownMenu,
@@ -58,7 +56,8 @@ export function WorkspaceTreeHeader({
   ...props
 }: WorkspaceTreeHeaderProps) {
   const { t } = useTranslation();
-  const { canCreate, createFolder, createResource } = useWorkspaceResourceCreation();
+  const { canCreate, createFolder, createResource } =
+    useWorkspaceResourceCreation();
   const navigateToResource = useNavigateToResource();
   const startRenamingResource = useStartRenamingItem();
   const canMutate = useAnyPermission([
@@ -66,7 +65,9 @@ export function WorkspaceTreeHeader({
     permission.content.delete,
   ]);
   const getTargetParentId = () => {
-    if (!tree) return VIRTUAL_ROOT_ID;
+    if (!tree) {
+      return VIRTUAL_ROOT_ID;
+    }
 
     const selectedItems = tree.getSelectedItems();
     const selectedItem = selectedItems[0];
@@ -80,12 +81,16 @@ export function WorkspaceTreeHeader({
   const handleAddItem = async (resource: ResourceTypeDefinition) => {
     const parentId = getTargetParentId();
     const result = await createResource(parentId, resource);
-    if (!result) return;
+    if (!result) {
+      return;
+    }
 
     // PowerSync query results can lag the completed write. Queue both actions
     // until the new resource is available to the tree and its renderer.
     navigateToResource(result.resourceId);
-    if (!result.name) startRenamingResource(result.resourceId);
+    if (!result.name) {
+      startRenamingResource(result.resourceId);
+    }
   };
 
   const resources = useAvailableResources();
@@ -93,7 +98,9 @@ export function WorkspaceTreeHeader({
   const handleAddFolder = async () => {
     const parentId = getTargetParentId();
     const newId = await createFolder(parentId);
-    if (!newId) return;
+    if (!newId) {
+      return;
+    }
 
     startRenamingResource(newId);
   };
@@ -108,7 +115,7 @@ export function WorkspaceTreeHeader({
         "flex",
         isMobile
           ? "items-center justify-between gap-2 border-t px-3 py-0"
-          : "flex-col gap-1 border-b px-2 py-1.5 mb-1.5 @min-[260px]:flex-row @min-[260px]:items-center @min-[260px]:justify-between"
+          : "mb-1.5 @min-[260px]:flex-row flex-col @min-[260px]:items-center @min-[260px]:justify-between gap-1 border-b px-2 py-1.5"
       )}
       {...props}
     >
@@ -123,58 +130,60 @@ export function WorkspaceTreeHeader({
       )}
       <div
         className={cn(
-          "flex items-center shrink-0",
-          isMobile
-            ? "gap-2"
-            : "gap-1 justify-around @min-[260px]:justify-end"
+          "flex shrink-0 items-center",
+          isMobile ? "gap-2" : "@min-[260px]:justify-end justify-around gap-1"
         )}
       >
         {!canMutate && (
           <Badge variant="outline">{t("permissions.readOnlyTitle")}</Badge>
         )}
-        {canCreate && <ResponsiveDropdownMenu>
-          <ResponsiveDropdownMenuTrigger
-            aria-label={t("explorer.addFile")}
-            render={
-              <Button
-                className={buttonClass}
-                size={buttonSize}
-                variant="ghost"
-              />
-            }
-          >
-            <HugeiconsIcon icon={FileAddIcon} />
-            <span className="sr-only">{t("explorer.addFile")}</span>
-          </ResponsiveDropdownMenuTrigger>
-          <ResponsiveDropdownMenuContent>
-            {resources.map((resource) => (
-              <ResponsiveDropdownMenuItem
-                key={resource.resourceTypeId}
-                onClick={() => handleAddItem(resource)}
-              >
-                <Icon className="size-4" icon={resource.icon} />
-                {resource.name}
-              </ResponsiveDropdownMenuItem>
-            ))}
-          </ResponsiveDropdownMenuContent>
-        </ResponsiveDropdownMenu>}
-        {canCreate && <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                className={buttonClass}
-                data-testid="workspace-add-folder"
-                onClick={handleAddFolder}
-                size={buttonSize}
-                variant="ghost"
-              />
-            }
-          >
-            <HugeiconsIcon icon={FolderAddIcon} />
-            <span className="sr-only">{t("explorer.addFolder")}</span>
-          </TooltipTrigger>
-          <TooltipContent>{t("explorer.addFolder")}</TooltipContent>
-        </Tooltip>}
+        {!!canCreate && (
+          <ResponsiveDropdownMenu>
+            <ResponsiveDropdownMenuTrigger
+              aria-label={t("explorer.addFile")}
+              render={
+                <Button
+                  className={buttonClass}
+                  size={buttonSize}
+                  variant="ghost"
+                />
+              }
+            >
+              <HugeiconsIcon icon={FileAddIcon} />
+              <span className="sr-only">{t("explorer.addFile")}</span>
+            </ResponsiveDropdownMenuTrigger>
+            <ResponsiveDropdownMenuContent>
+              {resources.map((resource) => (
+                <ResponsiveDropdownMenuItem
+                  key={resource.resourceTypeId}
+                  onClick={() => handleAddItem(resource)}
+                >
+                  <Icon className="size-4" icon={resource.icon} />
+                  {resource.name}
+                </ResponsiveDropdownMenuItem>
+              ))}
+            </ResponsiveDropdownMenuContent>
+          </ResponsiveDropdownMenu>
+        )}
+        {!!canCreate && (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  className={buttonClass}
+                  data-testid="workspace-add-folder"
+                  onClick={handleAddFolder}
+                  size={buttonSize}
+                  variant="ghost"
+                />
+              }
+            >
+              <HugeiconsIcon icon={FolderAddIcon} />
+              <span className="sr-only">{t("explorer.addFolder")}</span>
+            </TooltipTrigger>
+            <TooltipContent>{t("explorer.addFolder")}</TooltipContent>
+          </Tooltip>
+        )}
         <Tooltip>
           <TooltipTrigger
             render={

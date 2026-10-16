@@ -17,7 +17,7 @@ export function useSearchResourceTypes(): ReadonlyMap<
       new Map(
         resourceTypes.flatMap((definition) => {
           const registration = runtime.contributions.getResourceType(
-            definition.resourceTypeId,
+            definition.resourceTypeId
           );
           return registration
             ? [
@@ -30,8 +30,8 @@ export function useSearchResourceTypes(): ReadonlyMap<
                 ] as const,
               ]
             : [];
-        }),
+        })
       ),
-    [resourceTypes, runtime.contributions],
+    [resourceTypes, runtime.contributions]
   );
 }

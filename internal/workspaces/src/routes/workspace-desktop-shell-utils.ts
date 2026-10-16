@@ -13,7 +13,9 @@ export function resolvePendingDesktopRoute<T extends DesktopRouteLocation>(
   pathname: string,
   search: string
 ): T | null {
-  if (current.pathname === pathname && current.search === search) return null;
+  if (current.pathname === pathname && current.search === search) {
+    return null;
+  }
   return { ...current, pathname, search };
 }
 

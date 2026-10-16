@@ -171,10 +171,7 @@ function isBetterAuthError(err: unknown): err is BetterAuthError {
   );
 }
 
-function fromMapping(
-  reason: ErrorReason,
-  requestId?: string
-): UserFacingError {
+function fromMapping(reason: ErrorReason, requestId?: string): UserFacingError {
   const m: ReasonMapping = REASON_TO_KEY[reason];
   return {
     titleKey: m.title,
@@ -184,34 +181,42 @@ function fromMapping(
   };
 }
 
-function fromStatus(
-  status: number,
-  requestId?: string
-): UserFacingError {
+function fromStatus(status: number, requestId?: string): UserFacingError {
   // Bucket fallback when the backend did not (or could not) supply a typed
   // reason — e.g. an upstream proxy 502 or an older API version.
-  if (status === 401) return fromMapping("auth.unauthenticated", requestId);
-  if (status === 403) return fromMapping("auth.unauthenticated", requestId);
-  if (status === 404)
+  if (status === 401) {
+    return fromMapping("auth.unauthenticated", requestId);
+  }
+  if (status === 403) {
+    return fromMapping("auth.unauthenticated", requestId);
+  }
+  if (status === 404) {
     return {
       titleKey: "errors.http.notFound.title",
       descriptionKey: "errors.http.notFound.desc",
       requestId,
     };
-  if (status === 409)
+  }
+  if (status === 409) {
     return {
       titleKey: "errors.http.conflict.title",
       descriptionKey: "errors.http.conflict.desc",
       requestId,
     };
-  if (status === 429) return fromMapping("ratelimit.exceeded", requestId);
-  if (status >= 500) return fromMapping("server.internal", requestId);
-  if (status >= 400)
+  }
+  if (status === 429) {
+    return fromMapping("ratelimit.exceeded", requestId);
+  }
+  if (status >= 500) {
+    return fromMapping("server.internal", requestId);
+  }
+  if (status >= 400) {
     return {
       titleKey: "errors.http.badRequest.title",
       descriptionKey: "errors.http.badRequest.desc",
       requestId,
     };
+  }
   return { ...UNKNOWN, requestId };
 }
 
@@ -237,11 +242,15 @@ export function getUserFacingError(err: unknown): UserFacingError {
     }
     return fromStatus(err.statusCode, err.requestId);
   }
-  if (err instanceof SyncError) return fromMapping("client.sync_failure");
+  if (err instanceof SyncError) {
+    return fromMapping("client.sync_failure");
+  }
   if (err instanceof StorageError) {
     return fromMapping("client.storage_failure");
   }
-  if (err instanceof PluginError) return fromMapping("client.plugin_failure");
+  if (err instanceof PluginError) {
+    return fromMapping("client.plugin_failure");
+  }
   if (err instanceof AppError && err.reason && err.reason in REASON_TO_KEY) {
     return fromMapping(err.reason);
   }
@@ -264,7 +273,9 @@ export function getUserFacingError(err: unknown): UserFacingError {
         description: err.message,
       };
     }
-    if (typeof err.status === "number") return fromStatus(err.status);
+    if (typeof err.status === "number") {
+      return fromStatus(err.status);
+    }
   }
   return UNKNOWN;
 }

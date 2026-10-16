@@ -1,8 +1,6 @@
 import { describe, expect, it, mock } from "bun:test";
 import { NotFoundException } from "@nestjs/common";
-import {
-  assertValidWorkspaceResourceParent,
-} from "./workspace-resources.validation";
+import { assertValidWorkspaceResourceParent } from "./workspace-resources.validation";
 
 function databaseReturning(rows: unknown[]) {
   return {
@@ -34,7 +32,7 @@ describe("assertValidWorkspaceResourceParent", () => {
       expect.objectContaining({
         message: "Workspace resource parent not found",
         status: 404,
-      }),
+      })
     );
   });
 });

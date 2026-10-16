@@ -29,7 +29,9 @@ async function validate(
   payload: unknown
 ): Promise<unknown> {
   const validator = definition.schema.versions[version];
-  if (!validator) throw new Error(`Unsupported schema version ${version}`);
+  if (!validator) {
+    throw new Error(`Unsupported schema version ${version}`);
+  }
   const result = await validator["~standard"].validate(payload);
   if (result.issues) {
     throw new Error(
@@ -42,7 +44,7 @@ async function validate(
 function quarantine(
   envelope: ResourceEnvelope,
   diagnostic: string,
-  retryable = true,
+  retryable = true
 ): ResourceResolution {
   return { diagnostic, envelope, retryable, status: "quarantined" };
 }
@@ -50,7 +52,7 @@ function quarantine(
 async function migratePayload(
   definition: ResourceTypeDefinition,
   payload: unknown,
-  storedVersion: number,
+  storedVersion: number
 ): Promise<unknown> {
   for (
     let version = storedVersion;
@@ -58,10 +60,11 @@ async function migratePayload(
     version += 1
   ) {
     const migration = definition.schema.migrations?.find(
-      (candidate) =>
-        candidate.from === version && candidate.to === version + 1,
+      (candidate) => candidate.from === version && candidate.to === version + 1
     );
-    if (!migration) throw new Error(`Missing migration ${version} -> ${version + 1}`);
+    if (!migration) {
+      throw new Error(`Missing migration ${version} -> ${version + 1}`);
+    }
     payload = await migration.migrate(payload);
     payload = await validate(definition, version + 1, payload);
   }
@@ -83,7 +86,7 @@ async function resolveResourceAttempt(
   envelope: ResourceEnvelope,
   context: ResourcePayloadContext,
   committer: ResourceVersionCommitter,
-  canRetry: boolean,
+  canRetry: boolean
 ): Promise<ResourceResolution> {
   const storedVersion = envelope.schemaVersion;
   const currentVersion = definition.schema.currentVersion;
@@ -92,7 +95,7 @@ async function resolveResourceAttempt(
     return quarantine(
       envelope,
       `Resource uses newer schema version ${storedVersion}; this extension supports ${currentVersion}`,
-      false,
+      false
     );
   }
 
@@ -106,7 +109,9 @@ async function resolveResourceAttempt(
     payload = await migratePayload(definition, payload, storedVersion);
 
     const write = definition.schema.write;
-    if (!write) throw new Error("Migrating resource schema has no payload writer");
+    if (!write) {
+      throw new Error("Migrating resource schema has no payload writer");
+    }
     const committed = await committer.compareAndSet({
       expectedVersion: storedVersion,
       nextVersion: currentVersion,
@@ -114,7 +119,9 @@ async function resolveResourceAttempt(
       writePayload: () => Promise.resolve(write(payload, context)),
     });
     if (!committed) {
-      const latestVersion = canRetry ? await committer.readVersion?.() : undefined;
+      const latestVersion = canRetry
+        ? await committer.readVersion?.()
+        : undefined;
       if (
         latestVersion !== undefined &&
         latestVersion !== storedVersion &&
@@ -126,12 +133,12 @@ async function resolveResourceAttempt(
           { ...envelope, schemaVersion: latestVersion },
           context,
           committer,
-          false,
+          false
         );
       }
       return quarantine(
         envelope,
-        "Resource changed while its schema was being migrated",
+        "Resource changed while its schema was being migrated"
       );
     }
 
@@ -143,7 +150,7 @@ async function resolveResourceAttempt(
   } catch (error) {
     return quarantine(
       envelope,
-      error instanceof Error ? error.message : "Resource resolution failed",
+      error instanceof Error ? error.message : "Resource resolution failed"
     );
   }
 }

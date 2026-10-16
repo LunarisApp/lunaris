@@ -44,7 +44,9 @@ export function isWorkspaceTreeItemVisible(
   item: Pick<WorkspaceResourceEntity, "resource_type_id">,
   hiddenResourceIds: ReadonlySet<string>
 ): boolean {
-  return !item.resource_type_id || !hiddenResourceIds.has(item.resource_type_id);
+  return !(
+    item.resource_type_id && hiddenResourceIds.has(item.resource_type_id)
+  );
 }
 
 export function isWorkspaceTreeItemOpenable(
@@ -80,10 +82,7 @@ interface ApplyWorkspaceTreeDropOptions {
     newParentId: string,
     newPosition: number
   ) => Promise<void>;
-  reorderChildren: (
-    parentId: string,
-    orderedIds: string[]
-  ) => Promise<void>;
+  reorderChildren: (parentId: string, orderedIds: string[]) => Promise<void>;
   target: DragTarget<WorkspaceResourceEntity>;
 }
 
@@ -94,7 +93,9 @@ export async function applyWorkspaceTreeDrop({
   reorderChildren,
   target,
 }: ApplyWorkspaceTreeDropOptions): Promise<void> {
-  if (!isOrderedDragTarget(target) && !target.item.isFolder()) return;
+  if (!(isOrderedDragTarget(target) || target.item.isFolder())) {
+    return;
+  }
 
   const draggedIds = draggedItems.map((item) => item.getId());
   const draggedIdSet = new Set(draggedIds);
@@ -152,7 +153,8 @@ export function useWorkspaceTree(options: UseWorkspaceTreeOptions = {}): {
       ),
     [resources]
   );
-  const { renameResource, moveResource, reorderChildren } = useWorkspaceActions();
+  const { renameResource, moveResource, reorderChildren } =
+    useWorkspaceActions();
   const canUpdate = usePermission(permission.content.write);
   const { onOpenResource } = options;
 
@@ -188,8 +190,8 @@ export function useWorkspaceTree(options: UseWorkspaceTreeOptions = {}): {
       getChildren: (resourceId) =>
         childrenMap
           .get(resourceId)
-          ?.filter(
-            (child) => isWorkspaceTreeItemVisible(child, hiddenResourceIds)
+          ?.filter((child) =>
+            isWorkspaceTreeItemVisible(child, hiddenResourceIds)
           )
           .map((child) => child.id) ?? [],
       getItem: (resourceId) => {

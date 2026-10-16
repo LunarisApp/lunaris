@@ -23,9 +23,7 @@ const PROVIDERS: {
   id: SocialAuthProvider;
   labelKey: string;
   icon: SocialIcon;
-}[] = [
-  { id: "google", labelKey: "auth.continueWithGoogle", icon: Google },
-];
+}[] = [{ id: "google", labelKey: "auth.continueWithGoogle", icon: Google }];
 
 export function SsoButtons({ disabled, onLoadingChange }: SsoButtonsProps) {
   const { t } = useTranslation();
@@ -52,8 +50,12 @@ export function SsoButtons({ disabled, onLoadingChange }: SsoButtonsProps) {
   };
 
   const isDisabled = disabled || loadingProvider !== null || selectionRequired;
-  const enabledProviders = PROVIDERS.filter(({ id }) => manifest?.socialProviders?.includes(id));
-  if (enabledProviders.length === 0) return null;
+  const enabledProviders = PROVIDERS.filter(({ id }) =>
+    manifest?.socialProviders?.includes(id)
+  );
+  if (enabledProviders.length === 0) {
+    return null;
+  }
 
   return (
     <div className="flex gap-2">
@@ -76,7 +78,7 @@ export function SsoButtons({ disabled, onLoadingChange }: SsoButtonsProps) {
           )}
           {lastLoginMethod === id ? (
             <Badge
-              className="pointer-events-none absolute right-3 top-0 -translate-y-1/2"
+              className="pointer-events-none absolute top-0 right-3 -translate-y-1/2"
               data-testid={`auth-last-used-${id}`}
               variant="secondary"
             >

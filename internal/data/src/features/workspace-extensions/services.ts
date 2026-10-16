@@ -2,7 +2,10 @@ import { recordActivity } from "../activity/services";
 import { type AdditionalOptions, useQuery } from "@powersync/react";
 import { useMemo } from "react";
 import { type DatabaseOrTx, ensureTx } from "../../core/utils";
-import { buildUnionAllQuery, resolveWorkspaceScopedTables } from "../workspace-storage";
+import {
+  buildUnionAllQuery,
+  resolveWorkspaceScopedTables,
+} from "../workspace-storage";
 import { resolveWorkspaceVisibility } from "../workspaces/services";
 import {
   LOCAL_WORKSPACE_EXTENSIONS_TABLE,
@@ -12,10 +15,13 @@ import {
 
 const WORKSPACE_EXTENSIONS_UNION = buildUnionAllQuery(
   `SELECT * FROM ${WORKSPACE_EXTENSIONS_TABLE}`,
-  `SELECT * FROM ${LOCAL_WORKSPACE_EXTENSIONS_TABLE}`,
+  `SELECT * FROM ${LOCAL_WORKSPACE_EXTENSIONS_TABLE}`
 );
 
-type WorkspaceExtensionState = Omit<WorkspaceExtensionEntity, "workspace_id" | "created_at" | "updated_at">;
+type WorkspaceExtensionState = Omit<
+  WorkspaceExtensionEntity,
+  "workspace_id" | "created_at" | "updated_at"
+>;
 
 const workspaceExtensionId = (workspaceId: string, extensionId: string) =>
   `workspace-extension:${workspaceId}:${extensionId}`;
@@ -52,31 +58,33 @@ interface WorkspaceExtensionsReader {
 
 export function getWorkspaceExtensions(
   db: WorkspaceExtensionsReader,
-  workspaceId: string,
+  workspaceId: string
 ) {
   return db.getAll<WorkspaceExtensionEntity>(
     `SELECT * FROM (${WORKSPACE_EXTENSIONS_UNION}) workspace_extensions
      WHERE workspace_id = ? ORDER BY extension_id ASC`,
-    [workspaceId],
+    [workspaceId]
   );
 }
 
 export function useWorkspaceExtensionsQuery(
   workspaceId: string,
-  options?: AdditionalOptions,
+  options?: AdditionalOptions
 ) {
   return useQuery<WorkspaceExtensionEntity>(
     `SELECT * FROM (${WORKSPACE_EXTENSIONS_UNION}) workspace_extensions
      WHERE workspace_id = ? ORDER BY extension_id ASC`,
     [workspaceId],
-    options,
+    options
   );
 }
 
 export function toWorkspaceExtensionInstallation(
-  row: WorkspaceExtensionEntity,
+  row: WorkspaceExtensionEntity
 ): WorkspaceExtensionInstallation | null {
-  if (!row.extension_id || !row.registry_id || !row.version) return null;
+  if (!(row.extension_id && row.registry_id && row.version)) {
+    return null;
+  }
   return {
     descriptorBytes: row.descriptor_bytes ?? null,
     descriptorSha256: row.descriptor_sha256 ?? null,
@@ -90,7 +98,7 @@ export function toWorkspaceExtensionInstallation(
 
 export function useWorkspaceExtensionInstallationsQuery(
   workspaceId: string,
-  options?: AdditionalOptions,
+  options?: AdditionalOptions
 ) {
   const query = useWorkspaceExtensionsQuery(workspaceId, options);
   const data = useMemo(
@@ -99,21 +107,23 @@ export function useWorkspaceExtensionInstallationsQuery(
         const installation = toWorkspaceExtensionInstallation(row);
         return installation ? [installation] : [];
       }),
-    [query.data],
+    [query.data]
   );
   return { ...query, data };
 }
 
 export function resolveEnabledWorkspaceExtensionIds(
   rows: readonly Pick<WorkspaceExtensionEntity, "enabled" | "extension_id">[],
-  defaults: readonly string[],
+  defaults: readonly string[]
 ) {
-  if (rows.length === 0) return new Set(defaults);
+  if (rows.length === 0) {
+    return new Set(defaults);
+  }
   return new Set(
     rows
       .filter((row) => Boolean(row.enabled))
       .map((row) => row.extension_id)
-      .filter((extensionId): extensionId is string => Boolean(extensionId)),
+      .filter((extensionId): extensionId is string => Boolean(extensionId))
   );
 }
 
@@ -143,7 +153,7 @@ async function insertWorkspaceExtension(params: {
       params.release?.descriptor?.sha256 ?? null,
       now,
       now,
-    ],
+    ]
   );
   await recordActivity(params.db, { workspaceId: params.workspaceId }, now);
 }
@@ -161,10 +171,10 @@ async function installWorkspaceExtension(params: {
     const table = resolveWorkspaceScopedTables(visibility).workspaceExtensions;
     const existing = await tx.getAll<WorkspaceExtensionState>(
       `SELECT * FROM ${table} WHERE workspace_id = ?`,
-      [params.workspaceId],
+      [params.workspaceId]
     );
     const existingByExtensionId = new Map(
-      existing.map((extension) => [extension.extension_id, extension]),
+      existing.map((extension) => [extension.extension_id, extension])
     );
 
     if (existing.length === 0) {
@@ -196,11 +206,16 @@ async function installWorkspaceExtension(params: {
     const current = existingByExtensionId.get(params.extensionId);
     const release = params.release;
     if (current) {
-      if (current.enabled === 1 && current.registry_id === release.registryId &&
-          current.version === release.version &&
-          current.descriptor_url === (release.descriptor?.url ?? null) &&
-          current.descriptor_bytes === (release.descriptor?.bytes ?? null) &&
-          current.descriptor_sha256 === (release.descriptor?.sha256 ?? null)) return;
+      if (
+        current.enabled === 1 &&
+        current.registry_id === release.registryId &&
+        current.version === release.version &&
+        current.descriptor_url === (release.descriptor?.url ?? null) &&
+        current.descriptor_bytes === (release.descriptor?.bytes ?? null) &&
+        current.descriptor_sha256 === (release.descriptor?.sha256 ?? null)
+      ) {
+        return;
+      }
       const now = new Date().toISOString();
       await tx.execute(
         `UPDATE ${table}
@@ -215,7 +230,7 @@ async function installWorkspaceExtension(params: {
           release.descriptor?.sha256 ?? null,
           now,
           current.id,
-        ],
+        ]
       );
       await recordActivity(tx, { workspaceId: params.workspaceId }, now);
       return;
@@ -242,14 +257,16 @@ async function uninstallWorkspaceExtension(params: {
     const table = resolveWorkspaceScopedTables(visibility).workspaceExtensions;
     const existing = await tx.getOptional<{ id: string }>(
       `SELECT id FROM ${table} WHERE workspace_id = ? AND extension_id = ? AND registry_id IS NOT NULL`,
-      [params.workspaceId, params.extensionId],
+      [params.workspaceId, params.extensionId]
     );
-    if (!existing) return;
+    if (!existing) {
+      return;
+    }
     await recordActivity(tx, { workspaceId: params.workspaceId });
     await tx.execute(
       `DELETE FROM ${table}
        WHERE workspace_id = ? AND extension_id = ? AND registry_id IS NOT NULL`,
-      [params.workspaceId, params.extensionId],
+      [params.workspaceId, params.extensionId]
     );
   });
 }
@@ -305,7 +322,7 @@ async function updateWorkspaceExtension(params: {
   const now = new Date().toISOString();
   await params.db.execute(
     `UPDATE ${params.table} SET enabled = ?, updated_at = ? WHERE id = ?`,
-    [params.enabled ? 1 : 0, now, params.id],
+    [params.enabled ? 1 : 0, now, params.id]
   );
   await recordActivity(params.db, { workspaceId: params.workspaceId }, now);
 }
@@ -323,15 +340,17 @@ async function setWorkspaceExtension(params: {
     const table = resolveWorkspaceScopedTables(visibility).workspaceExtensions;
     const existing = await tx.getAll<WorkspaceExtensionState>(
       `SELECT * FROM ${table} WHERE workspace_id = ?`,
-      [params.workspaceId],
+      [params.workspaceId]
     );
 
     if (existing.length > 0) {
       const current = existing.find(
-        (extension) => extension.extension_id === params.extensionId,
+        (extension) => extension.extension_id === params.extensionId
       );
       if (current) {
-        if (current.enabled === (params.enabled ? 1 : 0)) return;
+        if (current.enabled === (params.enabled ? 1 : 0)) {
+          return;
+        }
         await updateWorkspaceExtension({
           db: tx,
           enabled: params.enabled,
@@ -381,16 +400,29 @@ export async function replaceWorkspaceExtensions(params: {
     const visibility = await resolveWorkspaceVisibility(tx, params.workspaceId);
     const table = resolveWorkspaceScopedTables(visibility).workspaceExtensions;
     const existing = await tx.getAll<WorkspaceExtensionState>(
-      `SELECT * FROM ${table} WHERE workspace_id = ?`, [params.workspaceId],
+      `SELECT * FROM ${table} WHERE workspace_id = ?`,
+      [params.workspaceId]
     );
-    if (existing.length === extensionIds.size && existing.every((row) =>
-      row.extension_id !== null && extensionIds.has(row.extension_id) &&
-      row.enabled === (enabledExtensionIds.has(row.extension_id) ? 1 : 0) &&
-      row.registry_id === null && row.version === null && row.descriptor_url === null &&
-      row.descriptor_bytes === null && row.descriptor_sha256 === null
-    )) return;
+    if (
+      existing.length === extensionIds.size &&
+      existing.every(
+        (row) =>
+          row.extension_id !== null &&
+          extensionIds.has(row.extension_id) &&
+          row.enabled === (enabledExtensionIds.has(row.extension_id) ? 1 : 0) &&
+          row.registry_id === null &&
+          row.version === null &&
+          row.descriptor_url === null &&
+          row.descriptor_bytes === null &&
+          row.descriptor_sha256 === null
+      )
+    ) {
+      return;
+    }
     await recordActivity(tx, { workspaceId: params.workspaceId });
-    await tx.execute(`DELETE FROM ${table} WHERE workspace_id = ?`, [params.workspaceId]);
+    await tx.execute(`DELETE FROM ${table} WHERE workspace_id = ?`, [
+      params.workspaceId,
+    ]);
     for (const extensionId of extensionIds) {
       await insertWorkspaceExtension({
         db: tx,
@@ -405,12 +437,12 @@ export async function replaceWorkspaceExtensions(params: {
 
 export function createWorkspaceExtensionsService(
   db: DatabaseOrTx,
-  workspaceId: string,
+  workspaceId: string
 ) {
   return {
     replace: (
       enabledExtensionIds: readonly string[],
-      knownExtensionIds?: readonly string[],
+      knownExtensionIds?: readonly string[]
     ) =>
       replaceWorkspaceExtensions({
         db,
@@ -426,7 +458,7 @@ export function createWorkspaceExtensionsService(
       initialState: {
         defaultExtensionIds: readonly string[];
         knownExtensionIds: readonly string[];
-      },
+      }
     ) =>
       setWorkspaceExtension({
         db,
@@ -441,7 +473,7 @@ export function createWorkspaceExtensionsService(
       initialState: {
         defaultExtensionIds: readonly string[];
         knownExtensionIds: readonly string[];
-      },
+      }
     ) =>
       installWorkspaceExtension({
         db,

@@ -21,7 +21,7 @@ type WorkerTaskResult<TOutput> =
 interface PluginWorkerScope {
   addEventListener(
     type: "message",
-    listener: (event: MessageEvent<unknown>) => void,
+    listener: (event: MessageEvent<unknown>) => void
   ): void;
   close(): void;
   postMessage(message: unknown, transfer: Transferable[]): void;
@@ -37,7 +37,9 @@ export interface PluginWorkerTaskOptions {
 }
 
 function taskError(error: unknown): Error {
-  if (error instanceof Error) return error;
+  if (error instanceof Error) {
+    return error;
+  }
   return new Error(String(error));
 }
 
@@ -51,16 +53,22 @@ function transferredBuffers(value: unknown): ArrayBuffer[] {
   const seen = new WeakSet<object>();
 
   const visit = (item: unknown): void => {
-    if (!item || typeof item !== "object") return;
+    if (!item || typeof item !== "object") {
+      return;
+    }
     if (item instanceof ArrayBuffer) {
       buffers.add(item);
       return;
     }
     if (ArrayBuffer.isView(item)) {
-      if (item.buffer instanceof ArrayBuffer) buffers.add(item.buffer);
+      if (item.buffer instanceof ArrayBuffer) {
+        buffers.add(item.buffer);
+      }
       return;
     }
-    if (seen.has(item)) return;
+    if (seen.has(item)) {
+      return;
+    }
     seen.add(item);
     if (item instanceof Map) {
       for (const [key, child] of item) {
@@ -70,14 +78,20 @@ function transferredBuffers(value: unknown): ArrayBuffer[] {
       return;
     }
     if (item instanceof Set) {
-      for (const child of item) visit(child);
+      for (const child of item) {
+        visit(child);
+      }
       return;
     }
     if (Array.isArray(item)) {
-      for (const child of item) visit(child);
+      for (const child of item) {
+        visit(child);
+      }
       return;
     }
-    for (const child of Object.values(item)) visit(child);
+    for (const child of Object.values(item)) {
+      visit(child);
+    }
   };
 
   visit(value);
@@ -85,12 +99,18 @@ function transferredBuffers(value: unknown): ArrayBuffer[] {
 }
 
 function isWorkerTaskResult<TOutput>(
-  value: unknown,
+  value: unknown
 ): value is WorkerTaskResult<TOutput> {
-  if (!value || typeof value !== "object") return false;
+  if (!value || typeof value !== "object") {
+    return false;
+  }
   const result = value as Partial<WorkerTaskResult<TOutput>>;
-  if (result.type !== WORKER_TASK_RESULT) return false;
-  if (!("error" in result)) return "output" in result;
+  if (result.type !== WORKER_TASK_RESULT) {
+    return false;
+  }
+  if (!("error" in result)) {
+    return "output" in result;
+  }
   return (
     Boolean(result.error) &&
     typeof result.error?.message === "string" &&
@@ -108,7 +128,7 @@ function abortError(signal: AbortSignal): Error {
 export function runPluginWorkerTask<TInput, TOutput>(
   createWorker: () => Worker,
   input: TInput,
-  options: PluginWorkerTaskOptions = {},
+  options: PluginWorkerTaskOptions = {}
 ): Promise<TOutput> {
   const timeoutMs = options.timeoutMs ?? PLUGIN_WORKER_TASK_TIMEOUT_MS;
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
@@ -130,7 +150,9 @@ export function runPluginWorkerTask<TInput, TOutput>(
     let timeout: ReturnType<typeof setTimeout> | undefined;
 
     const cleanup = () => {
-      if (timeout !== undefined) clearTimeout(timeout);
+      if (timeout !== undefined) {
+        clearTimeout(timeout);
+      }
       options.signal?.removeEventListener("abort", onAbort);
       worker.removeEventListener("error", onError);
       worker.removeEventListener("message", onMessage);
@@ -138,11 +160,16 @@ export function runPluginWorkerTask<TInput, TOutput>(
       worker.terminate();
     };
     const finish = (result: { error: Error } | { output: TOutput }) => {
-      if (settled) return;
+      if (settled) {
+        return;
+      }
       settled = true;
       cleanup();
-      if ("error" in result) reject(result.error);
-      else resolve(result.output);
+      if ("error" in result) {
+        reject(result.error);
+      } else {
+        resolve(result.output);
+      }
     };
     const onAbort = () => finish({ error: abortError(options.signal!) });
     const onError = (event: ErrorEvent) =>
@@ -153,10 +180,14 @@ export function runPluginWorkerTask<TInput, TOutput>(
             : new Error(event.message || "Extension worker task failed"),
       });
     const onMessageError = () =>
-      finish({ error: new Error("Extension worker task response is unreadable") });
+      finish({
+        error: new Error("Extension worker task response is unreadable"),
+      });
     const onMessage = (event: MessageEvent<unknown>) => {
       if (!isWorkerTaskResult<TOutput>(event.data)) {
-        finish({ error: new Error("Extension worker task returned an invalid result") });
+        finish({
+          error: new Error("Extension worker task returned an invalid result"),
+        });
         return;
       }
       if ("error" in event.data) {
@@ -178,7 +209,7 @@ export function runPluginWorkerTask<TInput, TOutput>(
     }
     timeout = setTimeout(() => {
       const error = new Error(
-        `Extension worker task timed out after ${timeoutMs.toLocaleString()}ms`,
+        `Extension worker task timed out after ${timeoutMs.toLocaleString()}ms`
       );
       error.name = "TimeoutError";
       finish({ error });
@@ -198,55 +229,70 @@ export function runPluginWorkerTask<TInput, TOutput>(
 
 /** Expose one pure input/output handler from a dedicated worker module. */
 export function exposePluginWorkerTask<TInput, TOutput>(
-  handler: (input: TInput) => Promise<TOutput> | TOutput,
+  handler: (input: TInput) => Promise<TOutput> | TOutput
 ): void {
   const scope = globalThis as unknown as PluginWorkerScope;
   let started = false;
 
   scope.addEventListener("message", (event) => {
-    if (started) return;
-    const request = event.data as Partial<WorkerTaskRequest<TInput>> | undefined;
-    if (!request || request.type !== WORKER_TASK_REQUEST || !("input" in request)) {
+    if (started) {
+      return;
+    }
+    const request = event.data as
+      | Partial<WorkerTaskRequest<TInput>>
+      | undefined;
+    if (
+      !request ||
+      request.type !== WORKER_TASK_REQUEST ||
+      !("input" in request)
+    ) {
       scope.postMessage(
         {
-          error: serializedError(new Error("Extension worker task request is invalid")),
+          error: serializedError(
+            new Error("Extension worker task request is invalid")
+          ),
           type: WORKER_TASK_RESULT,
         } satisfies WorkerTaskResult<never>,
-        [],
+        []
       );
       scope.close();
       return;
     }
     started = true;
-    void Promise.resolve().then(() => handler(request.input as TInput)).then(
-      (output) => {
-        try {
-          scope.postMessage(
-            { output, type: WORKER_TASK_RESULT } satisfies WorkerTaskResult<TOutput>,
-            transferredBuffers(output),
-          );
-        } catch (error) {
+    void Promise.resolve()
+      .then(() => handler(request.input as TInput))
+      .then(
+        (output) => {
+          try {
+            scope.postMessage(
+              {
+                output,
+                type: WORKER_TASK_RESULT,
+              } satisfies WorkerTaskResult<TOutput>,
+              transferredBuffers(output)
+            );
+          } catch (error) {
+            scope.postMessage(
+              {
+                error: serializedError(error),
+                type: WORKER_TASK_RESULT,
+              } satisfies WorkerTaskResult<never>,
+              []
+            );
+          } finally {
+            scope.close();
+          }
+        },
+        (error) => {
           scope.postMessage(
             {
               error: serializedError(error),
               type: WORKER_TASK_RESULT,
             } satisfies WorkerTaskResult<never>,
-            [],
+            []
           );
-        } finally {
           scope.close();
         }
-      },
-      (error) => {
-        scope.postMessage(
-          {
-            error: serializedError(error),
-            type: WORKER_TASK_RESULT,
-          } satisfies WorkerTaskResult<never>,
-          [],
-        );
-        scope.close();
-      },
-    );
+      );
   });
 }

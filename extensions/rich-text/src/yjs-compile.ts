@@ -1,6 +1,9 @@
 import { BlockNoteEditor } from "@blocknote/core";
 import { yXmlFragmentToBlocks } from "@blocknote/core/yjs";
-import type { JsonValue, PluginResourceReadContext } from "@lunarisapp/plugin-sdk";
+import type {
+  JsonValue,
+  PluginResourceReadContext,
+} from "@lunarisapp/plugin-sdk";
 import { withYjsDoc } from "@lunarisapp/plugin-sdk/data";
 import type { Doc } from "yjs";
 import { richTextHeadlessSchema } from "./entity-reference-schema";
@@ -34,7 +37,9 @@ export async function compileBlockNoteDocument(
 ): Promise<PdfContent> {
   const resource = await context.getWorkspaceResource(resourceId);
   const content = resource?.storage.content;
-  if (!content || content.kind !== "yjs") return { title: "", sections: [] };
+  if (content?.kind !== "yjs") {
+    return { title: "", sections: [] };
+  }
   return withYjsDoc(
     context,
     content,
@@ -58,7 +63,9 @@ export async function compileBlockNoteMarkdown(
 ): Promise<string> {
   const resource = await context.getWorkspaceResource(resourceId);
   const content = resource?.storage.content;
-  if (!content || content.kind !== "yjs") return "";
+  if (content?.kind !== "yjs") {
+    return "";
+  }
   return withYjsDoc(context, content, extractBlockNoteMarkdown, "");
 }
 
@@ -68,6 +75,8 @@ export async function compileBlockNoteBlocks(
 ): Promise<RichTextBlock[]> {
   const resource = await context.getWorkspaceResource(resourceId);
   const content = resource?.storage.content;
-  if (!content || content.kind !== "yjs") return [];
+  if (content?.kind !== "yjs") {
+    return [];
+  }
   return withYjsDoc(context, content, extractBlockNoteBlocks, []);
 }

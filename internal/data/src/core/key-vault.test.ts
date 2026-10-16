@@ -25,9 +25,9 @@ describe("encryption key vault storage", () => {
   it("round-trips records", async () => {
     await writeEncryptionKeyVaultRecord(FIRST_RECORD);
 
-    await expect(readEncryptionKeyVaultRecord(FIRST_RECORD.id)).resolves.toEqual(
-      FIRST_RECORD,
-    );
+    await expect(
+      readEncryptionKeyVaultRecord(FIRST_RECORD.id)
+    ).resolves.toEqual(FIRST_RECORD);
   });
 
   it("deletes one record without affecting another", async () => {
@@ -36,10 +36,12 @@ describe("encryption key vault storage", () => {
 
     await deleteEncryptionKeyVaultRecord(FIRST_RECORD.id);
 
-    await expect(readEncryptionKeyVaultRecord(FIRST_RECORD.id)).resolves.toBeNull();
-    await expect(readEncryptionKeyVaultRecord(SECOND_RECORD.id)).resolves.toEqual(
-      SECOND_RECORD,
-    );
+    await expect(
+      readEncryptionKeyVaultRecord(FIRST_RECORD.id)
+    ).resolves.toBeNull();
+    await expect(
+      readEncryptionKeyVaultRecord(SECOND_RECORD.id)
+    ).resolves.toEqual(SECOND_RECORD);
   });
 
   it("clears every record", async () => {
@@ -48,7 +50,11 @@ describe("encryption key vault storage", () => {
 
     await clearEncryptionKeyVault();
 
-    await expect(readEncryptionKeyVaultRecord(FIRST_RECORD.id)).resolves.toBeNull();
-    await expect(readEncryptionKeyVaultRecord(SECOND_RECORD.id)).resolves.toBeNull();
+    await expect(
+      readEncryptionKeyVaultRecord(FIRST_RECORD.id)
+    ).resolves.toBeNull();
+    await expect(
+      readEncryptionKeyVaultRecord(SECOND_RECORD.id)
+    ).resolves.toBeNull();
   });
 });

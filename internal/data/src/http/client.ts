@@ -50,7 +50,7 @@ export function createApiClient(baseUrl: string) {
   async function request<T>(
     method: HttpMethod,
     path: string,
-    opts?: ApiRequestOptions,
+    opts?: ApiRequestOptions
   ): Promise<T> {
     const { body, params, timeout = DEFAULT_TIMEOUT, ...init } = opts ?? {};
 
@@ -79,7 +79,7 @@ export function createApiClient(baseUrl: string) {
         signal: controller.signal,
         ...init,
         headers,
-        body: body !== undefined ? JSON.stringify(body) : undefined,
+        body: body === undefined ? undefined : JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -92,8 +92,12 @@ export function createApiClient(baseUrl: string) {
 
       return (await res.json()) as T;
     } catch (err) {
-      if (err instanceof ApiError) throw err;
-      if (err instanceof TypeError) throw ApiError.offline(err);
+      if (err instanceof ApiError) {
+        throw err;
+      }
+      if (err instanceof TypeError) {
+        throw ApiError.offline(err);
+      }
       throw err;
     } finally {
       clearTimeout(timer);

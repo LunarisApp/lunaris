@@ -27,16 +27,18 @@ const resolveEmailBodySchema = z.object({
 export function resolveEmailAuthMethod(
   account: EmailAccountLike | null,
   socialProviders: readonly SocialAuthProvider[],
-  signupsAllowed = true,
+  signupsAllowed = true
 ): EmailAuthResolution | null {
-  if (!account) return { kind: signupsAllowed ? "register" : "password" };
+  if (!account) {
+    return { kind: signupsAllowed ? "register" : "password" };
+  }
 
   if (account.accounts.some(({ providerId }) => providerId === "credential")) {
     return { kind: "password" };
   }
 
   const provider = socialProviders.find((candidate) =>
-    account.accounts.some(({ providerId }) => providerId === candidate),
+    account.accounts.some(({ providerId }) => providerId === candidate)
   );
 
   return provider ? { kind: "social", provider } : null;
@@ -48,7 +50,7 @@ export function resolveEmailAuthMethod(
  * remains accepted.
  */
 export function emailAuthDiscovery(
-  options: EmailAuthDiscoveryOptions,
+  options: EmailAuthDiscoveryOptions
 ): BetterAuthPlugin {
   return {
     id: "lunaris-email-auth-discovery",
@@ -62,12 +64,12 @@ export function emailAuthDiscovery(
         async (ctx) => {
           const account = await ctx.context.internalAdapter.findUserByEmail(
             ctx.body.email,
-            { includeAccounts: true },
+            { includeAccounts: true }
           );
           const resolution = resolveEmailAuthMethod(
             account,
             options.socialProviders,
-            options.signupsAllowed,
+            options.signupsAllowed
           );
 
           if (!resolution) {
@@ -79,7 +81,7 @@ export function emailAuthDiscovery(
 
           ctx.setHeader("Cache-Control", "no-store");
           return ctx.json(resolution);
-        },
+        }
       ),
     },
     rateLimit: [

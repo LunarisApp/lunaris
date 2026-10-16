@@ -23,18 +23,21 @@ export function PresenceBadges({
 }: ResourcePresenceResult) {
   const { t } = useTranslation();
   const prefix = "resourcePresence";
-  if (status === "error")
+  if (status === "error") {
     return (
       <span
         role="status"
-        className="text-xs text-muted-foreground"
+        className="text-muted-foreground text-xs"
         title={t(`${prefix}.unavailable`)}
       >
         <span aria-hidden="true">○</span>
         <span className="sr-only">{t(`${prefix}.unavailable`)}</span>
       </span>
     );
-  if (status !== "connected" || participants.length === 0) return null;
+  }
+  if (status !== "connected" || participants.length === 0) {
+    return null;
+  }
   const name = (participant: Participant) =>
     participant.name.trim() || t(`${prefix}.collaborator`);
   const avatar = (participant: Participant) => (
@@ -67,7 +70,7 @@ export function PresenceBadges({
             {participants.slice(0, 3).map(avatar)}
           </AvatarGroup>
           {participants.length > 3 ? (
-            <span aria-hidden="true" className="text-xs text-muted-foreground">
+            <span aria-hidden="true" className="text-muted-foreground text-xs">
               +{participants.length - 3}
             </span>
           ) : null}

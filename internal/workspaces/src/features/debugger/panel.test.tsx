@@ -35,13 +35,8 @@ vi.mock("next-themes", () => ({
 }));
 
 vi.mock("@lunarisapp/ui/components/dialog", () => ({
-  Dialog: ({
-    children,
-    open,
-  }: {
-    children: React.ReactNode;
-    open: boolean;
-  }) => (open ? <div>{children}</div> : null),
+  Dialog: ({ children, open }: { children: React.ReactNode; open: boolean }) =>
+    open ? <div>{children}</div> : null,
   DialogContent: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
@@ -93,13 +88,16 @@ vi.mock("@uiw/react-json-view", () => ({
   ),
 }));
 
-const { useWorkspaceResourcesQuery } = await import("@repo/data/features/workspace-resources");
+const { useWorkspaceResourcesQuery } = await import(
+  "@repo/data/features/workspace-resources"
+);
 const { useQuery } = await import("@repo/data/core");
-const {
-  compileYjsDocumentJson,
-  useYjsDocumentsQuery,
-} = await import("@repo/data/features/yjs");
-const mockWorkspaceResourcesQuery = useWorkspaceResourcesQuery as ReturnType<typeof vi.fn>;
+const { compileYjsDocumentJson, useYjsDocumentsQuery } = await import(
+  "@repo/data/features/yjs"
+);
+const mockWorkspaceResourcesQuery = useWorkspaceResourcesQuery as ReturnType<
+  typeof vi.fn
+>;
 const mockYjsDocumentsQuery = useYjsDocumentsQuery as ReturnType<typeof vi.fn>;
 const mockUseQuery = useQuery as ReturnType<typeof vi.fn>;
 const mockCompileYjsDocumentJson = compileYjsDocumentJson as ReturnType<
@@ -181,7 +179,7 @@ describe("DebuggerPanelContent", () => {
               state: 3,
               has_synced: 1,
               timestamp: 1_777_333,
-              value: "{\"filename\":\"cover.png\"}",
+              value: '{"filename":"cover.png"}',
             },
           ]
         : [],
@@ -198,7 +196,7 @@ describe("DebuggerPanelContent", () => {
     expect(screen.getByText("SYNCED (3)")).toBeTruthy();
     expect(screen.getByText("local://att_1")).toBeTruthy();
     expect(screen.getByText("image/png")).toBeTruthy();
-    expect(screen.getByText("{\"filename\":\"cover.png\"}")).toBeTruthy();
+    expect(screen.getByText('{"filename":"cover.png"}')).toBeTruthy();
   });
 
   it("queries attachment metadata with the real PowerSync column name", () => {
@@ -217,7 +215,9 @@ describe("DebuggerPanelContent", () => {
     mockWorkspaceResourcesQuery.mockReturnValue({ data: [] } as never);
     mockYjsDocumentsQuery.mockReturnValue({ data: [] } as never);
 
-    const { rerender } = render(<DebuggerPanelContent workspaceId="workspace_1" />);
+    const { rerender } = render(
+      <DebuggerPanelContent workspaceId="workspace_1" />
+    );
     rerender(<DebuggerPanelContent workspaceId="workspace_2" />);
 
     expect(useWorkspaceResourcesQuery).toHaveBeenLastCalledWith("workspace_2");

@@ -28,7 +28,9 @@ export function useRichTextStats(yDoc: Doc): RichTextStats | null {
       });
     };
     const handleUpdate = () => {
-      if (editTimer) clearTimeout(editTimer);
+      if (editTimer) {
+        clearTimeout(editTimer);
+      }
       editTimer = setTimeout(calculate, EDIT_STATS_DEBOUNCE_MS);
     };
 
@@ -41,11 +43,10 @@ export function useRichTextStats(yDoc: Doc): RichTextStats | null {
     fragment.observeDeep(handleUpdate);
     return () => {
       fragment.unobserveDeep(handleUpdate);
-      if (editTimer) clearTimeout(editTimer);
-      if (
-        idleId !== undefined &&
-        typeof cancelIdleCallback === "function"
-      ) {
+      if (editTimer) {
+        clearTimeout(editTimer);
+      }
+      if (idleId !== undefined && typeof cancelIdleCallback === "function") {
         cancelIdleCallback(idleId);
       }
     };

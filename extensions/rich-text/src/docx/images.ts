@@ -7,13 +7,14 @@ const IMAGE_TIMEOUT_MS = 15_000;
 // Fetch directly: resource URLs must never pass through a third-party proxy.
 export async function loadDocxImage(
   source: string,
-  preferredWidth?: number,
+  preferredWidth?: number
 ): Promise<IImageOptions> {
   const response = await fetch(source, {
     signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS),
   });
-  if (!response.ok)
+  if (!response.ok) {
     throw new Error(`Image request failed (${response.status})`);
+  }
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
   const image = new Image();
@@ -33,8 +34,9 @@ export async function loadDocxImage(
       };
       image.src = url;
     });
-    if (!image.naturalWidth || !image.naturalHeight)
+    if (!(image.naturalWidth && image.naturalHeight)) {
       throw new Error("Image has no dimensions");
+    }
     const width =
       preferredWidth && preferredWidth > 0
         ? preferredWidth
@@ -42,7 +44,7 @@ export async function loadDocxImage(
     const scale = Math.min(
       width / image.naturalWidth,
       MAX_IMAGE_WIDTH / image.naturalWidth,
-      MAX_IMAGE_HEIGHT / image.naturalHeight,
+      MAX_IMAGE_HEIGHT / image.naturalHeight
     );
     const transformation = {
       width: Math.max(1, Math.round(image.naturalWidth * scale)),
@@ -58,24 +60,27 @@ export async function loadDocxImage(
             : blob.type === "image/bmp"
               ? "bmp"
               : undefined;
-    if (type)
+    if (type) {
       return {
         data: new Uint8Array(await blob.arrayBuffer()),
         type,
         transformation,
       };
+    }
     const canvas = document.createElement("canvas");
     canvas.width = transformation.width;
     canvas.height = transformation.height;
     const context = canvas.getContext("2d");
-    if (!context) throw new Error("Image conversion unavailable");
+    if (!context) {
+      throw new Error("Image conversion unavailable");
+    }
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
     const png = await new Promise<Blob>((resolve, reject) =>
       canvas.toBlob(
         (value) =>
           value ? resolve(value) : reject(new Error("Image conversion failed")),
-        "image/png",
-      ),
+        "image/png"
+      )
     );
     return {
       data: new Uint8Array(await png.arrayBuffer()),

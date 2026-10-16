@@ -135,7 +135,7 @@ jobs:
           restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
       - run: bun install --frozen-lockfile
       - run: bun run test -- --concurrency=4
-      - run: bun test tooling/ci-selection.test.ts
+      - run: bun test tooling/ci-selection.test.ts tooling/precommit.test.ts
       - run: bun run release:test
         if: needs.changes.outputs.release == 'true'
 

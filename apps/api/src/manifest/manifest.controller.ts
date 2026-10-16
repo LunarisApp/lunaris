@@ -15,7 +15,7 @@ export class ManifestController {
     private readonly appConfig: AppConfig,
     private readonly storageConfig: StorageConfig,
     private readonly authConfig: AuthConfig,
-    private readonly resendConfig: ResendConfig,
+    private readonly resendConfig: ResendConfig
   ) {}
 
   @Header("Cache-Control", "private, no-store")

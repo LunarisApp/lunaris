@@ -1,9 +1,6 @@
 import { latestTimestamp } from "@repo/data/features/activity";
 import { InputConfirmationDialog } from "@lunarisapp/ui/blocks/input-confirmation-dialog";
-import {
-  Avatar,
-  AvatarFallback,
-} from "@lunarisapp/ui/components/avatar";
+import { Avatar, AvatarFallback } from "@lunarisapp/ui/components/avatar";
 import { Badge } from "@lunarisapp/ui/components/badge";
 import { WORKSPACE_VISIBILITY } from "@repo/auth/sync-access";
 import { usePowerSync } from "@repo/data/core";
@@ -53,25 +50,33 @@ export function WorkspaceResource({
   const canDelete = isPrivate ? isOwner : hasOrganizationDelete;
 
   const handleDelete = () => {
-    if (!canDelete) return;
+    if (!canDelete) {
+      return;
+    }
     posthog.capture("workspace_deleted");
     removeWorkspace({ db, id: workspace.id });
     clearRecentFilesForWorkspace(workspace.id);
     setDeleteDialogOpen(false);
   };
 
-  const activityAt = latestTimestamp(workspace.last_activity_at, workspace.updated_at, workspace.created_at)?.toISOString();
+  const activityAt = latestTimestamp(
+    workspace.last_activity_at,
+    workspace.updated_at,
+    workspace.created_at
+  )?.toISOString();
   const updatedAt = activityAt
     ? formatRelativeTime(parseUTCTimestamp(activityAt), undefined, t)
     : null;
   const activateWorkspace = () => onWorkspaceIntent?.(workspace);
   const openSettings = () => {
     activateWorkspace();
-    if (!organizationSlug || !workspace.slug) return;
+    if (!(organizationSlug && workspace.slug)) {
+      return;
+    }
     navigate(
       pathWithRegion(
-        `/${organizationSlug}/${workspace.slug}/${WORKSPACE_SETTINGS_TOOL_ID}`,
-      ),
+        `/${organizationSlug}/${workspace.slug}/${WORKSPACE_SETTINGS_TOOL_ID}`
+      )
     );
   };
 
@@ -80,19 +85,17 @@ export function WorkspaceResource({
     ? `/${organizationSlug}/${workspace.slug}`
     : "#";
   const visibilityLabel = t(
-    `workspaces.workspaceVisibility.${workspace.visibility}`,
+    `workspaces.workspaceVisibility.${workspace.visibility}`
   );
-  const visibilityBadge = workspace.visibility !== WORKSPACE_VISIBILITY.shared && (
+  const visibilityBadge = workspace.visibility !==
+    WORKSPACE_VISIBILITY.shared && (
     <Badge className="max-w-full" variant="outline">
       <span className="truncate">{visibilityLabel}</span>
     </Badge>
   );
   const workspaceAvatar = (
-    <Avatar
-      aria-hidden="true"
-      className="size-9 rounded-lg after:rounded-lg"
-    >
-      <AvatarFallback className="bg-primary/10 text-primary rounded-lg font-semibold">
+    <Avatar aria-hidden="true" className="size-9 rounded-lg after:rounded-lg">
+      <AvatarFallback className="rounded-lg bg-primary/10 font-semibold text-primary">
         {getInitials(workspaceName)}
       </AvatarFallback>
     </Avatar>
@@ -100,7 +103,7 @@ export function WorkspaceResource({
 
   const options = (
     <div
-      className="relative z-10 shrink-0 opacity-70 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+      className="relative z-10 shrink-0 opacity-70 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
       data-testid="workspaces-list-item-options"
     >
       <WorkspaceOptionsMenu
@@ -116,11 +119,11 @@ export function WorkspaceResource({
     <>
       {view === "grid" ? (
         <article
-          className="group bg-card ring-foreground/10 hover:ring-foreground/20 hover:shadow-sm relative flex flex-col rounded-xl ring-1 transition-[box-shadow]"
+          className="group relative flex flex-col rounded-xl bg-card ring-1 ring-foreground/10 transition-[box-shadow] hover:shadow-sm hover:ring-foreground/20"
           role="listitem"
         >
           <Link
-            className="focus-visible:ring-ring/50 flex flex-1 flex-col rounded-xl p-4 pr-12 outline-none focus-visible:ring-[3px]"
+            className="flex flex-1 flex-col rounded-xl p-4 pr-12 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
             data-testid={`workspaces-list-item-${workspace.slug}`}
             onFocus={activateWorkspace}
             onPointerDown={activateWorkspace}
@@ -130,13 +133,13 @@ export function WorkspaceResource({
               {workspaceAvatar}
               <div className="min-w-0">
                 <div
-                  className="truncate text-base font-semibold"
+                  className="truncate font-semibold text-base"
                   data-testid="workspaces-list-item-name"
                 >
                   {workspaceName}
                 </div>
                 <div
-                  className="text-muted-foreground mt-0.5 truncate text-xs"
+                  className="mt-0.5 truncate text-muted-foreground text-xs"
                   data-testid="workspaces-list-item-slug"
                 >
                   {workspace.slug}
@@ -145,12 +148,10 @@ export function WorkspaceResource({
             </div>
             <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 pt-3">
               {visibilityBadge}
-              {updatedAt && (
-                <span className="text-muted-foreground min-w-0 truncate text-xs">
+              {!!updatedAt && (
+                <span className="min-w-0 truncate text-muted-foreground text-xs">
                   {t("workspaces.updated")}{" "}
-                  <time dateTime={activityAt}>
-                    {updatedAt}
-                  </time>
+                  <time dateTime={activityAt}>{updatedAt}</time>
                 </span>
               )}
             </div>
@@ -159,11 +160,11 @@ export function WorkspaceResource({
         </article>
       ) : (
         <div
-          className="group hover:bg-muted/50 grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-3 py-2 transition-colors last:border-b-0 sm:grid-cols-[minmax(0,1fr)_7rem_9rem_auto] sm:gap-4 sm:px-4"
+          className="group grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-3 py-2 transition-colors last:border-b-0 hover:bg-muted/50 sm:grid-cols-[minmax(0,1fr)_7rem_9rem_auto] sm:gap-4 sm:px-4"
           role="listitem"
         >
           <Link
-            className="focus-visible:ring-ring/50 min-w-0 rounded-lg outline-none focus-visible:ring-[3px]"
+            className="min-w-0 rounded-lg outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
             data-testid={`workspaces-list-item-${workspace.slug}`}
             onFocus={activateWorkspace}
             onPointerDown={activateWorkspace}
@@ -173,25 +174,28 @@ export function WorkspaceResource({
               {workspaceAvatar}
               <div className="min-w-0">
                 <div
-                  className="truncate text-sm font-medium"
+                  className="truncate font-medium text-sm"
                   data-testid="workspaces-list-item-name"
                 >
                   {workspaceName}
                 </div>
                 <div
-                  className="text-muted-foreground truncate text-xs"
+                  className="truncate text-muted-foreground text-xs"
                   data-testid="workspaces-list-item-slug"
                 >
                   {workspace.slug}
                 </div>
                 <div className="mt-1 flex min-w-0 items-center gap-2 sm:hidden">
                   {visibilityBadge}
-                  {updatedAt && (
+                  {!!updatedAt && (
                     <time
-                      aria-label={`${t("workspaces.updated")} ${updatedAt}`}
-                      className="text-muted-foreground min-w-0 truncate text-xs"
+                      title={`${t("workspaces.updated")} ${updatedAt}`}
+                      className="min-w-0 truncate text-muted-foreground text-xs"
                       dateTime={activityAt}
                     >
+                      <span className="sr-only">
+                        {t("workspaces.updated")}{" "}
+                      </span>
                       {updatedAt}
                     </time>
                   )}
@@ -201,18 +205,19 @@ export function WorkspaceResource({
           </Link>
           <div className="hidden min-w-0 sm:block">
             {visibilityBadge || (
-              <span className="text-muted-foreground truncate text-xs">
+              <span className="truncate text-muted-foreground text-xs">
                 {visibilityLabel}
               </span>
             )}
           </div>
           <div className="hidden min-w-0 sm:block">
-            {updatedAt && (
+            {!!updatedAt && (
               <time
-                aria-label={`${t("workspaces.updated")} ${updatedAt}`}
-                className="text-muted-foreground block truncate text-xs"
+                title={`${t("workspaces.updated")} ${updatedAt}`}
+                className="block truncate text-muted-foreground text-xs"
                 dateTime={activityAt}
               >
+                <span className="sr-only">{t("workspaces.updated")} </span>
                 {updatedAt}
               </time>
             )}
@@ -220,7 +225,7 @@ export function WorkspaceResource({
           {options}
         </div>
       )}
-      {canDelete && (
+      {!!canDelete && (
         <InputConfirmationDialog
           cancelLabel={t("common.cancel")}
           confirmationText={workspace.slug ?? t("common.untitled")}

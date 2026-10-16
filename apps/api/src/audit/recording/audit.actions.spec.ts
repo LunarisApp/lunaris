@@ -19,11 +19,7 @@ describe("audit action catalog", () => {
     ["WorkspaceMembersController", "add", "workspaceMemberGranted"],
     ["WorkspaceMembersController", "update", "workspaceMemberRoleUpdated"],
     ["WorkspaceMembersController", "remove", "workspaceMemberRevoked"],
-    [
-      "WorkspaceMembersController",
-      "transfer",
-      "workspaceOwnershipTransferred",
-    ],
+    ["WorkspaceMembersController", "transfer", "workspaceOwnershipTransferred"],
     ["WorkspaceResourcesController", "create", "workspaceResourceCreated"],
     ["WorkspaceResourcesController", "update", "workspaceResourceUpdated"],
     ["WorkspaceResourcesController", "delete", "workspaceResourceTrashed"],
@@ -37,7 +33,11 @@ describe("audit action catalog", () => {
     ["BillingController", "createCheckout", "billingCheckoutCreated"],
     ["BillingController", "createPortal", "billingPortalOpened"],
     ["BillingController", "changePlan", "billingPlanChanged"],
-    ["AccountDeletionController", "requestDeletion", "accountDeletionRequested"],
+    [
+      "AccountDeletionController",
+      "requestDeletion",
+      "accountDeletionRequested",
+    ],
     [
       "OrganizationDeletionController",
       "requestDeletion",
@@ -51,12 +51,9 @@ describe("audit action catalog", () => {
     ["AgentControlController", "getYjsStorageJson", "workspaceStorageRead"],
     ["AgentControlController", "getYjsStorageState", "workspaceStorageRead"],
     ["AgentControlController", "listKeyValueStorage", "workspaceStorageRead"],
-  ] as const)(
-    "maps %s.%s to %s",
-    (controller, handler, expected) => {
-      expect(routeAuditAction(controller, handler)).toBe(expected);
-    },
-  );
+  ] as const)("maps %s.%s to %s", (controller, handler, expected) => {
+    expect(routeAuditAction(controller, handler)).toBe(expected);
+  });
 
   it.each([
     ["/api/auth/sign-in/email", "authSignedIn"],
@@ -68,10 +65,7 @@ describe("audit action catalog", () => {
     ["/api/auth/organization/create-team", "organizationTeamCreated"],
     ["/api/auth/organization/update-team", "organizationTeamUpdated"],
     ["/api/auth/organization/remove-team", "organizationTeamDeleted"],
-    [
-      "/api/auth/organization/add-team-member",
-      "organizationTeamMemberAdded",
-    ],
+    ["/api/auth/organization/add-team-member", "organizationTeamMemberAdded"],
     [
       "/api/auth/organization/remove-team-member",
       "organizationTeamMemberRemoved",

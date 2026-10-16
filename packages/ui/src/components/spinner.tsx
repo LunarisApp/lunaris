@@ -1,4 +1,4 @@
-import { type ComponentProps } from "react";
+import type { ComponentProps } from "react";
 import { cn } from "@lunarisapp/ui/lib/utils";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Loading03Icon } from "@hugeicons/core-free-icons";

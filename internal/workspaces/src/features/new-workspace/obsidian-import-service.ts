@@ -110,7 +110,9 @@ export function isSupportedImportFile(entry: ImportFileEntry) {
   );
 }
 
-export function getImportStats(directory: ImportDirectory): ObsidianImportStats {
+export function getImportStats(
+  directory: ImportDirectory
+): ObsidianImportStats {
   const stats: ImportAccumulator = {
     convertedMarkdownCount: 0,
     folderCount: 0,
@@ -136,7 +138,10 @@ export function getImportResourceCount(directory: ImportDirectory) {
   return getCreatedResourceCount(getImportStats(directory));
 }
 
-function countFilesAndSkipped(entries: ImportEntry[], stats: ImportAccumulator) {
+function countFilesAndSkipped(
+  entries: ImportEntry[],
+  stats: ImportAccumulator
+) {
   for (const entry of entries) {
     if (isIgnoredName(entry.name)) {
       stats.skippedCount += 1;
@@ -163,7 +168,9 @@ function countFilesAndSkipped(entries: ImportEntry[], stats: ImportAccumulator) 
 function countMarkdownFolders(entries: ImportEntry[]): number {
   let count = 0;
   for (const entry of entries) {
-    if (isIgnoredName(entry.name) || entry.kind !== "folder") continue;
+    if (isIgnoredName(entry.name) || entry.kind !== "folder") {
+      continue;
+    }
     if (hasMarkdownDocuments(entry.children)) {
       count += 1 + countMarkdownFolders(entry.children);
     }
@@ -174,7 +181,9 @@ function countMarkdownFolders(entries: ImportEntry[]): number {
 function countWorkingFolders(entries: ImportEntry[]): number {
   let count = 0;
   for (const entry of entries) {
-    if (isIgnoredName(entry.name) || entry.kind !== "folder") continue;
+    if (isIgnoredName(entry.name) || entry.kind !== "folder") {
+      continue;
+    }
     if (hasSupportedWorkingEntries(entry.children)) {
       count += 1 + countWorkingFolders(entry.children);
     }
@@ -223,16 +232,24 @@ async function createImportedMarkdownItem(params: {
 
 function hasSupportedWorkingEntries(entries: ImportEntry[]): boolean {
   return entries.some((entry) => {
-    if (isIgnoredName(entry.name)) return false;
-    if (entry.kind === "folder") return hasSupportedWorkingEntries(entry.children);
+    if (isIgnoredName(entry.name)) {
+      return false;
+    }
+    if (entry.kind === "folder") {
+      return hasSupportedWorkingEntries(entry.children);
+    }
     return isSupportedImportFile(entry);
   });
 }
 
 function hasMarkdownDocuments(entries: ImportEntry[]): boolean {
   return entries.some((entry) => {
-    if (isIgnoredName(entry.name)) return false;
-    if (entry.kind === "folder") return hasMarkdownDocuments(entry.children);
+    if (isIgnoredName(entry.name)) {
+      return false;
+    }
+    if (entry.kind === "folder") {
+      return hasMarkdownDocuments(entry.children);
+    }
     return isMarkdownFile(entry.name);
   });
 }
@@ -245,7 +262,14 @@ async function importWorkingEntries(params: {
   stats: ImportAccumulator;
   startPosition?: number;
 }) {
-  const { db, entries, parentId, workspaceId, stats, startPosition = 0 } = params;
+  const {
+    db,
+    entries,
+    parentId,
+    workspaceId,
+    stats,
+    startPosition = 0,
+  } = params;
   let position = startPosition;
 
   for (const entry of entries) {
@@ -255,7 +279,9 @@ async function importWorkingEntries(params: {
     }
 
     if (entry.kind === "folder") {
-      if (!hasSupportedWorkingEntries(entry.children)) continue;
+      if (!hasSupportedWorkingEntries(entry.children)) {
+        continue;
+      }
       const folderId = await createWorkspaceFolder({
         db,
         name: entry.name,
@@ -318,10 +344,14 @@ async function importMarkdownSourceEntries(params: {
   let position = 0;
 
   for (const entry of entries) {
-    if (isIgnoredName(entry.name)) continue;
+    if (isIgnoredName(entry.name)) {
+      continue;
+    }
 
     if (entry.kind === "folder") {
-      if (!hasMarkdownDocuments(entry.children)) continue;
+      if (!hasMarkdownDocuments(entry.children)) {
+        continue;
+      }
       const folderId = await createWorkspaceFolder({
         db,
         name: entry.name,
@@ -341,7 +371,9 @@ async function importMarkdownSourceEntries(params: {
       continue;
     }
 
-    if (!isMarkdownFile(entry.name)) continue;
+    if (!isMarkdownFile(entry.name)) {
+      continue;
+    }
 
     await createLocalFileWorkspaceResource({
       db,
@@ -362,7 +394,8 @@ export async function importObsidianWorkspace(params: {
   directory: ImportDirectory;
   resourceCapacityReservation: ResourceCapacityReservation;
 }) {
-  const { allExtensionIds, data, db, directory, resourceCapacityReservation } = params;
+  const { allExtensionIds, data, db, directory, resourceCapacityReservation } =
+    params;
   const stats: ImportAccumulator = {
     convertedMarkdownCount: 0,
     folderCount: 0,

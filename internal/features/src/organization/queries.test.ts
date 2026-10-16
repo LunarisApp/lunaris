@@ -20,17 +20,19 @@ const ORG_ID = "organization-1";
 describe("billingStateQueryOptions", () => {
   it("loads owner-authorized organization billing state", async () => {
     const get = vi.fn().mockResolvedValue({
-      activeSubscriptions: [{
-        amount: 1200,
-        cancelAtPeriodEnd: false,
-        currency: "USD",
-        currentPeriodEnd: "2026-09-01T00:00:00.000Z",
-        id: "subscription-1",
-        productId: "plus-yearly",
-        recurringInterval: "year",
-        seats: 3,
-        status: "active",
-      }],
+      activeSubscriptions: [
+        {
+          amount: 1200,
+          cancelAtPeriodEnd: false,
+          currency: "USD",
+          currentPeriodEnd: "2026-09-01T00:00:00.000Z",
+          id: "subscription-1",
+          productId: "plus-yearly",
+          recurringInterval: "year",
+          seats: 3,
+          status: "active",
+        },
+      ],
     });
     const api = { get } as unknown as ApiClient;
     const options = billingStateQueryOptions(api, "eu", "user-1", ORG_ID);
@@ -40,7 +42,7 @@ describe("billingStateQueryOptions", () => {
     });
     expect(get).toHaveBeenCalledWith("/v1/entitlements/billing");
     expect(options.queryKey).toEqual(
-      organizationQueryKeys.billingState("eu", "user-1", ORG_ID),
+      organizationQueryKeys.billingState("eu", "user-1", ORG_ID)
     );
   });
 

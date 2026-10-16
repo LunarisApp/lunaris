@@ -7,7 +7,10 @@
 import { satisfies, valid, validRange } from "semver";
 
 export const PLUGIN_API_VERSION = "0.10.0";
-export const PLUGIN_API_SUPPORTED_VERSIONS = ["0.9.0", PLUGIN_API_VERSION] as const;
+export const PLUGIN_API_SUPPORTED_VERSIONS = [
+  "0.9.0",
+  PLUGIN_API_VERSION,
+] as const;
 export const PLUGIN_PERMISSIONS = [
   "content.read",
   "content.write",
@@ -54,7 +57,9 @@ export class ManifestValidationError extends Error {
   readonly field: string;
 
   constructor(pluginId: string | undefined, field: string, message: string) {
-    super(`Invalid extension manifest${pluginId ? ` (${pluginId})` : ""}: ${message}`);
+    super(
+      `Invalid extension manifest${pluginId ? ` (${pluginId})` : ""}: ${message}`
+    );
     this.name = "ManifestValidationError";
     this.pluginId = pluginId;
     this.field = field;
@@ -106,11 +111,17 @@ const MAX_WEBSITE_LENGTH = 2048;
 function parseDependencyMap(
   value: unknown,
   field: "conflicts" | "dependencies" | "optionalDependencies",
-  pluginId: string,
+  pluginId: string
 ): Record<string, string> {
-  if (value === undefined) return {};
+  if (value === undefined) {
+    return {};
+  }
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new ManifestValidationError(pluginId, field, `${field} must be an object`);
+    throw new ManifestValidationError(
+      pluginId,
+      field,
+      `${field} must be an object`
+    );
   }
   const result: Record<string, string> = {};
   for (const [id, range] of Object.entries(value)) {
@@ -123,7 +134,7 @@ function parseDependencyMap(
       throw new ManifestValidationError(
         pluginId,
         field,
-        `${field} entries must map plugin IDs to semver ranges`,
+        `${field} entries must map plugin IDs to semver ranges`
       );
     }
     result[id] = range;
@@ -140,22 +151,38 @@ export function validateManifest(
   currentApiVersion?: string
 ): PluginManifest {
   if (!manifest || typeof manifest !== "object") {
-    throw new ManifestValidationError(undefined, "root", "manifest must be an object");
+    throw new ManifestValidationError(
+      undefined,
+      "root",
+      "manifest must be an object"
+    );
   }
 
   const m = manifest as Record<string, unknown>;
 
   // Required string fields
   if (typeof m.id !== "string" || m.id.length === 0) {
-    throw new ManifestValidationError(undefined, "id", "id is required and must be a non-empty string");
+    throw new ManifestValidationError(
+      undefined,
+      "id",
+      "id is required and must be a non-empty string"
+    );
   }
 
   if (!PLUGIN_ID_PATTERN.test(m.id)) {
-    throw new ManifestValidationError(m.id as string, "id", "id must be lowercase segments separated by dots; each segment may contain letters, numbers, and hyphens");
+    throw new ManifestValidationError(
+      m.id as string,
+      "id",
+      "id must be lowercase segments separated by dots; each segment may contain letters, numbers, and hyphens"
+    );
   }
 
   if (m.id.length > MAX_PLUGIN_ID_LENGTH) {
-    throw new ManifestValidationError(m.id as string, "id", `id must be ${MAX_PLUGIN_ID_LENGTH} characters or fewer`);
+    throw new ManifestValidationError(
+      m.id as string,
+      "id",
+      `id must be ${MAX_PLUGIN_ID_LENGTH} characters or fewer`
+    );
   }
 
   const id = m.id as string;
@@ -175,17 +202,31 @@ export function validateManifest(
     "version",
     "website",
   ]);
-  const unknownField = Object.keys(m).find((field) => !allowedFields.has(field));
+  const unknownField = Object.keys(m).find(
+    (field) => !allowedFields.has(field)
+  );
   if (unknownField) {
-    throw new ManifestValidationError(id, unknownField, `unknown field: ${unknownField}`);
+    throw new ManifestValidationError(
+      id,
+      unknownField,
+      `unknown field: ${unknownField}`
+    );
   }
 
   if (typeof m.name !== "string" || m.name.length === 0) {
-    throw new ManifestValidationError(id, "name", "name is required and must be a non-empty string");
+    throw new ManifestValidationError(
+      id,
+      "name",
+      "name is required and must be a non-empty string"
+    );
   }
 
   if (typeof m.description !== "string" || m.description.length === 0) {
-    throw new ManifestValidationError(id, "description", "description is required and must be a non-empty string");
+    throw new ManifestValidationError(
+      id,
+      "description",
+      "description is required and must be a non-empty string"
+    );
   }
 
   if (
@@ -195,12 +236,16 @@ export function validateManifest(
     throw new ManifestValidationError(
       id,
       "longDescription",
-      "longDescription must be a non-empty string",
+      "longDescription must be a non-empty string"
     );
   }
 
   if (typeof m.developer !== "string" || m.developer.length === 0) {
-    throw new ManifestValidationError(id, "developer", "developer is required and must be a non-empty string");
+    throw new ManifestValidationError(
+      id,
+      "developer",
+      "developer is required and must be a non-empty string"
+    );
   }
 
   let keywords: string[] | undefined;
@@ -212,17 +257,24 @@ export function validateManifest(
         (keyword) =>
           typeof keyword === "string" &&
           keyword.trim().length > 0 &&
-          keyword.length <= MAX_KEYWORD_LENGTH,
+          keyword.length <= MAX_KEYWORD_LENGTH
       )
     ) {
       throw new ManifestValidationError(
         id,
         "keywords",
-        `keywords must contain at most ${MAX_KEYWORDS} non-empty strings of ${MAX_KEYWORD_LENGTH} characters or fewer`,
+        `keywords must contain at most ${MAX_KEYWORDS} non-empty strings of ${MAX_KEYWORD_LENGTH} characters or fewer`
       );
     }
-    if (new Set(m.keywords.map((keyword) => keyword.toLowerCase())).size !== m.keywords.length) {
-      throw new ManifestValidationError(id, "keywords", "keywords must not contain duplicates");
+    if (
+      new Set(m.keywords.map((keyword) => keyword.toLowerCase())).size !==
+      m.keywords.length
+    ) {
+      throw new ManifestValidationError(
+        id,
+        "keywords",
+        "keywords must not contain duplicates"
+      );
     }
     keywords = [...m.keywords];
   }
@@ -233,56 +285,90 @@ export function validateManifest(
       m.website.length === 0 ||
       m.website.length > MAX_WEBSITE_LENGTH
     ) {
-      throw new ManifestValidationError(id, "website", "website must be a non-empty HTTPS URL");
+      throw new ManifestValidationError(
+        id,
+        "website",
+        "website must be a non-empty HTTPS URL"
+      );
     }
     try {
       const website = new URL(m.website);
-      if (website.protocol !== "https:") throw new Error("not HTTPS");
+      if (website.protocol !== "https:") {
+        throw new Error("not HTTPS");
+      }
     } catch {
-      throw new ManifestValidationError(id, "website", "website must be a valid HTTPS URL");
+      throw new ManifestValidationError(
+        id,
+        "website",
+        "website must be a valid HTTPS URL"
+      );
     }
   }
 
   if (typeof m.version !== "string" || m.version.length === 0) {
-    throw new ManifestValidationError(id, "version", "version is required and must be a non-empty string");
+    throw new ManifestValidationError(
+      id,
+      "version",
+      "version is required and must be a non-empty string"
+    );
   }
   if (!valid(m.version)) {
-    throw new ManifestValidationError(id, "version", "version must be valid semver");
+    throw new ManifestValidationError(
+      id,
+      "version",
+      "version must be valid semver"
+    );
   }
 
   if (typeof m.api !== "string" || m.api.length === 0) {
-    throw new ManifestValidationError(id, "api", "api version range is required (e.g. \"^0.9.0\")");
+    throw new ManifestValidationError(
+      id,
+      "api",
+      'api version range is required (e.g. "^0.9.0")'
+    );
   }
   if (!validRange(m.api)) {
-    throw new ManifestValidationError(id, "api", "api must be a valid semver range");
+    throw new ManifestValidationError(
+      id,
+      "api",
+      "api must be a valid semver range"
+    );
   }
   if (currentApiVersion && !satisfies(currentApiVersion, m.api)) {
     throw new ApiVersionMismatchError(id, m.api, currentApiVersion);
   }
 
   if (!Array.isArray(m.permissions)) {
-    throw new ManifestValidationError(id, "permissions", "permissions must be an array");
+    throw new ManifestValidationError(
+      id,
+      "permissions",
+      "permissions must be an array"
+    );
   }
   if (
     !m.permissions.every((permission) =>
-      PLUGIN_PERMISSIONS.includes(permission as PluginPermission),
+      PLUGIN_PERMISSIONS.includes(permission as PluginPermission)
     )
   ) {
     throw new ManifestValidationError(
       id,
       "permissions",
-      `permissions must be one of: ${PLUGIN_PERMISSIONS.join(", ")}`,
+      `permissions must be one of: ${PLUGIN_PERMISSIONS.join(", ")}`
     );
   }
   if (new Set(m.permissions).size !== m.permissions.length) {
-    throw new ManifestValidationError(id, "permissions", "permissions must not contain duplicates");
+    throw new ManifestValidationError(
+      id,
+      "permissions",
+      "permissions must not contain duplicates"
+    );
   }
 
   const dependencies = parseDependencyMap(m.dependencies, "dependencies", id);
   const optionalDependencies = parseDependencyMap(
     m.optionalDependencies,
     "optionalDependencies",
-    id,
+    id
   );
   const conflicts = parseDependencyMap(m.conflicts, "conflicts", id);
   if (
@@ -290,36 +376,40 @@ export function validateManifest(
     Object.hasOwn(optionalDependencies, id) ||
     Object.hasOwn(conflicts, id)
   ) {
-    throw new ManifestValidationError(id, "dependencies", "plugin cannot depend on or conflict with itself");
+    throw new ManifestValidationError(
+      id,
+      "dependencies",
+      "plugin cannot depend on or conflict with itself"
+    );
   }
-  const contradictory = Object.keys(dependencies).find(
-    (dependencyId) => Object.hasOwn(conflicts, dependencyId),
+  const contradictory = Object.keys(dependencies).find((dependencyId) =>
+    Object.hasOwn(conflicts, dependencyId)
   );
   if (contradictory) {
     throw new ManifestValidationError(
       id,
       "conflicts",
-      `plugin cannot depend on and conflict with "${contradictory}"`,
+      `plugin cannot depend on and conflict with "${contradictory}"`
     );
   }
   const duplicateDependency = Object.keys(dependencies).find((dependencyId) =>
-    Object.hasOwn(optionalDependencies, dependencyId),
+    Object.hasOwn(optionalDependencies, dependencyId)
   );
   if (duplicateDependency) {
     throw new ManifestValidationError(
       id,
       "optionalDependencies",
-      `plugin dependency "${duplicateDependency}" cannot be both required and optional`,
+      `plugin dependency "${duplicateDependency}" cannot be both required and optional`
     );
   }
-  const optionalConflict = Object.keys(optionalDependencies).find((dependencyId) =>
-    Object.hasOwn(conflicts, dependencyId),
+  const optionalConflict = Object.keys(optionalDependencies).find(
+    (dependencyId) => Object.hasOwn(conflicts, dependencyId)
   );
   if (optionalConflict) {
     throw new ManifestValidationError(
       id,
       "conflicts",
-      `plugin cannot optionally depend on and conflict with "${optionalConflict}"`,
+      `plugin cannot optionally depend on and conflict with "${optionalConflict}"`
     );
   }
 

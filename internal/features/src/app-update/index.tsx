@@ -12,7 +12,9 @@ export interface AppUpdateState {
 
 const NO_APP_UPDATE: AppUpdateState = {
   needRefresh: false,
-  update: async () => {},
+  update: async () => {
+    /* No action while this capability is unavailable. */
+  },
 };
 
 const AppUpdateContext = createContext<AppUpdateState>(NO_APP_UPDATE);
@@ -45,7 +47,9 @@ export function AppUpdateButton({
 }) {
   const { t } = useTranslation();
   const { needRefresh, update } = useAppUpdate();
-  if (!needRefresh) return null;
+  if (!needRefresh) {
+    return null;
+  }
   return (
     <Button
       className={APP_UPDATE_BUTTON_CLASSNAME}

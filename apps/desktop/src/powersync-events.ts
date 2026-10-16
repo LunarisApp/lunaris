@@ -10,22 +10,29 @@ interface UploadOutcome {
 }
 
 function applyUploadOutcome(syncBlocker: SyncBlocker, outcome: UploadOutcome) {
-  if (outcome.type === "success") syncBlocker.recordSuccess();
-  else if (outcome.type === "client-error" && outcome.status) {
+  if (outcome.type === "success") {
+    syncBlocker.recordSuccess();
+  } else if (outcome.type === "client-error" && outcome.status) {
     syncBlocker.recordClientError(outcome.status);
-  } else syncBlocker.recordNonClientError();
+  } else {
+    syncBlocker.recordNonClientError();
+  }
 }
 
 export async function subscribeToPowerSyncUploads(
   handle: number,
-  syncBlocker: SyncBlocker,
+  syncBlocker: SyncBlocker
 ) {
   const unlisten = await listen<UploadOutcome>(UPLOAD_EVENT, ({ payload }) => {
-    if (payload.handle === handle) applyUploadOutcome(syncBlocker, payload);
+    if (payload.handle === handle) {
+      applyUploadOutcome(syncBlocker, payload);
+    }
   });
   let listening = true;
   return () => {
-    if (!listening) return;
+    if (!listening) {
+      return;
+    }
     listening = false;
     unlisten();
   };

@@ -17,12 +17,14 @@ const root = resolve(import.meta.dir, "../..");
 const repository = process.env.GITHUB_REPOSITORY;
 const token = process.env.GITHUB_TOKEN;
 
-if (!repository || !token) {
+if (!(repository && token)) {
   throw new Error("GITHUB_REPOSITORY and GITHUB_TOKEN are required");
 }
 
 function readPackage(path: string): PackageManifest {
-  return JSON.parse(readFileSync(resolve(root, path), "utf8")) as PackageManifest;
+  return JSON.parse(
+    readFileSync(resolve(root, path), "utf8")
+  ) as PackageManifest;
 }
 
 async function github(path: string): Promise<Response> {
@@ -37,12 +39,16 @@ async function github(path: string): Promise<Response> {
 
 async function planComponent(manifest: PackageManifest) {
   const tag = `${manifest.name}@${manifest.version}`;
-  const releaseResponse = await github(`/releases/tags/${encodeURIComponent(tag)}`);
+  const releaseResponse = await github(
+    `/releases/tags/${encodeURIComponent(tag)}`
+  );
 
   if (releaseResponse.ok) {
     const release = (await releaseResponse.json()) as ReleaseState;
     if (release.draft) {
-      throw new Error(`${tag} already has a draft release; refusing to overwrite it`);
+      throw new Error(
+        `${tag} already has a draft release; refusing to overwrite it`
+      );
     }
     const escapedVersion = manifest.version.replaceAll(".", "\\.");
     const artifactPattern =
@@ -64,7 +70,12 @@ async function planComponent(manifest: PackageManifest) {
         `${tag} has conflicting assets: ${assetNames.join(", ") || "none"}`
       );
     }
-    return { component: manifest.name, publish: false, tag, version: manifest.version };
+    return {
+      component: manifest.name,
+      publish: false,
+      tag,
+      version: manifest.version,
+    };
   }
 
   if (releaseResponse.status !== 404) {

@@ -177,14 +177,14 @@ const es: WordCounterCopy = {
 	...en,
 	heading: "Contador de palabras y legibilidad gratis",
 	meta: {
-		title:
-			"Contador de palabras y legibilidad gratis y privado | Lunaris",
+		title: "Contador de palabras y legibilidad gratis y privado | Lunaris",
 		description:
 			"Cuenta palabras y caracteres, calcula el tiempo de lectura y revisa la legibilidad. Gratis, instantáneo y privado.",
 	},
 	privacy: "Tu texto permanece en este dispositivo",
 	editor: {
-		analysisUnavailable: "El análisis no está disponible. Tu texto está a salvo.",
+		analysisUnavailable:
+			"El análisis no está disponible. Tu texto está a salvo.",
 		analyzing: "Analizando el texto…",
 		label: "Tu texto",
 		placeholder: "Pega un texto o empieza a escribir…",
@@ -225,8 +225,7 @@ const es: WordCounterCopy = {
 	},
 	readability: {
 		...en.readability,
-		notEnough:
-			"Añade unas 100 palabras para obtener una estimación más útil.",
+		notEnough: "Añade unas 100 palabras para obtener una estimación más útil.",
 		unsupported:
 			"Los recuentos están listos. La puntuación de legibilidad admite por ahora textos en inglés.",
 		loading: "Analizando la forma del texto…",
@@ -280,8 +279,7 @@ const fr: WordCounterCopy = {
 	...en,
 	heading: "Compteur de mots et lisibilité gratuit",
 	meta: {
-		title:
-			"Compteur de mots et lisibilité gratuit et privé | Lunaris",
+		title: "Compteur de mots et lisibilité gratuit et privé | Lunaris",
 		description:
 			"Comptez mots et caractères, estimez le temps de lecture et vérifiez la lisibilité. Gratuit, instantané et privé.",
 	},
@@ -330,8 +328,7 @@ const fr: WordCounterCopy = {
 	},
 	readability: {
 		...en.readability,
-		notEnough:
-			"Ajoutez environ 100 mots pour une estimation plus pertinente.",
+		notEnough: "Ajoutez environ 100 mots pour une estimation plus pertinente.",
 		unsupported:
 			"Les comptes sont prêts. Le score de lisibilité prend actuellement en charge les textes anglais.",
 		loading: "Analyse de la forme du texte…",
@@ -374,8 +371,7 @@ const fr: WordCounterCopy = {
 	},
 	cta: {
 		title: "Une belle écriture mérite un meilleur espace.",
-		body:
-			"Continuez à écrire en privé sur ordinateur et sur le web avec Lunaris.",
+		body: "Continuez à écrire en privé sur ordinateur et sur le web avec Lunaris.",
 		open: "Continuer dans Lunaris",
 		learn: "En savoir plus",
 	},
@@ -435,8 +431,7 @@ const de: WordCounterCopy = {
 	},
 	readability: {
 		...en.readability,
-		notEnough:
-			"Fügen Sie etwa 100 Wörter für eine bessere Schätzung hinzu.",
+		notEnough: "Fügen Sie etwa 100 Wörter für eine bessere Schätzung hinzu.",
 		unsupported:
 			"Die Zählung ist fertig. Die Lesbarkeitswertung unterstützt derzeit englische Texte.",
 		loading: "Textstruktur wird gelesen…",
@@ -478,8 +473,7 @@ const de: WordCounterCopy = {
 	},
 	cta: {
 		title: "Gute Texte verdienen ein besseres Zuhause.",
-		body:
-			"Schreiben Sie mit Lunaris auf Desktop und im Web privat weiter.",
+		body: "Schreiben Sie mit Lunaris auf Desktop und im Web privat weiter.",
 		open: "In Lunaris fortfahren",
 		learn: "Mehr erfahren",
 	},
@@ -491,8 +485,7 @@ const ptBR: WordCounterCopy = {
 	...en,
 	heading: "Contador de palavras e legibilidade grátis",
 	meta: {
-		title:
-			"Contador de palavras e legibilidade grátis e privado | Lunaris",
+		title: "Contador de palavras e legibilidade grátis e privado | Lunaris",
 		description:
 			"Conte palavras e caracteres, estime o tempo de leitura e verifique a legibilidade. Grátis, instantâneo e privado.",
 	},
@@ -539,8 +532,7 @@ const ptBR: WordCounterCopy = {
 	},
 	readability: {
 		...en.readability,
-		notEnough:
-			"Adicione cerca de 100 palavras para uma estimativa mais útil.",
+		notEnough: "Adicione cerca de 100 palavras para uma estimativa mais útil.",
 		unsupported:
 			"As contagens estão prontas. A pontuação de legibilidade aceita atualmente textos em inglês.",
 		loading: "Analisando a forma do texto…",
@@ -576,15 +568,13 @@ const ptBR: WordCounterCopy = {
 			},
 			veryDifficult: {
 				label: "Leitura muito densa",
-				guidance:
-					"Pode haver linguagem especializada ou frases muito longas.",
+				guidance: "Pode haver linguagem especializada ou frases muito longas.",
 			},
 		},
 	},
 	cta: {
 		title: "Boa escrita merece um lugar melhor.",
-		body:
-			"Continue escrevendo com privacidade no desktop e na web com Lunaris.",
+		body: "Continue escrevendo com privacidade no desktop e na web com Lunaris.",
 		open: "Continuar no Lunaris",
 		learn: "Saiba mais",
 	},

@@ -113,7 +113,7 @@ describe("WorkspaceSharingSettings", () => {
         organizationId="org_1"
         ownerId="user_1"
         workspaceId="workspace/1"
-      />,
+      />
     );
 
     expect(screen.getByTestId("candidate-ids").textContent).toBe("user_3");
@@ -122,9 +122,12 @@ describe("WorkspaceSharingSettings", () => {
     fireEvent.click(screen.getByRole("button", { name: "grant" }));
 
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith("/v1/workspaces/workspace%2F1/members", {
-        body: { role: "editor", userId: "user_3" },
-      });
+      expect(api.post).toHaveBeenCalledWith(
+        "/v1/workspaces/workspace%2F1/members",
+        {
+          body: { role: "editor", userId: "user_3" },
+        }
+      );
     });
     expect(refetch).toHaveBeenCalledTimes(1);
     expect(capture).toHaveBeenCalledWith("workspace_member_granted", {
@@ -138,30 +141,33 @@ describe("WorkspaceSharingSettings", () => {
         organizationId="org_1"
         ownerId="user_1"
         workspaceId="workspace/1"
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "update role" }));
     await waitFor(() => {
       expect(api.patch).toHaveBeenCalledWith(
         "/v1/workspaces/workspace%2F1/members/member_1",
-        { body: { role: "editor" } },
+        { body: { role: "editor" } }
       );
     });
 
     fireEvent.click(screen.getByRole("button", { name: "remove" }));
     await waitFor(() => {
       expect(api.delete).toHaveBeenCalledWith(
-        "/v1/workspaces/workspace%2F1/members/member_1",
+        "/v1/workspaces/workspace%2F1/members/member_1"
       );
     });
 
     refetch.mockClear();
     fireEvent.click(screen.getByRole("button", { name: "transfer" }));
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith("/v1/workspaces/workspace%2F1/transfer", {
-        body: { userId: "user_2" },
-      });
+      expect(api.post).toHaveBeenCalledWith(
+        "/v1/workspaces/workspace%2F1/transfer",
+        {
+          body: { userId: "user_2" },
+        }
+      );
     });
     expect(refetch).not.toHaveBeenCalled();
   });
@@ -173,7 +179,7 @@ describe("WorkspaceSharingSettings", () => {
         organizationId="org_1"
         ownerId="user_1"
         workspaceId="workspace/1"
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "select candidate" }));

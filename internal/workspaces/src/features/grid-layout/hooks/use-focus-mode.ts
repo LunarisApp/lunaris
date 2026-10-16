@@ -1,7 +1,11 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { createHotkeyOptions, HOTKEYS, useResolvedHotkeyBinding } from "@repo/features/hotkeys";
+import {
+  createHotkeyOptions,
+  HOTKEYS,
+  useResolvedHotkeyBinding,
+} from "@repo/features/hotkeys";
 import { useGridLayoutStore } from "../context";
 
 /**
@@ -30,7 +34,9 @@ export function useFocusMode() {
 
   // Sync isFocusMode when dockview maximize state changes externally
   useEffect(() => {
-    if (!dockviewApi) return;
+    if (!dockviewApi) {
+      return;
+    }
 
     const disposable = dockviewApi.onDidMaximizedGroupChange((e) => {
       if (!e.isMaximized) {

@@ -14,8 +14,10 @@ const NATIVE_CSRF_MESSAGES = new Set([
 export class OriginExceptionFilter extends BaseExceptionFilter<ForbiddenException> {
   catch(exception: ForbiddenException, host: ArgumentsHost) {
     if (
-      !(exception instanceof OriginRejectedException) &&
-      !NATIVE_CSRF_MESSAGES.has(exception.message)
+      !(
+        exception instanceof OriginRejectedException ||
+        NATIVE_CSRF_MESSAGES.has(exception.message)
+      )
     ) {
       return super.catch(exception, host);
     }

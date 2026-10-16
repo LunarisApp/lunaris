@@ -15,9 +15,7 @@ describe("analyticsRoutePath", () => {
       "/:organization/:workspace"
     );
     expect(
-      analyticsRoutePath(
-        "/writers-room/my-novel/view_123/comments/comment_456"
-      )
+      analyticsRoutePath("/writers-room/my-novel/view_123/comments/comment_456")
     ).toBe("/:organization/:workspace/:view/:subview/:item");
   });
 

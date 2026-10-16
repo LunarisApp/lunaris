@@ -31,14 +31,14 @@ const extensionResource: WorkspaceResourceEntity = {
 
 function withExtensionRegistry(
   children: ReactNode,
-  enabledExtensionIds: readonly string[],
+  enabledExtensionIds: readonly string[]
 ) {
   return (
     <ExtensionRegistryProvider
       allExtensionIds={enabledExtensionIds}
       enabledExtensionIds={enabledExtensionIds}
       extensionAvailability={Object.fromEntries(
-        enabledExtensionIds.map((id) => [id, "available" as const]),
+        enabledExtensionIds.map((id) => [id, "available" as const])
       )}
       extensionMetadata={{}}
     >
@@ -66,8 +66,8 @@ describe("WorkspaceResourceIcon", () => {
     const { rerender } = render(
       withExtensionRegistry(
         <WorkspaceResourceIcon item={extensionResource} />,
-        ["lunaris.kanban"],
-      ),
+        ["lunaris.kanban"]
+      )
     );
 
     expect(screen.getByRole("status")).toBeTruthy();
@@ -78,8 +78,8 @@ describe("WorkspaceResourceIcon", () => {
           item={extensionResource}
           resourceIcon={<svg data-testid="extension-icon" />}
         />,
-        ["lunaris.kanban"],
-      ),
+        ["lunaris.kanban"]
+      )
     );
 
     expect(screen.queryByRole("status")).toBeNull();
@@ -88,7 +88,10 @@ describe("WorkspaceResourceIcon", () => {
 
   it("uses unknown icon when extension is not installed", () => {
     const { container } = render(
-      withExtensionRegistry(<WorkspaceResourceIcon item={extensionResource} />, []),
+      withExtensionRegistry(
+        <WorkspaceResourceIcon item={extensionResource} />,
+        []
+      )
     );
 
     expect(screen.queryByRole("status")).toBeNull();

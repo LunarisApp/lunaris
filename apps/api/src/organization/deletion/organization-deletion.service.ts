@@ -25,23 +25,27 @@ export class OrganizationDeletionService {
     user: { id: string },
     organizationId: string,
     confirmationSlug: string,
-    sessionCreatedAt: Date,
+    sessionCreatedAt: Date
   ) {
     if (
       !Number.isFinite(new Date(sessionCreatedAt).getTime()) ||
       Date.now() - new Date(sessionCreatedAt).getTime() > FRESH_SESSION_MS
     ) {
       throw new ForbiddenException(
-        "Sign out and sign in again before scheduling organization deletion.",
+        "Sign out and sign in again before scheduling organization deletion."
       );
     }
     await this.database.db.transaction(async (tx) => {
       const org = await this.requireOwner(tx, organizationId, user.id);
-      if (org.isPersonal)
+      if (org.isPersonal) {
         throw new ForbiddenException("Cannot delete a personal organization");
-      if (org.slug !== confirmationSlug)
+      }
+      if (org.slug !== confirmationSlug) {
         throw new BadRequestException("Organization slug does not match");
-      if (org.deletionRequestedAt) return;
+      }
+      if (org.deletionRequestedAt) {
+        return;
+      }
       const now = new Date();
       const purgeAfter = new Date(now.getTime() + DELETION_GRACE_MS);
       await tx.insert(organizationDeletionsDb).values({
@@ -69,11 +73,11 @@ export class OrganizationDeletionService {
       .where(
         and(
           eq(member.organizationId, organizationId),
-          eq(member.userId, userId),
-        ),
+          eq(member.userId, userId)
+        )
       )
       .limit(1);
-    if (!membership)
+    if (!membership) {
       return {
         success: true,
         status: "unavailable" as const,
@@ -82,6 +86,7 @@ export class OrganizationDeletionService {
         canRestore: false,
         billingStopped: false,
       };
+    }
     const [deletion] = await this.database.db
       .select()
       .from(organizationDeletionsDb)
@@ -102,14 +107,11 @@ export class OrganizationDeletionService {
                     .select({ workspaceId: workspaceMembersDb.workspaceId })
                     .from(workspaceMembersDb)
                     .where(
-                      eq(
-                        workspaceMembersDb.organizationMemberId,
-                        membership.id,
-                      ),
-                    ),
-                ),
-              ),
-            ),
+                      eq(workspaceMembersDb.organizationMemberId, membership.id)
+                    )
+                )
+              )
+            )
           )
       : [];
     return {
@@ -126,7 +128,7 @@ export class OrganizationDeletionService {
         Boolean(
           deletion &&
             !deletion.purgeStartedAt &&
-            deletion.purgeAfter.getTime() > Date.now(),
+            deletion.purgeAfter.getTime() > Date.now()
         ),
       billingStopped: Boolean(deletion?.billingStoppedAt),
     };
@@ -140,12 +142,15 @@ export class OrganizationDeletionService {
         .from(organizationDeletionsDb)
         .where(eq(organizationDeletionsDb.organizationId, organizationId))
         .for("update");
-      if (!deletion) return;
+      if (!deletion) {
+        return;
+      }
       if (
         deletion.purgeStartedAt ||
         deletion.purgeAfter.getTime() <= Date.now()
-      )
+      ) {
         throw new ConflictException("The recovery period has ended");
+      }
       await tx
         .update(organization)
         .set({ deletionRequestedAt: null, deletionPurgeAfter: null })
@@ -164,7 +169,7 @@ export class OrganizationDeletionService {
   private async requireOwner(
     db: DatabaseOrTx,
     organizationId: string,
-    userId: string,
+    userId: string
   ) {
     // Same lock order as worker: organization first, deletion second.
     const [org] = await db
@@ -172,21 +177,24 @@ export class OrganizationDeletionService {
       .from(organization)
       .where(eq(organization.id, organizationId))
       .for("update");
-    if (!org) throw new NotFoundException("Organization not found");
+    if (!org) {
+      throw new NotFoundException("Organization not found");
+    }
     const [membership] = await db
       .select({ role: member.role })
       .from(member)
       .where(
         and(
           eq(member.organizationId, organizationId),
-          eq(member.userId, userId),
-        ),
+          eq(member.userId, userId)
+        )
       )
       .limit(1);
-    if (membership?.role !== "owner")
+    if (membership?.role !== "owner") {
       throw new ForbiddenException(
-        "Only organization owners can manage deletion",
+        "Only organization owners can manage deletion"
       );
+    }
     return org;
   }
 }

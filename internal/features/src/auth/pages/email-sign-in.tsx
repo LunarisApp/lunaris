@@ -5,7 +5,7 @@ import { Input } from "@lunarisapp/ui/components/input";
 import posthog from "posthog-js";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate } from "react-router";
-import { object, string, z } from "zod";
+import { object, string, type z } from "zod";
 import { useRegion } from "../../region";
 import { AuthBackLink } from "../components/auth-back-link";
 import { AuthLayout } from "../components/auth-layout";
@@ -25,7 +25,7 @@ const signInSchema = object({
 type SignInSchema = z.infer<typeof signInSchema>;
 
 export function parseTwoFactorChallenge(
-  result: unknown,
+  result: unknown
 ): { methods: string[] } | undefined {
   if (
     !result ||
@@ -64,11 +64,8 @@ export function EmailSignInForm({ email }: { email?: string }) {
   const auth = useAuth();
   const navigate = useNavigate();
   const { selectionRequired, manifest } = useRegion();
-  const {
-    isAddingAccount,
-    pathWithRedirect,
-    resolvedRedirectTo,
-  } = useAuthRedirect();
+  const { isAddingAccount, pathWithRedirect, resolvedRedirectTo } =
+    useAuthRedirect();
   const {
     register,
     handleSubmit,
@@ -102,7 +99,7 @@ export function EmailSignInForm({ email }: { email?: string }) {
         replace: true,
         state: createAccountSwitchNavigationState(
           result?.user?.id,
-          isAddingAccount,
+          isAddingAccount
         ),
       });
     }
@@ -129,7 +126,9 @@ export function EmailSignInForm({ email }: { email?: string }) {
           <Field>
             <FieldLabel htmlFor="email">{t("auth.email")}</FieldLabel>
             <Input
-              aria-describedby={errors.email ? "sign-in-email-error" : undefined}
+              aria-describedby={
+                errors.email ? "sign-in-email-error" : undefined
+              }
               aria-invalid={!!errors.email}
               autoComplete="email"
               data-testid="auth-signin-email"
@@ -157,14 +156,20 @@ export function EmailSignInForm({ email }: { email?: string }) {
           />
           <FieldError errors={[errors.password]} id="sign-in-password-error" />
         </Field>
-        {manifest?.capabilities?.passwordResetEmail !== false ? <div className="flex justify-end">
-          <Link
-            className="text-primary text-sm underline underline-offset-4"
-            to={pathWithRedirect("/auth/forgot-password")}
-          >
-            {t("auth.forgotPassword")}
-          </Link>
-        </div> : <p className="text-muted-foreground text-sm">{t("auth.emailRecoveryUnavailable")}</p>}
+        {manifest?.capabilities?.passwordResetEmail === false ? (
+          <p className="text-muted-foreground text-sm">
+            {t("auth.emailRecoveryUnavailable")}
+          </p>
+        ) : (
+          <div className="flex justify-end">
+            <Link
+              className="text-primary text-sm underline underline-offset-4"
+              to={pathWithRedirect("/auth/forgot-password")}
+            >
+              {t("auth.forgotPassword")}
+            </Link>
+          </div>
+        )}
         <Button
           className="h-11 w-full"
           data-testid="auth-signin-submit"
@@ -174,15 +179,17 @@ export function EmailSignInForm({ email }: { email?: string }) {
           {t("auth.signIn")}
         </Button>
       </form>
-      {manifest?.signupsAllowed !== false && <p className="text-muted-foreground mt-4 text-center text-sm">
-        {t("auth.noAccount")}{" "}
-        <Link
-          className="text-primary underline underline-offset-4"
-          to={pathWithRedirect("/auth/register")}
-        >
-          {t("auth.signUp")}
-        </Link>
-      </p>}
+      {manifest?.signupsAllowed !== false && (
+        <p className="mt-4 text-center text-muted-foreground text-sm">
+          {t("auth.noAccount")}{" "}
+          <Link
+            className="text-primary underline underline-offset-4"
+            to={pathWithRedirect("/auth/register")}
+          >
+            {t("auth.signUp")}
+          </Link>
+        </p>
+      )}
     </AuthLayout>
   );
 }

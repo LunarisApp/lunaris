@@ -2,10 +2,7 @@ import { AGENT_WORK_TOOL_ID } from "../agent-work/constants";
 import { log } from "evlog";
 import posthog from "posthog-js";
 import type { StoreApi } from "zustand";
-import {
-  findInitialEmptyPanelId,
-  findSingleEmptyPanelId,
-} from "./empty-panel";
+import { findInitialEmptyPanelId, findSingleEmptyPanelId } from "./empty-panel";
 import { getReferenceGroupId, withUnloadParam } from "./panel-state";
 import {
   activateDockviewPanel,
@@ -34,10 +31,14 @@ function findEmptyPanelIdToReplace({
 }: Pick<GridLayoutState, "dockviewApi" | "panels"> & {
   groupId?: string;
 }): string | undefined {
-  if (groupId !== MAIN_GROUP_ID) return undefined;
+  if (groupId !== MAIN_GROUP_ID) {
+    return undefined;
+  }
 
   const initialEmptyPanelId = findInitialEmptyPanelId(panels);
-  if (initialEmptyPanelId) return initialEmptyPanelId;
+  if (initialEmptyPanelId) {
+    return initialEmptyPanelId;
+  }
 
   const liveGroup =
     typeof dockviewApi?.getGroup === "function"
@@ -98,7 +99,9 @@ export function createOpenPanelActions(
             resourceId,
           });
         }
-        if (existingPanel.isUnloaded) get().reloadPanel(existingPanel.id);
+        if (existingPanel.isUnloaded) {
+          get().reloadPanel(existingPanel.id);
+        }
         return;
       }
 
@@ -159,7 +162,9 @@ export function createOpenPanelActions(
           params,
           sourceResourceId:
             sourceViewId ??
-            (typeof activeResourceId === "string" ? activeResourceId : undefined),
+            (typeof activeResourceId === "string"
+              ? activeResourceId
+              : undefined),
           title,
           viewId: renderer,
         });
@@ -214,8 +219,8 @@ export function createOpenPanelActions(
         ? findViewPanel(panels, sourceViewId)
         : undefined;
       const sourceGroupId = sourcePanel
-        ? dockviewApi?.getPanel(sourcePanel.id)?.group.id ??
-          getReferenceGroupId(sourcePanel)
+        ? (dockviewApi?.getPanel(sourcePanel.id)?.group.id ??
+          getReferenceGroupId(sourcePanel))
         : undefined;
       const targetGroupId = sourceGroupId ?? MAIN_GROUP_ID;
       const emptyPanelId = findEmptyPanelIdToReplace({
@@ -231,7 +236,9 @@ export function createOpenPanelActions(
         renderer,
         title,
       });
-      if (emptyPanelId) get().removePanel(emptyPanelId);
+      if (emptyPanelId) {
+        get().removePanel(emptyPanelId);
+      }
       log.debug({
         tag: "GridLayout",
         msg: "Opened extension panel",
@@ -367,13 +374,15 @@ export function createOpenPanelActions(
               // Two-thirds of the default three-column layout's equal share.
               size: {
                 initialWidth: Math.round(
-                  ((dockviewApi?.width || getViewportWidth()) * 2) / 9,
+                  ((dockviewApi?.width || getViewportWidth()) * 2) / 9
                 ),
               },
             }
           : {}),
       });
-      if (emptyPanelId) get().removePanel(emptyPanelId);
+      if (emptyPanelId) {
+        get().removePanel(emptyPanelId);
+      }
       log.debug({
         tag: "GridLayout",
         msg: "Opened tool panel",

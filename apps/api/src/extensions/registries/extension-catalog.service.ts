@@ -18,13 +18,13 @@ export class ExtensionCatalogService {
   >();
 
   constructor(
-    private readonly fetchJson: typeof fetchMarketplaceJson = fetchMarketplaceJson,
+    private readonly fetchJson: typeof fetchMarketplaceJson = fetchMarketplaceJson
   ) {}
 
   async requireActiveVersion(
     manifestUrl: string,
     pluginId: string,
-    version: string,
+    version: string
   ): Promise<ExtensionMarketplaceVersion> {
     const catalog = await this.getCatalog(manifestUrl);
     if (!catalog.enabled) {
@@ -33,8 +33,10 @@ export class ExtensionCatalogService {
     const plugin = catalog.extensions.find((entry) => entry.id === pluginId);
     const release = plugin?.versions.find((entry) => entry.version === version);
     if (
-      !release ||
-      !isMarketplaceVersionCompatible(PLUGIN_API_SUPPORTED_VERSIONS, release)
+      !(
+        release &&
+        isMarketplaceVersionCompatible(PLUGIN_API_SUPPORTED_VERSIONS, release)
+      )
     ) {
       throw new ServiceUnavailableException("Extension version is unavailable");
     }
@@ -44,13 +46,14 @@ export class ExtensionCatalogService {
   async getCatalog(manifestUrl: string): Promise<ExtensionMarketplace> {
     const configuredOfficialUrl = process.env.PLUGIN_MARKETPLACE_URL;
     const resolvedUrl =
-      manifestUrl === OFFICIAL_MARKETPLACE_MANIFEST_URL &&
-      configuredOfficialUrl
+      manifestUrl === OFFICIAL_MARKETPLACE_MANIFEST_URL && configuredOfficialUrl
         ? configuredOfficialUrl
         : manifestUrl;
     const usesConfiguredOfficialUrl = resolvedUrl !== manifestUrl;
     const cached = this.cache.get(resolvedUrl);
-    if (cached && cached.expiresAt > Date.now()) return cached.catalog;
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.catalog;
+    }
 
     let value: unknown;
     try {
@@ -58,18 +61,24 @@ export class ExtensionCatalogService {
         allowPrivate: usesConfiguredOfficialUrl,
       });
     } catch (cause) {
-      throw new ServiceUnavailableException("Extension catalog is unavailable", {
-        cause,
-      });
+      throw new ServiceUnavailableException(
+        "Extension catalog is unavailable",
+        {
+          cause,
+        }
+      );
     }
 
     let catalog: ExtensionMarketplace;
     try {
       catalog = parseExtensionMarketplace(value, resolvedUrl);
     } catch (cause) {
-      throw new ServiceUnavailableException("Extension marketplace is invalid", {
-        cause,
-      });
+      throw new ServiceUnavailableException(
+        "Extension marketplace is invalid",
+        {
+          cause,
+        }
+      );
     }
     this.cache.set(resolvedUrl, {
       catalog,

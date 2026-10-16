@@ -1,10 +1,7 @@
 import { oauthProviderClient } from "@better-auth/oauth-provider/client";
 import { passkeyClient } from "@better-auth/passkey/client";
 import { polarClient } from "@polar-sh/better-auth/client";
-import type {
-  BetterAuthClientPlugin,
-  InferActions,
-} from "better-auth/client";
+import type { BetterAuthClientPlugin, InferActions } from "better-auth/client";
 import {
   anonymousClient,
   inferOrgAdditionalFields,
@@ -16,10 +13,7 @@ import {
 } from "better-auth/client/plugins";
 import { createAuthClient as createAuthClientExternal } from "better-auth/react";
 import { startupCachePlugin } from "./startup-cache";
-import {
-  BASE_PATH,
-  LAST_LOGIN_METHOD_COOKIE_NAME,
-} from "./constants";
+import { BASE_PATH, LAST_LOGIN_METHOD_COOKIE_NAME } from "./constants";
 import { emailAuthDiscoveryClient } from "./email-auth-client";
 import {
   organizationAccessControl,
@@ -62,11 +56,13 @@ function accountSwitchSignalsClient() {
 }
 
 function withStableFunctionName<Client extends object>(
-  client: Client,
+  client: Client
 ): Client & { readonly name: string } {
   return new Proxy(client, {
     get(target, property) {
-      if (property === "name") return "LunarisAuthClient";
+      if (property === "name") {
+        return "LunarisAuthClient";
+      }
       return Reflect.get(target, property, target);
     },
   }) as Client & { readonly name: string };
@@ -120,9 +116,7 @@ function createAuthClientInternal({
     }),
   ] as const;
   const passkeyPlugin = passkeyClient();
-  const pluginsAfterPasskeys = [
-    passkeyCapabilityClient(passkeys),
-  ] as const;
+  const pluginsAfterPasskeys = [passkeyCapabilityClient(passkeys)] as const;
 
   // Keep Better Auth's inferred public API free of runtime-only plugins whose
   // broad types would erase actions from the precise plugin tuple.
@@ -146,7 +140,7 @@ function createAuthClientInternal({
       basePath: BASE_PATH,
       fetchOptions: customFetchImpl ? { customFetchImpl } : undefined,
       plugins: configuredPlugins,
-    }),
+    })
   );
 }
 
@@ -155,7 +149,7 @@ export type AuthClient = ReturnType<typeof createAuthClientInternal>;
 export function createAuthClient<
   const Plugins extends BetterAuthClientPlugin[],
 >(
-  options: CreateAuthOptions<Plugins> & { plugins: Plugins },
+  options: CreateAuthOptions<Plugins> & { plugins: Plugins }
 ): AuthClient & InferActions<{ plugins: Plugins }>;
 export function createAuthClient(options: CreateAuthOptions): AuthClient;
 export function createAuthClient(options: CreateAuthOptions): AuthClient {

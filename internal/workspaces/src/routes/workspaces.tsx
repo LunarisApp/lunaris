@@ -66,12 +66,12 @@ import { preloadWorkspaceRoute } from "./workspace-route-preload";
 const CreateWorkspaceDialog = lazy(() =>
   import("@repo/workspaces/new-workspace").then((module) => ({
     default: module.CreateWorkspaceDialog,
-  })),
+  }))
 );
 const ImportObsidianWorkspaceDialog = lazy(() =>
   import("@repo/workspaces/new-workspace").then((module) => ({
     default: module.ImportObsidianWorkspaceDialog,
-  })),
+  }))
 );
 
 const WORKSPACES_VIEW_STORAGE_KEY = "lunaris:workspaces-view";
@@ -83,7 +83,8 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
   const isMobile = useIsMobile();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [workspaceSort, setWorkspaceSort] = useState<WorkspacesSort>("activity");
+  const [workspaceSort, setWorkspaceSort] =
+    useState<WorkspacesSort>("activity");
   const [workspaceView, setWorkspaceView] = useState<WorkspacesView>(() => {
     try {
       return localStorage.getItem(WORKSPACES_VIEW_STORAGE_KEY) === "list"
@@ -116,7 +117,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
     {
       defaultExtensionIds: pluginRegistry.defaultExtensionIds,
       loadPlugin: pluginRegistry.loadPlugin,
-    },
+    }
   );
   const handleWorkspaceIntent = useCallback(
     (workspace: { id: string }) => {
@@ -134,7 +135,10 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
     [preloadWorkspacePlugins, shell]
   );
   const openCreateWorkspaceDialog = useCallback(() => setDialogOpen(true), []);
-  const openImportWorkspaceDialog = useCallback(() => setImportDialogOpen(true), []);
+  const openImportWorkspaceDialog = useCallback(
+    () => setImportDialogOpen(true),
+    []
+  );
 
   useDefaultTemplateWorkspaceSeeder({
     currentUserEmail: session?.user.email,
@@ -142,7 +146,9 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
   });
 
   useEffect(() => {
-    if (canReadWorkspaces || deniedInteractionMarked.current) return;
+    if (canReadWorkspaces || deniedInteractionMarked.current) {
+      return;
+    }
     deniedInteractionMarked.current = true;
     globalThis.performance?.mark("lunaris:workspaces-interactive");
   }, [canReadWorkspaces]);
@@ -174,7 +180,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                   src="/favicon-dark.svg"
                   width={32}
                 />
-                <span className="text-xl/none font-[650] tracking-[0.04em] uppercase">
+                <span className="font-[650] text-xl/none uppercase tracking-[0.04em]">
                   Lunaris
                 </span>
               </div>
@@ -197,7 +203,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                 {t("mobile.experienceBanner")}
               </AlertDescription>
               <button
-                className="focus-visible:ring-ring absolute top-1.5 right-1.5 inline-flex size-6 items-center justify-center rounded-sm opacity-70 outline-none hover:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-2"
+                className="absolute top-1.5 right-1.5 inline-flex size-6 items-center justify-center rounded-sm opacity-70 outline-none hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 onClick={() => {
                   localStorage.setItem("mobile-banner-dismissed", "true");
                   setBannerDismissed(true);
@@ -221,7 +227,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
             id="main-content"
             tabIndex={-1}
           >
-            <h1 className="text-lg font-semibold" id="workspaces-heading">
+            <h1 className="font-semibold text-lg" id="workspaces-heading">
               {t("workspaces.recentWorkspaces")}
             </h1>
             {!canReadWorkspaces && (
@@ -245,13 +251,17 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
               className="flex min-w-0 items-center gap-2"
               role="group"
             >
-              {canReadWorkspaces && activeOrg && (
+              {!!(canReadWorkspaces && activeOrg) && (
                 <HomeSearchProvider
                   organizationId={activeOrg.id}
-                  commandActions={canCreateWorkspace ? {
-                    "create-workspace": openCreateWorkspaceDialog,
-                    "import-workspace": openImportWorkspaceDialog,
-                  } : {}}
+                  commandActions={
+                    canCreateWorkspace
+                      ? {
+                          "create-workspace": openCreateWorkspaceDialog,
+                          "import-workspace": openImportWorkspaceDialog,
+                        }
+                      : {}
+                  }
                 >
                   <SearchButton
                     className="min-w-16 flex-1 justify-start text-muted-foreground"
@@ -259,124 +269,142 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                   />
                 </HomeSearchProvider>
               )}
-              {canReadWorkspaces && <Select
-                onValueChange={(value) => {
-                  if (value === "name" || value === "activity") {
-                    setWorkspaceSort(value);
-                  }
-                }}
-                value={workspaceSort}
-              >
-                <SelectTrigger
-                  aria-label={t("workspaces.sortBy")}
-                  className="w-28 sm:w-36"
-                  data-testid="workspaces-sort"
-                >
-                  <HugeiconsIcon
-                    aria-hidden="true"
-                    icon={Sorting01Icon}
-                    strokeWidth={2}
-                  />
-                  <SelectValue>
-                    {(value: WorkspacesSort | null) =>
-                      value === "name"
-                        ? t("workspaces.sortByName")
-                        : t("workspaces.sortByActivity")
+              {canReadWorkspaces && (
+                <Select
+                  onValueChange={(value) => {
+                    if (value === "name" || value === "activity") {
+                      setWorkspaceSort(value);
                     }
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent align="end">
-                  <SelectItem
-                    data-testid="workspaces-sort-activity"
-                    value="activity"
+                  }}
+                  value={workspaceSort}
+                >
+                  <SelectTrigger
+                    aria-label={t("workspaces.sortBy")}
+                    className="w-28 sm:w-36"
+                    data-testid="workspaces-sort"
                   >
-                    {t("workspaces.sortByActivity")}
-                  </SelectItem>
-                  <SelectItem data-testid="workspaces-sort-name" value="name">
-                    {t("workspaces.sortByName")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>}
-              {canReadWorkspaces && <ToggleGroup
-                aria-label={t("workspaces.view")}
-                onValueChange={(value) => {
-                  const nextView = value[0];
-                  if (nextView === "grid" || nextView === "list") {
-                    setWorkspaceView(nextView);
-                    try {
-                      localStorage.setItem(WORKSPACES_VIEW_STORAGE_KEY, nextView);
-                    } catch {
-                      // Layout selection still works when storage is unavailable.
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={Sorting01Icon}
+                      strokeWidth={2}
+                    />
+                    <SelectValue>
+                      {(value: WorkspacesSort | null) =>
+                        value === "name"
+                          ? t("workspaces.sortByName")
+                          : t("workspaces.sortByActivity")
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    <SelectItem
+                      data-testid="workspaces-sort-activity"
+                      value="activity"
+                    >
+                      {t("workspaces.sortByActivity")}
+                    </SelectItem>
+                    <SelectItem data-testid="workspaces-sort-name" value="name">
+                      {t("workspaces.sortByName")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              {canReadWorkspaces && (
+                <ToggleGroup
+                  aria-label={t("workspaces.view")}
+                  onValueChange={(value) => {
+                    const nextView = value[0];
+                    if (nextView === "grid" || nextView === "list") {
+                      setWorkspaceView(nextView);
+                      try {
+                        localStorage.setItem(
+                          WORKSPACES_VIEW_STORAGE_KEY,
+                          nextView
+                        );
+                      } catch {
+                        // Layout selection still works when storage is unavailable.
+                      }
                     }
-                  }
-                }}
-                spacing={0}
-                value={[workspaceView]}
-                variant="outline"
-              >
-                <ToggleGroupItem
-                  aria-label={t("workspaces.gridView")}
-                  data-testid="workspaces-view-grid"
-                  title={t("workspaces.gridView")}
-                  value="grid"
+                  }}
+                  spacing={0}
+                  value={[workspaceView]}
+                  variant="outline"
                 >
-                  <HugeiconsIcon
-                    aria-hidden="true"
-                    icon={GridViewIcon}
-                    strokeWidth={2}
-                  />
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  aria-label={t("workspaces.listView")}
-                  data-testid="workspaces-view-list"
-                  title={t("workspaces.listView")}
-                  value="list"
-                >
-                  <HugeiconsIcon
-                    aria-hidden="true"
-                    icon={ListViewIcon}
-                    strokeWidth={2}
-                  />
-                </ToggleGroupItem>
-              </ToggleGroup>}
-              {canCreateWorkspace && <CreateWorkspaceLauncher
-                align="end"
-                onCreateEmpty={openCreateWorkspaceDialog}
-                onImportObsidian={openImportWorkspaceDialog}
-                trigger={
-                  <Button
-                    aria-label={t("common.create")}
-                    data-testid="workspaces-create-launcher-header"
+                  <ToggleGroupItem
+                    aria-label={t("workspaces.gridView")}
+                    data-testid="workspaces-view-grid"
+                    title={t("workspaces.gridView")}
+                    value="grid"
                   >
-                    <HugeiconsIcon aria-hidden="true" icon={FolderAddIcon} />
-                    <span className="hidden sm:inline">{t("common.create")}</span>
-                  </Button>
-                }
-              />}
-            </div>
-            {canReadWorkspaces && <WorkspacesList
-              createWorkspaceAction={
-                canCreateWorkspace ? <CreateWorkspaceLauncher
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={GridViewIcon}
+                      strokeWidth={2}
+                    />
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    aria-label={t("workspaces.listView")}
+                    data-testid="workspaces-view-list"
+                    title={t("workspaces.listView")}
+                    value="list"
+                  >
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={ListViewIcon}
+                      strokeWidth={2}
+                    />
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              )}
+              {canCreateWorkspace && (
+                <CreateWorkspaceLauncher
+                  align="end"
                   onCreateEmpty={openCreateWorkspaceDialog}
                   onImportObsidian={openImportWorkspaceDialog}
                   trigger={
-                    <Button data-testid="workspaces-create-launcher-empty">
+                    <Button
+                      aria-label={t("common.create")}
+                      data-testid="workspaces-create-launcher-header"
+                    >
                       <HugeiconsIcon aria-hidden="true" icon={FolderAddIcon} />
-                      {t("common.create")}
+                      <span className="hidden sm:inline">
+                        {t("common.create")}
+                      </span>
                     </Button>
                   }
-                /> : undefined
-              }
-              onWorkspaceIntent={handleWorkspaceIntent}
-              organizationId={activeOrg?.id}
-              sortBy={workspaceSort}
-              view={workspaceView}
-              organizationSlug={activeOrg?.slug}
-            />}
+                />
+              )}
+            </div>
+            {canReadWorkspaces && (
+              <WorkspacesList
+                createWorkspaceAction={
+                  canCreateWorkspace ? (
+                    <CreateWorkspaceLauncher
+                      onCreateEmpty={openCreateWorkspaceDialog}
+                      onImportObsidian={openImportWorkspaceDialog}
+                      trigger={
+                        <Button data-testid="workspaces-create-launcher-empty">
+                          <HugeiconsIcon
+                            aria-hidden="true"
+                            icon={FolderAddIcon}
+                          />
+                          {t("common.create")}
+                        </Button>
+                      }
+                    />
+                  ) : undefined
+                }
+                onWorkspaceIntent={handleWorkspaceIntent}
+                organizationId={activeOrg?.id}
+                sortBy={workspaceSort}
+                view={workspaceView}
+                organizationSlug={activeOrg?.slug}
+              />
+            )}
           </main>
         </div>
         <Suspense fallback={null}>
-          {activeOrg && dialogOpen && (
+          {!!(activeOrg && dialogOpen) && (
             <CreateWorkspaceDialog
               canCreateCloudWorkspaces={canCreateCloudWorkspaces}
               onOpenChange={setDialogOpen}
@@ -384,7 +412,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
               orgId={activeOrg.id}
             />
           )}
-          {activeOrg && importDialogOpen && (
+          {!!(activeOrg && importDialogOpen) && (
             <ImportObsidianWorkspaceDialog
               canCreateCloudWorkspaces={canCreateCloudWorkspaces}
               onOpenChange={setImportDialogOpen}

@@ -29,13 +29,18 @@ describe("organization storage policy", () => {
         maxFile: cap,
       };
       expect(assertStorageCapacity(input)).toBe(cap);
-      expect(() => assertStorageCapacity({ ...input, size: cap + 1 })).toThrow();
-      expect(() => assertStorageCapacity({ ...input, committed: pool - cap + 1 })).toThrow();
+      expect(() =>
+        assertStorageCapacity({ ...input, size: cap + 1 })
+      ).toThrow();
+      expect(() =>
+        assertStorageCapacity({ ...input, committed: pool - cap + 1 })
+      ).toThrow();
     });
   }
   it("only applies contract storage overrides to Enterprise", () => {
     expect(
-      resolveEntitlements(PLAN.enterprise, 2_000_000_000_000).limits.max_storage_bytes,
+      resolveEntitlements(PLAN.enterprise, 2_000_000_000_000).limits
+        .max_storage_bytes
     ).toBe(2_000_000_000_000);
     for (const [plan, pool] of [
       [PLAN.free, 250_000_000],
@@ -44,7 +49,12 @@ describe("organization storage policy", () => {
     ] as const) {
       expect(resolveEntitlements(plan, 1).limits.max_storage_bytes).toBe(pool);
     }
-    for (const invalid of [-1, 1.5, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+    for (const invalid of [
+      -1,
+      1.5,
+      Number.POSITIVE_INFINITY,
+      Number.MAX_SAFE_INTEGER + 1,
+    ]) {
       expect(() => resolveEntitlements(PLAN.enterprise, invalid)).toThrow();
     }
   });
@@ -58,8 +68,12 @@ describe("organization storage policy", () => {
       maxFile: 100,
     };
     expect(assertStorageCapacity(input)).toBe(0);
-    expect(() => assertStorageCapacity({ ...input, size: 101, maxFile: 200 })).toThrow();
-    expect(assertStorageCapacity({ ...input, size: 100, credit: 90, committed: 90 })).toBe(10);
+    expect(() =>
+      assertStorageCapacity({ ...input, size: 101, maxFile: 200 })
+    ).toThrow();
+    expect(
+      assertStorageCapacity({ ...input, size: 100, credit: 90, committed: 90 })
+    ).toBe(10);
   });
   it("verifies provider part sizes, count, order and ETags", () => {
     const size = UPLOAD_PART_BYTES + 3;
@@ -71,9 +85,15 @@ describe("organization storage policy", () => {
     expect(() => verifyUploadParts(size, valid.slice(0, 1))).toThrow();
     expect(() => verifyUploadParts(size, [...valid, valid[0]!])).toThrow();
     expect(() => verifyUploadParts(size, [...valid].reverse())).toThrow();
-    expect(() => verifyUploadParts(size, [{ ...valid[0]!, Size: 1 }, valid[1]!])).toThrow();
-    expect(() => verifyUploadParts(size, [{ ...valid[0]!, ETag: undefined }, valid[1]!])).toThrow();
-    expect(partLength(5_000_000_000, 299)).toBe(5_000_000_000 - 298 * UPLOAD_PART_BYTES);
+    expect(() =>
+      verifyUploadParts(size, [{ ...valid[0]!, Size: 1 }, valid[1]!])
+    ).toThrow();
+    expect(() =>
+      verifyUploadParts(size, [{ ...valid[0]!, ETag: undefined }, valid[1]!])
+    ).toThrow();
+    expect(partLength(5_000_000_000, 299)).toBe(
+      5_000_000_000 - 298 * UPLOAD_PART_BYTES
+    );
     expect(() => partLength(size, 3)).toThrow();
   });
   it("uses decimal unit formatting and accepts existing file types", () => {
@@ -93,7 +113,7 @@ describe("organization storage policy", () => {
           workspaceId: "ws_1",
           sizeBytes: 0,
           mediaType,
-        }).success,
+        }).success
       ).toBe(true);
     }
   });

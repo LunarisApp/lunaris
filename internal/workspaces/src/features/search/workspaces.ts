@@ -14,8 +14,12 @@ export interface SearchableWorkspace {
 
 function getMatchRank(value: string, query: string): number {
   const normalized = normalizeSearchQuery(value);
-  if (normalized === query) return 0;
-  if (normalized.startsWith(query)) return 1;
+  if (normalized === query) {
+    return 0;
+  }
+  if (normalized.startsWith(query)) {
+    return 1;
+  }
   return 2;
 }
 
@@ -28,13 +32,13 @@ export function searchWorkspaces(
     excludeCurrentWorkspace?: boolean;
     includeAllWhenEmpty?: boolean;
     limit?: number;
-  } = {},
+  } = {}
 ): WorkspaceSearchResult[] {
   const parsedQuery = parseSearchQuery(query);
   const workspaceTerms = getSearchTerms(parsedQuery, "workspace");
   const unscopedTerms = getSearchTerms(parsedQuery, null);
   const hasOtherFilters = parsedQuery.terms.some(
-    (term) => term.field !== null && term.field !== "workspace",
+    (term) => term.field !== null && term.field !== "workspace"
   );
   if (
     hasOtherFilters ||
@@ -44,19 +48,27 @@ export function searchWorkspaces(
   }
 
   const terms = workspaceTerms.length > 0 ? workspaceTerms : unscopedTerms;
-  if (terms.length === 0 && !options.includeAllWhenEmpty) return [];
+  if (terms.length === 0 && !options.includeAllWhenEmpty) {
+    return [];
+  }
   const preserveSourceOrder = terms.length === 0;
   const rankQuery = normalizeSearchQuery(terms[0]?.value ?? "");
 
   const results = workspaces
     .flatMap((workspace) => {
-      if (!workspace.slug) return [];
+      if (!workspace.slug) {
+        return [];
+      }
 
       const label = workspace.name || untitledLabel;
-      if (!matchesSearchTerms([label, workspace.slug], terms)) return [];
+      if (!matchesSearchTerms([label, workspace.slug], terms)) {
+        return [];
+      }
 
       const matchesName = normalizeSearchQuery(label).includes(rankQuery);
-      const matchesSlug = normalizeSearchQuery(workspace.slug).includes(rankQuery);
+      const matchesSlug = normalizeSearchQuery(workspace.slug).includes(
+        rankQuery
+      );
 
       return {
         result: {
@@ -69,7 +81,7 @@ export function searchWorkspaces(
         },
         rank: Math.min(
           matchesName ? getMatchRank(label, rankQuery) : 3,
-          matchesSlug ? getMatchRank(workspace.slug, rankQuery) : 3,
+          matchesSlug ? getMatchRank(workspace.slug, rankQuery) : 3
         ),
       };
     })
@@ -85,7 +97,7 @@ export function searchWorkspaces(
     )
     .map(({ result }) => result)
     .filter((result) =>
-      options.excludeCurrentWorkspace ? !result.isCurrent : true,
+      options.excludeCurrentWorkspace ? !result.isCurrent : true
     );
 
   return options.limit === undefined

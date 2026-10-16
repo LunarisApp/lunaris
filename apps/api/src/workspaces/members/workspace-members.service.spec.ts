@@ -1,9 +1,6 @@
 import { describe, expect, it, mock } from "bun:test";
 import { NotFoundException } from "@nestjs/common";
-import {
-  WORKSPACE_ROLE,
-  WORKSPACE_VISIBILITY,
-} from "@repo/auth/sync-access";
+import { WORKSPACE_ROLE, WORKSPACE_VISIBILITY } from "@repo/auth/sync-access";
 import { WorkspaceMembersService } from "./workspace-members.service";
 
 const now = new Date("2026-07-30T12:00:00.000Z");
@@ -35,7 +32,7 @@ function createDatabase(selectRows: unknown[][]) {
   };
   const transaction = mock(
     async (operation: (database: typeof tx) => Promise<unknown>) =>
-      operation(tx),
+      operation(tx)
   );
 
   return {
@@ -53,7 +50,7 @@ describe("WorkspaceMembersService", () => {
     const service = new WorkspaceMembersService(database);
 
     await expect(
-      service.list("workspace_1", "org_1", "viewer_1"),
+      service.list("workspace_1", "org_1", "viewer_1")
     ).rejects.toBeInstanceOf(NotFoundException);
     expect(select).toHaveBeenCalledTimes(1);
   });
@@ -85,7 +82,7 @@ describe("WorkspaceMembersService", () => {
         workspaceId: "workspace_1",
         role: WORKSPACE_ROLE.viewer,
         userId: "user_2",
-      }),
+      })
     ).resolves.toMatchObject({
       id: "pmem_1",
       role: WORKSPACE_ROLE.viewer,

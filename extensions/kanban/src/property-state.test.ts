@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  applyUpdate,
-  Doc,
-  encodeStateAsUpdate,
-  Map as YMap,
-} from "yjs";
+import { applyUpdate, Doc, encodeStateAsUpdate, Map as YMap } from "yjs";
 import { DEFAULT_STATUS_PROPERTY } from "./constants";
 import {
   appendPropertyDefinition,
@@ -72,9 +67,7 @@ describe("Kanban property initialization", () => {
     expect(ordered[2]?.toJSON()).toEqual({
       id: "status",
       name: "status",
-      options: JSON.stringify([
-        { color: "#3b82f6", id: "todo", name: "Todo" },
-      ]),
+      options: JSON.stringify([{ color: "#3b82f6", id: "todo", name: "Todo" }]),
       order: "2",
       type: "select",
     });
@@ -101,11 +94,7 @@ describe("Kanban property initialization", () => {
     applyUpdate(second, encodeStateAsUpdate(first));
 
     first.transact(() =>
-      movePropertyDefinition(
-        first.getArray<YMap<string>>("properties"),
-        0,
-        1
-      )
+      movePropertyDefinition(first.getArray<YMap<string>>("properties"), 0, 1)
     );
     second
       .getArray<YMap<string>>("properties")

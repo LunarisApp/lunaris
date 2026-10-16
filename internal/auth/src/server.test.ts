@@ -45,8 +45,9 @@ describe("buildAuthServerOptions", () => {
       frontendUrl: "https://app.lunaris.app",
     });
 
-    expect(auth.options.plugins?.some((plugin) => plugin.id === "multi-session"))
-      .toBe(true);
+    expect(
+      auth.options.plugins?.some((plugin) => plugin.id === "multi-session")
+    ).toBe(true);
   });
 
   it("omits organization team endpoints without the enterprise opt-in", () => {
@@ -55,12 +56,12 @@ describe("buildAuthServerOptions", () => {
     });
 
     const organizationPlugin = auth.options.plugins?.find(
-      (plugin) => plugin.id === "organization",
+      (plugin) => plugin.id === "organization"
     );
 
     expect(organizationPlugin?.endpoints).not.toHaveProperty("createTeam");
     expect(organizationPlugin?.endpoints).not.toHaveProperty(
-      "listOrganizationTeams",
+      "listOrganizationTeams"
     );
     expect(organizationPlugin?.endpoints).not.toHaveProperty("addTeamMember");
   });
@@ -130,7 +131,7 @@ describe("buildAuthServerOptions", () => {
         name: "Ada",
         updatedAt: new Date(),
       },
-      null,
+      null
     );
 
     expect(send).not.toHaveBeenCalled();
@@ -156,7 +157,7 @@ describe("buildAuthServerOptions", () => {
         name: "Ada",
         updatedAt: new Date(),
       },
-      null,
+      null
     );
 
     expect(send).toHaveBeenCalledTimes(1);
@@ -182,7 +183,7 @@ describe("buildAuthServerOptions", () => {
         name: "Guest",
         updatedAt: new Date(),
       },
-      null,
+      null
     );
 
     expect(send).not.toHaveBeenCalled();
@@ -209,7 +210,7 @@ describe("buildAuthServerOptions", () => {
         image: null,
         name: "Ada",
         updatedAt: new Date(),
-      }),
+      })
     ).resolves.toBeUndefined();
   });
 });
@@ -232,12 +233,12 @@ describe("buildAgentApiKeyOptions", () => {
             organizationIds: ["organization-1"],
           },
         },
-      }),
+      })
     ).toEqual({ agent: ["workspace:write"] });
     expect(() =>
       options.permissions.defaultPermissions("user-1", {
         body: { metadata: { organizationIds: ["organization-1"] } },
-      }),
+      })
     ).toThrow("organization allowlist");
   });
 });
@@ -344,7 +345,9 @@ describe("adoptAnonymousOrganizationOnLink", () => {
   });
 
   it("does not create duplicate membership when the claimed user already belongs to the guest organization", async () => {
-    findMemberByOrgId.mockImplementation(() => Promise.resolve({ id: "member-1" }));
+    findMemberByOrgId.mockImplementation(() =>
+      Promise.resolve({ id: "member-1" })
+    );
 
     await adoptAnonymousOrganizationOnLink({
       adapter: {
@@ -399,9 +402,7 @@ describe("adoptAnonymousOrganizationOnLink", () => {
 
 describe("buildInvitationLink", () => {
   it("builds accept-invitation url with invitation id", () => {
-    expect(
-      buildInvitationLink("https://app.lunaris.app", "invite_123")
-    ).toBe(
+    expect(buildInvitationLink("https://app.lunaris.app", "invite_123")).toBe(
       "https://app.lunaris.app/auth/accept-invitation?invitationId=invite_123"
     );
   });
@@ -495,11 +496,11 @@ describe("assertCanAcceptOrganizationInvitation", () => {
 describe("syncOrganizationMemberSeats", () => {
   it("defers failed provider updates without failing committed membership changes", async () => {
     const syncMemberSeats = mock(() =>
-      Promise.reject(new Error("Polar unavailable")),
+      Promise.reject(new Error("Polar unavailable"))
     );
 
     await expect(
-      syncOrganizationMemberSeats({ syncMemberSeats }, "org-1"),
+      syncOrganizationMemberSeats({ syncMemberSeats }, "org-1")
     ).resolves.toBeUndefined();
     expect(syncMemberSeats).toHaveBeenCalledWith("org-1");
   });
@@ -507,57 +508,60 @@ describe("syncOrganizationMemberSeats", () => {
 
 describe("organization invariants", () => {
   it("keeps personal organization identity immutable", () => {
-    expect(() => assertOrganizationTypeImmutable({ isPersonal: false })).toThrow(
-      "Organization type cannot be changed.",
-    );
-    expect(() => assertOrganizationTypeImmutable({ name: "Renamed" })).not.toThrow();
+    expect(() =>
+      assertOrganizationTypeImmutable({ isPersonal: false })
+    ).toThrow("Organization type cannot be changed.");
+    expect(() =>
+      assertOrganizationTypeImmutable({ name: "Renamed" })
+    ).not.toThrow();
   });
 
   it("allows only the initial organization owner", () => {
     expect(() => assertCanAddOrganizationRole("owner", false)).not.toThrow();
     expect(() => assertCanAddOrganizationRole("owner,editor", false)).toThrow(
-      "Organization role must be owner, editor, or viewer.",
+      "Organization role must be owner, editor, or viewer."
     );
     expect(() => assertCanAddOrganizationRole("owner", true)).toThrow(
-      "Organization owner role cannot be added.",
+      "Organization owner role cannot be added."
     );
     expect(() => assertCanAddOrganizationRole("owner,editor", true)).toThrow(
-      "Organization role must be owner, editor, or viewer.",
+      "Organization role must be owner, editor, or viewer."
     );
     expect(() => assertCanAddOrganizationRole("editor", true)).not.toThrow();
     expect(() => assertCanAddOrganizationRole("viewer", true)).not.toThrow();
     expect(() => assertCanAddOrganizationRole("member", true)).toThrow(
-      "Organization role must be owner, editor, or viewer.",
+      "Organization role must be owner, editor, or viewer."
     );
   });
 
   it("rejects promoting another member to owner", () => {
     expect(() => assertCanUpdateOrganizationRole("viewer", "owner")).toThrow(
-      "Organization owner role cannot be added.",
-    );
-    expect(() => assertCanUpdateOrganizationRole("owner", "owner")).not.toThrow();
-    expect(() => assertCanUpdateOrganizationRole("owner", "editor")).toThrow(
-      "Organization owner role cannot be added.",
-    );
-    expect(() => assertCanUpdateOrganizationRole("owner", "owner,editor")).toThrow(
-      "Organization role must be owner, editor, or viewer.",
+      "Organization owner role cannot be added."
     );
     expect(() =>
-      assertCanUpdateOrganizationRole("editor", "viewer"),
+      assertCanUpdateOrganizationRole("owner", "owner")
+    ).not.toThrow();
+    expect(() => assertCanUpdateOrganizationRole("owner", "editor")).toThrow(
+      "Organization owner role cannot be added."
+    );
+    expect(() =>
+      assertCanUpdateOrganizationRole("owner", "owner,editor")
+    ).toThrow("Organization role must be owner, editor, or viewer.");
+    expect(() =>
+      assertCanUpdateOrganizationRole("editor", "viewer")
     ).not.toThrow();
     expect(() => assertCanUpdateOrganizationRole("viewer", "admin")).toThrow(
-      "Organization role must be owner, editor, or viewer.",
+      "Organization role must be owner, editor, or viewer."
     );
   });
 
   it("prevents removing the stable owner", () => {
     expect(() => assertCanRemoveOrganizationMember("owner")).toThrow(
-      "Organization owner cannot be removed.",
+      "Organization owner cannot be removed."
     );
     expect(() => assertCanRemoveOrganizationMember("viewer")).not.toThrow();
   });
 });
-
 
 describe("self-hosted cookie options", () => {
   it("uses host-only secure cookies on HTTPS", async () => {
@@ -569,36 +573,55 @@ describe("self-hosted cookie options", () => {
   });
   it("allows localhost HTTP cookies", async () => {
     const { buildSelfHostedCookieOptions } = await import("./server");
-    expect(buildSelfHostedCookieOptions("http://localhost:8080").useSecureCookies).toBe(false);
+    expect(
+      buildSelfHostedCookieOptions("http://localhost:8080").useSecureCookies
+    ).toBe(false);
   });
 });
 
-
 describe("signup policy", () => {
   const user = {
-    id: "new-user", name: "New user", email: "new@example.com",
-    emailVerified: false, createdAt: new Date(), updatedAt: new Date(),
+    id: "new-user",
+    name: "New user",
+    email: "new@example.com",
+    emailVerified: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
   it("blocks user creation even without request context or with verification disabled", async () => {
     const auth = createAuth({} as never, {
-      frontendUrl: "https://app.lunaris.app", signupsAllowed: false,
+      frontendUrl: "https://app.lunaris.app",
+      signupsAllowed: false,
       disableEmailVerification: true,
-      socialProviders: { google: { clientId: "client", clientSecret: "secret" } },
+      socialProviders: {
+        google: { clientId: "client", clientSecret: "secret" },
+      },
     });
     for (const isAnonymous of [false, true]) {
-      await expect(auth.options.databaseHooks!.user!.create!.before!(
-        { ...user, isAnonymous }, null,
-      )).rejects.toMatchObject({ status: "FORBIDDEN", body: { code: "SIGNUP_DISABLED" } });
+      await expect(
+        auth.options.databaseHooks!.user!.create!.before!(
+          { ...user, isAnonymous },
+          null
+        )
+      ).rejects.toMatchObject({
+        status: "FORBIDDEN",
+        body: { code: "SIGNUP_DISABLED" },
+      });
     }
     expect(auth.options.emailAndPassword?.disableSignUp).toBe(true);
-    expect(auth.options.socialProviders?.google).toMatchObject({ disableSignUp: true });
+    expect(auth.options.socialProviders?.google).toMatchObject({
+      disableSignUp: true,
+    });
   });
   it("allows creation by default and when explicitly enabled", async () => {
     for (const signupsAllowed of [undefined, true]) {
       const auth = createAuth({} as never, {
-        frontendUrl: "https://app.lunaris.app", signupsAllowed,
+        frontendUrl: "https://app.lunaris.app",
+        signupsAllowed,
       });
-      await expect(auth.options.databaseHooks!.user!.create!.before!(user, null)).resolves.toBeUndefined();
+      await expect(
+        auth.options.databaseHooks!.user!.create!.before!(user, null)
+      ).resolves.toBeUndefined();
       expect(auth.options.emailAndPassword?.disableSignUp).toBe(false);
     }
   });
@@ -606,56 +629,110 @@ describe("signup policy", () => {
 
 describe("password recovery policy", () => {
   it("revokes sessions after resetting passwords", () => {
-    const auth = createAuth({} as never, { frontendUrl: "http://localhost:8080", backendUrl: "http://localhost:8080", database: memoryAdapter({ oauthResource: [], user: [], account: [], session: [], verification: [] }) });
-    expect(auth.options.emailAndPassword?.revokeSessionsOnPasswordReset).toBe(true);
+    const auth = createAuth({} as never, {
+      frontendUrl: "http://localhost:8080",
+      backendUrl: "http://localhost:8080",
+      database: memoryAdapter({
+        oauthResource: [],
+        user: [],
+        account: [],
+        session: [],
+        verification: [],
+      }),
+    });
+    expect(auth.options.emailAndPassword?.revokeSessionsOnPasswordReset).toBe(
+      true
+    );
   });
   it("disables cookie caching on self-hosted servers", () => {
     const previous = process.env.DEPLOYMENT_MODE;
     try {
       process.env.DEPLOYMENT_MODE = "self-hosted";
-      const auth = createAuth({} as never, { frontendUrl: "http://localhost:8080", backendUrl: "http://localhost:8080", database: memoryAdapter({ oauthResource: [], user: [], account: [], session: [], verification: [] }) });
+      const auth = createAuth({} as never, {
+        frontendUrl: "http://localhost:8080",
+        backendUrl: "http://localhost:8080",
+        database: memoryAdapter({
+          oauthResource: [],
+          user: [],
+          account: [],
+          session: [],
+          verification: [],
+        }),
+      });
       expect(auth.options.session?.cookieCache?.enabled).toBe(false);
     } finally {
-      if (previous === undefined) delete process.env.DEPLOYMENT_MODE;
-      else process.env.DEPLOYMENT_MODE = previous;
+      if (previous === undefined) {
+        delete process.env.DEPLOYMENT_MODE;
+      } else {
+        process.env.DEPLOYMENT_MODE = previous;
+      }
     }
   });
   it("surfaces mail provider rejection", async () => {
     const auth = createAuth({} as never, {
       frontendUrl: "http://localhost:8080",
-      resend: { emails: { send: async () => ({ error: { message: "rejected" } }) } } as never,
+      resend: {
+        emails: { send: async () => ({ error: { message: "rejected" } }) },
+      } as never,
     });
-    await expect(auth.options.emailAndPassword!.sendResetPassword!({
-      user: { email: "person@example.com", name: "Person" } as never,
-      url: "https://example.com/reset", token: "unused",
-    })).rejects.toThrow("Email delivery failed");
+    await expect(
+      auth.options.emailAndPassword!.sendResetPassword!({
+        user: { email: "person@example.com", name: "Person" } as never,
+        url: "https://example.com/reset",
+        token: "unused",
+      })
+    ).rejects.toThrow("Email delivery failed");
   });
 });
-
 
 describe("self-hosted mail", () => {
   it("uses the configured sender for password recovery and skips founder welcome emails", async () => {
     const previous = process.env.DEPLOYMENT_MODE;
     process.env.DEPLOYMENT_MODE = "self-hosted";
     try {
-      const send = mock((_email: unknown) => Promise.resolve({ data: { id: "email-1" }, error: null }));
+      const send = mock((_email: unknown) =>
+        Promise.resolve({ data: { id: "email-1" }, error: null })
+      );
       const auth = createAuth({} as never, {
-        database: memoryAdapter({ oauthResource: [], user: [], account: [], session: [], verification: [] }),
+        database: memoryAdapter({
+          oauthResource: [],
+          user: [],
+          account: [],
+          session: [],
+          verification: [],
+        }),
         frontendUrl: "https://notes.example.com",
         backendUrl: "https://notes.example.com",
         emailFrom: "Notes <notes@example.com>",
         emailReplyTo: "admin@example.com",
         resend: { emails: { send } } as never,
       });
-      const user = { id: "user-1", name: "Ada", email: "ada@example.com", emailVerified: true, createdAt: new Date(), updatedAt: new Date() };
-      await auth.options.emailAndPassword?.sendResetPassword?.({ user, url: "https://notes.example.com/reset", token: "test-token" });
+      const user = {
+        id: "user-1",
+        name: "Ada",
+        email: "ada@example.com",
+        emailVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      await auth.options.emailAndPassword?.sendResetPassword?.({
+        user,
+        url: "https://notes.example.com/reset",
+        token: "test-token",
+      });
       expect(send).toHaveBeenCalledTimes(1);
-      expect(send.mock.calls[0]![0]).toMatchObject({ from: "Notes <notes@example.com>", replyTo: "admin@example.com" });
+      expect(send.mock.calls[0]![0]).toMatchObject({
+        from: "Notes <notes@example.com>",
+        replyTo: "admin@example.com",
+      });
       await auth.options.emailVerification?.afterEmailVerification?.(user);
       expect(send).toHaveBeenCalledTimes(1);
     } finally {
-      if (previous === undefined) delete process.env.DEPLOYMENT_MODE;
-      else process.env.DEPLOYMENT_MODE = previous;
+      if (previous === undefined) {
+        delete process.env.DEPLOYMENT_MODE;
+      } else {
+        process.env.DEPLOYMENT_MODE = previous;
+      }
     }
   });
 });

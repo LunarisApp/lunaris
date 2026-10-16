@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Doc, Map as YMap } from "yjs";
+import { Doc } from "yjs";
 import { useYArray, useYMapField, useYMapJson } from "./react-hooks";
 
 describe("useYMapField", () => {
@@ -8,7 +8,9 @@ describe("useYMapField", () => {
     const doc = new Doc();
     const yMap = doc.getMap<string>("test");
     if (initial) {
-      for (const [k, v] of Object.entries(initial)) yMap.set(k, v);
+      for (const [k, v] of Object.entries(initial)) {
+        yMap.set(k, v);
+      }
     }
     return { doc, yMap };
   }
@@ -48,7 +50,9 @@ describe("useYMapJson", () => {
     const doc = new Doc();
     const yMap = doc.getMap<string>("test");
     if (initial) {
-      for (const [k, v] of Object.entries(initial)) yMap.set(k, v);
+      for (const [k, v] of Object.entries(initial)) {
+        yMap.set(k, v);
+      }
     }
     return { doc, yMap };
   }

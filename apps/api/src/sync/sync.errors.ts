@@ -15,7 +15,7 @@ export class NoActiveOrganizationError extends BadRequestError {
 export type LocalOnlySyncAccessReason = "anonymous";
 
 export class LocalOnlySyncAccessError extends AuthorizationError {
-  constructor(reason: LocalOnlySyncAccessReason) {
+  constructor(_reason: LocalOnlySyncAccessReason) {
     super({
       message: "Cloud sync is disabled for this session",
       why: "Anonymous sessions cannot use cloud sync",

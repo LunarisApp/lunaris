@@ -21,7 +21,7 @@ vi.mock("react-i18next", () => ({
 
 function renderPlaceholder(
   enabledExtensionIds: readonly string[],
-  availability: "available" | "load-failure" = "available",
+  availability: "available" | "load-failure" = "available"
 ) {
   return render(
     <ExtensionRegistryProvider
@@ -40,7 +40,7 @@ function renderPlaceholder(
       }}
     >
       <ExtensionPlaceholder extensionId="test.extension" />
-    </ExtensionRegistryProvider>,
+    </ExtensionRegistryProvider>
   );
 }
 
@@ -51,7 +51,7 @@ describe("ExtensionPlaceholder", () => {
     expect(
       screen.getByRole("status", {
         name: "extensions.loadingExtension:Test Extension",
-      }),
+      })
     ).toBeTruthy();
     expect(screen.queryByRole("button")).toBeNull();
   });
@@ -60,20 +60,18 @@ describe("ExtensionPlaceholder", () => {
     renderPlaceholder([]);
 
     expect(
-      screen.getByRole("button", { name: "extensions.enableExtension" }),
+      screen.getByRole("button", { name: "extensions.enableExtension" })
     ).toBeTruthy();
     expect(screen.queryByRole("status")).toBeNull();
   });
 
   it("shows an error icon instead of a spinner after loading fails", () => {
-    const { container } = renderPlaceholder(
-      ["test.extension"],
-      "load-failure",
-    );
+    const { container } = renderPlaceholder(["test.extension"], "load-failure");
 
     expect(screen.queryByRole("status")).toBeNull();
-    expect(screen.getByText("extensions.placeholder.load-failure:Test Extension"))
-      .toBeTruthy();
+    expect(
+      screen.getByText("extensions.placeholder.load-failure:Test Extension")
+    ).toBeTruthy();
     expect(container.querySelector(".text-destructive")).toBeTruthy();
   });
 });

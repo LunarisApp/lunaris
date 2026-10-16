@@ -105,19 +105,27 @@ export function resolveWorkspaceView({
   viewId,
   views = [],
 }: ResolveWorkspaceViewInput): ViewResolution {
-  if (!viewId) return { kind: "none" };
-  if (isLegacyAgentWorkView(viewId) && !subviewPath && !subviewId) return { kind: "redirect", to: getWorkspacePath(organizationSlug, workspaceSlug, AGENT_WORK_TOOL_ID) };
+  if (!viewId) {
+    return { kind: "none" };
+  }
+  if (isLegacyAgentWorkView(viewId) && !subviewPath && !subviewId) {
+    return {
+      kind: "redirect",
+      to: getWorkspacePath(organizationSlug, workspaceSlug, AGENT_WORK_TOOL_ID),
+    };
+  }
 
   if (subviewPath || subviewId) {
     const item = resourcesMap.get(viewId);
     if (
-      !subviewPath ||
-      !subviewId ||
-      !item ||
+      !(subviewPath && subviewId && item) ||
       isFolder(item) ||
       !item.resource_type_id
     ) {
-      return { kind: "redirect", to: getWorkspacePath(organizationSlug, workspaceSlug) };
+      return {
+        kind: "redirect",
+        to: getWorkspacePath(organizationSlug, workspaceSlug),
+      };
     }
 
     const route = getPluginSubviewRoute(item.resource_type_id, subviewPath);
@@ -151,14 +159,20 @@ export function resolveWorkspaceView({
   ) {
     const item = resourcesMap.get(viewId);
     if (!item) {
-      return { kind: "redirect", to: getWorkspacePath(organizationSlug, workspaceSlug) };
+      return {
+        kind: "redirect",
+        to: getWorkspacePath(organizationSlug, workspaceSlug),
+      };
     }
     if (isFolder(item)) {
       return { kind: "folder", resourceId: item.id };
     }
     if (!item.resource_type_id) {
       // Resource has neither type nor folder state — redirect to workspace root.
-      return { kind: "redirect", to: getWorkspacePath(organizationSlug, workspaceSlug) };
+      return {
+        kind: "redirect",
+        to: getWorkspacePath(organizationSlug, workspaceSlug),
+      };
     }
     return {
       kind: "resource",
@@ -193,5 +207,8 @@ export function resolveWorkspaceView({
     };
   }
 
-  return { kind: "redirect", to: getWorkspacePath(organizationSlug, workspaceSlug) };
+  return {
+    kind: "redirect",
+    to: getWorkspacePath(organizationSlug, workspaceSlug),
+  };
 }

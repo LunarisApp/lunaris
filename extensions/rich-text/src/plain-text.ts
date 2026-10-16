@@ -6,7 +6,9 @@ import { richTextHeadlessSchema } from "./entity-reference-schema";
 export function richTextDocToPlainText(doc: Doc): string {
   const editor = BlockNoteEditor.create({ schema: richTextHeadlessSchema });
   try {
-    return blockListToPlainText(yXmlFragmentToBlocks(editor, doc.getXmlFragment()));
+    return blockListToPlainText(
+      yXmlFragmentToBlocks(editor, doc.getXmlFragment())
+    );
   } finally {
     editor._tiptapEditor?.destroy();
   }
@@ -24,7 +26,9 @@ export function blockListToTextLines(blocks: unknown[]): string[] {
       continue;
     }
 
-    const line = normalizeLine(extractInlineText((block as { content?: unknown }).content));
+    const line = normalizeLine(
+      extractInlineText((block as { content?: unknown }).content)
+    );
     if (line) {
       lines.push(line);
     }

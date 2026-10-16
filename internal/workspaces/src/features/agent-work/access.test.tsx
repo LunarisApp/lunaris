@@ -30,21 +30,29 @@ it.each([
   { allowed: false, pending: false },
   { allowed: false, pending: true },
   { allowed: true, pending: true },
-])("hides launcher and blocks panel when access is $allowed, pending $pending", (state) => {
-  Object.assign(access, state);
-  const { container } = render(
-    <Suspense fallback="Loading">
-      <AgentWorkLauncher />
-      <AgentWorkPanel />
-    </Suspense>,
-  );
-  expect(container.textContent).toBe("");
-  expect(screen.queryByRole("button")).toBeNull();
-});
+])(
+  "hides launcher and blocks panel when access is $allowed, pending $pending",
+  (state) => {
+    Object.assign(access, state);
+    const { container } = render(
+      <Suspense fallback="Loading">
+        <AgentWorkLauncher />
+        <AgentWorkPanel />
+      </Suspense>
+    );
+    expect(container.textContent).toBe("");
+    expect(screen.queryByRole("button")).toBeNull();
+  }
+);
 
 it("opens and renders the mini tool only when enabled", async () => {
   Object.assign(access, { allowed: true, pending: false });
-  render(<Suspense fallback="Loading"><AgentWorkLauncher /><AgentWorkPanel /></Suspense>);
+  render(
+    <Suspense fallback="Loading">
+      <AgentWorkLauncher />
+      <AgentWorkPanel />
+    </Suspense>
+  );
   fireEvent.click(await screen.findByRole("button", { name: "Agent Work" }));
   expect(openTool).toHaveBeenCalledWith({
     toolId: "agent-work",

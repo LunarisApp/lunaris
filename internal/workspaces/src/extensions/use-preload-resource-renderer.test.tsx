@@ -41,8 +41,9 @@ describe("renderer warming", () => {
     );
   });
   afterEach(() => {
-    for (const { id, token } of owners.splice(0))
+    for (const { id, token } of owners.splice(0)) {
       releaseResourceViewReady(id, token);
+    }
     _resetResourceOpenPerformanceForTests();
     vi.useRealTimers();
     vi.unstubAllGlobals();
@@ -112,7 +113,7 @@ describe("renderer warming", () => {
       openKind: "new",
     });
     renderHook(() => usePreloadRichTextRenderer("slow", true));
-    vi.advanceTimersByTime(5_001);
+    vi.advanceTimersByTime(5001);
     expect(state.preload).not.toHaveBeenCalled();
     ready("slow");
     vi.runOnlyPendingTimers();

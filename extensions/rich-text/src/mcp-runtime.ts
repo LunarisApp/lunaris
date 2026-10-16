@@ -22,8 +22,7 @@ export const { getRichTextDocument, replaceRichTextDocument } =
 function createAdapter(): RichTextRuntimeAdapter {
   const editor = BlockNoteEditor.create({ schema: richTextHeadlessSchema });
   return {
-    blocksToMarkdown: (blocks) =>
-      editor.blocksToMarkdownLossy(blocks as never),
+    blocksToMarkdown: (blocks) => editor.blocksToMarkdownLossy(blocks as never),
     blocksToYXmlFragment: (blocks, fragment) =>
       blocksToYXmlFragment(editor, blocks as never, fragment),
     destroy: () => editor._tiptapEditor?.destroy(),
@@ -32,7 +31,7 @@ function createAdapter(): RichTextRuntimeAdapter {
       try {
         return yXmlFragmentToBlocks(
           editor,
-          doc.getXmlFragment(),
+          doc.getXmlFragment()
         ) as RichTextBlockData[];
       } finally {
         doc.destroy();

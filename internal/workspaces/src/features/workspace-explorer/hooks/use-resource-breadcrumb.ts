@@ -14,7 +14,9 @@ export function useResourceBreadcrumb(resourceId: string): BreadcrumbItem[] {
   const resourcesMap = useWorkspaceResourcesMap();
 
   return useMemo(() => {
-    if (!resourceId || !resourcesMap.has(resourceId)) return [];
+    if (!(resourceId && resourcesMap.has(resourceId))) {
+      return [];
+    }
     const path = getAncestorPath(resourcesMap, resourceId);
     return path.map((entry, index) => ({
       id: entry.id,

@@ -44,8 +44,7 @@ class SecuritySessionsError extends Error {
 
 export function isSessionNotFreshError(error: unknown): boolean {
   return (
-    error instanceof SecuritySessionsError &&
-    error.code === "SESSION_NOT_FRESH"
+    error instanceof SecuritySessionsError && error.code === "SESSION_NOT_FRESH"
   );
 }
 
@@ -68,7 +67,7 @@ export function securityAccountsQueryOptions(auth: AuthClient) {
 
         if (result.error) {
           throw new Error(
-            result.error.message ?? "Failed to load sign-in methods",
+            result.error.message ?? "Failed to load sign-in methods"
           );
         }
 
@@ -97,7 +96,7 @@ export function securitySessionsQueryOptions(auth: AuthClient) {
             result.error.message ?? "Failed to load sessions",
             "code" in result.error && typeof result.error.code === "string"
               ? result.error.code
-              : undefined,
+              : undefined
           );
         }
         return (result.data ?? []) as SessionInfo[];
@@ -110,8 +109,11 @@ export function securitySessionsQueryOptions(auth: AuthClient) {
             : "session list failed",
           error: parseError(error),
         };
-        if (requiresReauthentication) log.info(event);
-        else log.error(event);
+        if (requiresReauthentication) {
+          log.info(event);
+        } else {
+          log.error(event);
+        }
         throw error;
       }
     },

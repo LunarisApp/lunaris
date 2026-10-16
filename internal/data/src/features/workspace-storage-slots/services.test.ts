@@ -1,4 +1,6 @@
-vi.mock("../activity/services", () => ({ recordActivity: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("../activity/services", () => ({
+  recordActivity: vi.fn().mockResolvedValue(undefined),
+}));
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 
@@ -42,11 +44,20 @@ describe("createStorageValueService", () => {
   it("does not write or advance activity for an unchanged value", async () => {
     const db = {
       execute: vi.fn(),
-      getOptional: vi.fn()
-        .mockResolvedValueOnce({ id: "storage_1", kind: "key-value", workspace_id: "workspace_1" })
+      getOptional: vi
+        .fn()
+        .mockResolvedValueOnce({
+          id: "storage_1",
+          kind: "key-value",
+          workspace_id: "workspace_1",
+        })
         .mockResolvedValueOnce({ id: "value_1", value: '"dark"' }),
     };
-    await createStorageValueService(db as never, "workspace_1", "storage_1").set("theme", "dark");
+    await createStorageValueService(
+      db as never,
+      "workspace_1",
+      "storage_1"
+    ).set("theme", "dark");
     expect(db.execute).not.toHaveBeenCalled();
   });
 
@@ -63,8 +74,8 @@ describe("createStorageValueService", () => {
     await expect(
       createStorageValueService(db as never, "workspace_1", "storage_1").set(
         "theme",
-        "dark",
-      ),
+        "dark"
+      )
     ).rejects.toThrow("Invalid key-value storage handle");
     expect(db.execute).not.toHaveBeenCalled();
   });
@@ -85,12 +96,12 @@ describe("createStorageValueService", () => {
     await createStorageValueService(
       db as never,
       "workspace_1",
-      "storage_1",
+      "storage_1"
     ).set("theme", "dark");
 
     expect(db.execute).toHaveBeenCalledWith(
       expect.stringContaining("INSERT INTO workspace_storage_values"),
-      expect.arrayContaining(["storage_1", "workspace_1", "theme", '"dark"']),
+      expect.arrayContaining(["storage_1", "workspace_1", "theme", '"dark"'])
     );
   });
 
@@ -110,12 +121,12 @@ describe("createStorageValueService", () => {
     await createStorageValueService(
       db as never,
       "workspace_1",
-      "storage_1",
+      "storage_1"
     ).set("theme", { mode: "dark" });
 
     expect(db.execute).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE workspace_storage_values"),
-      [JSON.stringify({ mode: "dark" }), expect.any(String), "value_1"],
+      [JSON.stringify({ mode: "dark" }), expect.any(String), "value_1"]
     );
   });
 
@@ -132,7 +143,7 @@ describe("createStorageValueService", () => {
     await createStorageValueService(
       db as never,
       "workspace_1",
-      "storage_1",
+      "storage_1"
     ).remove("theme");
 
     expect(db.execute).toHaveBeenCalledTimes(2);
@@ -140,7 +151,7 @@ describe("createStorageValueService", () => {
       expect.arrayContaining([
         expect.stringContaining("DELETE FROM workspace_storage_values"),
         expect.stringContaining("DELETE FROM local_workspace_storage_values"),
-      ]),
+      ])
     );
   });
 });
@@ -164,7 +175,7 @@ describe("workspace storage slots", () => {
         name: "preferences",
         pluginId: "acme.notes",
         workspaceId: "workspace_1",
-      }),
+      })
     ).resolves.toBe(existing);
     expect(db.execute).not.toHaveBeenCalled();
     expect(resolveWorkspaceVisibilityMock).not.toHaveBeenCalled();
@@ -175,7 +186,10 @@ describe("workspace storage slots", () => {
     const created = { id: "created", kind: "key-value" };
     const db = {
       execute: vi.fn().mockResolvedValue(undefined),
-      getOptional: vi.fn().mockResolvedValueOnce(null).mockResolvedValueOnce(created),
+      getOptional: vi
+        .fn()
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(created),
     };
 
     await expect(
@@ -184,26 +198,30 @@ describe("workspace storage slots", () => {
         name: "preferences",
         pluginId: "acme.notes",
         workspaceId: "workspace_1",
-      }),
+      })
     ).resolves.toBe(created);
     expect(db.execute).toHaveBeenCalledWith(
-      expect.stringContaining("INSERT OR IGNORE INTO local_workspace_storage_slots"),
-      expect.arrayContaining(["workspace_1", "acme.notes", "preferences"]),
+      expect.stringContaining(
+        "INSERT OR IGNORE INTO local_workspace_storage_slots"
+      ),
+      expect.arrayContaining(["workspace_1", "acme.notes", "preferences"])
     );
   });
 
   it("reports backing references and deletes resource storage from both scopes", async () => {
     const db = {
       execute: vi.fn().mockResolvedValue(undefined),
-      getAll: vi.fn().mockResolvedValue([{ id: "storage_1" }, { id: "storage_2" }]),
+      getAll: vi
+        .fn()
+        .mockResolvedValue([{ id: "storage_1" }, { id: "storage_2" }]),
       getOptional: vi.fn().mockResolvedValue({ id: "storage_1" }),
     };
 
     await expect(
-      hasStorageBackingReference(db as never, "file", "file_1"),
+      hasStorageBackingReference(db as never, "file", "file_1")
     ).resolves.toBe(true);
     await expect(
-      deleteResourceStorage(db as never, "resource_1"),
+      deleteResourceStorage(db as never, "resource_1")
     ).resolves.toEqual([{ id: "storage_1" }, { id: "storage_2" }]);
 
     expect(db.execute).toHaveBeenCalledTimes(6);
@@ -211,7 +229,7 @@ describe("workspace storage slots", () => {
       expect.arrayContaining([
         expect.stringContaining("DELETE FROM workspace_storage_slots"),
         expect.stringContaining("DELETE FROM local_workspace_storage_slots"),
-      ]),
+      ])
     );
   });
 
@@ -219,17 +237,38 @@ describe("workspace storage slots", () => {
     null,
     { kind: "file", workspace_id: "another_workspace" },
     { kind: "yjs", workspace_id: "workspace_1" },
-    { kind: "file", workspace_id: "workspace_1", backing_id: "file_1", metadata: '{"mediaType":"text/plain"}' },
-  ])("does not record activity for an invalid or unchanged file handle", async (slot) => {
-    const db = { execute: vi.fn(), getOptional: vi.fn().mockResolvedValue(slot) };
-    await setFileStorageMetadata({ db: db as never, backingId: "file_1", storageId: "storage_1", workspaceId: "workspace_1", metadata: { mediaType: "text/plain" } });
-    expect(db.execute).not.toHaveBeenCalled();
-  });
+    {
+      kind: "file",
+      workspace_id: "workspace_1",
+      backing_id: "file_1",
+      metadata: '{"mediaType":"text/plain"}',
+    },
+  ])(
+    "does not record activity for an invalid or unchanged file handle",
+    async (slot) => {
+      const db = {
+        execute: vi.fn(),
+        getOptional: vi.fn().mockResolvedValue(slot),
+      };
+      await setFileStorageMetadata({
+        db: db as never,
+        backingId: "file_1",
+        storageId: "storage_1",
+        workspaceId: "workspace_1",
+        metadata: { mediaType: "text/plain" },
+      });
+      expect(db.execute).not.toHaveBeenCalled();
+    }
+  );
 
   it("updates file metadata only in the workspace visibility table", async () => {
     const db = {
       execute: vi.fn().mockResolvedValue(undefined),
-      getOptional: vi.fn().mockResolvedValue({ id: "storage_1", kind: "file", workspace_id: "workspace_1" }),
+      getOptional: vi.fn().mockResolvedValue({
+        id: "storage_1",
+        kind: "file",
+        workspace_id: "workspace_1",
+      }),
     };
 
     await setFileStorageMetadata({
@@ -248,7 +287,7 @@ describe("workspace storage slots", () => {
         expect.any(String),
         "storage_1",
         "workspace_1",
-      ],
+      ]
     );
   });
 
@@ -265,15 +304,15 @@ describe("workspace storage slots", () => {
 
     expect(db.getOptional).toHaveBeenCalledWith(
       expect.stringContaining("WHERE id = ? LIMIT 1"),
-      ["storage_1"],
+      ["storage_1"]
     );
     expect(db.getAll).toHaveBeenCalledWith(
       expect.stringContaining("WHERE resource_id = ? ORDER BY name ASC"),
-      ["resource_1"],
+      ["resource_1"]
     );
     expect(db.getOptional).toHaveBeenCalledWith(
       expect.stringContaining("WHERE storage_id = ? AND key = ? LIMIT 1"),
-      ["storage_1", "theme"],
+      ["storage_1", "theme"]
     );
   });
 
@@ -288,7 +327,7 @@ describe("workspace storage slots", () => {
         name: "preferences",
         pluginId: "acme.notes",
         workspaceId: "workspace_1",
-      }),
+      })
     );
     renderHook(() => useStorageValues("storage_1"));
 
@@ -319,7 +358,9 @@ describe("workspace storage slots", () => {
   it("rejects unencoded storage values", () => {
     useQueryMock.mockReturnValue({ data: [{ value: "unquoted" }] });
     try {
-      expect(() => renderHook(() => useStorageValue("storage_1", "theme"))).toThrow(SyntaxError);
+      expect(() =>
+        renderHook(() => useStorageValue("storage_1", "theme"))
+      ).toThrow(SyntaxError);
     } finally {
       useQueryMock.mockReset();
     }
@@ -335,7 +376,7 @@ describe("workspace storage slots", () => {
       }),
     };
     const hook = renderHook(() =>
-      useStorageValueActions(db as never, "workspace_1", "storage_1"),
+      useStorageValueActions(db as never, "workspace_1", "storage_1")
     );
 
     await hook.result.current.remove("theme");

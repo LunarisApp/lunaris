@@ -20,7 +20,9 @@ const unavailable: PluginAwarenessResult = {
   awareness: null,
   status: "unavailable",
 };
-const emptySubscribe = () => () => {};
+const emptySubscribe = () => () => {
+  /* No action while this capability is unavailable. */
+};
 const emptySnapshot = () => unavailable;
 const visibleSnapshot = () => document.visibilityState === "visible";
 const subscribeVisibility = (listener: () => void) => {
@@ -31,7 +33,7 @@ const subscribeVisibility = (listener: () => void) => {
 export function useHostYjsAwareness(
   storage: ResourceStorageHandle | undefined,
   workspaceId: string,
-  options?: PluginAwarenessOptions,
+  options?: PluginAwarenessOptions
 ): PluginAwarenessResult {
   const scope = useResourceViewPresenceScope();
   const api = useApi();
@@ -43,20 +45,24 @@ export function useHostYjsAwareness(
   const browserVisible = useSyncExternalStore(
     subscribeVisibility,
     visibleSnapshot,
-    () => false,
+    () => false
   );
   const slot = useStorageSlot(storage?.storageId ?? "").data[0];
   const eligible = Boolean(
-    scope && Object.values(scope.storage).some(s => s.storageId === storage?.storageId) && session?.user.id &&
+    scope &&
+      Object.values(scope.storage).some(
+        (s) => s.storageId === storage?.storageId
+      ) &&
+      session?.user.id &&
       workspaceVisibility !== "local" &&
       syncAccess === SYNC_ACCESS.cloud &&
       slot?.kind === "yjs" &&
-      slot.workspace_id === workspaceId,
+      slot.workspace_id === workspaceId
   );
   const { yDoc } = useReadyYjsDocument(
     slot?.backing_id ?? undefined,
     workspaceId,
-    { enabled: eligible, userId: session?.user.id },
+    { enabled: eligible, userId: session?.user.id }
   );
   const key = JSON.stringify([
     api.baseUrl,
@@ -66,7 +72,9 @@ export function useHostYjsAwareness(
     session?.user.id,
   ]);
   const connection = useMemo(() => {
-    if (!eligible || !yDoc || !storage) return null;
+    if (!(eligible && yDoc && storage?.storageId)) {
+      return null;
+    }
     // Documents own cached instances. Session changes release old leases in effect
     // cleanup; never destroy a sibling view's connection during render.
     let cached = connections.get(yDoc);
@@ -75,24 +83,32 @@ export function useHostYjsAwareness(
       connections.set(yDoc, cached);
     }
     const existing = cached.get(key);
-    if (existing) return existing;
+    if (existing) {
+      return existing;
+    }
     const next = new AwarenessConnection(
       yDoc,
       api,
       workspaceId,
-      storage.storageId,
+      storage?.storageId
     );
     cached.set(key, next);
     return next;
   }, [api, eligible, key, storage?.storageId, workspaceId, yDoc]);
-  const enabled = options?.enabled !== false && Boolean(scope?.isVisible) && browserVisible && online;
+  const enabled =
+    options?.enabled !== false &&
+    Boolean(scope?.isVisible) &&
+    browserVisible &&
+    online;
   useEffect(() => {
-    if (connection && enabled) return connection.acquire();
+    if (connection && enabled) {
+      return connection.acquire();
+    }
   }, [connection, enabled]);
   const result = useSyncExternalStore(
     connection?.subscribe ?? emptySubscribe,
     connection?.getSnapshot ?? emptySnapshot,
-    emptySnapshot,
+    emptySnapshot
   );
   return result;
 }

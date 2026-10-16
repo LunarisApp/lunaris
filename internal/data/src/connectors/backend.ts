@@ -89,7 +89,9 @@ export default class BackendConnector extends PowerSyncBackendConnector {
       const txMap = new Map<number | undefined, SyncCrudEntry[]>();
       for (const entry of batch.crud) {
         const key = entry.transactionId;
-        if (!txMap.has(key)) txMap.set(key, []);
+        if (!txMap.has(key)) {
+          txMap.set(key, []);
+        }
         txMap.get(key)!.push(mapCrudEntry(entry));
       }
 

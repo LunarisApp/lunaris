@@ -25,7 +25,10 @@ export function useYMapField(
     update();
     return () => yMap.unobserve(update);
   }, [key, yMap]);
-  return [value, useCallback((next: string) => yMap.set(key, next), [key, yMap])];
+  return [
+    value,
+    useCallback((next: string) => yMap.set(key, next), [key, yMap]),
+  ];
 }
 
 export function useYMapJson<T>(
@@ -36,7 +39,9 @@ export function useYMapJson<T>(
   const fallbackRef = useRef(fallback);
   const read = useCallback(() => {
     const raw = yMap.get(key);
-    if (!raw) return fallbackRef.current;
+    if (!raw) {
+      return fallbackRef.current;
+    }
     try {
       return JSON.parse(raw) as T;
     } catch {
@@ -80,7 +85,9 @@ export function useYArray(
         yDoc.transact(() => {
           const value = new YjsMap<string>();
           yArray.push([value]);
-          for (const [key, item] of Object.entries(initial)) value.set(key, item);
+          for (const [key, item] of Object.entries(initial)) {
+            value.set(key, item);
+          }
         });
       },
       [yArray, yDoc]
@@ -109,15 +116,17 @@ export function useYjsStorage(
     {
       ...options,
       enabled:
-        options?.enabled !== false && Boolean(resolvedWorkspaceId) && !isLoading,
+        options?.enabled !== false &&
+        Boolean(resolvedWorkspaceId) &&
+        !isLoading,
       userId: options?.userId ?? user?.id ?? null,
-    },
+    }
   );
 }
 
 export function useKeyValue<T>(
   storage: ResourceStorageHandle,
-  key: string,
+  key: string
 ): PluginStorageValue<T> {
   usePluginPermission("content.read");
   usePluginPermission("content.write");
@@ -129,14 +138,14 @@ export function useKeyValue<T>(
 
 export function useWorkspaceKeyValue<T>(
   definition: WorkspaceStorageDefinition,
-  key: string,
+  key: string
 ): PluginStorageValue<T> {
   usePluginPermission("content.read");
   usePluginPermission("content.write");
   return usePluginDataCapabilities().useWorkspaceKeyValue<T>(
     useExtensionId(),
     definition.storageId,
-    key,
+    key
   );
 }
 

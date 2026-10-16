@@ -16,18 +16,18 @@ const {
 
 vi.mock("../../storage/indexeddb-file-storage", () => ({
   IndexedDbFileStorageAdapter: class {
-      async initialize() {
-        return storageInitializeMock();
-      }
+    async initialize() {
+      return storageInitializeMock();
+    }
 
-      getLocalUri(filename: string) {
-        return `indexeddb://lunaris-files-workspace_1/files/${filename}`;
-      }
+    getLocalUri(filename: string) {
+      return `indexeddb://lunaris-files-workspace_1/files/${filename}`;
+    }
 
-      async saveFile(localUri: string, data: ArrayBuffer) {
-        return saveFileMock(localUri, data);
-      }
-    },
+    async saveFile(localUri: string, data: ArrayBuffer) {
+      return saveFileMock(localUri, data);
+    }
+  },
 }));
 
 vi.mock("@repo/utils", () => ({
@@ -39,7 +39,6 @@ vi.mock("../workspace-resources", () => ({
   WORKSPACE_RESOURCES_TABLE: "workspace_resources",
   createWorkspaceResource: createWorkspaceResourceMock,
 }));
-
 
 vi.mock("../workspace-storage-slots", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../workspace-storage-slots")>()),

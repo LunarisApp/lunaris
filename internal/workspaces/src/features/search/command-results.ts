@@ -18,13 +18,19 @@ export function buildCommandSearchResults(
   t: (key: string) => string
 ): CommandSearchResult[] {
   const parsedQuery = parseSearchQuery(query);
-  if (hasScopedSearchTerms(parsedQuery)) return [];
+  if (hasScopedSearchTerms(parsedQuery)) {
+    return [];
+  }
   const terms = getSearchTerms(parsedQuery, null);
 
   return Object.values(COMMANDS).flatMap((definition) => {
     const action = actions[definition.id];
-    if (!action) return [];
-    if (terms.length === 0 && definition.suggestOnEmpty === false) return [];
+    if (!action) {
+      return [];
+    }
+    if (terms.length === 0 && definition.suggestOnEmpty === false) {
+      return [];
+    }
 
     const label = t(definition.nameKey);
     if (!matchesSearchTerms([label], terms)) {

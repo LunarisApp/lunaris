@@ -20,9 +20,15 @@ export function markConflictingDesktopOrigin(request: FastifyRequest) {
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 export function isSerializedOrigin(origin: string): boolean {
-  if (origin === "lunaris://") return true;
-  if (/\s/.test(origin)) return false;
-  if (!/^[a-z][a-z0-9+.-]*:\/\/[^/?#\\]+$/i.test(origin)) return false;
+  if (origin === "lunaris://") {
+    return true;
+  }
+  if (/\s/.test(origin)) {
+    return false;
+  }
+  if (!/^[a-z][a-z0-9+.-]*:\/\/[^/?#\\]+$/i.test(origin)) {
+    return false;
+  }
   try {
     const url = new URL(origin);
     return (
@@ -53,7 +59,7 @@ export function registerOriginValidation(app: FastifyInstance) {
 }
 
 export function getCsrfProtectionOptions(
-  config: OriginConfig,
+  config: OriginConfig
 ): CsrfProtectionOptions {
   const origins = [
     new URL(config.url).origin,
@@ -61,8 +67,9 @@ export function getCsrfProtectionOptions(
     ...config.desktopAppOrigins,
   ];
   for (const origin of origins) {
-    if (!isSerializedOrigin(origin))
+    if (!isSerializedOrigin(origin)) {
       throw new Error("Invalid configured CSRF origin");
+    }
   }
   return {
     trustedOrigins: [
@@ -70,14 +77,16 @@ export function getCsrfProtectionOptions(
     ],
     exclude: (request: FastifyRequest) => {
       const origin = request.headers.origin;
-      if (origin === "lunaris://")
+      if (origin === "lunaris://") {
         return config.desktopAppOrigins.includes(origin);
+      }
       if (
         config.nodeEnv === "production" ||
         typeof origin !== "string" ||
         !isSerializedOrigin(origin)
-      )
+      ) {
         return false;
+      }
       const url = new URL(origin);
       return (
         ["http:", "https:"].includes(url.protocol) &&

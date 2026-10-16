@@ -46,14 +46,18 @@ export function InputConfirmationDialog({
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const handleOpenChange = (next: boolean) => {
-    if (!next) setInput("");
+    if (!next) {
+      setInput("");
+    }
     onOpenChange(next);
   };
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(confirmationText);
     setCopied(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
     timerRef.current = setTimeout(() => setCopied(false), 1500);
   }, [confirmationText]);
 
@@ -72,8 +76,8 @@ export function InputConfirmationDialog({
             htmlFor="confirm-input"
           >
             Type{" "}
-            <span className="inline-flex select-none items-center gap-0.5 truncate rounded-lg border border-transparent bg-muted px-2 pr-1 text-sm font-medium text-foreground h-6 max-w-80">
-              <span className="select-all text-sm font-normal">
+            <span className="inline-flex h-6 max-w-80 select-none items-center gap-0.5 truncate rounded-lg border border-transparent bg-muted px-2 pr-1 font-medium text-foreground text-sm">
+              <span className="select-all font-normal text-sm">
                 {confirmationText}
               </span>
               <Button

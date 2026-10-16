@@ -11,9 +11,9 @@ import {
 describe("organization permissions", () => {
   it("exposes every statement action through the typed catalog", () => {
     for (const [resource, actions] of Object.entries(permissionStatement)) {
-      expect(Object.keys(permission[resource as keyof typeof permission])).toEqual(
-        [...actions],
-      );
+      expect(
+        Object.keys(permission[resource as keyof typeof permission])
+      ).toEqual([...actions]);
     }
   });
 
@@ -37,7 +37,7 @@ describe("organization permissions", () => {
   });
 
   it("gives owners every declared permission", () => {
-    for (const [resource, actions] of Object.entries(permission)) {
+    for (const [_resource, actions] of Object.entries(permission)) {
       for (const required of Object.values(actions)) {
         expect(hasOrganizationPermission("owner", required)).toBe(true);
       }
@@ -46,50 +46,50 @@ describe("organization permissions", () => {
   });
 
   it("lets editors manage content without organization administration", () => {
-    expect(hasOrganizationPermission("editor", permission.workspace.create)).toBe(
-      true,
-    );
+    expect(
+      hasOrganizationPermission("editor", permission.workspace.create)
+    ).toBe(true);
     expect(hasOrganizationPermission("editor", permission.content.write)).toBe(
-      true,
+      true
     );
     expect(hasOrganizationPermission("editor", permission.member.read)).toBe(
-      true,
+      true
     );
     expect(hasOrganizationPermission("editor", permission.member.create)).toBe(
-      false,
+      false
     );
     expect(hasOrganizationPermission("editor", permission.billing.read)).toBe(
-      false,
+      false
     );
   });
 
   it("keeps viewers read-only", () => {
     expect(hasOrganizationPermission("viewer", permission.workspace.read)).toBe(
-      true,
+      true
     );
     expect(hasOrganizationPermission("viewer", permission.content.read)).toBe(
-      true,
+      true
     );
-    expect(hasOrganizationPermission("viewer", permission.workspace.update)).toBe(
-      false,
-    );
+    expect(
+      hasOrganizationPermission("viewer", permission.workspace.update)
+    ).toBe(false);
     expect(hasOrganizationPermission("viewer", permission.content.write)).toBe(
-      false,
+      false
     );
   });
 
   it("maps legacy roles to the least-surprising standard role", () => {
     expect(hasOrganizationPermission("admin", permission.content.write)).toBe(
-      true,
+      true
     );
     expect(hasOrganizationPermission("admin", permission.member.create)).toBe(
-      false,
+      false
     );
     expect(hasOrganizationPermission("member", permission.content.read)).toBe(
-      true,
+      true
     );
     expect(hasOrganizationPermission("member", permission.content.write)).toBe(
-      true,
+      true
     );
     expect(resolveOrganizationRole("member,admin")).toBe("editor");
     expect(resolveOrganizationRole("viewer,owner")).toBe("owner");

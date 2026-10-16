@@ -19,15 +19,13 @@ import { useSearchResourceTypes } from "./useSearchResourceTypes";
 export function useResourceSearch(
   query: string,
   debounceMs = 150,
-  options: { includeAllWhenEmpty?: boolean } = {},
+  options: { includeAllWhenEmpty?: boolean } = {}
 ): ResourceSearchResult[] {
   const includeAllWhenEmpty = options.includeAllWhenEmpty ?? false;
   const { t } = useTranslation();
   const { organizationId } = useSearchScope();
   const resourceTypes = useSearchResourceTypes();
-  const resourcesQuery = useOrganizationWorkspaceResourcesQuery(
-    organizationId
-  );
+  const resourcesQuery = useOrganizationWorkspaceResourcesQuery(organizationId);
   const [debouncedQuery, setDebouncedQuery] = useState(query);
 
   // Debounce the query
@@ -43,9 +41,9 @@ export function useResourceSearch(
       getSearchableResources(
         resourcesQuery.data ?? [],
         t("common.untitled"),
-        resourceTypes,
+        resourceTypes
       ),
-    [resourcesQuery.data, resourceTypes, t],
+    [resourcesQuery.data, resourceTypes, t]
   );
   const searchQuery = includeAllWhenEmpty ? query : debouncedQuery;
   const results = useMemo(
@@ -53,7 +51,7 @@ export function useResourceSearch(
       searchResourcesByTitle(resources, searchQuery, {
         includeAllWhenEmpty,
       }),
-    [resources, includeAllWhenEmpty, searchQuery],
+    [resources, includeAllWhenEmpty, searchQuery]
   );
 
   return query.trim() || includeAllWhenEmpty ? results : [];

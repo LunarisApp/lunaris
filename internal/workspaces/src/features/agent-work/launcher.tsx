@@ -10,7 +10,9 @@ export function AgentWorkLauncher() {
   const { openTool } = useOrganizationNavigation();
   const { t } = useTranslation();
   const { allowed, pending } = useFeatureAccess(FEATURE.agentWork);
-  if (pending || !allowed) return null;
+  if (pending || !allowed) {
+    return null;
+  }
   return (
     <Button
       size="icon"
