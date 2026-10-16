@@ -76,12 +76,13 @@ export function checksumForAsset(
     .filter((match): match is RegExpMatchArray => match !== null)
     .filter((match) => match[2] === assetName);
 
-  if (matches.length !== 1) {
+  const checksum = matches[0]?.[1];
+  if (matches.length !== 1 || !checksum) {
     throw new Error(
       `Expected one SHA256SUMS entry for ${assetName}; found ${matches.length}`
     );
   }
-  return matches[0][1].toLowerCase();
+  return checksum.toLowerCase();
 }
 
 export function buildDistributionManifest({

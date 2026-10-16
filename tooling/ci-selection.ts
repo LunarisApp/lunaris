@@ -7,7 +7,12 @@ export const optionalJobs = [
   "desktop-mcp",
   "sites",
 ] as const;
-const checks = [...optionalJobs, "brand", "powersync", "release"] as const;
+export const checks = [
+  ...optionalJobs,
+  "brand",
+  "powersync",
+  "release",
+] as const;
 
 export function selectChecks(
   files: string[],
