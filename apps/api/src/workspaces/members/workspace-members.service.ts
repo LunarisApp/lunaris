@@ -71,7 +71,7 @@ export class WorkspaceMembersService {
       return await this.withOwnerLock(params, async (tx, workspace) => {
         if (workspace.visibility !== WORKSPACE_VISIBILITY.private) {
           throw new UnprocessableEntityException(
-            "Only private workspaces have members",
+            "Only private workspaces have members"
           );
         }
         if (params.userId === params.ownerId) {
@@ -80,7 +80,7 @@ export class WorkspaceMembersService {
         const organizationMemberId = await this.requireOrganizationMember(
           params.organizationId,
           params.userId,
-          tx,
+          tx
         );
         const [created] = await tx
           .insert(workspaceMembersDb)
@@ -96,7 +96,7 @@ export class WorkspaceMembersService {
       if (
         isUniqueViolation(
           error,
-          "workspace_members_workspace_organization_member_unique",
+          "workspace_members_workspace_organization_member_unique"
         )
       ) {
         throw new ConflictException("Workspace member already exists");
@@ -119,11 +119,13 @@ export class WorkspaceMembersService {
         .where(
           and(
             eq(workspaceMembersDb.id, params.memberId),
-            eq(workspaceMembersDb.workspaceId, params.workspaceId),
-          ),
+            eq(workspaceMembersDb.workspaceId, params.workspaceId)
+          )
         )
         .returning({ id: workspaceMembersDb.id });
-      if (!updated) throw new NotFoundException("Workspace member not found");
+      if (!updated) {
+        throw new NotFoundException("Workspace member not found");
+      }
       return this.getById(updated.id, tx);
     });
   }
@@ -140,11 +142,13 @@ export class WorkspaceMembersService {
         .where(
           and(
             eq(workspaceMembersDb.id, params.memberId),
-            eq(workspaceMembersDb.workspaceId, params.workspaceId),
-          ),
+            eq(workspaceMembersDb.workspaceId, params.workspaceId)
+          )
         )
         .returning({ id: workspaceMembersDb.id });
-      if (!removed) throw new NotFoundException("Workspace member not found");
+      if (!removed) {
+        throw new NotFoundException("Workspace member not found");
+      }
       return removed;
     });
   }
@@ -162,20 +166,20 @@ export class WorkspaceMembersService {
       const nextOwnerMembershipId = await this.requireOrganizationMember(
         params.organizationId,
         params.userId,
-        tx,
+        tx
       );
       const previousOwnerMembershipId = await this.requireOrganizationMember(
         params.organizationId,
         params.ownerId,
-        tx,
+        tx
       );
       await tx
         .delete(workspaceMembersDb)
         .where(
           and(
             eq(workspaceMembersDb.workspaceId, params.workspaceId),
-            eq(workspaceMembersDb.organizationMemberId, nextOwnerMembershipId),
-          ),
+            eq(workspaceMembersDb.organizationMemberId, nextOwnerMembershipId)
+          )
         );
       await tx
         .insert(workspaceMembersDb)
@@ -201,19 +205,18 @@ export class WorkspaceMembersService {
         .where(
           and(
             eq(workspacesDb.id, params.workspaceId),
-            eq(workspacesDb.ownerId, params.ownerId),
-          ),
+            eq(workspacesDb.ownerId, params.ownerId)
+          )
         )
         .returning({ id: workspacesDb.id });
-      if (!transferred) throw new ConflictException("Workspace owner changed");
+      if (!transferred) {
+        throw new ConflictException("Workspace owner changed");
+      }
     });
     return { id: params.workspaceId };
   }
 
-  private async getById(
-    id: string,
-    db: DatabaseOrTx = this.database.db,
-  ) {
+  private async getById(id: string, db: DatabaseOrTx = this.database.db) {
     const [row] = await db
       .select(workspaceMemberSelection)
       .from(workspaceMembersDb)
@@ -221,14 +224,16 @@ export class WorkspaceMembersService {
       .innerJoin(user, eq(user.id, member.userId))
       .where(eq(workspaceMembersDb.id, id))
       .limit(1);
-    if (!row) throw new NotFoundException("Workspace member not found");
+    if (!row) {
+      throw new NotFoundException("Workspace member not found");
+    }
     return toDto(row);
   }
 
   private async requireOwner(
     params: OwnerContext,
     db: DatabaseOrTx = this.database.db,
-    lock = false,
+    lock = false
   ): Promise<OwnedWorkspace> {
     const query = db
       .select({
@@ -240,20 +245,22 @@ export class WorkspaceMembersService {
         and(
           eq(workspacesDb.id, params.workspaceId),
           eq(workspacesDb.organizationId, params.organizationId),
-          eq(workspacesDb.ownerId, params.ownerId),
-        ),
+          eq(workspacesDb.ownerId, params.ownerId)
+        )
       );
     const rows = lock
       ? await query.for("update").limit(1)
       : await query.limit(1);
     const workspace = rows[0];
-    if (!workspace) throw new NotFoundException("Workspace not found");
+    if (!workspace) {
+      throw new NotFoundException("Workspace not found");
+    }
     return workspace;
   }
 
   private withOwnerLock<T>(
     params: OwnerContext,
-    operation: (tx: DatabaseOrTx, workspace: OwnedWorkspace) => Promise<T>,
+    operation: (tx: DatabaseOrTx, workspace: OwnedWorkspace) => Promise<T>
   ): Promise<T> {
     return this.database.db.transaction(async (tx) => {
       const workspace = await this.requireOwner(params, tx, true);
@@ -264,7 +271,7 @@ export class WorkspaceMembersService {
   private async requireOrganizationMember(
     organizationId: string,
     userId: string,
-    db: DatabaseOrTx = this.database.db,
+    db: DatabaseOrTx = this.database.db
   ) {
     const [organizationMember] = await db
       .select({ id: member.id })
@@ -272,11 +279,13 @@ export class WorkspaceMembersService {
       .where(
         and(
           eq(member.organizationId, organizationId),
-          eq(member.userId, userId),
-        ),
+          eq(member.userId, userId)
+        )
       )
       .limit(1);
-    if (!organizationMember) throw new NotFoundException("Organization member not found");
+    if (!organizationMember) {
+      throw new NotFoundException("Organization member not found");
+    }
     return organizationMember.id;
   }
 }

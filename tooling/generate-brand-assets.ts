@@ -13,30 +13,15 @@ import path from "node:path";
 const repositoryRoot = path.resolve(import.meta.dir, "..");
 const brandDirectory = path.join(repositoryRoot, "assets/brand");
 const desktopDirectory = path.join(repositoryRoot, "apps/desktop");
-const desktopIconsDirectory = path.join(
-  desktopDirectory,
-  "src-tauri/icons"
-);
+const desktopIconsDirectory = path.join(desktopDirectory, "src-tauri/icons");
 const desktopPublicDirectory = path.join(desktopDirectory, "public");
-const landingPublicDirectory = path.join(
-  repositoryRoot,
-  "apps/landing/public"
-);
-const webPublicDirectory = path.join(
-  repositoryRoot,
-  "apps/web/public"
-);
+const landingPublicDirectory = path.join(repositoryRoot, "apps/landing/public");
+const webPublicDirectory = path.join(repositoryRoot, "apps/web/public");
 
 const tauriManifest = path.join(brandDirectory, "tauri-icon.json");
-const appIconDark = path.join(
-  brandDirectory,
-  "source/app-icon-dark.svg"
-);
+const appIconDark = path.join(brandDirectory, "source/app-icon-dark.svg");
 const markOnDark = path.join(brandDirectory, "source/mark-on-dark.svg");
-const markOnLight = path.join(
-  brandDirectory,
-  "source/mark-on-light.svg"
-);
+const markOnLight = path.join(brandDirectory, "source/mark-on-light.svg");
 
 interface GeneratedFile {
   destination: string;
@@ -82,20 +67,14 @@ async function runTauriIcon(
 async function generateInto(
   temporaryDirectory: string
 ): Promise<GeneratedAssets> {
-  const tauriIconsDirectory = path.join(
-    temporaryDirectory,
-    "tauri-icons"
-  );
+  const tauriIconsDirectory = path.join(temporaryDirectory, "tauri-icons");
   const webPngDirectory = path.join(temporaryDirectory, "web-png");
 
   await Promise.all([
     runTauriIcon(tauriManifest, tauriIconsDirectory),
     runTauriIcon(appIconDark, webPngDirectory, [192]),
   ]);
-  await copyFile(
-    appIconDark,
-    path.join(tauriIconsDirectory, "icon.svg")
-  );
+  await copyFile(appIconDark, path.join(tauriIconsDirectory, "icon.svg"));
 
   const generatedIcon = (relativePath: string): string =>
     path.join(tauriIconsDirectory, relativePath);
@@ -107,17 +86,11 @@ async function generateInto(
         source: generatedIcon("icon.ico"),
       },
       {
-        destination: path.join(
-          desktopPublicDirectory,
-          "favicon-dark.svg"
-        ),
+        destination: path.join(desktopPublicDirectory, "favicon-dark.svg"),
         source: markOnDark,
       },
       {
-        destination: path.join(
-          desktopPublicDirectory,
-          "favicon-light.svg"
-        ),
+        destination: path.join(desktopPublicDirectory, "favicon-light.svg"),
         source: markOnLight,
       },
       {
@@ -125,24 +98,15 @@ async function generateInto(
         source: generatedIcon("icon.ico"),
       },
       {
-        destination: path.join(
-          landingPublicDirectory,
-          "favicon-dark.svg"
-        ),
+        destination: path.join(landingPublicDirectory, "favicon-dark.svg"),
         source: markOnDark,
       },
       {
-        destination: path.join(
-          landingPublicDirectory,
-          "favicon-light.svg"
-        ),
+        destination: path.join(landingPublicDirectory, "favicon-light.svg"),
         source: markOnLight,
       },
       {
-        destination: path.join(
-          landingPublicDirectory,
-          "apple-touch-icon.png"
-        ),
+        destination: path.join(landingPublicDirectory, "apple-touch-icon.png"),
         source: generatedIcon("ios/AppIcon-60x60@3x.png"),
       },
       {
@@ -172,10 +136,7 @@ async function generateInto(
         source: markOnLight,
       },
       {
-        destination: path.join(
-          webPublicDirectory,
-          "apple-touch-icon.png"
-        ),
+        destination: path.join(webPublicDirectory, "apple-touch-icon.png"),
         source: generatedIcon("ios/AppIcon-60x60@3x.png"),
       },
       {
@@ -187,10 +148,7 @@ async function generateInto(
         source: generatedIcon("icon.png"),
       },
       {
-        destination: path.join(
-          webPublicDirectory,
-          "pwa-maskable-512x512.png"
-        ),
+        destination: path.join(webPublicDirectory, "pwa-maskable-512x512.png"),
         source: generatedIcon("icon.png"),
       },
     ],

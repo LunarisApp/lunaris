@@ -25,8 +25,8 @@ describe("sanitizePostHogEvent", () => {
             error: { email: "writer@example.com" },
           },
         },
-        "application",
-      ),
+        "application"
+      )
     ).toEqual({
       distinctId: "user_123",
       event: "$exception",

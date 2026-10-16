@@ -11,9 +11,13 @@ export const POLAR_CLIENT = "POLAR_CLIENT";
       provide: POLAR_CLIENT,
       inject: [PolarConfig],
       useFactory: (config: PolarConfig): Polar | null => {
-        if (!config.enabled) return null;
+        if (!config.enabled) {
+          return null;
+        }
         const values = config.values;
-        if (!values) return null;
+        if (!values) {
+          return null;
+        }
         return new Polar({
           accessToken: values.accessToken,
           server: values.sandbox ? "sandbox" : "production",

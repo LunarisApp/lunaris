@@ -54,7 +54,7 @@ const NO_ORG_400_RESPONSE = {
 export class SyncController {
   constructor(
     private readonly syncService: SyncService,
-    private readonly entitlements: EntitlementsService,
+    private readonly entitlements: EntitlementsService
   ) {}
 
   @RetrieveApi({
@@ -69,7 +69,7 @@ export class SyncController {
   @ApiResponse(NO_ORG_400_RESPONSE)
   @ApiResponse(LOCAL_ONLY_403_RESPONSE)
   async getCredentials(
-    @Session() session: UserSession,
+    @Session() session: UserSession
   ): Promise<SyncCredentialsResponseDto> {
     const organizationId = requireActiveOrganization(session);
     const log = useLogger();
@@ -79,12 +79,12 @@ export class SyncController {
     });
     const syncAccess = await this.assertOrganizationAccess(
       session,
-      organizationId,
+      organizationId
     );
     return this.syncService.getCredentials(
       session.user.id,
       organizationId,
-      syncAccess,
+      syncAccess
     );
   }
 
@@ -101,7 +101,7 @@ export class SyncController {
   @ApiResponse(LOCAL_ONLY_403_RESPONSE)
   async ingest(
     @Session() session: UserSession,
-    @Body({ schema: SyncRequestDto }) body: SyncRequestDto,
+    @Body({ schema: SyncRequestDto }) body: SyncRequestDto
   ): Promise<SyncResponseDto> {
     const organizationId = requireActiveOrganization(session);
     const log = useLogger();
@@ -117,7 +117,7 @@ export class SyncController {
     await this.syncService.ingest(
       body.transactions,
       organizationId,
-      session.user.id,
+      session.user.id
     );
     return {};
   }
@@ -135,12 +135,12 @@ export class SyncController {
 
   private async assertOrganizationAccess(
     session: UserSession,
-    organizationId: string,
+    organizationId: string
   ) {
     const syncAccess = this.assertCloudSync(session);
     await this.entitlements.assertOrganizationMember(
       session.user.id,
-      organizationId,
+      organizationId
     );
     return syncAccess;
   }

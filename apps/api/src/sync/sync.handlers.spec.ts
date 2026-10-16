@@ -9,7 +9,7 @@ describe("isUniqueViolation", () => {
   });
 
   it("returns true when constraint includes specified column", () => {
-    const err = Object.assign(new Error(), {
+    const err = Object.assign(new Error("database failure"), {
       code: "23505",
       constraint: "workspaces_org_slug_unique",
     });
@@ -17,7 +17,7 @@ describe("isUniqueViolation", () => {
   });
 
   it("returns false when constraint doesn't include column", () => {
-    const err = Object.assign(new Error(), {
+    const err = Object.assign(new Error("database failure"), {
       code: "23505",
       constraint: "workspaces_name_unique",
     });
@@ -29,7 +29,7 @@ describe("isUniqueViolation", () => {
   });
 
   it("returns false for different code", () => {
-    const err = Object.assign(new Error(), { code: "42P01" });
+    const err = Object.assign(new Error("database failure"), { code: "42P01" });
     expect(isUniqueViolation(err)).toBe(false);
   });
 

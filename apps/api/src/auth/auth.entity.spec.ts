@@ -57,7 +57,7 @@ describe("passkey auth schema", () => {
 
   it("keeps the generated migration additive", async () => {
     const migration = await Bun.file(
-      new URL("../../drizzle/0022_closed_human_fly.sql", import.meta.url),
+      new URL("../../drizzle/0022_closed_human_fly.sql", import.meta.url)
     ).text();
 
     expect(migration).toContain('CREATE TABLE "passkey"');
@@ -70,8 +70,8 @@ describe("passkey auth schema", () => {
     const migration = await Bun.file(
       new URL(
         "../../drizzle/0027_cultured_serpent_society.sql",
-        import.meta.url,
-      ),
+        import.meta.url
+      )
     ).text();
 
     expect(migration).toContain('CREATE TABLE "apikey"');
@@ -84,7 +84,7 @@ describe("passkey auth schema", () => {
 
   it("binds OAuth grants to resources with an additive migration", async () => {
     const migration = await Bun.file(
-      new URL("../../drizzle/0028_living_monster_badoon.sql", import.meta.url),
+      new URL("../../drizzle/0028_living_monster_badoon.sql", import.meta.url)
     ).text();
 
     expect(authSchema.oauthResource).toBe(oauthResource);
@@ -92,7 +92,7 @@ describe("passkey auth schema", () => {
     expect(migration).toContain('CREATE TABLE "oauth_resource"');
     expect(migration).toContain('CREATE TABLE "oauth_client_resource"');
     expect(migration).toContain(
-      'ALTER TABLE "oauth_refresh_token" ADD COLUMN "resources" text[]',
+      'ALTER TABLE "oauth_refresh_token" ADD COLUMN "resources" text[]'
     );
     expect(migration).not.toMatch(/^\s*(DROP|TRUNCATE|DELETE)\b/im);
   });
@@ -102,7 +102,7 @@ describe("passkey auth schema", () => {
     const teamMemberColumns = getTableColumns(teamMember);
     const sessionColumns = getTableColumns(session);
     const migration = await Bun.file(
-      new URL("../../drizzle/0041_married_midnight.sql", import.meta.url),
+      new URL("../../drizzle/0041_married_midnight.sql", import.meta.url)
     ).text();
 
     expect(authSchema.team).toBe(team);
@@ -113,14 +113,14 @@ describe("passkey auth schema", () => {
     expect(migration).toContain('CREATE TABLE "team"');
     expect(migration).toContain('CREATE TABLE "team_member"');
     expect(migration).toContain(
-      'ALTER TABLE "invitation" ADD COLUMN "team_id" text',
+      'ALTER TABLE "invitation" ADD COLUMN "team_id" text'
     );
     expect(migration).toContain(
-      "ALTER PUBLICATION powersync ADD TABLE team, team_member",
+      "ALTER PUBLICATION powersync ADD TABLE team, team_member"
     );
     expect(migration).toContain('WHERE "is_personal" = false');
     expect(migration).toContain(
-      "string_to_array(replace(member.\"role\", ' ', ''), ',')",
+      "string_to_array(replace(member.\"role\", ' ', ''), ',')"
     );
     expect(migration).not.toMatch(/^\s*(DROP|TRUNCATE|DELETE)\b/im);
   });

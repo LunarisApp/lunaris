@@ -26,7 +26,7 @@ export const user = pgTable(
     isAnonymous: boolean("is_anonymous").default(false),
     twoFactorEnabled: boolean("two_factor_enabled").default(false),
   },
-  (table) => [index("user_email_idx").on(table.email)],
+  (table) => [index("user_email_idx").on(table.email)]
 );
 
 export const session = pgTable(
@@ -50,7 +50,7 @@ export const session = pgTable(
   (table) => [
     index("session_token_idx").on(table.token),
     index("session_userId_idx").on(table.userId),
-  ],
+  ]
 );
 
 export const account = pgTable(
@@ -78,10 +78,10 @@ export const account = pgTable(
   (table) => [
     uniqueIndex("account_issuer_accountId_uidx").on(
       table.issuer,
-      table.accountId,
+      table.accountId
     ),
     index("account_userId_idx").on(table.userId),
-  ],
+  ]
 );
 
 export const verification = pgTable(
@@ -97,7 +97,7 @@ export const verification = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("verification_identifier_idx").on(table.identifier)],
+  (table) => [index("verification_identifier_idx").on(table.identifier)]
 );
 
 export const apikey = pgTable(
@@ -115,7 +115,7 @@ export const apikey = pgTable(
     lastRefillAt: timestamp("last_refill_at"),
     enabled: boolean("enabled").default(true),
     rateLimitEnabled: boolean("rate_limit_enabled").default(true),
-    rateLimitTimeWindow: integer("rate_limit_time_window").default(60000),
+    rateLimitTimeWindow: integer("rate_limit_time_window").default(60_000),
     rateLimitMax: integer("rate_limit_max").default(300),
     requestCount: integer("request_count").default(0),
     remaining: integer("remaining"),
@@ -130,7 +130,7 @@ export const apikey = pgTable(
     index("apikey_configId_idx").on(table.configId),
     index("apikey_referenceId_idx").on(table.referenceId),
     index("apikey_key_idx").on(table.key),
-  ],
+  ]
 );
 
 export const oauthClient = pgTable(
@@ -145,7 +145,9 @@ export const oauthClient = pgTable(
     enableEndSession: boolean("enable_end_session"),
     subjectType: text("subject_type"),
     scopes: text("scopes").array(),
-    clientCredentialsScopes: text("client_credentials_scopes").array().default([]),
+    clientCredentialsScopes: text("client_credentials_scopes")
+      .array()
+      .default([]),
     applicationType: text("application_type"),
     userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at"),
@@ -163,7 +165,7 @@ export const oauthClient = pgTable(
     postLogoutRedirectUris: text("post_logout_redirect_uris").array(),
     backchannelLogoutUri: text("backchannel_logout_uri"),
     backchannelLogoutSessionRequired: boolean(
-      "backchannel_logout_session_required",
+      "backchannel_logout_session_required"
     ),
     tokenEndpointAuthMethod: text("token_endpoint_auth_method"),
     jwks: text("jwks"),
@@ -177,7 +179,7 @@ export const oauthClient = pgTable(
     referenceId: text("reference_id"),
     metadata: jsonb("metadata"),
   },
-  (table) => [index("oauthClient_userId_idx").on(table.userId)],
+  (table) => [index("oauthClient_userId_idx").on(table.userId)]
 );
 
 export const oauthResource = pgTable("oauth_resource", {
@@ -191,7 +193,7 @@ export const oauthResource = pgTable("oauth_resource", {
   allowedScopes: text("allowed_scopes").array(),
   customClaims: jsonb("custom_claims"),
   dpopBoundAccessTokensRequired: boolean(
-    "dpop_bound_access_tokens_required",
+    "dpop_bound_access_tokens_required"
   ).default(false),
   disabled: boolean("disabled").default(false),
   createdAt: timestamp("created_at"),
@@ -216,7 +218,7 @@ export const oauthClientResource = pgTable(
   (table) => [
     index("oauthClientResource_clientId_idx").on(table.clientId),
     index("oauthClientResource_resourceId_idx").on(table.resourceId),
-  ],
+  ]
 );
 
 export const oauthRefreshToken = pgTable(
@@ -252,9 +254,9 @@ export const oauthRefreshToken = pgTable(
     index("oauthRefreshToken_sessionId_idx").on(table.sessionId),
     index("oauthRefreshToken_userId_idx").on(table.userId),
     index("oauthRefreshToken_authorizationCodeId_idx").on(
-      table.authorizationCodeId,
+      table.authorizationCodeId
     ),
-  ],
+  ]
 );
 
 export const oauthAccessToken = pgTable(
@@ -287,10 +289,10 @@ export const oauthAccessToken = pgTable(
     index("oauthAccessToken_sessionId_idx").on(table.sessionId),
     index("oauthAccessToken_userId_idx").on(table.userId),
     index("oauthAccessToken_authorizationCodeId_idx").on(
-      table.authorizationCodeId,
+      table.authorizationCodeId
     ),
     index("oauthAccessToken_refreshId_idx").on(table.refreshId),
-  ],
+  ]
 );
 
 export const oauthConsent = pgTable(
@@ -311,7 +313,7 @@ export const oauthConsent = pgTable(
   (table) => [
     index("oauthConsent_clientId_idx").on(table.clientId),
     index("oauthConsent_userId_idx").on(table.userId),
-  ],
+  ]
 );
 
 export const oauthClientAssertion = pgTable("oauth_client_assertion", {
@@ -349,7 +351,7 @@ export const passkey = pgTable(
   (table) => [
     index("passkey_userId_idx").on(table.userId),
     index("passkey_credentialID_idx").on(table.credentialID),
-  ],
+  ]
 );
 
 export const twoFactor = pgTable(
@@ -368,7 +370,7 @@ export const twoFactor = pgTable(
   (table) => [
     index("two_factor_secret_idx").on(table.secret),
     index("two_factor_userId_idx").on(table.userId),
-  ],
+  ]
 );
 
 export const organization = pgTable(
@@ -386,7 +388,7 @@ export const organization = pgTable(
     deletionPurgeAfter: timestamp("deletion_purge_after"),
     yjsRetentionDays: integer("yjs_retention_days").default(7).notNull(),
   },
-  (table) => [uniqueIndex("organization_slug_uidx").on(table.slug)],
+  (table) => [uniqueIndex("organization_slug_uidx").on(table.slug)]
 );
 
 export const member = pgTable(
@@ -405,7 +407,7 @@ export const member = pgTable(
   (table) => [
     index("member_organizationId_idx").on(table.organizationId),
     index("member_userId_idx").on(table.userId),
-  ],
+  ]
 );
 
 export const team = pgTable(
@@ -419,10 +421,10 @@ export const team = pgTable(
       .references(() => organization.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").notNull(),
     updatedAt: timestamp("updated_at").$onUpdate(
-      () => /* @__PURE__ */ new Date(),
+      () => /* @__PURE__ */ new Date()
     ),
   },
-  (table) => [index("team_organizationId_idx").on(table.organizationId)],
+  (table) => [index("team_organizationId_idx").on(table.organizationId)]
 );
 
 export const teamMember = pgTable(
@@ -441,7 +443,7 @@ export const teamMember = pgTable(
   (table) => [
     index("teamMember_teamId_idx").on(table.teamId),
     index("teamMember_userId_idx").on(table.userId),
-  ],
+  ]
 );
 
 export const invitation = pgTable(
@@ -465,7 +467,7 @@ export const invitation = pgTable(
   (table) => [
     index("invitation_organizationId_idx").on(table.organizationId),
     index("invitation_email_idx").on(table.email),
-  ],
+  ]
 );
 
 export const userRelations = relations(user, ({ many }) => ({
@@ -524,7 +526,7 @@ export const oauthClientResourceRelations = relations(
       fields: [oauthClientResource.resourceId],
       references: [oauthResource.identifier],
     }),
-  }),
+  })
 );
 
 export const oauthRefreshTokenRelations = relations(
@@ -543,7 +545,7 @@ export const oauthRefreshTokenRelations = relations(
       references: [user.id],
     }),
     oauthAccessTokens: many(oauthAccessToken),
-  }),
+  })
 );
 
 export const oauthAccessTokenRelations = relations(
@@ -565,7 +567,7 @@ export const oauthAccessTokenRelations = relations(
       fields: [oauthAccessToken.refreshId],
       references: [oauthRefreshToken.id],
     }),
-  }),
+  })
 );
 
 export const oauthConsentRelations = relations(oauthConsent, ({ one }) => ({

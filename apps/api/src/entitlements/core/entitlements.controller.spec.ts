@@ -10,7 +10,12 @@ const response = {
   billingManagement: "unavailable" as const,
   features: { "agent-work": false },
   resourceCount: 12,
-  limits: { max_resources: 25, max_storage_bytes: 250_000_000, max_file_bytes: 25_000_000, max_members: 3 },
+  limits: {
+    max_resources: 25,
+    max_storage_bytes: 250_000_000,
+    max_file_bytes: 25_000_000,
+    max_members: 3,
+  },
   offlineAccessUntil: null,
   plan: "free" as const,
   verifiedAt: "2026-07-19T10:00:00.000Z",
@@ -36,7 +41,7 @@ describe("EntitlementsController", () => {
 
     expect(assertOrganizationMember).toHaveBeenCalledWith(
       "user-1",
-      "organization-1",
+      "organization-1"
     );
     expect(resolveSnapshotForOrganization).toHaveBeenCalledWith({
       organizationId: "organization-1",
@@ -52,7 +57,7 @@ describe("EntitlementsController", () => {
   it("requires an active organization", async () => {
     const controller = new EntitlementsController({} as EntitlementsService);
     await expect(
-      controller.getCurrent({ session: {} } as unknown as UserSession),
+      controller.getCurrent({ session: {} } as unknown as UserSession)
     ).rejects.toThrow(NoActiveOrganizationError);
   });
 
@@ -69,7 +74,7 @@ describe("EntitlementsController", () => {
       controller.getCurrent({
         user: { id: "removed-user" },
         session: { activeOrganizationId: "organization-1" },
-      } as unknown as UserSession),
+      } as unknown as UserSession)
     ).rejects.toBeInstanceOf(OrganizationMembershipRequiredError);
     expect(resolveSnapshotForOrganization).not.toHaveBeenCalled();
   });

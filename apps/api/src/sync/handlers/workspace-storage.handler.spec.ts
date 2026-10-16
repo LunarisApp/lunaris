@@ -1,5 +1,9 @@
 import { organization } from "../../auth/auth.entity";
-import { fileObjectsDb, storedFilesDb, uploadSessionsDb } from "../../files/file-storage.entity";
+import {
+  fileObjectsDb,
+  storedFilesDb,
+  uploadSessionsDb,
+} from "../../files/file-storage.entity";
 import { describe, expect, it, mock } from "bun:test";
 import { permission } from "@repo/auth/permissions";
 import { workspaceStorageSlotsHandler } from "./workspace-storage-slots.handler";
@@ -13,16 +17,26 @@ function database(...results: unknown[][]) {
       limit: mock(() => Promise.resolve(rows)),
       then: (
         resolve: (value: unknown[]) => unknown,
-        reject?: (reason: unknown) => unknown,
+        reject?: (reason: unknown) => unknown
       ) => Promise.resolve(rows).then(resolve, reject),
     };
   };
   const from = mock((table: unknown) => {
-    if (table === organization) return { where: () => ({ for: async () => [] }) };
-    if ([fileObjectsDb, storedFilesDb, uploadSessionsDb].includes(table as never)) return {
-      where: async () => [], innerJoin: () => ({ where: async () => [] }),
+    if (table === organization) {
+      return { where: () => ({ for: async () => [] }) };
+    }
+    if (
+      [fileObjectsDb, storedFilesDb, uploadSessionsDb].includes(table as never)
+    ) {
+      return {
+        where: async () => [],
+        innerJoin: () => ({ where: async () => [] }),
+      };
+    }
+    return {
+      innerJoin: mock(() => ({ where: mock(nextQuery) })),
+      where: mock(nextQuery),
     };
-    return { innerJoin: mock(() => ({ where: mock(nextQuery) })), where: mock(nextQuery) };
   });
   return { select: mock(() => ({ from })) };
 }
@@ -44,8 +58,8 @@ describe("workspaceStorageSlotsHandler", () => {
         "storage-1",
         baseSlot,
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).resolves.toBeUndefined();
     expect(workspaceStorageSlotsHandler.permissions).toEqual({
       DELETE: permission.content.delete,
@@ -62,8 +76,8 @@ describe("workspaceStorageSlotsHandler", () => {
         "storage-1",
         { ...baseSlot, kind: "blob", name: "" },
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).rejects.toThrow("Invalid workspace storage slot");
   });
 
@@ -75,8 +89,8 @@ describe("workspaceStorageSlotsHandler", () => {
         "storage-1",
         { ...baseSlot, metadata: "{}" },
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).rejects.toThrow("Invalid workspace storage slot");
   });
 
@@ -88,8 +102,8 @@ describe("workspaceStorageSlotsHandler", () => {
         "storage-1",
         { ...baseSlot, resourceId: "resource-1" },
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).rejects.toThrow("Invalid workspace storage slot");
   });
 
@@ -106,8 +120,8 @@ describe("workspaceStorageSlotsHandler", () => {
           resourceId: "resource-1",
         },
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).rejects.toThrow("Invalid workspace storage slot");
   });
 
@@ -126,8 +140,8 @@ describe("workspaceStorageSlotsHandler", () => {
         "storage-1",
         data,
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).rejects.toThrow("Invalid workspace storage slot");
 
     await expect(
@@ -135,14 +149,14 @@ describe("workspaceStorageSlotsHandler", () => {
         database(
           [{ id: "workspace-1" }],
           [{ id: "resource-1" }],
-          [{ id: "yjs-1" }],
+          [{ id: "yjs-1" }]
         ) as never,
         "PUT",
         "storage-1",
         data,
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).resolves.toBeUndefined();
   });
 
@@ -154,8 +168,8 @@ describe("workspaceStorageSlotsHandler", () => {
         "storage-1",
         { ...baseSlot, backingId: "unexpected" },
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).rejects.toThrow("Invalid workspace storage slot");
   });
 
@@ -164,14 +178,14 @@ describe("workspaceStorageSlotsHandler", () => {
       workspaceStorageSlotsHandler.authorize(
         database(
           [{ hasAccess: true }],
-          [{ backingId: null, kind: "key-value", workspaceId: "workspace-1" }],
+          [{ backingId: null, kind: "key-value", workspaceId: "workspace-1" }]
         ) as never,
         "PATCH",
         "storage-1",
         { metadata: "{}" },
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).rejects.toThrow("Invalid workspace storage slot");
 
     await expect(
@@ -179,14 +193,14 @@ describe("workspaceStorageSlotsHandler", () => {
         database(
           [{ hasAccess: true }],
           [{ backingId: "yjs-old", kind: "yjs", workspaceId: "workspace-1" }],
-          [{ id: "yjs-new" }],
+          [{ id: "yjs-new" }]
         ) as never,
         "PATCH",
         "storage-1",
         { backingId: "yjs-new" },
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).resolves.toBeUndefined();
   });
 
@@ -198,8 +212,8 @@ describe("workspaceStorageSlotsHandler", () => {
         "missing",
         undefined,
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).resolves.toBeUndefined();
   });
 });
@@ -220,8 +234,8 @@ describe("workspaceStorageValuesHandler", () => {
         "value-1",
         value,
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).resolves.toBeUndefined();
   });
 
@@ -233,8 +247,8 @@ describe("workspaceStorageValuesHandler", () => {
         "value-1",
         value,
         "org-1",
-        "user-1",
-      ),
+        "user-1"
+      )
     ).rejects.toThrow("Invalid workspace storage value");
   });
 
@@ -247,8 +261,8 @@ describe("workspaceStorageValuesHandler", () => {
           "missing",
           undefined,
           "org-1",
-          "user-1",
-        ),
+          "user-1"
+        )
       ).resolves.toBeUndefined();
     }
   });

@@ -14,7 +14,7 @@ describe("agent REST query schemas", () => {
 
   it("trims and validates organization item searches", () => {
     expect(
-      AgentResourceSearchDto.parse({ limit: "25", search: "  plan  " }),
+      AgentResourceSearchDto.parse({ limit: "25", search: "  plan  " })
     ).toMatchObject({ limit: 25, search: "plan" });
     expect(() => AgentResourceSearchDto.parse({ search: "   " })).toThrow();
   });
@@ -25,7 +25,7 @@ describe("agent REST query schemas", () => {
         documentId: "other-document",
         name: "Renamed",
         pluginId: "other-plugin",
-      }),
+      })
     ).toEqual({ name: "Renamed" });
   });
 });

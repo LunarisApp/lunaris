@@ -11,18 +11,14 @@ const MAX_AUDIT_REASON_LENGTH = 512;
 export function recordComplianceAudit(
   log: AuditableLogger,
   input: AuditInput,
-  deniedReason?: string,
+  deniedReason?: string
 ): void {
   const reason = sanitizeAuditText(deniedReason ?? input.reason);
-  if (deniedReason !== undefined) {
-    const {
-      outcome: _outcome,
-      reason: _inputReason,
-      ...deniedInput
-    } = input;
-    log.audit.deny(reason ?? "Action denied", deniedInput);
-  } else {
+  if (deniedReason === undefined) {
     log.audit({ ...input, reason });
+  } else {
+    const { outcome: _outcome, reason: _inputReason, ...deniedInput } = input;
+    log.audit.deny(reason ?? "Action denied", deniedInput);
   }
   log.set({
     audit: { idempotencyKey: crypto.randomUUID() },
@@ -31,11 +27,13 @@ export function recordComplianceAudit(
 
 export function recordStandaloneComplianceAudit(
   input: AuditInput,
-  context?: AuditFields["context"],
+  context?: AuditFields["context"]
 ): void {
   const log = createLogger();
   recordComplianceAudit(log, input);
-  if (context) log.set({ audit: { context } });
+  if (context) {
+    log.set({ audit: { context } });
+  }
   log.emit();
 }
 

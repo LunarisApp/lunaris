@@ -16,7 +16,7 @@ export const logDrain = process.env.POSTHOG_API_KEY
             level: "error",
             message: "PostHog log delivery exhausted retries",
             service: "api",
-          })}\n`,
+          })}\n`
         );
       },
     })(createPostHogDrain())
@@ -53,7 +53,9 @@ export async function appDrain(ctx: DrainContext) {
     ...(mainDelivery ? [mainDelivery] : []),
     ...(auditDelivery ? [auditDelivery] : []),
   ];
-  if (deliveries.length === 0) return;
+  if (deliveries.length === 0) {
+    return;
+  }
 
   const results = await Promise.allSettled(deliveries);
   const auditResult = auditDelivery ? results.at(-1) : undefined;
@@ -64,12 +66,12 @@ export async function appDrain(ctx: DrainContext) {
         error: scrubMaybe(
           auditResult.reason instanceof Error
             ? auditResult.reason.message
-            : String(auditResult.reason),
+            : String(auditResult.reason)
         ),
         level: "error",
         message: "Compliance audit delivery failed",
         service: "api",
-      })}\n`,
+      })}\n`
     );
     throw auditResult.reason;
   }

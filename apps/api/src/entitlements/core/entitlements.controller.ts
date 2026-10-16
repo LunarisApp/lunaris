@@ -16,12 +16,12 @@ export class EntitlementsController {
     operation: { summary: "Get active organization entitlements" },
   })
   async getCurrent(
-    @Session() session: UserSession,
+    @Session() session: UserSession
   ): Promise<EntitlementSnapshotDto> {
     const organizationId = requireActiveOrganization(session);
     await this.entitlements.assertOrganizationMember(
       session.user.id,
-      organizationId,
+      organizationId
     );
     return this.entitlements.resolveSnapshotForOrganization({
       organizationId,

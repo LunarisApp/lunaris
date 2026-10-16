@@ -9,10 +9,7 @@ import {
 import { WORKSPACE_VISIBILITY } from "@repo/auth/sync-access";
 import { and, asc, desc, eq, gt, lt, or } from "drizzle-orm";
 import { workspaceMembersDb } from "../members/workspace-members.entity";
-import {
-  decodeCursor,
-  toPage,
-} from "@app/utils/pagination";
+import { decodeCursor, toPage } from "@app/utils/pagination";
 import { workspaceAccessCondition } from "./workspace-access";
 import { workspacesDb } from "./workspaces.entity";
 import {
@@ -45,9 +42,9 @@ export class WorkspacesService {
           lt(workspacesDb.updatedAt, cursorDate),
           and(
             eq(workspacesDb.updatedAt, cursorDate),
-            gt(workspacesDb.id, cursor.id),
-          ),
-        )!,
+            gt(workspacesDb.id, cursor.id)
+          )
+        )!
       );
     }
 
@@ -77,7 +74,7 @@ export class WorkspacesService {
   async create(
     input: CreateWorkspaceInput,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     const visibility = input.visibility ?? WORKSPACE_VISIBILITY.shared;
     if (visibility === WORKSPACE_VISIBILITY.local) {
@@ -112,7 +109,7 @@ export class WorkspacesService {
           })
           .returning();
         return workspace;
-      },
+      }
     );
     return toWorkspaceDto(workspace!);
   }
@@ -122,7 +119,7 @@ export class WorkspacesService {
     input: UpdateWorkspaceInput,
     organizationId: string,
     expectedRevision?: string,
-    userId?: string,
+    userId?: string
   ) {
     if (input.visibility !== undefined) {
       return this.updateVisibility(
@@ -130,7 +127,7 @@ export class WorkspacesService {
         input.visibility,
         organizationId,
         expectedRevision,
-        userId,
+        userId
       );
     }
     const { visibility: _visibility, ...detailsInput } = input;
@@ -157,13 +154,13 @@ export class WorkspacesService {
           .where(and(...filters))
           .returning();
         return updated;
-      },
+      }
     );
     if (!workspace) {
       if (expectedRevision) {
         await this.find(workspaceId, organizationId, userId, "owner");
         throw new ConflictException(
-          "Resource revision does not match If-Match",
+          "Resource revision does not match If-Match"
         );
       }
       throw new NotFoundException("Workspace not found");
@@ -178,7 +175,7 @@ export class WorkspacesService {
       | typeof WORKSPACE_VISIBILITY.shared,
     organizationId: string,
     expectedRevision?: string,
-    userId?: string,
+    userId?: string
   ) {
     if (visibility === WORKSPACE_VISIBILITY.private && !userId) {
       throw new UnprocessableEntityException({
@@ -199,8 +196,7 @@ export class WorkspacesService {
       const [updated] = await tx
         .update(workspacesDb)
         .set({
-          ownerId:
-            visibility === WORKSPACE_VISIBILITY.private ? userId : null,
+          ownerId: visibility === WORKSPACE_VISIBILITY.private ? userId : null,
           syncedUpdatedAt: new Date(),
           updatedAt: new Date(),
           visibility,
@@ -220,7 +216,7 @@ export class WorkspacesService {
       if (expectedRevision) {
         await this.find(workspaceId, organizationId, userId, "owner");
         throw new ConflictException(
-          "Resource revision does not match If-Match",
+          "Resource revision does not match If-Match"
         );
       }
       throw new NotFoundException("Workspace not found");
@@ -234,11 +230,13 @@ export class WorkspacesService {
       .where(
         and(
           eq(workspacesDb.id, workspaceId),
-          workspaceAccessCondition(organizationId, userId, "owner"),
-        ),
+          workspaceAccessCondition(organizationId, userId, "owner")
+        )
       )
       .returning({ id: workspacesDb.id });
-    if (!workspace) throw new NotFoundException("Workspace not found");
+    if (!workspace) {
+      throw new NotFoundException("Workspace not found");
+    }
     return workspace;
   }
 
@@ -246,7 +244,7 @@ export class WorkspacesService {
     workspaceId: string,
     organizationId: string,
     userId?: string,
-    access: "owner" | "read" = "read",
+    access: "owner" | "read" = "read"
   ) {
     const [workspace] = await this.database.db
       .select()
@@ -254,11 +252,13 @@ export class WorkspacesService {
       .where(
         and(
           eq(workspacesDb.id, workspaceId),
-          workspaceAccessCondition(organizationId, userId, access),
-        ),
+          workspaceAccessCondition(organizationId, userId, access)
+        )
       )
       .limit(1);
-    if (!workspace) throw new NotFoundException("Workspace not found");
+    if (!workspace) {
+      throw new NotFoundException("Workspace not found");
+    }
     return workspace;
   }
 
@@ -266,12 +266,14 @@ export class WorkspacesService {
     slug: string | undefined,
     organizationId: string,
     userId: string | undefined,
-    operation: (slug: string | undefined) => Promise<T>,
+    operation: (slug: string | undefined) => Promise<T>
   ) {
     try {
       return await operation(slug);
     } catch (error) {
-      if (!isUniqueViolation(error, "workspaces_org_slug_unique")) throw error;
+      if (!isUniqueViolation(error, "workspaces_org_slug_unique")) {
+        throw error;
+      }
       if (
         !slug ||
         (await this.hasAccessibleSlug(slug, organizationId, userId))
@@ -293,7 +295,7 @@ export class WorkspacesService {
   private async hasAccessibleSlug(
     slug: string,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     const [workspace] = await this.database.db
       .select({ id: workspacesDb.id })
@@ -301,8 +303,8 @@ export class WorkspacesService {
       .where(
         and(
           eq(workspacesDb.slug, slug),
-          workspaceAccessCondition(organizationId, userId),
-        ),
+          workspaceAccessCondition(organizationId, userId)
+        )
       )
       .limit(1);
     return Boolean(workspace);
@@ -325,7 +327,9 @@ export function toWorkspaceDto(workspace: WorkspaceRow): WorkspaceDto {
     organizationId: workspace.organizationId,
     slug: workspace.slug,
     updatedAt: workspace.updatedAt.toISOString(),
-    lastActivityAt: (workspace.lastActivityAt ?? workspace.updatedAt).toISOString(),
+    lastActivityAt: (
+      workspace.lastActivityAt ?? workspace.updatedAt
+    ).toISOString(),
     visibility:
       workspace.visibility === WORKSPACE_VISIBILITY.private
         ? WORKSPACE_VISIBILITY.private

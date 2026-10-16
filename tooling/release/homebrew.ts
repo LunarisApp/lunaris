@@ -1,9 +1,4 @@
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   checksumForAsset,
@@ -132,7 +127,7 @@ export function renderHomebrewDefinition(
 
 function readDefinitionVersion(content: string, path: string): string {
   const match = content.match(/^\s*version "([^"]+)"$/m);
-  if (!match || !isDistributionVersion(match[1])) {
+  if (!(match && isDistributionVersion(match[1]))) {
     throw new Error(`Cannot read existing Homebrew version from ${path}`);
   }
   return match[1];
@@ -151,7 +146,7 @@ export function updateHomebrewTap({
   const assetName = expectedAssetName(component, version, signingMode);
   const assetPath = resolve(distDirectory, assetName);
   const checksumPath = resolve(distDirectory, "SHA256SUMS");
-  if (!existsSync(assetPath) || !existsSync(checksumPath)) {
+  if (!(existsSync(assetPath) && existsSync(checksumPath))) {
     throw new Error(`Homebrew release inputs are missing for ${assetName}`);
   }
 

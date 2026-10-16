@@ -284,10 +284,7 @@ async function resolveManifestDownload(
 		);
 	}
 	if (manifestSource === undefined) {
-		throw new ReleaseDownloadError(
-			"not_found",
-			notFoundMessage,
-		);
+		throw new ReleaseDownloadError("not_found", notFoundMessage);
 	}
 
 	const manifest = parseReleaseManifest(manifestSource, target);
@@ -330,7 +327,7 @@ export function resolveReleaseDownload(
 	environment: Record<string, string | undefined> = process.env,
 	dependencies?: ReleaseStorageDependencies,
 ): Promise<SignedReleaseDownload> {
-	const config = readReleaseStorageConfig(environment);
+	const _config = readReleaseStorageConfig(environment);
 	const component = targetConfig[target].component;
 	return resolveManifestDownload(
 		target,
@@ -355,7 +352,7 @@ export function resolveVersionedReleaseDownload(
 		);
 	}
 
-	const config = readReleaseStorageConfig(environment);
+	const _config = readReleaseStorageConfig(environment);
 	const component = targetConfig[target].component;
 	return resolveManifestDownload(
 		target,

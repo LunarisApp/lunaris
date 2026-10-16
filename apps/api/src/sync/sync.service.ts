@@ -65,7 +65,7 @@ export class SyncService {
     databaseService: DatabaseService,
     private readonly authService: AuthService<Auth>,
     private readonly entitlements: EntitlementsService,
-    private readonly permissions: PermissionService,
+    private readonly permissions: PermissionService
   ) {
     this.db = databaseService.db;
   }
@@ -73,7 +73,7 @@ export class SyncService {
   async getCredentials(
     userId: string,
     organizationId: string,
-    syncAccess: SyncAccessPolicy,
+    syncAccess: SyncAccessPolicy
   ) {
     const powersyncUrl = process.env.POWERSYNC_URL ?? "";
     const now = Math.floor(Date.now() / 1000);
@@ -104,7 +104,7 @@ export class SyncService {
   async ingest(
     transactions: Transaction[],
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     const log = useLogger();
     const ops: Record<string, number> = {};
@@ -130,9 +130,9 @@ export class SyncService {
         transaction.crud
           .filter(
             (entry) =>
-              entry.type === "workspace_resources" && entry.op === "DELETE",
+              entry.type === "workspace_resources" && entry.op === "DELETE"
           )
-          .map(({ id }) => id),
+          .map(({ id }) => id)
       );
       await this.db.transaction(async (tx) => {
         const [activeOrganization] = await tx
@@ -141,18 +141,19 @@ export class SyncService {
           .where(
             and(
               eq(organization.id, organizationId),
-              isNull(organization.deletionRequestedAt),
-            ),
+              isNull(organization.deletionRequestedAt)
+            )
           )
           .for("share");
-        if (!activeOrganization)
+        if (!activeOrganization) {
           throw new ForbiddenException("Organization is unavailable");
+        }
         const existingTrash = resourceDeleteIds.size
           ? await tx
               .select({ id: workspaceResourceTrashDb.id })
               .from(workspaceResourceTrashDb)
               .where(
-                inArray(workspaceResourceTrashDb.id, [...resourceDeleteIds]),
+                inArray(workspaceResourceTrashDb.id, [...resourceDeleteIds])
               )
           : [];
         const purgedResourceIds = new Set(existingTrash.map(({ id }) => id));
@@ -164,14 +165,18 @@ export class SyncService {
             organizationId,
             userId,
             principal,
-            purgedResourceIds,
+            purgedResourceIds
           );
-          if (audit) committedAudits.push(audit);
+          if (audit) {
+            committedAudits.push(audit);
+          }
           transactionOps[key] = (transactionOps[key] ?? 0) + 1;
         }
       });
 
-      for (const audit of committedAudits) audit();
+      for (const audit of committedAudits) {
+        audit();
+      }
 
       for (const [key, count] of Object.entries(transactionOps)) {
         ops[key] = (ops[key] ?? 0) + count;
@@ -190,7 +195,7 @@ export class SyncService {
       role: string | null;
       userId: string | undefined;
     },
-    purgedResourceIds: ReadonlySet<string>,
+    purgedResourceIds: ReadonlySet<string>
   ) {
     const { op, type: tableName, id, data } = entry;
 
@@ -202,14 +207,22 @@ export class SyncService {
 
     // Client activity is an optimistic display hint. Triggers derive authoritative
     // activity from authorized mutations; never require owner rights for a hint.
-    const activityTable = tableName === "workspaces" || tableName === "workspace_resources";
-    if (activityTable && op === "PATCH" && data &&
-      Object.keys(data).length === 1 && Object.hasOwn(data, "last_activity_at")) return;
+    const activityTable =
+      tableName === "workspaces" || tableName === "workspace_resources";
+    if (
+      activityTable &&
+      op === "PATCH" &&
+      data &&
+      Object.keys(data).length === 1 &&
+      Object.hasOwn(data, "last_activity_at")
+    ) {
+      return;
+    }
 
     const { table, idCol } = handler;
     await this.permissions.requirePermission(
       handler.permissions[op],
-      principal,
+      principal
     );
 
     if (
@@ -228,7 +241,9 @@ export class SyncService {
         .select({ id: idCol })
         .from(table)
         .where(eq(idCol, id));
-      if (existing.length === 0) return;
+      if (existing.length === 0) {
+        return;
+      }
     }
     if (op === "DELETE" && tableName === "workspace_resource_trash") {
       const [existing] = await db
@@ -238,7 +253,9 @@ export class SyncService {
         })
         .from(workspaceResourceTrashDb)
         .where(eq(workspaceResourceTrashDb.id, id));
-      if (!existing) return;
+      if (!existing) {
+        return;
+      }
       if (!purgedResourceIds.has(id) && existing.purgeAt <= new Date()) {
         throw new BadRequestError({
           message: "Expired workspace resource trash cannot be restored",
@@ -261,7 +278,7 @@ export class SyncService {
           id,
           undefined,
           organizationId,
-          userId,
+          userId
         );
         return;
       }
@@ -270,7 +287,9 @@ export class SyncService {
     // Prepare the data for processing.
     const mapped = snakeToCamel(data ?? {});
     delete mapped.id;
-    if (activityTable && op === "PATCH") delete mapped.lastActivityAt;
+    if (activityTable && op === "PATCH") {
+      delete mapped.lastActivityAt;
+    }
     handler.transform?.(mapped);
     coerceTimestamps(table, mapped);
     delete mapped.syncedCreatedAt;
@@ -307,7 +326,7 @@ export class SyncService {
       id,
       mapped,
       organizationId,
-      userId,
+      userId
     );
 
     switch (op) {

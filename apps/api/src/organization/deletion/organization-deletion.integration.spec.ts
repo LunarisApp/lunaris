@@ -45,14 +45,22 @@ integration("organization deletion (PostgreSQL)", () => {
   let failStorage = false;
   const storage = {
     async putObject(key: string) {
-      if (failStorage) throw new Error("Storage unavailable");
+      if (failStorage) {
+        throw new Error("Storage unavailable");
+      }
       files.add(key);
     },
     async *listObjects(prefix: string) {
-      for (const key of files) if (key.startsWith(prefix)) yield { key };
+      for (const key of files) {
+        if (key.startsWith(prefix)) {
+          yield { key };
+        }
+      }
     },
     async deleteObject(key: string) {
-      if (failStorage) throw new Error("Storage unavailable");
+      if (failStorage) {
+        throw new Error("Storage unavailable");
+      }
       files.delete(key);
     },
   };
@@ -70,14 +78,14 @@ integration("organization deletion (PostgreSQL)", () => {
     await pool?.end();
     if (admin) {
       await admin.query(
-        `DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`,
+        `DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`
       );
       await admin.end();
     }
   });
   beforeEach(async () => {
     await pool.query(
-      'TRUNCATE organization_deletions, organization, "user" CASCADE',
+      'TRUNCATE organization_deletions, organization, "user" CASCADE'
     );
     await database.db.insert(user).values({
       id: "owner",
@@ -138,13 +146,13 @@ integration("organization deletion (PostgreSQL)", () => {
 
   it("enforces owner, slug, fresh session, and personal organization restrictions", async () => {
     await expect(
-      service.requestDeletion({ id: "viewer" }, "org", "test", new Date()),
+      service.requestDeletion({ id: "viewer" }, "org", "test", new Date())
     ).rejects.toThrow("Only organization owners");
     await expect(
-      service.requestDeletion({ id: "owner" }, "org", "wrong", new Date()),
+      service.requestDeletion({ id: "owner" }, "org", "wrong", new Date())
     ).rejects.toThrow("slug does not match");
     await expect(
-      service.requestDeletion({ id: "owner" }, "org", "test", new Date(0)),
+      service.requestDeletion({ id: "owner" }, "org", "test", new Date(0))
     ).rejects.toThrow("sign in again");
     await database.db
       .update(organization)
@@ -152,18 +160,18 @@ integration("organization deletion (PostgreSQL)", () => {
       .where(eq(organization.id, "org"));
     await expect(schedule()).rejects.toThrow("personal organization");
     expect(
-      await database.db.select().from(organizationDeletionsDb),
+      await database.db.select().from(organizationDeletionsDb)
     ).toHaveLength(0);
   });
   it("schedules once, blocks access, and lets owners restore before deadline", async () => {
     const first = await schedule();
     expect(new Date(first.purgeAfter!).getTime() - Date.now()).toBeGreaterThan(
-      DELETION_GRACE_MS - 5000,
+      DELETION_GRACE_MS - 5000
     );
     expect((await schedule()).purgeAfter).toBe(first.purgeAfter);
     expect((await service.getStatus("viewer", "org")).canRestore).toBe(false);
     await expect(service.restore("viewer", "org")).rejects.toThrow(
-      "Only organization owners",
+      "Only organization owners"
     );
     const permissions = new PermissionService(database);
     expect(
@@ -171,21 +179,21 @@ integration("organization deletion (PostgreSQL)", () => {
         organizationId: "org",
         userId: "owner",
         role: "owner",
-      }),
+      })
     ).toBe(false);
     await expect(
       assertAuthOrganizationAccess(database.db, {
         path: "/organization/update",
         body: { organizationId: "org" },
         activeOrganizationId: "other",
-      }),
+      })
     ).rejects.toThrow("scheduled for deletion");
     expect((await service.restore("owner", "org")).status).toBe("active");
     expect(
       await permissions.hasPermission(permission.content.write, {
         organizationId: "org",
         userId: "owner",
-      }),
+      })
     ).toBe(true);
     await worker().processPending();
     expect(files.size).toBe(4);
@@ -196,7 +204,7 @@ integration("organization deletion (PostgreSQL)", () => {
     expect(files.size).toBe(4);
     await expire();
     await expect(service.restore("owner", "org")).rejects.toThrow(
-      "recovery period has ended",
+      "recovery period has ended"
     );
     await worker().processPending();
     expect([...files]).toEqual([
@@ -238,7 +246,9 @@ integration("organization deletion (PostgreSQL)", () => {
     let billingFails = true;
     let canceled = false;
     const update = mock(async () => {
-      if (billingFails) throw new Error("Polar unavailable");
+      if (billingFails) {
+        throw new Error("Polar unavailable");
+      }
       canceled = true;
     });
     const revoke = mock(async () => undefined);
@@ -264,17 +274,17 @@ integration("organization deletion (PostgreSQL)", () => {
       storage as never,
       polar as never,
       { emails: { send } } as never,
-      { frontendUrl: "https://app.lunaris.test", appRegion: "eu" } as never,
+      { frontendUrl: "https://app.lunaris.test", appRegion: "eu" } as never
     );
     const status = await schedule();
     expect(status.workspaceIds).toEqual(["workspace-1"]);
     await processor.processPending();
     expect((await service.getStatus("owner", "org")).billingStopped).toBe(
-      false,
+      false
     );
     expect(send).toHaveBeenCalledTimes(1);
     expect(send.mock.calls[0]?.[0].text).toContain(
-      "https://app.lunaris.test/test?region=eu",
+      "https://app.lunaris.test/test?region=eu"
     );
     billingFails = false;
     await processor.processPending();
@@ -316,7 +326,7 @@ integration("organization deletion (PostgreSQL)", () => {
           path: "/organization/update",
           body,
           activeOrganizationId: "org",
-        }),
+        })
       ).rejects.toThrow("scheduled for deletion");
     }
     await expect(
@@ -324,7 +334,7 @@ integration("organization deletion (PostgreSQL)", () => {
         path: "/organization/update-member-role",
         body: { organizationId: "other", memberId: "owner-member" },
         activeOrganizationId: "other",
-      }),
+      })
     ).rejects.toThrow("scheduled for deletion");
   });
   it("checks the active organization for customer portals despite unrelated body IDs", async () => {
@@ -334,7 +344,7 @@ integration("organization deletion (PostgreSQL)", () => {
         path: "/customer/portal",
         body: { organizationId: "other" },
         activeOrganizationId: "org",
-      }),
+      })
     ).rejects.toThrow("scheduled for deletion");
   });
   it("keeps billing cancellation committed when owner notification fails", async () => {
@@ -343,24 +353,24 @@ integration("organization deletion (PostgreSQL)", () => {
     const send = mock(async () =>
       failEmail
         ? { data: null, error: { message: "Email unavailable" } }
-        : { data: { id: "email" }, error: null },
+        : { data: { id: "email" }, error: null }
     );
     const processor = new OrganizationDeletionWorker(
       database,
       storage as never,
       null,
       { emails: { send } } as never,
-      { frontendUrl: "https://app.lunaris.test", appRegion: "eu" } as never,
+      { frontendUrl: "https://app.lunaris.test", appRegion: "eu" } as never
     );
     await processor.processPending();
     expect((await service.getStatus("owner", "org")).billingStopped).toBe(true);
     expect(
-      (await database.db.select().from(organizationDeletionsDb))[0]?.notifiedAt,
+      (await database.db.select().from(organizationDeletionsDb))[0]?.notifiedAt
     ).toBeNull();
     failEmail = false;
     await processor.processPending();
     expect(
-      (await database.db.select().from(organizationDeletionsDb))[0]?.notifiedAt,
+      (await database.db.select().from(organizationDeletionsDb))[0]?.notifiedAt
     ).toBeInstanceOf(Date);
     expect(send).toHaveBeenCalledTimes(2);
   });
@@ -370,16 +380,18 @@ integration("organization deletion (PostgreSQL)", () => {
     const send = mock(
       async (
         _message: { text: string },
-        _options: { idempotencyKey: string },
+        _options: { idempotencyKey: string }
       ) => ({
         data: null,
         error: { message: "Delivery response lost" },
-      }),
+      })
     );
     const polar = {
       subscriptions: {
         list: async () => {
-          if (billingFails) throw new Error("Billing unavailable");
+          if (billingFails) {
+            throw new Error("Billing unavailable");
+          }
           return {
             async *[Symbol.asyncIterator]() {
               yield { result: { items: [] } };
@@ -393,7 +405,7 @@ integration("organization deletion (PostgreSQL)", () => {
       storage as never,
       polar as never,
       { emails: { send } } as never,
-      { frontendUrl: "https://app.lunaris.test", appRegion: "eu" } as never,
+      { frontendUrl: "https://app.lunaris.test", appRegion: "eu" } as never
     );
     await processor.processPending();
     billingFails = false;
@@ -405,10 +417,10 @@ integration("organization deletion (PostgreSQL)", () => {
 
   it("returns explicit unavailable status for a missing membership", async () => {
     expect((await service.getStatus("outsider", "org")).status).toBe(
-      "unavailable",
+      "unavailable"
     );
     expect((await service.getStatus("owner", "missing")).status).toBe(
-      "unavailable",
+      "unavailable"
     );
   });
   it("reapplies deletion tombstones after a database restore", async () => {
@@ -416,14 +428,14 @@ integration("organization deletion (PostgreSQL)", () => {
     await worker().onModuleInit();
     expect((await service.getStatus("owner", "org")).status).toBe("purging");
     await expect(service.restore("owner", "org")).rejects.toThrow(
-      "recovery period has ended",
+      "recovery period has ended"
     );
     await worker().processPending();
     expect(
       await database.db
         .select()
         .from(organization)
-        .where(eq(organization.id, "org")),
+        .where(eq(organization.id, "org"))
     ).toHaveLength(0);
   });
   it("keeps purge irreversible after failure, then retries safely", async () => {
@@ -435,13 +447,12 @@ integration("organization deletion (PostgreSQL)", () => {
     expect(deletion?.purgeStartedAt).toBeInstanceOf(Date);
     expect(deletion?.completedAt).toBeNull();
     await expect(service.restore("owner", "org")).rejects.toThrow(
-      "recovery period has ended",
+      "recovery period has ended"
     );
     failStorage = false;
     await Promise.all([worker().processPending(), worker().processPending()]);
     expect(
-      (await database.db.select().from(organizationDeletionsDb))[0]
-        ?.completedAt,
+      (await database.db.select().from(organizationDeletionsDb))[0]?.completedAt
     ).toBeInstanceOf(Date);
   });
 });

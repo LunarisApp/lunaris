@@ -8,7 +8,7 @@ export class DatabaseService {
   readonly pool: Pool;
 
   constructor(
-    @InjectDrizzle() readonly db: DrizzleDatabase & { $client: Pool },
+    @InjectDrizzle() readonly db: DrizzleDatabase & { $client: Pool }
   ) {
     this.pool = db.$client;
   }

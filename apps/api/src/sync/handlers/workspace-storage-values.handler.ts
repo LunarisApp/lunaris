@@ -2,7 +2,10 @@ import { BadRequestError } from "@app/utils/errors";
 import { permission } from "@repo/auth/permissions";
 import { and, eq } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
-import { workspaceStorageSlotsDb, workspaceStorageValuesDb } from "../../workspaces/storage/workspace-storage.entity";
+import {
+  workspaceStorageSlotsDb,
+  workspaceStorageValuesDb,
+} from "../../workspaces/storage/workspace-storage.entity";
 import { verifyChildOwnership, verifyWorkspaceOwnership } from "../sync.auth";
 import type { EntityHandler } from "../sync.handlers";
 
@@ -18,23 +21,32 @@ export const workspaceStorageValuesHandler: EntityHandler = {
   },
   immutableKeys: ["storageId", "workspaceId", "key", "createdAt"],
   put: async (tx, id, mapped) => {
-    await tx.insert(table).values({ ...mapped, id }).onConflictDoUpdate({
-      set: { ...mapped, id, syncedUpdatedAt: new Date() },
-      target: [workspaceStorageValuesDb.storageId, workspaceStorageValuesDb.key],
-    });
+    await tx
+      .insert(table)
+      .values({ ...mapped, id })
+      .onConflictDoUpdate({
+        set: { ...mapped, id, syncedUpdatedAt: new Date() },
+        target: [
+          workspaceStorageValuesDb.storageId,
+          workspaceStorageValuesDb.key,
+        ],
+      });
   },
   authorize: async (tx, op, id, data, organizationId, userId) => {
     if (op === "PUT") {
       const workspaceId = data?.workspaceId as string;
       const storageId = data?.storageId as string;
       await verifyWorkspaceOwnership(tx, workspaceId, organizationId, userId);
-      const slot = await tx.select({ id: workspaceStorageSlotsDb.id })
+      const slot = await tx
+        .select({ id: workspaceStorageSlotsDb.id })
         .from(workspaceStorageSlotsDb)
-        .where(and(
-          eq(workspaceStorageSlotsDb.id, storageId),
-          eq(workspaceStorageSlotsDb.workspaceId, workspaceId),
-          eq(workspaceStorageSlotsDb.kind, "key-value"),
-        ));
+        .where(
+          and(
+            eq(workspaceStorageSlotsDb.id, storageId),
+            eq(workspaceStorageSlotsDb.workspaceId, workspaceId),
+            eq(workspaceStorageSlotsDb.kind, "key-value")
+          )
+        );
       if (!slot[0]) {
         throw new BadRequestError({
           message: "Invalid workspace storage value",
@@ -50,7 +62,7 @@ export const workspaceStorageValuesHandler: EntityHandler = {
       workspaceStorageValuesDb.id,
       id,
       organizationId,
-      userId,
+      userId
     );
   },
 };

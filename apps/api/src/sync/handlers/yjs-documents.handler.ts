@@ -18,7 +18,7 @@ export const yjsDocumentsHandler: EntityHandler = {
         tx,
         data?.workspaceId as string,
         organizationId,
-        userId,
+        userId
       );
     } else {
       await verifyChildOwnership(
@@ -27,7 +27,7 @@ export const yjsDocumentsHandler: EntityHandler = {
         yjsDocumentsDb.id,
         id,
         organizationId,
-        userId,
+        userId
       );
     }
   },

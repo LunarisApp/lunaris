@@ -17,7 +17,7 @@ describe("presence awareness protocol", () => {
     doc.on("update", () => updates++);
     const position = Y.createRelativePositionFromTypeIndex(
       doc.getXmlFragment(),
-      0,
+      0
     );
     awareness.setLocalState({
       user: { id: "victim", name: "Imposter", email: "private" },
@@ -27,7 +27,7 @@ describe("presence awareness protocol", () => {
     const entry = readOwnedAwareness(
       encodeAwarenessUpdate(awareness, [doc.clientID]),
       doc.clientID,
-      identity,
+      identity
     );
     expect(entry.state).toEqual({
       user: identity,
@@ -47,25 +47,25 @@ describe("presence awareness protocol", () => {
     const awareness = new Awareness(doc);
     const packet = encodeAwarenessUpdate(awareness, [doc.clientID]);
     expect(() =>
-      readOwnedAwareness(packet, doc.clientID + 1, identity),
+      readOwnedAwareness(packet, doc.clientID + 1, identity)
     ).toThrow();
     expect(() =>
       readOwnedAwareness(
         encodeAwarenessUpdate(awareness, [doc.clientID, doc.clientID]),
         doc.clientID,
-        identity,
-      ),
+        identity
+      )
     ).toThrow();
     awareness.setLocalState({ cursor: { anchor: "wrong", head: {} } });
     expect(() =>
       readOwnedAwareness(
         encodeAwarenessUpdate(awareness, [doc.clientID]),
         doc.clientID,
-        identity,
-      ),
+        identity
+      )
     ).toThrow();
     expect(() =>
-      readOwnedAwareness(new Uint8Array(9000), doc.clientID, identity),
+      readOwnedAwareness(new Uint8Array(9000), doc.clientID, identity)
     ).toThrow();
     awareness.destroy();
     doc.destroy();
@@ -80,12 +80,7 @@ describe("resource and channel frames", () => {
     encoding.writeVarUint(encoder, 1);
     encoding.writeVarString(encoder, '{"data":1e999}');
     expect(() =>
-      readOwnedAwareness(
-        encoding.toUint8Array(encoder),
-        7,
-        identity,
-        "channel",
-      ),
+      readOwnedAwareness(encoding.toUint8Array(encoder), 7, identity, "channel")
     ).toThrow("JSON number");
   });
   it("strips interaction data from membership and accepts bounded channel JSON", () => {
@@ -98,20 +93,22 @@ describe("resource and channel frames", () => {
     });
     const packet = () => encodeAwarenessUpdate(awareness, [doc.clientID]);
     expect(
-      readOwnedAwareness(packet(), doc.clientID, identity, "resource").state,
+      readOwnedAwareness(packet(), doc.clientID, identity, "resource").state
     ).toEqual({ user: identity });
     expect(
-      readOwnedAwareness(packet(), doc.clientID, identity, "channel").state,
+      readOwnedAwareness(packet(), doc.clientID, identity, "channel").state
     ).toEqual({ user: identity, data: { selected: ["card"] } });
     awareness.setLocalState({ data: "x".repeat(4097) });
     expect(() =>
-      readOwnedAwareness(packet(), doc.clientID, identity, "channel"),
+      readOwnedAwareness(packet(), doc.clientID, identity, "channel")
     ).toThrow("large");
     let deep: unknown = null;
-    for (let i = 0; i < 10; i++) deep = { deep };
+    for (let i = 0; i < 10; i++) {
+      deep = { deep };
+    }
     awareness.setLocalState({ data: deep });
     expect(() =>
-      readOwnedAwareness(packet(), doc.clientID, identity, "channel"),
+      readOwnedAwareness(packet(), doc.clientID, identity, "channel")
     ).toThrow("deep");
     awareness.destroy();
     doc.destroy();

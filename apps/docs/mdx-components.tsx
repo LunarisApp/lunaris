@@ -4,10 +4,10 @@ import { useMDXComponents as getThemeComponents } from "nextra-theme-docs";
 const themeComponents = getThemeComponents();
 
 export function useMDXComponents(
-	components: MDXComponents = {},
+  components: MDXComponents = {}
 ): MDXComponents {
-	return {
-		...themeComponents,
-		...components,
-	};
+  return {
+    ...themeComponents,
+    ...components,
+  };
 }

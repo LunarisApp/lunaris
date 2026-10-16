@@ -1,8 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-  appleSecretNames,
-  selectSigningMode,
-} from "./signing-mode";
+import { appleSecretNames, selectSigningMode } from "./signing-mode";
 
 describe("selectSigningMode", () => {
   test("selects ad-hoc mode when every Apple secret is absent", () => {

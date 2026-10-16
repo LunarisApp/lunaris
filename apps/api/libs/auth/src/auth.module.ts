@@ -52,19 +52,23 @@ import { canDisableEmailVerification } from "./flag.utils";
         resend: Resend | null,
         resendConfig: ResendConfig,
         polarWebhookHandlers: PolarWebhookHandlers,
-        entitlementsService: EntitlementsService,
+        entitlementsService: EntitlementsService
       ) => {
         const emailVerificationDisabled = canDisableEmailVerification(
           appConfig.nodeEnv,
           authConfig.emailVerificationDisabled,
-          authConfig.selfHosted,
+          authConfig.selfHosted
         );
         const polarValues = polarConfig.enabled
           ? polarConfig.values
           : undefined;
         return {
           auth: createAuth(dbService.db, {
-            database: capacityAdapter(dbService, authSchema, entitlementsService),
+            database: capacityAdapter(
+              dbService,
+              authSchema,
+              entitlementsService
+            ),
             audit: recordAuthAudit,
             assertOrganizationAccess: (input) =>
               assertAuthOrganizationAccess(dbService.db, input),
@@ -87,8 +91,8 @@ import { canDisableEmailVerification } from "./flag.utils";
                   .where(
                     and(
                       eq(workspacesDb.organizationId, organizationId),
-                      eq(workspacesDb.ownerId, userId),
-                    ),
+                      eq(workspacesDb.ownerId, userId)
+                    )
                   )
                   .limit(1);
                 if (ownedWorkspace) {

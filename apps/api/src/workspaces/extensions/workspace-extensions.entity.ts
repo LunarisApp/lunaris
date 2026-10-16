@@ -35,11 +35,11 @@ export const workspaceExtensionsDb = pgTable(
   (table) => [
     unique("workspace_extensions_workspace_extension_unique").on(
       table.workspaceId,
-      table.extensionId,
+      table.extensionId
     ),
     index("workspace_extensions_workspace_enabled_idx").on(
       table.workspaceId,
-      table.enabled,
+      table.enabled
     ),
-  ],
+  ]
 );

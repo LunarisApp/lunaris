@@ -1,8 +1,5 @@
 import { createLogger } from "evlog";
-import {
-  AuditActions,
-  authRouteAuditAction,
-} from "./audit.actions";
+import { AuditActions, authRouteAuditAction } from "./audit.actions";
 import { recordComplianceAudit } from "./audit-log";
 
 export interface AuthAuditEvent {
@@ -18,15 +15,15 @@ export interface AuthAuditEvent {
 export function recordAuthAudit(event: AuthAuditEvent): void {
   const path = event.path;
   const actionName = authRouteAuditAction(`/api/auth${path}`);
-  if (!actionName) return;
+  if (!actionName) {
+    return;
+  }
   const action = AuditActions[actionName];
 
   const log = createLogger({
     path: `/api/auth${path}`,
     ...(event.actorId ? { user: { id: event.actorId } } : {}),
-    ...(event.tenantId
-      ? { organization: { id: event.tenantId } }
-      : {}),
+    ...(event.tenantId ? { organization: { id: event.tenantId } } : {}),
   });
   const input = action({
     actor: {
@@ -49,11 +46,7 @@ export function recordAuthAudit(event: AuthAuditEvent): void {
     },
   });
   if (event.outcome === "denied") {
-    recordComplianceAudit(
-      log,
-      input,
-      event.reason ?? "Auth action denied",
-    );
+    recordComplianceAudit(log, input, event.reason ?? "Auth action denied");
   } else {
     recordComplianceAudit(log, input);
   }

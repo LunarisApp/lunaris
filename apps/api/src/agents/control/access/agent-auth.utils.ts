@@ -1,7 +1,7 @@
 import { type AgentScope, agentScopeSchema } from "@repo/agent-contracts";
 
 export function firstHeader(
-  value: string | string[] | null | undefined,
+  value: string | string[] | null | undefined
 ): string | undefined {
   return Array.isArray(value) ? value[0] : (value ?? undefined);
 }
@@ -23,8 +23,12 @@ export function parseAgentScopes(value: unknown): AgentScope[] {
 }
 
 export function oauthClientId(claims: unknown) {
-  if (typeof claims !== "object" || claims === null) return undefined;
+  if (typeof claims !== "object" || claims === null) {
+    return;
+  }
   const { azp, client_id: clientId } = claims as Record<string, unknown>;
-  if (typeof clientId === "string") return clientId;
+  if (typeof clientId === "string") {
+    return clientId;
+  }
   return typeof azp === "string" ? azp : undefined;
 }

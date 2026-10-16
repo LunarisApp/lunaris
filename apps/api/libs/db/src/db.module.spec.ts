@@ -64,7 +64,7 @@ describe("native Drizzle lifecycle", () => {
   it("keeps auditing through HTTP teardown and drains before pool closure", async () => {
     const app = await NestFactory.createApplicationContext(
       AuditShutdownModule,
-      { logger: false },
+      { logger: false }
     );
     const database = app.get(DatabaseService);
     let persisted = false;
@@ -76,7 +76,7 @@ describe("native Drizzle lifecycle", () => {
               persisted = true;
             },
           }),
-        }) as never,
+        }) as never
     );
     const end = database.pool.end.bind(database.pool);
     spyOn(database.pool, "end").mockImplementation(async () => {
@@ -94,11 +94,11 @@ describe("native Drizzle lifecycle", () => {
   it("owns one independent pool per app and closes it once after pending teardown", async () => {
     const first = await NestFactory.createApplicationContext(
       DatabaseTestModule,
-      { logger: false },
+      { logger: false }
     );
     const second = await NestFactory.createApplicationContext(
       DatabaseTestModule,
-      { logger: false },
+      { logger: false }
     );
     const firstPool = first.get(DatabaseService).pool;
     const secondPool = second.get(DatabaseService).pool;

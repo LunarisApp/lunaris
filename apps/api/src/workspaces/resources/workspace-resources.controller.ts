@@ -28,7 +28,7 @@ import { WorkspaceResourcesService } from "./workspace-resources.service";
 export class WorkspaceResourcesController {
   constructor(
     private readonly access: UserDataAccessService,
-    private readonly resources: WorkspaceResourcesService,
+    private readonly resources: WorkspaceResourcesService
   ) {}
 
   @ListApi({
@@ -41,7 +41,7 @@ export class WorkspaceResourcesController {
     @Param({ schema: WorkspaceResourcesParamsDto })
     params: WorkspaceResourcesParamsDto,
     @Query({ schema: WorkspaceResourcesListQueryDto })
-    query: WorkspaceResourcesListQueryDto,
+    query: WorkspaceResourcesListQueryDto
   ): Promise<WorkspaceResourcesListResponseDto> {
     const organization = await this.access.requireOrganization(session);
     this.log("list", params.workspaceId);
@@ -58,7 +58,7 @@ export class WorkspaceResourcesController {
     @Param({ schema: WorkspaceResourcesParamsDto })
     params: WorkspaceResourcesParamsDto,
     @Body({ schema: CreateWorkspaceResourceDto })
-    body: CreateWorkspaceResourceDto,
+    body: CreateWorkspaceResourceDto
   ): Promise<WorkspaceResourceDto> {
     const { organizationId, userId } =
       await this.access.requireOrganization(session);
@@ -67,7 +67,7 @@ export class WorkspaceResourcesController {
       body,
       params.workspaceId,
       organizationId,
-      userId,
+      userId
     );
   }
 
@@ -80,7 +80,7 @@ export class WorkspaceResourcesController {
   async get(
     @Session() session: UserSession,
     @Param({ schema: WorkspaceResourceParamsDto })
-    params: WorkspaceResourceParamsDto,
+    params: WorkspaceResourceParamsDto
   ): Promise<WorkspaceResourceDto> {
     const { organizationId, userId } =
       await this.access.requireOrganization(session);
@@ -89,7 +89,7 @@ export class WorkspaceResourcesController {
       params.resourceId,
       params.workspaceId,
       organizationId,
-      userId,
+      userId
     );
   }
 
@@ -104,7 +104,7 @@ export class WorkspaceResourcesController {
     @Param({ schema: WorkspaceResourceParamsDto })
     params: WorkspaceResourceParamsDto,
     @Body({ schema: UpdateWorkspaceResourceDto })
-    body: UpdateWorkspaceResourceDto,
+    body: UpdateWorkspaceResourceDto
   ): Promise<WorkspaceResourceDto> {
     const { organizationId, userId } =
       await this.access.requireOrganization(session);
@@ -115,7 +115,7 @@ export class WorkspaceResourcesController {
       params.workspaceId,
       organizationId,
       undefined,
-      userId,
+      userId
     );
   }
 
@@ -127,7 +127,7 @@ export class WorkspaceResourcesController {
   async delete(
     @Session() session: UserSession,
     @Param({ schema: WorkspaceResourceParamsDto })
-    params: WorkspaceResourceParamsDto,
+    params: WorkspaceResourceParamsDto
   ): Promise<{ id: string }> {
     const { organizationId, userId } =
       await this.access.requireOrganization(session);
@@ -136,7 +136,7 @@ export class WorkspaceResourcesController {
       params.resourceId,
       params.workspaceId,
       organizationId,
-      userId,
+      userId
     );
   }
 
@@ -149,7 +149,7 @@ export class WorkspaceResourcesController {
   async restore(
     @Session() session: UserSession,
     @Param({ schema: WorkspaceResourceParamsDto })
-    params: WorkspaceResourceParamsDto,
+    params: WorkspaceResourceParamsDto
   ): Promise<{ id: string }> {
     const { organizationId, userId } =
       await this.access.requireOrganization(session);
@@ -158,7 +158,7 @@ export class WorkspaceResourcesController {
       params.resourceId,
       params.workspaceId,
       organizationId,
-      userId,
+      userId
     );
   }
 
@@ -170,7 +170,7 @@ export class WorkspaceResourcesController {
   async purge(
     @Session() session: UserSession,
     @Param({ schema: WorkspaceResourceParamsDto })
-    params: WorkspaceResourceParamsDto,
+    params: WorkspaceResourceParamsDto
   ): Promise<{ id: string }> {
     const { organizationId, userId } =
       await this.access.requireOrganization(session);
@@ -179,7 +179,7 @@ export class WorkspaceResourcesController {
       params.resourceId,
       params.workspaceId,
       organizationId,
-      userId,
+      userId
     );
   }
 

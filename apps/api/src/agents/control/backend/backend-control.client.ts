@@ -28,7 +28,7 @@ export class BackendControlClientFactory {
     private readonly pluginOperations: BuiltInPluginOperationsService,
     private readonly items: WorkspaceResourcesService,
     private readonly workspaces: WorkspacesService,
-    private readonly safety: AgentSafetyService,
+    private readonly safety: AgentSafetyService
   ) {}
 
   create(principal: AgentPrincipal): LunarisControlClient {
@@ -39,22 +39,29 @@ export class BackendControlClientFactory {
       if (!principal.scopes.includes(scope)) {
         throw new ForbiddenException(`Missing scope: ${scope}`);
       }
-      if (!organizationId) return;
+      if (!organizationId) {
+        return;
+      }
       const [membership] = await this.database.db
         .select({ id: member.id })
         .from(member)
         .where(
           and(
             eq(member.userId, principal.actorId),
-            eq(member.organizationId, organizationId),
-          ),
+            eq(member.organizationId, organizationId)
+          )
         )
         .limit(1);
-      if (!membership) throw new ForbiddenException("Organization membership required");
+      if (!membership) {
+        throw new ForbiddenException("Organization membership required");
+      }
     };
     const manager = async (organizationId: string) => {
       await access("organization:manage", organizationId);
-      await this.control.assertOrganizationOwner(principal.actorId, organizationId);
+      await this.control.assertOrganizationOwner(
+        principal.actorId,
+        organizationId
+      );
     };
     const idem = (options: RequestOptions | undefined) => {
       if (!options?.idempotencyKey) {
@@ -76,12 +83,17 @@ export class BackendControlClientFactory {
               await this.workspaces.create(
                 input,
                 organizationId,
-                principal.actorId,
-              ),
+                principal.actorId
+              )
             ),
         });
       },
-      createWorkspaceResource: async (organizationId, workspaceId, input, options) => {
+      createWorkspaceResource: async (
+        organizationId,
+        workspaceId,
+        input,
+        options
+      ) => {
         await access("workspace:write", organizationId);
         return this.safety.idempotent({
           actorId: principal.actorId,
@@ -97,15 +109,21 @@ export class BackendControlClientFactory {
             withCloudProvenance(
               await this.control.createResource({
                 actorId: principal.actorId,
-                expectedParentResourceTypeId: options?.expectedParentResourceTypeId,
+                expectedParentResourceTypeId:
+                  options?.expectedParentResourceTypeId,
                 input,
                 workspaceId,
                 organizationId,
-              }),
+              })
             ),
         });
       },
-      deleteWorkspace: async (organizationId, workspaceId, previewToken, options) => {
+      deleteWorkspace: async (
+        organizationId,
+        workspaceId,
+        previewToken,
+        options
+      ) => {
         await access("workspace:delete", organizationId);
         return this.control.deleteWorkspace({
           actorId: principal.actorId,
@@ -120,7 +138,7 @@ export class BackendControlClientFactory {
         workspaceId,
         resourceId,
         previewToken,
-        options,
+        options
       ) => {
         await access("workspace:delete", organizationId);
         return this.control.deleteResource({
@@ -139,12 +157,9 @@ export class BackendControlClientFactory {
         pluginId,
         operation,
         input,
-        options,
+        options
       ) => {
-        const definition = findBuiltInPluginMcpProcedure(
-          pluginId,
-          operation,
-        );
+        const definition = findBuiltInPluginMcpProcedure(pluginId, operation);
         if (!definition) {
           throw new ForbiddenException("Unknown built-in extension operation");
         }
@@ -158,7 +173,9 @@ export class BackendControlClientFactory {
             workspaceId,
             organizationId,
           });
-        if (definition.execution.risk === "read") return run();
+        if (definition.execution.risk === "read") {
+          return run();
+        }
         return this.safety.idempotent({
           actorId: principal.actorId,
           key: idem(options),
@@ -173,14 +190,14 @@ export class BackendControlClientFactory {
           organizationId,
           workspaceId,
           storageId,
-          principal.actorId,
+          principal.actorId
         );
       },
       getYjsStorageState: async (
         organizationId,
         workspaceId,
         storageId,
-        stateVectorB64,
+        stateVectorB64
       ) => {
         await access("content:read", organizationId);
         return this.control.getYjsStorageState({
@@ -191,17 +208,13 @@ export class BackendControlClientFactory {
           organizationId,
         });
       },
-      getFileDownloadUrl: async (
-        organizationId,
-        workspaceId,
-        storageId,
-      ) => {
+      getFileDownloadUrl: async (organizationId, workspaceId, storageId) => {
         await access("file:read", organizationId);
         return this.control.getFileDownloadUrl(
           organizationId,
           workspaceId,
           storageId,
-          principal.actorId,
+          principal.actorId
         );
       },
       getWorkspace: async (organizationId, workspaceId) => {
@@ -209,7 +222,7 @@ export class BackendControlClientFactory {
         return this.control.getWorkspace(
           organizationId,
           workspaceId,
-          principal.actorId,
+          principal.actorId
         );
       },
       listKeyValueStorage: async (organizationId, workspaceId, storageId) => {
@@ -218,7 +231,7 @@ export class BackendControlClientFactory {
           organizationId,
           workspaceId,
           storageId,
-          principal.actorId,
+          principal.actorId
         );
       },
       getWorkspaceResource: async (organizationId, workspaceId, resourceId) => {
@@ -227,7 +240,7 @@ export class BackendControlClientFactory {
           organizationId,
           workspaceId,
           resourceId,
-          principal.actorId,
+          principal.actorId
         );
       },
       getOrganization: async (organizationId) => {
@@ -245,13 +258,17 @@ export class BackendControlClientFactory {
             this.control.inviteMember(organizationId, input, principal.actorId),
         });
       },
-      listWorkspaceResources: async (organizationId, workspaceId, input = {}) => {
+      listWorkspaceResources: async (
+        organizationId,
+        workspaceId,
+        input = {}
+      ) => {
         await access("workspace:read", organizationId);
         return this.control.listResources(
           organizationId,
           workspaceId,
           input,
-          principal.actorId,
+          principal.actorId
         );
       },
       searchResources: async (organizationId, input) => {
@@ -259,7 +276,7 @@ export class BackendControlClientFactory {
         return this.control.searchResources(
           organizationId,
           input,
-          principal.actorId,
+          principal.actorId
         );
       },
       listWorkspaces: async (organizationId, input = {}) => {
@@ -267,7 +284,7 @@ export class BackendControlClientFactory {
         return this.control.listWorkspaces(
           organizationId,
           input,
-          principal.actorId,
+          principal.actorId
         );
       },
       listOrganizationMembers: async (organizationId, input = {}) => {
@@ -275,7 +292,7 @@ export class BackendControlClientFactory {
         return this.control.listMembers(
           organizationId,
           input.limit ?? 50,
-          input.cursor,
+          input.cursor
         );
       },
       listOrganizations: async (input = {}) => {
@@ -283,7 +300,7 @@ export class BackendControlClientFactory {
         return this.control.listOrganizations(
           principal,
           input.limit ?? 50,
-          input.cursor,
+          input.cursor
         );
       },
       previewDeleteWorkspace: async (organizationId, workspaceId) => {
@@ -291,14 +308,14 @@ export class BackendControlClientFactory {
         return this.control.previewWorkspace(
           organizationId,
           workspaceId,
-          principal.actorId,
+          principal.actorId
         );
       },
       previewDeleteWorkspaceResource: async (
         organizationId,
         workspaceId,
         resourceId,
-        options,
+        options
       ) => {
         await access("workspace:delete", organizationId);
         return this.control.previewResource(
@@ -306,7 +323,7 @@ export class BackendControlClientFactory {
           workspaceId,
           resourceId,
           principal.actorId,
-          options?.expectedResourceTypeId,
+          options?.expectedResourceTypeId
         );
       },
       previewRemoveOrganizationMember: async (organizationId, memberId) => {
@@ -314,14 +331,14 @@ export class BackendControlClientFactory {
         return this.control.previewRemoveMember(
           organizationId,
           memberId,
-          principal.actorId,
+          principal.actorId
         );
       },
       removeOrganizationMember: async (
         organizationId,
         memberId,
         previewToken,
-        options,
+        options
       ) => {
         await manager(organizationId);
         return this.control.removeMember({
@@ -347,8 +364,8 @@ export class BackendControlClientFactory {
                 update,
                 organizationId,
                 input.expectedRevision,
-                principal.actorId,
-              ),
+                principal.actorId
+              )
             ),
         });
       },
@@ -357,7 +374,7 @@ export class BackendControlClientFactory {
         workspaceId,
         resourceId,
         input,
-        options,
+        options
       ) => {
         await access("workspace:write", organizationId);
         const { expectedRevision: _, ...update } = input;
@@ -374,8 +391,8 @@ export class BackendControlClientFactory {
                 workspaceId,
                 organizationId,
                 input.expectedRevision,
-                principal.actorId,
-              ),
+                principal.actorId
+              )
             ),
         });
       },
@@ -391,7 +408,7 @@ export class BackendControlClientFactory {
             this.control.updateOrganization(
               organizationId,
               update,
-              expectedRevision,
+              expectedRevision
             ),
         });
       },
@@ -403,12 +420,14 @@ export class BackendControlClientFactory {
 function auditedClient(
   client: LunarisControlClient,
   principal: AgentPrincipal,
-  safety: AgentSafetyService,
+  safety: AgentSafetyService
 ) {
   return new Proxy(client, {
     get(target, property, receiver) {
       const value = Reflect.get(target, property, receiver);
-      if (typeof value !== "function") return value;
+      if (typeof value !== "function") {
+        return value;
+      }
       return async (...args: unknown[]) => {
         const startedAt = performance.now();
         try {
@@ -469,7 +488,8 @@ function clientOperation(method: string, args: unknown[]) {
     updateWorkspaceResource: "update_resource",
   };
   return (
-    names[method] ?? method.replace(/[A-Z]/g, (value) => `_${value.toLowerCase()}`)
+    names[method] ??
+    method.replace(/[A-Z]/g, (value) => `_${value.toLowerCase()}`)
   );
 }
 
@@ -481,10 +501,14 @@ function clientTargetId(method: string, args: unknown[]) {
       if (typeof values.documentResourceId === "string") {
         return values.documentResourceId;
       }
-      if (typeof values.taskId === "string") return values.taskId;
-      if (typeof values.boardId === "string") return values.boardId;
+      if (typeof values.taskId === "string") {
+        return values.taskId;
+      }
+      if (typeof values.boardId === "string") {
+        return values.boardId;
+      }
     }
-    return undefined;
+    return;
   }
   return typeof args[2] === "string"
     ? args[2]

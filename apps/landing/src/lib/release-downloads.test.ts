@@ -224,12 +224,7 @@ describe("resolveVersionedReleaseDownload", () => {
 
 	test("rejects an invalid version before reading storage configuration", async () => {
 		await expect(
-			resolveVersionedReleaseDownload(
-				"cli",
-				"../latest",
-				"artifact.zip",
-				{},
-			),
+			resolveVersionedReleaseDownload("cli", "../latest", "artifact.zip", {}),
 		).rejects.toMatchObject({ kind: "not_found" });
 	});
 });
@@ -264,9 +259,9 @@ describe("parseReleaseManifest", () => {
 	test("rejects an artifact outside the expected release prefix", () => {
 		const manifest = manifestFor("cli");
 		manifest.artifacts[0].objectKey = "private/admin-credentials";
-		expect(() =>
-			parseReleaseManifest(JSON.stringify(manifest), "cli"),
-		).toThrow("artifact metadata is invalid");
+		expect(() => parseReleaseManifest(JSON.stringify(manifest), "cli")).toThrow(
+			"artifact metadata is invalid",
+		);
 	});
 });
 

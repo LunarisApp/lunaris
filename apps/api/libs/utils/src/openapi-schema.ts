@@ -4,7 +4,9 @@ import { z } from "zod";
 /** Dates are accepted as query strings and coerced by the validation pipe. */
 export const standardSchemaConverter: SwaggerDocumentOptions["standardSchemaConverter"] =
   (schema, { schemaType }) => {
-    if (!(schema instanceof z.ZodType)) return undefined;
+    if (!(schema instanceof z.ZodType)) {
+      return;
+    }
     const converted = z.toJSONSchema(schema, {
       target: "openapi-3.0",
       io: schemaType,

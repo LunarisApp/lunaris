@@ -20,7 +20,9 @@ function cargoPackageVersion(path: string): string {
     /\[package\]([\s\S]*?)(?=\n\[[^\]]+\]|\s*$)/
   )?.[1];
   const version = packageSection?.match(/^\s*version\s*=\s*"([^"]+)"/m)?.[1];
-  if (!version) throw new Error(`Cannot find [package] version in ${path}`);
+  if (!version) {
+    throw new Error(`Cannot find [package] version in ${path}`);
+  }
   return version;
 }
 
@@ -35,24 +37,27 @@ function updateCargoPackageVersion(path: string, version: string) {
       return `${before}${version}${after}`;
     }
   );
-  if (!replaced) throw new Error(`Cannot update [package] version in ${path}`);
+  if (!replaced) {
+    throw new Error(`Cannot update [package] version in ${path}`);
+  }
   writeFileSync(absolutePath, next, "utf8");
 }
 
 function updateJsonVersion(path: string, version: string) {
   const absolutePath = resolve(root, path);
   const source = readFileSync(absolutePath, "utf8");
-  const next = source.replace(
-    /("version"\s*:\s*")[^"]+(")/,
-    `$1${version}$2`
-  );
+  const next = source.replace(/("version"\s*:\s*")[^"]+(")/, `$1${version}$2`);
   if (next === source && !source.includes(`"version": "${version}"`)) {
     throw new Error(`Cannot update JSON version in ${path}`);
   }
   writeFileSync(absolutePath, next, "utf8");
 }
 
-function runCargoUpdate(manifestPath: string, packageName: string, version: string) {
+function runCargoUpdate(
+  manifestPath: string,
+  packageName: string,
+  version: string
+) {
   const result = spawnSync(
     "cargo",
     [
@@ -80,9 +85,7 @@ function assertVersion(label: string, actual: string, expected: string) {
 }
 
 const cliPackage = readJson<PackageManifest>("apps/cli/package.json");
-const desktopPackage = readJson<PackageManifest>(
-  "apps/desktop/package.json"
-);
+const desktopPackage = readJson<PackageManifest>("apps/desktop/package.json");
 const tauriConfig = readJson<{ version: string }>(
   "apps/desktop/src-tauri/tauri.conf.json"
 );

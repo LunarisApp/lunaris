@@ -30,9 +30,9 @@ export class AgentAuditInterceptor implements NestInterceptor {
       concatMap((value) =>
         from(
           this.writeAuditSafely(request, operation, startedAt, "success").then(
-            () => value,
-          ),
-        ),
+            () => value
+          )
+        )
       ),
       catchError((error: unknown) =>
         from(
@@ -41,10 +41,10 @@ export class AgentAuditInterceptor implements NestInterceptor {
             operation,
             startedAt,
             "failure",
-            error,
-          ).then(() => error),
-        ).pipe(concatMap((caught) => throwError(() => caught))),
-      ),
+            error
+          ).then(() => error)
+        ).pipe(concatMap((caught) => throwError(() => caught)))
+      )
     );
   }
 
@@ -53,7 +53,7 @@ export class AgentAuditInterceptor implements NestInterceptor {
     operation: string,
     startedAt: number,
     status: "failure" | "success",
-    error?: unknown,
+    error?: unknown
   ) {
     try {
       await this.writeAudit(request, operation, startedAt, status, error);
@@ -69,10 +69,12 @@ export class AgentAuditInterceptor implements NestInterceptor {
     operation: string,
     startedAt: number,
     status: "failure" | "success",
-    error?: unknown,
+    error?: unknown
   ) {
     const principal = request.agentPrincipal;
-    if (!principal) return Promise.resolve();
+    if (!principal) {
+      return Promise.resolve();
+    }
     const params = request.params as {
       resourceId?: string;
       memberId?: string;

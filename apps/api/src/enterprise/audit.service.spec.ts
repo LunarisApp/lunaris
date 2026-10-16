@@ -64,7 +64,7 @@ describe("AuditService drain", () => {
         signature: expect.any(String),
         signatureKeyId: "test-v2",
         tenantId: "organization_1",
-      }),
+      })
     );
     expect(onConflictDoNothing).toHaveBeenCalledTimes(1);
     await service.onApplicationShutdown();
@@ -144,14 +144,14 @@ describe("AuditService drain", () => {
   it("allows only organization owners to review events", async () => {
     const owner = auditReviewerService("owner");
     await expect(
-      owner.service.assertReviewer("user_1", "organization_1"),
+      owner.service.assertReviewer("user_1", "organization_1")
     ).resolves.toBeUndefined();
     await owner.service.onApplicationShutdown();
 
     for (const role of ["editor", "viewer", undefined]) {
       const reviewer = auditReviewerService(role);
       await expect(
-        reviewer.service.assertReviewer("user_1", "organization_1"),
+        reviewer.service.assertReviewer("user_1", "organization_1")
       ).rejects.toBeInstanceOf(ForbiddenException);
       await reviewer.service.onApplicationShutdown();
     }
@@ -197,7 +197,7 @@ describe("AuditService drain", () => {
       service.list("organization_1", {
         cursor: "not-a-valid-cursor",
         limit: 50,
-      }),
+      })
     ).rejects.toMatchObject({ status: 400 });
     await expect(
       service.list("organization_1", {
@@ -206,7 +206,7 @@ describe("AuditService drain", () => {
           occurredAt: "2026-07-27T10:00:00.000Z",
         }),
         limit: 50,
-      }),
+      })
     ).rejects.toMatchObject({ status: 400 });
     await service.onApplicationShutdown();
   });
@@ -217,7 +217,7 @@ function auditRow(
     changes: unknown;
     id: string;
     occurredAt: Date;
-  }> = {},
+  }> = {}
 ) {
   return {
     action: "organization.updated",

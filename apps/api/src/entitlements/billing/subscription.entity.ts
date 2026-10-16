@@ -1,5 +1,11 @@
 import { sql } from "drizzle-orm";
-import { index, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  index,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { organization, user } from "../../auth/auth.entity";
 
 /**
@@ -32,7 +38,7 @@ export const subscription = pgTable(
   (table) => [
     index("subscription_organization_status_idx").on(
       table.organizationId,
-      table.status,
+      table.status
     ),
     uniqueIndex("subscription_one_access_plan_per_organization_idx")
       .on(table.organizationId)

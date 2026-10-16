@@ -15,7 +15,9 @@ const planDefinitionsProvider = {
   inject: [PolarConfig],
   useFactory: (polarConfig: PolarConfig) => {
     const polarValues = polarConfig.values;
-    if (!polarValues) return [];
+    if (!polarValues) {
+      return [];
+    }
     return createPlans(polarValues.productIds);
   },
 };
@@ -30,6 +32,11 @@ const planDefinitionsProvider = {
     SeatReconciliationWorker,
     SeatService,
   ],
-  exports: [PLAN_DEFINITIONS, EntitlementsService, PolarWebhookHandlers, BillingService],
+  exports: [
+    PLAN_DEFINITIONS,
+    EntitlementsService,
+    PolarWebhookHandlers,
+    BillingService,
+  ],
 })
 export class EntitlementsModule {}

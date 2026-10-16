@@ -22,7 +22,7 @@ export const backupStatusEnum = pgEnum("backup_status", [
 
 export const backupNotificationStatusEnum = pgEnum(
   "backup_notification_status",
-  ["pending", "processing", "sent", "failed", "skipped"],
+  ["pending", "processing", "sent", "failed", "skipped"]
 );
 
 export const backupExportsDb = pgTable(
@@ -65,25 +65,18 @@ export const backupExportsDb = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    index("backup_org_created_idx").on(
-      table.organizationId,
-      table.createdAt,
-    ),
-    index("backup_status_lease_idx").on(
-      table.status,
-      table.leaseExpiresAt,
-    ),
+    index("backup_org_created_idx").on(table.organizationId, table.createdAt),
+    index("backup_status_lease_idx").on(table.status, table.leaseExpiresAt),
     index("backup_notification_idx").on(
       table.notificationStatus,
-      table.notificationLastAttemptAt,
+      table.notificationLastAttemptAt
     ),
     uniqueIndex("backup_one_active_uidx")
       .on(table.organizationId)
       .where(sql`${table.status} IN ('queued', 'processing')`),
-  ],
+  ]
 );
 
 export type BackupExport = typeof backupExportsDb.$inferSelect;
 export type BackupStatus = BackupExport["status"];
-export type BackupNotificationStatus =
-  BackupExport["notificationStatus"];
+export type BackupNotificationStatus = BackupExport["notificationStatus"];

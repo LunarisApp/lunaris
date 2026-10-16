@@ -26,10 +26,10 @@ describe("native configuration", () => {
       ssl: true,
     });
     expect(
-      new DatabaseConfig(config({ ...values, DATABASE_SSL: "false" })).ssl,
+      new DatabaseConfig(config({ ...values, DATABASE_SSL: "false" })).ssl
     ).toBe(false);
     expect(
-      () => new DatabaseConfig(config({ ...values, DATABASE_SSL: "invalid" })),
+      () => new DatabaseConfig(config({ ...values, DATABASE_SSL: "invalid" }))
     ).toThrow();
   });
 
@@ -37,7 +37,7 @@ describe("native configuration", () => {
     expect(new PolarConfig(config({})).enabled).toBe(false);
     expect(new RedisConfig(config({})).values).toBeUndefined();
     expect(
-      () => new RedisConfig(config({ REDIS_HOST: "localhost" })).values,
+      () => new RedisConfig(config({ REDIS_HOST: "localhost" })).values
     ).toThrow("must all be set");
   });
 
@@ -59,8 +59,8 @@ describe("native configuration", () => {
     expect(
       () =>
         new AppConfig(
-          config({ ...values, LOCAL_DB_ENCRYPTION_MASTER_KEY: "bad" }),
-        ),
+          config({ ...values, LOCAL_DB_ENCRYPTION_MASTER_KEY: "bad" })
+        )
     ).toThrow();
   });
 });

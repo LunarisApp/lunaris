@@ -16,8 +16,10 @@ export function buildOrganizationDeletionEmail(params: {
     timeZone: "UTC",
     timeZoneName: "short",
   }).format(params.purgeAfter);
-  const billing = "Subscription renewal cancellation is requested and retried automatically if needed. Restoration does not restart billing.";
-  const offline = "Offline devices may retain downloaded copies until they reconnect.";
+  const billing =
+    "Subscription renewal cancellation is requested and retried automatically if needed. Restoration does not restart billing.";
+  const offline =
+    "Offline devices may retain downloaded copies until they reconnect.";
   const name = escapeHtml(params.organizationName);
   const url = escapeHtml(params.recoveryUrl);
 
@@ -52,6 +54,10 @@ export function buildOrganizationDeletionEmail(params: {
 }
 
 function escapeHtml(value: string) {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }

@@ -21,13 +21,13 @@ export class OrganizationDeletionController {
   requestDeletion(
     @Session() session: UserSession,
     @Body({ schema: OrganizationDeletionRequestDto })
-    body: OrganizationDeletionRequestDto,
+    body: OrganizationDeletionRequestDto
   ) {
     return this.deletionService.requestDeletion(
       session.user,
       body.organizationId,
       body.confirmationSlug,
-      session.session.createdAt,
+      session.session.createdAt
     );
   }
 
@@ -39,7 +39,7 @@ export class OrganizationDeletionController {
   status(
     @Session() session: UserSession,
     @Body({ schema: OrganizationDeletionTargetDto })
-    body: OrganizationDeletionTargetDto,
+    body: OrganizationDeletionTargetDto
   ) {
     return this.deletionService.getStatus(session.user.id, body.organizationId);
   }
@@ -52,7 +52,7 @@ export class OrganizationDeletionController {
   restore(
     @Session() session: UserSession,
     @Body({ schema: OrganizationDeletionTargetDto })
-    body: OrganizationDeletionTargetDto,
+    body: OrganizationDeletionTargetDto
   ) {
     return this.deletionService.restore(session.user.id, body.organizationId);
   }

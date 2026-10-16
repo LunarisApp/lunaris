@@ -16,23 +16,34 @@ describe("Google provider configuration", () => {
   });
 
   it("advertises only the provider name when both credentials exist", () => {
-    const config = new AuthConfig(new ConfigService({
-      GOOGLE_CLIENT_ID: "client",
-      GOOGLE_CLIENT_SECRET: "secret",
-    }));
+    const config = new AuthConfig(
+      new ConfigService({
+        GOOGLE_CLIENT_ID: "client",
+        GOOGLE_CLIENT_SECRET: "secret",
+      })
+    );
     expect(config.socialProviders).toEqual(["google"]);
-    expect(config.values?.google).toEqual({ clientId: "client", clientSecret: "secret" });
+    expect(config.values?.google).toEqual({
+      clientId: "client",
+      clientSecret: "secret",
+    });
   });
 });
 
-
 describe("signup configuration", () => {
-  it.each([[undefined, true], ["true", true], ["false", false]])(
-    "parses %s as %s", (value, expected) => {
-      expect(new AuthConfig(new ConfigService({ SIGNUPS_ALLOWED: value })).signupsAllowed).toBe(expected);
-    },
-  );
+  it.each([
+    [undefined, true],
+    ["true", true],
+    ["false", false],
+  ])("parses %s as %s", (value, expected) => {
+    expect(
+      new AuthConfig(new ConfigService({ SIGNUPS_ALLOWED: value }))
+        .signupsAllowed
+    ).toBe(expected);
+  });
   it("rejects invalid values instead of silently opening signup", () => {
-    expect(() => new AuthConfig(new ConfigService({ SIGNUPS_ALLOWED: "no" }))).toThrow();
+    expect(
+      () => new AuthConfig(new ConfigService({ SIGNUPS_ALLOWED: "no" }))
+    ).toThrow();
   });
 });

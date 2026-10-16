@@ -24,7 +24,9 @@ async function patchWorkspaceResource(
 
   await db.transaction(async (tx) => {
     const item = await getWorkspaceResource(tx, id, { lock: true });
-    if (!item) return;
+    if (!item) {
+      return;
+    }
 
     await assertValidWorkspaceResourceParent({
       tx,
@@ -67,7 +69,7 @@ export const workspaceResourcesHandler: EntityHandler = {
         workspaceResourcesDb.id,
         id,
         organizationId,
-        userId,
+        userId
       );
     }
   },

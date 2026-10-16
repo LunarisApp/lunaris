@@ -1,6 +1,14 @@
 import { createId } from "@repo/utils";
 import { sql } from "drizzle-orm";
-import { check, index, integer, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import {
+  check,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+} from "drizzle-orm/pg-core";
 import { workspacesDb } from "../core/workspaces.entity";
 
 export const workspaceResourcesDb = pgTable(
@@ -28,21 +36,27 @@ export const workspaceResourcesDb = pgTable(
     syncedUpdatedAt: timestamp().notNull().defaultNow(),
   },
   (table) => [
-    check("workspace_resources_schema_version_positive", sql`${table.schemaVersion} > 0`),
-    unique("workspace_resources_id_workspace_unique").on(table.id, table.workspaceId),
+    check(
+      "workspace_resources_schema_version_positive",
+      sql`${table.schemaVersion} > 0`
+    ),
+    unique("workspace_resources_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
+    ),
     index("workspace_resources_workspace_position_created_idx").on(
       table.workspaceId,
       table.position,
       table.createdAt,
-      table.id,
+      table.id
     ),
     index("workspace_resources_workspace_parent_idx").on(
       table.workspaceId,
-      table.parentId,
+      table.parentId
     ),
     index("workspace_resources_name_trgm_idx").using(
       "gin",
-      table.name.op("gin_trgm_ops"),
+      table.name.op("gin_trgm_ops")
     ),
   ]
 );
@@ -64,14 +78,17 @@ export const workspaceResourceTrashDb = pgTable(
     syncedUpdatedAt: timestamp().notNull().defaultNow(),
   },
   (table) => [
-    check("workspace_resource_trash_deadline_valid", sql`${table.purgeAt} > ${table.trashedAt}`),
+    check(
+      "workspace_resource_trash_deadline_valid",
+      sql`${table.purgeAt} > ${table.trashedAt}`
+    ),
     index("workspace_resource_trash_workspace_purge_idx").on(
       table.workspaceId,
-      table.purgeAt,
+      table.purgeAt
     ),
     index("workspace_resource_trash_workspace_root_idx").on(
       table.workspaceId,
-      table.trashRootId,
+      table.trashRootId
     ),
-  ],
+  ]
 );

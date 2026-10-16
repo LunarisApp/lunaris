@@ -26,7 +26,7 @@ import { FilesService } from "./files.service";
 export class FilesController {
   constructor(
     private readonly files: FilesService,
-    private readonly uploads: UploadSessionsService,
+    private readonly uploads: UploadSessionsService
   ) {}
 
   @ActionApi({
@@ -40,14 +40,14 @@ export class FilesController {
   @RequirePermission(permission.content.write)
   createUpload(
     @Session() session: UserSession,
-    @Body({ schema: CreateUploadSessionDto }) body: CreateUploadSessionDto,
+    @Body({ schema: CreateUploadSessionDto }) body: CreateUploadSessionDto
   ) {
     return this.uploads.create(
       {
         organizationId: requireActiveOrganization(session),
         userId: session.user.id,
       },
-      body,
+      body
     );
   }
 
@@ -63,7 +63,7 @@ export class FilesController {
         organizationId: requireActiveOrganization(session),
         userId: session.user.id,
       },
-      id,
+      id
     );
   }
 
@@ -77,7 +77,7 @@ export class FilesController {
   signPart(
     @Session() session: UserSession,
     @Param("id") id: string,
-    @Body({ schema: SignUploadPartDto }) body: SignUploadPartDto,
+    @Body({ schema: SignUploadPartDto }) body: SignUploadPartDto
   ) {
     return this.uploads.signPart(
       {
@@ -85,7 +85,7 @@ export class FilesController {
         userId: session.user.id,
       },
       id,
-      body.partNumber,
+      body.partNumber
     );
   }
 
@@ -102,7 +102,7 @@ export class FilesController {
         organizationId: requireActiveOrganization(session),
         userId: session.user.id,
       },
-      id,
+      id
     );
   }
 
@@ -121,7 +121,7 @@ export class FilesController {
         organizationId: requireActiveOrganization(session),
         userId: session.user.id,
       },
-      id,
+      id
     );
   }
 
@@ -136,7 +136,7 @@ export class FilesController {
   getDownloadUrl(
     @Session() session: UserSession,
     @Param("fileId") fileId: string,
-    @Query({ schema: FileUrlQueryDto }) query: FileUrlQueryDto,
+    @Query({ schema: FileUrlQueryDto }) query: FileUrlQueryDto
   ): Promise<FileDownloadUrlResponseDto> {
     const organizationId = requireActiveOrganization(session);
     useLogger().set({
@@ -167,7 +167,7 @@ export class FilesController {
   deleteFile(
     @Session() session: UserSession,
     @Param("fileId") fileId: string,
-    @Query({ schema: FileUrlQueryDto }) query: FileUrlQueryDto,
+    @Query({ schema: FileUrlQueryDto }) query: FileUrlQueryDto
   ): Promise<DeleteFileResponseDto> {
     const organizationId = requireActiveOrganization(session);
     useLogger().set({
@@ -192,6 +192,8 @@ export class FilesController {
 
 function requireActiveOrganization(session: UserSession) {
   const organizationId = session.session.activeOrganizationId;
-  if (!organizationId) throw new NoActiveOrganizationError();
+  if (!organizationId) {
+    throw new NoActiveOrganizationError();
+  }
   return organizationId;
 }

@@ -22,9 +22,7 @@ describe("Yjs document state helpers", () => {
   it("validates and reconstructs V2 updates", () => {
     const source = new Doc();
     source.getText("content").insert(0, "hello");
-    const update = decodeYjsUpdateV2(
-      base64(encodeStateAsUpdateV2(source)),
-    );
+    const update = decodeYjsUpdateV2(base64(encodeStateAsUpdateV2(source)));
 
     const restored = reconstructYjsDocument([{ updateData: update }]);
     try {
@@ -46,7 +44,7 @@ describe("Yjs document state helpers", () => {
 
     expect(decodeYjsStateVector(base64(stateVector))).toEqual(stateVector);
     expect(() => decodeYjsStateVector("not base64")).toThrow(
-      BadRequestException,
+      BadRequestException
     );
     expect(() => decodeYjsStateVector("AB==")).toThrow(BadRequestException);
     doc.destroy();

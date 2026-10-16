@@ -18,7 +18,6 @@ describe("EncryptionKeyController", () => {
   });
 
   it("derives from the session record id, not the user id", () => {
-    // biome-ignore lint/suspicious/noExplicitAny: test mock
     const session = {
       user: { id: "user-1", isAnonymous: false },
       session: { id: "session-42", activeOrganizationId: "org-1" },
@@ -31,7 +30,6 @@ describe("EncryptionKeyController", () => {
   });
 
   it("works for anonymous sessions", () => {
-    // biome-ignore lint/suspicious/noExplicitAny: test mock
     const session = {
       user: { id: "anon-1", isAnonymous: true },
       session: { id: "session-anon", activeOrganizationId: null },

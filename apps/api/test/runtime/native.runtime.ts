@@ -153,7 +153,7 @@ async function createApp(nodeEnv = "production") {
   const app = await NestFactory.create<NestFastifyApplication>(
     RuntimeModule,
     new FastifyAdapter({ trustProxy: true }),
-    { logger: false, bodyParser: false },
+    { logger: false, bodyParser: false }
   );
   apps.push(app);
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: "1" });
@@ -161,7 +161,7 @@ async function createApp(nodeEnv = "production") {
   SwaggerModule.setup("api", app, () =>
     SwaggerModule.createDocument(app, new DocumentBuilder().build(), {
       standardSchemaConverter,
-    }),
+    })
   );
   await app.init();
   await app.getHttpAdapter().getInstance().ready();
@@ -169,7 +169,9 @@ async function createApp(nodeEnv = "production") {
 }
 
 afterEach(async () => {
-  while (apps.length) await apps.pop()?.close();
+  while (apps.length) {
+    await apps.pop()?.close();
+  }
 });
 
 describe("Nest 12 native runtime", () => {
@@ -234,7 +236,7 @@ describe("Nest 12 native runtime", () => {
     const denials = events.filter(
       (event) =>
         (event.security as { reason?: string } | undefined)?.reason ===
-        "auth.csrf_invalid",
+        "auth.csrf_invalid"
     );
     expect(denials.length).toBeGreaterThan(0);
     for (const event of denials) {
@@ -267,12 +269,12 @@ describe("Nest 12 native runtime", () => {
     });
     expect(preflight.statusCode).toBe(204);
     expect(preflight.headers["access-control-allow-origin"]).toBe(
-      "https://app.example",
+      "https://app.example"
     );
     expect(
       (await app.inject({ method: "GET", url: "/v1/native/nullable" })).json<{
         item: null;
-      }>(),
+      }>()
     ).toEqual({ item: null });
   });
 
@@ -313,31 +315,30 @@ describe("Nest 12 native runtime", () => {
     expect(nullableRoot.statusCode).toBe(200);
 
     const from = spec.paths["/v1/native/dates"].get.parameters.find(
-      (parameter: { name: string }) => parameter.name === "from",
+      (parameter: { name: string }) => parameter.name === "from"
     );
     expect(from.schema).toMatchObject({ type: "string", format: "date-time" });
     expect(spec.paths["/v1/native"].post.operationId).toBe("nativeMutation");
     expect(
       spec.paths["/v1/native"].post.requestBody.content["application/json"]
-        .schema.properties.count,
+        .schema.properties.count
     ).toBeDefined();
     expect(
       spec.paths["/v1/native"].post.responses["200"].content["application/json"]
-        .schema.properties.count.type,
+        .schema.properties.count.type
     ).toBe("number");
     expect((await app.inject({ method: "GET", url: "/api" })).statusCode).toBe(
-      200,
+      200
     );
     expect(
-      (await app.inject({ method: "GET", url: "/v1/security/csrf" }))
-        .statusCode,
+      (await app.inject({ method: "GET", url: "/v1/security/csrf" })).statusCode
     ).toBe(404);
   });
 
   it("runs actual Better Auth signup, session cookies, protected routes and logout", async () => {
     const app = await createApp();
     expect(
-      (await app.inject({ method: "GET", url: "/v1/private" })).statusCode,
+      (await app.inject({ method: "GET", url: "/v1/private" })).statusCode
     ).toBe(401);
     const signup = await app.inject({
       method: "POST",
@@ -361,7 +362,7 @@ describe("Nest 12 native runtime", () => {
           url: "/v1/private",
           headers: { cookie: cookies },
         })
-      ).statusCode,
+      ).statusCode
     ).toBe(200);
     // Rust PowerSync uses authenticated reqwest requests without browser headers.
     expect(
@@ -372,7 +373,7 @@ describe("Nest 12 native runtime", () => {
           headers: { cookie: cookies },
           payload: {},
         })
-      ).statusCode,
+      ).statusCode
     ).toBe(201);
     const desktop = await app.inject({
       method: "GET",
@@ -389,12 +390,11 @@ describe("Nest 12 native runtime", () => {
     expect(logout.statusCode).toBe(200);
     expect(
       logout.cookies.some(
-        (cookie) =>
-          cookie.name.includes("session_token") && cookie.maxAge === 0,
-      ),
+        (cookie) => cookie.name.includes("session_token") && cookie.maxAge === 0
+      )
     ).toBe(true);
     expect(
-      (await app.inject({ method: "GET", url: "/v1/private" })).statusCode,
+      (await app.inject({ method: "GET", url: "/v1/private" })).statusCode
     ).toBe(401);
   });
 });

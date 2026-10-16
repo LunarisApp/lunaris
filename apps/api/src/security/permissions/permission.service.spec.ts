@@ -29,10 +29,10 @@ describe("PermissionService", () => {
     const { service } = makeService("owner");
 
     await expect(
-      service.requirePermission(permission.organization.delete, principal),
+      service.requirePermission(permission.organization.delete, principal)
     ).resolves.toBeUndefined();
     await expect(
-      service.hasPermission(permission.audit.read, principal),
+      service.hasPermission(permission.audit.read, principal)
     ).resolves.toBe(true);
   });
 
@@ -40,7 +40,7 @@ describe("PermissionService", () => {
     const { service } = makeService("viewer");
 
     await expect(
-      service.requirePermission(permission.workspace.delete, principal),
+      service.requirePermission(permission.workspace.delete, principal)
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
@@ -48,14 +48,14 @@ describe("PermissionService", () => {
     const { limit, service } = makeService(null);
 
     await expect(
-      service.hasPermission(permission.workspace.read, principal),
+      service.hasPermission(permission.workspace.read, principal)
     ).resolves.toBe(false);
     expect(limit).toHaveBeenCalledWith(1);
     await expect(
       service.hasPermission(permission.workspace.read, {
         organizationId: undefined,
         userId: "user-1",
-      }),
+      })
     ).resolves.toBe(false);
   });
 
@@ -67,7 +67,7 @@ describe("PermissionService", () => {
       service.hasPermission(permission.content.write, {
         ...principal,
         role,
-      }),
+      })
     ).resolves.toBe(true);
     expect(limit).toHaveBeenCalledTimes(2);
   });

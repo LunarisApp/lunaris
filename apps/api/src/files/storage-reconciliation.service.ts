@@ -3,7 +3,18 @@ import { DatabaseService } from "@app/db";
 import { StorageService } from "@app/storage";
 import { Injectable } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import { and, asc, eq, gt, inArray, isNull, lte, ne, notExists, or } from "drizzle-orm";
+import {
+  and,
+  asc,
+  eq,
+  gt,
+  inArray,
+  isNull,
+  lte,
+  ne,
+  notExists,
+  or,
+} from "drizzle-orm";
 import { log, parseError } from "evlog";
 import { randomUUID } from "node:crypto";
 import { organization } from "../auth/auth.entity";
@@ -22,7 +33,7 @@ export class StorageReconciliationService {
   constructor(
     private readonly database: DatabaseService,
     private readonly storage: StorageService,
-    private readonly uploads: UploadSessionsService,
+    private readonly uploads: UploadSessionsService
   ) {}
 
   @Cron("*/5 * * * *", { name: "file-storage-reconciliation" })
@@ -34,7 +45,10 @@ export class StorageReconciliationService {
       const sessions = await this.database.db
         .select({ session: uploadSessionsDb, workspaceId: workspacesDb.id })
         .from(uploadSessionsDb)
-        .leftJoin(workspacesDb, eq(uploadSessionsDb.workspaceId, workspacesDb.id))
+        .leftJoin(
+          workspacesDb,
+          eq(uploadSessionsDb.workspaceId, workspacesDb.id)
+        )
         .where(
           and(
             sessionCursor ? gt(uploadSessionsDb.id, sessionCursor) : undefined,
@@ -42,17 +56,26 @@ export class StorageReconciliationService {
               inArray(uploadSessionsDb.state, ["completing", "canceling"]),
               and(
                 inArray(uploadSessionsDb.state, ["creating", "uploading"]),
-                or(isNull(workspacesDb.id), lte(uploadSessionsDb.expiresAt, new Date())),
-              ),
-            ),
-          ),
+                or(
+                  isNull(workspacesDb.id),
+                  lte(uploadSessionsDb.expiresAt, new Date())
+                )
+              )
+            )
+          )
         )
         .orderBy(asc(uploadSessionsDb.id))
         .limit(500);
-      if (!sessions.length) break;
+      if (!sessions.length) {
+        break;
+      }
       for (const { session, workspaceId } of sessions) {
         try {
-          if (workspaceId && session.state === "completing" && session.expiresAt > new Date()) {
+          if (
+            workspaceId &&
+            session.state === "completing" &&
+            session.expiresAt > new Date()
+          ) {
             await this.uploads.finish(session.id);
           } else {
             await this.uploads.cancel(undefined, session.id);
@@ -74,16 +97,19 @@ export class StorageReconciliationService {
             this.database.db
               .select({ id: workspacesDb.id })
               .from(workspacesDb)
-              .where(eq(workspacesDb.id, fileObjectsDb.workspaceId)),
+              .where(eq(workspacesDb.id, fileObjectsDb.workspaceId))
           ),
           notExists(
             this.database.db
               .select({ id: storedFilesDb.id })
               .from(storedFilesDb)
-              .innerJoin(workspacesDb, eq(storedFilesDb.workspaceId, workspacesDb.id))
-              .where(eq(storedFilesDb.objectKey, fileObjectsDb.key)),
-          ),
-        ),
+              .innerJoin(
+                workspacesDb,
+                eq(storedFilesDb.workspaceId, workspacesDb.id)
+              )
+              .where(eq(storedFilesDb.objectKey, fileObjectsDb.key))
+          )
+        )
       );
     let objectCursor: string | undefined;
     while (true) {
@@ -93,12 +119,14 @@ export class StorageReconciliationService {
         .where(
           and(
             eq(fileObjectsDb.state, "pending_delete"),
-            objectCursor ? gt(fileObjectsDb.key, objectCursor) : undefined,
-          ),
+            objectCursor ? gt(fileObjectsDb.key, objectCursor) : undefined
+          )
         )
         .orderBy(asc(fileObjectsDb.key))
         .limit(500);
-      if (!pending.length) break;
+      if (!pending.length) {
+        break;
+      }
       for (const object of pending) {
         try {
           await this.database.db.transaction(async (tx) => {
@@ -108,7 +136,9 @@ export class StorageReconciliationService {
               .from(fileObjectsDb)
               .where(eq(fileObjectsDb.key, object.key))
               .for("update");
-            if (current?.state !== "pending_delete") return;
+            if (current?.state !== "pending_delete") {
+              return;
+            }
             await this.storage.deleteObject(object.key);
             await tx
               .update(fileObjectsDb)
@@ -128,14 +158,18 @@ export class StorageReconciliationService {
     // Per-organization transactions serialize inventory with reservations. listAll is paginated;
     // no missing-object inference is made from a partial or completed listing.
     const ids = new Set(
-      (await this.database.db.select({ id: organization.id }).from(organization)).map(
-        (org) => org.id,
-      ),
+      (
+        await this.database.db
+          .select({ id: organization.id })
+          .from(organization)
+      ).map((org) => org.id)
     );
     try {
       for await (const object of this.storage.listObjects("files/")) {
         const id = object.key.split("/")[1];
-        if (id && id !== "__rollout__") ids.add(id);
+        if (id && id !== "__rollout__") {
+          ids.add(id);
+        }
       }
     } catch (error) {
       this.failure("inventory-discovery", "files", error);
@@ -153,7 +187,9 @@ export class StorageReconciliationService {
   async inventoryOrganization(organizationId: string) {
     await this.database.db.transaction(async (tx) => {
       await lockOrganizationCapacity(tx, organizationId);
-      for await (const object of this.storage.listObjects(`files/${organizationId}/`)) {
+      for await (const object of this.storage.listObjects(
+        `files/${organizationId}/`
+      )) {
         const [session] = await tx
           .select({ id: uploadSessionsDb.id })
           .from(uploadSessionsDb)
@@ -161,13 +197,17 @@ export class StorageReconciliationService {
             and(
               eq(uploadSessionsDb.objectKey, object.key),
               ne(uploadSessionsDb.state, "completed"),
-              ne(uploadSessionsDb.state, "canceled"),
-            ),
+              ne(uploadSessionsDb.state, "canceled")
+            )
           );
         // Unfinished completion is still protected by its reservation; worker owns promotion.
-        if (session) continue;
+        if (session) {
+          continue;
+        }
         const size = await this.storage.objectSize(object.key);
-        if (size === null) continue;
+        if (size === null) {
+          continue;
+        }
         const [existing] = await tx
           .select()
           .from(fileObjectsDb)
@@ -181,8 +221,8 @@ export class StorageReconciliationService {
               .where(
                 and(
                   eq(workspacesDb.id, workspaceId),
-                  eq(workspacesDb.organizationId, organizationId),
-                ),
+                  eq(workspacesDb.organizationId, organizationId)
+                )
               )
           : [];
         if (existing) {
@@ -202,7 +242,9 @@ export class StorageReconciliationService {
             .set({
               sizeBytes: size,
               verifiedAt: new Date(),
-              ...(existing.state === "deleted" ? { state: "orphan" as const } : {}),
+              ...(existing.state === "deleted"
+                ? { state: "orphan" as const }
+                : {}),
             })
             .where(eq(fileObjectsDb.key, object.key));
           continue;
@@ -219,8 +261,8 @@ export class StorageReconciliationService {
                   and(
                     eq(workspaceStorageSlotsDb.workspaceId, workspace.id),
                     eq(workspaceStorageSlotsDb.kind, "file"),
-                    eq(workspaceStorageSlotsDb.backingId, fileId),
-                  ),
+                    eq(workspaceStorageSlotsDb.backingId, fileId)
+                  )
                 )
                 .limit(1)
             : [];

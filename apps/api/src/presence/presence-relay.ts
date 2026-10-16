@@ -59,7 +59,9 @@ export class PresenceRelay implements OnModuleDestroy {
 
   private client(): Redis {
     const options = this.config.values;
-    if (!options) throw new ServiceUnavailableException("Presence unavailable");
+    if (!options) {
+      throw new ServiceUnavailableException("Presence unavailable");
+    }
     if (!this.command) {
       this.command = new Redis({
         ...options,
@@ -69,20 +71,26 @@ export class PresenceRelay implements OnModuleDestroy {
         connectTimeout: 3000,
         enableOfflineQueue: false,
       });
-      this.command.on("error", () => {});
+      this.command.on("error", () => {
+        /* Command errors reject the caller; the listener prevents an unhandled Redis error event. */
+      });
     }
     return this.command;
   }
 
   private async connected(): Promise<Redis> {
     const client = this.client();
-    if (client.status === "wait")
+    if (client.status === "wait") {
       this.connecting = client.connect().finally(() => {
         this.connecting = undefined;
       });
-    if (this.connecting) await this.connecting;
-    if (client.status !== "ready")
+    }
+    if (this.connecting) {
+      await this.connecting;
+    }
+    if (client.status !== "ready") {
       throw new ServiceUnavailableException("Presence unavailable");
+    }
     return client;
   }
 
@@ -93,9 +101,14 @@ export class PresenceRelay implements OnModuleDestroy {
           ticket.organizationId,
           ticket.workspaceId,
           ...(ticket.kind === "resource" || ticket.kind === "channel"
-            ? [ticket.kind, ticket.resourceId, ticket.extensionId, ticket.channel]
+            ? [
+                ticket.kind,
+                ticket.resourceId,
+                ticket.extensionId,
+                ticket.channel,
+              ]
             : [ticket.documentId]),
-        ]),
+        ])
       )
       .digest("hex");
     return `presence:{${hash}}`;
@@ -107,15 +120,17 @@ export class PresenceRelay implements OnModuleDestroy {
       `presence:ticket:${token}`,
       JSON.stringify(ticket),
       "EX",
-      30,
+      30
     );
     return token;
   }
 
   async consume(token: string): Promise<PresenceTicket | null> {
-    if (!/^[a-f0-9]{64}$/.test(token)) return null;
+    if (!/^[a-f0-9]{64}$/.test(token)) {
+      return null;
+    }
     const value = await (await this.connected()).getdel(
-      `presence:ticket:${token}`,
+      `presence:ticket:${token}`
     );
     return value ? (JSON.parse(value) as PresenceTicket) : null;
   }
@@ -123,7 +138,7 @@ export class PresenceRelay implements OnModuleDestroy {
   async subscribe(
     room: string,
     receive: (entry: AwarenessEntry) => void,
-    failed: () => void,
+    failed: () => void
   ): Promise<() => void> {
     const subscriber = (await this.connected()).duplicate({
       lazyConnect: true,
@@ -158,14 +173,14 @@ export class PresenceRelay implements OnModuleDestroy {
       await this.connected()
     ).eval(SNAPSHOT, 2, `${room}:states`, `${room}:expiry`)) as string[];
     return values.map(
-      (value) => (JSON.parse(value) as { entry: AwarenessEntry }).entry,
+      (value) => (JSON.parse(value) as { entry: AwarenessEntry }).entry
     );
   }
 
   async update(
     room: string,
     owner: string,
-    entry: AwarenessEntry,
+    entry: AwarenessEntry
   ): Promise<void> {
     const result = await (await this.connected()).eval(
       UPDATE,
@@ -177,13 +192,17 @@ export class PresenceRelay implements OnModuleDestroy {
       owner,
       String(entry.clock),
       JSON.stringify({ owner, entry }),
-      JSON.stringify(entry),
+      JSON.stringify(entry)
     );
-    if (result === -1) throw new Error("Presence client unavailable");
+    if (result === -1) {
+      throw new Error("Presence client unavailable");
+    }
   }
 
   onModuleDestroy() {
-    for (const subscriber of this.subscriptions) subscriber.disconnect();
+    for (const subscriber of this.subscriptions) {
+      subscriber.disconnect();
+    }
     this.subscriptions.clear();
     this.command?.disconnect();
   }

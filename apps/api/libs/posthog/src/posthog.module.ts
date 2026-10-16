@@ -16,14 +16,11 @@ export const POSTHOG_MCP_CLIENT = "POSTHOG_MCP_CLIENT";
 class PostHogLifecycleService implements OnApplicationShutdown {
   constructor(
     @Inject(POSTHOG_CLIENT) private readonly posthog: PostHog | null,
-    @Inject(POSTHOG_MCP_CLIENT) private readonly mcpPosthog: PostHog | null,
+    @Inject(POSTHOG_MCP_CLIENT) private readonly mcpPosthog: PostHog | null
   ) {}
 
   async onApplicationShutdown() {
-    await Promise.all([
-      this.posthog?.shutdown(),
-      this.mcpPosthog?.shutdown(),
-    ]);
+    await Promise.all([this.posthog?.shutdown(), this.mcpPosthog?.shutdown()]);
   }
 }
 
@@ -31,9 +28,11 @@ type PostHogSource = "application" | "mcp";
 
 export function sanitizePostHogEvent(
   event: EventMessage | null,
-  source: PostHogSource,
+  source: PostHogSource
 ): EventMessage | null {
-  if (!event) return null;
+  if (!event) {
+    return null;
+  }
   const commitHash = process.env.RAILWAY_GIT_COMMIT_SHA;
   const properties = scrubTelemetryProperties(event.properties) ?? {};
   delete properties.$ip;
@@ -51,9 +50,11 @@ export function sanitizePostHogEvent(
 
 function createPostHogClient(
   config: PostHogConfig,
-  source: PostHogSource,
+  source: PostHogSource
 ): PostHog | null {
-  if (!config.key) return null;
+  if (!config.key) {
+    return null;
+  }
   return new PostHog(config.key, {
     before_send: (event) => sanitizePostHogEvent(event, source),
     disableGeoip: true,
@@ -64,21 +65,20 @@ function createPostHogClient(
 
 @Global()
 @Module({
-	providers: [
-		{
-			provide: POSTHOG_CLIENT,
-			inject: [PostHogConfig],
-			useFactory: (config: PostHogConfig) =>
-				createPostHogClient(config, "application"),
-		},
-		{
-			provide: POSTHOG_MCP_CLIENT,
-			inject: [PostHogConfig],
-			useFactory: (config: PostHogConfig) =>
-				createPostHogClient(config, "mcp"),
-		},
-		PostHogLifecycleService,
-	],
-	exports: [POSTHOG_CLIENT, POSTHOG_MCP_CLIENT],
+  providers: [
+    {
+      provide: POSTHOG_CLIENT,
+      inject: [PostHogConfig],
+      useFactory: (config: PostHogConfig) =>
+        createPostHogClient(config, "application"),
+    },
+    {
+      provide: POSTHOG_MCP_CLIENT,
+      inject: [PostHogConfig],
+      useFactory: (config: PostHogConfig) => createPostHogClient(config, "mcp"),
+    },
+    PostHogLifecycleService,
+  ],
+  exports: [POSTHOG_CLIENT, POSTHOG_MCP_CLIENT],
 })
 export class PostHogModule {}

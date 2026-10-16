@@ -28,20 +28,19 @@ function makeConfig({
 describe("PolarConfig.enabled", () => {
   it("disables Polar locally when requested", () => {
     expect(makeConfig({ disabled: true, nodeEnv: "development" }).enabled).toBe(
-      false,
+      false
     );
   });
 
   it("ignores local disable flag in production", () => {
     expect(makeConfig({ disabled: true, nodeEnv: "production" }).enabled).toBe(
-      true,
+      true
     );
   });
 
   it("requires complete Polar credentials", () => {
     expect(
-      makeConfig({ disabled: false, nodeEnv: "development", token: "" })
-        .enabled,
+      makeConfig({ disabled: false, nodeEnv: "development", token: "" }).enabled
     ).toBe(false);
   });
 

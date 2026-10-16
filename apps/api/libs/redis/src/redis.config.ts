@@ -21,15 +21,18 @@ export class RedisConfig {
 
   get defined() {
     const has = [this._host, this._port, this._password].filter(Boolean).length;
-    if (has > 0 && has < 3)
+    if (has > 0 && has < 3) {
       throw new Error(
-        "REDIS_HOST, REDIS_PORT, and REDIS_PASSWORD must all be set",
+        "REDIS_HOST, REDIS_PORT, and REDIS_PASSWORD must all be set"
       );
+    }
     return has === 3;
   }
 
   get values() {
-    if (!this.defined) return undefined;
+    if (!this.defined) {
+      return undefined;
+    }
     return {
       host: this._host!,
       port: this._port!,

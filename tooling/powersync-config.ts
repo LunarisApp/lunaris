@@ -68,14 +68,12 @@ async function renderConfig(): Promise<string> {
     .map((line) => `    ${line}`)
     .join("\n");
 
-  return `${serviceConfig
-    .trimEnd()
-    .replace(
-      syncRulesPathBlock,
-      `sync_rules:
+  return `${serviceConfig.trimEnd().replace(
+    syncRulesPathBlock,
+    `sync_rules:
   content: |
 ${indentedRules}`
-    )}\n`;
+  )}\n`;
 }
 
 function encodeConfig(config: string): string {
@@ -281,8 +279,7 @@ async function deployProduction(
     production.apiServiceId,
   ];
   const changedServiceIds = [
-    ...(currentReplication === sharedConfig &&
-    currentCompact === sharedConfig
+    ...(currentReplication === sharedConfig && currentCompact === sharedConfig
       ? []
       : [production.replicationServiceId, production.compactServiceId]),
     ...(currentApi === apiConfig ? [] : [production.apiServiceId]),
@@ -300,7 +297,9 @@ async function deployProduction(
   }
 
   const previousDeployments = await Promise.all(
-    changedServiceIds.map((serviceId) => readLatestDeployment(production, serviceId))
+    changedServiceIds.map((serviceId) =>
+      readLatestDeployment(production, serviceId)
+    )
   );
   const changedServices = Object.fromEntries(
     changedServiceIds.map((serviceId) => [
@@ -363,9 +362,17 @@ if ([check, deploy, validate].filter(Boolean).length > 1) {
 if (validate) {
   await validateConfigs(renderedConfig, renderedApiConfig);
 } else if (check) {
-  await checkProduction(readProductionTarget(), encodedConfig, encodedApiConfig);
+  await checkProduction(
+    readProductionTarget(),
+    encodedConfig,
+    encodedApiConfig
+  );
 } else if (deploy) {
-  await deployProduction(readProductionTarget(), encodedConfig, encodedApiConfig);
+  await deployProduction(
+    readProductionTarget(),
+    encodedConfig,
+    encodedApiConfig
+  );
 } else {
   process.stdout.write(renderedConfig);
 }

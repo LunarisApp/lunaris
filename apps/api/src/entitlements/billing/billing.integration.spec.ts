@@ -57,7 +57,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
         businessYearly: "business-yearly",
       }),
       null,
-      { frontendUrl: "https://app.example.test" } as never,
+      { frontendUrl: "https://app.example.test" } as never
     );
     await db.insert(user).values({
       id: "owner",
@@ -77,7 +77,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
       database,
       null,
       { developmentPlan: null } as never,
-      service,
+      service
     );
     const auth = createAuth(db, {
       frontendUrl: "https://app.example.test",
@@ -92,7 +92,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
         emailVerified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-      })),
+      }))
     );
   });
 
@@ -113,7 +113,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
     await pool?.end();
     if (admin) {
       await admin.query(
-        `DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`,
+        `DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`
       );
       await admin.end();
     }
@@ -136,18 +136,21 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
     await blocker.query("BEGIN");
     await blocker.query("LOCK TABLE subscription IN SHARE MODE");
     const deliveries = Promise.allSettled(
-      events.map((event) => service.upsertSubscription(event)),
+      events.map((event) => service.upsertSubscription(event))
     );
     try {
       const deadline = Date.now() + 5000;
       while (true) {
         const waiting = await admin.query<{ count: number }>(
           "SELECT count(*)::int FROM pg_stat_activity WHERE datname = $1 AND wait_event_type = 'Lock'",
-          [databaseName],
+          [databaseName]
         );
-        if (waiting.rows[0]!.count === events.length) break;
-        if (Date.now() >= deadline)
+        if (waiting.rows[0]!.count === events.length) {
+          break;
+        }
+        if (Date.now() >= deadline) {
           throw new Error("Webhook deliveries did not reach lock barrier");
+        }
         await new Promise((resolve) => setTimeout(resolve, 10));
       }
     } finally {
@@ -156,7 +159,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
       await deliveries;
     }
     expect(
-      (await deliveries).every((result) => result.status === "fulfilled"),
+      (await deliveries).every((result) => result.status === "fulfilled")
     ).toBe(true);
     const rows = await database.db.select().from(subscription);
     expect(rows).toHaveLength(1);
@@ -170,7 +173,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
       events
         .slice(0, 19)
         .reverse()
-        .map((event) => service.upsertSubscription(event)),
+        .map((event) => service.upsertSubscription(event))
     );
     expect(await database.db.select().from(subscription)).toEqual(rows);
   });
@@ -212,12 +215,12 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
           status: "pending",
           role: "viewer",
           expiresAt: new Date(Date.now() + 60_000),
-        }),
+        })
       ),
       join("person-1"),
     ]);
     expect(
-      results.filter((result) => result.status === "fulfilled"),
+      results.filter((result) => result.status === "fulfilled")
     ).toHaveLength(1);
     const occupancy = await readOrganizationOccupancy(database.db, "org");
     expect(occupancy.members + occupancy.pendingInvitations).toBe(3);
@@ -236,7 +239,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
       set: { status: "accepted" },
     });
     await expect(invite("outsider@example.test")).rejects.toThrow(
-      "Organization member limit reached.",
+      "Organization member limit reached."
     );
     const joined = (await join("person-1")) as { id: string };
     expect(await readOrganizationOccupancy(database.db, "org")).toEqual({
@@ -270,7 +273,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
       }),
     ]);
     expect(
-      results.filter((result) => result.status === "fulfilled"),
+      results.filter((result) => result.status === "fulfilled")
     ).toHaveLength(1);
     const occupancy = await readOrganizationOccupancy(database.db, "org");
     expect(occupancy.members + occupancy.pendingInvitations).toBe(3);
@@ -291,8 +294,8 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
             role: "viewer",
             expiresAt: new Date(Date.now() + 60_000),
           },
-        }),
-      ),
+        })
+      )
     ).rejects.toThrow("Organization member limit reached.");
   });
 
@@ -332,7 +335,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
           "Content-Type": "application/json",
           Origin: "https://app.example.test",
         },
-      }),
+      })
     );
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
@@ -388,14 +391,14 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
         businessYearly: "business-yearly",
       }),
       polar as never,
-      {} as never,
+      {} as never
     );
     expect(await billing.reconcileSubscriptions()).toEqual({
       checked: 2,
       failed: 0,
     });
     expect((await billing.readActiveSubscription(database.db, "org"))?.id).toBe(
-      "new",
+      "new"
     );
     const [old] = await database.db
       .select()
@@ -435,7 +438,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
         businessYearly: "business-yearly",
       }),
       polar as never,
-      {} as never,
+      {} as never
     );
     await billing.upsertSubscription({
       ...remote,
@@ -459,7 +462,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
         organizationId: "org",
         role: "viewer",
         createdAt: new Date(),
-      })),
+      }))
     );
     const results = await Promise.allSettled([
       billing.changePlan({
@@ -471,7 +474,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
       join("person-1"),
     ]);
     expect(
-      results.filter((result) => result.status === "fulfilled"),
+      results.filter((result) => result.status === "fulfilled")
     ).toHaveLength(1);
     const active = await billing.readActiveSubscription(database.db, "org");
     const occupancy = await readOrganizationOccupancy(database.db, "org");
@@ -510,7 +513,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
           await blocked;
         }
         remoteSeats = subscriptionUpdate.seats;
-      },
+      }
     );
     const polar = {
       subscriptions: {
@@ -526,19 +529,19 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
       database,
       polar as never,
       { developmentPlan: null } as never,
-      service,
+      service
     );
     const first = seatService.syncMemberSeats("org");
     await updating;
     const duplicate = seatService.syncMemberSeats("org");
     const joining = join("person-2").then(() =>
-      seatService.syncMemberSeats("org"),
+      seatService.syncMemberSeats("org")
     );
     release();
     await Promise.all([first, duplicate, joining]);
     expect(remoteSeats).toBe(3);
     expect(
-      update.mock.calls.map(([input]) => input.subscriptionUpdate.seats),
+      update.mock.calls.map(([input]) => input.subscriptionUpdate.seats)
     ).toEqual([2, 3]);
   });
 
@@ -573,7 +576,9 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
       subscriptions: {
         update,
         get: mock(async ({ id }: { id: string }) => {
-          if (id === "org") throw new Error("Provider unavailable");
+          if (id === "org") {
+            throw new Error("Provider unavailable");
+          }
           return { metadata: { referenceId: id }, status: "active", seats: 4 };
         }),
       },
@@ -582,7 +587,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
       database,
       polar as never,
       { developmentPlan: null } as never,
-      service,
+      service
     );
     expect(await seatService.reconcileAllMemberSeats()).toEqual({
       checked: 2,

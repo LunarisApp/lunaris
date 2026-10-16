@@ -1,10 +1,7 @@
 "use client";
 
 import type { ComponentProps } from "react";
-import {
-	ButtonLink,
-	SoftButtonLink,
-} from "@/components/elements/button";
+import { ButtonLink, SoftButtonLink } from "@/components/elements/button";
 import { captureLandingEvent } from "@/lib/posthog";
 
 type AnalyticsProperties = Record<

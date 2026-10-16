@@ -31,11 +31,11 @@ function duplicateNames(tools: readonly { name: string }[]): string[] {
 
 export function validateMcpTools(
   actualTools: readonly ListedMcpTool[],
-  expectedTools: readonly ExpectedMcpTool[],
+  expectedTools: readonly ExpectedMcpTool[]
 ): void {
   const actualByName = new Map(actualTools.map((tool) => [tool.name, tool]));
   const expectedByName = new Map(
-    expectedTools.map((tool) => [tool.name, tool]),
+    expectedTools.map((tool) => [tool.name, tool])
   );
   const missing = [...expectedByName.keys()]
     .filter((name) => !actualByName.has(name))
@@ -53,13 +53,13 @@ export function validateMcpTools(
     const actualAvailability = actual._meta?.[OFFLINE_AVAILABILITY_KEY];
     if (actualAvailability !== expected.offlineAvailability) {
       metadataMismatches.push(
-        `${name}.${OFFLINE_AVAILABILITY_KEY} expected=${expected.offlineAvailability} actual=${String(actualAvailability)}`,
+        `${name}.${OFFLINE_AVAILABILITY_KEY} expected=${expected.offlineAvailability} actual=${String(actualAvailability)}`
       );
     }
     const actualPluginId = actual._meta?.[PLUGIN_ID_KEY];
     if (actualPluginId !== expected.pluginId) {
       metadataMismatches.push(
-        `${name}.${PLUGIN_ID_KEY} expected=${String(expected.pluginId)} actual=${String(actualPluginId)}`,
+        `${name}.${PLUGIN_ID_KEY} expected=${String(expected.pluginId)} actual=${String(actualPluginId)}`
       );
     }
   }
@@ -84,7 +84,7 @@ export function validateMcpTools(
 async function expectedMcpTools(): Promise<ExpectedMcpTool[]> {
   const manifestPath = join(
     import.meta.dir,
-    "../internal/agent-contracts/generated/agent-mcp-manifest.json",
+    "../internal/agent-contracts/generated/agent-mcp-manifest.json"
   );
   const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as {
     tools: ExpectedMcpTool[];
@@ -96,7 +96,7 @@ export async function runMcpSmoke(args = process.argv.slice(2)): Promise<void> {
   const binary = args[0];
   if (!binary) {
     throw new Error(
-      "Usage: bun tooling/mcp-smoke.ts <binary> [expected-server-name]",
+      "Usage: bun tooling/mcp-smoke.ts <binary> [expected-server-name]"
     );
   }
 
@@ -108,7 +108,7 @@ export async function runMcpSmoke(args = process.argv.slice(2)): Promise<void> {
       LUNARIS_API_KEY: "lun_smoke",
       LUNARIS_CONFIG_PATH: join(
         tmpdir(),
-        `lunaris-mcp-smoke-${process.pid}-${Date.now()}.json`,
+        `lunaris-mcp-smoke-${process.pid}-${Date.now()}.json`
       ),
     },
     stdio: ["pipe", "pipe", "pipe"],
@@ -127,10 +127,10 @@ export async function runMcpSmoke(args = process.argv.slice(2)): Promise<void> {
         clientInfo: { name: "smoke", version: "1" },
         protocolVersion: "2025-11-25",
       },
-    })}\n`,
+    })}\n`
   );
 
-  const timeout = setTimeout(() => child.kill(), 5_000);
+  const timeout = setTimeout(() => child.kill(), 5000);
   try {
     for await (const chunk of child.stdout) {
       stdout += String(chunk);
@@ -157,7 +157,7 @@ export async function runMcpSmoke(args = process.argv.slice(2)): Promise<void> {
             `${JSON.stringify({
               jsonrpc: "2.0",
               method: "notifications/initialized",
-            })}\n`,
+            })}\n`
           );
           child.stdin.write(
             `${JSON.stringify({
@@ -165,7 +165,7 @@ export async function runMcpSmoke(args = process.argv.slice(2)): Promise<void> {
               id: 2,
               method: "tools/list",
               params: {},
-            })}\n`,
+            })}\n`
           );
           continue;
         }
@@ -175,12 +175,12 @@ export async function runMcpSmoke(args = process.argv.slice(2)): Promise<void> {
         }
         const stderrSummary = stderr.trim().split("\n").at(-1);
         throw new Error(
-          `Unexpected MCP response id=${String(response.id)}${stderrSummary ? `; stderr=${stderrSummary}` : ""}`,
+          `Unexpected MCP response id=${String(response.id)}${stderrSummary ? `; stderr=${stderrSummary}` : ""}`
         );
       }
     }
     throw new Error(
-      `MCP server exited without initialization; stdout-bytes=${stdout.length}; stderr=${stderr.trim()}`,
+      `MCP server exited without initialization; stdout-bytes=${stdout.length}; stderr=${stderr.trim()}`
     );
   } finally {
     clearTimeout(timeout);

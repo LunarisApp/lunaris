@@ -10,9 +10,9 @@ describe("updateWorkspaceResourceSchema", () => {
   });
 
   it("accepts mutable resource fields", () => {
-    expect(updateWorkspaceResourceSchema.safeParse({ name: "Renamed" }).success).toBe(
-      true,
-    );
+    expect(
+      updateWorkspaceResourceSchema.safeParse({ name: "Renamed" }).success
+    ).toBe(true);
   });
 
   it.each(["resourceTypeId", "schemaVersion"])(
@@ -21,9 +21,9 @@ describe("updateWorkspaceResourceSchema", () => {
       expect(
         updateWorkspaceResourceSchema.safeParse({
           [field]: field === "schemaVersion" ? 2 : "acme.other",
-        }).success,
+        }).success
       ).toBe(false);
-    },
+    }
   );
 });
 
@@ -35,7 +35,7 @@ describe("createWorkspaceResourceSchema", () => {
         resourceTypeId: "lunaris.rich-text",
         schemaVersion: 1,
         storage: { content: { kind: "yjs" } },
-      }).success,
+      }).success
     ).toBe(true);
   });
 
@@ -47,8 +47,8 @@ describe("createWorkspaceResourceSchema", () => {
           name: "Document",
           resourceTypeId: "lunaris.rich-text",
           storage: { [name]: { kind: "yjs" } },
-        }).success,
+        }).success
       ).toBe(false);
-    },
+    }
   );
 });

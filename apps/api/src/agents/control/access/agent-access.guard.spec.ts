@@ -36,9 +36,9 @@ describe("AgentAccessGuard API keys", () => {
   it("rejects an organization outside the key allowlist", async () => {
     const guard = apiKeyGuard(["organization_2"]);
 
-    expect(guard.canActivate(context(agentRequest("organization_1")))).rejects.toBeInstanceOf(
-      ForbiddenException,
-    );
+    expect(
+      guard.canActivate(context(agentRequest("organization_1")))
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it("returns unauthorized for an invalid key", async () => {
@@ -49,15 +49,15 @@ describe("AgentAccessGuard API keys", () => {
       valid: false,
     });
 
-    expect(
-      guard.canActivate(auditedContext(request)),
-    ).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(guard.canActivate(auditedContext(request))).rejects.toBeInstanceOf(
+      UnauthorizedException
+    );
     expect(mockEvlogLogger.audit.deny).toHaveBeenCalledWith(
       "API key expired",
       expect.objectContaining({
         action: "organization.updated",
         actor: { id: "anonymous", type: "user" },
-      }),
+      })
     );
   });
 
@@ -77,9 +77,9 @@ describe("AgentAccessGuard API keys", () => {
       valid: true,
     });
 
-    expect(
-      guard.canActivate(context(request)),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(guard.canActivate(context(request))).rejects.toBeInstanceOf(
+      ForbiddenException
+    );
     expect(request.auditActor).toEqual({ id: "user_1", type: "api" });
   });
 
@@ -92,13 +92,10 @@ describe("AgentAccessGuard API keys", () => {
     });
 
     expect(await guard.canActivate(context(request))).toBe(true);
-    expect(requirePermission).toHaveBeenCalledWith(
-      permission.content.write,
-      {
-        organizationId: "organization_1",
-        userId: "user_1",
-      },
-    );
+    expect(requirePermission).toHaveBeenCalledWith(permission.content.write, {
+      organizationId: "organization_1",
+      userId: "user_1",
+    });
   });
 });
 
@@ -126,7 +123,7 @@ function apiKeyGuard(
   options: {
     requiredPermission?: typeof permission.content.write;
     requirePermission?: ReturnType<typeof mock>;
-  } = {},
+  } = {}
 ) {
   const verifyApiKey = mock(async () => verification);
   return new AgentAccessGuard(
@@ -135,15 +132,18 @@ function apiKeyGuard(
     { assertAgentEligible: mock(() => Promise.resolve()) } as never,
     {
       getAllAndOverride: (key: string | symbol) => {
-        if (key === AGENT_SCOPE_METADATA) return "organization:read";
-        if (key === PERMISSION_METADATA) return options.requiredPermission;
-        return undefined;
+        if (key === AGENT_SCOPE_METADATA) {
+          return "organization:read";
+        }
+        if (key === PERMISSION_METADATA) {
+          return options.requiredPermission;
+        }
       },
     } as never,
     {
       requirePermission:
         options.requirePermission ?? mock(() => Promise.resolve()),
-    } as never,
+    } as never
   );
 }
 

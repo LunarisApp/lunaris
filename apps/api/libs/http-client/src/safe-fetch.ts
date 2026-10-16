@@ -1,14 +1,11 @@
 import { lookup } from "node:dns/promises";
-import type {
-  IncomingHttpHeaders,
-  RequestOptions,
-} from "node:http";
+import type { IncomingHttpHeaders, RequestOptions } from "node:http";
 import { request as requestHttp } from "node:http";
 import { request as requestHttps } from "node:https";
 import ipaddr from "ipaddr.js";
 
 const DEFAULT_MAX_REDIRECTS = 3;
-const DEFAULT_MAX_URL_LENGTH = 2_048;
+const DEFAULT_MAX_URL_LENGTH = 2048;
 const REDIRECT_STATUS_CODES = new Set([301, 302, 303, 307, 308]);
 
 type SafeHttpProtocol = "http:" | "https:";
@@ -56,10 +53,7 @@ export function isPublicIpAddress(value: string): boolean {
   return ipaddr.isValid(value) && ipaddr.process(value).range() === "unicast";
 }
 
-export function parseSafeUrl(
-  value: string,
-  options: SafeUrlOptions = {},
-): URL {
+export function parseSafeUrl(value: string, options: SafeUrlOptions = {}): URL {
   if (value.length > (options.maxUrlLength ?? DEFAULT_MAX_URL_LENGTH)) {
     throw new Error("URL is too long");
   }
@@ -91,7 +85,7 @@ export function parseSafeUrl(
       hostname.endsWith(".localhost") ||
       hostname.endsWith(".local") ||
       hostname.endsWith(".internal") ||
-      (!isIpAddress && !hostname.includes(".")) ||
+      !(isIpAddress || hostname.includes(".")) ||
       (isIpAddress && !isPublicIpAddress(hostname)))
   ) {
     throw new Error("URL must use a public network address");
@@ -103,11 +97,11 @@ export function parseSafeUrl(
 
 async function resolveAddress(
   hostname: string,
-  allowPrivateNetwork: boolean,
+  allowPrivateNetwork: boolean
 ): Promise<ResolvedAddress> {
   const normalized = normalizeHostname(hostname);
   if (ipaddr.isValid(normalized)) {
-    if (!allowPrivateNetwork && !isPublicIpAddress(normalized)) {
+    if (!(allowPrivateNetwork || isPublicIpAddress(normalized))) {
       throw new Error("URL resolves to a private network address");
     }
     return {
@@ -136,7 +130,7 @@ async function resolveAddress(
 
 export function getResponseHeader(
   headers: IncomingHttpHeaders,
-  name: string,
+  name: string
 ): string | undefined {
   const value = headers[name];
   return Array.isArray(value) ? value[0] : value;
@@ -145,7 +139,7 @@ export function getResponseHeader(
 function requestUrl(
   url: URL,
   resolved: ResolvedAddress,
-  options: SafeFetchOptions,
+  options: SafeFetchOptions
 ): Promise<SafeFetchResponse> {
   return new Promise((resolve, reject) => {
     const hostname = normalizeHostname(url.hostname);
@@ -184,9 +178,12 @@ function requestUrl(
 
         const contentLength = Number.parseInt(
           getResponseHeader(response.headers, "content-length") ?? "",
-          10,
+          10
         );
-        if (Number.isFinite(contentLength) && contentLength > options.maxBytes) {
+        if (
+          Number.isFinite(contentLength) &&
+          contentLength > options.maxBytes
+        ) {
           response.destroy();
           reject(new Error("URL response is too large"));
           return;
@@ -212,7 +209,7 @@ function requestUrl(
           });
         });
         response.on("error", reject);
-      },
+      }
     );
     request.on("error", reject);
     request.end();
@@ -222,12 +219,12 @@ function requestUrl(
 async function fetchWithRedirects(
   value: string,
   options: SafeFetchOptions,
-  redirectCount: number,
+  redirectCount: number
 ): Promise<SafeFetchResponse> {
   const url = parseSafeUrl(value, options);
   const resolved = await resolveAddress(
     url.hostname,
-    options.allowPrivateNetwork ?? false,
+    options.allowPrivateNetwork ?? false
   );
   const response = await requestUrl(url, resolved, options);
 
@@ -236,11 +233,13 @@ async function fetchWithRedirects(
       throw new Error("URL redirected too many times");
     }
     const location = getResponseHeader(response.headers, "location");
-    if (!location) throw new Error("URL returned an invalid redirect");
+    if (!location) {
+      throw new Error("URL returned an invalid redirect");
+    }
     return fetchWithRedirects(
       new URL(location, url).toString(),
       options,
-      redirectCount + 1,
+      redirectCount + 1
     );
   }
 
@@ -249,7 +248,7 @@ async function fetchWithRedirects(
   }
   const contentEncoding = getResponseHeader(
     response.headers,
-    "content-encoding",
+    "content-encoding"
   );
   if (contentEncoding && contentEncoding !== "identity") {
     throw new Error("URL returned unsupported compressed content");
@@ -259,7 +258,7 @@ async function fetchWithRedirects(
 
 export function safeFetch(
   value: string,
-  options: SafeFetchOptions,
+  options: SafeFetchOptions
 ): Promise<SafeFetchResponse> {
   return fetchWithRedirects(value, options, 0);
 }

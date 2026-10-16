@@ -45,7 +45,7 @@ export class PolarConfig {
       .string()
       .parse(config.get("POLAR_BUSINESS_YEARLY_PRODUCT_ID") ?? "");
     this.disabled = booleanSchema.parse(
-      config.get("POLAR_DISABLED") ?? "false",
+      config.get("POLAR_DISABLED") ?? "false"
     );
   }
 
@@ -74,7 +74,7 @@ export class PolarConfig {
         this._plusMonthlyProductId &&
         this._plusYearlyProductId &&
         this._businessMonthlyProductId &&
-        this._businessYearlyProductId,
+        this._businessYearlyProductId
     );
   }
 
@@ -86,7 +86,9 @@ export class PolarConfig {
   }
 
   get values(): PolarValues | undefined {
-    if (!this.configured) return undefined;
+    if (!this.configured) {
+      return undefined;
+    }
     return {
       accessToken: this._accessToken,
       productIds: {

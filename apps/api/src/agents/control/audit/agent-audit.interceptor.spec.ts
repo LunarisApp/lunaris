@@ -4,7 +4,10 @@ import { firstValueFrom, of, throwError } from "rxjs";
 import { mockEvlogLogger } from "../../../../test/preload";
 import { AgentAuditInterceptor } from "./agent-audit.interceptor";
 
-function context(request: Record<string, unknown>, handlerName = "createWorkspace") {
+function context(
+  request: Record<string, unknown>,
+  handlerName = "createWorkspace"
+) {
   return {
     getHandler: () => ({ [handlerName]: () => undefined })[handlerName],
     switchToHttp: () => ({ getRequest: () => request }),
@@ -37,8 +40,8 @@ describe("AgentAuditInterceptor", () => {
       firstValueFrom(
         interceptor.intercept(context(request), {
           handle: () => of({ id: "workspace-1" }),
-        } as CallHandler),
-      ),
+        } as CallHandler)
+      )
     ).resolves.toEqual({ id: "workspace-1" });
 
     expect(audit).toHaveBeenCalledWith(
@@ -50,7 +53,7 @@ describe("AgentAuditInterceptor", () => {
         status: "success",
         targetId: "workspace-1",
         organizationId: "organization-1",
-      }),
+      })
     );
     expect(mockEvlogLogger.set).toHaveBeenCalledWith({
       agent: { kind: "apiKey", operation: "create_workspace" },
@@ -61,7 +64,11 @@ describe("AgentAuditInterceptor", () => {
   it("records failures and rethrows the original error", async () => {
     const failure = Object.assign(new Error("denied"), { code: "FORBIDDEN" });
     const request = {
-      agentPrincipal: { actorId: "user-1", clientId: "client-1", kind: "oauth" },
+      agentPrincipal: {
+        actorId: "user-1",
+        clientId: "client-1",
+        kind: "oauth",
+      },
       id: "request-2",
       params: { memberId: "member-1" },
     };
@@ -70,8 +77,8 @@ describe("AgentAuditInterceptor", () => {
       firstValueFrom(
         interceptor.intercept(context(request, "removeMember"), {
           handle: () => throwError(() => failure),
-        } as CallHandler),
-      ),
+        } as CallHandler)
+      )
     ).rejects.toBe(failure);
     expect(audit).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -80,7 +87,7 @@ describe("AgentAuditInterceptor", () => {
         operation: "remove_organization_member",
         status: "failure",
         targetId: "member-1",
-      }),
+      })
     );
   });
 
@@ -88,7 +95,7 @@ describe("AgentAuditInterceptor", () => {
     await firstValueFrom(
       interceptor.intercept(context({ id: "request-3", params: {} }), {
         handle: () => of("ok"),
-      } as CallHandler),
+      } as CallHandler)
     );
 
     expect(audit).not.toHaveBeenCalled();
@@ -107,18 +114,15 @@ describe("AgentAuditInterceptor", () => {
       firstValueFrom(
         interceptor.intercept(context(request, "updateResource"), {
           handle: () => of("saved"),
-        } as CallHandler),
-      ),
+        } as CallHandler)
+      )
     ).resolves.toBe("saved");
-    expect(mockEvlogLogger.error).toHaveBeenCalledWith(
-      expect.any(Error),
-      {
-        agentAudit: {
-          operation: "update_resource",
-          status: "success",
-          write: "failed",
-        },
+    expect(mockEvlogLogger.error).toHaveBeenCalledWith(expect.any(Error), {
+      agentAudit: {
+        operation: "update_resource",
+        status: "success",
+        write: "failed",
       },
-    );
+    });
   });
 });

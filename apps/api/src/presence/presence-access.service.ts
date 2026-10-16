@@ -25,7 +25,7 @@ import type { PresenceTicket } from "./presence-relay";
 export class PresenceAccessService {
   constructor(
     private readonly database: DatabaseService,
-    private readonly permissions: PermissionService,
+    private readonly permissions: PermissionService
   ) {}
 
   async authorize(
@@ -38,7 +38,7 @@ export class PresenceAccessService {
       | "kind"
       | "extensionId"
       | "channel"
-    > & { userId: string; resourceId?: string },
+    > & { userId: string; resourceId?: string }
   ): Promise<PresenceTicket> {
     const db = this.database.db;
     await this.permissions.requirePermission(permission.content.read, input);
@@ -46,7 +46,7 @@ export class PresenceAccessService {
       db,
       input.workspaceId,
       input.organizationId,
-      input.userId,
+      input.userId
     );
     const [identity] = await db
       .select({ id: user.id, name: user.name, image: user.image })
@@ -57,36 +57,43 @@ export class PresenceAccessService {
           eq(session.id, input.sessionId),
           eq(session.userId, input.userId),
           eq(session.activeOrganizationId, input.organizationId),
-          gt(session.expiresAt, new Date()),
-        ),
+          gt(session.expiresAt, new Date())
+        )
       )
       .limit(1);
-    if (!identity) throw new ForbiddenException("Presence session expired");
+    if (!identity) {
+      throw new ForbiddenException("Presence session expired");
+    }
     if (input.kind === "resource" || input.kind === "channel") {
       const [resource] = await db
         .select({ id: workspaceResourcesDb.id })
         .from(workspaceResourcesDb)
         .leftJoin(
           workspaceResourceTrashDb,
-          eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id),
+          eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)
         )
         .where(
           and(
             eq(workspaceResourcesDb.id, input.resourceId ?? ""),
             eq(workspaceResourcesDb.workspaceId, input.workspaceId),
-            isNull(workspaceResourceTrashDb.id),
-          ),
+            isNull(workspaceResourceTrashDb.id)
+          )
         )
         .limit(1);
-      if (!resource) throw new NotFoundException("Resource not found");
+      if (!resource) {
+        throw new NotFoundException("Resource not found");
+      }
       if (
         input.kind === "channel" &&
-        (!input.extensionId ||
-          !/^[a-zA-Z0-9._-]{1,128}$/.test(input.extensionId) ||
-          !input.channel ||
-          !/^[a-zA-Z0-9._-]{1,64}$/.test(input.channel))
-      )
+        !(
+          input.extensionId &&
+          /^[a-zA-Z0-9._-]{1,128}$/.test(input.extensionId) &&
+          input.channel &&
+          /^[a-zA-Z0-9._-]{1,64}$/.test(input.channel)
+        )
+      ) {
         throw new ForbiddenException("Invalid presence channel");
+      }
       if (input.kind === "channel") {
         const [extension] = await db
           .select({ id: workspaceExtensionsDb.id })
@@ -95,8 +102,8 @@ export class PresenceAccessService {
             and(
               eq(workspaceExtensionsDb.workspaceId, input.workspaceId),
               eq(workspaceExtensionsDb.extensionId, input.extensionId!),
-              eq(workspaceExtensionsDb.enabled, true),
-            ),
+              eq(workspaceExtensionsDb.enabled, true)
+            )
           )
           .limit(1);
         if (!extension) {
@@ -107,15 +114,17 @@ export class PresenceAccessService {
             kanbanManifest.id,
             richTextManifest.id,
           ];
-          if (!bundled.includes(input.extensionId!))
+          if (!bundled.includes(input.extensionId!)) {
             throw new ForbiddenException("Presence extension unavailable");
+          }
           const [configured] = await db
             .select({ id: workspaceExtensionsDb.id })
             .from(workspaceExtensionsDb)
             .where(eq(workspaceExtensionsDb.workspaceId, input.workspaceId))
             .limit(1);
-          if (configured)
+          if (configured) {
             throw new ForbiddenException("Presence extension unavailable");
+          }
         }
       }
       return {
@@ -141,30 +150,32 @@ export class PresenceAccessService {
         workspaceResourcesDb,
         and(
           eq(workspaceResourcesDb.id, workspaceStorageSlotsDb.resourceId),
-          eq(workspaceResourcesDb.workspaceId, input.workspaceId),
-        ),
+          eq(workspaceResourcesDb.workspaceId, input.workspaceId)
+        )
       )
       .innerJoin(
         yjsDocumentsDb,
         and(
           eq(yjsDocumentsDb.id, workspaceStorageSlotsDb.backingId),
-          eq(yjsDocumentsDb.workspaceId, input.workspaceId),
-        ),
+          eq(yjsDocumentsDb.workspaceId, input.workspaceId)
+        )
       )
       .leftJoin(
         workspaceResourceTrashDb,
-        eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id),
+        eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)
       )
       .where(
         and(
           eq(workspaceStorageSlotsDb.id, input.storageId),
           eq(workspaceStorageSlotsDb.workspaceId, input.workspaceId),
           eq(workspaceStorageSlotsDb.kind, "yjs"),
-          isNull(workspaceResourceTrashDb.id),
-        ),
+          isNull(workspaceResourceTrashDb.id)
+        )
       )
       .limit(1);
-    if (!slot) throw new NotFoundException("Resource storage not found");
+    if (!slot) {
+      throw new NotFoundException("Resource storage not found");
+    }
     return {
       ...input,
       ...slot,
@@ -179,7 +190,9 @@ export class PresenceAccessService {
 }
 
 function safeImage(image: string | null): string {
-  if (!image) return "";
+  if (!image) {
+    return "";
+  }
   try {
     return new URL(image).protocol === "https:" ? image : "";
   } catch {
@@ -197,6 +210,8 @@ function presenceColor(id: string): string {
     "#be185d",
   ];
   let hash = 0;
-  for (const char of id) hash = (Math.imul(hash, 31) + char.charCodeAt(0)) | 0;
+  for (const char of id) {
+    hash = (Math.imul(hash, 31) + char.charCodeAt(0)) | 0;
+  }
   return colors[(hash >>> 0) % colors.length]!;
 }

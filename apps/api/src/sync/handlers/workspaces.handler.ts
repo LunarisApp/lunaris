@@ -5,7 +5,7 @@ import {
   normalizeWorkspaceVisibility,
   WORKSPACE_VISIBILITY,
 } from "@repo/auth/sync-access";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 import { useLogger } from "evlog/nestjs";
@@ -37,7 +37,9 @@ async function retryOnSlugConflict(
       await db.transaction(async (tx) => {
         await op(tx);
       });
-    } else throw err;
+    } else {
+      throw err;
+    }
   }
 }
 
@@ -69,7 +71,7 @@ export const workspacesHandler: EntityHandler = {
         throw new OrganizationMismatchError("Workspace", id, organizationId);
       }
       const visibility = normalizeWorkspaceVisibility(
-        data.visibility ?? WORKSPACE_VISIBILITY.shared,
+        data.visibility ?? WORKSPACE_VISIBILITY.shared
       );
       if (!visibility || visibility === WORKSPACE_VISIBILITY.local) {
         throw new BadRequestException("Cloud workspace visibility is invalid");

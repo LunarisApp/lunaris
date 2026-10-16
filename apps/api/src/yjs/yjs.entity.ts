@@ -24,9 +24,9 @@ export const yjsDocumentsDb = pgTable(
     index("yjs_documents_workspace_updated_idx").on(
       table.workspaceId,
       table.updatedAt.desc(),
-      table.id.asc(),
+      table.id.asc()
     ),
-  ],
+  ]
 );
 
 export const yjsDocumentUpdatesDb = pgTable(

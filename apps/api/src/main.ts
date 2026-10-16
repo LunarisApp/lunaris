@@ -28,7 +28,7 @@ async function bootstrap() {
     {
       logger: new EvlogLogger(),
       bodyParser: false, // Disabled so better-auth can parse its own requests
-    },
+    }
   );
   const appConfig = app.get(AppConfig);
   app.enableShutdownHooks();

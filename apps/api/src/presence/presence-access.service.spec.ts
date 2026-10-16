@@ -51,24 +51,22 @@ describe("presence access", () => {
   });
   it("rejects missing organization membership", async () => {
     await expect(setup([[]]).authorize(input)).rejects.toBeInstanceOf(
-      ForbiddenException,
+      ForbiddenException
     );
   });
   it("rejects inaccessible workspaces", async () => {
     await expect(
-      setup([...viewer, []]).authorize(input),
+      setup([...viewer, []]).authorize(input)
     ).rejects.toBeInstanceOf(NotFoundException);
   });
   it("rejects expired or revoked sessions", async () => {
     await expect(
-      setup([...viewer, [{ id: "workspace" }], []]).authorize(input),
+      setup([...viewer, [{ id: "workspace" }], []]).authorize(input)
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
   it("rejects missing, trashed, or unassociated storage", async () => {
     await expect(
-      setup([...viewer, [{ id: "workspace" }], [identity], []]).authorize(
-        input,
-      ),
+      setup([...viewer, [{ id: "workspace" }], [identity], []]).authorize(input)
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 });
@@ -104,7 +102,7 @@ it("requires an enabled extension for generic channels", async () => {
       [identity],
       [{ id: "resource" }],
       [],
-    ]).authorize(request),
+    ]).authorize(request)
   ).rejects.toBeInstanceOf(ForbiddenException);
   const result = await setup([
     ...viewer,
@@ -131,9 +129,9 @@ it("allows bundled defaults only while workspace extension configuration is empt
     [{ id: "resource" }],
   ];
   expect((await setup([...base, [], []]).authorize(request)).channel).toBe(
-    "selection",
+    "selection"
   );
   await expect(
-    setup([...base, [], [{ id: "disabled-extension" }]]).authorize(request),
+    setup([...base, [], [{ id: "disabled-extension" }]]).authorize(request)
   ).rejects.toBeInstanceOf(ForbiddenException);
 });

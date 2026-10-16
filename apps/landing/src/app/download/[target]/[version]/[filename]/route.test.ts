@@ -101,9 +101,7 @@ describe("versioned download route", () => {
 
 	test("returns 404 when the artifact does not exist", async () => {
 		const state = dependencies(() =>
-			Promise.reject(
-				new ReleaseDownloadError("not_found", "Artifact missing"),
-			),
+			Promise.reject(new ReleaseDownloadError("not_found", "Artifact missing")),
 		);
 		const response = await handleVersionedDownload(
 			new Request("https://lunaris.app/download/macos/2.0.0/missing.dmg"),
@@ -131,9 +129,7 @@ describe("versioned download route", () => {
 			const error = new ReleaseDownloadError(kind, "Release unavailable");
 			const state = dependencies(() => Promise.reject(error));
 			const response = await handleVersionedDownload(
-				new Request(
-					"https://lunaris.app/download/macos/2.0.0/Lunaris.dmg",
-				),
+				new Request("https://lunaris.app/download/macos/2.0.0/Lunaris.dmg"),
 				context("macos", "2.0.0", "Lunaris.dmg"),
 				state.dependencies,
 			);

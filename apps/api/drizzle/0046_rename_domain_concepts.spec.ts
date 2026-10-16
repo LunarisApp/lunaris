@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
 const migration = await Bun.file(
-  new URL("./0046_rename_domain_concepts.sql", import.meta.url),
+  new URL("./0046_rename_domain_concepts.sql", import.meta.url)
 ).text();
 
 describe("domain rename migration", () => {
@@ -14,10 +14,10 @@ describe("domain rename migration", () => {
     expect(migration).toContain(tableRename);
     expect(migration).toContain(functionReplacement);
     expect(migration).toContain(
-      "INSERT INTO public.organization_extension_registries",
+      "INSERT INTO public.organization_extension_registries"
     );
     expect(migration.indexOf(tableRename)).toBeLessThan(
-      migration.indexOf(functionReplacement),
+      migration.indexOf(functionReplacement)
     );
   });
 
@@ -32,10 +32,10 @@ describe("domain rename migration", () => {
       'ADD CONSTRAINT "workspace_storage_values_storage_workspace_fk" FOREIGN KEY';
 
     expect(migration.indexOf(resourceUnique)).toBeLessThan(
-      migration.indexOf(resourceForeignKey),
+      migration.indexOf(resourceForeignKey)
     );
     expect(migration.indexOf(storageUnique)).toBeLessThan(
-      migration.indexOf(storageForeignKey),
+      migration.indexOf(storageForeignKey)
     );
   });
 
@@ -50,7 +50,7 @@ describe("domain rename migration", () => {
       ["projects_pkey", "workspaces_pkey"],
     ]) {
       expect(migration).toContain(
-        `RENAME CONSTRAINT "${oldName}" TO "${newName}"`,
+        `RENAME CONSTRAINT "${oldName}" TO "${newName}"`
       );
     }
   });

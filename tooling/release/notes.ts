@@ -20,12 +20,11 @@ const changelog = existsSync(changelogPath)
   : "";
 const escapedVersion = version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const section =
-  changelog.match(
-    new RegExp(
-      `^## ${escapedVersion}\\s*$([\\s\\S]*?)(?=^## \\S|\\s*$)`,
-      "m"
-    )
-  )?.[1]?.trim() || "Initial private release.";
+  changelog
+    .match(
+      new RegExp(`^## ${escapedVersion}\\s*$([\\s\\S]*?)(?=^## \\S|\\s*$)`, "m")
+    )?.[1]
+    ?.trim() || "Initial private release.";
 const sha = process.env.GITHUB_SHA ?? "unknown";
 const serverUrl = process.env.GITHUB_SERVER_URL ?? "https://github.com";
 const repository = process.env.GITHUB_REPOSITORY ?? "LunarisApp/lunaris";

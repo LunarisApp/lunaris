@@ -68,7 +68,7 @@ export class EntitlementsService {
     @Inject(POSTHOG_CLIENT) private readonly posthog: PostHog | null,
     private readonly config: EntitlementsConfig,
     private readonly billing: BillingService,
-    private readonly seats: SeatService,
+    private readonly seats: SeatService
   ) {}
 
   createCheckout(params: CreateCheckoutParams): Promise<{ url: string }> {
@@ -80,7 +80,7 @@ export class EntitlementsService {
   }
 
   getBillingState(
-    params: OrganizationUserParams,
+    params: OrganizationUserParams
   ): Promise<OrganizationBillingState> {
     return this.billing.getBillingState(params);
   }
@@ -90,15 +90,23 @@ export class EntitlementsService {
   }
 
   async resolveForOrganization(
-    organizationId: string,
+    organizationId: string
   ): Promise<ResolvedEntitlements> {
     const developmentPlan = this.config.developmentPlan;
-    const active = developmentPlan ? null : await this.billing.readActiveSubscription(
+    const active = developmentPlan
+      ? null
+      : await this.billing.readActiveSubscription(
+          this.dbService.db,
+          organizationId
+        );
+    const accounting = await readStorageAccounting(
       this.dbService.db,
-      organizationId,
+      organizationId
     );
-    const accounting = await readStorageAccounting(this.dbService.db, organizationId);
-    return resolveEntitlements(developmentPlan ?? active?.planSlug ?? PLAN.free, accounting.enterpriseOverrideBytes);
+    return resolveEntitlements(
+      developmentPlan ?? active?.planSlug ?? PLAN.free,
+      accounting.enterpriseOverrideBytes
+    );
   }
 
   async resolveSnapshotForOrganization(params: {
@@ -112,29 +120,39 @@ export class EntitlementsService {
       ? null
       : await this.billing.readActiveSubscription(
           this.dbService.db,
-          organizationId,
+          organizationId
         );
     const resourceCount = await this.countOrganizationResources(
       this.dbService.db,
-      organizationId,
+      organizationId
     );
-    const storage = await readStorageAccounting(this.dbService.db, organizationId);
-    const occupancy = await readOrganizationOccupancy(this.dbService.db, organizationId);
+    const storage = await readStorageAccounting(
+      this.dbService.db,
+      organizationId
+    );
+    const occupancy = await readOrganizationOccupancy(
+      this.dbService.db,
+      organizationId
+    );
     const entitlements = resolveEntitlements(
-      developmentPlan ?? active?.planSlug ?? PLAN.free, storage.enterpriseOverrideBytes,
+      developmentPlan ?? active?.planSlug ?? PLAN.free,
+      storage.enterpriseOverrideBytes
     );
     const features = await this.resolveFeatureAccess(entitlements.plan, user);
+    // Older desktop clients require this field when parsing snapshots.
+    const snapshotFeatures = { assistant: false, ...features };
 
     return {
       billingManagement: this.billing.isAvailable ? "polar" : "unavailable",
-      // Older desktop clients require this field when parsing snapshots.
-      features: Object.assign({ assistant: false }, features),
+      features: snapshotFeatures,
       resourceCount,
       memberCount: occupancy.members,
       pendingInvitationCount: occupancy.pendingInvitations,
       storage: {
-        committedBytes: storage.committedBytes, reservedBytes: storage.reservedBytes,
-        verifiedAt: storage.verifiedAt, enforcementEnabled: storage.enforcementEnabled,
+        committedBytes: storage.committedBytes,
+        reservedBytes: storage.reservedBytes,
+        verifiedAt: storage.verifiedAt,
+        enforcementEnabled: storage.enforcementEnabled,
       },
       limits: { ...entitlements.limits },
       offlineAccessUntil:
@@ -143,8 +161,8 @@ export class EntitlementsService {
           : new Date(
               Math.max(
                 active?.currentPeriodEnd?.getTime() ?? 0,
-                verifiedAt.getTime(),
-              ) + OFFLINE_GRACE_MS,
+                verifiedAt.getTime()
+              ) + OFFLINE_GRACE_MS
             ).toISOString(),
       plan: entitlements.plan,
       verifiedAt: verifiedAt.toISOString(),
@@ -153,20 +171,25 @@ export class EntitlementsService {
   }
 
   async hasFeatureAccess(params: FeatureAccessParams): Promise<boolean> {
-    if (params.user.isAnonymous) return false;
+    if (params.user.isAnonymous) {
+      return false;
+    }
     const entitlements = await this.resolveForOrganization(
-      params.organizationId,
+      params.organizationId
     );
     const features = await this.resolveFeatureAccess(
       entitlements.plan,
-      params.user,
+      params.user
     );
     return features[params.feature];
   }
 
   async assertFeatureAccess(params: FeatureAccessParams): Promise<void> {
     try {
-      await this.assertOrganizationMember(params.user.id, params.organizationId);
+      await this.assertOrganizationMember(
+        params.user.id,
+        params.organizationId
+      );
     } catch {
       throw new FeatureAccessRequiredError();
     }
@@ -183,10 +206,7 @@ export class EntitlementsService {
     return (row?.value ?? 0) < OWNED_ORGANIZATION_FAIR_USE_LIMIT;
   }
 
-  canManageBilling(
-    userId: string,
-    organizationId: string,
-  ): Promise<boolean> {
+  canManageBilling(userId: string, organizationId: string): Promise<boolean> {
     return this.billing.canManageBilling(userId, organizationId);
   }
 
@@ -196,7 +216,7 @@ export class EntitlementsService {
 
   async assertOrganizationMember(
     userId: string,
-    organizationId: string,
+    organizationId: string
   ): Promise<void> {
     const [row] = await this.dbService.db
       .select({ id: member.id })
@@ -204,11 +224,13 @@ export class EntitlementsService {
       .where(
         and(
           eq(member.userId, userId),
-          eq(member.organizationId, organizationId),
-        ),
+          eq(member.organizationId, organizationId)
+        )
       )
       .limit(1);
-    if (!row) throw new OrganizationMembershipRequiredError();
+    if (!row) {
+      throw new OrganizationMembershipRequiredError();
+    }
   }
 
   async hasMembers(organizationId: string): Promise<boolean> {
@@ -222,12 +244,15 @@ export class EntitlementsService {
 
   hasMemberCapacity(
     organizationId: string,
-    options: { includePendingInvitations: boolean },
+    options: { includePendingInvitations: boolean }
   ): Promise<boolean> {
     return this.seats.hasMemberCapacity(organizationId, options);
   }
 
-  withMemberCapacity<T>(organizationId: string, write: (tx: DatabaseOrTx) => Promise<T>): Promise<T> {
+  withMemberCapacity<T>(
+    organizationId: string,
+    write: (tx: DatabaseOrTx) => Promise<T>
+  ): Promise<T> {
     return this.seats.withMemberCapacity(organizationId, write);
   }
 
@@ -237,7 +262,7 @@ export class EntitlementsService {
 
   async assertCanCreateResource(
     tx: DatabaseOrTx,
-    organizationId: string,
+    organizationId: string
   ): Promise<void> {
     await tx
       .select({ id: organization.id })
@@ -249,18 +274,18 @@ export class EntitlementsService {
       ? null
       : await this.billing.readActiveSubscription(tx, organizationId);
     const limit = resolveEntitlements(
-      this.config.developmentPlan ?? active?.planSlug ?? PLAN.free,
+      this.config.developmentPlan ?? active?.planSlug ?? PLAN.free
     ).limit(LIMIT.maxResources);
-    if (limit === Number.MAX_SAFE_INTEGER) return;
+    if (limit === Number.MAX_SAFE_INTEGER) {
+      return;
+    }
 
     if ((await this.countOrganizationResources(tx, organizationId)) >= limit) {
       throw new OrganizationResourceLimitError(limit);
     }
   }
 
-  syncMemberSeats(
-    organizationId: string,
-  ): Promise<void> {
+  syncMemberSeats(organizationId: string): Promise<void> {
     return this.seats.syncMemberSeats(organizationId);
   }
 
@@ -274,20 +299,28 @@ export class EntitlementsService {
 
   private async resolveFeatureAccess(
     plan: PlanSlug,
-    user: FeatureAccessUser,
+    user: FeatureAccessUser
   ): Promise<FeatureAccess> {
     const features = { ...resolvePlanFeatures(plan) };
-    if (user.isAnonymous) return resolvePlanFeatures(PLAN.free);
-    features[FEATURE.agentWork] = await this.isFeatureApproved(user, plan, FEATURE.agentWork);
+    if (user.isAnonymous) {
+      return resolvePlanFeatures(PLAN.free);
+    }
+    features[FEATURE.agentWork] = await this.isFeatureApproved(
+      user,
+      plan,
+      FEATURE.agentWork
+    );
     return features;
   }
 
   private async isFeatureApproved(
     user: FeatureAccessUser,
     plan: PlanSlug,
-    flag: string,
+    flag: string
   ): Promise<boolean> {
-    if (!this.posthog) return false;
+    if (!this.posthog) {
+      return false;
+    }
 
     try {
       const flags = await this.posthog.evaluateFlags(user.id, {
@@ -307,14 +340,14 @@ export class EntitlementsService {
 
   private async countOrganizationResources(
     db: DatabaseOrTx,
-    organizationId: string,
+    organizationId: string
   ): Promise<number> {
     const [row] = await db
       .select({ value: count() })
       .from(workspaceResourcesDb)
       .innerJoin(
         workspacesDb,
-        eq(workspaceResourcesDb.workspaceId, workspacesDb.id),
+        eq(workspaceResourcesDb.workspaceId, workspacesDb.id)
       )
       .where(
         and(
@@ -323,11 +356,9 @@ export class EntitlementsService {
             db
               .select({ id: workspaceResourceTrashDb.id })
               .from(workspaceResourceTrashDb)
-              .where(
-                eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id),
-              ),
-          ),
-        ),
+              .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id))
+          )
+        )
       );
     return row?.value ?? 0;
   }

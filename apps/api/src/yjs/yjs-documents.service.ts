@@ -5,20 +5,8 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import {
-  and,
-  asc,
-  desc,
-  eq,
-  getTableColumns,
-  gt,
-  lt,
-  or,
-} from "drizzle-orm";
-import {
-  encodeStateAsUpdateV2,
-  encodeStateVector,
-} from "yjs";
+import { and, asc, desc, eq, getTableColumns, gt, lt, or } from "drizzle-orm";
+import { encodeStateAsUpdateV2, encodeStateVector } from "yjs";
 import { workspaceStorageSlotsDb } from "../workspaces/storage/workspace-storage.entity";
 import { workspacesDb } from "../workspaces/core/workspaces.entity";
 import { decodeCursor, toPage } from "@app/utils/pagination";
@@ -26,10 +14,7 @@ import {
   assertWorkspaceAccess,
   workspaceAccessCondition,
 } from "../workspaces/core/workspace-access";
-import {
-  yjsDocumentsDb,
-  yjsDocumentUpdatesDb,
-} from "./yjs.entity";
+import { yjsDocumentsDb, yjsDocumentUpdatesDb } from "./yjs.entity";
 import {
   decodeYjsStateVector,
   decodeYjsUpdateV2,
@@ -68,7 +53,7 @@ export class YjsDocumentsService {
       this.database.db,
       params.workspaceId,
       params.organizationId,
-      params.userId,
+      params.userId
     );
     const cursor = decodeCursor(params.cursor, yjsDocumentCursorSchema.parse);
     const cursorDate = cursor ? new Date(cursor.updatedAt) : undefined;
@@ -82,9 +67,9 @@ export class YjsDocumentsService {
           lt(yjsDocumentsDb.updatedAt, cursorDate),
           and(
             eq(yjsDocumentsDb.updatedAt, cursorDate),
-            gt(yjsDocumentsDb.id, cursor.id),
-          ),
-        )!,
+            gt(yjsDocumentsDb.id, cursor.id)
+          )
+        )!
       );
     }
 
@@ -111,10 +96,10 @@ export class YjsDocumentsService {
     input: CreateYjsDocumentInput,
     workspaceId: string,
     organizationId: string,
-    userId: string,
+    userId: string
   ) {
     return this.database.db.transaction((tx) =>
-      this.createWithDb(tx, input, workspaceId, organizationId, userId),
+      this.createWithDb(tx, input, workspaceId, organizationId, userId)
     );
   }
 
@@ -123,7 +108,7 @@ export class YjsDocumentsService {
     input: CreateYjsDocumentInput,
     workspaceId: string,
     organizationId: string,
-    userId: string,
+    userId: string
   ) {
     const initialUpdate = input.initialUpdateB64
       ? decodeYjsUpdateV2(input.initialUpdateB64)
@@ -133,7 +118,7 @@ export class YjsDocumentsService {
       workspaceId,
       organizationId,
       userId,
-      "write",
+      "write"
     );
     const now = new Date();
     const [document] = await db
@@ -159,7 +144,7 @@ export class YjsDocumentsService {
     documentId: string,
     workspaceId: string,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     const document = await this.find({
       db: this.database.db,
@@ -212,8 +197,8 @@ export class YjsDocumentsService {
         .where(
           and(
             eq(yjsDocumentsDb.id, params.documentId),
-            eq(yjsDocumentsDb.workspaceId, params.workspaceId),
-          ),
+            eq(yjsDocumentsDb.workspaceId, params.workspaceId)
+          )
         );
 
       return {
@@ -242,7 +227,7 @@ export class YjsDocumentsService {
         encoding: "yjs-update-v2" as const,
         stateVectorB64: Buffer.from(encodeStateVector(doc)).toString("base64"),
         updateB64: Buffer.from(
-          encodeStateAsUpdateV2(doc, clientStateVector),
+          encodeStateAsUpdateV2(doc, clientStateVector)
         ).toString("base64"),
         updatedAt: document.updatedAt.toISOString(),
       };
@@ -255,7 +240,7 @@ export class YjsDocumentsService {
     documentId: string,
     workspaceId: string,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     const { document, updates } = await this.getSnapshot({
       documentId,
@@ -279,7 +264,7 @@ export class YjsDocumentsService {
     documentId: string,
     workspaceId: string,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     return this.database.db.transaction(async (tx) => {
       await this.find({
@@ -298,14 +283,14 @@ export class YjsDocumentsService {
           and(
             eq(workspaceStorageSlotsDb.workspaceId, workspaceId),
             eq(workspaceStorageSlotsDb.kind, "yjs"),
-            eq(workspaceStorageSlotsDb.backingId, documentId),
-          ),
+            eq(workspaceStorageSlotsDb.backingId, documentId)
+          )
         )
         .for("update")
         .limit(1);
       if (reference) {
         throw new ConflictException(
-          "Yjs document is referenced by a workspace resource",
+          "Yjs document is referenced by a workspace resource"
         );
       }
 
@@ -314,8 +299,8 @@ export class YjsDocumentsService {
         .where(
           and(
             eq(yjsDocumentsDb.id, documentId),
-            eq(yjsDocumentsDb.workspaceId, workspaceId),
-          ),
+            eq(yjsDocumentsDb.workspaceId, workspaceId)
+          )
         )
         .returning({ id: yjsDocumentsDb.id });
       return deleted!;
@@ -340,18 +325,18 @@ export class YjsDocumentsService {
         const updates = await this.getUpdates(
           tx,
           params.documentId,
-          params.workspaceId,
+          params.workspaceId
         );
         return { document, updates };
       },
-      { accessMode: "read only", isolationLevel: "repeatable read" },
+      { accessMode: "read only", isolationLevel: "repeatable read" }
     );
   }
 
   private async getUpdates(
     db: DatabaseOrTx,
     documentId: string,
-    workspaceId: string,
+    workspaceId: string
   ) {
     return db
       .select({ updateData: yjsDocumentUpdatesDb.updateData })
@@ -359,12 +344,12 @@ export class YjsDocumentsService {
       .where(
         and(
           eq(yjsDocumentUpdatesDb.documentId, documentId),
-          eq(yjsDocumentUpdatesDb.workspaceId, workspaceId),
-        ),
+          eq(yjsDocumentUpdatesDb.workspaceId, workspaceId)
+        )
       )
       .orderBy(
         asc(yjsDocumentUpdatesDb.createdAt),
-        asc(yjsDocumentUpdatesDb.id),
+        asc(yjsDocumentUpdatesDb.id)
       );
   }
 
@@ -380,16 +365,18 @@ export class YjsDocumentsService {
           workspaceAccessCondition(
             params.organizationId,
             params.userId,
-            params.access,
-          ),
-        ),
+            params.access
+          )
+        )
       )
       .limit(1);
     const rows = params.lock
       ? await query.for("update", { of: yjsDocumentsDb })
       : await query;
     const document = rows[0];
-    if (!document) throw new NotFoundException("Yjs document not found");
+    if (!document) {
+      throw new NotFoundException("Yjs document not found");
+    }
     return document;
   }
 }

@@ -8,7 +8,11 @@ import { FilesService } from "./files.service";
 @Module({
   imports: [EntitlementsModule],
   controllers: [FilesController],
-  providers: [FilesService, UploadSessionsService, StorageReconciliationService],
+  providers: [
+    FilesService,
+    UploadSessionsService,
+    StorageReconciliationService,
+  ],
   exports: [FilesService, UploadSessionsService, StorageReconciliationService],
 })
 export class FilesModule {}

@@ -37,14 +37,12 @@ describe("AgentControlService", () => {
       },
       "workspace-1",
       "organization-1",
-      "user-1",
+      "user-1"
     );
   });
 
   it("allows resources without storage", async () => {
-    const create = mock(() =>
-      Promise.resolve({ id: "item-1", storage: {} }),
-    );
+    const create = mock(() => Promise.resolve({ id: "item-1", storage: {} }));
     const createDocument = mock();
     const service = makeService({
       items: { create },
@@ -67,7 +65,7 @@ describe("AgentControlService", () => {
       expect.objectContaining({ storage: {} }),
       "workspace-1",
       "organization-1",
-      "user-1",
+      "user-1"
     );
     expect(createDocument).not.toHaveBeenCalled();
   });
@@ -82,8 +80,8 @@ describe("AgentControlService", () => {
       }),
     }));
     const tx = { select };
-    const transaction = mock(
-      (run: (value: typeof tx) => Promise<unknown>) => run(tx),
+    const transaction = mock((run: (value: typeof tx) => Promise<unknown>) =>
+      run(tx)
     );
     const createDocument = mock();
     const createResource = mock();
@@ -106,7 +104,7 @@ describe("AgentControlService", () => {
         },
         workspaceId: "workspace-1",
         organizationId: "organization-1",
-      }),
+      })
     ).rejects.toBeInstanceOf(NotFoundException);
     expect(createDocument).not.toHaveBeenCalled();
     expect(createResource).not.toHaveBeenCalled();
@@ -135,7 +133,7 @@ describe("AgentControlService", () => {
       expect.objectContaining({
         fingerprint: fingerprint(snapshot),
         impact: expect.objectContaining({ documents: 2 }),
-      }),
+      })
     );
   });
 
@@ -154,11 +152,9 @@ describe("AgentControlService", () => {
     const safety = {
       executePreview: mock(
         (input: { run: (database: typeof tx) => Promise<unknown> }) =>
-          input.run(tx),
+          input.run(tx)
       ),
-      idempotent: mock(
-        (input: { run: () => Promise<unknown> }) => input.run(),
-      ),
+      idempotent: mock((input: { run: () => Promise<unknown> }) => input.run()),
     };
     const service = makeService({ safety });
     Object.assign(service, {
@@ -169,7 +165,7 @@ describe("AgentControlService", () => {
           items: [],
           workspaceId: "workspace-1",
           revision: "revision-1",
-        }),
+        })
       ),
     });
 
@@ -199,9 +195,9 @@ describe("AgentControlService", () => {
       },
     });
 
-    await expect(service.assertAgentEligible("anonymous-1")).rejects.toBeInstanceOf(
-      ForbiddenException,
-    );
+    await expect(
+      service.assertAgentEligible("anonymous-1")
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it("serializes invitation admission and normalizes recipient email", async () => {
@@ -229,15 +225,18 @@ describe("AgentControlService", () => {
         ]),
     }));
     const tx = { execute, insert: () => ({ values }), select };
-    const transaction = mock(
-      (run: (value: typeof tx) => Promise<unknown>) => run(tx),
+    const transaction = mock((run: (value: typeof tx) => Promise<unknown>) =>
+      run(tx)
     );
     const send = mock(() => Promise.resolve());
     const service = makeService({
       appConfig: { frontendUrl: "https://app.lunaris.test" },
       database: { db: { transaction } },
       entitlements: {
-        withMemberCapacity: mock((_id: string, run: (tx: unknown) => Promise<unknown>) => transaction(run)),
+        withMemberCapacity: mock(
+          (_id: string, run: (tx: unknown) => Promise<unknown>) =>
+            transaction(run)
+        ),
       },
       resend: { emails: { send } },
     });
@@ -245,12 +244,12 @@ describe("AgentControlService", () => {
     const result = await service.inviteMember(
       "organization-1",
       { email: " Person@Example.com ", role: "viewer" },
-      "user-1",
+      "user-1"
     );
 
     expect(transaction).toHaveBeenCalledTimes(1);
     expect(values).toHaveBeenCalledWith(
-      expect.objectContaining({ email: "person@example.com" }),
+      expect.objectContaining({ email: "person@example.com" })
     );
     expect(send).toHaveBeenCalledTimes(1);
     expect(result.email).toBe("person@example.com");
@@ -258,7 +257,7 @@ describe("AgentControlService", () => {
 
   it("escapes LIKE wildcard characters for literal title search", () => {
     expect(escapeLikePattern(String.raw`plan%_\notes`)).toBe(
-      String.raw`plan\%\_\\notes`,
+      String.raw`plan\%\_\\notes`
     );
   });
 
@@ -329,7 +328,7 @@ describe("AgentControlService", () => {
     expect(get).toHaveBeenCalledWith(
       "workspace-1",
       "organization-1",
-      undefined,
+      undefined
     );
     expect(limit).toHaveBeenCalledWith(2);
     const searchSql = new PgDialect().sqlToQuery(searchCondition!).sql;
@@ -364,8 +363,8 @@ describe("AgentControlService", () => {
     });
     expect(
       JSON.parse(
-        Buffer.from(result.nextCursor ?? "", "base64url").toString("utf8"),
-      ),
+        Buffer.from(result.nextCursor ?? "", "base64url").toString("utf8")
+      )
     ).toEqual({
       resourceId: "item-1",
       itemName: "plan",
@@ -388,23 +387,25 @@ describe("AgentControlService", () => {
       service.searchResources("organization-1", {
         workspaceId: "missing-workspace",
         search: "plan",
-      }),
+      })
     ).rejects.toBe(error);
     expect(select).not.toHaveBeenCalled();
   });
 });
 
-function makeService(overrides: {
-  appConfig?: unknown;
-  database?: unknown;
-  entitlements?: unknown;
-  files?: unknown;
-  items?: unknown;
-  workspaces?: unknown;
-  resend?: unknown;
-  safety?: unknown;
-  yjs?: unknown;
-} = {}) {
+function makeService(
+  overrides: {
+    appConfig?: unknown;
+    database?: unknown;
+    entitlements?: unknown;
+    files?: unknown;
+    items?: unknown;
+    workspaces?: unknown;
+    resend?: unknown;
+    safety?: unknown;
+    yjs?: unknown;
+  } = {}
+) {
   return new AgentControlService(
     (overrides.appConfig ?? {}) as never,
     (overrides.database ?? {}) as never,
@@ -414,6 +415,6 @@ function makeService(overrides: {
     (overrides.workspaces ?? {}) as never,
     (overrides.safety ?? {}) as never,
     (overrides.yjs ?? {}) as never,
-    (overrides.resend ?? null) as never,
+    (overrides.resend ?? null) as never
   );
 }

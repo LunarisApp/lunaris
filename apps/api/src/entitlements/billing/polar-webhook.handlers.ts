@@ -13,7 +13,7 @@ import { BillingService } from "./billing.service";
 export class PolarWebhookHandlers {
   constructor(
     private readonly billing: BillingService,
-    private readonly seats: SeatService,
+    private readonly seats: SeatService
   ) {}
 
   toCallbacks(): PolarWebhookCallbacks {
@@ -65,16 +65,14 @@ export class PolarWebhookHandlers {
       });
 
       if (sub.status === "active" || sub.status === "trialing") {
-        await this.seats.syncMemberSeats(
-          organizationId,
-        );
+        await this.seats.syncMemberSeats(organizationId);
       }
       recordComplianceAudit(
         auditLog,
         AuditActions.billingSubscriptionSynchronized({
           ...auditInput,
           outcome: "success",
-        }),
+        })
       );
     } catch (error) {
       recordComplianceAudit(
@@ -86,7 +84,7 @@ export class PolarWebhookHandlers {
             error instanceof Error
               ? error.message
               : "Subscription synchronization failed",
-        }),
+        })
       );
       throw error;
     }

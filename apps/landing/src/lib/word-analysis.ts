@@ -51,10 +51,7 @@ function getTopWords(text: string, language: AnalysisLanguage): TopWord[] {
 	let firstIndex = 0;
 
 	for (const match of text.matchAll(wordPattern)) {
-		const word = match[0]
-			.normalize("NFKC")
-			.replaceAll("’", "'")
-			.toLowerCase();
+		const word = match[0].normalize("NFKC").replaceAll("’", "'").toLowerCase();
 		if (topWordStopWords[language].has(word)) {
 			firstIndex += 1;
 			continue;
@@ -91,9 +88,7 @@ export function analyzeText(
 	const charactersWithoutSpaces = stats.charCount(text, true);
 
 	return {
-		averageCharactersPerWord: words
-			? charactersWithoutSpaces / words
-			: 0,
+		averageCharactersPerWord: words ? charactersWithoutSpaces / words : 0,
 		averageWordsPerSentence: sentences ? words / sentences : 0,
 		characters,
 		charactersWithoutSpaces,

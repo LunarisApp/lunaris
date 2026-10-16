@@ -19,7 +19,7 @@ export class PresenceController {
   constructor(
     private readonly access: UserDataAccessService,
     private readonly presence: PresenceAccessService,
-    private readonly relay: PresenceRelay,
+    private readonly relay: PresenceRelay
   ) {}
 
   @Post("storage/:storageId/presence/ticket")
@@ -28,7 +28,7 @@ export class PresenceController {
     @Session() session: UserSession,
     @Param("workspaceId") workspaceId: string,
     @Param("storageId") storageId: string,
-    @Res({ passthrough: true }) reply: FastifyReply,
+    @Res({ passthrough: true }) reply: FastifyReply
   ) {
     reply.header("Cache-Control", "no-store");
     const principal = await this.access.requireOrganization(session);
@@ -47,13 +47,14 @@ export class PresenceController {
     @Param("workspaceId") workspaceId: string,
     @Param("resourceId") resourceId: string,
     @Body() body: { extensionId?: string; channel?: string },
-    @Res({ passthrough: true }) reply: FastifyReply,
+    @Res({ passthrough: true }) reply: FastifyReply
   ) {
     if (
       body?.channel !== undefined &&
       (typeof body.channel !== "string" || typeof body.extensionId !== "string")
-    )
+    ) {
       throw new BadRequestException("Invalid presence channel");
+    }
     reply.header("Cache-Control", "no-store");
     const principal = await this.access.requireOrganization(session);
     const identity = await this.presence.authorize({

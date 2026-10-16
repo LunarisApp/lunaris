@@ -9,7 +9,7 @@ function awaitable(rows: unknown[]) {
     limit: mock(() => result),
     then: (
       resolve: (value: unknown[]) => unknown,
-      reject?: (reason: unknown) => unknown,
+      reject?: (reason: unknown) => unknown
     ) => Promise.resolve(rows).then(resolve, reject),
   };
   return result;
@@ -37,13 +37,13 @@ describe("ExtensionRegistriesService", () => {
     const db = {
       ...tx,
       transaction: mock(async (operation: (value: typeof tx) => unknown) =>
-        operation(tx),
+        operation(tx)
       ),
     };
     const service = new ExtensionRegistriesService({ db } as never);
 
     await expect(service.remove("org-1", "registry-1")).rejects.toBeInstanceOf(
-      ConflictException,
+      ConflictException
     );
     expect(deleteRegistry).not.toHaveBeenCalled();
   });
@@ -63,7 +63,7 @@ function databaseWithRows(rows: unknown[]) {
     db: {
       ...tx,
       transaction: mock(async (operation: (value: typeof tx) => unknown) =>
-        operation(tx),
+        operation(tx)
       ),
     },
   };
@@ -75,17 +75,17 @@ describe("developer mode access", () => {
       const database = databaseWithRows(role ? [{ role }] : []);
       const service = new ExtensionRegistriesService(database as never);
       await expect(
-        service.requireOwner("org-1", "user-1"),
+        service.requireOwner("org-1", "user-1")
       ).rejects.toBeInstanceOf(ForbiddenException);
     });
   }
 
   it("allows owners", async () => {
     const service = new ExtensionRegistriesService(
-      databaseWithRows([{ role: "owner" }]) as never,
+      databaseWithRows([{ role: "owner" }]) as never
     );
     await expect(
-      service.requireOwner("org-1", "owner-1"),
+      service.requireOwner("org-1", "owner-1")
     ).resolves.toBeUndefined();
   });
 
@@ -93,10 +93,10 @@ describe("developer mode access", () => {
     const database = databaseWithRows([{ enabled: false }]);
     const service = new ExtensionRegistriesService(database as never);
     await expect(
-      service.add("org-1", "https://example.com/marketplace.json", "owner-1"),
+      service.add("org-1", "https://example.com/marketplace.json", "owner-1")
     ).rejects.toBeInstanceOf(ForbiddenException);
     await expect(service.remove("org-1", "registry-1")).rejects.toBeInstanceOf(
-      ForbiddenException,
+      ForbiddenException
     );
     expect(database.db.insert).not.toHaveBeenCalled();
     expect(database.db.delete).not.toHaveBeenCalled();
@@ -105,10 +105,10 @@ describe("developer mode access", () => {
 
   it("keeps the official marketplace protected when enabled", async () => {
     const service = new ExtensionRegistriesService(
-      databaseWithRows([{ enabled: true }]) as never,
+      databaseWithRows([{ enabled: true }]) as never
     );
     await expect(
-      service.add("org-1", OFFICIAL_MARKETPLACE_LOCATION, "owner-1"),
+      service.add("org-1", OFFICIAL_MARKETPLACE_LOCATION, "owner-1")
     ).rejects.toBeInstanceOf(ConflictException);
   });
 });
@@ -128,7 +128,7 @@ describe("marketplace duplicate errors", () => {
       });
       const service = new ExtensionRegistriesService(database as never);
       await expect(
-        service.add("org-1", "https://example.com/marketplace.json", "owner-1"),
+        service.add("org-1", "https://example.com/marketplace.json", "owner-1")
       ).rejects.toBeInstanceOf(ConflictException);
       expect(database.read.for).toHaveBeenCalledWith("share");
     });

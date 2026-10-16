@@ -51,7 +51,7 @@ describe("ComplianceAuditInterceptor", () => {
     await firstValueFrom(
       interceptor.intercept(context(), {
         handle: () => of({ id: "workspace_1" }),
-      } as CallHandler),
+      } as CallHandler)
     );
 
     expect(mockEvlogLogger.audit).toHaveBeenCalledWith({
@@ -79,8 +79,8 @@ describe("ComplianceAuditInterceptor", () => {
       firstValueFrom(
         interceptor.intercept(context(), {
           handle: () => throwError(() => failure),
-        } as CallHandler),
-      ),
+        } as CallHandler)
+      )
     ).rejects.toBe(failure);
 
     expect(mockEvlogLogger.audit.deny).toHaveBeenCalledWith(
@@ -88,7 +88,7 @@ describe("ComplianceAuditInterceptor", () => {
       expect.objectContaining({
         action: "workspace.created",
         actor: { id: "user_1", type: "user" },
-      }),
+      })
     );
   });
 });

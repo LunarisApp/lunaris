@@ -10,12 +10,16 @@ const reservedStorageKeyShape = {
 const storageRecordSchema = <Value extends z.ZodType>(value: Value) =>
   z.preprocess(
     toNullPrototypeRecord,
-    z.object(reservedStorageKeyShape).catchall(value),
+    z.object(reservedStorageKeyShape).catchall(value)
   ) as z.ZodType<Record<string, z.output<Value>>>;
 
 function toNullPrototypeRecord(value: unknown): unknown {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
-  if (Object.hasOwn(value, "__proto__")) return null;
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+  if (Object.hasOwn(value, "__proto__")) {
+    return null;
+  }
   return Object.assign(Object.create(null) as object, value);
 }
 
@@ -33,7 +37,7 @@ export const workspaceResourceSchema = z.object({
     z.object({
       kind: z.enum(["file", "key-value", "yjs"]),
       storageId: z.string().min(1),
-    }),
+    })
   ),
   updatedAt: z.string(),
   lastActivityAt: z.string().optional(),
@@ -80,7 +84,7 @@ export const createWorkspaceResourceSchema = z.object({
   resourceTypeId: z.string().min(1),
   schemaVersion: z.number().int().positive().default(1),
   storage: storageRecordSchema(
-    z.object({ kind: z.enum(["file", "key-value", "yjs"]) }).strict(),
+    z.object({ kind: z.enum(["file", "key-value", "yjs"]) }).strict()
   ),
 });
 

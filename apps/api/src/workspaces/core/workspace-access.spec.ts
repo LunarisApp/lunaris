@@ -5,13 +5,13 @@ import { workspaceAccessCondition } from "./workspace-access";
 describe("workspaceAccessCondition", () => {
   it("allows shared workspaces and only the current user's private workspaces", () => {
     const query = new PgDialect().sqlToQuery(
-      workspaceAccessCondition("org_1", "user_1"),
+      workspaceAccessCondition("org_1", "user_1")
     );
 
     expect(query.sql).toContain('"workspaces"."organizationId" = $1');
     expect(query.sql).toContain('"workspaces"."visibility"');
     expect(query.sql).toContain(
-      '"organization"."deletion_requested_at" IS NULL',
+      '"organization"."deletion_requested_at" IS NULL'
     );
     expect(query.sql).toContain('"workspaces"."ownerId"');
     expect(query.params).toEqual([
@@ -36,7 +36,7 @@ describe("workspaceAccessCondition", () => {
 
   it("requires editor membership for private workspace writes", () => {
     const query = new PgDialect().sqlToQuery(
-      workspaceAccessCondition("org_1", "user_1", "write"),
+      workspaceAccessCondition("org_1", "user_1", "write")
     );
 
     expect(query.sql).toContain('"workspace_members"."role"');
@@ -45,7 +45,7 @@ describe("workspaceAccessCondition", () => {
 
   it("requires ownership for private workspace administration", () => {
     const query = new PgDialect().sqlToQuery(
-      workspaceAccessCondition("org_1", "user_1", "owner"),
+      workspaceAccessCondition("org_1", "user_1", "owner")
     );
 
     expect(query.sql).not.toContain("workspace_members");

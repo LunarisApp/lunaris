@@ -16,14 +16,15 @@ const RECOVERY_READ_PATHS = new Set([
 
 export async function assertAuthOrganizationAccess(
   db: DrizzleDatabase,
-  input: { path: string; body: unknown; activeOrganizationId?: string | null },
+  input: { path: string; body: unknown; activeOrganizationId?: string | null }
 ) {
   if (
     (!input.path.startsWith("/organization/") &&
       input.path !== "/customer/portal") ||
     RECOVERY_READ_PATHS.has(input.path)
-  )
+  ) {
     return;
+  }
   const body =
     input.body && typeof input.body === "object"
       ? (input.body as Record<string, unknown>)
@@ -33,12 +34,15 @@ export async function assertAuthOrganizationAccess(
       ? (body.data as Record<string, unknown>)
       : {};
   const ids = new Set<string>();
-  const explicitId = input.path === "/customer/portal"
-    ? input.activeOrganizationId
-    : input.path === "/organization/update-team"
-      ? nested.organizationId
-      : body.organizationId;
-  if (typeof explicitId === "string" && explicitId.length > 0) ids.add(explicitId);
+  const explicitId =
+    input.path === "/customer/portal"
+      ? input.activeOrganizationId
+      : input.path === "/organization/update-team"
+        ? nested.organizationId
+        : body.organizationId;
+  if (typeof explicitId === "string" && explicitId.length > 0) {
+    ids.add(explicitId);
+  }
   // Resolve only fields used by this endpoint. An unrelated body field must
   // never replace the organization that the real mutation will target.
   if (
@@ -53,7 +57,9 @@ export async function assertAuthOrganizationAccess(
       .select({ organizationId: invitation.organizationId })
       .from(invitation)
       .where(eq(invitation.id, body.invitationId));
-    if (row) ids.add(row.organizationId);
+    if (row) {
+      ids.add(row.organizationId);
+    }
   } else if (
     [
       "/organization/remove-member",
@@ -66,7 +72,9 @@ export async function assertAuthOrganizationAccess(
         .select({ organizationId: member.organizationId })
         .from(member)
         .where(eq(member.id, target));
-      if (row) ids.add(row.organizationId);
+      if (row) {
+        ids.add(row.organizationId);
+      }
     }
   } else if (
     [
@@ -82,25 +90,31 @@ export async function assertAuthOrganizationAccess(
       .select({ organizationId: team.organizationId })
       .from(team)
       .where(eq(team.id, body.teamId));
-    if (row) ids.add(row.organizationId);
+    if (row) {
+      ids.add(row.organizationId);
+    }
   }
-  if (!ids.size && input.activeOrganizationId)
+  if (!ids.size && input.activeOrganizationId) {
     ids.add(input.activeOrganizationId);
-  if (!ids.size) return;
+  }
+  if (!ids.size) {
+    return;
+  }
   const [org] = await db
     .select({ requestedAt: organization.deletionRequestedAt })
     .from(organization)
     .where(
       and(
         inArray(organization.id, [...ids]),
-        isNotNull(organization.deletionRequestedAt),
-      ),
+        isNotNull(organization.deletionRequestedAt)
+      )
     )
     .limit(1);
-  if (org?.requestedAt)
+  if (org?.requestedAt) {
     throw new APIError("FORBIDDEN", {
       code: "ORGANIZATION_PENDING_DELETION",
       message:
         "Organization is scheduled for deletion. Restore it before making changes.",
     });
+  }
 }

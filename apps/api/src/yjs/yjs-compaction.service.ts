@@ -126,6 +126,7 @@ export class YjsCompactionService {
         log.error(asError(error), {
           compaction: { lockReleaseStatus: "failed" },
         });
+        // biome-ignore lint/correctness/noUnsafeFinally: Unlock failure must reject this job even after an early no-op return; both failures are logged above.
         throw error;
       } finally {
         log.emit();

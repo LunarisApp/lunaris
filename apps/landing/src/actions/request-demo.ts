@@ -139,7 +139,8 @@ async function requestDemoAction(
 		});
 		return { status: "success", message: "" };
 	} catch (err) {
-		const cause = err instanceof Error ? err : new Error("Unknown Resend error");
+		const cause =
+			err instanceof Error ? err : new Error("Unknown Resend error");
 		log.error(
 			createError({
 				cause,

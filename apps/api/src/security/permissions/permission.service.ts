@@ -25,25 +25,31 @@ export class PermissionService {
 
   async hasPermission(
     required: AppPermission,
-    principal: OrganizationPrincipal,
+    principal: OrganizationPrincipal
   ): Promise<boolean> {
-    if (!principal.organizationId) return false;
+    if (!principal.organizationId) {
+      return false;
+    }
     const [active] = await this.database.db
       .select({ id: organization.id })
       .from(organization)
       .where(
         and(
           eq(organization.id, principal.organizationId),
-          isNull(organization.deletionRequestedAt),
-        ),
+          isNull(organization.deletionRequestedAt)
+        )
       )
       .limit(1);
-    if (!active) return false;
+    if (!active) {
+      return false;
+    }
     const workspaceDecision = await this.hasPrivateWorkspacePermission(
       required,
-      principal,
+      principal
     );
-    if (workspaceDecision !== undefined) return workspaceDecision;
+    if (workspaceDecision !== undefined) {
+      return workspaceDecision;
+    }
     const role = Object.hasOwn(principal, "role")
       ? principal.role
       : await this.getOrganizationRole(principal);
@@ -52,12 +58,14 @@ export class PermissionService {
 
   private async hasPrivateWorkspacePermission(
     required: AppPermission,
-    principal: OrganizationPrincipal,
+    principal: OrganizationPrincipal
   ): Promise<boolean | undefined> {
     if (
-      !principal.workspaceId ||
-      !principal.organizationId ||
-      !principal.userId ||
+      !(
+        principal.workspaceId &&
+        principal.organizationId &&
+        principal.userId
+      ) ||
       (required.resource !== "workspace" && required.resource !== "content")
     ) {
       return undefined;
@@ -77,27 +85,31 @@ export class PermissionService {
           workspaceAccessCondition(
             principal.organizationId,
             principal.userId,
-            access,
-          ),
-        ),
+            access
+          )
+        )
       )
       .limit(1);
-    if (!workspace) return false;
+    if (!workspace) {
+      return false;
+    }
     return workspace.visibility === "private" ? true : undefined;
   }
 
   async getOrganizationRole(
-    principal: Omit<OrganizationPrincipal, "role">,
+    principal: Omit<OrganizationPrincipal, "role">
   ): Promise<string | null> {
-    if (!principal.organizationId || !principal.userId) return null;
+    if (!(principal.organizationId && principal.userId)) {
+      return null;
+    }
     const [membership] = await this.database.db
       .select({ role: member.role })
       .from(member)
       .where(
         and(
           eq(member.organizationId, principal.organizationId),
-          eq(member.userId, principal.userId),
-        ),
+          eq(member.userId, principal.userId)
+        )
       )
       .limit(1);
 
@@ -106,11 +118,11 @@ export class PermissionService {
 
   async requirePermission(
     required: AppPermission,
-    principal: OrganizationPrincipal,
+    principal: OrganizationPrincipal
   ): Promise<void> {
     if (!(await this.hasPermission(required, principal))) {
       throw new ForbiddenException(
-        `Missing permission: ${required.resource}:${required.action}`,
+        `Missing permission: ${required.resource}:${required.action}`
       );
     }
   }

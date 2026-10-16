@@ -44,9 +44,9 @@ describe("AuthIdentifyMiddleware", () => {
     );
 
     expect(getSession).toHaveBeenCalledTimes(1);
-    const headers = (getSession.mock.calls as unknown as Array<[
-      { headers: Headers },
-    ]>)[0]?.[0].headers;
+    const headers = (
+      getSession.mock.calls as unknown as [{ headers: Headers }][]
+    )[0]?.[0].headers;
     expect(headers.get("cookie")).toBe("session=secret");
     expect(loggerSet).toHaveBeenNthCalledWith(1, {
       userId: "user_1",
@@ -77,11 +77,7 @@ describe("AuthIdentifyMiddleware", () => {
       "/v1/health",
       "/v1/manifest",
     ]) {
-      await middleware.use(
-        { headers: {}, url } as never,
-        {} as never,
-        next
-      );
+      await middleware.use({ headers: {}, url } as never, {} as never, next);
     }
 
     expect(getSession).not.toHaveBeenCalled();

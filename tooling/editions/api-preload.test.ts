@@ -9,7 +9,9 @@ for (const edition of ["community", "enterprise"] as const) {
   test(`${edition} runtime preserves Nest decorators, metadata, and edition selection`, async () => {
     const directory = mkdtempSync(join(apiDirectory, ".edition-test-"));
     const entrypoint = join(directory, "main.ts");
-    writeFileSync(entrypoint, `
+    writeFileSync(
+      entrypoint,
+      `
       import "reflect-metadata";
       import { Controller, Get } from "@nestjs/common";
       import { organizationTeams } from "@app/edition";
@@ -29,14 +31,18 @@ for (const edition of ["community", "enterprise"] as const) {
         throw new Error("Wrong edition loaded");
       }
       console.log("runtime verified");
-    `);
+    `
+    );
     try {
-      const child = Bun.spawn([process.execPath, "--preload", preload, entrypoint], {
-        cwd: apiDirectory,
-        env: { ...process.env, LUNARIS_EDITION: edition },
-        stdout: "pipe",
-        stderr: "pipe",
-      });
+      const child = Bun.spawn(
+        [process.execPath, "--preload", preload, entrypoint],
+        {
+          cwd: apiDirectory,
+          env: { ...process.env, LUNARIS_EDITION: edition },
+          stdout: "pipe",
+          stderr: "pipe",
+        }
+      );
       const [code, stdout, stderr] = await Promise.all([
         child.exited,
         new Response(child.stdout).text(),

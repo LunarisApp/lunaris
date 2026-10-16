@@ -46,36 +46,52 @@ export function readOwnedAwareness(
   data: Uint8Array,
   clientId: number,
   user: PresenceUser,
-  kind: "resource" | "channel" | "yjs" = "yjs",
+  kind: "resource" | "channel" | "yjs" = "yjs"
 ): AwarenessEntry {
-  if (data.byteLength > 8192) throw new Error("Presence message too large");
+  if (data.byteLength > 8192) {
+    throw new Error("Presence message too large");
+  }
   const decoder = decoding.createDecoder(data);
-  if (decoding.readVarUint(decoder) !== 1)
+  if (decoding.readVarUint(decoder) !== 1) {
     throw new Error("Expected one awareness entry");
+  }
   const receivedId = decoding.readVarUint(decoder);
   const clock = decoding.readVarUint(decoder);
-  if (receivedId !== clientId || !Number.isSafeInteger(clock))
+  if (receivedId !== clientId || !Number.isSafeInteger(clock)) {
     throw new Error("Invalid awareness owner");
+  }
   const raw: unknown = JSON.parse(decoding.readVarString(decoder));
-  if (decoding.hasContent(decoder)) throw new Error("Trailing awareness data");
+  if (decoding.hasContent(decoder)) {
+    throw new Error("Trailing awareness data");
+  }
   let state: AwarenessEntry["state"] = null;
   if (raw !== null) {
-    if (!raw || typeof raw !== "object" || Array.isArray(raw))
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
       throw new Error("Invalid presence state");
-    if (kind === "yjs") state = { ...stateSchema.parse(raw), user };
-    else if (kind === "resource") state = { user };
-    else {
+    }
+    if (kind === "yjs") {
+      state = { ...stateSchema.parse(raw), user };
+    } else if (kind === "resource") {
+      state = { user };
+    } else {
       const data = (raw as { data?: unknown }).data ?? null;
       const validate = (value: unknown, depth: number): void => {
-        if (depth > 8) throw new Error("Presence state too deep");
-        if (typeof value === "number" && !Number.isFinite(value))
+        if (depth > 8) {
+          throw new Error("Presence state too deep");
+        }
+        if (typeof value === "number" && !Number.isFinite(value)) {
           throw new Error("Invalid JSON number");
-        if (value && typeof value === "object")
-          for (const child of Object.values(value)) validate(child, depth + 1);
+        }
+        if (value && typeof value === "object") {
+          for (const child of Object.values(value)) {
+            validate(child, depth + 1);
+          }
+        }
       };
       validate(data, 0);
-      if (Buffer.byteLength(JSON.stringify(data)) > 4096)
+      if (Buffer.byteLength(JSON.stringify(data)) > 4096) {
         throw new Error("Presence state too large");
+      }
       state = { data, user };
     }
   }
