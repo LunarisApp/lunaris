@@ -1,15 +1,25 @@
-const releaseTag =
-  /^aio-v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$/;
+const releaseVersion =
+  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$/;
 
-export function versionFromTag(tag: string) {
-  if (tag.trim() !== tag || !releaseTag.test(tag) || tag.length > 120) {
-    throw new Error(`Invalid AIO release tag: ${tag}`);
+export function versionFromTag(tag: string, prefix = "aio-v") {
+  const version = tag.slice(prefix.length);
+  if (
+    tag.trim() !== tag ||
+    !(tag.startsWith(prefix) && releaseVersion.test(version)) ||
+    version.length > 115
+  ) {
+    throw new Error(`Invalid image release tag: ${tag}`);
   }
-  return tag.slice(5);
+  return version;
 }
 
-export function publicationTags(tag: string, sha: string, knownTags: string[]) {
-  const version = versionFromTag(tag);
+export function publicationTags(
+  tag: string,
+  sha: string,
+  knownTags: string[],
+  prefix = "aio-v"
+) {
+  const version = versionFromTag(tag, prefix);
   if (sha.length !== 40 || !/^[a-f0-9]{40}$/.test(sha)) {
     throw new Error("Expected full commit SHA");
   }
@@ -19,8 +29,9 @@ export function publicationTags(tag: string, sha: string, knownTags: string[]) {
   }
   const [major, minor] = version.split(".");
   const stable = knownTags
-    .filter((entry) => releaseTag.test(entry) && !entry.slice(5).includes("-"))
-    .map((entry) => entry.slice(5));
+    .filter((entry) => entry.startsWith(prefix))
+    .map((entry) => entry.slice(prefix.length))
+    .filter((entry) => releaseVersion.test(entry) && !entry.includes("-"));
   const newer = (prefix: string) =>
     stable.some(
       (entry) =>

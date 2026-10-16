@@ -14,7 +14,7 @@ concurrency:
   group: aio-publication
   cancel-in-progress: false
 env:
-  AIO_TAG: ${{ inputs.tag || github.ref_name }}
+  IMAGE_TAG: ${{ inputs.tag || github.ref_name }}
   IMAGE: lunarisapp/lunaris-aio
 jobs:
   prepare:
@@ -105,12 +105,12 @@ jobs:
           docker tag lunaris:aio-test "$staging"
           docker push "$staging"
           digest=$(docker buildx imagetools inspect "$staging" --format '{{.Manifest.Digest}}')
-          mkdir -p .context/aio-digests
-          printf '%s\n' "$digest" > ".context/aio-digests/$ARCH"
+          mkdir -p .context/image-digests
+          printf '%s\n' "$digest" > ".context/image-digests/$ARCH"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: aio-digest-${{ matrix.arch }}
-          path: .context/aio-digests/*
+          path: .context/image-digests/*
           retention-days: 7
           include-hidden-files: true
           overwrite: true
@@ -130,9 +130,9 @@ jobs:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: aio-digest-*
-          path: .context/aio-digests
+          path: .context/image-digests
           merge-multiple: true
       - name: Publish version and channel tags
         env:
-          AIO_SHA: ${{ needs.prepare.outputs.sha }}
+          IMAGE_SHA: ${{ needs.prepare.outputs.sha }}
         run: bun tooling/aio/publish.ts

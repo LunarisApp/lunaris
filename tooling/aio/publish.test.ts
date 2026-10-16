@@ -18,12 +18,12 @@ function publish(state: Record<string, unknown> = {}) {
   const root = mkdtempSync(join(tmpdir(), "aio-publication-"));
   const bin = join(root, "bin");
   mkdirSync(bin);
-  mkdirSync(join(root, ".context/aio-digests"), { recursive: true });
+  mkdirSync(join(root, ".context/image-digests"), { recursive: true });
   for (const [arch, value] of [
     ["amd64", "b"],
     ["arm64", "c"],
   ]) {
-    writeFileSync(join(root, `.context/aio-digests/${arch}`), digest(value!));
+    writeFileSync(join(root, `.context/image-digests/${arch}`), digest(value!));
   }
   writeFileSync(join(root, "state.json"), JSON.stringify(state));
   const mock = `#!${process.execPath}
@@ -36,7 +36,7 @@ const index = { digest: digest("d"), manifests: ["amd64", "arm64"].map((architec
 const out = (value) => console.log(JSON.stringify(value));
 if (process.argv[1].endsWith("/git")) {
   if (args.join(" ") !== "ls-remote --tags origin") throw new Error("Unexpected git command");
-  if (!state.deleted) console.log((state.remoteSha || sha) + "\\trefs/tags/aio-v1.2.3");
+  if (!state.deleted) console.log((state.remoteSha || sha) + "\\trefs/tags/" + (state.app ? state.app + "@" : "aio-v") + "1.2.3");
 } else {
   appendFileSync("calls.jsonl", JSON.stringify(args) + "\\n");
   const ref = args[3];
@@ -69,8 +69,9 @@ if (process.argv[1].endsWith("/git")) {
       env: {
         ...process.env,
         PATH: `${bin}:${process.env.PATH}`,
-        AIO_TAG: "aio-v1.2.3",
-        AIO_SHA: sha,
+        IMAGE_TAG: `${state.app ? `${state.app}@` : "aio-v"}1.2.3`,
+        IMAGE_APP: String(state.app ?? "aio"),
+        IMAGE_SHA: sha,
         GITHUB_STEP_SUMMARY: join(root, "summary.md"),
       },
     });
@@ -160,3 +161,13 @@ test("remote tag parsing resolves annotated tags to commits in either order", ()
     expect(tags.get("aio-v2.0.0-rc.1")).toBe(sha);
   }
 });
+
+for (const app of ["api", "web"]) {
+  test(`${app} publication targets its own Docker Hub repository`, () => {
+    const result = publish({ app });
+    expect(result.error).toBe("");
+    expect(result.status).toBe(0);
+    expect(result.writes[0]).toContain(`lunarisapp/lunaris-${app}:1.2.3`);
+    expect(result.writes[1]).toContain(`lunarisapp/lunaris-${app}:latest`);
+  });
+}

@@ -1,17 +1,18 @@
+import { imageConfig } from "./image";
 import { readFileSync, readdirSync } from "node:fs";
 import { run, summary } from "../release/automation/process";
 import { remoteTags } from "./remote";
 import { publicationTags, versionFromTag } from "./tags";
 
-const image = "lunarisapp/lunaris-aio";
-const tag = process.env.AIO_TAG ?? "";
-const sha = process.env.AIO_SHA ?? "";
-const version = versionFromTag(tag);
+const { image, prefix, app } = imageConfig();
+const tag = process.env.IMAGE_TAG ?? "";
+const sha = process.env.IMAGE_SHA ?? "";
+const version = versionFromTag(tag, prefix);
 const remote = remoteTags();
 if (remote.get(tag) !== sha) {
   throw new Error("Release tag is missing or moved on origin");
 }
-const tags = publicationTags(tag, sha, [...remote.keys()]);
+const tags = publicationTags(tag, sha, [...remote.keys()], prefix);
 const digestPattern = /^sha256:[a-f0-9]{64}$/;
 const architectures = ["amd64", "arm64"] as const;
 type Manifest = {
@@ -70,7 +71,7 @@ function verify(manifest: Manifest, architecture: string) {
     config.config?.Labels?.["org.opencontainers.image.version"] !== version
   ) {
     throw new Error(
-      `Image ${architecture} source/version/platform mismatch; bump AIO version if already published`
+      `Image ${architecture} source/version/platform mismatch; bump image version if already published`
     );
   }
 }
@@ -94,13 +95,13 @@ if (existing.exitCode === 0) {
       `Cannot inspect existing release: ${existing.stderr.toString()}`
     );
   }
-  const files = readdirSync(".context/aio-digests").sort();
+  const files = readdirSync(".context/image-digests").sort();
   if (files.join(",") !== architectures.join(",")) {
     throw new Error("Both named architecture digests required");
   }
   const sources = architectures.map((architecture) => {
     const reference = pinned(
-      readFileSync(`.context/aio-digests/${architecture}`, "utf8").trim()
+      readFileSync(`.context/image-digests/${architecture}`, "utf8").trim()
     );
     verify(inspect(reference), architecture);
     return reference;
@@ -128,5 +129,5 @@ run("docker", [
   reference,
 ]);
 summary(
-  `AIO Community: ${sha}\n\nDigest: \`${reference}\`\n\n${tags.map((name) => `- \`${image}:${name}\``).join("\n")}`
+  `Lunaris ${app} Community: ${sha}\n\nDigest: \`${reference}\`\n\n${tags.map((name) => `- \`${image}:${name}\``).join("\n")}`
 );

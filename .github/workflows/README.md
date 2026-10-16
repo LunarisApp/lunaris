@@ -149,3 +149,6 @@ bun run check
 
 `tooling:typecheck` covers all TypeScript under `tooling/`; `brand:typecheck` remains
 an alias for existing callers.
+
+`images.publish.yml` publishes separate Community API/web Docker Hub images
+on `api@*` and `web@*` release tags. See [image deployment and recovery](../../infra/images/README.md).

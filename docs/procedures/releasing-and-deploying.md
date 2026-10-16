@@ -219,3 +219,8 @@ CLI/Desktop releases remain separate manual invocations of `Native - Publish`;
 their version edits and Cargo/Tauri synchronization remain an explicit native
 release task. This coordinator neither consumes their changesets nor publishes
 their artifacts.
+
+Separate Community Docker images follow the existing API/web release versions:
+`api@<version>` publishes `lunarisapp/lunaris-api`, and `web@<version>` publishes
+`lunarisapp/lunaris-web`. See [Docker images](../../infra/images/README.md) for
+runtime configuration, migration commands, tag policy and publication recovery.

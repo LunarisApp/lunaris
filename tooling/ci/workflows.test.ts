@@ -263,3 +263,26 @@ test("AIO publishes tested native architectures only after exact-source CI", () 
     )
   ).toBe(true);
 });
+
+test("app images use release tags and smoke test both native builds before upload", () => {
+  const images = workflow("images.publish");
+  expect(images.on.push.tags).toEqual(["api@*", "web@*"]);
+  expect(images.jobs.validate.uses).toBe("./.github/workflows/ci.yml");
+  expect(images.jobs.build.needs).toEqual(["prepare", "validate"]);
+  expect(images.jobs.publish.needs).toEqual(["prepare", "build"]);
+  expect(
+    images.jobs.build.strategy.matrix.include.map(
+      (entry: { arch: string }) => entry.arch
+    )
+  ).toEqual(["amd64", "arm64"]);
+  const steps = images.jobs.build.steps;
+  const smoke = steps.findIndex((step: { run?: string }) =>
+    step.run?.includes("infra/images/smoke.sh")
+  );
+  expect(smoke).toBeGreaterThan(0);
+  expect(
+    steps.findIndex((step: { run?: string }) =>
+      step.run?.includes("docker push")
+    )
+  ).toBeGreaterThan(smoke);
+});

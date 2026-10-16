@@ -20,16 +20,17 @@ type Manifest = {
 };
 const readJson = (path: string) => JSON.parse(readFileSync(path, "utf8"));
 
-/** Assemble only the API's workspace dependency closure and built web assets. */
+/** Assemble only the API's workspace dependency closure and optional built web assets. */
 export function assembleRuntime(
   root: string,
   destination: string,
-  edition: Edition
+  edition: Edition,
+  includeWeb = true
 ) {
   if (existsSync(destination)) {
     throw new Error("Runtime destination must not exist");
   }
-  for (const app of ["api", "web"]) {
+  for (const app of includeWeb ? ["api", "web"] : ["api"]) {
     if (
       readJson(join(root, `apps/${app}/dist/edition.json`)).edition !== edition
     ) {
@@ -118,7 +119,9 @@ export function assembleRuntime(
       `${JSON.stringify(manifest, null, 2)}\n`
     );
   }
-  copy("apps/web/dist");
+  if (includeWeb) {
+    copy("apps/web/dist");
+  }
   for (const file of ["LICENSE", "THIRD-PARTY-NOTICES.md", "bun.lock"]) {
     copy(file);
   }
@@ -149,6 +152,7 @@ if (import.meta.main) {
   assembleRuntime(
     resolve(import.meta.dirname, "../.."),
     resolve(destination),
-    readEdition()
+    readEdition(),
+    process.argv[3] !== "--api-only"
   );
 }

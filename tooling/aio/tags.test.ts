@@ -45,3 +45,19 @@ test("invalid versions and refs fail before reaching shell commands", () => {
   }
   expect(() => publicationTags("aio-v1.2.3", "bad", [])).toThrow();
 });
+
+test("app tags keep independent channels and reject cross-app versions", () => {
+  expect(versionFromTag("api@1.2.3", "api@")).toBe("1.2.3");
+  expect(() => versionFromTag("web@1.2.3", "api@")).toThrow();
+  expect(
+    publicationTags(
+      "api@1.2.3",
+      "a".repeat(40),
+      ["web@9.0.0", "api@1.3.0"],
+      "api@"
+    )
+  ).toEqual(["1.2.3", `sha-${"a".repeat(40)}`, "1.2"]);
+  expect(publicationTags("web@2.0.0-rc.1", "a".repeat(40), [], "web@")).toEqual(
+    ["2.0.0-rc.1", `sha-${"a".repeat(40)}`]
+  );
+});
