@@ -1,6 +1,6 @@
 /// <reference path="../../support/index.d.ts" />
 
-export {};
+import { typeYjsText } from "../../support/yjs";
 
 function emulateOffline(offline: boolean) {
   return cy.then(() =>
@@ -62,7 +62,7 @@ describe("registered-user offline cloud sync", () => {
         cy.location("pathname").then(() => {
           cy.get('button[aria-label="Add file"]').click();
           cy.contains('[role="menuitem"]', "Rich Text").click();
-          cy.get(documentBodySelector).last().click().type("Online opening");
+          typeYjsText(documentBodySelector, "Online opening");
           cy.get("[data-yjs-persistence-state]").should(
             "have.attr",
             "data-yjs-persistence-state",
