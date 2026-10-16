@@ -30,7 +30,7 @@ describe("auth/two-factor", () => {
                 cy.get('[data-testid="two-factor-setup-dialog"]')
                   .contains("button", "Verify and enable")
                   .click();
-              },
+              }
             );
           });
 
@@ -52,7 +52,7 @@ describe("auth/two-factor", () => {
             cy.get('[data-testid="auth-signin-submit"]').click();
             cy.location("pathname", { timeout: 15_000 }).should(
               "eq",
-              "/auth/two-factor",
+              "/auth/two-factor"
             );
             cy.get('[data-testid="auth-two-factor-switch-method"]').click();
             cy.get('[data-testid="auth-two-factor-code"]').type("invalid-code");
@@ -60,12 +60,12 @@ describe("auth/two-factor", () => {
             cy.get('[role="alert"]').should("be.visible");
             cy.get('[data-testid="auth-two-factor-code"]').type(
               `{selectall}${backupCode.trim()}`,
-              { log: false },
+              { log: false }
             );
             cy.get('[data-testid="auth-two-factor-submit"]').click();
             cy.location("pathname", { timeout: 15_000 }).should(
               "not.match",
-              /^\/auth(\/|$)/,
+              /^\/auth(\/|$)/
             );
 
             cy.visit("/");
@@ -75,20 +75,20 @@ describe("auth/two-factor", () => {
               .contains("button", "Manage")
               .click();
             cy.get(
-              '[data-testid="settings-security-two-factor-disable"]',
+              '[data-testid="settings-security-two-factor-disable"]'
             ).click();
             cy.get('[data-testid="two-factor-disable-password"]').type(
               password,
-              { log: false },
+              { log: false }
             );
             cy.get('[data-testid="two-factor-disable-dialog"]')
               .contains("button", "Disable")
               .click();
             cy.get('[data-testid="two-factor-disable-dialog"]').should(
-              "not.exist",
+              "not.exist"
             );
           });
-      },
+      }
     );
   });
 });

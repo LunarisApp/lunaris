@@ -2,11 +2,7 @@
 
 declare global {
   namespace Cypress {
-    type SettingsTab =
-      | "account"
-      | "billing"
-      | "local-data"
-      | "preferences";
+    type SettingsTab = "account" | "billing" | "local-data" | "preferences";
 
     interface Chainable {
       /** Opens and accepts the latest invitation email sent to this address. */
@@ -72,7 +68,6 @@ declare global {
 
       /** Reads the verification URL from backend.log and visits it. */
       verifyEmailViaLog(email: string): Chainable<void>;
-
     }
   }
 }

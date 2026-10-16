@@ -14,14 +14,14 @@ describe("auth/onboarding", () => {
 
       cy.location("pathname", { timeout: 15_000 }).should(
         "eq",
-        "/auth/onboarding",
+        "/auth/onboarding"
       );
       cy.get('[data-testid="auth-onboarding-continue"]').should("be.disabled");
       cy.get('[data-testid="auth-onboarding-other"]').type("Screenwriting");
       cy.get('[data-testid="auth-onboarding-continue"]').click();
       cy.location("pathname", { timeout: 15_000 }).should(
         "not.match",
-        /^\/auth(\/|$)/,
+        /^\/auth(\/|$)/
       );
 
       cy.reload();
@@ -30,7 +30,7 @@ describe("auth/onboarding", () => {
         expect(win.localStorage.getItem("lunaris_pending_onboarding")).to.be
           .null;
         expect(win.localStorage.getItem("lunaris_onboarding_completed")).to.eq(
-          "true",
+          "true"
         );
       });
     });

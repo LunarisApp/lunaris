@@ -17,7 +17,8 @@ function observeYjsPersistenceForText(expectedText: string) {
         state === "persisting" ||
         records.some((record) => record.oldValue === "persisting");
       observedTargetWrite ||=
-        editor.textContent?.includes(expectedText) === true && observedPersisting;
+        editor.textContent?.includes(expectedText) === true &&
+        observedPersisting;
 
       if (state === "error") {
         editor.setAttribute(persistedMarker, "error");
@@ -51,16 +52,22 @@ export function typeYjsText(selector: string, text: string) {
     .then(($editor) => {
       const editor = $editor[0];
       const view = editor.ownerDocument.defaultView;
-      if (!view) throw new Error("Editor window is unavailable");
+      if (!view) {
+        throw new Error("Editor window is unavailable");
+      }
 
       // The inline content is not itself focusable. Focusing it leaves
       // ProseMirror's selection in its previous block (often the heading).
       // Place the caret in the requested paragraph before dispatching paste.
       const editable = editor.closest<HTMLElement>('[contenteditable="true"]');
-      if (!editable) throw new Error("Editable content is unavailable");
+      if (!editable) {
+        throw new Error("Editable content is unavailable");
+      }
       editable.focus();
       const selection = view.getSelection();
-      if (!selection) throw new Error("Editor selection is unavailable");
+      if (!selection) {
+        throw new Error("Editor selection is unavailable");
+      }
       const range = editor.ownerDocument.createRange();
       range.selectNodeContents(editor);
       range.collapse(false);
@@ -74,7 +81,7 @@ export function typeYjsText(selector: string, text: string) {
           bubbles: true,
           cancelable: true,
           clipboardData,
-        }),
+        })
       );
     });
 

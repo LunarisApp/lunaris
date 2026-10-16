@@ -44,7 +44,10 @@ describe("settings/verified", () => {
       cy.openSettingsTab("account");
       assertPanelSpacing("settings-panel-account");
       cy.intercept("POST", "**/auth/update-user").as("updateUser");
-      cy.get('[data-testid="settings-account-name"]').clear().type(nextName).blur();
+      cy.get('[data-testid="settings-account-name"]')
+        .clear()
+        .type(nextName)
+        .blur();
       cy.wait("@updateUser").its("response.statusCode").should("eq", 200);
 
       cy.visit("/");
@@ -70,9 +73,10 @@ describe("settings/verified", () => {
           password,
           { log: false }
         );
-        cy.get(
-          '[data-testid="settings-security-change-new-password"]'
-        ).type(nextPassword, { log: false });
+        cy.get('[data-testid="settings-security-change-new-password"]').type(
+          nextPassword,
+          { log: false }
+        );
         cy.get(
           '[data-testid="settings-security-change-confirm-password"]'
         ).type("wrong-password", { log: false });
@@ -82,9 +86,7 @@ describe("settings/verified", () => {
         cy.get(
           '[data-testid="settings-security-change-password-submit"]'
         ).should("be.disabled");
-        cy.get(
-          '[data-testid="settings-security-change-confirm-password"]'
-        )
+        cy.get('[data-testid="settings-security-change-confirm-password"]')
           .clear()
           .type(nextPassword, { log: false });
         cy.get(
@@ -102,15 +104,17 @@ describe("settings/verified", () => {
       cy.visit("/");
       cy.openSettings();
       cy.openSettingsTab("local-data");
-      cy.get('[data-testid="settings-local-data-overview"] section').should(($sections) => {
-        expect($sections.length).to.eq(3);
-        const firstContent = $sections[0].lastElementChild!;
-        const secondContent = $sections[1].firstElementChild!;
-        const gap =
-          secondContent.getBoundingClientRect().top -
-          firstContent.getBoundingClientRect().bottom;
-        expect(gap, "storage section content gap").to.be.greaterThan(8);
-      });
+      cy.get('[data-testid="settings-local-data-overview"] section').should(
+        ($sections) => {
+          expect($sections.length).to.eq(3);
+          const firstContent = $sections[0].lastElementChild!;
+          const secondContent = $sections[1].firstElementChild!;
+          const gap =
+            secondContent.getBoundingClientRect().top -
+            firstContent.getBoundingClientRect().bottom;
+          expect(gap, "storage section content gap").to.be.greaterThan(8);
+        }
+      );
       cy.get('[data-testid="settings-local-data-no-pending"]').should(
         "be.visible"
       );

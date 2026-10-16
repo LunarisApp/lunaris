@@ -25,7 +25,9 @@ describe("workspaces/workspaces-list", () => {
     cy.createWorkspace({ name: "Comet" });
 
     cy.get('[data-testid="workspaces-list"]').should("be.visible");
-    cy.get('[data-testid="workspaces-list"]').children().should("have.length", 4);
+    cy.get('[data-testid="workspaces-list"]')
+      .children()
+      .should("have.length", 4);
 
     [
       { name: "Welcome to Lunaris", slug: "welcome" },
@@ -34,8 +36,14 @@ describe("workspaces/workspaces-list", () => {
       { name: "Comet", slug: "comet" },
     ].forEach(({ name, slug }) => {
       cy.get(`[data-testid="workspaces-list-item-${slug}"]`).within(() => {
-        cy.get('[data-testid="workspaces-list-item-name"]').should("contain", name);
-        cy.get('[data-testid="workspaces-list-item-slug"]').should("contain", slug);
+        cy.get('[data-testid="workspaces-list-item-name"]').should(
+          "contain",
+          name
+        );
+        cy.get('[data-testid="workspaces-list-item-slug"]').should(
+          "contain",
+          slug
+        );
         cy.contains("Updated").should("be.visible");
       });
     });
@@ -57,8 +65,9 @@ describe("workspaces/workspaces-list", () => {
         const bounds = control.getBoundingClientRect();
         return bounds.top + bounds.height / 2;
       });
-      expect(Math.max(...verticalCenters) - Math.min(...verticalCenters)).to.be
-        .lessThan(2);
+      expect(
+        Math.max(...verticalCenters) - Math.min(...verticalCenters)
+      ).to.be.lessThan(2);
     });
 
     cy.get('[data-testid="workspaces-search"]').click();
@@ -100,13 +109,14 @@ describe("workspaces/workspaces-list", () => {
       .should("be.visible")
       .and("not.have.attr", "aria-disabled", "true")
       .and("not.have.attr", "data-disabled");
-    cy.contains('[data-slot="dropdown-menu-item"]', "Import from Obsidian").should(
-      ($item) => {
-        expect(
-          $item.attr("aria-disabled") === "true" || $item.is("[data-disabled]")
-        ).to.eq(false);
-      }
-    );
+    cy.contains(
+      '[data-slot="dropdown-menu-item"]',
+      "Import from Obsidian"
+    ).should(($item) => {
+      expect(
+        $item.attr("aria-disabled") === "true" || $item.is("[data-disabled]")
+      ).to.eq(false);
+    });
     cy.contains('[data-slot="dropdown-menu-item"]', "Browse templates").should(
       ($item) => {
         expect(

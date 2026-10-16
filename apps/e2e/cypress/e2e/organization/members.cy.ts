@@ -20,9 +20,14 @@ describe("organization/members", () => {
         cy.get('[data-testid="organization-selector-trigger"]').click();
         cy.get('[data-testid="organization-create-trigger"]').click();
         cy.get('[data-testid="organization-create-name"]').type("Collab Team");
-        cy.get('[data-testid="organization-create-slug"]').clear().type(teamSlug);
+        cy.get('[data-testid="organization-create-slug"]')
+          .clear()
+          .type(teamSlug);
         cy.get('[data-testid="organization-create-submit"]').click();
-        cy.location("pathname", { timeout: 15_000 }).should("eq", `/${teamSlug}`);
+        cy.location("pathname", { timeout: 15_000 }).should(
+          "eq",
+          `/${teamSlug}`
+        );
         cy.intercept("POST", "**/v1/sync/ingest").as("sharedWorkspaceSync");
         cy.createWorkspace({ name: "Shared Story" });
         cy.wait("@sharedWorkspaceSync")
@@ -31,7 +36,7 @@ describe("organization/members", () => {
 
         cy.request(
           "GET",
-          "http://localhost:3000/auth/organization/get-full-organization",
+          "http://localhost:3000/auth/organization/get-full-organization"
         ).then(({ body: organization }) => {
           expect(organization.slug).to.eq(teamSlug);
           cy.request({
@@ -52,7 +57,10 @@ describe("organization/members", () => {
         cy.resetE2eState();
         cy.signIn({ email: invitee.email, password: invitee.password });
         cy.acceptInvitationViaLog(invitee.email);
-        cy.location("pathname", { timeout: 15_000 }).should("eq", `/${teamSlug}`);
+        cy.location("pathname", { timeout: 15_000 }).should(
+          "eq",
+          `/${teamSlug}`
+        );
         cy.get('[data-testid="workspaces-list-item-shared-story"]', {
           timeout: 30_000,
         }).click();
@@ -73,22 +81,22 @@ describe("organization/members", () => {
 
         cy.visit(`/${teamSlug}/settings?tab=members`);
         cy.get(
-          `[data-testid="organization-member-row"][data-member-email="${invitee.email}"]`,
+          `[data-testid="organization-member-row"][data-member-email="${invitee.email}"]`
         ).within(() => {
           cy.get('[role="combobox"]').click();
         });
         cy.contains('[role="option"]', "Viewer").click({ force: true });
         cy.get(
-          `[data-testid="organization-member-row"][data-member-email="${invitee.email}"]`,
+          `[data-testid="organization-member-row"][data-member-email="${invitee.email}"]`
         ).should("contain.text", "Viewer");
         cy.get(
-          `[data-testid="organization-member-row"][data-member-email="${invitee.email}"]`,
+          `[data-testid="organization-member-row"][data-member-email="${invitee.email}"]`
         ).within(() => {
           cy.contains("button", "Remove").click();
         });
         cy.get('[role="alertdialog"]').contains("button", "Remove").click();
         cy.get(
-          `[data-testid="organization-member-row"][data-member-email="${invitee.email}"]`,
+          `[data-testid="organization-member-row"][data-member-email="${invitee.email}"]`
         ).should("not.exist");
 
         cy.signOut();
@@ -96,7 +104,7 @@ describe("organization/members", () => {
         cy.signIn({ email: invitee.email, password: invitee.password });
         cy.visit(`/${teamSlug}`);
         cy.contains("Organization not found", { timeout: 15_000 }).should(
-          "be.visible",
+          "be.visible"
         );
       });
     });

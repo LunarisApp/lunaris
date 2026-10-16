@@ -36,7 +36,7 @@ describe("organization/audit-log", () => {
             "requestId",
             "targetId",
             "targetType",
-            "traceId",
+            "traceId"
           );
           for (const field of [
             "changes",
@@ -63,10 +63,9 @@ describe("organization/audit-log", () => {
         cy.get('[data-testid="audit-log-section"]')
           .contains("button", "Apply filters")
           .click();
-        cy.wait("@auditEvents").its("request.query.action").should(
-          "eq",
-          "sync.ingested",
-        );
+        cy.wait("@auditEvents")
+          .its("request.query.action")
+          .should("eq", "sync.ingested");
         cy.get('[data-testid="audit-event-row"] code')
           .first()
           .should("have.text", "sync.ingested");
