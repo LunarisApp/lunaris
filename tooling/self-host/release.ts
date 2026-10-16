@@ -6,6 +6,7 @@ import { basename, resolve } from "node:path";
 import { verifyPublicationCommit } from "../release/automation/manifest";
 import { output, run, summary } from "../release/automation/process";
 import { createBundle } from "./bundle";
+import { renderBootstrap } from "./bootstrap";
 
 interface ImageReceipt {
   api: string;
@@ -125,11 +126,16 @@ if (process.argv[2] === "prepare") {
   const hash = (path: string) =>
     createHash("sha256").update(readFileSync(path)).digest("hex");
   const checksums = resolve(work, "SHA256SUMS");
-  writeFileSync(checksums, `${hash(archive)}  ${basename(archive)}\n`);
+  const installer = resolve(work, "install.sh");
+  writeFileSync(installer, renderBootstrap(entry.version, hash(archive)));
+  writeFileSync(
+    checksums,
+    `${hash(archive)}  ${basename(archive)}\n${hash(installer)}  install.sh\n`
+  );
   const release: { assets: { name: string }[] } = JSON.parse(
     run("gh", ["release", "view", entry.tag, "--json", "assets"]).text
   );
-  for (const path of [archive, checksums]) {
+  for (const path of [archive, installer, checksums]) {
     const name = basename(path);
     if (release.assets.some((asset) => asset.name === name)) {
       const previous = resolve(work, "previous");

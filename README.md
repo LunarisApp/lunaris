@@ -53,15 +53,14 @@ for storage and sync details.
 
 ## Self-host Lunaris
 
-Run Lunaris on one Linux server using prebuilt Docker images. Download a
-[self-hosted release](https://github.com/LunarisApp/lunaris/releases?q=self-hosted),
-extract its deployment bundle, then run:
+Run Lunaris on one Linux server using prebuilt Docker images:
 
 ```sh
-./install.sh https://notes.example.com
+curl -fsSL https://lunaris.app/install.sh | bash -s -- https://notes.example.com
 ```
 
-The installer generates secrets, sets up databases and file storage, runs
+The installer downloads and verifies the latest stable release into `./lunaris`,
+generates secrets, sets up databases and file storage, runs
 migrations, and starts the web app with automatic HTTPS. Requires Docker Compose,
 a domain pointing to your server, and open ports 80/443. AMD64 and ARM64 supported.
 Allow at least 4 GB RAM. Single server; no high availability.

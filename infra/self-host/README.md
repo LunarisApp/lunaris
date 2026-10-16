@@ -11,18 +11,25 @@ server. Open TCP ports 80 and 443. Caddy obtains and renews HTTPS certificates.
 Install Docker Engine with the Compose 2.24+ plugin, curl, and OpenSSL first.
 Allow at least 4 GB RAM and enough disk for your resources and backups.
 
-Download the `lunaris-self-hosted-<version>.tar.gz` bundle and its
-`SHA256SUMS` from the selected **self-hosted** release:
-https://github.com/LunarisApp/lunaris/releases?q=self-hosted
+Run from the directory where you want to keep your installation:
 
 ```sh
-sha256sum -c SHA256SUMS
-mkdir lunaris
-# Replace <version> with the release you downloaded.
-tar xzf lunaris-self-hosted-<version>.tar.gz -C lunaris
+curl -fsSL https://lunaris.app/install.sh | bash -s -- https://notes.example.com
 cd lunaris
-./install.sh https://notes.example.com
 ```
+
+The command downloads the latest stable self-hosted release, verifies its SHA256,
+and installs into `./lunaris`. Docker must already be installed; no repository
+clone or manual download is needed. To choose a different directory, append
+`--dir /path/to/lunaris` after the public URL. Run as a user with Docker access
+and write access to that directory.
+
+To pin a release, use `https://lunaris.app/install.sh?version=<version>` (for
+example, `?version=1.2.3`) in the command. Available versions and release notes:
+https://github.com/LunarisApp/lunaris/releases?q=self-hosted
+
+Each release also provides `install.sh`, `lunaris-self-hosted-<version>.tar.gz`,
+and `SHA256SUMS` for operators who prefer to download and inspect files first.
 
 Open the printed URL and create your account. Registration is open by default.
 After creating accounts, set `SIGNUPS_ALLOWED=false` in `.env`, then apply it:
@@ -44,7 +51,7 @@ Keep it unchanged. To choose a name, export it before the first installer run;
 the installer saves it for subsequent commands. Use unquoted values in `.env`
 for `COMPOSE_PROJECT_NAME` and `PUBLIC_URL`.
 
-For local evaluation, run `./install.sh http://localhost:8080`. Installer binds
+For local evaluation, use `http://localhost:8080` as the public URL. Installer binds
 published ports to loopback and records HTTP port in `.env`. Only localhost HTTP
 is supported; browsers require secure contexts for offline storage and passkeys.
 
@@ -81,18 +88,25 @@ preserves Host, supports WebSockets, and streams `/sync/` without buffering.
 
 ## Upgrade
 
-Read release notes and take a backup first. Download and verify the selected
-bundle, then extract it into the existing installation directory and rerun:
+Read release notes and take a backup first. From the existing installation
+directory, run the remote command without a public URL:
 
 ```sh
-./install.sh
+curl -fsSL https://lunaris.app/install.sh | bash
 ```
 
-Bundle contains no `.env`; your secrets and Docker volumes remain in place.
+Use `?version=<version>` to select a specific release, or `--dir` to specify an
+installation outside the current directory. Existing `release.json` and
+`compose.yaml` identify the installation; otherwise the default is `./lunaris`.
+Downloads and checksums are verified before deployment files are replaced.
+Bundle contains no `.env`; your secrets, overrides, and Docker volumes remain
+in place.
 Images are pinned by digest and built from the same release commit. Installer
 pulls and validates before stopping API/sync, then provisions storage, migrates,
 and starts the release. Expect downtime. If migration fails, application services
 stay stopped. Fix the reported problem and rerun installer; inspect logs below.
+To retry the already downloaded release without fetching another one, run
+`./install.sh` inside the installation directory.
 
 Do not upgrade individual images or PostgreSQL majors independently. PostgreSQL
 17 is pinned; future major upgrades require an explicit data-migration procedure.
