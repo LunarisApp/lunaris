@@ -52,8 +52,9 @@ implementations. Application entry points add enterprise server modules and clie
 providers, with separate client and server exports.
 
 `LUNARIS_EDITION` selects `community` or `enterprise` at build time. Community
-builds omit enterprise endpoints and UI; the all-in-one community image excludes
-enterprise code and dependencies. Enabling omitted code requires a rebuild.
+builds omit enterprise endpoints and UI; the self-hosted Community Edition API
+image excludes enterprise code and dependencies. Enabling omitted code requires
+a rebuild.
 
 Build selection, subscription entitlements, and licensing are separate. Commercial
 license validation is not currently implemented, and choosing an enterprise build

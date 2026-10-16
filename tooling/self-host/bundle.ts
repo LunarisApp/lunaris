@@ -46,6 +46,7 @@ export function createBundle(options: BundleOptions) {
     "garage.toml",
     "powersync.yaml",
     "postgres-setup.sql",
+    "smoke.sh",
     "README.md",
   ]) {
     cpSync(resolve(source, file), resolve(options.directory, file));
@@ -53,10 +54,6 @@ export function createBundle(options: BundleOptions) {
   cpSync(
     resolve(root, "infra/local/config/sync_rules.yaml"),
     resolve(options.directory, "sync_rules.yaml")
-  );
-  cpSync(
-    resolve(root, "infra/all-in-one/smoke.sh"),
-    resolve(options.directory, "smoke.sh")
   );
   cpSync(resolve(root, "LICENSE"), resolve(options.directory, "LICENSE"));
   let compose = readFileSync(resolve(source, "compose.yaml"), "utf8");

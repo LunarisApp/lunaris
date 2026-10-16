@@ -74,9 +74,9 @@ describe("release policy", () => {
 test("self-host deployment and app/sync changes require a bundle release", () => {
   for (const file of [
     "infra/self-host/compose.yaml",
-    "infra/runtime/admin.ts",
+    "infra/self-host/admin.ts",
     "tooling/self-host/bundle.ts",
-    "infra/all-in-one/smoke.sh",
+    "infra/self-host/smoke.sh",
     "infra/local/config/sync_rules.yaml",
   ]) {
     expect(affectedTargets([file], [])).toContain("self-hosted");

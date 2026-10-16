@@ -71,10 +71,6 @@ backups, upgrades, and local evaluation. Community Edition is the default;
 licensed enterprise builds remain available through the
 [edition guide](ee/README.md#build-selection).
 
-Existing [all-in-one installations](infra/all-in-one/README.md) remain available
-as a legacy option. Their data volumes cannot be reused directly with Compose;
-automated migration is deferred.
-
 ## Build on Lunaris
 
 Extensions add resource types, resource views, and workspace tools. Build tools
@@ -108,8 +104,7 @@ bun run dev
 
 Open [localhost:5173](http://localhost:5173). The API runs on port `3000`;
 local services use `5432` (PostgreSQL), `8080` (PowerSync), and `3900`/`3903`
-(Garage). Stop the all-in-one deployment before starting this setup: both use
-port `8080`.
+(Garage).
 
 Development defaults are committed in `apps/api/.env.development` and
 `apps/web/.env.development`. Use gitignored `.env.local` files for personal

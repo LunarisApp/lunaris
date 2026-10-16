@@ -29,6 +29,7 @@ test("release bundle pins images, ships canonical sync rules, excludes secrets/b
   expect(files).not.toContain(".env");
   expect(files).not.toContain("Dockerfile");
   expect(files).not.toContain("compose.override.yaml");
+  expect(files).toContain("smoke.sh");
   const compose = parse(
     readFileSync(join(input.directory, "compose.yaml"), "utf8")
   );

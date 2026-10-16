@@ -44,7 +44,7 @@ The build includes TypeScript checks, service-worker generation, and PWA asset
 and startup-budget assertions. `preview` serves the built app for local checks.
 The production Bun server is `serve.ts`, started with
 `bun run --cwd apps/web serve`; deployment setup is covered by the
-[self-hosting guide](../../infra/all-in-one/README.md).
+[self-hosting guide](../../infra/self-host/README.md).
 
 For browser workflows and offline behavior, see [E2E tests](../e2e/README.md).
 

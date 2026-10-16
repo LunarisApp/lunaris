@@ -1,9 +1,0 @@
-.git
-.context
-**/node_modules
-**/dist
-**/.env*
-**/coverage
-**/.turbo
-**/target
-**/.DS_Store

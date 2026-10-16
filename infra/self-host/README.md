@@ -171,14 +171,9 @@ revokes existing sessions, and appends a root-owned persistent audit record. Goo
 accounts and 2FA stay unchanged; previously issued email-reset links expire
 normally. Offline data cannot be remotely erased.
 
-## Development and legacy AIO
+## Development
 
 From a source checkout, `tooling/self-host/test-stack.sh` builds both images and
 runs isolated deployment checks. Published bundles never build on the server.
 Licensed enterprise builds may set `--build-arg LUNARIS_EDITION=enterprise` for
 **both** Docker targets, subject to `ee/LICENSE`; public release images are CE.
-
-Legacy AIO remains under `infra/all-in-one/`. Its single `/data` volume is not
-compatible with this deployment's separate volumes. Automated migration is not
-included. Keep an existing AIO installation and its complete backup until a
-supported migration procedure is available.

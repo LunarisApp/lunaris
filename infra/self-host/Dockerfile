@@ -29,7 +29,7 @@ FROM ${BUN_IMAGE} AS api
 USER root
 RUN mkdir -p /data && chmod 700 /data
 COPY --link --from=runtime /opt/runtime /opt/lunaris
-COPY --chown=bun:bun infra/runtime/*.ts /opt/lunaris/apps/api/
+COPY --chown=bun:bun infra/self-host/*.ts /opt/lunaris/apps/api/
 COPY infra/self-host/admin.sh /usr/local/bin/lunaris-admin
 RUN chmod +x /usr/local/bin/lunaris-admin
 WORKDIR /opt/lunaris/apps/api
