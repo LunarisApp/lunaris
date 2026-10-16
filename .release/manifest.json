@@ -1,0 +1,53 @@
+{
+  "sourceCommit": "581b41e844512302f4952c81766432c1ddbcee41",
+  "releases": [
+    {
+      "name": "@lunarisapp/plugin-sdk",
+      "path": "packages/plugin-sdk",
+      "kind": "npm",
+      "version": "0.12.0",
+      "tag": "@lunarisapp/plugin-sdk@0.12.0",
+      "notes": "### Minor Changes\n\n- [`864d022`](https://github.com/LunarisApp/lunaris/commit/864d022ff98aaddaac33bd8d6e5e13af92b596ed) Thanks [@MrLightful](https://github.com/MrLightful)! - Remove deprecated catalog exports and unused attachment type aliases. This is a breaking change for consumers of these exports.\n  \n  Import marketplace functions and types from `@lunarisapp/plugin-sdk/marketplace` instead of `/catalog`. Replace `PluginAttachmentStatus`, `PluginAttachmentRow`, `PluginFileAttachmentState`, `PluginFileAttachmentUploadInput`, and `UploadFileAttachment` with `PluginStoredFileStatus`, `PluginStoredFile`, `PluginStoredFileState`, `PluginFileStorageUploadInput`, and `StorePluginFile`. The current file state uses `file` instead of `attachment`, and metadata uses `fileId` instead of `attachmentId`.\n\n### Patch Changes\n\n- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix hook usage and accessibility; clean lint baseline.\n\n- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Stable release"
+    },
+    {
+      "name": "@lunarisapp/ui",
+      "path": "packages/ui",
+      "kind": "npm",
+      "version": "0.0.3",
+      "tag": "@lunarisapp/ui@0.0.3",
+      "notes": "### Patch Changes\n\n- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix hook usage and accessibility; clean lint baseline.\n\n- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Stable release"
+    },
+    {
+      "name": "api",
+      "path": "apps/api",
+      "kind": "hosted",
+      "version": "0.0.2",
+      "tag": "api@0.0.2",
+      "notes": "### Patch Changes\n\n- [#3](https://github.com/LunarisApp/lunaris/pull/3) [`e700982`](https://github.com/LunarisApp/lunaris/commit/e700982be24f21185a8ee5740677cf6cc31534dc) Thanks [@MrLightful](https://github.com/MrLightful)! - Prevent excessive regex backtracking in agent path interpolation and harden DOCX/PPTX downloads by using binary MIME types while preserving file contents and names.\n\n- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix hook usage and accessibility; clean lint baseline.\n\n- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Stable release\n- Updated dependencies [[`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82), [`864d022`](https://github.com/LunarisApp/lunaris/commit/864d022ff98aaddaac33bd8d6e5e13af92b596ed), [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82)]:\n  - @lunarisapp/plugin-sdk@0.12.0\n  - @extension/file@0.0.1\n  - @extension/kanban@0.0.1\n  - @extension/rich-text@0.0.1\n  - @repo/agent-contracts@0.0.1\n  - @repo/ee-audit@0.0.1\n  - @repo/ee-teams@0.0.1\n  - @repo/auth@0.0.1"
+    },
+    {
+      "name": "web",
+      "path": "apps/web",
+      "kind": "hosted",
+      "version": "0.0.1",
+      "tag": "web@0.0.1",
+      "notes": "### Patch Changes\n\n- [#3](https://github.com/LunarisApp/lunaris/pull/3) [`e700982`](https://github.com/LunarisApp/lunaris/commit/e700982be24f21185a8ee5740677cf6cc31534dc) Thanks [@MrLightful](https://github.com/MrLightful)! - Prevent excessive regex backtracking in agent path interpolation and harden DOCX/PPTX downloads by using binary MIME types while preserving file contents and names.\n\n- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix hook usage and accessibility; clean lint baseline.\n\n- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Stable release\n- Updated dependencies []:\n  - @repo/data@0.0.1\n  - @repo/app-shell@0.0.1\n  - @repo/features@0.0.1\n  - @repo/ee-composition@0.0.1"
+    },
+    {
+      "name": "docs",
+      "path": "apps/docs",
+      "kind": "hosted",
+      "version": "0.0.2",
+      "tag": "docs@0.0.2",
+      "notes": "### Patch Changes\n\n- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix hook usage and accessibility; clean lint baseline.\n\n- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Stable release"
+    },
+    {
+      "name": "landing",
+      "path": "apps/landing",
+      "kind": "hosted",
+      "version": "0.0.2",
+      "tag": "landing@0.0.2",
+      "notes": "### Patch Changes\n\n- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix hook usage and accessibility; clean lint baseline.\n\n- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Stable release"
+    }
+  ]
+}

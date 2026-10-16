@@ -1,5 +1,19 @@
 # @lunarisapp/plugin-sdk
 
+## 0.12.0
+
+### Minor Changes
+
+- [`864d022`](https://github.com/LunarisApp/lunaris/commit/864d022ff98aaddaac33bd8d6e5e13af92b596ed) Thanks [@MrLightful](https://github.com/MrLightful)! - Remove deprecated catalog exports and unused attachment type aliases. This is a breaking change for consumers of these exports.
+  
+  Import marketplace functions and types from `@lunarisapp/plugin-sdk/marketplace` instead of `/catalog`. Replace `PluginAttachmentStatus`, `PluginAttachmentRow`, `PluginFileAttachmentState`, `PluginFileAttachmentUploadInput`, and `UploadFileAttachment` with `PluginStoredFileStatus`, `PluginStoredFile`, `PluginStoredFileState`, `PluginFileStorageUploadInput`, and `StorePluginFile`. The current file state uses `file` instead of `attachment`, and metadata uses `fileId` instead of `attachmentId`.
+
+### Patch Changes
+
+- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix hook usage and accessibility; clean lint baseline.
+
+- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Stable release
+
 ## 0.11.0
 
 ### Minor Changes

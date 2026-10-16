@@ -1,0 +1,16 @@
+# web
+
+## 0.0.1
+
+### Patch Changes
+
+- [#3](https://github.com/LunarisApp/lunaris/pull/3) [`e700982`](https://github.com/LunarisApp/lunaris/commit/e700982be24f21185a8ee5740677cf6cc31534dc) Thanks [@MrLightful](https://github.com/MrLightful)! - Prevent excessive regex backtracking in agent path interpolation and harden DOCX/PPTX downloads by using binary MIME types while preserving file contents and names.
+
+- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix hook usage and accessibility; clean lint baseline.
+
+- [#2](https://github.com/LunarisApp/lunaris/pull/2) [`d9e31ab`](https://github.com/LunarisApp/lunaris/commit/d9e31ab01b521ce5d922b9930a9149cb6bb8ac82) Thanks [@MrLightful](https://github.com/MrLightful)! - Stable release
+- Updated dependencies []:
+  - @repo/data@0.0.1
+  - @repo/app-shell@0.0.1
+  - @repo/features@0.0.1
+  - @repo/ee-composition@0.0.1
