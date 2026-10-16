@@ -8,9 +8,12 @@ import { createId } from "@repo/utils";
 import { log } from "evlog";
 import { v4 as uuidv4 } from "uuid";
 import { applyUpdateV2, Doc } from "yjs";
-import { buildUnionAllQuery, resolveWorkspaceScopedTables } from "../workspace-storage";
+import {
+  buildUnionAllQuery,
+  resolveWorkspaceScopedTables,
+} from "../workspace-storage";
 import { resolveWorkspaceVisibility } from "../workspaces/services";
-import { YjsPowersyncProvider } from "./provider";
+import type { YjsPowersyncProvider } from "./provider";
 import {
   LOCAL_YJS_DOCUMENT_UPDATES_TABLE,
   LOCAL_YJS_DOCUMENTS_TABLE,
@@ -52,10 +55,7 @@ interface SharedRoot {
  * @param db
  * @param workspaceId
  */
-export async function createYjsDocument(
-  db: DatabaseOrTx,
-  workspaceId: string
-) {
+export async function createYjsDocument(db: DatabaseOrTx, workspaceId: string) {
   const visibility = await resolveWorkspaceVisibility(db, workspaceId);
   const yjsDocumentId = createId("yjs");
   const createdAt = new Date().toISOString();
@@ -140,7 +140,7 @@ export async function insertYjsDocumentUpdate(
     await tx.execute(
       `UPDATE ${resolveWorkspaceScopedTables(visibility).yjsDocuments} SET updated_at = ?
        WHERE id = ? AND julianday(?) > COALESCE(julianday(updated_at), 0)`,
-      [createdAt, documentId, createdAt],
+      [createdAt, documentId, createdAt]
     );
     await recordActivity(tx, { documentId }, createdAt);
   });
@@ -157,9 +157,10 @@ export async function deleteYjsDocumentUpdates(
   documentId: string
 ) {
   await Promise.all([
-    db.execute(`DELETE FROM ${YJS_DOCUMENT_UPDATES_TABLE} WHERE document_id = ?`, [
-      documentId,
-    ]),
+    db.execute(
+      `DELETE FROM ${YJS_DOCUMENT_UPDATES_TABLE} WHERE document_id = ?`,
+      [documentId]
+    ),
     db.execute(
       `DELETE FROM ${LOCAL_YJS_DOCUMENT_UPDATES_TABLE} WHERE document_id = ?`,
       [documentId]
@@ -179,7 +180,9 @@ export async function deleteYjsDocument(
 ): Promise<boolean> {
   try {
     await Promise.all([
-      db.execute(`DELETE FROM ${YJS_DOCUMENTS_TABLE} WHERE id = ?`, [documentId]),
+      db.execute(`DELETE FROM ${YJS_DOCUMENTS_TABLE} WHERE id = ?`, [
+        documentId,
+      ]),
       db.execute(`DELETE FROM ${LOCAL_YJS_DOCUMENTS_TABLE} WHERE id = ?`, [
         documentId,
       ]),

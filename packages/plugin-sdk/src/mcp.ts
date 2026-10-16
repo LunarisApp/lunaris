@@ -1,9 +1,7 @@
 import type * as z from "zod";
 import type { JsonValue } from "./json";
 
-export type PluginMcpInputBinding =
-  | { from: string }
-  | { value: JsonValue };
+export type PluginMcpInputBinding = { from: string } | { value: JsonValue };
 
 export interface PluginMcpOperationExecution {
   input: Readonly<Record<string, PluginMcpInputBinding>>;
@@ -37,9 +35,7 @@ export interface PluginMcpProcedureTool extends PluginMcpToolBase {
   outputSchema: z.ZodObject;
 }
 
-export type PluginMcpTool =
-  | PluginMcpOperationTool
-  | PluginMcpProcedureTool;
+export type PluginMcpTool = PluginMcpOperationTool | PluginMcpProcedureTool;
 
 export interface PluginMcpCapabilities {
   extensionId: string;
@@ -74,7 +70,9 @@ export function definePluginMcpCapabilities<
     }
     names.add(tool.name);
     if (!tool.description.trim()) {
-      throw new TypeError(`Extension MCP tool "${tool.name}" needs a description`);
+      throw new TypeError(
+        `Extension MCP tool "${tool.name}" needs a description`
+      );
     }
     if (!tool.execution.operation.trim()) {
       throw new TypeError(
@@ -83,9 +81,7 @@ export function definePluginMcpCapabilities<
     }
     if (tool.execution.kind === "plugin") {
       if (!tool.execution.scope.trim()) {
-        throw new TypeError(
-          `Extension MCP tool "${tool.name}" needs a scope`
-        );
+        throw new TypeError(`Extension MCP tool "${tool.name}" needs a scope`);
       }
       continue;
     }

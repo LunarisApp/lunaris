@@ -61,17 +61,21 @@ vi.mock("evlog", async (importOriginal) => {
 });
 
 vi.mock("@repo/data/features/files", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@repo/data/features/files")>();
+  const actual =
+    await importOriginal<typeof import("@repo/data/features/files")>();
   return {
     ...actual,
     queueFileAttachmentDeletion: queueFileAttachmentDeletionMock,
-    uploadFileAttachmentToWorkspaceResource: uploadFileAttachmentToWorkspaceResourceMock,
+    uploadFileAttachmentToWorkspaceResource:
+      uploadFileAttachmentToWorkspaceResourceMock,
   };
 });
 
 vi.mock("@repo/data/features/workspace-resources", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("@repo/data/features/workspace-resources")>();
+    await importOriginal<
+      typeof import("@repo/data/features/workspace-resources")
+    >();
   return {
     ...actual,
     createWorkspaceFolder: createWorkspaceFolderMock,
@@ -82,21 +86,26 @@ vi.mock("@repo/data/features/workspace-resources", async (importOriginal) => {
   };
 });
 
-vi.mock("@repo/data/features/workspace-storage-slots", async (importOriginal) => {
-  const actual = await importOriginal<
-    typeof import("@repo/data/features/workspace-storage-slots")
-  >();
-  return {
-    ...actual,
-    deleteResourceStorage: deleteResourceStorageMock,
-    getResourceStorageSlots: getResourceStorageSlotsMock,
-    getStorageValues: getStorageValuesMock,
-    hasStorageBackingReference: hasStorageBackingReferenceMock,
-  };
-});
+vi.mock(
+  "@repo/data/features/workspace-storage-slots",
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import("@repo/data/features/workspace-storage-slots")
+      >();
+    return {
+      ...actual,
+      deleteResourceStorage: deleteResourceStorageMock,
+      getResourceStorageSlots: getResourceStorageSlotsMock,
+      getStorageValues: getStorageValuesMock,
+      hasStorageBackingReference: hasStorageBackingReferenceMock,
+    };
+  }
+);
 
 vi.mock("@repo/data/features/yjs", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@repo/data/features/yjs")>();
+  const actual =
+    await importOriginal<typeof import("@repo/data/features/yjs")>();
   return {
     ...actual,
     deleteYjsDocument: deleteYjsDocumentMock,
@@ -167,7 +176,9 @@ function bindActions(
   options: {
     api?: Parameters<typeof createBoundActions>[0]["api"];
     getResourcesMap?: () => WorkspaceResourcesMap;
-    permissionCheck?: Parameters<typeof createBoundActions>[0]["permissionCheck"];
+    permissionCheck?: Parameters<
+      typeof createBoundActions
+    >[0]["permissionCheck"];
     reserveResourceCapacity?: ReserveResourceCapacity;
     organizationNavigation?: Parameters<
       typeof createBoundActions
@@ -180,7 +191,8 @@ function bindActions(
     getResourcesMap: options.getResourcesMap,
     permissionCheck: options.permissionCheck,
     workspaceId: "workspace_1",
-    reserveResourceCapacity: options.reserveResourceCapacity ?? allowResourceCapacity,
+    reserveResourceCapacity:
+      options.reserveResourceCapacity ?? allowResourceCapacity,
     organizationNavigation: options.organizationNavigation ?? {
       closeViewInstances: vi.fn(),
       setResourceTitle: vi.fn(),
@@ -213,7 +225,7 @@ describe("createBoundActions.deleteResource", () => {
       async ({ db, rootId }) => {
         const rows = await db.getAll("", ["workspace_1", rootId]);
         return [rootId, ...rows.map(({ id }: { id: string }) => id)];
-      },
+      }
     );
     trashWorkspaceResourceSubtreesMock.mockImplementation(
       async ({ db, rootIds }) => {
@@ -223,7 +235,7 @@ describe("createBoundActions.deleteResource", () => {
           ids.push(rootId, ...rows.map(({ id }: { id: string }) => id));
         }
         return [...new Set(ids)];
-      },
+      }
     );
   });
 
@@ -231,19 +243,30 @@ describe("createBoundActions.deleteResource", () => {
     deleteResourceStorageMock.mockImplementation((_db, resourceId) =>
       Promise.resolve(
         resourceId === "item_1"
-          ? [{ backing_id: "yjs_1", id: "slot_1", kind: "yjs", name: "content" }]
+          ? [
+              {
+                backing_id: "yjs_1",
+                id: "slot_1",
+                kind: "yjs",
+                name: "content",
+              },
+            ]
           : resourceId === "item_2"
-            ? [{ backing_id: "yjs_2", id: "slot_2", kind: "yjs", name: "content" }]
-            : [],
-      ),
+            ? [
+                {
+                  backing_id: "yjs_2",
+                  id: "slot_2",
+                  kind: "yjs",
+                  name: "content",
+                },
+              ]
+            : []
+      )
     );
     const db = makeDb({
       item: { id: "folder_1" },
       childrenByParent: {
-        folder_1: [
-          { id: "item_1" },
-          { id: "item_2" },
-        ],
+        folder_1: [{ id: "item_1" }, { id: "item_2" }],
       },
     });
     const closeViewInstances = vi.fn();
@@ -265,11 +288,10 @@ describe("createBoundActions.deleteResource", () => {
       "item_1",
       "item_2",
     ]);
-    expect(removeRecentFilesByResourceIdsMock).toHaveBeenCalledWith("workspace_1", [
-      "folder_1",
-      "item_1",
-      "item_2",
-    ]);
+    expect(removeRecentFilesByResourceIdsMock).toHaveBeenCalledWith(
+      "workspace_1",
+      ["folder_1", "item_1", "item_2"]
+    );
     expect(captureMock).toHaveBeenCalledWith("explorer_resource_purged", {
       count: 3,
       roots: 1,
@@ -292,10 +314,10 @@ describe("createBoundActions.deleteResource", () => {
     await actions.purgeResources(["folder_1"]);
 
     expect(deleteYjsDocumentMock).not.toHaveBeenCalled();
-    expect(removeRecentFilesByResourceIdsMock).toHaveBeenCalledWith("workspace_1", [
-      "folder_1",
-      "folder_2",
-    ]);
+    expect(removeRecentFilesByResourceIdsMock).toHaveBeenCalledWith(
+      "workspace_1",
+      ["folder_1", "folder_2"]
+    );
     expect(closeViewInstances).toHaveBeenCalledWith(["folder_1", "folder_2"]);
     expect(db.execute).toHaveBeenCalledWith(
       "DELETE FROM workspace_resources WHERE id IN (?,?)",
@@ -324,7 +346,7 @@ describe("createBoundActions.deleteResource", () => {
     expect(hasStorageBackingReferenceMock).toHaveBeenCalledWith(
       db,
       "yjs",
-      "yjs_shared",
+      "yjs_shared"
     );
     expect(deleteYjsDocumentMock).not.toHaveBeenCalled();
   });
@@ -340,7 +362,7 @@ describe("createBoundActions.deleteResources", () => {
       async ({ db, rootId }) => {
         const rows = await db.getAll("", ["workspace_1", rootId]);
         return [rootId, ...rows.map(({ id }: { id: string }) => id)];
-      },
+      }
     );
     trashWorkspaceResourceSubtreesMock.mockImplementation(
       async ({ db, rootIds }) => {
@@ -350,7 +372,7 @@ describe("createBoundActions.deleteResources", () => {
           ids.push(rootId, ...rows.map(({ id }: { id: string }) => id));
         }
         return [...new Set(ids)];
-      },
+      }
     );
   });
 
@@ -455,11 +477,10 @@ describe("createBoundActions.deleteResources", () => {
       "child_1",
       "item_a",
     ]);
-    expect(removeRecentFilesByResourceIdsMock).toHaveBeenCalledWith("workspace_1", [
-      "folder_1",
-      "child_1",
-      "item_a",
-    ]);
+    expect(removeRecentFilesByResourceIdsMock).toHaveBeenCalledWith(
+      "workspace_1",
+      ["folder_1", "child_1", "item_a"]
+    );
     expect(captureMock).toHaveBeenCalledWith("explorer_resource_purged", {
       count: 3,
       roots: 2,
@@ -526,10 +547,10 @@ describe("createBoundActions.deleteResources", () => {
     await actions.purgeResources(["folder_1", "folder_2"]);
 
     expect(deleteYjsDocumentMock).not.toHaveBeenCalled();
-    expect(removeRecentFilesByResourceIdsMock).toHaveBeenCalledWith("workspace_1", [
-      "folder_1",
-      "folder_2",
-    ]);
+    expect(removeRecentFilesByResourceIdsMock).toHaveBeenCalledWith(
+      "workspace_1",
+      ["folder_1", "folder_2"]
+    );
     expect(closeViewInstances).toHaveBeenCalledWith(["folder_1", "folder_2"]);
   });
 
@@ -580,37 +601,40 @@ describe("createBoundActions.deleteResources", () => {
   });
 
   it("deletes file storage attachments", async () => {
-      deleteResourceStorageMock.mockResolvedValue([{
+    deleteResourceStorageMock.mockResolvedValue([
+      {
         backing_id: "att_1",
         id: "storage_1",
         kind: "file",
         name: "content",
         metadata: JSON.stringify({
-        attachmentId: "att_1",
-        fileExtension: "png",
-        filename: "image.png",
-        mediaType: "image/png",
-        size: 10,
-        uploadedAt: "2026-01-01T00:00:00.000Z",
+          attachmentId: "att_1",
+          fileExtension: "png",
+          filename: "image.png",
+          mediaType: "image/png",
+          size: 10,
+          uploadedAt: "2026-01-01T00:00:00.000Z",
         }),
-      }]);
-      const db = makeDb({
-        itemsById: {
-          item_1: { id: "item_1", resource_type_id: "lunaris.file" },
-        },
-        childrenByParent: { item_1: [] },
-      });
-      const actions = bindActions(db, {
-        getResourcesMap: () => makeItemsMap([{ id: "item_1", resource_type_id: "lunaris.file" }]),
-      });
+      },
+    ]);
+    const db = makeDb({
+      itemsById: {
+        item_1: { id: "item_1", resource_type_id: "lunaris.file" },
+      },
+      childrenByParent: { item_1: [] },
+    });
+    const actions = bindActions(db, {
+      getResourcesMap: () =>
+        makeItemsMap([{ id: "item_1", resource_type_id: "lunaris.file" }]),
+    });
 
-      await actions.purgeResources(["item_1"]);
+    await actions.purgeResources(["item_1"]);
 
-      expect(queueFileAttachmentDeletionMock).toHaveBeenCalledWith({
-        db,
-        metadata: expect.objectContaining({ attachmentId: "att_1" }),
-        workspaceId: "workspace_1",
-      });
+    expect(queueFileAttachmentDeletionMock).toHaveBeenCalledWith({
+      db,
+      metadata: expect.objectContaining({ attachmentId: "att_1" }),
+      workspaceId: "workspace_1",
+    });
   });
 });
 
@@ -714,7 +738,7 @@ describe("createBoundActions.createResource", () => {
         schema: { currentVersion: 1 },
         storage: { kind: "yjs" },
       } as never,
-      "Document",
+      "Document"
     );
     await actions.createFolder("root");
 
@@ -742,7 +766,7 @@ describe("createBoundActions.createResource", () => {
           schema: { currentVersion: 1 },
           storage: { kind: "yjs" },
         } as never,
-        "Document",
+        "Document"
       )
     ).rejects.toBe(error);
     expect(reservation.commit).not.toHaveBeenCalled();
@@ -878,7 +902,9 @@ describe("createBoundActions.createResource", () => {
       storage: { content: { kind: "file", storageId: "file:item_1" } },
     });
     expect(createWorkspaceResourceMock).toHaveBeenCalledTimes(2);
-    expect(uploadFileAttachmentToWorkspaceResourceMock).toHaveBeenCalledTimes(2);
+    expect(uploadFileAttachmentToWorkspaceResourceMock).toHaveBeenCalledTimes(
+      2
+    );
     expect(reserveResourceCapacity).toHaveBeenCalledTimes(2);
     expect(reservations[0]!.commit).toHaveBeenCalledOnce();
     expect(reservations[1]!.commit).toHaveBeenCalledOnce();
@@ -902,12 +928,14 @@ describe("createBoundActions.duplicateResource", () => {
     getYjsDocumentUpdatesMock.mockResolvedValue([
       { update_b64: toBase64(encodeStateAsUpdateV2(sourceDoc)) },
     ]);
-    getResourceStorageSlotsMock.mockResolvedValue([{
-      backing_id: "yjs_source",
-      id: "storage_source",
-      kind: "yjs",
-      name: "content",
-    }]);
+    getResourceStorageSlotsMock.mockResolvedValue([
+      {
+        backing_id: "yjs_source",
+        id: "storage_source",
+        kind: "yjs",
+        name: "content",
+      },
+    ]);
     const db = makeDb({ childrenByParent: {} });
     const reservation = { commit: vi.fn(), rollback: vi.fn() };
     const actions = bindActions(db, {
@@ -961,8 +989,7 @@ describe("createBoundActions.duplicateResource", () => {
   it("ignores items without Yjs documents", async () => {
     const reserveResourceCapacity = vi.fn(allowResourceCapacity);
     const actions = bindActions(makeDb({ childrenByParent: {} }), {
-      getResourcesMap: () =>
-        makeItemsMap([{ id: "folder" }]),
+      getResourcesMap: () => makeItemsMap([{ id: "folder" }]),
       reserveResourceCapacity,
     });
 

@@ -62,7 +62,9 @@ function TestConsumer() {
         data-testid="remove-panel"
         onClick={() => {
           const panel = state.panels[0];
-          if (panel) state.removePanel(panel.id);
+          if (panel) {
+            state.removePanel(panel.id);
+          }
         }}
       >
         Remove Panel
@@ -71,7 +73,9 @@ function TestConsumer() {
         data-testid="remove-group"
         onClick={() => {
           const group = state.groups[0];
-          if (group) state.removeGroup(group.id);
+          if (group) {
+            state.removeGroup(group.id);
+          }
         }}
       >
         Remove Group
@@ -88,7 +92,11 @@ function TestConsumer() {
   );
 }
 
-function StoreCapture({ onStore }: { onStore: (state: GridLayoutState) => void }) {
+function StoreCapture({
+  onStore,
+}: {
+  onStore: (state: GridLayoutState) => void;
+}) {
   onStore(useGridLayoutStoreState());
   return null;
 }
@@ -227,7 +235,7 @@ describe("GridLayoutStore", () => {
     act(() => {
       result.current.addPanel({
         pluginId: "plugin-a",
-          renderer: "content",
+        renderer: "content",
         title: "Doc",
       });
     });
@@ -367,7 +375,8 @@ describe("GridLayoutStore", () => {
         <div>First renderer</div>
       ));
     });
-    const Renderer = result.current.componentRenderers["my-plugin.my-renderer"]!;
+    const Renderer =
+      result.current.componentRenderers["my-plugin.my-renderer"]!;
     render(<Renderer {...({} as IDockviewPanelProps)} />);
 
     act(() => {
@@ -376,9 +385,9 @@ describe("GridLayoutStore", () => {
       ));
     });
 
-    expect(
-      result.current.componentRenderers["my-plugin.my-renderer"]
-    ).toBe(Renderer);
+    expect(result.current.componentRenderers["my-plugin.my-renderer"]).toBe(
+      Renderer
+    );
     expect(screen.queryByText("First renderer")).toBeNull();
     expect(screen.getByText("Second renderer")).toBeDefined();
   });
@@ -760,14 +769,22 @@ describe("GridLayoutStore", () => {
 
     act(() => {
       result.current.setKnownPluginIds(["known-plugin"]);
-      result.current.register("known-plugin", "content", () => <div>Known</div>);
-      result.current.register("unknown-plugin", "content", () => <div>Unknown</div>);
+      result.current.register("known-plugin", "content", () => (
+        <div>Known</div>
+      ));
+      result.current.register("unknown-plugin", "content", () => (
+        <div>Unknown</div>
+      ));
       result.current.unregister("known-plugin", "content");
       result.current.unregister("unknown-plugin", "content");
     });
 
-    expect(result.current.componentRenderers["known-plugin.content"]).toBeDefined();
-    expect(result.current.componentRenderers["unknown-plugin.content"]).toBeUndefined();
+    expect(
+      result.current.componentRenderers["known-plugin.content"]
+    ).toBeDefined();
+    expect(
+      result.current.componentRenderers["unknown-plugin.content"]
+    ).toBeUndefined();
   });
 
   it("unregisterByPlugin() keeps known plugin slots present", () => {
@@ -904,9 +921,9 @@ describe("GridLayoutStore", () => {
     });
 
     expect(result.current.panels).toHaveLength(2);
-    expect(result.current.panels.some((panel) => panel.id === emptyPanelId)).toBe(
-      true
-    );
+    expect(
+      result.current.panels.some((panel) => panel.id === emptyPanelId)
+    ).toBe(true);
   });
 
   it("removes the startup launcher after it moves groups", () => {
@@ -997,9 +1014,7 @@ describe("GridLayoutStore", () => {
     });
 
     expect(result.current.panels).toHaveLength(1);
-    expect(result.current.panels[0]?.params?.viewId).toBe(
-      "kanban-board:doc-1"
-    );
+    expect(result.current.panels[0]?.params?.viewId).toBe("kanban-board:doc-1");
   });
 
   it("openResourcePanel() reuses existing resource panel when renderer matches", () => {
@@ -1047,7 +1062,9 @@ describe("GridLayoutStore", () => {
 
     const panelId = result.current.panels[0]?.id;
     expect(panelId).toBeDefined();
-    if (!panelId) return;
+    if (!panelId) {
+      return;
+    }
     const setActive = vi.fn();
     const dockviewApi = {
       activePanel: { id: panelId },
@@ -1090,7 +1107,9 @@ describe("GridLayoutStore", () => {
 
     const panelId = result.current.panels[0]?.id;
     expect(panelId).toBeDefined();
-    if (!panelId) return;
+    if (!panelId) {
+      return;
+    }
     const setActive = vi.fn();
     const dockviewApi = {
       activePanel: { id: "other-panel" },
@@ -1232,38 +1251,88 @@ describe("GridLayoutStore", () => {
     expect(result.current.panels[0]).toBe(resourcePanel);
   });
 
-  it.each([true, false])("preserves New tab for side-group openings (initial: %s)", (initial) => {
-    const { result } = renderHook(() => useGridLayoutStoreState(), { wrapper: Wrapper });
-    act(() => {
-      result.current.addGroup({ id: MAIN_GROUP_ID });
-      result.current.addGroup({ id: RIGHT_GROUP_ID });
-      result.current.addPanel(createEmptyPanelDefinition({ groupId: MAIN_GROUP_ID, initial, title: "New tab" }));
-    });
-    const emptyId = result.current.panels[0]?.id;
-    const resource = { resourceId: "side-resource", resourceTypeId: "rich-text", extensionId: "test", viewId: "content", schemaVersion: 1, title: "Side resource" };
-    const tool = { toolId: "agent-work", pluginId: "system-agent-work", renderer: "agent-work", title: "Agent Work Mini" };
-    const plugin = { pluginId: "test", renderer: "content", viewId: "side-plugin", title: "Side plugin", sourceViewId: "side-resource" };
-    act(() => {
-      result.current.openResourcePanel({ ...resource, target: { groupId: RIGHT_GROUP_ID } });
-      result.current.openToolPanel({ ...tool, target: { direction: "right" } });
-      result.current.openPluginPanel(plugin);
-    });
-    expect(result.current.panels.some((panel) => panel.id === emptyId)).toBe(true);
-    act(() => {
-      result.current.openResourcePanel(resource);
-      result.current.openToolPanel(tool);
-      result.current.openPluginPanel(plugin);
-    });
-    expect(result.current.panels.some((panel) => panel.id === emptyId)).toBe(true);
-    act(() => {
-      result.current.openToolPanel({ ...tool, toolId: "side-tool", target: { groupId: RIGHT_GROUP_ID } });
-    });
-    expect(result.current.panels.some((panel) => panel.id === emptyId)).toBe(true);
-    act(() => {
-      result.current.openResourcePanel({ ...resource, resourceId: "main-resource" });
-    });
-    expect(result.current.panels.some((panel) => panel.id === emptyId)).toBe(false);
-  });
+  it.each([true, false])(
+    "preserves New tab for side-group openings (initial: %s)",
+    (initial) => {
+      const { result } = renderHook(() => useGridLayoutStoreState(), {
+        wrapper: Wrapper,
+      });
+      act(() => {
+        result.current.addGroup({ id: MAIN_GROUP_ID });
+        result.current.addGroup({ id: RIGHT_GROUP_ID });
+        result.current.addPanel(
+          createEmptyPanelDefinition({
+            groupId: MAIN_GROUP_ID,
+            initial,
+            title: "New tab",
+          })
+        );
+      });
+      const emptyId = result.current.panels[0]?.id;
+      const resource = {
+        resourceId: "side-resource",
+        resourceTypeId: "rich-text",
+        extensionId: "test",
+        viewId: "content",
+        schemaVersion: 1,
+        title: "Side resource",
+      };
+      const tool = {
+        toolId: "agent-work",
+        pluginId: "system-agent-work",
+        renderer: "agent-work",
+        title: "Agent Work Mini",
+      };
+      const plugin = {
+        pluginId: "test",
+        renderer: "content",
+        viewId: "side-plugin",
+        title: "Side plugin",
+        sourceViewId: "side-resource",
+      };
+      act(() => {
+        result.current.openResourcePanel({
+          ...resource,
+          target: { groupId: RIGHT_GROUP_ID },
+        });
+        result.current.openToolPanel({
+          ...tool,
+          target: { direction: "right" },
+        });
+        result.current.openPluginPanel(plugin);
+      });
+      expect(result.current.panels.some((panel) => panel.id === emptyId)).toBe(
+        true
+      );
+      act(() => {
+        result.current.openResourcePanel(resource);
+        result.current.openToolPanel(tool);
+        result.current.openPluginPanel(plugin);
+      });
+      expect(result.current.panels.some((panel) => panel.id === emptyId)).toBe(
+        true
+      );
+      act(() => {
+        result.current.openToolPanel({
+          ...tool,
+          toolId: "side-tool",
+          target: { groupId: RIGHT_GROUP_ID },
+        });
+      });
+      expect(result.current.panels.some((panel) => panel.id === emptyId)).toBe(
+        true
+      );
+      act(() => {
+        result.current.openResourcePanel({
+          ...resource,
+          resourceId: "main-resource",
+        });
+      });
+      expect(result.current.panels.some((panel) => panel.id === emptyId)).toBe(
+        false
+      );
+    }
+  );
 
   it("openToolPanel() places a new tool in the requested group", () => {
     const { result } = renderHook(() => useGridLayoutStoreState(), {
@@ -1288,7 +1357,7 @@ describe("GridLayoutStore", () => {
   });
 
   it("unloads least-recently-used inactive panel after the loaded limit", () => {
-    let now = 1_000;
+    let now = 1000;
     vi.spyOn(Date, "now").mockImplementation(() => now++);
     const { result } = renderHook(() => useGridLayoutStoreState(), {
       wrapper: Wrapper,
@@ -1313,7 +1382,7 @@ describe("GridLayoutStore", () => {
   });
 
   it("does not unload the active panel even when it is oldest", () => {
-    let now = 1_000;
+    let now = 1000;
     vi.spyOn(Date, "now").mockImplementation(() => now++);
     const { result } = renderHook(() => useGridLayoutStoreState(), {
       wrapper: Wrapper,
@@ -1339,7 +1408,7 @@ describe("GridLayoutStore", () => {
       );
       result.current.addPanel({
         pluginId: "plugin-a",
-          renderer: "content",
+        renderer: "content",
         title: "Overflow",
         params: { viewId: "overflow" },
       });
@@ -1356,7 +1425,7 @@ describe("GridLayoutStore", () => {
   });
 
   it("does not unload visible active panels across groups", () => {
-    let now = 1_000;
+    let now = 1000;
     vi.spyOn(Date, "now").mockImplementation(() => now++);
     const { result } = renderHook(() => useGridLayoutStoreState(), {
       wrapper: Wrapper,
@@ -1387,7 +1456,7 @@ describe("GridLayoutStore", () => {
       );
       result.current.addPanel({
         pluginId: "plugin-a",
-          renderer: "content",
+        renderer: "content",
         title: "Overflow",
         params: { viewId: "overflow" },
       });
@@ -1409,7 +1478,7 @@ describe("GridLayoutStore", () => {
   });
 
   it("markPanelActive() reloads an unloaded panel and updates LRU", () => {
-    let now = 1_000;
+    let now = 1000;
     vi.spyOn(Date, "now").mockImplementation(() => now++);
     const { result } = renderHook(() => useGridLayoutStoreState(), {
       wrapper: Wrapper,
@@ -1448,7 +1517,7 @@ describe("GridLayoutStore", () => {
   });
 
   it("openResourcePanel() reloads an existing unloaded resource panel", () => {
-    let now = 1_000;
+    let now = 1000;
     vi.spyOn(Date, "now").mockImplementation(() => now++);
     const { result } = renderHook(() => useGridLayoutStoreState(), {
       wrapper: Wrapper,
@@ -1496,7 +1565,7 @@ describe("GridLayoutStore", () => {
   });
 
   it("openToolPanel() reloads an existing unloaded tool panel", () => {
-    let now = 1_000;
+    let now = 1000;
     vi.spyOn(Date, "now").mockImplementation(() => now++);
     const { result } = renderHook(() => useGridLayoutStoreState(), {
       wrapper: Wrapper,
@@ -1542,7 +1611,7 @@ describe("GridLayoutStore", () => {
   it("openRightDockPanel() creates right dock group and panel", () => {
     vi.useFakeTimers();
     const platform = createBrowserPlatform({ kind: "web" });
-    platform.viewport.width = () => 2_000;
+    platform.viewport.width = () => 2000;
     const ViewportWrapper = ({ children }: { children: ReactNode }) => (
       <PlatformProvider platform={platform}>
         <GridLayoutProvider>{children}</GridLayoutProvider>
@@ -1593,9 +1662,9 @@ describe("GridLayoutStore", () => {
       vi.runAllTimers();
     });
 
-    expect(result.current.groups.some((group) => group.id === RIGHT_GROUP_ID)).toBe(
-      true
-    );
+    expect(
+      result.current.groups.some((group) => group.id === RIGHT_GROUP_ID)
+    ).toBe(true);
     expect(
       result.current.groups.find((group) => group.id === RIGHT_GROUP_ID)
         ?.initialWidth
@@ -1604,8 +1673,8 @@ describe("GridLayoutStore", () => {
       result.current.panels.some(
         (panel) =>
           panel.renderer === "history" &&
-          (panel.position as { referenceGroup?: string } | undefined)?.referenceGroup ===
-            RIGHT_GROUP_ID &&
+          (panel.position as { referenceGroup?: string } | undefined)
+            ?.referenceGroup === RIGHT_GROUP_ID &&
           panel.params?.routeViewId === "item-1"
       )
     ).toBe(true);

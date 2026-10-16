@@ -11,12 +11,8 @@
   },
   "app": {
     "security": {
-      "capabilities": [
-        "desktop"
-      ],
-      "dangerousDisableAssetCspModification": [
-        "style-src"
-      ],
+      "capabilities": ["desktop"],
+      "dangerousDisableAssetCspModification": ["style-src"],
       "csp": {
         "default-src": "'self'",
         "connect-src": "'self' ipc: http://ipc.localhost http://localhost:* ws://localhost:* https: wss:",
@@ -54,9 +50,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [
-      "binaries/lunaris-agent"
-    ],
+    "externalBin": ["binaries/lunaris-agent"],
     "resources": {
       "notices/": "notices/"
     }
@@ -64,9 +58,7 @@
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": [
-          "lunaris"
-        ]
+        "schemes": ["lunaris"]
       }
     },
     "shell": {

@@ -13,7 +13,7 @@ describe("buildBackupReadyEmail", () => {
     });
 
     expect(email.downloadPageUrl).toBe(
-      "https://app.lunaris.test/acme/settings?tab=backups&backup=backup_123",
+      "https://app.lunaris.test/acme/settings?tab=backups&backup=backup_123"
     );
     expect(email.html).toContain("Ada &lt;Owner&gt;");
     expect(email.html).toContain("Acme &amp; Co");

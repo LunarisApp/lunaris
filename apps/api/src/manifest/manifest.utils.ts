@@ -8,7 +8,7 @@ export function buildManifest(params: {
   storageUrl: string;
   signupsAllowed?: boolean;
   passwordResetEmail?: boolean;
-  socialProviders?: ("google")[];
+  socialProviders?: "google"[];
 }): ManifestResponseDto {
   return {
     auth: "oauth",
@@ -16,7 +16,8 @@ export function buildManifest(params: {
     signupsAllowed: params.signupsAllowed ?? true,
     socialProviders: params.socialProviders ?? [],
     apiUrl: params.apiUrl,
-    displayName: params.displayName ?? `Lunaris ${params.appRegion.toUpperCase()}`,
+    displayName:
+      params.displayName ?? `Lunaris ${params.appRegion.toUpperCase()}`,
     schemaVersion: 1,
     serverId: params.appRegion,
     syncUrl: params.syncUrl,

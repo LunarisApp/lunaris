@@ -38,11 +38,15 @@ export function createSyncBlocker(): SyncBlocker {
   const listeners = new Set<() => void>();
 
   const emit = () => {
-    for (const listener of listeners) listener();
+    for (const listener of listeners) {
+      listener();
+    }
   };
 
   const setState = (next: SyncBlockState) => {
-    if (areStatesEqual(state, next)) return;
+    if (areStatesEqual(state, next)) {
+      return;
+    }
     state = next;
     emit();
   };

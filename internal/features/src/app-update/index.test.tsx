@@ -12,7 +12,7 @@ describe("AppUpdateProvider", () => {
     render(
       <AppUpdateProvider>
         <UpdateProbe />
-      </AppUpdateProvider>,
+      </AppUpdateProvider>
     );
 
     expect(screen.getByText("current")).toBeTruthy();
@@ -22,7 +22,7 @@ describe("AppUpdateProvider", () => {
     render(
       <AppUpdateProvider value={{ needRefresh: true, update: async () => {} }}>
         <AppUpdateButton />
-      </AppUpdateProvider>,
+      </AppUpdateProvider>
     );
 
     const shortcut = screen.getByText(/^(⌘R|Ctrl\+R)$/);

@@ -69,13 +69,17 @@ export function ResourceField({
   }>({ error: false, items: [], loading: false });
 
   useEffect(() => {
-    if (!open || disabled) return;
+    if (!open || disabled) {
+      return;
+    }
     let active = true;
     setSearch({ error: false, items: [], loading: true });
     const timeout = window.setTimeout(() => {
       void searchEntityReferences(query)
         .then((items) => {
-          if (!active) return;
+          if (!active) {
+            return;
+          }
           setSearch({
             error: false,
             items: items.filter(isResourceReferenceOption),
@@ -83,7 +87,9 @@ export function ResourceField({
           });
         })
         .catch(() => {
-          if (active) setSearch({ error: true, items: [], loading: false });
+          if (active) {
+            setSearch({ error: true, items: [], loading: false });
+          }
         });
     }, 150);
     return () => {
@@ -93,7 +99,9 @@ export function ResourceField({
   }, [disabled, open, query, searchEntityReferences]);
 
   const openResource = () => {
-    if (!value) return;
+    if (!value) {
+      return;
+    }
     void navigation.openEntityReference({
       resourceId: value.resourceId,
       workspaceId: value.workspaceId,
@@ -138,10 +146,14 @@ export function ResourceField({
         {disabled ? null : (
           <>
             <Input
-              aria-label={t("extensions.catalog.lunaris.kanban.searchResources")}
+              aria-label={t(
+                "extensions.catalog.lunaris.kanban.searchResources"
+              )}
               autoFocus
               onChange={(event) => setQuery(event.target.value)}
-              placeholder={t("extensions.catalog.lunaris.kanban.searchResources")}
+              placeholder={t(
+                "extensions.catalog.lunaris.kanban.searchResources"
+              )}
               type="search"
               value={query}
             />
@@ -167,8 +179,10 @@ export function ResourceField({
                       strokeWidth={2}
                     />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm">{next.name}</span>
-                      <span className="block truncate text-xs text-muted-foreground">
+                      <span className="block truncate text-sm">
+                        {next.name}
+                      </span>
+                      <span className="block truncate text-muted-foreground text-xs">
                         {next.workspaceName}
                       </span>
                     </span>
@@ -181,11 +195,7 @@ export function ResourceField({
         )}
         {value ? (
           <div className="flex items-center justify-between gap-2 border-t pt-2">
-            <Button
-              onClick={openResource}
-              size="xs"
-              variant="ghost"
-            >
+            <Button onClick={openResource} size="xs" variant="ghost">
               <HugeiconsIcon
                 icon={ArrowUpRight01Icon}
                 size={14}
@@ -204,10 +214,12 @@ export function ResourceField({
     </Popover>
   );
 
-  if (appearance !== "metadata" || !value) return picker;
+  if (appearance !== "metadata" || !value) {
+    return picker;
+  }
   const openLabel = t("extensions.catalog.lunaris.kanban.openResource");
   return (
-    <span className="flex max-w-full min-w-0 items-center gap-0.5">
+    <span className="flex min-w-0 max-w-full items-center gap-0.5">
       {picker}
       <Tooltip>
         <TooltipTrigger
@@ -232,7 +244,11 @@ export function ResourceField({
 function ResourceSearchStatus({
   search,
 }: {
-  search: { error: boolean; items: ResourceReferenceOption[]; loading: boolean };
+  search: {
+    error: boolean;
+    items: ResourceReferenceOption[];
+    loading: boolean;
+  };
 }) {
   const { t } = useTranslation();
   if (search.loading) {
@@ -260,9 +276,13 @@ function ResourceSearchStatus({
 }
 
 type ResourceReferenceOption = PluginEntityReferenceOption & {
-    resourceTypeId: string;
-    reference: { resourceId: string; workspaceId: string; type: "workspace-resource" };
+  resourceTypeId: string;
+  reference: {
+    resourceId: string;
+    workspaceId: string;
+    type: "workspace-resource";
   };
+};
 
 function isResourceReferenceOption(
   item: PluginEntityReferenceOption

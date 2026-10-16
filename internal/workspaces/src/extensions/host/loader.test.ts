@@ -4,10 +4,10 @@ import { loadWorkspacePluginIds } from "./loader";
 const allExtensionIds = ["lunaris.notes", "lunaris.tasks"];
 
 async function loadWithStoredRows(
-  rows: Array<{ enabled: number; extension_id: string }>,
+  rows: Array<{ enabled: number; extension_id: string }>
 ) {
   const db = {
-    getAll: async <T,>() => rows as T[],
+    getAll: async <T>() => rows as T[],
   };
   return loadWorkspacePluginIds({
     allExtensionIds,
@@ -56,7 +56,7 @@ describe("workspace plugin loader", () => {
     expect(
       await loadWithStoredRows([
         { enabled: 0, extension_id: "lunaris.rich-text" },
-      ]),
+      ])
     ).toEqual([]);
   });
 });

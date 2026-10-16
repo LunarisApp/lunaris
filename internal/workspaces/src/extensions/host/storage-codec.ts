@@ -1,7 +1,9 @@
 export function decodePluginStorageValue<T>(
   raw: string | null | undefined
 ): T | null {
-  if (raw == null) return null;
+  if (raw == null) {
+    return null;
+  }
   return JSON.parse(raw) as T;
 }
 

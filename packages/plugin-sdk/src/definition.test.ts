@@ -66,7 +66,9 @@ describe("plugin activation", () => {
         contributions.resourceType(resource());
       },
     });
-    await expect(preparePluginActivation(duplicate)).rejects.toThrow("Duplicate");
+    await expect(preparePluginActivation(duplicate)).rejects.toThrow(
+      "Duplicate"
+    );
 
     const foreign = definePlugin({
       manifest: manifest(),
@@ -78,13 +80,14 @@ describe("plugin activation", () => {
   });
 
   it("validates schema graphs and resource view targets", async () => {
-    expect(() =>
-      resource("acme.notes")
-    ).not.toThrow();
+    expect(() => resource("acme.notes")).not.toThrow();
     const plugin = definePlugin({
       manifest: manifest(),
       activate({ contributions }) {
-        contributions.resourceType({ ...resource(), defaultViewId: "acme.notes.view" });
+        contributions.resourceType({
+          ...resource(),
+          defaultViewId: "acme.notes.view",
+        });
         contributions.view({
           icon,
           viewId: "acme.notes.view",
@@ -110,12 +113,16 @@ describe("plugin activation", () => {
           storageRequirements: {},
           target: {
             kind: "resource",
-            schemas: [{ id: "acme.notes.schema", minimumVersion: 2, maximumVersion: 1 }],
+            schemas: [
+              { id: "acme.notes.schema", minimumVersion: 2, maximumVersion: 1 },
+            ],
           },
         });
       },
     });
-    await expect(preparePluginActivation(plugin)).rejects.toThrow("version range");
+    await expect(preparePluginActivation(plugin)).rejects.toThrow(
+      "version range"
+    );
   });
 
   it("rejects invalid storage definitions at runtime", () => {
@@ -123,7 +130,7 @@ describe("plugin activation", () => {
       defineResourceType({
         ...resource(),
         storage: { content: { kind: "database" } },
-      } as unknown as ResourceTypeDefinition),
+      } as unknown as ResourceTypeDefinition)
     ).toThrow("invalid storage kind");
 
     expect(() =>
@@ -134,20 +141,20 @@ describe("plugin activation", () => {
         storageRequirements: { content: "database" },
         target: { kind: "resource", resourceTypeIds: ["acme.notes"] },
         viewId: "acme.notes.view",
-      } as unknown as ViewDefinition),
+      } as unknown as ViewDefinition)
     ).toThrow("invalid storage kind");
 
     expect(() =>
       defineWorkspaceStorage({
         kind: "yjs",
         storageId: "acme.notes.preferences",
-      } as never),
+      } as never)
     ).toThrow("must use key-value");
     expect(() =>
       defineWorkspaceStorage({
         kind: "key-value",
         storageId: "Invalid namespace",
-      }),
+      })
     ).toThrow("invalid storage ID");
   });
 
@@ -182,7 +189,7 @@ describe("plugin activation", () => {
       version: "1.0.0",
     });
     const representations = exporter.slot<{ label: string }, string, string>(
-      "representations",
+      "representations"
     );
     const provider = definePlugin({
       manifest: manifest("acme.exporter"),
@@ -232,7 +239,7 @@ describe("plugin activation", () => {
     });
 
     await expect(preparePluginActivation(consumer)).rejects.toThrow(
-      "structured-clone-safe",
+      "structured-clone-safe"
     );
   });
 
@@ -242,7 +249,7 @@ describe("plugin activation", () => {
         id: "acme.exporter",
         methods: [],
         version: "next",
-      }),
+      })
     ).toThrow("invalid version");
   });
 
@@ -267,7 +274,7 @@ describe("plugin activation", () => {
 
     await expect(preparePluginActivation(provide)).rejects.toThrow("namespace");
     await expect(preparePluginActivation(consume)).rejects.toThrow(
-      "has not declared optional dependency",
+      "has not declared optional dependency"
     );
   });
 
@@ -282,7 +289,7 @@ describe("plugin activation", () => {
       },
     });
     await expect(preparePluginActivation(missingTarget)).rejects.toThrow(
-      "must target",
+      "must target"
     );
   });
 
@@ -295,7 +302,7 @@ describe("plugin activation", () => {
         statusBar: () => null,
         target: { kind: "standalone" },
         viewId: "acme.notes.tool",
-      } as unknown as ViewDefinition),
+      } as unknown as ViewDefinition)
     ).toThrow("cannot define status-bar content");
   });
 

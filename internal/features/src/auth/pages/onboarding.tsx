@@ -33,10 +33,26 @@ const PRESET_OPTIONS: {
   labelKey: string;
   icon: typeof Home01Icon;
 }[] = [
-  { value: "personal", labelKey: "auth.onboarding.purposePersonal", icon: Home01Icon },
-  { value: "work", labelKey: "auth.onboarding.purposeWork", icon: Briefcase01Icon },
-  { value: "academic", labelKey: "auth.onboarding.purposeAcademic", icon: BookOpen01Icon },
-  { value: "writing", labelKey: "auth.onboarding.purposeWriting", icon: QuillWrite01Icon },
+  {
+    value: "personal",
+    labelKey: "auth.onboarding.purposePersonal",
+    icon: Home01Icon,
+  },
+  {
+    value: "work",
+    labelKey: "auth.onboarding.purposeWork",
+    icon: Briefcase01Icon,
+  },
+  {
+    value: "academic",
+    labelKey: "auth.onboarding.purposeAcademic",
+    icon: BookOpen01Icon,
+  },
+  {
+    value: "writing",
+    labelKey: "auth.onboarding.purposeWriting",
+    icon: QuillWrite01Icon,
+  },
 ];
 
 function completeOnboarding() {
@@ -53,8 +69,12 @@ export default function OnboardingPage({
   const { data: session, isPending } = auth.useSession();
   const { resolvedRedirectTo } = useAuthRedirect();
 
-  if (isPending) return null;
-  if (!session) return <Navigate replace to="/auth" />;
+  if (isPending) {
+    return null;
+  }
+  if (!session) {
+    return <Navigate replace to="/auth" />;
+  }
   if (localStorage.getItem(COMPLETED_KEY)) {
     return <Navigate replace to={resolvedRedirectTo} />;
   }
@@ -84,8 +104,11 @@ function OnboardingContent({
   const canContinue = selected !== null;
 
   const handleContinue = () => {
-    if (!canContinue) return;
-    const purposeDetail = selected === "other" ? otherText.trim().toLowerCase() : undefined;
+    if (!canContinue) {
+      return;
+    }
+    const purposeDetail =
+      selected === "other" ? otherText.trim().toLowerCase() : undefined;
     posthog.capture("onboarding_purpose_selected", {
       purpose: selected,
       ...(purposeDetail && { purpose_detail: purposeDetail }),
@@ -111,24 +134,24 @@ function OnboardingContent({
             <CardTitle>
               <h1>{t("auth.onboarding.title")}</h1>
             </CardTitle>
-            <CardDescription>{t("auth.onboarding.description")}</CardDescription>
+            <CardDescription>
+              {t("auth.onboarding.description")}
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <fieldset className="flex flex-col gap-4">
-              <legend className="sr-only">
-                {t("auth.onboarding.title")}
-              </legend>
+              <legend className="sr-only">{t("auth.onboarding.title")}</legend>
               <div className="grid grid-cols-2 gap-3">
                 {PRESET_OPTIONS.map(({ value, labelKey, icon }) => (
                   <button
                     aria-pressed={selected === value}
                     className={cn(
-                      "flex flex-col items-center gap-2 rounded-lg border p-4 text-sm font-medium transition-colors",
+                      "flex flex-col items-center gap-2 rounded-lg border p-4 font-medium text-sm transition-colors",
                       "hover:bg-accent hover:text-accent-foreground",
-                      "focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       selected === value
                         ? "border-primary bg-primary/5 text-primary ring-1 ring-primary"
-                        : "border-border text-muted-foreground",
+                        : "border-border text-muted-foreground"
                     )}
                     data-testid={`auth-onboarding-${value}`}
                     key={value}
@@ -151,7 +174,7 @@ function OnboardingContent({
                   "has-[:focus-visible]:border-ring has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
                   selected === "other"
                     ? "border-primary ring-1 ring-primary"
-                    : "border-border",
+                    : "border-border"
                 )}
                 htmlFor="auth-onboarding-other"
               >
@@ -159,7 +182,9 @@ function OnboardingContent({
                   aria-hidden="true"
                   className={cn(
                     "size-5 shrink-0",
-                    selected === "other" ? "text-primary" : "text-muted-foreground",
+                    selected === "other"
+                      ? "text-primary"
+                      : "text-muted-foreground"
                   )}
                   icon={More01Icon}
                   strokeWidth={2}

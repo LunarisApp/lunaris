@@ -26,14 +26,20 @@ describe("workspaces/manage-workspace", () => {
     cy.get('[data-testid="workspace-settings-save-name"]').click();
     cy.get('[data-testid="workspace-settings-name"]').should(
       "have.value",
-      "Beta",
+      "Beta"
     );
     returnToWorkspaces();
 
     cy.get('[data-testid="workspaces-list-item-alpha"]').should("be.visible");
     cy.get('[data-testid="workspaces-list-item-alpha"]').within(() => {
-      cy.get('[data-testid="workspaces-list-item-name"]').should("contain", "Beta");
-      cy.get('[data-testid="workspaces-list-item-slug"]').should("contain", "alpha");
+      cy.get('[data-testid="workspaces-list-item-name"]').should(
+        "contain",
+        "Beta"
+      );
+      cy.get('[data-testid="workspaces-list-item-slug"]').should(
+        "contain",
+        "alpha"
+      );
     });
   });
 
@@ -50,11 +56,11 @@ describe("workspaces/manage-workspace", () => {
     cy.get('[data-testid="workspaces-list-item-gamma"]').within(() => {
       cy.get('[data-testid="workspaces-list-item-name"]').should(
         "contain",
-        "Gamma 2",
+        "Gamma 2"
       );
       cy.get('[data-testid="workspaces-list-item-slug"]').should(
         "contain",
-        "gamma",
+        "gamma"
       );
     });
   });
@@ -63,12 +69,16 @@ describe("workspaces/manage-workspace", () => {
     cy.createWorkspace({ name: "Delta" });
 
     openWorkspaceSettings("delta");
-    cy.get('[data-testid="workspace-settings-save-name"]').should("be.disabled");
+    cy.get('[data-testid="workspace-settings-save-name"]').should(
+      "be.disabled"
+    );
     cy.get('[data-testid="workspace-settings-name"]').clear();
-    cy.get('[data-testid="workspace-settings-save-name"]').should("be.disabled");
+    cy.get('[data-testid="workspace-settings-save-name"]').should(
+      "be.disabled"
+    );
     cy.get('[data-testid="workspace-settings-name"]').type("Delta Prime");
     cy.get('[data-testid="workspace-settings-save-name"]').should(
-      "not.be.disabled",
+      "not.be.disabled"
     );
   });
 
@@ -80,7 +90,7 @@ describe("workspaces/manage-workspace", () => {
     cy.location("pathname").should("match", /\/zeta\/settings$/);
     cy.get('[data-testid="workspace-settings-name"]').should(
       "have.value",
-      "Zeta",
+      "Zeta"
     );
   });
 

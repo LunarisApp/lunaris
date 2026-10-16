@@ -43,13 +43,16 @@ const fileCommands: ResourceCommandContribution = {
       labelKey: "fileExtension.file.download",
       onExecute: (context) => {
         const content = context.storage.content;
-        if (!content || content.kind !== "file") return;
-        void context.downloadFile(content)
+        if (content?.kind !== "file") {
+          return;
+        }
+        void context
+          .downloadFile(content)
           .then((downloaded) => {
-            if (downloaded) return;
-            toast.error(
-              "File download unavailable"
-            );
+            if (downloaded) {
+              return;
+            }
+            toast.error("File download unavailable");
           })
           .catch((error) => {
             log.error({
@@ -58,9 +61,7 @@ const fileCommands: ResourceCommandContribution = {
               error: parseError(error),
               resourceId: context.resourceId,
             });
-            toast.error(
-              "File download unavailable"
-            );
+            toast.error("File download unavailable");
           });
       },
     },
@@ -70,18 +71,14 @@ const fileCommands: ResourceCommandContribution = {
 };
 
 const fileResourceType: ResourceTypeDefinition = {
-  createInWorkspace: async ({
-    createResource,
-    deleteResource,
-    uploadFile,
-  }) => {
+  createInWorkspace: async ({ createResource, deleteResource, uploadFile }) => {
     const files = await pickFiles();
     let firstResult: Awaited<ReturnType<typeof createResource>> | null = null;
     for (const file of files) {
       const resource = await createResource({ name: file.name });
       try {
         const content = resource.storage.content;
-        if (!content || content.kind !== "file") {
+        if (content?.kind !== "file") {
           throw new Error("File resource storage was not provisioned");
         }
         await uploadFile({ file, storage: content });
@@ -129,9 +126,11 @@ const SEARCHABLE_FILE_MEDIA_TYPES = new Set([
 const fileSearchIndexer: SearchIndexerContribution = {
   extractText: async ({ storage }, context) => {
     const content = storage.content;
-    if (!content || content.kind !== "file") return null;
+    if (content?.kind !== "file") {
+      return null;
+    }
     const file = await context.readFile(content);
-    if (!file?.mediaType || !SEARCHABLE_FILE_MEDIA_TYPES.has(file.mediaType)) {
+    if (!(file?.mediaType && SEARCHABLE_FILE_MEDIA_TYPES.has(file.mediaType))) {
       return null;
     }
     return new TextDecoder().decode(file.bytes).trim() || null;

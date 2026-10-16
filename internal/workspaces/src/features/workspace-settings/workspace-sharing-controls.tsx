@@ -42,14 +42,17 @@ function WorkspaceRoleSelect({
     t(
       value === WORKSPACE_ROLE.editor
         ? "organization.roleEditor"
-        : "organization.roleViewer",
+        : "organization.roleViewer"
     );
 
   return (
     <Select
       disabled={disabled}
       onValueChange={(value) => {
-        if (value === WORKSPACE_ROLE.editor || value === WORKSPACE_ROLE.viewer) {
+        if (
+          value === WORKSPACE_ROLE.editor ||
+          value === WORKSPACE_ROLE.viewer
+        ) {
           onValueChange(value);
         }
       }}
@@ -108,7 +111,7 @@ export function WorkspaceAccessGrantForm({
             <SelectValue placeholder={t("workspaces.selectMember")}>
               {(value: string | null) => {
                 const member = candidates.find(
-                  (item) => item.user.id === value,
+                  (item) => item.user.id === value
                 );
                 return member ? organizationMemberLabel(member.user) : null;
               }}
@@ -168,7 +171,7 @@ export function WorkspaceMemberList({
 
   return (
     <div className="space-y-2">
-      {isLoading && (
+      {!!isLoading && (
         <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
       )}
       {!isLoading && members.length === 0 && (
@@ -178,13 +181,13 @@ export function WorkspaceMemberList({
       )}
       {members.map((item) => (
         <div
-          className="border-border flex flex-col gap-3 border-b py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-3 border-border border-b py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
           data-testid={`workspace-member-${item.id}`}
           key={item.id}
         >
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{item.user.name}</p>
-            <p className="text-muted-foreground truncate text-xs">
+            <p className="truncate font-medium text-sm">{item.user.name}</p>
+            <p className="truncate text-muted-foreground text-xs">
               {item.user.email}
             </p>
           </div>
@@ -192,9 +195,7 @@ export function WorkspaceMemberList({
             <div className="w-32">
               <WorkspaceRoleSelect
                 disabled={busy}
-                onValueChange={(nextRole) =>
-                  onRoleChange(item.id, nextRole)
-                }
+                onValueChange={(nextRole) => onRoleChange(item.id, nextRole)}
                 role={item.role}
               />
             </div>

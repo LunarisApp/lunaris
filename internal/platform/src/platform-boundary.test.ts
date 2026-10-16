@@ -17,7 +17,9 @@ const RESTRICTED_PLATFORM_CALLS = [
 function sourceFiles(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = resolve(directory, entry.name);
-    if (entry.isDirectory()) return sourceFiles(path);
+    if (entry.isDirectory()) {
+      return sourceFiles(path);
+    }
     if (!/\.(?:ts|tsx)$/.test(entry.name) || /\.test\./.test(entry.name)) {
       return [];
     }
@@ -36,9 +38,11 @@ describe("platform boundary", () => {
       sourceFiles(root).flatMap((path) => {
         const source = readFileSync(path, "utf8");
         return RESTRICTED_PLATFORM_CALLS.filter((pattern) =>
-          pattern.test(source),
-        ).map((pattern) => `${path.replace(`${internalRoot}/`, "")}: ${pattern}`);
-      }),
+          pattern.test(source)
+        ).map(
+          (pattern) => `${path.replace(`${internalRoot}/`, "")}: ${pattern}`
+        );
+      })
     );
 
     expect(violations).toEqual([]);

@@ -19,21 +19,23 @@ export function FileViewer({
   const { file, metadata, objectUrl } = useStoredFile(storage);
 
   useEffect(() => {
-    if (metadata) void preloadFileRenderer(metadata).catch(() => undefined);
+    if (metadata) {
+      void preloadFileRenderer(metadata).catch(() => undefined);
+    }
   }, [metadata]);
 
   const title = metadata?.filename ?? "File";
   const statusText = useMemo(() => {
-    if (!metadata) return t("fileExtension.file.missingMetadata");
-    if (!file) return t("fileExtension.file.downloadPending");
+    if (!metadata) {
+      return t("fileExtension.file.missingMetadata");
+    }
+    if (!file) {
+      return t("fileExtension.file.downloadPending");
+    }
     if (file.status === "queued-download") {
       return t("fileExtension.file.downloadPending");
     }
-    if (
-      file.status === "synced" &&
-      file.hasSynced &&
-      !file.localUri
-    ) {
+    if (file.status === "synced" && file.hasSynced && !file.localUri) {
       return t("fileExtension.file.downloadPending");
     }
     if (!objectUrl) {
@@ -52,7 +54,9 @@ export function FileViewer({
     );
   }
 
-  if (!objectUrl || !metadata) return null;
+  if (!(objectUrl && metadata)) {
+    return null;
+  }
 
   return <>{renderFilePreview({ metadata, objectUrl, reportReady })}</>;
 }

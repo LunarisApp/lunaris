@@ -13,7 +13,10 @@ import {
 import { createId } from "@repo/utils";
 import slugify from "slugify";
 import { type DatabaseOrTx, ensureTx } from "../../core/utils";
-import { buildUnionAllQuery, resolveWorkspaceScopedTables } from "../workspace-storage";
+import {
+  buildUnionAllQuery,
+  resolveWorkspaceScopedTables,
+} from "../workspace-storage";
 import type { CreateWorkspaceSchema } from "./schemas";
 import {
   LOCAL_WORKSPACES_TABLE,
@@ -61,9 +64,13 @@ function buildQuery(id?: string, organizationId?: string) {
     params.push(organizationId);
   }
 
-  const whereClause = conditions.length > 0 ? conditions.join(" AND ") : "1 = 1";
+  const whereClause =
+    conditions.length > 0 ? conditions.join(" AND ") : "1 = 1";
   return {
-    query: buildWorkspacesQuery(whereClause, "MAX(COALESCE(julianday(last_activity_at), 0), COALESCE(julianday(updated_at), 0)) DESC, id ASC"),
+    query: buildWorkspacesQuery(
+      whereClause,
+      "MAX(COALESCE(julianday(last_activity_at), 0), COALESCE(julianday(updated_at), 0)) DESC, id ASC"
+    ),
     params: params.length > 0 ? params : undefined,
   };
 }
@@ -106,7 +113,8 @@ export function useWorkspaceSlugCollision(params: {
   const { excludeWorkspaceId, options, organizationId, slug } = params;
   const query = useWorkspaceBySlugQuery(slug?.trim(), organizationId, options);
   const hasCollision =
-    query.data?.some((workspace) => workspace.id !== excludeWorkspaceId) ?? false;
+    query.data?.some((workspace) => workspace.id !== excludeWorkspaceId) ??
+    false;
 
   return {
     ...query,
@@ -170,16 +178,25 @@ export async function resolveWorkspaceVisibility(
   workspaceId: string
 ): Promise<WorkspaceVisibility> {
   const workspace = await getWorkspace({ db, id: workspaceId });
-  return normalizeWorkspaceVisibility(workspace?.visibility) ?? WORKSPACE_VISIBILITY.shared;
+  return (
+    normalizeWorkspaceVisibility(workspace?.visibility) ??
+    WORKSPACE_VISIBILITY.shared
+  );
 }
 
 export function getAllWorkspaces({ db }: { db: DatabaseOrTx }) {
   return db.getAll<WorkspaceEntity>(
-    buildWorkspacesQuery("1 = 1", "MAX(COALESCE(julianday(last_activity_at), 0), COALESCE(julianday(updated_at), 0)) DESC, created_at DESC, id ASC")
+    buildWorkspacesQuery(
+      "1 = 1",
+      "MAX(COALESCE(julianday(last_activity_at), 0), COALESCE(julianday(updated_at), 0)) DESC, created_at DESC, id ASC"
+    )
   );
 }
 
-export async function removeWorkspace(params: { db: DatabaseOrTx; id: string }) {
+export async function removeWorkspace(params: {
+  db: DatabaseOrTx;
+  id: string;
+}) {
   const { db, id } = params;
   const [result] = await Promise.all([
     db.execute(`DELETE FROM ${WORKSPACES_TABLE} WHERE id = ?`, [id]),
@@ -281,15 +298,33 @@ export async function migrateLocalWorkspaceToShared(params: {
       [id]
     );
 
-    await tx.execute(`DELETE FROM ${localTables.workspaceStorageValues} WHERE workspace_id = ?`, [id]);
-    await tx.execute(`DELETE FROM ${localTables.workspaceStorageSlots} WHERE workspace_id = ?`, [id]);
-    await tx.execute(`DELETE FROM ${localTables.yjsDocumentUpdates} WHERE workspace_id = ?`, [
+    await tx.execute(
+      `DELETE FROM ${localTables.workspaceStorageValues} WHERE workspace_id = ?`,
+      [id]
+    );
+    await tx.execute(
+      `DELETE FROM ${localTables.workspaceStorageSlots} WHERE workspace_id = ?`,
+      [id]
+    );
+    await tx.execute(
+      `DELETE FROM ${localTables.yjsDocumentUpdates} WHERE workspace_id = ?`,
+      [id]
+    );
+    await tx.execute(
+      `DELETE FROM ${localTables.yjsDocuments} WHERE workspace_id = ?`,
+      [id]
+    );
+    await tx.execute(
+      `DELETE FROM ${localTables.workspaceResources} WHERE workspace_id = ?`,
+      [id]
+    );
+    await tx.execute(
+      `DELETE FROM ${localTables.workspaceExtensions} WHERE workspace_id = ?`,
+      [id]
+    );
+    await tx.execute(`DELETE FROM ${localTables.workspaces} WHERE id = ?`, [
       id,
     ]);
-    await tx.execute(`DELETE FROM ${localTables.yjsDocuments} WHERE workspace_id = ?`, [id]);
-    await tx.execute(`DELETE FROM ${localTables.workspaceResources} WHERE workspace_id = ?`, [id]);
-    await tx.execute(`DELETE FROM ${localTables.workspaceExtensions} WHERE workspace_id = ?`, [id]);
-    await tx.execute(`DELETE FROM ${localTables.workspaces} WHERE id = ?`, [id]);
   });
 
   return true;

@@ -25,15 +25,19 @@ export default function AgentConsentPage() {
     .split(" ")
     .filter(
       (scope) =>
-        scope && !["openid", "profile", "offline_access"].includes(scope),
+        scope && !["openid", "profile", "offline_access"].includes(scope)
     );
 
   useEffect(() => {
     let active = true;
-    if (!authClient || !clientId) return;
+    if (!(authClient && clientId)) {
+      return;
+    }
 
     void loadAgentClientName(authClient, clientId).then((name) => {
-      if (active) setLoadedClient({ authClient, clientId, name });
+      if (active) {
+        setLoadedClient({ authClient, clientId, name });
+      }
     });
 
     return () => {
@@ -49,13 +53,15 @@ export default function AgentConsentPage() {
       : undefined;
 
   const decide = async (accept: boolean) => {
-    if (!authClient || pending) return;
+    if (!authClient || pending) {
+      return;
+    }
     setPending(true);
     setError(undefined);
     const result = await submitAgentConsent(
       authClient,
       accept,
-      location.search.slice(1),
+      location.search.slice(1)
     );
     const redirect = result.data?.redirect_uri ?? result.data?.url;
     if (redirect) {
@@ -73,13 +79,13 @@ export default function AgentConsentPage() {
       })}
       title={t("auth.agentConsentTitle")}
     >
-      <ul className="mb-5 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+      <ul className="mb-5 list-disc space-y-1 pl-5 text-muted-foreground text-sm">
         {scopes.map((scope) => (
           <li key={scope}>{scope}</li>
         ))}
       </ul>
       {error ? (
-        <p className="mb-3 text-sm text-destructive" role="alert">
+        <p className="mb-3 text-destructive text-sm" role="alert">
           {error}
         </p>
       ) : null}
@@ -106,26 +112,26 @@ export default function AgentConsentPage() {
 
 export async function loadAgentClientName(
   authClient: AuthClient,
-  clientId: string,
+  clientId: string
 ) {
   try {
     const result = await authClient.$fetch<{ client_name?: string }>(
       "/oauth2/public-client",
       {
         query: { client_id: clientId },
-      },
+      }
     );
     const name = result.data?.client_name;
     return typeof name === "string" && name.trim() ? name.trim() : undefined;
   } catch {
-    return undefined;
+    /* Metadata lookup is optional; fall back to the client ID. */
   }
 }
 
 export function submitAgentConsent(
   authClient: AuthClient,
   accept: boolean,
-  oauthQuery: string,
+  oauthQuery: string
 ) {
   // Better Auth's dynamic proxy maps oauth2Consent to /oauth2-consent,
   // while OAuth Provider exposes the nested /oauth2/consent endpoint.
@@ -134,6 +140,6 @@ export function submitAgentConsent(
     {
       body: { accept, oauth_query: oauthQuery },
       method: "POST",
-    },
+    }
   );
 }

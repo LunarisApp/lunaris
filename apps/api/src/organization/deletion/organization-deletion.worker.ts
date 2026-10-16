@@ -1,4 +1,7 @@
-import { fileObjectsDb, uploadSessionsDb } from "../../files/file-storage.entity";
+import {
+  fileObjectsDb,
+  uploadSessionsDb,
+} from "../../files/file-storage.entity";
 import { buildOrganizationDeletionEmail } from "./organization-deletion.email";
 import { AppConfig } from "../../app.config";
 import { DatabaseService } from "@app/db";
@@ -33,18 +36,20 @@ export class OrganizationDeletionWorker {
     private readonly storage: StorageService,
     @Inject(POLAR_CLIENT) private readonly polar: Polar | null,
     @Inject(RESEND_CLIENT) private readonly resend: Resend | null,
-    private readonly appConfig: AppConfig,
+    private readonly appConfig: AppConfig
   ) {}
 
   async onModuleInit() {
     // Object-storage ledger survives restoring an older PostgreSQL backup.
     // Reapply suspension before Nest starts accepting requests.
     for await (const object of this.storage.listObjects(
-      "organization-deletions/",
+      "organization-deletions/"
     )) {
-      if (!object.key.endsWith(".json")) continue;
+      if (!object.key.endsWith(".json")) {
+        continue;
+      }
       const organizationId = decodeURIComponent(
-        object.key.slice("organization-deletions/".length, -5),
+        object.key.slice("organization-deletions/".length, -5)
       );
       await this.database.db.transaction(async (tx) => {
         const [org] = await tx
@@ -52,7 +57,9 @@ export class OrganizationDeletionWorker {
           .from(organization)
           .where(eq(organization.id, organizationId))
           .for("update");
-        if (!org) return;
+        if (!org) {
+          return;
+        }
         const now = new Date();
         await tx
           .insert(organizationDeletionsDb)
@@ -76,7 +83,9 @@ export class OrganizationDeletionWorker {
 
   @Interval(60_000)
   async processPending() {
-    if (this.running) return;
+    if (this.running) {
+      return;
+    }
     this.running = true;
     try {
       const rows = await this.database.db
@@ -93,12 +102,14 @@ export class OrganizationDeletionWorker {
           // Commit irreversible phase before any external deletion. Crash retries
           // cannot reopen the restore window after some objects were removed.
           await this.database.db.transaction(async (tx) => {
-            if (!(await this.lockOrganization(tx, row.organizationId))) return;
+            if (!(await this.lockOrganization(tx, row.organizationId))) {
+              return;
+            }
             const [current] = await tx
               .select()
               .from(organizationDeletionsDb)
               .where(
-                eq(organizationDeletionsDb.organizationId, row.organizationId),
+                eq(organizationDeletionsDb.organizationId, row.organizationId)
               )
               .for("update");
             if (
@@ -111,30 +122,31 @@ export class OrganizationDeletionWorker {
                 .update(organizationDeletionsDb)
                 .set({ purgeStartedAt: new Date() })
                 .where(
-                  eq(
-                    organizationDeletionsDb.organizationId,
-                    row.organizationId,
-                  ),
+                  eq(organizationDeletionsDb.organizationId, row.organizationId)
                 );
             }
           });
           await this.database.db.transaction(async (tx) => {
-            if (!(await this.lockOrganization(tx, row.organizationId))) return;
+            if (!(await this.lockOrganization(tx, row.organizationId))) {
+              return;
+            }
             const [current] = await tx
               .select()
               .from(organizationDeletionsDb)
               .where(
-                eq(organizationDeletionsDb.organizationId, row.organizationId),
+                eq(organizationDeletionsDb.organizationId, row.organizationId)
               )
               .for("update");
-            if (!current || current.completedAt) return;
+            if (!current || current.completedAt) {
+              return;
+            }
             // Reconcile every pass: a previously opened customer portal may have
             // re-enabled renewal since the previous cancellation.
             try {
               await this.stopRenewals(
                 tx,
                 current.organizationId,
-                Boolean(current.purgeStartedAt),
+                Boolean(current.purgeStartedAt)
               );
               await tx
                 .update(organizationDeletionsDb)
@@ -142,15 +154,17 @@ export class OrganizationDeletionWorker {
                 .where(
                   eq(
                     organizationDeletionsDb.organizationId,
-                    current.organizationId,
-                  ),
+                    current.organizationId
+                  )
                 );
             } catch (error) {
               // Billing failure must not suppress the security notice. Purge
               // still requires successful cancellation/revocation.
-              if (current.purgeStartedAt) throw error;
+              if (current.purgeStartedAt) {
+                throw error;
+              }
               log.error(
-                error instanceof Error ? error : new Error(String(error)),
+                error instanceof Error ? error : new Error(String(error))
               );
             }
             if (current.purgeStartedAt) {
@@ -163,7 +177,7 @@ export class OrganizationDeletionWorker {
               } catch (error) {
                 // Preserve successful billing reconciliation if email fails.
                 log.error(
-                  error instanceof Error ? error : new Error(String(error)),
+                  error instanceof Error ? error : new Error(String(error))
                 );
               }
               log.set({
@@ -174,7 +188,7 @@ export class OrganizationDeletionWorker {
               });
             }
           });
-          if (purged)
+          if (purged) {
             recordStandaloneComplianceAudit(
               AuditActions.organizationPurged({
                 actor: { type: "system", id: "organization-deletion-worker" },
@@ -183,8 +197,9 @@ export class OrganizationDeletionWorker {
                   tenantId: row.organizationId,
                 },
                 outcome: "success",
-              }),
+              })
             );
+          }
         } catch (error) {
           log.error(error instanceof Error ? error : new Error(String(error)));
         } finally {
@@ -212,7 +227,7 @@ export class OrganizationDeletionWorker {
   private async stopRenewals(
     tx: DatabaseOrTx,
     organizationId: string,
-    revoke = false,
+    revoke = false
   ) {
     if (!this.polar) {
       const [paid] = await tx
@@ -221,13 +236,14 @@ export class OrganizationDeletionWorker {
         .where(
           and(
             eq(subscription.organizationId, organizationId),
-            inArray(subscription.status, ["active", "trialing"]),
-          ),
+            inArray(subscription.status, ["active", "trialing"])
+          )
         );
-      if (paid)
+      if (paid) {
         throw new Error(
-          "Cannot cancel organization subscription: Polar unavailable",
+          "Cannot cancel organization subscription: Polar unavailable"
         );
+      }
       return;
     }
     const pages = await this.polar.subscriptions.list({
@@ -241,31 +257,39 @@ export class OrganizationDeletionWorker {
           await this.polar.subscriptions.revoke({ id: remote.id });
           continue;
         }
-        if (!remote.cancelAtPeriodEnd)
+        if (!remote.cancelAtPeriodEnd) {
           await this.polar.subscriptions.update({
             id: remote.id,
             subscriptionUpdate: { cancelAtPeriodEnd: true },
           });
+        }
       }
     }
   }
 
-  private async notifyOwners(
-    tx: DatabaseOrTx,
-    deletion: Deletion,
-  ) {
-    if (!this.resend) return;
+  private async notifyOwners(tx: DatabaseOrTx, deletion: Deletion) {
+    if (!this.resend) {
+      return;
+    }
     const reminder = Boolean(deletion.notifiedAt);
     if (
       reminder &&
       (deletion.reminderSentAt ||
         deletion.purgeAfter.getTime() - Date.now() > 3 * 24 * 60 * 60 * 1000)
-    )
+    ) {
       return;
-    const [org] = await tx.select({ name: organization.name, slug: organization.slug })
-      .from(organization).where(eq(organization.id, deletion.organizationId));
-    if (!org) return;
-    const recoveryUrl = new URL(`/${encodeURIComponent(org.slug)}`, this.appConfig.frontendUrl);
+    }
+    const [org] = await tx
+      .select({ name: organization.name, slug: organization.slug })
+      .from(organization)
+      .where(eq(organization.id, deletion.organizationId));
+    if (!org) {
+      return;
+    }
+    const recoveryUrl = new URL(
+      `/${encodeURIComponent(org.slug)}`,
+      this.appConfig.frontendUrl
+    );
     recoveryUrl.searchParams.set("region", this.appConfig.appRegion);
     const owners = await tx
       .select({ id: user.id, email: user.email })
@@ -274,8 +298,8 @@ export class OrganizationDeletionWorker {
       .where(
         and(
           eq(member.organizationId, deletion.organizationId),
-          eq(member.role, "owner"),
-        ),
+          eq(member.role, "owner")
+        )
       );
     // Keep content stable across retries, including when billing recovers.
     for (const owner of owners) {
@@ -292,20 +316,21 @@ export class OrganizationDeletionWorker {
         },
         {
           idempotencyKey: `org-deletion/${deletion.organizationId}/${deletion.requestedAt.getTime()}/${reminder ? "reminder" : "scheduled"}/${owner.id}`,
-        },
+        }
       );
-      if (result.error)
+      if (result.error) {
         throw new Error(
-          `Deletion notification failed: ${result.error.message}`,
+          `Deletion notification failed: ${result.error.message}`
         );
+      }
     }
     await tx
       .update(organizationDeletionsDb)
       .set(
-        reminder ? { reminderSentAt: new Date() } : { notifiedAt: new Date() },
+        reminder ? { reminderSentAt: new Date() } : { notifiedAt: new Date() }
       )
       .where(
-        eq(organizationDeletionsDb.organizationId, deletion.organizationId),
+        eq(organizationDeletionsDb.organizationId, deletion.organizationId)
       );
   }
 
@@ -319,35 +344,47 @@ export class OrganizationDeletionWorker {
           eq(backupExportsDb.status, "processing"),
           or(
             isNull(backupExportsDb.leaseExpiresAt),
-            gt(backupExportsDb.leaseExpiresAt, new Date()),
-          ),
-        ),
+            gt(backupExportsDb.leaseExpiresAt, new Date())
+          )
+        )
       )
       .limit(1);
-    if (runningBackup)
+    if (runningBackup) {
       throw new Error("Waiting for in-flight backup before organization purge");
+    }
     // Prefixes include delimiter, never delete a neighboring organization's keys.
     // Object removal precedes DB cascades; retries retain all cleanup metadata.
     await this.storage.putObject(
       `organization-deletions/${encodeURIComponent(organizationId)}.json`,
       JSON.stringify({ organizationId }),
-      "application/json",
+      "application/json"
     );
-    const uploads = await tx.select().from(uploadSessionsDb).where(eq(uploadSessionsDb.organizationId, organizationId));
+    const uploads = await tx
+      .select()
+      .from(uploadSessionsDb)
+      .where(eq(uploadSessionsDb.organizationId, organizationId));
     for (const upload of uploads) {
-      if (upload.state === "completed" || upload.state === "canceled") continue;
+      if (upload.state === "completed" || upload.state === "canceled") {
+        continue;
+      }
       await this.storage.abortMultipartForKey(upload.objectKey);
       await this.storage.deleteObject(upload.objectKey);
-      await tx.update(uploadSessionsDb).set({ state: "canceled", reservedBytes: 0 }).where(eq(uploadSessionsDb.id, upload.id));
+      await tx
+        .update(uploadSessionsDb)
+        .set({ state: "canceled", reservedBytes: 0 })
+        .where(eq(uploadSessionsDb.id, upload.id));
     }
     for (const prefix of [
       `files/${organizationId}/`,
       `backups/${organizationId}/`,
     ]) {
-      for await (const object of this.storage.listObjects(prefix))
+      for await (const object of this.storage.listObjects(prefix)) {
         await this.storage.deleteObject(object.key);
+      }
     }
-    await tx.update(fileObjectsDb).set({ state: "deleted", verifiedAt: new Date() })
+    await tx
+      .update(fileObjectsDb)
+      .set({ state: "deleted", verifiedAt: new Date() })
       .where(eq(fileObjectsDb.organizationId, organizationId));
     await tx
       .update(session)

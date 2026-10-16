@@ -13,16 +13,15 @@ describe("settings/account deletion", () => {
       cy.openSettings();
       cy.openSettingsTab("account");
       cy.intercept("POST", "**/v1/account/delete-request").as(
-        "accountDeleteRequest",
+        "accountDeleteRequest"
       );
       cy.contains("button", "Request Account Deletion").click();
       cy.get('[data-testid="input-confirm-submit"]').should("be.disabled");
       cy.get('[data-testid="input-confirm-input"]').type(email);
       cy.get('[data-testid="input-confirm-submit"]').click();
-      cy.wait("@accountDeleteRequest").its("response.statusCode").should(
-        "be.oneOf",
-        [200, 201],
-      );
+      cy.wait("@accountDeleteRequest")
+        .its("response.statusCode")
+        .should("be.oneOf", [200, 201]);
     });
   });
 });

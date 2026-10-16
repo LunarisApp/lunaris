@@ -23,10 +23,12 @@ export class PluginDownloadReceiver {
   constructor(private downloads: PluginDownloads) {}
   begin(input: { mimeType: string; suggestedName: string }): string {
     assertPluginDownloadInput({ ...input, data: new ArrayBuffer(0) });
-    if (!this.downloads.saveChunks)
+    if (!this.downloads.saveChunks) {
       throw new Error("Chunked downloads are unavailable on this host");
-    if (this.pending.size)
+    }
+    if (this.pending.size) {
       throw new Error("A download is already being prepared");
+    }
     const id = crypto.randomUUID();
     this.pending.set(id, {
       ...input,
@@ -41,8 +43,12 @@ export class PluginDownloadReceiver {
   }
   write(id: string, chunk: ArrayBuffer): void {
     const pending = this.pending.get(id);
-    if (!pending) throw new Error("Unknown or expired download");
-    if (pending.completing) throw new Error("Download is already completing");
+    if (!pending) {
+      throw new Error("Unknown or expired download");
+    }
+    if (pending.completing) {
+      throw new Error("Download is already completing");
+    }
     if (
       !(chunk instanceof ArrayBuffer) ||
       chunk.byteLength > MAX_PLUGIN_CHUNK_BYTES ||
@@ -65,20 +71,23 @@ export class PluginDownloadReceiver {
       }
       const count = Math.min(
         bytes.length - offset,
-        MAX_PLUGIN_CHUNK_BYTES - pending.tailBytes,
+        MAX_PLUGIN_CHUNK_BYTES - pending.tailBytes
       );
-      pending.chunks[pending.chunks.length - 1]!.set(
-        bytes.subarray(offset, offset + count),
-        pending.tailBytes,
-      );
+      pending.chunks
+        .at(-1)!
+        .set(bytes.subarray(offset, offset + count), pending.tailBytes);
       pending.tailBytes += count;
       offset += count;
     }
   }
   async complete(id: string): Promise<void> {
     const pending = this.pending.get(id);
-    if (!pending) throw new Error("Unknown or expired download");
-    if (pending.completing) throw new Error("Download is already completing");
+    if (!pending) {
+      throw new Error("Unknown or expired download");
+    }
+    if (pending.completing) {
+      throw new Error("Download is already completing");
+    }
     pending.completing = true;
     clearTimeout(pending.timer);
     try {
@@ -108,12 +117,14 @@ export class PluginDownloadReceiver {
     this.pending.delete(id);
   }
   clear(): void {
-    for (const id of this.pending.keys()) this.abort(id);
+    for (const id of this.pending.keys()) {
+      this.abort(id);
+    }
   }
 }
 export async function saveRemoteChunks(
   call: (method: string, args: SandboxWireValue[]) => Promise<unknown>,
-  input: PluginChunkedDownloadInput,
+  input: PluginChunkedDownloadInput
 ): Promise<void> {
   input.signal?.throwIfAborted();
   let id: string | undefined;
@@ -145,15 +156,16 @@ export async function saveRemoteChunks(
       call("downloads.begin", [
         { mimeType: input.mimeType, suggestedName: input.suggestedName },
       ]).then((value) => {
-        if (typeof value !== "string")
+        if (typeof value !== "string") {
           throw new Error("Invalid download session");
+        }
         id = value;
         // A late begin response still owns host buffers after the caller cancelled.
         if (input.signal?.aborted) {
           abortHost();
           throw abortReason();
         }
-      }),
+      })
     );
     let total = 0;
     iterator = input.chunks[Symbol.asyncIterator]();
@@ -165,11 +177,13 @@ export async function saveRemoteChunks(
       }
       const chunk = next.value;
       input.signal?.throwIfAborted();
-      if (!(chunk instanceof Uint8Array))
+      if (!(chunk instanceof Uint8Array)) {
         throw new Error("Download chunks must be byte arrays");
+      }
       total += chunk.byteLength;
-      if (total > MAX_PLUGIN_CHUNKED_DOWNLOAD_BYTES)
+      if (total > MAX_PLUGIN_CHUNKED_DOWNLOAD_BYTES) {
         throw new Error("Download exceeds 256 MiB");
+      }
       for (
         let offset = 0;
         offset < chunk.byteLength;

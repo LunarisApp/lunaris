@@ -40,7 +40,7 @@ function SettingsSection({
   title: string;
 }) {
   return (
-    <section className="border-border space-y-5 border-t py-6">
+    <section className="space-y-5 border-border border-t py-6">
       <div className="space-y-1">
         <h2 className="font-semibold">{title}</h2>
         <p className="text-muted-foreground text-sm">{description}</p>
@@ -123,11 +123,11 @@ function LocalWorkspaceVisibility() {
   return (
     <div className="flex items-start gap-3 py-2">
       <HugeiconsIcon
-        className="text-muted-foreground mt-0.5 size-4 shrink-0"
+        className="mt-0.5 size-4 shrink-0 text-muted-foreground"
         icon={FolderLockedIcon}
       />
       <div>
-        <p className="text-sm font-medium">
+        <p className="font-medium text-sm">
           {t("workspaces.workspaceVisibility.local")}
         </p>
         <p className="text-muted-foreground text-xs">
@@ -162,7 +162,7 @@ function CloudWorkspaceVisibilitySelect({
         <SelectValue>
           {(value: string | null) => {
             const option = CLOUD_VISIBILITY_OPTIONS.find(
-              (candidate) => candidate.value === value,
+              (candidate) => candidate.value === value
             );
             return option ? (
               <span className="flex items-center gap-2">
@@ -182,8 +182,10 @@ function CloudWorkspaceVisibilitySelect({
             />
             <span className="flex flex-col">
               <span>{t(`workspaces.workspaceVisibility.${option.value}`)}</span>
-              <span className="text-muted-foreground text-xs font-normal">
-                {t(`workspaces.workspaceVisibility.${option.value}.description`)}
+              <span className="font-normal text-muted-foreground text-xs">
+                {t(
+                  `workspaces.workspaceVisibility.${option.value}.description`
+                )}
               </span>
             </span>
           </SelectItem>
@@ -264,9 +266,9 @@ export function WorkspaceDangerZone({
   const { t } = useTranslation();
 
   return (
-    <section className="border-border space-y-5 border-t py-6">
+    <section className="space-y-5 border-border border-t py-6">
       <div className="space-y-1">
-        <h2 className="text-destructive font-semibold">
+        <h2 className="font-semibold text-destructive">
           {t("workspaces.dangerZone")}
         </h2>
         <p className="text-muted-foreground text-sm">

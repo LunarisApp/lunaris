@@ -14,7 +14,7 @@ describe("generate extension icon", () => {
 
   it("suggests nearby names for unknown icons", () => {
     expect(() => resolveHugeicon("NteIcon")).toThrow(
-      /Did you mean: .*NoteIcon/,
+      /Did you mean: .*NoteIcon/
     );
   });
 

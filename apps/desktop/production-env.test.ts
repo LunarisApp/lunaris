@@ -11,7 +11,7 @@ describe("validateDesktopProductionEnv", () => {
       validateDesktopProductionEnv({
         VITE_REGION_DIRECTORY_URL:
           "https://staging.lunaris.app/.well-known/lunaris-regions",
-      }),
+      })
     ).not.toThrow();
   });
 
@@ -22,7 +22,7 @@ describe("validateDesktopProductionEnv", () => {
     "https://user@lunaris.app/.well-known/lunaris-regions",
   ])("rejects unsafe directory override %s", (value) => {
     expect(() =>
-      validateDesktopProductionEnv({ VITE_REGION_DIRECTORY_URL: value }),
+      validateDesktopProductionEnv({ VITE_REGION_DIRECTORY_URL: value })
     ).toThrow("region directory must use HTTPS on a Lunaris domain");
   });
 });

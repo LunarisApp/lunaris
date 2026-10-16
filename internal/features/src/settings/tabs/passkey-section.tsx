@@ -30,10 +30,7 @@ import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useAuth } from "../../auth";
-import {
-  getPasskeyErrorCode,
-  isPasskeyCancellation,
-} from "../../auth/passkey";
+import { getPasskeyErrorCode, isPasskeyCancellation } from "../../auth/passkey";
 import {
   type PasskeyInfo,
   securityPasskeysQueryOptions,
@@ -44,11 +41,15 @@ const MAX_PASSKEY_NAME_LENGTH = 64;
 
 function formatPasskeyDate(
   value: Date | string | null | undefined,
-  locale?: string,
+  locale?: string
 ) {
-  if (!value) return "";
+  if (!value) {
+    return "";
+  }
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(date);
 }
 
@@ -78,14 +79,20 @@ function AddPasskeyDialog({
   };
 
   const requestOpenChange = (nextOpen: boolean) => {
-    if (saving) return;
-    if (!nextOpen) reset();
+    if (saving) {
+      return;
+    }
+    if (!nextOpen) {
+      reset();
+    }
     onOpenChange(nextOpen);
   };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit) {
+      return;
+    }
 
     setSaving(true);
     setError(null);
@@ -96,16 +103,18 @@ function AddPasskeyDialog({
       })) as { data?: PasskeyInfo; error?: unknown };
 
       if (result.error) {
-        if (isPasskeyCancellation(result.error)) return;
+        if (isPasskeyCancellation(result.error)) {
+          return;
+        }
         posthog.capture("passkey_registration_failed", {
           code: getPasskeyErrorCode(result.error) ?? "unknown",
         });
-        setError(
-          getUserFacingDescription(getUserFacingError(result.error), t),
-        );
+        setError(getUserFacingDescription(getUserFacingError(result.error), t));
         return;
       }
-      if (!result.data) throw new Error("Passkey registration returned no data");
+      if (!result.data) {
+        throw new Error("Passkey registration returned no data");
+      }
 
       posthog.capture("passkey_added");
       toast.success(t("settings.security.passkeyAdded"));
@@ -113,7 +122,9 @@ function AddPasskeyDialog({
       reset();
       onOpenChange(false);
     } catch (caught) {
-      if (isPasskeyCancellation(caught)) return;
+      if (isPasskeyCancellation(caught)) {
+        return;
+      }
       log.error({
         tag: "Security",
         msg: "passkey registration failed",
@@ -160,10 +171,7 @@ function AddPasskeyDialog({
               placeholder={t("settings.security.passkeyNamePlaceholder")}
               value={name}
             />
-            <p
-              className="text-muted-foreground text-xs"
-              id="passkey-name-hint"
-            >
+            <p className="text-muted-foreground text-xs" id="passkey-name-hint">
               {t("settings.security.passkeyNameHint")}
             </p>
           </div>
@@ -208,22 +216,26 @@ export function PasskeySection() {
   const handleAdded = (passkey: PasskeyInfo) => {
     queryClient.setQueryData<PasskeyInfo[]>(
       settingsQueryKeys.securityPasskeys(),
-      (current = []) => [...current, passkey],
+      (current = []) => [...current, passkey]
     );
   };
 
   const handleRemove = async () => {
-    if (!removeTarget) return;
+    if (!removeTarget) {
+      return;
+    }
     setRemoving(true);
     try {
       const result = (await auth.passkey.deletePasskey({
         id: removeTarget.id,
       })) as { error?: unknown };
-      if (result.error) throw result.error;
+      if (result.error) {
+        throw result.error;
+      }
 
       queryClient.setQueryData<PasskeyInfo[]>(
         settingsQueryKeys.securityPasskeys(),
-        (current = []) => current.filter((item) => item.id !== removeTarget.id),
+        (current = []) => current.filter((item) => item.id !== removeTarget.id)
       );
       posthog.capture("passkey_removed");
       toast.success(t("settings.security.passkeyRemoved"));
@@ -252,10 +264,10 @@ export function PasskeySection() {
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 space-y-1">
-          <h4 className="text-sm font-medium" id="security-passkeys-heading">
+          <h4 className="font-medium text-sm" id="security-passkeys-heading">
             {t("settings.security.passkeysTitle")}
           </h4>
-          <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">
+          <p className="max-w-2xl text-muted-foreground text-sm leading-relaxed">
             {t("settings.security.passkeysDescription")}
           </p>
         </div>
@@ -270,11 +282,11 @@ export function PasskeySection() {
         </Button>
       </div>
 
-      {!canRegister ? (
+      {canRegister ? null : (
         <p className="text-muted-foreground text-sm" role="status">
           {t("settings.security.passkeysUnsupported")}
         </p>
-      ) : null}
+      )}
 
       {passkeysQuery.fetchStatus === "paused" ? (
         <p className="text-muted-foreground text-sm" role="status">
@@ -311,7 +323,7 @@ export function PasskeySection() {
       ) : null}
 
       {passkeysQuery.isSuccess && passkeys.length === 0 ? (
-        <p className="text-muted-foreground py-1 text-sm">
+        <p className="py-1 text-muted-foreground text-sm">
           {t("settings.security.noPasskeys")}
         </p>
       ) : null}
@@ -321,7 +333,7 @@ export function PasskeySection() {
           {passkeys.map((passkey) => {
             const createdAt = formatPasskeyDate(
               passkey.createdAt,
-              i18n?.language,
+              i18n?.language
             );
             return (
               <li
@@ -331,7 +343,7 @@ export function PasskeySection() {
               >
                 <div className="min-w-0">
                   <p
-                    className="truncate text-sm font-medium"
+                    className="truncate font-medium text-sm"
                     id={`passkey-name-${passkey.id}`}
                   >
                     {passkey.name?.trim() ||
@@ -341,7 +353,7 @@ export function PasskeySection() {
                     {t(
                       passkey.deviceType === "multiDevice"
                         ? "settings.security.syncedPasskey"
-                        : "settings.security.deviceBoundPasskey",
+                        : "settings.security.deviceBoundPasskey"
                     )}
                     {createdAt ? ` · ${createdAt}` : ""}
                   </p>
@@ -372,7 +384,9 @@ export function PasskeySection() {
 
       <AlertDialog
         onOpenChange={(nextOpen) => {
-          if (!nextOpen && !removing) setRemoveTarget(null);
+          if (!(nextOpen || removing)) {
+            setRemoveTarget(null);
+          }
         }}
         open={removeTarget !== null}
       >

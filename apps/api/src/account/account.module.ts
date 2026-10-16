@@ -5,7 +5,7 @@ import { AccountDeletionController } from "./deletion/account-deletion.controlle
 import { AccountDeletionService } from "./deletion/account-deletion.service";
 
 @Module({
-	controllers: [AvatarController, AccountDeletionController],
-	providers: [AvatarService, AccountDeletionService],
+  controllers: [AvatarController, AccountDeletionController],
+  providers: [AvatarService, AccountDeletionService],
 })
 export class AccountModule {}

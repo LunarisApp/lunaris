@@ -5,11 +5,11 @@
  * assertion so a future Better Auth field rename fails in one place instead
  * of silently treating anonymous users as authenticated.
  */
-export function isSessionAnonymous(session: {
-  user: unknown;
-}): boolean {
+export function isSessionAnonymous(session: { user: unknown }): boolean {
   const user = session.user;
-  if (typeof user !== "object" || user === null) return false;
+  if (typeof user !== "object" || user === null) {
+    return false;
+  }
   const flag = (user as { isAnonymous?: unknown }).isAnonymous;
   return flag === true;
 }

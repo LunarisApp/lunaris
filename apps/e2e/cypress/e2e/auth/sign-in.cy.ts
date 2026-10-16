@@ -65,7 +65,7 @@ describe("auth/sign-in", () => {
       cy.register({ name: "E2E User", email, password });
       cy.verifyEmailViaLog(email);
       cy.get('[data-testid="auth-onboarding"]', { timeout: 15_000 }).should(
-        "be.visible",
+        "be.visible"
       );
       cy.get('[data-testid="auth-onboarding-writing"]').click();
       cy.get('[data-testid="auth-onboarding-continue"]').click();

@@ -33,7 +33,9 @@ export function TaskCreatedAt({
   }, []);
 
   const timestamp = useMemo(() => {
-    if (!createdAt) return null;
+    if (!createdAt) {
+      return null;
+    }
 
     const parsed = parseUTCTimestamp(createdAt);
     return Number.isNaN(parsed.getTime()) ? null : parsed;

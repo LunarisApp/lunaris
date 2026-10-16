@@ -11,8 +11,8 @@ describe("McpController authorization-server discovery", () => {
     expect(
       Reflect.getMetadata(
         PATH_METADATA,
-        McpController.prototype.authorizationServer,
-      ),
+        McpController.prototype.authorizationServer
+      )
     ).toEqual([
       ".well-known/oauth-authorization-server",
       ".well-known/oauth-authorization-server/auth",
@@ -27,16 +27,16 @@ describe("isMcpOriginAllowed", () => {
   it("allows non-browser and configured application origins", () => {
     expect(isMcpOriginAllowed(undefined, backendUrl, frontendUrl)).toBe(true);
     expect(
-      isMcpOriginAllowed("https://api.lunaris.app", backendUrl, frontendUrl),
+      isMcpOriginAllowed("https://api.lunaris.app", backendUrl, frontendUrl)
     ).toBe(true);
     expect(
-      isMcpOriginAllowed("https://app.lunaris.app", backendUrl, frontendUrl),
+      isMcpOriginAllowed("https://app.lunaris.app", backendUrl, frontendUrl)
     ).toBe(true);
   });
 
   it("rejects foreign and malformed origins", () => {
     expect(
-      isMcpOriginAllowed("https://attacker.example", backendUrl, frontendUrl),
+      isMcpOriginAllowed("https://attacker.example", backendUrl, frontendUrl)
     ).toBe(false);
     expect(isMcpOriginAllowed("null", backendUrl, frontendUrl)).toBe(false);
   });
@@ -53,10 +53,7 @@ describe("isMcpOriginAllowed", () => {
       url: "/mcp",
     } as never;
 
-    const webRequest = await toWebRequest(
-      request,
-      "https://api.lunaris.app",
-    );
+    const webRequest = await toWebRequest(request, "https://api.lunaris.app");
 
     expect(await webRequest.json()).toEqual({
       id: 1,

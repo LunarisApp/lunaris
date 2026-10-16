@@ -23,9 +23,11 @@ export function encodeCursor(value: unknown): string {
 
 export function decodeCursor<T>(
   cursor: string | undefined,
-  parse: (value: unknown) => T,
+  parse: (value: unknown) => T
 ): T | undefined {
-  if (!cursor) return undefined;
+  if (!cursor) {
+    return undefined;
+  }
 
   try {
     const decoded = Buffer.from(cursor, "base64url").toString("utf8");

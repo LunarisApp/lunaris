@@ -15,15 +15,27 @@ function jsonResponse(body: object, status: number): Response {
 
 describe("getUserFacingError", () => {
   it("uses status fallback for the retired item-limit reason", async () => {
-    const error = await ApiError.fromResponse(jsonResponse({
-      reason: "entitlements.organization_item_limit_reached",
-      requestId: "legacy-request",
-    }, 403));
+    const error = await ApiError.fromResponse(
+      jsonResponse(
+        {
+          reason: "entitlements.organization_item_limit_reached",
+          requestId: "legacy-request",
+        },
+        403
+      )
+    );
     expect(error.reason).toBeUndefined();
-    const statusOnlyError = await ApiError.fromResponse(jsonResponse({
-      requestId: "legacy-request",
-    }, 403));
-    expect(getUserFacingError(error)).toEqual(getUserFacingError(statusOnlyError));
+    const statusOnlyError = await ApiError.fromResponse(
+      jsonResponse(
+        {
+          requestId: "legacy-request",
+        },
+        403
+      )
+    );
+    expect(getUserFacingError(error)).toEqual(
+      getUserFacingError(statusOnlyError)
+    );
   });
   it("maps offline ApiError to network.offline keys with retry hint", () => {
     const err = ApiError.offline(new TypeError("net"));
@@ -105,9 +117,7 @@ describe("getUserFacingError", () => {
     expect(getUserFacingError("string thrown").titleKey).toBe(
       "errors.unknown.title"
     );
-    expect(getUserFacingError(undefined).titleKey).toBe(
-      "errors.unknown.title"
-    );
+    expect(getUserFacingError(undefined).titleKey).toBe("errors.unknown.title");
   });
 
   it("maps a known Better Auth code to its registered keys", () => {

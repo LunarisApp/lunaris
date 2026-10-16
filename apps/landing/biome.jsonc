@@ -9,7 +9,12 @@
 			"!build",
 			"!node_modules",
 			"!out",
-			"!next-env.d.ts"
+			"!next-env.d.ts",
+			// Generated SVGs must remain byte-identical to brand source assets.
+			"!!public/favicon-dark.svg",
+			"!!public/favicon-light.svg",
+			"!!public/img/lunaris-mark-dark.svg",
+			"!!public/img/lunaris-mark-light.svg"
 		]
 	},
 	"css": {
@@ -29,5 +34,17 @@
 	},
 	"linter": {
 		"includes": ["**"]
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["src/i18n/dictionaries/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"useFilenamingConvention": "off"
+					}
+				}
+			}
+		}
+	]
 }

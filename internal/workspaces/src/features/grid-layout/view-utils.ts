@@ -2,16 +2,22 @@ import type { DockviewDidDropEvent, Position } from "dockview";
 import { LUNARIS_RESOURCE_DND_MIME } from "./dnd";
 import type { OpenPanelTarget } from "./types";
 
-export function isDragEvent(event: DragEvent | PointerEvent): event is DragEvent {
+export function isDragEvent(
+  event: DragEvent | PointerEvent
+): event is DragEvent {
   return "dataTransfer" in event;
 }
 
 export function hasLunarisResourceMime(event: DragEvent): boolean {
   const types = event.dataTransfer?.types;
-  if (!types) return false;
+  if (!types) {
+    return false;
+  }
 
   for (let i = 0; i < types.length; i++) {
-    if (types[i] === LUNARIS_RESOURCE_DND_MIME) return true;
+    if (types[i] === LUNARIS_RESOURCE_DND_MIME) {
+      return true;
+    }
   }
 
   return false;

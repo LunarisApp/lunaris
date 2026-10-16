@@ -33,7 +33,7 @@ function makeService(options?: {
       limit: () => Promise.resolve(result),
       then: (
         resolve: (value: unknown[]) => unknown,
-        reject?: (reason: unknown) => unknown,
+        reject?: (reason: unknown) => unknown
       ) => Promise.resolve(result).then(resolve, reject),
     };
   };
@@ -56,19 +56,16 @@ function makeService(options?: {
   const config = {
     developmentPlan: options?.developmentPlan ?? null,
   } as never;
-  const billing = new BillingService(
-    dbService,
-    plans,
-    polar,
-    { frontendUrl: "https://app.lunaris.test" } as never,
-  );
+  const billing = new BillingService(dbService, plans, polar, {
+    frontendUrl: "https://app.lunaris.test",
+  } as never);
   const seats = new SeatService(dbService, polar, config, billing);
   return new EntitlementsService(
     dbService,
     (options?.posthog ?? null) as never,
     config,
     billing,
-    seats,
+    seats
   );
 }
 
@@ -85,17 +82,25 @@ function makeUpsertHarness(rows: unknown[][]) {
   const updateSet = mock((_values: Record<string, unknown>) => ({
     where: updateWhere,
   }));
-  const insertValues = mock(async (_values: Record<string, unknown>) => undefined);
+  const insertValues = mock(
+    async (_values: Record<string, unknown>) => undefined
+  );
   const tx = {
     execute: mock(async () => undefined),
     insert: mock(() => ({ values: insertValues })),
-    select: () => ({ from: (table: unknown) => ({ where: table === organization
-      ? () => ({ for: async () => [{ id: "organization-1" }] }) : nextRows }) }),
+    select: () => ({
+      from: (table: unknown) => ({
+        where:
+          table === organization
+            ? () => ({ for: async () => [{ id: "organization-1" }] })
+            : nextRows,
+      }),
+    }),
     update: mock(() => ({ set: updateSet })),
   };
   const transaction = mock(
     async (callback: (transaction: typeof tx) => Promise<unknown>) =>
-      callback(tx),
+      callback(tx)
   );
 
   return {
@@ -126,9 +131,16 @@ function makeBillingHarness(options?: {
   const polarSubscriptionList = mock(async () => ({
     result: { items: options?.remoteSubscriptions ?? [] },
   }));
-  const polarSubscriptionUpdate = mock(async (input: { id: string; subscriptionUpdate: { productId: string } }) => ({
-    ...subscriptionParams, id: input.id, productId: input.subscriptionUpdate.productId,
-  }));
+  const polarSubscriptionUpdate = mock(
+    async (input: {
+      id: string;
+      subscriptionUpdate: { productId: string };
+    }) => ({
+      ...subscriptionParams,
+      id: input.id,
+      productId: input.subscriptionUpdate.productId,
+    })
+  );
   const polarCustomerSessionCreate = mock(async () => ({
     customerPortalUrl: "https://polar.test/portal/session-1",
   }));
@@ -148,10 +160,12 @@ function makeBillingHarness(options?: {
     select: mock((fields: Record<string, unknown>) => ({
       from: () => ({
         where: () => {
-          if ("modifiedAt" in fields) return asQuery([existingSubscription]);
+          if ("modifiedAt" in fields) {
+            return asQuery([existingSubscription]);
+          }
           if ("currentPeriodEnd" in fields) {
             return asQuery(
-              options?.localSubscription ? [options.localSubscription] : [],
+              options?.localSubscription ? [options.localSubscription] : []
             );
           }
           if ("value" in fields) {
@@ -171,7 +185,7 @@ function makeBillingHarness(options?: {
   };
   const transaction = mock(
     async (callback: (transaction: typeof tx) => Promise<unknown>) =>
-      callback(tx),
+      callback(tx)
   );
   const db = {
     select: mock((fields: Record<string, unknown>) => ({
@@ -245,7 +259,8 @@ const checkoutParams = {
 
 describe("EntitlementsService organization resolution", () => {
   it("defaults organizations without an active subscription to Free", async () => {
-    const entitlements = await makeService().resolveForOrganization("organization-1");
+    const entitlements =
+      await makeService().resolveForOrganization("organization-1");
     expect(entitlements.plan).toBe(PLAN.free);
     expect(entitlements.limit(LIMIT.maxResources)).toBe(25);
     expect(entitlements.limit(LIMIT.maxMembers)).toBe(3);
@@ -253,14 +268,18 @@ describe("EntitlementsService organization resolution", () => {
 
   it("resolves each organization from its own active subscription", async () => {
     const service = makeService({
-      rows: [[{
-        currentPeriodEnd: new Date("2026-08-01T00:00:00.000Z"),
-        id: "subscription-1",
-        planSlug: PLAN.plus,
-      }]],
+      rows: [
+        [
+          {
+            currentPeriodEnd: new Date("2026-08-01T00:00:00.000Z"),
+            id: "subscription-1",
+            planSlug: PLAN.plus,
+          },
+        ],
+      ],
     });
     expect((await service.resolveForOrganization("organization-1")).plan).toBe(
-      PLAN.plus,
+      PLAN.plus
     );
   });
 
@@ -277,7 +296,9 @@ describe("EntitlementsService organization resolution", () => {
           from: () => ({
             where: (condition: SQL) => {
               conditions.push(condition);
-              return Object.assign(Promise.resolve([]), { limit: () => Promise.resolve([row]) });
+              return Object.assign(Promise.resolve([]), {
+                limit: () => Promise.resolve([row]),
+              });
             },
           }),
         }),
@@ -285,7 +306,7 @@ describe("EntitlementsService organization resolution", () => {
     });
 
     expect((await service.resolveForOrganization("organization-1")).plan).toBe(
-      PLAN.business,
+      PLAN.business
     );
     expect(new PgDialect().sqlToQuery(conditions[0]).params).toEqual([
       "organization-1",
@@ -296,8 +317,11 @@ describe("EntitlementsService organization resolution", () => {
 
   it("returns Free after cancellation without mutating organization data", async () => {
     expect(
-      (await makeService({ rows: [[]] }).resolveForOrganization("organization-1"))
-        .plan,
+      (
+        await makeService({ rows: [[]] }).resolveForOrganization(
+          "organization-1"
+        )
+      ).plan
     ).toBe(PLAN.free);
   });
 
@@ -305,10 +329,10 @@ describe("EntitlementsService organization resolution", () => {
     "fails closed for invalid stored plan %s",
     async (planSlug) => {
       const service = makeService({ rows: [[{ planSlug }]] });
-      expect((await service.resolveForOrganization("organization-1")).plan).toBe(
-        PLAN.free,
-      );
-    },
+      expect(
+        (await service.resolveForOrganization("organization-1")).plan
+      ).toBe(PLAN.free);
+    }
   );
 
   it("does not advertise Agent Work to anonymous users", async () => {
@@ -319,31 +343,46 @@ describe("EntitlementsService organization resolution", () => {
       organizationId: "organization-1",
       user: { email: "", id: "anonymous-1", isAnonymous: true },
     });
-    expect(snapshot.features).toMatchObject({ assistant: false, "agent-work": false });
+    expect(snapshot.features).toMatchObject({
+      assistant: false,
+      "agent-work": false,
+    });
   });
 
-  it.each([0, 1, 2, 20])("keeps organization storage fixed with %s members in offline snapshots", async (members) => {
-    const snapshot = await makeService({
-      developmentPlan: PLAN.business,
-      rows: [[], [{ value: 17 }], [], [], [], [], [{ value: members }], [{ value: 1 }]],
-    }).resolveSnapshotForOrganization({
-      organizationId: "organization-1",
-      user: {
-        email: "user@lunaris.test",
-        id: "user-1",
-        isAnonymous: false,
-      },
-    });
-    expect(snapshot).toMatchObject({
-      features: { assistant: false, "agent-work": false },
-      resourceCount: 17,
-      memberCount: members,
-      limits: { max_storage_bytes: 100_000_000_000 },
-      pendingInvitationCount: 1,
-      plan: PLAN.business,
-      organizationId: "organization-1",
-    });
-  });
+  it.each([0, 1, 2, 20])(
+    "keeps organization storage fixed with %s members in offline snapshots",
+    async (members) => {
+      const snapshot = await makeService({
+        developmentPlan: PLAN.business,
+        rows: [
+          [],
+          [{ value: 17 }],
+          [],
+          [],
+          [],
+          [],
+          [{ value: members }],
+          [{ value: 1 }],
+        ],
+      }).resolveSnapshotForOrganization({
+        organizationId: "organization-1",
+        user: {
+          email: "user@lunaris.test",
+          id: "user-1",
+          isAnonymous: false,
+        },
+      });
+      expect(snapshot).toMatchObject({
+        features: { assistant: false, "agent-work": false },
+        resourceCount: 17,
+        memberCount: members,
+        limits: { max_storage_bytes: 100_000_000_000 },
+        pendingInvitationCount: 1,
+        plan: PLAN.business,
+        organizationId: "organization-1",
+      });
+    }
+  );
 
   it("counts pending invitations against Free member capacity", async () => {
     const service = makeService({
@@ -352,7 +391,7 @@ describe("EntitlementsService organization resolution", () => {
     expect(
       await service.hasMemberCapacity("organization-1", {
         includePendingInvitations: true,
-      }),
+      })
     ).toBe(false);
   });
 
@@ -361,7 +400,7 @@ describe("EntitlementsService organization resolution", () => {
     expect(
       await service.hasMemberCapacity("organization-1", {
         includePendingInvitations: false,
-      }),
+      })
     ).toBe(true);
   });
 
@@ -374,45 +413,57 @@ describe("EntitlementsService organization resolution", () => {
     const ownerService = makeService({ rows: [[{ id: "membership-1" }]] });
     const memberService = makeService({ rows: [[]] });
     expect(
-      await ownerService.canManageBilling("owner-1", "organization-1"),
+      await ownerService.canManageBilling("owner-1", "organization-1")
     ).toBe(true);
     expect(
-      await memberService.canManageBilling("member-1", "organization-1"),
+      await memberService.canManageBilling("member-1", "organization-1")
     ).toBe(false);
   });
 
   it("accepts current organization members", async () => {
     const service = makeService({ rows: [[{ id: "membership-1" }]] });
     await expect(
-      service.assertOrganizationMember("user-1", "organization-1"),
+      service.assertOrganizationMember("user-1", "organization-1")
     ).resolves.toBeUndefined();
   });
 
   it("rejects removed organization members", async () => {
     const service = makeService({ rows: [[]] });
     await expect(
-      service.assertOrganizationMember("user-1", "organization-1"),
+      service.assertOrganizationMember("user-1", "organization-1")
     ).rejects.toBeInstanceOf(OrganizationMembershipRequiredError);
   });
 
-  it.each(Object.values(PLAN))("gates Agent Work on %s with only the shared flag", async (plan) => {
-    for (const enabled of [false, true]) {
-      const evaluateFlags = mock(async () => ({
-        isEnabled: (flag: string) => flag === "agent-work" && enabled,
-      }));
-      const service = makeService({ developmentPlan: plan, posthog: { evaluateFlags } });
-      await expect(service.hasFeatureAccess({
-        feature: FEATURE.agentWork,
-        organizationId: "organization-1",
-        user: { email: "user@lunaris.test", id: "user-1", isAnonymous: false },
-      })).resolves.toBe(enabled);
-      expect(evaluateFlags).toHaveBeenCalledTimes(1);
-      expect(evaluateFlags).toHaveBeenCalledWith("user-1", {
-        flagKeys: ["agent-work"],
-        personProperties: { email: "user@lunaris.test", plan },
-      });
+  it.each(Object.values(PLAN))(
+    "gates Agent Work on %s with only the shared flag",
+    async (plan) => {
+      for (const enabled of [false, true]) {
+        const evaluateFlags = mock(async () => ({
+          isEnabled: (flag: string) => flag === "agent-work" && enabled,
+        }));
+        const service = makeService({
+          developmentPlan: plan,
+          posthog: { evaluateFlags },
+        });
+        await expect(
+          service.hasFeatureAccess({
+            feature: FEATURE.agentWork,
+            organizationId: "organization-1",
+            user: {
+              email: "user@lunaris.test",
+              id: "user-1",
+              isAnonymous: false,
+            },
+          })
+        ).resolves.toBe(enabled);
+        expect(evaluateFlags).toHaveBeenCalledTimes(1);
+        expect(evaluateFlags).toHaveBeenCalledWith("user-1", {
+          flagKeys: ["agent-work"],
+          personProperties: { email: "user@lunaris.test", plan },
+        });
+      }
     }
-  });
+  );
 
   it("fails Agent Work closed without flag evaluation", async () => {
     const params = {
@@ -420,11 +471,19 @@ describe("EntitlementsService organization resolution", () => {
       organizationId: "organization-1",
       user: { email: "user@lunaris.test", id: "user-1", isAnonymous: false },
     };
-    await expect(makeService({ developmentPlan: PLAN.plus }).hasFeatureAccess(params)).resolves.toBe(false);
-    await expect(makeService({
-      developmentPlan: PLAN.plus,
-      posthog: { evaluateFlags: mock(async () => { throw new Error("Unavailable"); }) },
-    }).hasFeatureAccess(params)).resolves.toBe(false);
+    await expect(
+      makeService({ developmentPlan: PLAN.plus }).hasFeatureAccess(params)
+    ).resolves.toBe(false);
+    await expect(
+      makeService({
+        developmentPlan: PLAN.plus,
+        posthog: {
+          evaluateFlags: mock(async () => {
+            throw new Error("Unavailable");
+          }),
+        },
+      }).hasFeatureAccess(params)
+    ).resolves.toBe(false);
   });
 
   it("denies anonymous users before PostHog evaluation", async () => {
@@ -442,7 +501,7 @@ describe("EntitlementsService organization resolution", () => {
           id: "guest-1",
           isAnonymous: true,
         },
-      }),
+      })
     ).resolves.toBe(false);
     expect(evaluateFlags).not.toHaveBeenCalled();
   });
@@ -462,7 +521,7 @@ describe("EntitlementsService organization resolution", () => {
           id: "removed-user",
           isAnonymous: false,
         },
-      }),
+      })
     ).rejects.toBeInstanceOf(FeatureAccessRequiredError);
 
     const member = makeService({
@@ -478,7 +537,7 @@ describe("EntitlementsService organization resolution", () => {
           id: "member-1",
           isAnonymous: false,
         },
-      }),
+      })
     ).rejects.toBeInstanceOf(FeatureAccessRequiredError);
   });
 
@@ -498,11 +557,7 @@ describe("EntitlementsService organization resolution", () => {
 
   it("allows item 25 and blocks item 26 on Free", async () => {
     const makeTx = (resourceCount: number) => {
-      const rows = [
-        [{ id: "organization-1" }],
-        [],
-        [{ value: resourceCount }],
-      ];
+      const rows = [[{ id: "organization-1" }], [], [{ value: resourceCount }]];
       return {
         select: () => ({
           from: () => {
@@ -512,7 +567,7 @@ describe("EntitlementsService organization resolution", () => {
                 for: () => Promise.resolve(result),
                 then: (
                   resolve: (value: unknown[]) => unknown,
-                  reject?: (reason: unknown) => unknown,
+                  reject?: (reason: unknown) => unknown
                 ) => Promise.resolve(result).then(resolve, reject),
               };
             };
@@ -524,10 +579,10 @@ describe("EntitlementsService organization resolution", () => {
     const service = makeService({ developmentPlan: PLAN.free });
 
     await expect(
-      service.assertCanCreateResource(makeTx(24) as never, "organization-1"),
+      service.assertCanCreateResource(makeTx(24) as never, "organization-1")
     ).resolves.toBeUndefined();
     await expect(
-      service.assertCanCreateResource(makeTx(25) as never, "organization-1"),
+      service.assertCanCreateResource(makeTx(25) as never, "organization-1")
     ).rejects.toBeInstanceOf(OrganizationResourceLimitError);
   });
 });
@@ -536,36 +591,40 @@ describe("EntitlementsService organization billing", () => {
   it("returns owner-authorized total and seats from the full subscription", async () => {
     const currentPeriodEnd = new Date("2026-09-01T00:00:00.000Z");
     const { polarSubscriptionList, service } = makeBillingHarness({
-      remoteSubscriptions: [{
-        amount: 4800,
-        cancelAtPeriodEnd: false,
-        currency: "usd",
-        currentPeriodEnd,
-        id: "subscription-1",
-        productId: "business-monthly-product",
-        recurringInterval: "month",
-        seats: 3,
-        status: "active",
-      }],
+      remoteSubscriptions: [
+        {
+          amount: 4800,
+          cancelAtPeriodEnd: false,
+          currency: "usd",
+          currentPeriodEnd,
+          id: "subscription-1",
+          productId: "business-monthly-product",
+          recurringInterval: "month",
+          seats: 3,
+          status: "active",
+        },
+      ],
     });
 
     await expect(
       service.getBillingState({
         organizationId: "organization-1",
         userId: "owner-1",
-      }),
+      })
     ).resolves.toEqual({
-      activeSubscriptions: [{
-        amount: 4800,
-        cancelAtPeriodEnd: false,
-        currency: "usd",
-        currentPeriodEnd: currentPeriodEnd.toISOString(),
-        id: "subscription-1",
-        productId: "business-monthly-product",
-        recurringInterval: "month",
-        seats: 3,
-        status: "active",
-      }],
+      activeSubscriptions: [
+        {
+          amount: 4800,
+          cancelAtPeriodEnd: false,
+          currency: "usd",
+          currentPeriodEnd: currentPeriodEnd.toISOString(),
+          id: "subscription-1",
+          productId: "business-monthly-product",
+          recurringInterval: "month",
+          seats: 3,
+          status: "active",
+        },
+      ],
     });
     expect(polarSubscriptionList).toHaveBeenCalledWith({
       active: true,
@@ -583,7 +642,7 @@ describe("EntitlementsService organization billing", () => {
       service.getBillingState({
         organizationId: "organization-1",
         userId: "member-1",
-      }),
+      })
     ).rejects.toBeInstanceOf(OrganizationBillingOwnerRequiredError);
     expect(polarSubscriptionList).not.toHaveBeenCalled();
   });
@@ -595,7 +654,7 @@ describe("EntitlementsService organization billing", () => {
     });
 
     await expect(service.createCheckout(checkoutParams)).rejects.toBeInstanceOf(
-      OrganizationBillingOwnerRequiredError,
+      OrganizationBillingOwnerRequiredError
     );
     await expect(
       service.changePlan({
@@ -603,7 +662,7 @@ describe("EntitlementsService organization billing", () => {
         organizationId: "organization-1",
         plan: PLAN.business,
         userId: "member-1",
-      }),
+      })
     ).rejects.toBeInstanceOf(OrganizationBillingOwnerRequiredError);
     expect(transaction).not.toHaveBeenCalled();
   });
@@ -614,7 +673,7 @@ describe("EntitlementsService organization billing", () => {
     });
 
     await expect(service.createCheckout(checkoutParams)).rejects.toBeInstanceOf(
-      OrganizationBillingUnavailableError,
+      OrganizationBillingUnavailableError
     );
     expect(transaction).not.toHaveBeenCalled();
   });
@@ -655,7 +714,7 @@ describe("EntitlementsService organization billing", () => {
       service.createPortal({
         organizationId: "organization-1",
         userId: "owner-1",
-      }),
+      })
     ).resolves.toEqual({ url: "https://polar.test/portal/session-1" });
     expect(polarCustomerSessionCreate).toHaveBeenCalledWith({
       externalCustomerId: "owner-1",
@@ -673,7 +732,7 @@ describe("EntitlementsService organization billing", () => {
       service.createPortal({
         organizationId: "organization-1",
         userId: "member-1",
-      }),
+      })
     ).rejects.toBeInstanceOf(OrganizationBillingOwnerRequiredError);
     expect(polarCustomerSessionCreate).not.toHaveBeenCalled();
   });
@@ -683,7 +742,7 @@ describe("EntitlementsService organization billing", () => {
       makeBillingHarness({ members: 9, pendingInvitations: 2 });
 
     await expect(service.createCheckout(checkoutParams)).rejects.toBeInstanceOf(
-      OrganizationPlanMemberLimitError,
+      OrganizationPlanMemberLimitError
     );
     expect(polarCheckoutList).not.toHaveBeenCalled();
     expect(polarCheckoutCreate).not.toHaveBeenCalled();
@@ -707,7 +766,7 @@ describe("EntitlementsService organization billing", () => {
         minSeats: 11,
         products: ["business-yearly-product", "business-monthly-product"],
         seats: 11,
-      }),
+      })
     );
   });
 
@@ -721,20 +780,22 @@ describe("EntitlementsService organization billing", () => {
       },
     });
     await expect(
-      local.service.createCheckout(checkoutParams),
+      local.service.createCheckout(checkoutParams)
     ).rejects.toBeInstanceOf(OrganizationSubscriptionConflictError);
     expect(local.polarSubscriptionList).not.toHaveBeenCalled();
     expect(local.polarCheckoutCreate).not.toHaveBeenCalled();
 
     const remote = makeBillingHarness({
-      remoteSubscriptions: [{
-        currentPeriodEnd: null,
-        id: "subscription-remote",
-        productId: "plus-monthly-product",
-      }],
+      remoteSubscriptions: [
+        {
+          currentPeriodEnd: null,
+          id: "subscription-remote",
+          productId: "plus-monthly-product",
+        },
+      ],
     });
     await expect(
-      remote.service.createCheckout(checkoutParams),
+      remote.service.createCheckout(checkoutParams)
     ).rejects.toBeInstanceOf(OrganizationSubscriptionConflictError);
     expect(remote.polarCheckoutCreate).not.toHaveBeenCalled();
   });
@@ -768,18 +829,20 @@ describe("EntitlementsService organization billing", () => {
     const { polarCheckoutCreate, polarCheckoutUpdate, service } =
       makeBillingHarness({
         members: 4,
-        openCheckouts: [{
-          expiresAt: new Date("2099-01-01T00:00:00.000Z"),
-          id: "checkout-1",
-          metadata: { referenceId: "organization-1" },
-          product: { id: "plus-yearly-product" },
-          products: [
-            { id: "plus-monthly-product" },
-            { id: "plus-yearly-product" },
-          ],
-          seats: 3,
-          url: "https://polar.test/checkout/checkout-1",
-        }],
+        openCheckouts: [
+          {
+            expiresAt: new Date("2099-01-01T00:00:00.000Z"),
+            id: "checkout-1",
+            metadata: { referenceId: "organization-1" },
+            product: { id: "plus-yearly-product" },
+            products: [
+              { id: "plus-monthly-product" },
+              { id: "plus-yearly-product" },
+            ],
+            seats: 3,
+            url: "https://polar.test/checkout/checkout-1",
+          },
+        ],
       });
 
     await expect(service.createCheckout(checkoutParams)).resolves.toEqual({
@@ -788,7 +851,7 @@ describe("EntitlementsService organization billing", () => {
 
     expect(polarCheckoutUpdate).not.toHaveBeenCalled();
     expect(polarCheckoutCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ maxSeats: 4, minSeats: 4, seats: 4 }),
+      expect.objectContaining({ maxSeats: 4, minSeats: 4, seats: 4 })
     );
   });
 
@@ -816,18 +879,20 @@ describe("EntitlementsService organization billing", () => {
   it("changes selection on a reusable checkout without duplicating it", async () => {
     const { polarCheckoutCreate, polarCheckoutUpdate, service } =
       makeBillingHarness({
-        openCheckouts: [{
-          expiresAt: new Date("2099-01-01T00:00:00.000Z"),
-          id: "checkout-1",
-          metadata: { referenceId: "organization-1" },
-          product: { id: "plus-yearly-product" },
-          products: [
-            { id: "plus-monthly-product" },
-            { id: "plus-yearly-product" },
-          ],
-          seats: 3,
-          url: "https://polar.test/checkout/checkout-1",
-        }],
+        openCheckouts: [
+          {
+            expiresAt: new Date("2099-01-01T00:00:00.000Z"),
+            id: "checkout-1",
+            metadata: { referenceId: "organization-1" },
+            product: { id: "plus-yearly-product" },
+            products: [
+              { id: "plus-monthly-product" },
+              { id: "plus-yearly-product" },
+            ],
+            seats: 3,
+            url: "https://polar.test/checkout/checkout-1",
+          },
+        ],
       });
 
     await service.createCheckout(checkoutParams);
@@ -860,7 +925,7 @@ describe("EntitlementsService organization billing", () => {
       });
 
     await expect(service.createCheckout(checkoutParams)).rejects.toBeInstanceOf(
-      OrganizationSubscriptionConflictError,
+      OrganizationSubscriptionConflictError
     );
     expect(polarCheckoutUpdate).not.toHaveBeenCalled();
     expect(polarCheckoutCreate).not.toHaveBeenCalled();
@@ -874,11 +939,13 @@ describe("EntitlementsService organization billing", () => {
         planSlug: PLAN.plus,
         productId: "plus-monthly-product",
       },
-      remoteSubscriptions: [{
-        currentPeriodEnd: null,
-        id: "subscription-1",
-        productId: "business-yearly-product",
-      }],
+      remoteSubscriptions: [
+        {
+          currentPeriodEnd: null,
+          id: "subscription-1",
+          productId: "business-yearly-product",
+        },
+      ],
     });
 
     await service.changePlan({
@@ -894,11 +961,13 @@ describe("EntitlementsService organization billing", () => {
   it("updates one active subscription with proration after capacity checks", async () => {
     const { polarSubscriptionUpdate, service } = makeBillingHarness({
       members: 11,
-      remoteSubscriptions: [{
-        currentPeriodEnd: null,
-        id: "subscription-1",
-        productId: "plus-monthly-product",
-      }],
+      remoteSubscriptions: [
+        {
+          currentPeriodEnd: null,
+          id: "subscription-1",
+          productId: "plus-monthly-product",
+        },
+      ],
     });
 
     await service.changePlan({
@@ -921,11 +990,13 @@ describe("EntitlementsService organization billing", () => {
     const { polarSubscriptionUpdate, service } = makeBillingHarness({
       members: 10,
       pendingInvitations: 1,
-      remoteSubscriptions: [{
-        currentPeriodEnd: null,
-        id: "subscription-1",
-        productId: "business-monthly-product",
-      }],
+      remoteSubscriptions: [
+        {
+          currentPeriodEnd: null,
+          id: "subscription-1",
+          productId: "business-monthly-product",
+        },
+      ],
     });
 
     await expect(
@@ -934,18 +1005,20 @@ describe("EntitlementsService organization billing", () => {
         organizationId: "organization-1",
         plan: PLAN.plus,
         userId: "owner-1",
-      }),
+      })
     ).rejects.toBeInstanceOf(OrganizationPlanMemberLimitError);
     expect(polarSubscriptionUpdate).not.toHaveBeenCalled();
   });
 
   it("fails closed for subscriptions outside the self-service catalog", async () => {
     const { polarSubscriptionUpdate, service } = makeBillingHarness({
-      remoteSubscriptions: [{
-        currentPeriodEnd: null,
-        id: "subscription-enterprise",
-        productId: "enterprise-custom-product",
-      }],
+      remoteSubscriptions: [
+        {
+          currentPeriodEnd: null,
+          id: "subscription-enterprise",
+          productId: "enterprise-custom-product",
+        },
+      ],
     });
 
     await expect(
@@ -954,7 +1027,7 @@ describe("EntitlementsService organization billing", () => {
         organizationId: "organization-1",
         plan: PLAN.business,
         userId: "owner-1",
-      }),
+      })
     ).rejects.toBeInstanceOf(OrganizationSubscriptionConflictError);
     expect(polarSubscriptionUpdate).not.toHaveBeenCalled();
   });
@@ -981,7 +1054,7 @@ describe("EntitlementsService organization billing", () => {
         organizationId: "organization-1",
         plan: PLAN.business,
         userId: "owner-1",
-      }),
+      })
     ).rejects.toBeInstanceOf(OrganizationSubscriptionConflictError);
     expect(polarSubscriptionUpdate).not.toHaveBeenCalled();
   });
@@ -992,11 +1065,15 @@ describe("EntitlementsService active subscription lookup", () => {
     const list = mock(async () => ({ result: { items: [] } }));
     const service = makeService({
       polar: { subscriptions: { list } },
-      rows: [[{
-        currentPeriodEnd: null,
-        id: "subscription-1",
-        planSlug: PLAN.plus,
-      }]],
+      rows: [
+        [
+          {
+            currentPeriodEnd: null,
+            id: "subscription-1",
+            planSlug: PLAN.plus,
+          },
+        ],
+      ],
     });
 
     expect(await service.hasActiveSubscription("organization-1")).toBe(true);
@@ -1076,9 +1153,17 @@ describe("EntitlementsService subscription upsert", () => {
   });
 
   it("applies revocation to an existing purchase after its owner is removed", async () => {
-    const { service, updateSet } = makeUpsertHarness([[existingSubscription], []]);
-    await service.upsertSubscription({ ...subscriptionParams, status: "canceled" });
-    expect(updateSet).toHaveBeenCalledWith(expect.objectContaining({ status: "canceled" }));
+    const { service, updateSet } = makeUpsertHarness([
+      [existingSubscription],
+      [],
+    ]);
+    await service.upsertSubscription({
+      ...subscriptionParams,
+      status: "canceled",
+    });
+    expect(updateSet).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "canceled" })
+    );
   });
 
   it("ignores webhook events older than local state or missing a timestamp", async () => {
@@ -1087,10 +1172,7 @@ describe("EntitlementsService subscription upsert", () => {
       modifiedAt: new Date("2026-08-02T00:00:00.000Z"),
     };
 
-    for (const modifiedAt of [
-      null,
-      new Date("2026-08-01T00:00:00.000Z"),
-    ]) {
+    for (const modifiedAt of [null, new Date("2026-08-01T00:00:00.000Z")]) {
       const { insertValues, service, updateSet } = makeUpsertHarness([
         [newerLocal],
       ]);
@@ -1106,22 +1188,22 @@ describe("EntitlementsService subscription upsert", () => {
   });
 
   it("rejects moving a subscription to another organization", async () => {
-    const { service } = makeUpsertHarness([[
-      { ...existingSubscription, organizationId: "organization-2" },
-    ]]);
+    const { service } = makeUpsertHarness([
+      [{ ...existingSubscription, organizationId: "organization-2" }],
+    ]);
 
     await expect(
-      service.upsertSubscription(subscriptionParams),
+      service.upsertSubscription(subscriptionParams)
     ).rejects.toBeInstanceOf(SubscriptionOwnershipMismatchError);
   });
 
   it("rejects replacing the original purchaser", async () => {
-    const { service } = makeUpsertHarness([[
-      { ...existingSubscription, purchasedByUserId: "owner-2" },
-    ]]);
+    const { service } = makeUpsertHarness([
+      [{ ...existingSubscription, purchasedByUserId: "owner-2" }],
+    ]);
 
     await expect(
-      service.upsertSubscription(subscriptionParams),
+      service.upsertSubscription(subscriptionParams)
     ).rejects.toBeInstanceOf(SubscriptionPurchaserMismatchError);
   });
 

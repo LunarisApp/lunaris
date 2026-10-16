@@ -13,7 +13,7 @@ import posthog from "posthog-js";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate } from "react-router";
-import { object, string, z } from "zod";
+import { object, string, type z } from "zod";
 import { useRegion } from "../../region";
 import { AuthBackLink } from "../components/auth-back-link";
 import { AuthLayout } from "../components/auth-layout";
@@ -40,11 +40,8 @@ export default function RegisterPage({
   const auth = useAuth();
   const { data: session } = auth.useSession();
   const [registrationPending, setRegistrationPending] = useState(false);
-  const {
-    isAddingAccount,
-    pathWithRedirect,
-    resolvedRedirectTo,
-  } = useAuthRedirect();
+  const { isAddingAccount, pathWithRedirect, resolvedRedirectTo } =
+    useAuthRedirect();
 
   if (
     session &&
@@ -111,7 +108,7 @@ export function RegisterForm({
       const { data: createdSession, error } = await auth.signUp.email({
         callbackURL: new URL(
           pathWithRedirect("/"),
-          navigation.origin(),
+          navigation.origin()
         ).toString(),
         name: data.name,
         email: data.email,
@@ -179,7 +176,9 @@ export function RegisterForm({
           <Field>
             <FieldLabel htmlFor="email">{t("auth.email")}</FieldLabel>
             <Input
-              aria-describedby={errors.email ? "register-email-error" : undefined}
+              aria-describedby={
+                errors.email ? "register-email-error" : undefined
+              }
               aria-invalid={!!errors.email}
               autoComplete="email"
               autoFocus
@@ -229,7 +228,7 @@ export function RegisterForm({
           {t("auth.signUp")}
         </Button>
       </form>
-      <p className="text-muted-foreground mt-4 text-center text-sm">
+      <p className="mt-4 text-center text-muted-foreground text-sm">
         {t("auth.haveAccount")}{" "}
         <Link
           className="text-primary underline underline-offset-4"

@@ -29,7 +29,7 @@ export class AvatarController {
   })
   async getUploadUrl(
     @Session() session: UserSession,
-    @Body({ schema: UploadUrlRequestDto }) body: UploadUrlRequestDto,
+    @Body({ schema: UploadUrlRequestDto }) body: UploadUrlRequestDto
   ): Promise<UploadUrlResponseDto> {
     return this.avatarService.getUploadUrl(session.user.id, body.resource);
   }
@@ -41,7 +41,7 @@ export class AvatarController {
   })
   async confirmUpload(
     @Session() session: UserSession,
-    @Body({ schema: ConfirmRequestDto }) body: ConfirmRequestDto,
+    @Body({ schema: ConfirmRequestDto }) body: ConfirmRequestDto
   ): Promise<ConfirmResponseDto> {
     return this.avatarService.confirmUpload(session.user.id, body.key);
   }

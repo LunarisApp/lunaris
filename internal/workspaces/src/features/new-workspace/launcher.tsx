@@ -76,7 +76,9 @@ export function CreateWorkspaceLauncher({
           <ResponsiveDropdownMenuItem
             className="py-2"
             data-testid={
-              option.id === "empty" ? "workspaces-create-option-empty" : undefined
+              option.id === "empty"
+                ? "workspaces-create-option-empty"
+                : undefined
             }
             disabled={option.disabled}
             key={option.id}
@@ -88,7 +90,7 @@ export function CreateWorkspaceLauncher({
                   : onCreateEmpty
             }
           >
-            <span className="bg-muted text-foreground flex size-8 shrink-0 items-center justify-center rounded-md">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
               {option.icon}
             </span>
             <span className="flex min-w-0 flex-1 flex-col">
@@ -97,7 +99,7 @@ export function CreateWorkspaceLauncher({
                 {option.description}
               </span>
             </span>
-            {option.shortcut && (
+            {!!option.shortcut && (
               <ResponsiveDropdownMenuShortcut>
                 {option.shortcut}
               </ResponsiveDropdownMenuShortcut>

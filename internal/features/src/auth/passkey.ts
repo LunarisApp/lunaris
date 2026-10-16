@@ -6,7 +6,9 @@ const CANCELLED_PASSKEY_CODES = new Set([
 ]);
 
 export function getPasskeyErrorCode(error: unknown): string | null {
-  if (!error || typeof error !== "object" || !("code" in error)) return null;
+  if (!error || typeof error !== "object" || !("code" in error)) {
+    return null;
+  }
   const code = (error as { code?: unknown }).code;
   return typeof code === "string" ? code : null;
 }

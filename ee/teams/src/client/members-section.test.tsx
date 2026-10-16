@@ -9,23 +9,29 @@ import { PermissionProvider } from "@repo/features/permissions";
 import { markPendingOrganization } from "@repo/features/organization/pending-organization";
 import { MembersSection } from "./members-section";
 
-const { auth, useLimit, useOrganizationMembersQuery, useOrganizationTeamsQuery } =
-  vi.hoisted(() => ({
-    auth: {
-      organization: {
-        inviteMember: vi.fn(),
-        listInvitations: vi.fn(),
-        listMembers: vi.fn(),
-      },
-      useActiveOrganization: vi.fn(),
-      useSession: vi.fn(),
+const {
+  auth,
+  useLimit,
+  useOrganizationMembersQuery,
+  useOrganizationTeamsQuery,
+} = vi.hoisted(() => ({
+  auth: {
+    organization: {
+      inviteMember: vi.fn(),
+      listInvitations: vi.fn(),
+      listMembers: vi.fn(),
     },
-    useLimit: vi.fn(),
-    useOrganizationMembersQuery: vi.fn(),
-    useOrganizationTeamsQuery: vi.fn(),
-  }));
+    useActiveOrganization: vi.fn(),
+    useSession: vi.fn(),
+  },
+  useLimit: vi.fn(),
+  useOrganizationMembersQuery: vi.fn(),
+  useOrganizationTeamsQuery: vi.fn(),
+}));
 
-vi.mock("@repo/data/features/organizations", () => ({ useOrganizationMembersQuery }));
+vi.mock("@repo/data/features/organizations", () => ({
+  useOrganizationMembersQuery,
+}));
 
 vi.mock("./queries", () => ({
   useOrganizationTeamsQuery,
@@ -96,13 +102,13 @@ describe("MembersSection", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MembersSection />
-      </QueryClientProvider>,
+      </QueryClientProvider>
     );
 
     expect(
       await screen.findByText(
-        "Unlimited member capacity. Pending invitations are not billed until accepted.",
-      ),
+        "Unlimited member capacity. Pending invitations are not billed until accepted."
+      )
     ).toBeTruthy();
     expect(document.body.textContent).not.toContain(String(UNLIMITED));
   });
@@ -115,7 +121,7 @@ describe("MembersSection", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MembersSection />
-      </QueryClientProvider>,
+      </QueryClientProvider>
     );
 
     const email = await screen.findByTestId("organization-invite-email");
@@ -123,7 +129,7 @@ describe("MembersSection", () => {
     expect(email.hasAttribute("required")).toBe(true);
     expect(email.closest("form")).not.toBeNull();
     expect(
-      document.getElementById(email.getAttribute("aria-describedby") ?? ""),
+      document.getElementById(email.getAttribute("aria-describedby") ?? "")
     ).not.toBeNull();
   });
 
@@ -146,7 +152,7 @@ describe("MembersSection", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MembersSection />
-      </QueryClientProvider>,
+      </QueryClientProvider>
     );
 
     const emailInput = await screen.findByTestId("organization-invite-email");
@@ -183,13 +189,13 @@ describe("MembersSection", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MembersSection />
-      </QueryClientProvider>,
+      </QueryClientProvider>
     );
 
     const user = userEvent.setup();
     await user.type(
       await screen.findByTestId("organization-invite-email"),
-      "keyboard@example.com{Enter}",
+      "keyboard@example.com{Enter}"
     );
 
     await waitFor(() => {
@@ -226,7 +232,7 @@ describe("MembersSection", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MembersSection />
-      </QueryClientProvider>,
+      </QueryClientProvider>
     );
 
     await user.click(await screen.findByTestId("organization-invite-team"));
@@ -248,7 +254,7 @@ describe("MembersSection", () => {
 
   it("contains invitation failures within the members section", async () => {
     auth.organization.listInvitations.mockRejectedValue(
-      new TypeError("offline"),
+      new TypeError("offline")
     );
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -257,17 +263,15 @@ describe("MembersSection", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MembersSection />
-      </QueryClientProvider>,
+      </QueryClientProvider>
     );
 
     expect(
-      await screen.findByText("organization.invitationsUnavailableTitle"),
+      await screen.findByText("organization.invitationsUnavailableTitle")
     ).toBeTruthy();
     expect(screen.getByText("owner@example.com")).toBeTruthy();
     expect(screen.getByTestId("organization-invite-email")).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: "common.retry" }),
-    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "common.retry" })).toBeTruthy();
   });
 
   it("allows invitation creation without invitation read access", async () => {
@@ -284,12 +288,10 @@ describe("MembersSection", () => {
         <QueryClientProvider client={queryClient}>
           <MembersSection />
         </QueryClientProvider>
-      </PermissionProvider>,
+      </PermissionProvider>
     );
 
-    expect(
-      await screen.findByTestId("organization-invite-email"),
-    ).toBeTruthy();
+    expect(await screen.findByTestId("organization-invite-email")).toBeTruthy();
     expect(auth.organization.listInvitations).not.toHaveBeenCalled();
   });
 
@@ -310,13 +312,13 @@ describe("MembersSection", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MembersSection />
-      </QueryClientProvider>,
+      </QueryClientProvider>
     );
 
     expect(
       (await screen.findByTestId("organization-invite-email")).hasAttribute(
-        "disabled",
-      ),
+        "disabled"
+      )
     ).toBe(false);
   });
 
@@ -350,12 +352,10 @@ describe("MembersSection", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MembersSection />
-      </QueryClientProvider>,
+      </QueryClientProvider>
     );
 
-    expect(
-      await screen.findByText("permissions.readOnlyTitle"),
-    ).toBeTruthy();
+    expect(await screen.findByText("permissions.readOnlyTitle")).toBeTruthy();
     expect(screen.queryByTestId("organization-invite-email")).toBeNull();
   });
 
@@ -366,7 +366,7 @@ describe("MembersSection", () => {
     const view = render(
       <QueryClientProvider client={queryClient}>
         <MembersSection />
-      </QueryClientProvider>,
+      </QueryClientProvider>
     );
     const input = await screen.findByTestId("organization-invite-email");
 
@@ -374,7 +374,7 @@ describe("MembersSection", () => {
     view.rerender(
       <QueryClientProvider client={queryClient}>
         <MembersSection />
-      </QueryClientProvider>,
+      </QueryClientProvider>
     );
     fireEvent.change(input, { target: { value: "member@example.com" } });
 

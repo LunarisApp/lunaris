@@ -1,12 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import {
-  MemoryRouter,
-  Route,
-  Routes,
-  useLocation,
-} from "react-router";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
@@ -45,7 +40,9 @@ vi.mock("evlog", async (importOriginal) => {
 });
 
 vi.mock("../components/auth-layout", () => ({
-  AuthLayout: ({ children }: { children: ReactNode }) => <main>{children}</main>,
+  AuthLayout: ({ children }: { children: ReactNode }) => (
+    <main>{children}</main>
+  ),
 }));
 
 vi.mock("../context", () => ({
@@ -82,7 +79,7 @@ function renderPage() {
         <Route element={<TwoFactorPage />} path="/auth/two-factor" />
         <Route element={<LocationProbe />} path="/organization" />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 }
 
@@ -110,7 +107,7 @@ describe("TwoFactorPage", () => {
       expect(verifyTotp).toHaveBeenCalledWith({
         code: "123456",
         trustDevice: true,
-      }),
+      })
     );
     expect(await screen.findByText("organization")).toBeTruthy();
   });
@@ -129,7 +126,7 @@ describe("TwoFactorPage", () => {
         code: "amber-forest",
         disableSession: false,
         trustDevice: false,
-      }),
+      })
     );
   });
 
@@ -146,7 +143,7 @@ describe("TwoFactorPage", () => {
     await user.click(screen.getByText("auth.verify"));
 
     expect((await screen.findByTestId("location-state")).textContent).toBe(
-      JSON.stringify({ accountSwitchTargetUserId: "two-factor-user" }),
+      JSON.stringify({ accountSwitchTargetUserId: "two-factor-user" })
     );
   });
 });

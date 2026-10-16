@@ -26,22 +26,24 @@ export const panelWindowDescriptorSchema = z.object({
   viewId: z.string().min(1),
 });
 
-export type PanelWindowDescriptor = z.infer<
-  typeof panelWindowDescriptorSchema
->;
+export type PanelWindowDescriptor = z.infer<typeof panelWindowDescriptorSchema>;
 
 function bytesToBase64Url(bytes: Uint8Array) {
   let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
   return btoa(binary)
     .replaceAll("+", "-")
     .replaceAll("/", "_")
-    .replace(/=+$/u, "");
+    .replace(/[=]+$/u, "");
 }
 
 function base64UrlToBytes(value: string) {
   const padding = "=".repeat((4 - (value.length % 4)) % 4);
-  const binary = atob(value.replaceAll("-", "+").replaceAll("_", "/") + padding);
+  const binary = atob(
+    value.replaceAll("-", "+").replaceAll("_", "/") + padding
+  );
   return Uint8Array.from(binary, (character) => character.charCodeAt(0));
 }
 
@@ -58,9 +60,7 @@ export function panelWindowDescriptorFromPanel(
   });
 }
 
-export function encodePanelWindowDescriptor(
-  descriptor: PanelWindowDescriptor
-) {
+export function encodePanelWindowDescriptor(descriptor: PanelWindowDescriptor) {
   const parsed = panelWindowDescriptorSchema.parse(descriptor);
   const bytes = new TextEncoder().encode(JSON.stringify(parsed));
   if (bytes.byteLength > PANEL_WINDOW_DESCRIPTOR_LIMIT) {
@@ -80,14 +80,22 @@ export function decodePanelWindowDescriptor(value: string) {
 }
 
 export function panelKind(descriptor: PanelWindowDescriptor) {
-  if (typeof descriptor.params?.resourceId === "string") return "resource";
-  if (typeof descriptor.params?.toolId === "string") return "tool";
-  if (typeof descriptor.params?.routeViewId === "string") return "right_dock";
+  if (typeof descriptor.params?.resourceId === "string") {
+    return "resource";
+  }
+  if (typeof descriptor.params?.toolId === "string") {
+    return "tool";
+  }
+  if (typeof descriptor.params?.routeViewId === "string") {
+    return "right_dock";
+  }
   return "chrome";
 }
 
 function jsonValuesEqual(left: JsonValue, right: JsonValue): boolean {
-  if (left === right) return true;
+  if (left === right) {
+    return true;
+  }
 
   if (Array.isArray(left) || Array.isArray(right)) {
     return (

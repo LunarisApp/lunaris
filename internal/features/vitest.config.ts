@@ -43,20 +43,41 @@ export default defineConfig({
     alias: [
       {
         find: /^@lunarisapp\/plugin-sdk$/,
-        replacement: resolve(__dirname, "../../packages/plugin-sdk/src/index.ts"),
+        replacement: resolve(
+          import.meta.dirname,
+          "../../packages/plugin-sdk/src/index.ts"
+        ),
       },
       {
         find: "@lunarisapp/plugin-sdk/internal",
-        replacement: resolve(__dirname, "../../packages/plugin-sdk/src/internal-index.ts"),
+        replacement: resolve(
+          import.meta.dirname,
+          "../../packages/plugin-sdk/src/internal-index.ts"
+        ),
       },
       {
         find: "@lunarisapp/plugin-sdk/marketplace",
-        replacement: resolve(__dirname, "../../packages/plugin-sdk/src/marketplace.ts"),
+        replacement: resolve(
+          import.meta.dirname,
+          "../../packages/plugin-sdk/src/marketplace.ts"
+        ),
       },
-      { find: "@lunarisapp/ui", replacement: resolve(__dirname, "../../packages/ui/src") },
-      { find: "@repo/utils", replacement: resolve(__dirname, "../utils/src") },
-      { find: "@repo/data", replacement: resolve(__dirname, "../data/src") },
-      { find: "@repo/platform", replacement: resolve(__dirname, "../platform/src") },
+      {
+        find: "@lunarisapp/ui",
+        replacement: resolve(import.meta.dirname, "../../packages/ui/src"),
+      },
+      {
+        find: "@repo/utils",
+        replacement: resolve(import.meta.dirname, "../utils/src"),
+      },
+      {
+        find: "@repo/data",
+        replacement: resolve(import.meta.dirname, "../data/src"),
+      },
+      {
+        find: "@repo/platform",
+        replacement: resolve(import.meta.dirname, "../platform/src"),
+      },
     ],
   },
 });

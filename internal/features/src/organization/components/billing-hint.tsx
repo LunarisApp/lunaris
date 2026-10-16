@@ -1,5 +1,9 @@
 import { Button } from "@lunarisapp/ui/components/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@lunarisapp/ui/components/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@lunarisapp/ui/components/tooltip";
 import { HelpCircleIcon, HugeiconsIcon } from "@lunarisapp/ui/icons";
 import { useId, useState } from "react";
 
@@ -22,7 +26,12 @@ export function BillingHint({ label, hint }: { label: string; hint: string }) {
         }
         onClick={() => setOpen(true)}
       >
-        <HugeiconsIcon aria-hidden="true" icon={HelpCircleIcon} size={16} strokeWidth={1.5} />
+        <HugeiconsIcon
+          aria-hidden="true"
+          icon={HelpCircleIcon}
+          size={16}
+          strokeWidth={1.5}
+        />
       </TooltipTrigger>
       <TooltipContent
         id={hintId}

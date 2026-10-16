@@ -1,10 +1,20 @@
 "use client";
 
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { createContext, type ReactNode, useCallback, useContext, useRef } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useRef,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { createStore, useStore } from "zustand";
-import { createHotkeyOptions, HOTKEYS, useResolvedHotkeyBinding } from "@repo/features/hotkeys";
+import {
+  createHotkeyOptions,
+  HOTKEYS,
+  useResolvedHotkeyBinding,
+} from "@repo/features/hotkeys";
 import type { SearchCategory, SearchDialogStore } from "../types";
 import { SearchOrganizationContext } from "../scope";
 import { SearchIndexCoordinator } from "../search-index-coordinator";
@@ -54,7 +64,11 @@ export function SearchProvider({
   }, []);
   const hotkey = HOTKEYS["toggle-search"];
 
-  useHotkey(useResolvedHotkeyBinding(hotkey), toggle, createHotkeyOptions(hotkey, t));
+  useHotkey(
+    useResolvedHotkeyBinding(hotkey),
+    toggle,
+    createHotkeyOptions(hotkey, t)
+  );
 
   return (
     <SearchOrganizationContext.Provider value={organizationId ?? null}>

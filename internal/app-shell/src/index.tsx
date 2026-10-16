@@ -16,7 +16,9 @@ export type { Shell } from "./types";
 const MOBILE_BREAKPOINT = 768;
 
 function resolveShell(runtime: AppRuntime, shell?: Shell): Shell {
-  if (shell) return shell;
+  if (shell) {
+    return shell;
+  }
   return runtime.platform.viewport.width() < MOBILE_BREAKPOINT
     ? "mobile"
     : "desktop";

@@ -5,7 +5,7 @@ import { AgentSafetyService, fingerprint } from "./agent-safety.service";
 describe("AgentSafetyService", () => {
   it("fingerprints semantically identical objects consistently", () => {
     expect(fingerprint({ a: 1, nested: { b: 2, c: 3 } })).toBe(
-      fingerprint({ nested: { c: 3, b: 2 }, a: 1 }),
+      fingerprint({ nested: { c: 3, b: 2 }, a: 1 })
     );
   });
 
@@ -31,7 +31,7 @@ describe("AgentSafetyService", () => {
                   requestHash: fingerprint({ name: "First" }),
                   status: "complete",
                 },
-              ]),
+              ])
             ),
           })),
         })),
@@ -46,7 +46,7 @@ describe("AgentSafetyService", () => {
         operation: "create_workspace",
         request: { name: "Second" },
         run: mock(() => Promise.resolve({ id: "never" })),
-      }),
+      })
     ).rejects.toBeInstanceOf(ConflictException);
   });
 
@@ -78,7 +78,7 @@ describe("AgentSafetyService", () => {
         operation: "create_workspace",
         request: { name: "Workspace" },
         run: mock(() => Promise.resolve({ id: "workspace-1" })),
-      }),
+      })
     ).resolves.toEqual({ id: "workspace-1" });
     expect(attempts).toBe(3);
     expect(remove).not.toHaveBeenCalled();
@@ -102,7 +102,7 @@ describe("AgentSafetyService", () => {
         operation: "create_workspace",
         request: { name: "Workspace" },
         run: mock(() => Promise.resolve({ id: "workspace-1" })),
-      }),
+      })
     ).rejects.toThrow("write failed");
   });
 
@@ -138,7 +138,7 @@ describe("AgentSafetyService", () => {
                     usedAt: null,
                     organizationId: "organization-1",
                   },
-                ]),
+                ])
               ),
             })),
           })),
@@ -147,7 +147,7 @@ describe("AgentSafetyService", () => {
       update,
     };
     const transaction = mock(
-      (callback: (value: typeof tx) => Promise<unknown>) => callback(tx),
+      (callback: (value: typeof tx) => Promise<unknown>) => callback(tx)
     );
     const service = new AgentSafetyService({ db: { transaction } } as never);
 
@@ -160,7 +160,7 @@ describe("AgentSafetyService", () => {
         run: mock(() => Promise.reject(new Error("delete failed"))),
         targetId: "workspace-1",
         organizationId: "organization-1",
-      }),
+      })
     ).rejects.toThrow("delete failed");
 
     expect(update).not.toHaveBeenCalled();

@@ -122,7 +122,7 @@ describe("WorkspaceSettingsPanel", () => {
     render(
       <MemoryRouter initialEntries={["/acme/atlas/settings"]}>
         <WorkspaceSettingsPanel />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     fireEvent.change(screen.getByTestId("workspace-settings-name"), {
@@ -144,11 +144,11 @@ describe("WorkspaceSettingsPanel", () => {
     render(
       <MemoryRouter>
         <WorkspaceSettingsPanel />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     fireEvent.click(
-      screen.getByRole("button", { name: "workspaces.manageExtensions" }),
+      screen.getByRole("button", { name: "workspaces.manageExtensions" })
     );
 
     expect(openTool).toHaveBeenCalledWith({ toolId: "extensions" });
@@ -161,14 +161,16 @@ describe("WorkspaceSettingsPanel", () => {
     render(
       <MemoryRouter>
         <WorkspaceSettingsPanel />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(
-      screen.getByTestId("workspace-settings-name").hasAttribute("disabled"),
+      screen.getByTestId("workspace-settings-name").hasAttribute("disabled")
     ).toBe(true);
     expect(
-      screen.getByTestId("workspace-settings-visibility").hasAttribute("disabled"),
+      screen
+        .getByTestId("workspace-settings-visibility")
+        .hasAttribute("disabled")
     ).toBe(true);
   });
 
@@ -180,11 +182,11 @@ describe("WorkspaceSettingsPanel", () => {
     render(
       <MemoryRouter>
         <WorkspaceSettingsPanel />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(
-      screen.getByTestId("workspace-settings-name").hasAttribute("disabled"),
+      screen.getByTestId("workspace-settings-name").hasAttribute("disabled")
     ).toBe(true);
   });
 
@@ -192,7 +194,7 @@ describe("WorkspaceSettingsPanel", () => {
     render(
       <MemoryRouter initialEntries={["/acme/atlas/settings"]}>
         <WorkspaceSettingsPanel />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     fireEvent.click(screen.getByTestId("workspace-settings-delete"));

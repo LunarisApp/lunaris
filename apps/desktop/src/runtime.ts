@@ -4,10 +4,7 @@ import { createLunarisTauriClient } from "@repo/auth/tauri-client";
 import { createApiClient } from "@repo/data/http";
 import type { RegionClientFactory } from "@repo/features/region";
 import { createBrowserPlatform } from "@repo/platform";
-import {
-  DesktopAgentSessionBridge,
-  desktopAgentAccess,
-} from "./agent-access";
+import { DesktopAgentSessionBridge, desktopAgentAccess } from "./agent-access";
 import { desktopAgentWork } from "./agent-work";
 import { keychainStorage } from "./auth-storage";
 import {

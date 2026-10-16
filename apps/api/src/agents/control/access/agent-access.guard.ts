@@ -11,10 +11,7 @@ import { Reflector } from "@nestjs/core";
 import { type AgentScope, agentScopeSchema } from "@repo/agent-contracts";
 import type { AppPermission } from "@repo/auth/permissions";
 import { type Auth, agentApiKeyMetadataSchema } from "@repo/auth/server";
-import {
-  AuthService,
-  type UserSession,
-} from "@thallesp/nestjs-better-auth";
+import { AuthService, type UserSession } from "@thallesp/nestjs-better-auth";
 import { useLogger } from "evlog/nestjs";
 import type { FastifyRequest } from "fastify";
 import { AppConfig } from "../../../app.config";
@@ -30,10 +27,7 @@ import {
   parseAgentScopes,
 } from "./agent-auth.utils";
 import { AgentControlService } from "../agent-control.service";
-import {
-  AGENT_SCOPE_METADATA,
-  type AgentPrincipal,
-} from "./agent-principal";
+import { AGENT_SCOPE_METADATA, type AgentPrincipal } from "./agent-principal";
 
 type ApiKeyVerification = {
   error: null | { code: string; message?: string };
@@ -68,13 +62,15 @@ export class AgentAccessGuard implements CanActivate {
     private readonly appConfig: AppConfig,
     private readonly control: AgentControlService,
     private readonly reflector: Reflector,
-    private readonly permissions: PermissionService,
+    private readonly permissions: PermissionService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
       const authorized = await this.authorize(context);
-      if (authorized) await this.requirePermission(context);
+      if (authorized) {
+        await this.requirePermission(context);
+      }
       return authorized;
     } catch (error) {
       const status =
@@ -82,15 +78,13 @@ export class AgentAccessGuard implements CanActivate {
       if (status === 401 || status === 403) {
         const action = routeAuditAction(
           context.getClass().name,
-          context.getHandler().name,
+          context.getHandler().name
         );
         if (action) {
           recordComplianceAudit(
             useLogger(),
             auditInputForRequest(context, action, "denied"),
-            error instanceof Error
-              ? error.message
-              : "Agent access denied",
+            error instanceof Error ? error.message : "Agent access denied"
           );
         }
       }
@@ -101,11 +95,10 @@ export class AgentAccessGuard implements CanActivate {
   private async requirePermission(context: ExecutionContext): Promise<void> {
     const required = this.reflector.getAllAndOverride<
       AppPermission | undefined
-    >(
-      PERMISSION_METADATA,
-      [context.getHandler(), context.getClass()],
-    );
-    if (!required) return;
+    >(PERMISSION_METADATA, [context.getHandler(), context.getClass()]);
+    if (!required) {
+      return;
+    }
 
     const request = context.switchToHttp().getRequest<AgentRequest>();
     await this.permissions.requirePermission(required, {
@@ -117,9 +110,11 @@ export class AgentAccessGuard implements CanActivate {
   private async authorize(context: ExecutionContext): Promise<boolean> {
     const scope = this.reflector.getAllAndOverride<AgentScope>(
       AGENT_SCOPE_METADATA,
-      [context.getHandler(), context.getClass()],
+      [context.getHandler(), context.getClass()]
     );
-    if (!scope) throw new ForbiddenException("Agent scope is not configured");
+    if (!scope) {
+      throw new ForbiddenException("Agent scope is not configured");
+    }
 
     const request = context.switchToHttp().getRequest<AgentRequest>();
     const apiKey = firstHeader(request.headers["x-lunaris-api-key"]);
@@ -128,7 +123,9 @@ export class AgentAccessGuard implements CanActivate {
       const jwt = await this.verifyOAuthToken(accessToken, scope);
       const actorId = typeof jwt.sub === "string" ? jwt.sub : undefined;
       const clientId = oauthClientId(jwt);
-      if (!actorId || !clientId) throw new UnauthorizedException();
+      if (!(actorId && clientId)) {
+        throw new UnauthorizedException();
+      }
       request.auditActor = { id: actorId, type: "api" };
       await this.control.assertAgentEligible(actorId);
       const scopes = parseAgentScopes(jwt.scope ?? jwt.scopes);
@@ -142,13 +139,15 @@ export class AgentAccessGuard implements CanActivate {
       request.session = agentSession(
         actorId,
         request.params as { organizationId?: string },
-        "oauth",
+        "oauth"
       );
       request.user = request.session.user;
       return true;
     }
     if (!apiKey) {
-      if (!request.user?.id) throw new UnauthorizedException();
+      if (!request.user?.id) {
+        throw new UnauthorizedException();
+      }
       await this.control.assertAgentEligible(request.user.id);
       request.agentPrincipal = {
         actorId: request.user.id,
@@ -162,9 +161,9 @@ export class AgentAccessGuard implements CanActivate {
     const verified = await this.auth.instance.api.verifyApiKey({
       body: { key: apiKey },
     });
-    if (!verified.valid || !verified.key) {
+    if (!(verified.valid && verified.key)) {
       throw new UnauthorizedException(
-        verified.error?.message ?? "Invalid API key",
+        verified.error?.message ?? "Invalid API key"
       );
     }
     request.auditActor = {
@@ -184,7 +183,9 @@ export class AgentAccessGuard implements CanActivate {
       organizationId &&
       !metadata.data.organizationIds.includes(organizationId)
     ) {
-      throw new ForbiddenException("API key is not allowed in this organization");
+      throw new ForbiddenException(
+        "API key is not allowed in this organization"
+      );
     }
     await this.control.assertAgentEligible(verified.key.referenceId);
 
@@ -192,15 +193,15 @@ export class AgentAccessGuard implements CanActivate {
       actorId: verified.key.referenceId,
       credentialId: verified.key.id,
       kind: "apiKey",
-      scopes: (verified.key.permissions?.agent ?? []).filter((candidate) =>
-        agentScopeSchema.safeParse(candidate).success,
+      scopes: (verified.key.permissions?.agent ?? []).filter(
+        (candidate) => agentScopeSchema.safeParse(candidate).success
       ) as AgentScope[],
       organizationIds: metadata.data.organizationIds,
     };
     request.session = agentSession(
       verified.key.referenceId,
       request.params as { organizationId?: string },
-      "api-key",
+      "api-key"
     );
     request.user = request.session.user;
     return true;
@@ -223,7 +224,7 @@ export class AgentAccessGuard implements CanActivate {
 function agentSession(
   actorId: string,
   params: { organizationId?: string },
-  kind: "api-key" | "oauth",
+  kind: "api-key" | "oauth"
 ): UserSession {
   const now = new Date();
   return {

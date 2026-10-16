@@ -32,7 +32,7 @@ interface StartResourceOpenInput {
   resourceTypeId: string;
 }
 
-const ATTEMPT_TTL_MS = 5_000;
+const ATTEMPT_TTL_MS = 5000;
 const SAMPLE_RATE = 0.1;
 const TIMING_MARKS = {
   dataReady: "resource-open:data-ready",
@@ -97,7 +97,9 @@ class ResourceOpenAttemptTracker {
 
   start(input: StartResourceOpenInput): void {
     const previous = this.attempts.get(input.resourceId);
-    if (previous) this.remove(previous);
+    if (previous) {
+      this.remove(previous);
+    }
 
     const attempt: ResourceOpenAttempt = {
       cacheOutcome: input.cacheOutcome ?? "unknown",
@@ -119,7 +121,9 @@ class ResourceOpenAttemptTracker {
 
   markPanelMounted(resourceId: string, dataReady = false): void {
     const attempt = this.attempts.get(resourceId);
-    if (!attempt || attempt.panelAt !== undefined) return;
+    if (!attempt || attempt.panelAt !== undefined) {
+      return;
+    }
     attempt.panelAt = now();
     if (dataReady && attempt.dataAt === undefined) {
       attempt.dataAt = attempt.panelAt;
@@ -133,7 +137,9 @@ class ResourceOpenAttemptTracker {
     queueTiming?: { queuedAt: number; loadStartedAt: number }
   ): void {
     const attempt = this.attempts.get(resourceId);
-    if (!attempt || attempt.dataAt !== undefined) return;
+    if (!attempt || attempt.dataAt !== undefined) {
+      return;
+    }
     attempt.dataAt = now();
     if (queueTiming) {
       attempt.stageMs.queue_wait = Math.max(
@@ -142,19 +148,25 @@ class ResourceOpenAttemptTracker {
           Math.max(attempt.startAt, queueTiming.queuedAt)
       );
     }
-    if (cacheOutcome) attempt.cacheOutcome = cacheOutcome;
+    if (cacheOutcome) {
+      attempt.cacheOutcome = cacheOutcome;
+    }
     mark(TIMING_MARKS.dataReady);
   }
 
   ready(resourceId: string): void {
     const attempt = this.attempts.get(resourceId);
-    if (!attempt || attempt.committedAt !== undefined) return;
+    if (!attempt || attempt.committedAt !== undefined) {
+      return;
+    }
     attempt.committedAt = now();
     // Two animation frames include a rendering opportunity after React's commit.
     // This is a paint proxy, not proof that an arbitrary hidden panel was visible.
     attempt.frame = requestAnimationFrame(() => {
       attempt.frame = requestAnimationFrame(() => {
-        if (this.attempts.get(resourceId) !== attempt) return;
+        if (this.attempts.get(resourceId) !== attempt) {
+          return;
+        }
         this.finish(attempt, true);
       });
     });
@@ -165,8 +177,9 @@ class ResourceOpenAttemptTracker {
     const start = now();
     let completed = false;
     return () => {
-      if (!attempt || completed || this.attempts.get(resourceId) !== attempt)
+      if (!attempt || completed || this.attempts.get(resourceId) !== attempt) {
         return;
+      }
       completed = true;
       const end = now();
       attempt.stageMs[stage] = (attempt.stageMs[stage] ?? 0) + end - start;
@@ -176,11 +189,15 @@ class ResourceOpenAttemptTracker {
 
   fail(resourceId: string, failureStage: string): void {
     const attempt = this.attempts.get(resourceId);
-    if (attempt) this.finish(attempt, false, failureStage);
+    if (attempt) {
+      this.finish(attempt, false, failureStage);
+    }
   }
 
   resetForTests(): void {
-    for (const attempt of this.attempts.values()) this.remove(attempt);
+    for (const attempt of this.attempts.values()) {
+      this.remove(attempt);
+    }
   }
 
   private finish(
@@ -188,7 +205,9 @@ class ResourceOpenAttemptTracker {
     success: boolean,
     failureStage?: string
   ): void {
-    if (this.attempts.get(attempt.resourceId) !== attempt) return;
+    if (this.attempts.get(attempt.resourceId) !== attempt) {
+      return;
+    }
     const end = now();
     const panelAt = attempt.panelAt ?? end;
     const dataAt = attempt.dataAt ?? panelAt;
@@ -208,8 +227,12 @@ class ResourceOpenAttemptTracker {
   }
 
   private remove(attempt: ResourceOpenAttempt): void {
-    if (attempt.timeout) clearTimeout(attempt.timeout);
-    if (attempt.frame !== undefined) cancelAnimationFrame(attempt.frame);
+    if (attempt.timeout) {
+      clearTimeout(attempt.timeout);
+    }
+    if (attempt.frame !== undefined) {
+      cancelAnimationFrame(attempt.frame);
+    }
     this.attempts.delete(attempt.resourceId);
   }
 }
@@ -249,7 +272,7 @@ export function reportResourceOpenReady(resourceId: string): void {
 
 export function reportResourceOpenFailure(
   id: string,
-  failureStage: string,
+  failureStage: string
 ): void {
   resourceOpenAttemptTracker.fail(id, failureStage);
 }

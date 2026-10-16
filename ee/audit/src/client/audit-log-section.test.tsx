@@ -5,12 +5,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuditEventListItem } from "./queries";
@@ -58,7 +53,7 @@ function renderSection(active = true) {
   return render(
     <QueryClientProvider client={queryClient}>
       <AuditLogSection active={active} organizationId="organization_1" />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
 
@@ -81,13 +76,13 @@ describe("AuditLogSection", () => {
       screen.getByRole("heading", {
         level: 2,
         name: "organization.audit.filters",
-      }),
+      })
     ).toBeTruthy();
     expect(
       screen.getByRole("heading", {
         level: 2,
         name: "organization.audit.activity",
-      }),
+      })
     ).toBeTruthy();
   });
 
@@ -122,15 +117,15 @@ describe("AuditLogSection", () => {
     const user = userEvent.setup();
     await user.type(
       screen.getByLabelText("organization.audit.action"),
-      "workspace.updated",
+      "workspace.updated"
     );
     await user.type(
       screen.getByLabelText("organization.audit.actorId"),
-      "user_1",
+      "user_1"
     );
     await user.selectOptions(
       screen.getByLabelText("organization.audit.outcome"),
-      "denied",
+      "denied"
     );
     await user.click(screen.getByText("organization.audit.applyFilters"));
 
@@ -145,7 +140,7 @@ describe("AuditLogSection", () => {
           outcome: "denied",
           to: undefined,
         },
-      }),
+      })
     );
   });
 
@@ -154,7 +149,7 @@ describe("AuditLogSection", () => {
     await waitFor(() => expect(apiGet).toHaveBeenCalledTimes(1));
 
     const dateInputs = document.querySelectorAll<HTMLInputElement>(
-      'input[type="datetime-local"]',
+      'input[type="datetime-local"]'
     );
     fireEvent.change(dateInputs[0]!, {
       target: { value: "2026-08-11T10:00" },
@@ -170,7 +165,7 @@ describe("AuditLogSection", () => {
           from: new Date("2026-08-11T10:00").toISOString(),
           to: new Date("2026-08-11T12:30").toISOString(),
         }),
-      }),
+      })
     );
   });
 
@@ -184,7 +179,7 @@ describe("AuditLogSection", () => {
       Promise.resolve(
         options.params.cursor
           ? { items: [secondEvent], nextCursor: null }
-          : { items: [auditEvent], nextCursor: "cursor_2" },
+          : { items: [auditEvent], nextCursor: "cursor_2" }
       )
     );
     renderSection();
@@ -210,7 +205,9 @@ describe("AuditLogSection", () => {
     apiGet.mockRejectedValueOnce(new Error("network failed"));
     renderSection();
 
-    expect(await screen.findByText("organization.audit.loadFailed")).toBeTruthy();
+    expect(
+      await screen.findByText("organization.audit.loadFailed")
+    ).toBeTruthy();
     await userEvent.click(screen.getByText("common.retry"));
 
     expect(await screen.findByText("organization.audit.empty")).toBeTruthy();
@@ -224,14 +221,14 @@ describe("AuditLogSection", () => {
 
     const user = userEvent.setup();
     const dateInputs = document.querySelectorAll<HTMLInputElement>(
-      'input[type="datetime-local"]',
+      'input[type="datetime-local"]'
     );
     await user.type(dateInputs[0]!, "2026-08-11T12:00");
     await user.type(dateInputs[1]!, "2026-08-11T11:00");
     await user.click(screen.getByText("organization.audit.applyFilters"));
 
     expect((await screen.findByRole("alert")).textContent).toContain(
-      "organization.audit.invalidRange",
+      "organization.audit.invalidRange"
     );
     expect(apiGet).toHaveBeenCalledTimes(1);
   });
@@ -242,7 +239,7 @@ describe("AuditLogSection", () => {
     renderSection();
 
     expect(
-      await screen.findByText("organization.audit.offlineTitle"),
+      await screen.findByText("organization.audit.offlineTitle")
     ).toBeTruthy();
     expect(apiGet).not.toHaveBeenCalled();
   });

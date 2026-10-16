@@ -17,16 +17,20 @@ export interface UserDataOrganization {
 export class UserDataAccessService {
   constructor(private readonly entitlements: EntitlementsService) {}
 
-  async requireOrganization(session: UserSession): Promise<UserDataOrganization> {
+  async requireOrganization(
+    session: UserSession
+  ): Promise<UserDataOrganization> {
     const organizationId = session.session.activeOrganizationId;
-    if (!organizationId) throw new NoActiveOrganizationError();
+    if (!organizationId) {
+      throw new NoActiveOrganizationError();
+    }
     if (isSessionAnonymous(session)) {
       throw new LocalOnlySyncAccessError("anonymous");
     }
 
     await this.entitlements.assertOrganizationMember(
       session.user.id,
-      organizationId,
+      organizationId
     );
     useLogger().set({
       organization: { id: organizationId },
@@ -37,14 +41,14 @@ export class UserDataAccessService {
 
   async requireOrganizationId(
     session: UserSession,
-    organizationId: string,
+    organizationId: string
   ): Promise<UserDataOrganization> {
     if (isSessionAnonymous(session)) {
       throw new LocalOnlySyncAccessError("anonymous");
     }
     await this.entitlements.assertOrganizationMember(
       session.user.id,
-      organizationId,
+      organizationId
     );
     useLogger().set({
       organization: { id: organizationId },

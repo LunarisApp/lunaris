@@ -4,11 +4,7 @@ export type FontSize = "compact" | "large" | "extra-large";
 export const FONT_FAMILY_STORAGE_KEY = "lunaris.fontFamily";
 export const FONT_SIZE_STORAGE_KEY = "lunaris.fontSize";
 
-const FONT_FAMILIES = new Set<FontFamily>([
-  "default",
-  "serif",
-  "dyslexic",
-]);
+const FONT_FAMILIES = new Set<FontFamily>(["default", "serif", "dyslexic"]);
 const FONT_SIZES = new Set<FontSize>(["compact", "large", "extra-large"]);
 
 function readStorage(key: string): string | null {
@@ -31,12 +27,12 @@ export function readStoredFontSize(): FontSize {
 
 export function applyFontFamily(
   root: HTMLElement,
-  fontFamily: FontFamily,
+  fontFamily: FontFamily
 ): void {
   root.classList.remove(
     "font-family-default",
     "font-family-serif",
-    "font-family-dyslexic",
+    "font-family-dyslexic"
   );
   root.classList.add(`font-family-${fontFamily}`);
 }
@@ -45,14 +41,18 @@ export function applyFontSize(root: HTMLElement, fontSize: FontSize): void {
   root.classList.remove(
     "font-size-compact",
     "font-size-large",
-    "font-size-extra-large",
+    "font-size-extra-large"
   );
-  if (fontSize !== "compact") root.classList.add(`font-size-${fontSize}`);
+  if (fontSize !== "compact") {
+    root.classList.add(`font-size-${fontSize}`);
+  }
 }
 
 function resolveStoredTheme(): "dark" | "light" {
   const stored = readStorage("theme");
-  if (stored === "dark" || stored === "light") return stored;
+  if (stored === "dark" || stored === "light") {
+    return stored;
+  }
   return globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
@@ -60,7 +60,9 @@ function resolveStoredTheme(): "dark" | "light" {
 
 /** Apply persisted appearance before React renders its first frame. */
 export function applyStoredAppearance(): void {
-  if (typeof document === "undefined") return;
+  if (typeof document === "undefined") {
+    return;
+  }
   const root = document.documentElement;
   const theme = resolveStoredTheme();
   root.classList.remove("dark", "light");

@@ -35,11 +35,13 @@ interface TestItem {
 
 const testState = vi.hoisted(() => ({
   actions: {
-    createResource: vi.fn<PluginResourceActions["createResource"]>(async () => ({
-      name: "Prepare launch",
-      resourceId: "task-created",
-      storage: { content: { kind: "yjs", storageId: "task-doc-created" } },
-    })),
+    createResource: vi.fn<PluginResourceActions["createResource"]>(
+      async () => ({
+        name: "Prepare launch",
+        resourceId: "task-created",
+        storage: { content: { kind: "yjs", storageId: "task-doc-created" } },
+      })
+    ),
     deleteResource: vi.fn(async () => {}),
     renameResource: vi.fn(async () => {}),
     reorderResources: vi.fn(async () => {}),
@@ -60,7 +62,8 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("@lunarisapp/plugin-sdk", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@lunarisapp/plugin-sdk")>();
+  const actual =
+    await importOriginal<typeof import("@lunarisapp/plugin-sdk")>();
   const { lazy } = await import("react");
   return {
     ...actual,
@@ -68,7 +71,10 @@ vi.mock("@lunarisapp/plugin-sdk", async (importOriginal) => {
     createPreloadableLazy: (
       loader: () => Promise<{ default: () => ReactNode }>
     ) => ({ Component: lazy(loader), preload: vi.fn(loader) }),
-    defineResourceType: (input: object) => ({ ...input, type: "resource-type" }),
+    defineResourceType: (input: object) => ({
+      ...input,
+      type: "resource-type",
+    }),
     useCurrentUser: () => ({ isLoading: false, user: undefined }),
     useOrgMembersMap: () => ({ isLoading: false, map: new Map() }),
     useWorkspaceChildrenMap: () => testState.children,
@@ -187,17 +193,21 @@ interface RegisteredResourceType {
 
 function getResourceTypes() {
   const views = kanbanActivation.contributions.filter(
-    (contribution) => contribution.type === "view",
+    (contribution) => contribution.type === "view"
   );
   return kanbanActivation.contributions
     .filter((contribution) => contribution.type === "resource-type")
     .map((resource) => {
-      const view = views.find(({ viewId }) => viewId === resource.defaultViewId);
+      const view = views.find(
+        ({ viewId }) => viewId === resource.defaultViewId
+      );
       return {
-        hierarchyVisibility: resource.hierarchy?.visible === false ? "hidden" : "visible",
+        hierarchyVisibility:
+          resource.hierarchy?.visible === false ? "hidden" : "visible",
         resourceTypeId: resource.resourceTypeId,
         initializeDocument:
-          resource.storage.content?.kind === "yjs" && resource.storage.content.initialize
+          resource.storage.content?.kind === "yjs" &&
+          resource.storage.content.initialize
             ? (doc, context) =>
                 resource.storage.content?.kind === "yjs"
                   ? resource.storage.content.initialize?.(doc, {
@@ -210,7 +220,9 @@ function getResourceTypes() {
                   : undefined
             : undefined,
         renderer: ({ documentId, resourceId, params }) => {
-          if (!view || view.target.kind !== "resource") return null;
+          if (view?.target.kind !== "resource") {
+            return null;
+          }
           return (view as ResourceViewDefinition).renderer({
             params,
             resource: {
@@ -234,7 +246,9 @@ function getBoardContent() {
   const boardType = getResourceTypes().find(
     (resource) => resource.resourceTypeId === KANBAN_PLUGIN_ID
   );
-  if (!boardType) throw new Error("Board type not registered");
+  if (!boardType) {
+    throw new Error("Board type not registered");
+  }
   return boardType.renderer({
     documentId: "board-doc-1",
     resourceId: "board-1",
@@ -243,7 +257,7 @@ function getBoardContent() {
 }
 
 function renderBoard() {
-  return render(<>{getBoardContent()}</>);
+  return render(getBoardContent());
 }
 
 beforeEach(() => {
@@ -334,9 +348,9 @@ describe("Kanban resources", () => {
     expect(
       doc.getArray<YMap<string>>("properties").get(0)?.toJSON()
     ).toMatchObject({ id: "status", type: "select" });
-    expect(
-      doc.getMap<unknown>("kanbanMeta").get("propertiesInitialized")
-    ).toBe(true);
+    expect(doc.getMap<unknown>("kanbanMeta").get("propertiesInitialized")).toBe(
+      true
+    );
     doc.destroy();
   });
 });
@@ -420,9 +434,7 @@ describe("Kanban task flow", () => {
       })
     );
     fireEvent.change(
-      screen.getByPlaceholderText(
-        "extensions.catalog.lunaris.kanban.taskName"
-      ),
+      screen.getByPlaceholderText("extensions.catalog.lunaris.kanban.taskName"),
       { target: { value: "Prepare launch" } }
     );
     fireEvent.change(
@@ -464,7 +476,7 @@ describe("Kanban task flow", () => {
       ...(testState.children.get("board-1") ?? []),
       createdTask,
     ]);
-    view.rerender(<>{getBoardContent()}</>);
+    view.rerender(getBoardContent());
 
     expect(testState.navigation.openResource).not.toHaveBeenCalled();
     expect(screen.queryByText("detail-ready")).toBeNull();
@@ -481,9 +493,7 @@ describe("Kanban task flow", () => {
       await screen.findByRole("button", { name: "Add list item to Todo" })
     );
     fireEvent.change(
-      screen.getByPlaceholderText(
-        "extensions.catalog.lunaris.kanban.taskName"
-      ),
+      screen.getByPlaceholderText("extensions.catalog.lunaris.kanban.taskName"),
       { target: { value: "Prepare launch" } }
     );
     fireEvent.click(screen.getByRole("button", { name: "common.create" }));
@@ -519,9 +529,7 @@ describe("Kanban task flow", () => {
       })
     );
     fireEvent.change(
-      screen.getByPlaceholderText(
-        "extensions.catalog.lunaris.kanban.taskName"
-      ),
+      screen.getByPlaceholderText("extensions.catalog.lunaris.kanban.taskName"),
       { target: { value: "Prepare launch" } }
     );
     const notesInput = screen.getByRole("textbox", { name: "Notes" });
@@ -544,7 +552,9 @@ describe("Kanban task flow", () => {
           ?.get("prop_blocked")
       ).toBe(true);
     });
-    expect(testState.actions.touchResource).toHaveBeenCalledWith("task-created");
+    expect(testState.actions.touchResource).toHaveBeenCalledWith(
+      "task-created"
+    );
   });
 
   it.each(["a rejected request", "an empty result"])(
@@ -594,9 +604,7 @@ describe("Kanban task flow", () => {
       })
     );
     fireEvent.change(
-      screen.getByPlaceholderText(
-        "extensions.catalog.lunaris.kanban.taskName"
-      ),
+      screen.getByPlaceholderText("extensions.catalog.lunaris.kanban.taskName"),
       { target: { value: "Prepare launch" } }
     );
     fireEvent.click(screen.getByRole("button", { name: "common.create" }));
@@ -660,7 +668,9 @@ describe("Kanban task flow", () => {
     testState.boardDoc
       ?.getMap<YMap<string>>("taskAssignments")
       .set("task-1", assignment);
-    testState.actions.deleteResource.mockRejectedValueOnce(new Error("delete failed"));
+    testState.actions.deleteResource.mockRejectedValueOnce(
+      new Error("delete failed")
+    );
     renderBoard();
 
     fireEvent.click(
@@ -693,29 +703,29 @@ describe("Kanban task flow", () => {
       ?.getMap<YMap<string>>("taskAssignments")
       .set("task-1", assignment);
     testState.items = new Map(
-      Array.from(testState.items).filter(([resourceId]) => resourceId !== "task-1")
+      Array.from(testState.items).filter(
+        ([resourceId]) => resourceId !== "task-1"
+      )
     );
     testState.children = new Map([["board-1", []]]);
-    view.rerender(<>{getBoardContent()}</>);
+    view.rerender(getBoardContent());
 
     act(() => vi.advanceTimersByTime(29_999));
     expect(
-      testState.boardDoc
-        ?.getMap<YMap<string>>("taskAssignments")
-        .has("task-1")
+      testState.boardDoc?.getMap<YMap<string>>("taskAssignments").has("task-1")
     ).toBe(true);
 
     act(() => vi.advanceTimersByTime(1));
     expect(
-      testState.boardDoc
-        ?.getMap<YMap<string>>("taskAssignments")
-        .has("task-1")
+      testState.boardDoc?.getMap<YMap<string>>("taskAssignments").has("task-1")
     ).toBe(false);
   });
 
   it("cancels assignment cleanup when missing task arrives", async () => {
     const task = testState.items.get("task-1");
-    if (!task) throw new Error("Task fixture missing");
+    if (!task) {
+      throw new Error("Task fixture missing");
+    }
     const view = renderBoard();
     await screen.findByText("kanban-ready");
     vi.useFakeTimers();
@@ -726,21 +736,21 @@ describe("Kanban task flow", () => {
       ?.getMap<YMap<string>>("taskAssignments")
       .set("task-1", assignment);
     testState.items = new Map(
-      Array.from(testState.items).filter(([resourceId]) => resourceId !== "task-1")
+      Array.from(testState.items).filter(
+        ([resourceId]) => resourceId !== "task-1"
+      )
     );
     testState.children = new Map([["board-1", []]]);
-    view.rerender(<>{getBoardContent()}</>);
+    view.rerender(getBoardContent());
 
     act(() => vi.advanceTimersByTime(20_000));
     testState.items = new Map([...testState.items, [task.resourceId, task]]);
     testState.children = new Map([["board-1", [task]]]);
-    view.rerender(<>{getBoardContent()}</>);
+    view.rerender(getBoardContent());
     act(() => vi.advanceTimersByTime(30_000));
 
     expect(
-      testState.boardDoc
-        ?.getMap<YMap<string>>("taskAssignments")
-        .has("task-1")
+      testState.boardDoc?.getMap<YMap<string>>("taskAssignments").has("task-1")
     ).toBe(true);
   });
 });

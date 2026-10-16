@@ -45,7 +45,9 @@ export function findMentionTrigger(
 ): PluginMentionTrigger | null {
   const beforeCaret = text.slice(0, caret);
   const match = /(^|[\s([{])@([^\s@]*)$/u.exec(beforeCaret);
-  if (!match) return null;
+  if (!match) {
+    return null;
+  }
 
   const query = match[2] ?? "";
   return {
@@ -61,8 +63,7 @@ export function insertMention(
   name: string
 ): { caret: number; text: string } {
   const inserted = `@${name} `;
-  const suffixStart =
-    text[trigger.end] === " " ? trigger.end + 1 : trigger.end;
+  const suffixStart = text[trigger.end] === " " ? trigger.end + 1 : trigger.end;
   return {
     caret: trigger.start + inserted.length,
     text: `${text.slice(0, trigger.start)}${inserted}${text.slice(suffixStart)}`,
@@ -126,7 +127,9 @@ export function uniqueEntityReferenceOptions(
   const unique = new Map<string, PluginEntityReferenceOption>();
   for (const item of items) {
     const key = entityReferenceKey(item.reference);
-    if (!unique.has(key)) unique.set(key, item);
+    if (!unique.has(key)) {
+      unique.set(key, item);
+    }
   }
   return [...unique.values()];
 }

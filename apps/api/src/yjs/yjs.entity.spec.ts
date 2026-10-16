@@ -7,14 +7,14 @@ describe("yjsDocumentsDb", () => {
     const config = getTableConfig(yjsDocumentsDb);
     const documentListIndex = config.indexes.find(
       (candidate) =>
-        candidate.config.name === "yjs_documents_workspace_updated_idx",
+        candidate.config.name === "yjs_documents_workspace_updated_idx"
     );
 
     expect(documentListIndex).toBeDefined();
     expect(
       documentListIndex?.config.columns.map((column) =>
-        "name" in column ? column.name : null,
-      ),
+        "name" in column ? column.name : null
+      )
     ).toEqual(["workspaceId", "updatedAt", "id"]);
   });
 });

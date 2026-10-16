@@ -18,18 +18,24 @@ interface PickerDirectoryHandle {
 
 function directoryHandle(
   name: string,
-  entries: Array<[string, PickerDirectoryHandle | PickerFileHandle]>,
+  entries: [string, PickerDirectoryHandle | PickerFileHandle][]
 ): PickerDirectoryHandle {
   return {
     kind: "directory",
     name,
     async *entries() {
-      for (const entry of entries) yield entry;
+      for (const entry of entries) {
+        yield entry;
+      }
     },
   };
 }
 
-function fileHandle(name: string, contents: string, type: string): PickerFileHandle {
+function fileHandle(
+  name: string,
+  contents: string,
+  type: string
+): PickerFileHandle {
   return {
     kind: "file",
     name,
@@ -50,7 +56,7 @@ describe("workspaces/obsidian import", () => {
           fileHandle(
             "Opening.md",
             "# Opening\n\nImported constellation notes.",
-            "text/markdown",
+            "text/markdown"
           ),
         ],
       ]);
@@ -58,7 +64,11 @@ describe("workspaces/obsidian import", () => {
         ["Chapters", chapters],
         [
           "README.md",
-          fileHandle("README.md", "# Novel Vault\n\nWorkspace overview.", "text/markdown"),
+          fileHandle(
+            "README.md",
+            "# Novel Vault\n\nWorkspace overview.",
+            "text/markdown"
+          ),
         ],
       ]);
       Object.defineProperty(win, "showDirectoryPicker", {
@@ -72,23 +82,23 @@ describe("workspaces/obsidian import", () => {
     cy.get('[data-testid="workspaces-import-folder-picker"]').click();
     cy.get('[data-testid="workspaces-import-name"]').should(
       "have.value",
-      "Novel Vault",
+      "Novel Vault"
     );
     cy.get('[data-testid="workspaces-import-submit"]').click();
     cy.get('[data-testid="workspaces-list-item-novel-vault"]', {
       timeout: 30_000,
     }).click();
 
-    cy.contains('[data-testid="workspace-tree-item"]', "Chapters").should(
-      "be.visible",
-    ).click();
+    cy.contains('[data-testid="workspace-tree-item"]', "Chapters")
+      .should("be.visible")
+      .click();
     cy.contains('[data-testid="workspace-tree-item"]', "Opening").click();
     cy.contains("Imported constellation notes.", { timeout: 15_000 }).should(
-      "be.visible",
+      "be.visible"
     );
     cy.reload();
     cy.contains("Imported constellation notes.", { timeout: 15_000 }).should(
-      "be.visible",
+      "be.visible"
     );
   });
 });

@@ -6,25 +6,29 @@ function catalog(status: "active" | "blocked" = "active", api = "^0.9.0") {
   return {
     displayName: "Example extensions",
     enabled: true,
-    extensions: [{
-      description: "Calendar",
-      developer: "Example",
-      id: "example.calendar",
-      latestVersion: "1.0.0",
-      name: "Calendar",
-      repository: "https://github.com/example/calendar",
-      versions: [{
-        api,
-        descriptor: {
-          bytes: 123,
-          sha256: "a".repeat(64),
-          url: "https://plugins.example/releases/calendar.json",
-        },
-        runtime: { kind: "iframe", protocol: 6 },
-        status,
-        version: "1.0.0",
-      }],
-    }],
+    extensions: [
+      {
+        description: "Calendar",
+        developer: "Example",
+        id: "example.calendar",
+        latestVersion: "1.0.0",
+        name: "Calendar",
+        repository: "https://github.com/example/calendar",
+        versions: [
+          {
+            api,
+            descriptor: {
+              bytes: 123,
+              sha256: "a".repeat(64),
+              url: "https://plugins.example/releases/calendar.json",
+            },
+            runtime: { kind: "iframe", protocol: 6 },
+            status,
+            version: "1.0.0",
+          },
+        ],
+      },
+    ],
     generatedAt: "2026-08-07T00:00:00.000Z",
     name: "example",
     schemaVersion: 1,
@@ -39,12 +43,12 @@ describe("ExtensionCatalogService", () => {
       new ExtensionCatalogService(fetchJson).requireActiveVersion(
         "https://plugins.example/marketplace.json",
         "example.calendar",
-        "1.0.0",
-      ),
+        "1.0.0"
+      )
     ).resolves.toMatchObject({ version: "1.0.0" });
     expect(fetchJson).toHaveBeenCalledWith(
       "https://plugins.example/marketplace.json",
-      { allowPrivate: false },
+      { allowPrivate: false }
     );
   });
 
@@ -59,8 +63,8 @@ describe("ExtensionCatalogService", () => {
       new ExtensionCatalogService(fetchJson).requireActiveVersion(
         "https://plugins.example/marketplace.json",
         "example.calendar",
-        "1.0.0",
-      ),
+        "1.0.0"
+      )
     ).rejects.toBeInstanceOf(ServiceUnavailableException);
   });
 });

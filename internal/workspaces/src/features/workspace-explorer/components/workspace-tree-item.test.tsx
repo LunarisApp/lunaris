@@ -12,15 +12,13 @@ const {
   useResourceType,
   useView,
   useYjsStorageIntentPreload,
-} = vi.hoisted(
-  () => ({
-    contextMenuContent: vi.fn(() => null),
-    preloadRenderer: vi.fn(),
-    useResourceType: vi.fn(),
-    useView: vi.fn(),
-    useYjsStorageIntentPreload: vi.fn(() => ({})),
-  })
-);
+} = vi.hoisted(() => ({
+  contextMenuContent: vi.fn(() => null),
+  preloadRenderer: vi.fn(),
+  useResourceType: vi.fn(),
+  useView: vi.fn(),
+  useYjsStorageIntentPreload: vi.fn(() => ({})),
+}));
 
 vi.mock("@lunarisapp/plugin-sdk", () => ({
   useResourceType,
@@ -49,7 +47,9 @@ vi.mock("@lunarisapp/ui/hooks/use-mobile", () => ({
 
 vi.mock("@repo/data/features/workspace-storage-slots", () => ({
   useWorkspaceStorageSlots: () => ({
-    data: [{ id: "storage-1", kind: "yjs", name: "content", resource_id: "item-1" }],
+    data: [
+      { id: "storage-1", kind: "yjs", name: "content", resource_id: "item-1" },
+    ],
   }),
 }));
 
@@ -159,7 +159,7 @@ describe("WorkspaceTreeItem", () => {
 
     expect(contextMenuContent).toHaveBeenCalledWith(
       expect.objectContaining({ canDuplicate: true }),
-      undefined,
+      undefined
     );
   });
 
@@ -179,7 +179,7 @@ describe("WorkspaceTreeItem", () => {
 
     expect(contextMenuContent).toHaveBeenCalledWith(
       expect.objectContaining({ canDuplicate: false }),
-      undefined,
+      undefined
     );
   });
 });

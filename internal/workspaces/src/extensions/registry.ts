@@ -12,7 +12,6 @@ import { log, parseError } from "evlog";
 
 export type { PluginMetadata };
 
-
 export const PLUGIN_DESCRIPTORS = [
   richTextPluginDescriptor,
   kanbanPluginDescriptor,

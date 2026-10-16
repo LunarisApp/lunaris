@@ -23,7 +23,9 @@ void listen<{ token: string; transferId: string }>(
   READY_EVENT,
   ({ payload }) => {
     const entry = pending.get(payload.transferId);
-    if (!entry || payload.token !== entry.token) return;
+    if (!entry || payload.token !== entry.token) {
+      return;
+    }
     pending.delete(payload.transferId);
     entry.resolve();
   }
@@ -53,7 +55,10 @@ function open(request: PanelWindowOpenRequest) {
   void child.once("tauri://error", ({ payload }) => {
     pending.delete(request.transferId);
     rejectReady(
-      new PanelWindowError("open_failed", `Failed to create panel window: ${String(payload)}`)
+      new PanelWindowError(
+        "open_failed",
+        `Failed to create panel window: ${String(payload)}`
+      )
     );
   });
 
@@ -68,7 +73,10 @@ function open(request: PanelWindowOpenRequest) {
 
 async function acknowledge(acknowledgement: PanelWindowAcknowledgement) {
   if (!acknowledgement.sourceWindowId) {
-    throw new PanelWindowError("open_failed", "Source window label is unavailable");
+    throw new PanelWindowError(
+      "open_failed",
+      "Source window label is unavailable"
+    );
   }
   await emitTo(acknowledgement.sourceWindowId, READY_EVENT, {
     token: acknowledgement.token,

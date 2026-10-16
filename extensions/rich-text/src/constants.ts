@@ -17,5 +17,5 @@ export const RICH_TEXT_BLOCK_TYPES = [
   "video",
 ] as const;
 
-export const RICH_TEXT_MAX_DOCUMENT_BLOCKS = 2_000;
+export const RICH_TEXT_MAX_DOCUMENT_BLOCKS = 2000;
 export const RICH_TEXT_MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;

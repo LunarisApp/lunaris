@@ -1,24 +1,17 @@
-import {
-  describe,
-  expect,
-  it,
-  mock,
-} from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { NotFoundException } from "@nestjs/common";
 import { BuiltInPluginControlController } from "./plugin-operations.controller";
 
 function controller() {
   const execute = mock(() =>
-    Promise.resolve({ boardId: "board-1", properties: [] }),
+    Promise.resolve({ boardId: "board-1", properties: [] })
   );
   const value = new BuiltInPluginControlController(
     {
-      requireOrganizationId: mock(() =>
-        Promise.resolve({ userId: "user-1" }),
-      ),
+      requireOrganizationId: mock(() => Promise.resolve({ userId: "user-1" })),
     } as never,
     { execute } as never,
-    {} as never,
+    {} as never
   );
   return { execute, value };
 }
@@ -45,8 +38,8 @@ describe("BuiltInPluginControlController", () => {
         "workspace-1",
         "lunaris.kanban",
         "get_board_properties",
-        { boardId: "board-1" },
-      ),
+        { boardId: "board-1" }
+      )
     ).resolves.toEqual({ boardId: "board-1", properties: [] });
     expect(execute).toHaveBeenCalledWith({
       actorId: "user-1",
@@ -69,8 +62,8 @@ describe("BuiltInPluginControlController", () => {
         "workspace-1",
         "lunaris.kanban",
         "update_task",
-        { boardId: "board-1" },
-      ),
+        { boardId: "board-1" }
+      )
     ).rejects.toBeInstanceOf(NotFoundException);
     expect(execute).not.toHaveBeenCalled();
   });

@@ -34,16 +34,36 @@ interface PlanEntitlements {
 
 const PLAN_ENTITLEMENTS: Record<PlanSlug, PlanEntitlements> = {
   free: {
-    limits: { [LIMIT.maxResources]: 25, [LIMIT.maxMembers]: 3, [LIMIT.maxStorageBytes]: 250_000_000, [LIMIT.maxFileBytes]: 25_000_000 },
+    limits: {
+      [LIMIT.maxResources]: 25,
+      [LIMIT.maxMembers]: 3,
+      [LIMIT.maxStorageBytes]: 250_000_000,
+      [LIMIT.maxFileBytes]: 25_000_000,
+    },
   },
   plus: {
-    limits: { [LIMIT.maxResources]: UNLIMITED, [LIMIT.maxMembers]: 10, [LIMIT.maxStorageBytes]: 10_000_000_000, [LIMIT.maxFileBytes]: 500_000_000 },
+    limits: {
+      [LIMIT.maxResources]: UNLIMITED,
+      [LIMIT.maxMembers]: 10,
+      [LIMIT.maxStorageBytes]: 10_000_000_000,
+      [LIMIT.maxFileBytes]: 500_000_000,
+    },
   },
   business: {
-    limits: { [LIMIT.maxResources]: UNLIMITED, [LIMIT.maxMembers]: UNLIMITED, [LIMIT.maxStorageBytes]: 100_000_000_000, [LIMIT.maxFileBytes]: 5_000_000_000 },
+    limits: {
+      [LIMIT.maxResources]: UNLIMITED,
+      [LIMIT.maxMembers]: UNLIMITED,
+      [LIMIT.maxStorageBytes]: 100_000_000_000,
+      [LIMIT.maxFileBytes]: 5_000_000_000,
+    },
   },
   enterprise: {
-    limits: { [LIMIT.maxResources]: UNLIMITED, [LIMIT.maxMembers]: UNLIMITED, [LIMIT.maxStorageBytes]: 1_000_000_000_000, [LIMIT.maxFileBytes]: 5_000_000_000 },
+    limits: {
+      [LIMIT.maxResources]: UNLIMITED,
+      [LIMIT.maxMembers]: UNLIMITED,
+      [LIMIT.maxStorageBytes]: 1_000_000_000_000,
+      [LIMIT.maxFileBytes]: 5_000_000_000,
+    },
   },
 };
 
@@ -74,12 +94,14 @@ export const entitlementSnapshotSchema = z.object({
     [LIMIT.maxStorageBytes]: z.number().int().nonnegative(),
     [LIMIT.maxFileBytes]: z.number().int().nonnegative(),
   }),
-  storage: z.object({
-    committedBytes: z.number().int().nonnegative(),
-    reservedBytes: z.number().int().nonnegative(),
-    verifiedAt: z.iso.datetime().nullable(),
-    enforcementEnabled: z.boolean(),
-  }).optional(),
+  storage: z
+    .object({
+      committedBytes: z.number().int().nonnegative(),
+      reservedBytes: z.number().int().nonnegative(),
+      verifiedAt: z.iso.datetime().nullable(),
+      enforcementEnabled: z.boolean(),
+    })
+    .optional(),
   offlineAccessUntil: z.iso.datetime().nullable(),
   plan: z.enum(PLAN),
   verifiedAt: z.iso.datetime(),
@@ -91,13 +113,18 @@ export type BillingManagement = EntitlementSnapshot["billingManagement"];
 
 export function resolveEntitlements(
   plan: PlanSlug = PLAN.free,
-  enterpriseStorageOverride?: number | null,
+  enterpriseStorageOverride?: number | null
 ): ResolvedEntitlements {
   const entitlement = PLAN_ENTITLEMENTS[plan];
   const limits = { ...entitlement.limits };
-  if (enterpriseStorageOverride != null &&
-    (!Number.isSafeInteger(enterpriseStorageOverride) || enterpriseStorageOverride < 0)) {
-    throw new RangeError("Storage override must be a non-negative safe integer");
+  if (
+    enterpriseStorageOverride != null &&
+    (!Number.isSafeInteger(enterpriseStorageOverride) ||
+      enterpriseStorageOverride < 0)
+  ) {
+    throw new RangeError(
+      "Storage override must be a non-negative safe integer"
+    );
   }
   if (plan === PLAN.enterprise && enterpriseStorageOverride != null) {
     limits[LIMIT.maxStorageBytes] = enterpriseStorageOverride;
@@ -120,7 +147,7 @@ export function planHasFeature(plan: PlanSlug, feature: FeatureId): boolean {
 
 export function resolvePlanSlug(
   productId: string,
-  plans: ReadonlyArray<{ plan: string; productId: string }>,
+  plans: ReadonlyArray<{ plan: string; productId: string }>
 ): PlanSlug | null {
   const slug = plans.find((plan) => plan.productId === productId)?.plan;
   return slug && Object.hasOwn(PLAN, slug) ? (slug as PlanSlug) : null;

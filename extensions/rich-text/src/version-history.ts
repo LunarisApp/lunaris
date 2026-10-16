@@ -146,11 +146,19 @@ function buildLineDiff(
   afterLines: string[]
 ): RichTextVersionDiffLine[] {
   const table = Array.from({ length: beforeLines.length + 1 }, () =>
-    Array<number>(afterLines.length + 1).fill(0)
+    new Array(afterLines.length + 1).fill(0)
   );
 
-  for (let beforeIndex = beforeLines.length - 1; beforeIndex >= 0; beforeIndex -= 1) {
-    for (let afterIndex = afterLines.length - 1; afterIndex >= 0; afterIndex -= 1) {
+  for (
+    let beforeIndex = beforeLines.length - 1;
+    beforeIndex >= 0;
+    beforeIndex -= 1
+  ) {
+    for (
+      let afterIndex = afterLines.length - 1;
+      afterIndex >= 0;
+      afterIndex -= 1
+    ) {
       table[beforeIndex]![afterIndex] =
         beforeLines[beforeIndex] === afterLines[afterIndex]
           ? table[beforeIndex + 1]![afterIndex + 1]! + 1
@@ -172,7 +180,10 @@ function buildLineDiff(
       continue;
     }
 
-    if (table[beforeIndex + 1]![afterIndex]! >= table[beforeIndex]![afterIndex + 1]!) {
+    if (
+      table[beforeIndex + 1]![afterIndex]! >=
+      table[beforeIndex]![afterIndex + 1]!
+    ) {
       diff.push({
         kind: "removed",
         text: beforeLines[beforeIndex]!,

@@ -28,7 +28,9 @@ describe("RichTextEditorView", () => {
 
     expect(blockNoteView.classList.contains("h-full")).toBe(false);
     expect(blockNoteView.classList.contains("p-3.5")).toBe(false);
-    expect(blockNoteView.parentElement?.classList.contains("h-full")).toBe(true);
+    expect(blockNoteView.parentElement?.classList.contains("h-full")).toBe(
+      true
+    );
     expect(blockNoteView.parentElement?.classList.contains("p-3.5")).toBe(true);
   });
 });

@@ -1,4 +1,6 @@
-vi.mock("../activity/services", () => ({ recordActivity: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("../activity/services", () => ({
+  recordActivity: vi.fn().mockResolvedValue(undefined),
+}));
 import { WORKSPACE_VISIBILITY } from "@repo/auth/sync-access";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -19,7 +21,9 @@ vi.mock("@powersync/react", () => ({
 }));
 
 vi.mock("../workspaces/services", () => ({
-  resolveWorkspaceVisibility: vi.fn().mockResolvedValue(WORKSPACE_VISIBILITY.shared),
+  resolveWorkspaceVisibility: vi
+    .fn()
+    .mockResolvedValue(WORKSPACE_VISIBILITY.shared),
   WORKSPACE_INDEX_SYNC_STREAMS: [
     { name: "workspace_index", waitForStream: true },
   ],
@@ -73,7 +77,7 @@ describe("workspace resource SQL helpers", () => {
       "SELECT id, position, workspace_id, parent_id"
     );
     const insert = db.execute.mock.calls.find(([query]) =>
-      String(query).includes("workspace_resources"),
+      String(query).includes("workspace_resources")
     );
     expect(insert?.[1]?.[4]).toBe(5);
   });
@@ -106,9 +110,19 @@ describe("workspace resource SQL helpers", () => {
         userId: "user-7",
       })
     );
-    expect(db.execute.mock.calls.some(([query]) => String(query).includes("yjs_documents"))).toBe(true);
-    expect(db.execute.mock.calls.some(([query]) => String(query).includes("workspace_storage_slots"))).toBe(true);
-    const update = db.execute.mock.calls.find(([query]) => String(query).includes("yjs_document_updates"));
+    expect(
+      db.execute.mock.calls.some(([query]) =>
+        String(query).includes("yjs_documents")
+      )
+    ).toBe(true);
+    expect(
+      db.execute.mock.calls.some(([query]) =>
+        String(query).includes("workspace_storage_slots")
+      )
+    ).toBe(true);
+    const update = db.execute.mock.calls.find(([query]) =>
+      String(query).includes("yjs_document_updates")
+    );
     expect(update?.[1]?.[3]).toBe("user-7");
   });
 
@@ -125,7 +139,10 @@ describe("workspace resource SQL helpers", () => {
       workspaceId: "workspace_1",
       resourceTypeId: "acme.report",
       storage: {
-        content: { kind: "yjs", initialize: (doc) => doc.getText("body").insert(0, "Hi") },
+        content: {
+          kind: "yjs",
+          initialize: (doc) => doc.getText("body").insert(0, "Hi"),
+        },
         cover: { kind: "file" },
         settings: { kind: "key-value", initialize: () => ({ theme: "paper" }) },
       },
@@ -136,10 +153,18 @@ describe("workspace resource SQL helpers", () => {
       cover: { kind: "file" },
       settings: { kind: "key-value" },
     });
-    expect(db.execute.mock.calls.filter(([sql]) => String(sql).includes("workspace_storage_slots"))).toHaveLength(3);
-    expect(db.execute.mock.calls.some(([sql, values]) =>
-      String(sql).includes("workspace_storage_values") && values?.includes("theme"),
-    )).toBe(true);
+    expect(
+      db.execute.mock.calls.filter(([sql]) =>
+        String(sql).includes("workspace_storage_slots")
+      )
+    ).toHaveLength(3);
+    expect(
+      db.execute.mock.calls.some(
+        ([sql, values]) =>
+          String(sql).includes("workspace_storage_values") &&
+          values?.includes("theme")
+      )
+    ).toBe(true);
   });
 
   it("mutates a resource payload only after winning the version compare-and-set", async () => {
@@ -156,7 +181,7 @@ describe("workspace resource SQL helpers", () => {
         nextVersion: 2,
         workspaceId: "workspace_1",
         resourceId: "res_1",
-      }),
+      })
     ).resolves.toBe(true);
     expect(mutatePayload).toHaveBeenCalledWith(db);
   });
@@ -175,7 +200,7 @@ describe("workspace resource SQL helpers", () => {
         nextVersion: 2,
         workspaceId: "workspace_1",
         resourceId: "res_1",
-      }),
+      })
     ).resolves.toBe(false);
     expect(mutatePayload).not.toHaveBeenCalled();
   });
@@ -225,8 +250,16 @@ describe("workspace resource SQL helpers", () => {
     });
 
     expect(db.execute).toHaveBeenCalledTimes(3);
-    expect(db.execute.mock.calls.some(([query]) => String(query).includes("yjs_documents"))).toBe(true);
-    expect(db.execute.mock.calls.some(([query]) => String(query).includes("workspace_storage_slots"))).toBe(true);
+    expect(
+      db.execute.mock.calls.some(([query]) =>
+        String(query).includes("yjs_documents")
+      )
+    ).toBe(true);
+    expect(
+      db.execute.mock.calls.some(([query]) =>
+        String(query).includes("workspace_storage_slots")
+      )
+    ).toBe(true);
   });
 
   it("uses IS NULL when calculating root folder position", async () => {
@@ -267,7 +300,7 @@ describe("workspace resource SQL helpers", () => {
 
     expect(db.getAll).toHaveBeenCalledWith(
       expect.stringMatching(
-        /parent_id IS NULL[\s\S]+NOT EXISTS[\s\S]+ORDER BY position ASC, created_at ASC, id ASC/,
+        /parent_id IS NULL[\s\S]+NOT EXISTS[\s\S]+ORDER BY position ASC, created_at ASC, id ASC/
       ),
       ["workspace_1"]
     );
@@ -329,9 +362,7 @@ describe("workspace resource SQL helpers", () => {
 
     expect(db.getAll).toHaveBeenNthCalledWith(
       1,
-      expect.stringContaining(
-        "ORDER BY position ASC, created_at ASC, id ASC"
-      ),
+      expect.stringContaining("ORDER BY position ASC, created_at ASC, id ASC"),
       ["workspace_1", "root"]
     );
     expect(result.map((item) => item.id)).toEqual(["b", "a"]);

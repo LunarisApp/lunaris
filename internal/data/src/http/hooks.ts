@@ -13,7 +13,9 @@ export function createQueryClient(): QueryClient {
           ) {
             return false;
           }
-          if (error instanceof ApiError && error.isOffline) return false;
+          if (error instanceof ApiError && error.isOffline) {
+            return false;
+          }
           return failureCount < 2;
         },
         staleTime: 30_000,

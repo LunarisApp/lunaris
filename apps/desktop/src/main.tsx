@@ -3,6 +3,7 @@ import "./instrumentation";
 import App from "@repo/app-shell";
 import { applyStoredAppearance } from "@repo/features/appearance";
 import { serializeErrorForLog } from "@repo/utils/log-error";
+import { log } from "evlog";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { keychainStorage } from "./auth-storage";
@@ -27,19 +28,21 @@ async function bootstrap() {
     });
   } catch (error) {
     reportDeepLinkError(
-      error instanceof Error ? error : new Error("Desktop deep-link failed"),
+      error instanceof Error ? error : new Error("Desktop deep-link failed")
     );
   }
 
   const rootElement = document.getElementById("root");
-  if (!rootElement) throw new Error("Root element not found");
+  if (!rootElement) {
+    throw new Error("Root element not found");
+  }
 
   createRoot(rootElement).render(
     <StrictMode>
       <OrganizationEditionProvider>
         <App runtime={desktopRuntime} shell="desktop" />
       </OrganizationEditionProvider>
-    </StrictMode>,
+    </StrictMode>
   );
 }
 

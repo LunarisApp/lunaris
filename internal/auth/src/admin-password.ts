@@ -2,10 +2,21 @@ import { randomBytes } from "node:crypto";
 import type { Auth } from "./server";
 
 /** Local administration only. Never expose this helper through an HTTP route. */
-export async function resetLocalPassword(auth: Auth, email: string, password: string) {
+export async function resetLocalPassword(
+  auth: Auth,
+  email: string,
+  password: string
+) {
   const context = await auth.$context;
-  const found = await context.internalAdapter.findUserByEmail(email.trim().toLowerCase(), { includeAccounts: true });
-  if (!found || !found.accounts.some((account) => account.providerId === "credential" && account.password)) {
+  const found = await context.internalAdapter.findUserByEmail(
+    email.trim().toLowerCase(),
+    { includeAccounts: true }
+  );
+  if (
+    !found?.accounts.some(
+      (account) => account.providerId === "credential" && account.password
+    )
+  ) {
     throw new Error("No password account found for that email.");
   }
   const token = randomBytes(32).toString("hex");

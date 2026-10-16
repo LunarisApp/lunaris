@@ -40,7 +40,9 @@ vi.mock("@repo/data/features/files", () => ({
       "text/markdown": "md",
       "text/plain": "txt",
     };
-    return mapped[mediaType] ?? filename.split(".").pop()?.toLowerCase() ?? "bin";
+    return (
+      mapped[mediaType] ?? filename.split(".").pop()?.toLowerCase() ?? "bin"
+    );
   },
   createLocalFileWorkspaceResource: createLocalFileWorkspaceResourceMock,
 }));
@@ -95,7 +97,9 @@ beforeEach(() => {
 
 describe("obsidian import service", () => {
   it("creates BlockNote-readable Yjs updates from Markdown", async () => {
-    const update = await createMarkdownRichTextUpdate("# Hello\n\nBody **text**");
+    const update = await createMarkdownRichTextUpdate(
+      "# Hello\n\nBody **text**"
+    );
     const doc = new Doc();
     applyUpdateV2(doc, decodeBase64(update));
 
@@ -122,7 +126,9 @@ describe("obsidian import service", () => {
             {
               kind: "file",
               name: "Intro.md",
-              file: new File(["# Intro"], "Intro.md", { type: "text/markdown" }),
+              file: new File(["# Intro"], "Intro.md", {
+                type: "text/markdown",
+              }),
             },
             {
               kind: "file",
@@ -144,7 +150,9 @@ describe("obsidian import service", () => {
         {
           kind: "file",
           name: "Raw.exe",
-          file: new File(["exe"], "Raw.exe", { type: "application/octet-stream" }),
+          file: new File(["exe"], "Raw.exe", {
+            type: "application/octet-stream",
+          }),
         },
       ],
     };
@@ -209,15 +217,17 @@ describe("obsidian import service", () => {
       position: 0,
       workspaceId: "workspace_1",
     });
-    expect(createWorkspaceResourceMock).toHaveBeenCalledWith(expect.objectContaining({
-      db: {},
-      name: "Intro",
-      parentId: "folder_drafts",
-      resourceTypeId: "lunaris.rich-text",
-      schemaVersion: 1,
-      position: 0,
-      workspaceId: "workspace_1",
-    }));
+    expect(createWorkspaceResourceMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        db: {},
+        name: "Intro",
+        parentId: "folder_drafts",
+        resourceTypeId: "lunaris.rich-text",
+        schemaVersion: 1,
+        position: 0,
+        workspaceId: "workspace_1",
+      })
+    );
     expect(createLocalFileWorkspaceResourceMock).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
@@ -242,8 +252,8 @@ describe("obsidian import service", () => {
         workspaceId: "workspace_1",
       })
     );
-    const initialize = createWorkspaceResourceMock.mock.calls[0]?.[0]
-      ?.storage?.content?.initialize as ((doc: Doc) => void) | undefined;
+    const initialize = createWorkspaceResourceMock.mock.calls[0]?.[0]?.storage
+      ?.content?.initialize as ((doc: Doc) => void) | undefined;
     expect(initialize).toBeTypeOf("function");
     const importedDoc = new Doc();
     initialize?.(importedDoc);

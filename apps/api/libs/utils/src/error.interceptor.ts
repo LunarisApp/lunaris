@@ -14,7 +14,10 @@ import { catchError, Observable } from "rxjs";
 
 @Injectable()
 export class ErrorInterceptor implements NestInterceptor {
-  intercept(_context: ExecutionContext, handler: CallHandler): Observable<any> {
+  intercept(
+    _context: ExecutionContext,
+    handler: CallHandler
+  ): Observable<unknown> {
     return handler.handle().pipe(
       catchError((error) => {
         const timestamp = new Date().toISOString();
@@ -34,7 +37,7 @@ export class ErrorInterceptor implements NestInterceptor {
               issues: error.issues.map((issue) => ({
                 path: issue.path
                   ?.map((segment) =>
-                    typeof segment === "object" ? segment.key : segment,
+                    typeof segment === "object" ? segment.key : segment
                   )
                   .join("."),
                 message: issue.message,
@@ -51,7 +54,7 @@ export class ErrorInterceptor implements NestInterceptor {
               timestamp,
               requestId,
             },
-            400,
+            400
           );
         }
 
@@ -79,7 +82,7 @@ export class ErrorInterceptor implements NestInterceptor {
               timestamp,
               requestId,
             },
-            error.status,
+            error.status
           );
         }
 
@@ -92,12 +95,12 @@ export class ErrorInterceptor implements NestInterceptor {
 
           throw new HttpException(
             { ...original, timestamp, requestId },
-            status,
+            status
           );
         }
 
         requestLog?.error(
-          error instanceof Error ? error : new Error(String(error)),
+          error instanceof Error ? error : new Error(String(error))
         );
         Sentry.captureException(error);
 
@@ -111,9 +114,9 @@ export class ErrorInterceptor implements NestInterceptor {
             timestamp,
             requestId,
           },
-          500,
+          500
         );
-      }),
+      })
     );
   }
 }

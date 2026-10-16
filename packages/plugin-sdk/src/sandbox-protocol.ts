@@ -4,7 +4,9 @@ import type { PluginManifest } from "./manifest";
 import type { ResourceStorageHandles, ViewPlacement } from "./types";
 
 export const PLUGIN_SANDBOX_PROTOCOL_VERSION = 7 as const;
-export function isSupportedSandboxProtocol(protocol: number): protocol is 6 | 7 {
+export function isSupportedSandboxProtocol(
+  protocol: number
+): protocol is 6 | 7 {
   return protocol === 6 || protocol === PLUGIN_SANDBOX_PROTOCOL_VERSION;
 }
 
@@ -36,7 +38,7 @@ export type SandboxWireObject = { [key: string]: SandboxWireValue };
 
 export function cloneSandboxWireValue(
   value: unknown,
-  label: string,
+  label: string
 ): SandboxWireValue {
   if (
     value === null ||
@@ -46,7 +48,9 @@ export function cloneSandboxWireValue(
   ) {
     return value;
   }
-  if (value instanceof ArrayBuffer) return value.slice(0);
+  if (value instanceof ArrayBuffer) {
+    return value.slice(0);
+  }
   if (Array.isArray(value)) {
     return value.map((item) => cloneSandboxWireValue(item, label));
   }
@@ -58,18 +62,18 @@ export function cloneSandboxWireValue(
     return Object.fromEntries(
       Object.entries(value)
         .filter(([, item]) => item !== undefined)
-        .map(([key, item]) => [key, cloneSandboxWireValue(item, label)]),
+        .map(([key, item]) => [key, cloneSandboxWireValue(item, label)])
     );
   }
   throw new Error(
-    `${label} must be structured-clone-safe JSON or ArrayBuffer data`,
+    `${label} must be structured-clone-safe JSON or ArrayBuffer data`
   );
 }
 
 function cloneSandboxJson(
   value: unknown,
   label: string,
-  seen: WeakSet<object>,
+  seen: WeakSet<object>
 ): JsonValue {
   if (
     value === null ||
@@ -80,7 +84,9 @@ function cloneSandboxJson(
     return value;
   }
   if (Array.isArray(value)) {
-    if (seen.has(value)) throw new Error(`${label} must not contain cycles`);
+    if (seen.has(value)) {
+      throw new Error(`${label} must not contain cycles`);
+    }
     seen.add(value);
     const clone = value.map((item) => cloneSandboxJson(item, label, seen));
     seen.delete(value);
@@ -91,13 +97,15 @@ function cloneSandboxJson(
     typeof value === "object" &&
     Object.getPrototypeOf(value) === Object.prototype
   ) {
-    if (seen.has(value)) throw new Error(`${label} must not contain cycles`);
+    if (seen.has(value)) {
+      throw new Error(`${label} must not contain cycles`);
+    }
     seen.add(value);
     const clone = Object.fromEntries(
       Object.entries(value).map(([key, item]) => [
         key,
         cloneSandboxJson(item, label, seen),
-      ]),
+      ])
     );
     seen.delete(value);
     return clone;
@@ -107,7 +115,7 @@ function cloneSandboxJson(
 
 export function cloneSandboxJsonValue(
   value: unknown,
-  label: string,
+  label: string
 ): JsonValue {
   return cloneSandboxJson(value, label, new WeakSet());
 }
@@ -125,7 +133,7 @@ const SANDBOX_ICON_TAGS = new Set([
 
 export function assertSandboxIcon(
   value: unknown,
-  label: string,
+  label: string
 ): asserts value is IconSvgObject {
   if (!Array.isArray(value)) {
     throw new Error(`${label} must be an IconSvgObject`);
@@ -269,7 +277,11 @@ export interface SerializedSandboxSearchIndexer {
   handler: string;
   id: string;
   resourceTypeIds?: string[];
-  schemas?: Array<{ id: string; maximumVersion?: number; minimumVersion?: number }>;
+  schemas?: Array<{
+    id: string;
+    maximumVersion?: number;
+    minimumVersion?: number;
+  }>;
   type: "search-indexer";
 }
 
@@ -353,7 +365,7 @@ export interface SandboxResourceCommandContext {
 export function sandboxHandlerKey(
   kind: SandboxHandlerKind,
   owner: string,
-  id = "default",
+  id = "default"
 ): string {
   return `${kind}:${owner}:${id}`;
 }

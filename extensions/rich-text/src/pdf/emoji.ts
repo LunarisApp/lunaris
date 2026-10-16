@@ -55,7 +55,7 @@ export function renderEmojiDataUrl(code: string): string {
 }
 
 export function preparePdfEmojiDataUrls(
-  contents: PdfContent[],
+  contents: PdfContent[]
 ): PdfEmojiDataUrls {
   const result: PdfEmojiDataUrls = {};
   const seen = new WeakSet<object>();
@@ -67,26 +67,32 @@ export function preparePdfEmojiDataUrls(
       }
       return;
     }
-    if (!value || typeof value !== "object" || seen.has(value)) return;
-    seen.add(value);
-    if (Array.isArray(value)) {
-      for (const item of value) visit(item);
+    if (!value || typeof value !== "object" || seen.has(value)) {
       return;
     }
-    for (const item of Object.values(value)) visit(item);
+    seen.add(value);
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        visit(item);
+      }
+      return;
+    }
+    for (const item of Object.values(value)) {
+      visit(item);
+    }
   };
   visit(contents);
   return result;
 }
 
-export function registerPdfEmojiSource(
-  emojiDataUrls?: PdfEmojiDataUrls,
-): void {
+export function registerPdfEmojiSource(emojiDataUrls?: PdfEmojiDataUrls): void {
   Font.registerEmojiSource({
     builder: emojiDataUrls
       ? (code) => {
           const source = emojiDataUrls[code];
-          if (!source) throw new Error(`Missing prepared PDF emoji: ${code}`);
+          if (!source) {
+            throw new Error(`Missing prepared PDF emoji: ${code}`);
+          }
           return source;
         }
       : renderEmojiDataUrl,

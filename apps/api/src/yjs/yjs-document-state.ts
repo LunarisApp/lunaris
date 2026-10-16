@@ -2,14 +2,10 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from "@nestjs/common";
-import {
-  applyUpdateV2,
-  Doc,
-  decodeStateVector,
-  decodeUpdateV2,
-} from "yjs";
+import { applyUpdateV2, Doc, decodeStateVector, decodeUpdateV2 } from "yjs";
 
-const BASE64_PATTERN = /^(?:[A-Za-z\d+/]{4})*(?:[A-Za-z\d+/]{2}==|[A-Za-z\d+/]{3}=)?$/;
+const BASE64_PATTERN =
+  /^(?:[A-Za-z\d+/]{4})*(?:[A-Za-z\d+/]{2}==|[A-Za-z\d+/]{3}=)?$/;
 const UNNAMED_ROOT_KEY = "";
 
 interface SharedRoot {
@@ -43,12 +39,14 @@ export function decodeYjsStateVector(value: string): Uint8Array {
 }
 
 export function isCanonicalBase64(value: string): boolean {
-  if (!BASE64_PATTERN.test(value)) return false;
+  if (!BASE64_PATTERN.test(value)) {
+    return false;
+  }
   return Buffer.from(value, "base64").toString("base64") === value;
 }
 
 export function reconstructYjsDocument(
-  updates: ReadonlyArray<{ updateData: Uint8Array }>,
+  updates: ReadonlyArray<{ updateData: Uint8Array }>
 ): Doc {
   const doc = new Doc();
   try {
@@ -68,7 +66,7 @@ export function workspaceYjsDocumentJson(doc: Doc): Record<string, unknown> {
     const workspaceedKey = key === UNNAMED_ROOT_KEY ? "$root" : key;
     if (Object.hasOwn(data, workspaceedKey)) {
       throw new InternalServerErrorException(
-        "Yjs document contains conflicting JSON root keys",
+        "Yjs document contains conflicting JSON root keys"
       );
     }
     data[workspaceedKey] = normalizeJsonValue(resolveSharedTypeJson(doc, key));
@@ -80,7 +78,9 @@ function resolveSharedTypeJson(doc: Doc, key: string): unknown {
   // Remotely applied updates initially expose preliminary AbstractTypes.
   // Materialize the concrete public type before reading its JSON value.
   const shared = doc.share.get(key) as SharedRoot | undefined;
-  if (!shared) return undefined;
+  if (!shared) {
+    return undefined;
+  }
 
   if (key === UNNAMED_ROOT_KEY) {
     return doc.getXmlFragment().toJSON();
@@ -124,10 +124,14 @@ function normalizeJsonValue(value: unknown): unknown {
       Object.entries(value).map(([key, child]) => [
         key,
         normalizeJsonValue(child),
-      ]),
+      ])
     );
   }
-  if (value === undefined) return null;
-  if (typeof value === "bigint") return value.toString();
+  if (value === undefined) {
+    return null;
+  }
+  if (typeof value === "bigint") {
+    return value.toString();
+  }
   return value;
 }

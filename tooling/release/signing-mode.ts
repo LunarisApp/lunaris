@@ -15,7 +15,9 @@ export function selectSigningMode(
   environment: Record<string, string | undefined>
 ): SigningMode {
   const present = appleSecretNames.filter((name) => environment[name]);
-  if (present.length === 0) return "adhoc";
+  if (present.length === 0) {
+    return "adhoc";
+  }
 
   const missing = appleSecretNames.filter((name) => !environment[name]);
   if (missing.length > 0) {
@@ -30,7 +32,9 @@ export function selectSigningMode(
 if (import.meta.main) {
   const mode = selectSigningMode(process.env);
   const output = process.env.GITHUB_OUTPUT;
-  if (!output) throw new Error("GITHUB_OUTPUT is required");
+  if (!output) {
+    throw new Error("GITHUB_OUTPUT is required");
+  }
   appendFileSync(output, `mode=${mode}\n`);
   console.log(
     mode === "signed"

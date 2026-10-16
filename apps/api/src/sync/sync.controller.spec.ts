@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import { DatabaseService } from "@app/db";
 import { Test, TestingModule } from "@nestjs/testing";
 import { AuthService } from "@thallesp/nestjs-better-auth";
-import { AppConfig } from "../app.config";
 import {
   EntitlementsService,
   OrganizationMembershipRequiredError,
@@ -38,7 +37,6 @@ describe("SyncController", () => {
           provide: PermissionService,
           useValue: { requirePermission: mock(async () => undefined) },
         },
-        // biome-ignore lint/suspicious/noExplicitAny: test mock
         { provide: AuthService, useValue: new (AuthService as any)() },
       ],
     }).compile();
@@ -59,7 +57,7 @@ describe("SyncController", () => {
       } as any;
 
       await expect(controller.getCredentials(session)).rejects.toThrow(
-        NoActiveOrganizationError,
+        NoActiveOrganizationError
       );
     });
 
@@ -67,7 +65,7 @@ describe("SyncController", () => {
       const expected = {
         token: "jwt-abc",
         powersyncUrl: "https://ps.example.com",
-        expiresAt: 1700000000,
+        expiresAt: 1_700_000_000,
       };
       spyOn(service, "getCredentials").mockResolvedValue(expected);
 
@@ -81,7 +79,7 @@ describe("SyncController", () => {
       expect(service.getCredentials).toHaveBeenCalledWith(
         "user-1",
         "org-1",
-        "cloud",
+        "cloud"
       );
       expect(result).toEqual(expected);
     });
@@ -109,7 +107,7 @@ describe("SyncController", () => {
       } as any;
 
       await expect(controller.getCredentials(session)).rejects.toBeInstanceOf(
-        OrganizationMembershipRequiredError,
+        OrganizationMembershipRequiredError
       );
       expect(getCredentials).not.toHaveBeenCalled();
     });
@@ -130,7 +128,7 @@ describe("SyncController", () => {
       expect(service.ingest).toHaveBeenCalledWith(
         body.transactions,
         "org-1",
-        "user-1",
+        "user-1"
       );
       expect(result).toEqual({});
     });
@@ -142,7 +140,7 @@ describe("SyncController", () => {
       } as any;
 
       await expect(
-        controller.ingest(session, { transactions: [] } as any),
+        controller.ingest(session, { transactions: [] } as any)
       ).rejects.toThrow(NoActiveOrganizationError);
     });
 
@@ -153,7 +151,7 @@ describe("SyncController", () => {
       } as any;
 
       await expect(
-        controller.ingest(session, { transactions: [] } as any),
+        controller.ingest(session, { transactions: [] } as any)
       ).rejects.toThrow(LocalOnlySyncAccessError);
     });
 
@@ -168,7 +166,7 @@ describe("SyncController", () => {
       } as any;
 
       await expect(
-        controller.ingest(session, { transactions: [] } as any),
+        controller.ingest(session, { transactions: [] } as any)
       ).rejects.toBeInstanceOf(OrganizationMembershipRequiredError);
       expect(ingest).not.toHaveBeenCalled();
     });

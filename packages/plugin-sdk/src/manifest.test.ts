@@ -35,7 +35,9 @@ describe("validateManifest", () => {
   });
 
   it("accepts extension IDs that match object prototype names", () => {
-    expect(validateManifest({ ...validManifest, id: "constructor" })).toMatchObject({
+    expect(
+      validateManifest({ ...validManifest, id: "constructor" })
+    ).toMatchObject({
       id: "constructor",
     });
   });
@@ -44,10 +46,19 @@ describe("validateManifest", () => {
     [null, "manifest must be an object"],
     [{ ...validManifest, id: "Bad_ID" }, "lowercase segments"],
     [{ ...validManifest, description: "" }, "description is required"],
-    [{ ...validManifest, longDescription: "" }, "longDescription must be a non-empty string"],
+    [
+      { ...validManifest, longDescription: "" },
+      "longDescription must be a non-empty string",
+    ],
     [{ ...validManifest, keywords: [""] }, "keywords must contain at most"],
-    [{ ...validManifest, keywords: ["diagram", "DIAGRAM"] }, "keywords must not contain duplicates"],
-    [{ ...validManifest, website: "http://example.com" }, "website must be a valid HTTPS URL"],
+    [
+      { ...validManifest, keywords: ["diagram", "DIAGRAM"] },
+      "keywords must not contain duplicates",
+    ],
+    [
+      { ...validManifest, website: "http://example.com" },
+      "website must be a valid HTTPS URL",
+    ],
     [{ ...validManifest, version: "latest" }, "valid semver"],
     [{ ...validManifest, api: "latest" }, "valid semver range"],
     [{ ...validManifest, legacy: true }, "unknown field: legacy"],
@@ -86,10 +97,10 @@ describe("validateManifest", () => {
 
   it("rejects incompatible API ranges", () => {
     expect(() =>
-      validateSupportedManifest({ ...validManifest, api: "^0.6.0" }),
+      validateSupportedManifest({ ...validManifest, api: "^0.6.0" })
     ).toThrow(ApiVersionMismatchError);
     expect(() => validateManifest(validManifest, "2.0.0")).toThrow(
-      ApiVersionMismatchError,
+      ApiVersionMismatchError
     );
   });
 });

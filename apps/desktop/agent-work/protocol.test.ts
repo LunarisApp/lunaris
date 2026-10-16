@@ -20,7 +20,7 @@ describe("Agent Work protocol", () => {
         id: "send",
         text: " Hello ",
         modelId: "model",
-      }),
+      })
     ).toEqual({ type: "prompt", id: "send", text: "Hello", modelId: "model" });
     for (const input of [
       null,
@@ -44,14 +44,14 @@ describe("Agent Work protocol", () => {
       runtimeEventSchema.safeParse({
         type: "state",
         state: { ...state, messages: [message] },
-      }).success,
+      }).success
     ).toBe(true);
     for (const field of ["toolCallId", "toolName", "toolStatus"]) {
       expect(
         runtimeEventSchema.safeParse({
           type: "state",
           state: { ...state, messages: [{ ...message, [field]: undefined }] },
-        }).success,
+        }).success
       ).toBe(false);
     }
   });

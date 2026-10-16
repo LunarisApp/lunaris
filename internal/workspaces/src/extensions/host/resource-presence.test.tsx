@@ -75,7 +75,7 @@ describe("automatic resource membership", () => {
     const second = render(<View />);
     expect(state.api.post).toHaveBeenCalledTimes(1);
     expect(state.api.post.mock.calls[0][0]).toContain(
-      "/resources/resource/presence/ticket",
+      "/resources/resource/presence/ticket"
     );
     first.unmount();
     expect(screen.getByText("connecting")).toBeTruthy();
@@ -102,12 +102,12 @@ describe("automatic resource membership", () => {
     const view = render(
       <StrictMode>
         <View channel />
-      </StrictMode>,
+      </StrictMode>
     );
     expect(
       state.api.post.mock.calls.some(([path]) =>
-        String(path).includes("/resources/resource/"),
-      ),
+        String(path).includes("/resources/resource/")
+      )
     ).toBe(true);
     view.unmount();
   });

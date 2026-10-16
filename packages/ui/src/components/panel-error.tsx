@@ -68,13 +68,13 @@ function PanelError({
   return (
     <Empty className="h-full flex-1" {...props}>
       <EmptyHeader>
-        {iconElement && <EmptyMedia variant="icon">{iconElement}</EmptyMedia>}
+        {!!iconElement && <EmptyMedia variant="icon">{iconElement}</EmptyMedia>}
         <EmptyTitle aria-level={2} role="heading">
           {title}
         </EmptyTitle>
-        {description && <EmptyDescription>{description}</EmptyDescription>}
+        {!!description && <EmptyDescription>{description}</EmptyDescription>}
       </EmptyHeader>
-      {actions && <EmptyContent>{actions}</EmptyContent>}
+      {!!actions && <EmptyContent>{actions}</EmptyContent>}
     </Empty>
   );
 }

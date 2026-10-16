@@ -35,14 +35,15 @@ export function useStableInitialLoading(opts: {
   const { dataEmpty, extraGate = false } = opts;
   const workspaceIndex = useSyncStream({ name: "workspace_index" });
   const syncAccess = useSyncAccess();
-  const hasInitialSync =
-    workspaceIndex?.subscription.hasSynced === true;
+  const hasInitialSync = workspaceIndex?.subscription.hasSynced === true;
   const rawSettled =
     !extraGate && (syncAccess === "local-only" || hasInitialSync);
 
   // Latch: once data has been observed, never regress to skeleton.
   const seenDataRef = useRef(false);
-  if (!dataEmpty) seenDataRef.current = true;
+  if (!dataEmpty) {
+    seenDataRef.current = true;
+  }
 
   // Delay propagating `rawSettled` to absorb the post-status flush race.
   const [graceElapsed, setGraceElapsed] = useState(false);
@@ -51,15 +52,15 @@ export function useStableInitialLoading(opts: {
       setGraceElapsed(false);
       return;
     }
-    const timer = setTimeout(
-      () => setGraceElapsed(true),
-      POST_SETTLE_GRACE_MS
-    );
+    const timer = setTimeout(() => setGraceElapsed(true), POST_SETTLE_GRACE_MS);
     return () => clearTimeout(timer);
   }, [rawSettled]);
 
-  if (seenDataRef.current) return { showSkeleton: false, showEmpty: false };
-  if (!(rawSettled && graceElapsed))
+  if (seenDataRef.current) {
+    return { showSkeleton: false, showEmpty: false };
+  }
+  if (!(rawSettled && graceElapsed)) {
     return { showSkeleton: true, showEmpty: false };
+  }
   return { showSkeleton: false, showEmpty: dataEmpty };
 }

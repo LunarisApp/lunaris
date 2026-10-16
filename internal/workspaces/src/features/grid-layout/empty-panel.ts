@@ -59,13 +59,23 @@ export function findSingleEmptyPanelId({
   const livePanelIdSet =
     livePanelIds === undefined ? undefined : new Set(livePanelIds);
   const matchingPanels = panels.filter((panel) => {
-    if (!isEmptyPanel(panel)) return false;
+    if (!isEmptyPanel(panel)) {
+      return false;
+    }
     // Dockview membership wins after render because panels can move groups.
     // State-only panels are pending insertion, so their stored position is valid.
-    if (livePanelIdSet?.has(panel.id)) return true;
-    if (allLivePanelIdSet?.has(panel.id)) return false;
-    if (livePanelIdSet && !allLivePanelIdSet) return false;
-    if (!panel.position || !("referenceGroup" in panel.position)) return false;
+    if (livePanelIdSet?.has(panel.id)) {
+      return true;
+    }
+    if (allLivePanelIdSet?.has(panel.id)) {
+      return false;
+    }
+    if (livePanelIdSet && !allLivePanelIdSet) {
+      return false;
+    }
+    if (!(panel.position && "referenceGroup" in panel.position)) {
+      return false;
+    }
     if (
       "direction" in panel.position &&
       panel.position.direction &&

@@ -7,7 +7,11 @@ interface CsvRendererProps {
 
 export function CsvRenderer({ filename, text }: CsvRendererProps) {
   return (
-    <section aria-label={filename} className="h-full" data-testid="csv-renderer">
+    <section
+      aria-label={filename}
+      className="h-full"
+      data-testid="csv-renderer"
+    >
       <CsvViewer
         className="h-full"
         data={text}

@@ -4,7 +4,7 @@ import { createAppSchema } from "../index";
 describe("workspace member table", () => {
   it("registers synced grant columns and indexes", () => {
     const table = createAppSchema().tables.find(
-      (candidate) => candidate.name === "workspace_members",
+      (candidate) => candidate.name === "workspace_members"
     );
 
     expect(table?.columns.map((column) => column.name)).toEqual([

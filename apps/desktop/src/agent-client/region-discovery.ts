@@ -1,8 +1,5 @@
 import * as z from "zod";
-import {
-  type Fetcher,
-  LunarisApiError,
-} from "./cloud-client";
+import { type Fetcher, LunarisApiError } from "./cloud-client";
 
 export const DEFAULT_REGION_DIRECTORY_URL =
   "https://lunaris.app/.well-known/lunaris-regions";
@@ -59,7 +56,7 @@ export interface RegionDiscoveryOptions {
 }
 
 export async function discoverRegions(
-  options: RegionDiscoveryOptions = {},
+  options: RegionDiscoveryOptions = {}
 ): Promise<RegionDirectory> {
   const fetcher = options.fetch ?? globalThis.fetch.bind(globalThis);
   const timeout = AbortSignal.timeout(options.timeoutMs ?? 30_000);
@@ -70,13 +67,13 @@ export async function discoverRegions(
   try {
     response = await fetcher(
       new URL(options.directoryUrl ?? DEFAULT_REGION_DIRECTORY_URL),
-      { headers: { Accept: "application/json" }, signal },
+      { headers: { Accept: "application/json" }, signal }
     );
   } catch (cause) {
     const error = new LunarisApiError(
       "Unable to connect to the Lunaris region directory",
       0,
-      "REGION_DISCOVERY_UNAVAILABLE",
+      "REGION_DISCOVERY_UNAVAILABLE"
     );
     error.cause = cause;
     throw error;
@@ -87,7 +84,7 @@ export async function discoverRegions(
     throw new LunarisApiError(
       `Lunaris region directory returned ${response.status}`,
       response.status,
-      "REGION_DISCOVERY_FAILED",
+      "REGION_DISCOVERY_FAILED"
     );
   }
 
@@ -97,7 +94,7 @@ export async function discoverRegions(
       "Lunaris region directory returned an invalid response",
       502,
       "INVALID_REGION_DIRECTORY",
-      parsed.error.issues,
+      parsed.error.issues
     );
   }
   return parsed.data;
@@ -105,7 +102,7 @@ export async function discoverRegions(
 
 export async function discoverRegionManifest(
   region: AvailableRegion,
-  options: Omit<RegionDiscoveryOptions, "directoryUrl"> = {},
+  options: Omit<RegionDiscoveryOptions, "directoryUrl"> = {}
 ): Promise<RegionManifest> {
   const fetcher = options.fetch ?? globalThis.fetch.bind(globalThis);
   const timeout = AbortSignal.timeout(options.timeoutMs ?? 30_000);
@@ -122,7 +119,7 @@ export async function discoverRegionManifest(
     const error = new LunarisApiError(
       `Unable to connect to the ${region.displayName} region manifest`,
       0,
-      "REGION_MANIFEST_UNAVAILABLE",
+      "REGION_MANIFEST_UNAVAILABLE"
     );
     error.cause = cause;
     throw error;
@@ -133,7 +130,7 @@ export async function discoverRegionManifest(
     throw new LunarisApiError(
       `${region.displayName} region manifest returned ${response.status}`,
       response.status,
-      "REGION_MANIFEST_FAILED",
+      "REGION_MANIFEST_FAILED"
     );
   }
 
@@ -143,14 +140,14 @@ export async function discoverRegionManifest(
       `${region.displayName} region manifest returned an invalid response`,
       502,
       "INVALID_REGION_MANIFEST",
-      parsed.error.issues,
+      parsed.error.issues
     );
   }
   if (parsed.data.regionId !== region.regionId) {
     throw new LunarisApiError(
       `Region manifest mismatch: expected ${region.regionId}, got ${parsed.data.regionId}`,
       502,
-      "REGION_MANIFEST_MISMATCH",
+      "REGION_MANIFEST_MISMATCH"
     );
   }
   return parsed.data;

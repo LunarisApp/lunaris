@@ -64,13 +64,13 @@ describe("desktop Agent Work bridge", () => {
       });
       expect(native.invoke).toHaveBeenCalledWith(
         "agent_work_stop",
-        expect.any(Object),
+        expect.any(Object)
       );
       expect(native.route).not.toHaveBeenCalled();
       await expect(connection.request({ type: "status" })).rejects.toThrow(
-        "disconnected",
+        "disconnected"
       );
-    },
+    }
   );
   it("waits for approval and applies a resource write at most once", async () => {
     const events: AgentWorkEvent[] = [];
@@ -79,7 +79,7 @@ describe("desktop Agent Work bridge", () => {
       client: {} as LunarisControlClient,
     });
     const connection = await desktopAgentWork.connect(scope, (event) =>
-      events.push(event),
+      events.push(event)
     );
     emit(tool);
     expect(events.at(-1)?.type).toBe("approval");
@@ -109,7 +109,7 @@ describe("desktop Agent Work bridge", () => {
       "agent_work_send",
       expect.objectContaining({
         message: expect.objectContaining({ error: true, toolCallId: "tool-2" }),
-      }),
+      })
     );
     await connection.close();
   });
@@ -121,7 +121,7 @@ describe("desktop Agent Work bridge", () => {
       "agent_work_send",
       expect.objectContaining({
         message: expect.objectContaining({ toolCallId: tool.id, error: true }),
-      }),
+      })
     );
     await connection.close();
   });

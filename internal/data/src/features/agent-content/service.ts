@@ -33,23 +33,23 @@ import {
   RichTextMcpInputError,
 } from "@extension/rich-text/mcp-runtime";
 import type { AbstractPowerSyncDatabase } from "@powersync/common";
-import {
-  type ContentProvenance,
-  type ContentRequestOptions,
-  type ContentSnapshot,
-  type LunarisContentClient,
-  type Page,
-  type PaginationInput,
-  type PendingAwareControlClient,
-  type PendingContentChanges,
-  type PendingContentTable,
-  type Workspace,
-  type WorkspaceResource,
-  type WorkspaceResourceFilters,
-  type WorkspaceResourceSearchInput,
-  type WorkspaceResourceSearchResult,
-  type Organization,
-  type YjsStorageJson,
+import type {
+  ContentProvenance,
+  ContentRequestOptions,
+  ContentSnapshot,
+  LunarisContentClient,
+  Page,
+  PaginationInput,
+  PendingAwareControlClient,
+  PendingContentChanges,
+  PendingContentTable,
+  Workspace,
+  WorkspaceResource,
+  WorkspaceResourceFilters,
+  WorkspaceResourceSearchInput,
+  WorkspaceResourceSearchResult,
+  Organization,
+  YjsStorageJson,
 } from "@repo/agent-contracts";
 import { createId } from "@repo/utils";
 import { v4 as uuidv4 } from "uuid";
@@ -212,7 +212,7 @@ export interface DeviceContentServiceOptions {
 async function withYjsDocument<T>(
   database: DatabaseOrTx,
   documentId: string,
-  run: (doc: Doc) => Promise<T> | T,
+  run: (doc: Doc) => Promise<T> | T
 ): Promise<T> {
   const updates = await getYjsDocumentUpdates(database, documentId);
   const doc = new Doc();
@@ -226,18 +226,18 @@ async function withYjsDocument<T>(
 
 export function createDeviceContentClient(
   db: AbstractPowerSyncDatabase,
-  options: DeviceContentServiceOptions = {},
+  options: DeviceContentServiceOptions = {}
 ): LunarisContentClient {
   const synchronize = (
     target: DeviceReadTarget,
-    request?: ContentRequestOptions,
+    request?: ContentRequestOptions
   ) =>
     options.readCoordinator?.resolve(target, request) ??
     Promise.resolve(unknownContentSnapshot());
   const synchronizeOrganization = (
     organizationId: string,
     target: DeviceReadTarget,
-    request?: ContentRequestOptions,
+    request?: ContentRequestOptions
   ) => {
     if (
       options.activeOrganizationId &&
@@ -246,7 +246,9 @@ export function createDeviceContentClient(
       if (request?.consistency === "cached") {
         return Promise.resolve(unknownContentSnapshot());
       }
-      throw incompleteSyncError("Desktop sync is not active for this organization");
+      throw incompleteSyncError(
+        "Desktop sync is not active for this organization"
+      );
     }
     return synchronize(target, request);
   };
@@ -255,29 +257,31 @@ export function createDeviceContentClient(
     organizationId: string,
     workspaceId: string,
     target: DeviceReadTarget,
-    request?: ContentRequestOptions,
+    request?: ContentRequestOptions
   ) => {
     requireCachedOrganization(options, organizationId);
     const local = await db.getOptional<WorkspaceRow>(
       "SELECT * FROM local_workspaces WHERE id = ? AND organization_id = ? LIMIT 1",
-      [workspaceId, organizationId],
+      [workspaceId, organizationId]
     );
-    if (local) return { row: local, snapshot: localContentSnapshot() };
+    if (local) {
+      return { row: local, snapshot: localContentSnapshot() };
+    }
     const snapshot = await synchronizeOrganization(
       organizationId,
       target,
-      request,
+      request
     );
     const shared = await db.getOptional<WorkspaceRow>(
       "SELECT * FROM workspaces WHERE id = ? AND organization_id = ? LIMIT 1",
-      [workspaceId, organizationId],
+      [workspaceId, organizationId]
     );
     if (!shared) {
       throw missingReadError(
         "WORKSPACE_NOT_FOUND",
         "Workspace not found",
         request,
-        snapshot,
+        snapshot
       );
     }
     return { row: shared, snapshot };
@@ -286,38 +290,44 @@ export function createDeviceContentClient(
   const getWorkspaceRow = (
     organizationId: string,
     workspaceId: string,
-    request?: ContentRequestOptions,
+    request?: ContentRequestOptions
   ) =>
     getWorkspaceRowFor(
       organizationId,
       workspaceId,
       { kind: "workspaces" },
-      request,
+      request
     );
 
   const getIndexedWorkspaceRow = async (
     organizationId: string,
     workspaceId: string,
-    request?: ContentRequestOptions,
+    request?: ContentRequestOptions
   ) =>
     getWorkspaceRowFor(
       organizationId,
       workspaceId,
       { kind: "organization-resources" },
-      request,
+      request
     );
 
   const getWorkspaceContent = async (
     organizationId: string,
     workspaceId: string,
-    request?: ContentRequestOptions,
+    request?: ContentRequestOptions
   ) => {
-    const workspace = await getWorkspaceRow(organizationId, workspaceId, request);
-    if (workspace.row.visibility === "local") return workspace;
+    const workspace = await getWorkspaceRow(
+      organizationId,
+      workspaceId,
+      request
+    );
+    if (workspace.row.visibility === "local") {
+      return workspace;
+    }
     const contentSnapshot = await synchronizeOrganization(
       organizationId,
       { kind: "workspace-content", workspaceId },
-      request,
+      request
     );
     return {
       row: workspace.row,
@@ -329,24 +339,28 @@ export function createDeviceContentClient(
     organizationId: string,
     workspaceId: string,
     documentId: string,
-    request?: ContentRequestOptions,
+    request?: ContentRequestOptions
   ) => {
-    const workspace = await getWorkspaceContent(organizationId, workspaceId, request);
+    const workspace = await getWorkspaceContent(
+      organizationId,
+      workspaceId,
+      request
+    );
     const document = await db.getOptional<DocumentRow>(
-        `SELECT documents.*, MAX(updates.updated_at) AS last_update_at
+      `SELECT documents.*, MAX(updates.updated_at) AS last_update_at
          FROM (${DOCUMENTS}) documents
          LEFT JOIN (${DOCUMENT_UPDATES}) updates ON updates.document_id = documents.id
          WHERE documents.id = ? AND documents.workspace_id = ?
          GROUP BY documents.id, documents.workspace_id, documents.created_at, documents.updated_at
          LIMIT 1`,
-        [documentId, workspaceId],
-      );
+      [documentId, workspaceId]
+    );
     if (!document) {
       throw missingReadError(
         "DOCUMENT_NOT_FOUND",
         "Document not found",
         request,
-        workspace.snapshot,
+        workspace.snapshot
       );
     }
     const compiled = await compileYjsDocumentJson(db, documentId);
@@ -361,10 +375,7 @@ export function createDeviceContentClient(
       workspace: workspace.row,
       revision,
       snapshot: workspace.snapshot,
-      updatedAt: latestTimestamp(
-        document.updated_at,
-        document.last_update_at,
-      ),
+      updatedAt: latestTimestamp(document.updated_at, document.last_update_at),
     };
   };
 
@@ -373,21 +384,25 @@ export function createDeviceContentClient(
     workspaceId: string,
     storageId: string,
     kind: StorageSlotRow["kind"],
-    request?: ContentRequestOptions,
+    request?: ContentRequestOptions
   ) => {
-    const workspace = await getWorkspaceContent(organizationId, workspaceId, request);
+    const workspace = await getWorkspaceContent(
+      organizationId,
+      workspaceId,
+      request
+    );
     const slot = await db.getOptional<StorageSlotRow>(
       `SELECT * FROM (${STORAGE_SLOTS}) slot
        WHERE id = ? AND workspace_id = ? AND kind = ? AND resource_id IS NOT NULL
        LIMIT 1`,
-      [storageId, workspaceId, kind],
+      [storageId, workspaceId, kind]
     );
     if (!slot?.resource_id || (kind !== "key-value" && !slot.backing_id)) {
       throw missingReadError(
         "STORAGE_NOT_FOUND",
         `${kind} storage not found`,
         request,
-        workspace.snapshot,
+        workspace.snapshot
       );
     }
     const resource = await requireResourceRow(
@@ -395,40 +410,40 @@ export function createDeviceContentClient(
       workspaceId,
       slot.resource_id,
       request,
-      workspace.snapshot,
+      workspace.snapshot
     );
     return { workspace, resource, slot };
   };
 
   const client: LunarisContentClient = {
-    async listWorkspaces(
-      organizationId,
-      input: PaginationInput = {},
-      request,
-    ) {
+    async listWorkspaces(organizationId, input: PaginationInput = {}, request) {
       requireCachedOrganization(options, organizationId);
       const snapshot = await synchronizeOrganization(
         organizationId,
         { kind: "workspaces" },
-        request,
+        request
       );
       const rows = await db.getAll<WorkspaceRow>(
         `SELECT * FROM (${WORKSPACES}) workspaces WHERE organization_id = ? ORDER BY updated_at DESC, id ASC`,
-        [organizationId],
+        [organizationId]
       );
       return page(
         rows.map(toWorkspace),
         input,
         (row) => withWorkspaceProvenance(row, snapshot),
-        snapshot,
+        snapshot
       );
     },
 
     async getWorkspace(organizationId, workspaceId, request) {
-      const workspace = await getWorkspaceRow(organizationId, workspaceId, request);
+      const workspace = await getWorkspaceRow(
+        organizationId,
+        workspaceId,
+        request
+      );
       return withWorkspaceProvenance(
         toWorkspace(workspace.row),
-        workspace.snapshot,
+        workspace.snapshot
       );
     },
 
@@ -436,16 +451,16 @@ export function createDeviceContentClient(
       organizationId,
       workspaceId,
       input: WorkspaceResourceFilters = {},
-      request,
+      request
     ) {
       const workspace = await getIndexedWorkspaceRow(
         organizationId,
         workspaceId,
-        request,
+        request
       );
       const rows = await db.getAll<ResourceRow>(
         `SELECT * FROM (${RESOURCES}) items WHERE workspace_id = ? ORDER BY position ASC, created_at ASC, id ASC`,
-        [workspaceId],
+        [workspaceId]
       );
       const filtered = rows.filter((row) => {
         if (
@@ -457,7 +472,9 @@ export function createDeviceContentClient(
         if (
           input.resourceTypeId &&
           row.resource_type_id !== input.resourceTypeId
-        ) return false;
+        ) {
+          return false;
+        }
         if (input.parentId !== undefined && row.parent_id !== input.parentId) {
           return false;
         }
@@ -471,25 +488,30 @@ export function createDeviceContentClient(
           provenance: contentProvenance(
             workspace.row.visibility,
             row.updatedAt,
-            workspace.snapshot,
+            workspace.snapshot
           ),
         }),
-        workspace.snapshot,
+        workspace.snapshot
       );
     },
 
-    async getWorkspaceResource(organizationId, workspaceId, resourceId, request) {
+    async getWorkspaceResource(
+      organizationId,
+      workspaceId,
+      resourceId,
+      request
+    ) {
       const workspace = await getIndexedWorkspaceRow(
         organizationId,
         workspaceId,
-        request,
+        request
       );
       const row = await requireResourceRow(
         db,
         workspaceId,
         resourceId,
         request,
-        workspace.snapshot,
+        workspace.snapshot
       );
       const item = toResource(row);
       return {
@@ -497,34 +519,40 @@ export function createDeviceContentClient(
         provenance: contentProvenance(
           workspace.row.visibility,
           item.updatedAt,
-          workspace.snapshot,
+          workspace.snapshot
         ),
       };
     },
 
-    async searchResources(organizationId, input: WorkspaceResourceSearchInput, request) {
+    async searchResources(
+      organizationId,
+      input: WorkspaceResourceSearchInput,
+      request
+    ) {
       requireCachedOrganization(options, organizationId);
       const snapshot = input.workspaceId
         ? (
             await getIndexedWorkspaceRow(
               organizationId,
               input.workspaceId,
-              request,
+              request
             )
           ).snapshot
         : await synchronizeOrganization(
             organizationId,
             { kind: "organization-resources" },
-            request,
+            request
           );
       const workspaces = await db.getAll<WorkspaceRow>(
         `SELECT * FROM (${WORKSPACES}) workspaces WHERE organization_id = ?`,
-        [organizationId],
+        [organizationId]
       );
-      const byId = new Map(workspaces.map((workspace) => [workspace.id, workspace]));
+      const byId = new Map(
+        workspaces.map((workspace) => [workspace.id, workspace])
+      );
       const rows = await db.getAll<ResourceRow>(
         `SELECT * FROM (${RESOURCES}) items ORDER BY name ASC, id ASC`,
-        [],
+        []
       );
       const needle = input.search.toLocaleLowerCase();
       const results = rows
@@ -545,7 +573,7 @@ export function createDeviceContentClient(
             provenance: contentProvenance(
               workspace.visibility,
               row.updated_at,
-              snapshot,
+              snapshot
             ),
           };
         });
@@ -556,20 +584,20 @@ export function createDeviceContentClient(
       organizationId,
       workspaceId,
       storageId,
-      request,
+      request
     ): Promise<YjsStorageJson> {
       const storage = await resolveResourceStorage(
         organizationId,
         workspaceId,
         storageId,
         "yjs",
-        request,
+        request
       );
       const value = await getDocument(
         organizationId,
         workspaceId,
         storage.slot.backing_id!,
-        request,
+        request
       );
       return {
         resourceTypeId: storage.resource.resource_type_id,
@@ -578,14 +606,13 @@ export function createDeviceContentClient(
         provenance: contentProvenance(
           value.workspace.visibility,
           value.updatedAt,
-          value.snapshot,
+          value.snapshot
         ),
         revision: value.revision,
         storageId,
         updatedAt: value.updatedAt,
       };
     },
-
   };
 
   return client;
@@ -593,31 +620,31 @@ export function createDeviceContentClient(
 
 export function createDeviceControlClient(
   db: AbstractPowerSyncDatabase,
-  options: DeviceContentServiceOptions = {},
+  options: DeviceContentServiceOptions = {}
 ): PendingAwareControlClient {
   const content = createDeviceContentClient(db, options);
   const safety = createMutationSafety(
     db,
-    () => options.actorId?.() ?? "desktop-local",
+    () => options.actorId?.() ?? "desktop-local"
   );
 
   const cloudRequired = async (): Promise<never> => {
     throw localError(
       "CLOUD_UNAVAILABLE",
       "Cloud connectivity is required for this operation",
-      503,
+      503
     );
   };
   const requireWorkspace = async (
     organizationId: string,
     workspaceId: string,
     request?: ContentRequestOptions,
-    database: DatabaseOrTx = db,
+    database: DatabaseOrTx = db
   ) => {
     requireCachedOrganization(options, organizationId);
     const local = await database.getOptional<WorkspaceRow>(
       "SELECT * FROM local_workspaces WHERE id = ? AND organization_id = ? LIMIT 1",
-      [workspaceId, organizationId],
+      [workspaceId, organizationId]
     );
     if (local) {
       return { row: local, snapshot: localContentSnapshot() };
@@ -628,16 +655,16 @@ export function createDeviceControlClient(
     ) {
       if (request?.consistency !== "cached") {
         throw incompleteSyncError(
-          "Desktop sync is not active for this organization",
+          "Desktop sync is not active for this organization"
         );
       }
       const workspace = await database.getOptional<WorkspaceRow>(
         "SELECT * FROM workspaces WHERE id = ? AND organization_id = ? LIMIT 1",
-        [workspaceId, organizationId],
+        [workspaceId, organizationId]
       );
       if (!workspace) {
         throw incompleteSyncError(
-          "Required Desktop content has not finished syncing",
+          "Required Desktop content has not finished syncing"
         );
       }
       return { row: workspace, snapshot: unknownContentSnapshot() };
@@ -645,24 +672,24 @@ export function createDeviceControlClient(
     const catalogSnapshot =
       (await options.readCoordinator?.resolve(
         { kind: "workspaces" },
-        request,
+        request
       )) ?? unknownContentSnapshot();
     const workspace = await database.getOptional<WorkspaceRow>(
       "SELECT * FROM workspaces WHERE id = ? AND organization_id = ? LIMIT 1",
-      [workspaceId, organizationId],
+      [workspaceId, organizationId]
     );
     if (!workspace) {
       throw missingReadError(
         "WORKSPACE_NOT_FOUND",
         "Workspace not found",
         request,
-        catalogSnapshot,
+        catalogSnapshot
       );
     }
     const contentSnapshot =
       (await options.readCoordinator?.resolve(
         { kind: "workspace-content", workspaceId },
-        request,
+        request
       )) ?? unknownContentSnapshot();
     return {
       row: workspace,
@@ -674,7 +701,7 @@ export function createDeviceControlClient(
       throw localError(
         "REVISION_CHANGED",
         "Resource changed since it was read",
-        409,
+        409
       );
     }
   };
@@ -684,24 +711,20 @@ export function createDeviceControlClient(
     resourceId: string,
     request: ContentRequestOptions | undefined,
     snapshot: ContentSnapshot,
-    requirement: PluginResourceRequirement,
+    requirement: PluginResourceRequirement
   ) => {
     const item = await requireResourceRow(
       database,
       workspaceId,
       resourceId,
       request,
-      snapshot,
+      snapshot
     );
     if (
       item.resource_type_id !== requirement.pluginId ||
       !item.yjs_backing_id
     ) {
-      throw localError(
-        requirement.errorCode,
-        requirement.errorMessage,
-        404,
-      );
+      throw localError(requirement.errorCode, requirement.errorMessage, 404);
     }
     return { ...item, yjsBackingId: item.yjs_backing_id };
   };
@@ -710,26 +733,19 @@ export function createDeviceControlClient(
     workspaceId: string,
     boardId: string,
     request: ContentRequestOptions | undefined,
-    snapshot: ContentSnapshot,
+    snapshot: ContentSnapshot
   ) =>
-    requirePluginResource(
-      database,
-      workspaceId,
-      boardId,
-      request,
-      snapshot,
-      {
-        errorCode: "KANBAN_BOARD_NOT_FOUND",
-        errorMessage: "Kanban board not found",
-        pluginId: KANBAN_PLUGIN_ID,
-      },
-    );
+    requirePluginResource(database, workspaceId, boardId, request, snapshot, {
+      errorCode: "KANBAN_BOARD_NOT_FOUND",
+      errorMessage: "Kanban board not found",
+      pluginId: KANBAN_PLUGIN_ID,
+    });
   const requireRichTextResource = (
     database: DatabaseOrTx,
     workspaceId: string,
     documentResourceId: string,
     request: ContentRequestOptions | undefined,
-    snapshot: ContentSnapshot,
+    snapshot: ContentSnapshot
   ) =>
     requirePluginResource(
       database,
@@ -741,13 +757,13 @@ export function createDeviceControlClient(
         errorCode: "RICH_TEXT_DOCUMENT_NOT_FOUND",
         errorMessage: "Rich Text document not found",
         pluginId: RICH_TEXT_PLUGIN_ID,
-      },
+      }
     );
   const requirePluginYjsDocument = async (
     database: DatabaseOrTx,
     workspaceId: string,
     documentId: string,
-    requirement: PluginYjsDocumentRequirement,
+    requirement: PluginYjsDocumentRequirement
   ) => {
     const document = await database.getOptional<{
       id: string;
@@ -756,14 +772,10 @@ export function createDeviceControlClient(
       `SELECT id, updated_at FROM (${DOCUMENTS}) documents
        WHERE id = ? AND workspace_id = ?
        LIMIT 1`,
-      [documentId, workspaceId],
+      [documentId, workspaceId]
     );
     if (!document) {
-      throw localError(
-        requirement.errorCode,
-        requirement.errorMessage,
-        404,
-      );
+      throw localError(requirement.errorCode, requirement.errorMessage, 404);
     }
     return document;
   };
@@ -775,7 +787,7 @@ export function createDeviceControlClient(
       updateB64: string;
       updatedAt?: string;
       visibility: Parameters<typeof resolveWorkspaceScopedTables>[0];
-    },
+    }
   ) => {
     const updatedAt = params.updatedAt ?? new Date().toISOString();
     const tables = resolveWorkspaceScopedTables(params.visibility);
@@ -791,18 +803,22 @@ export function createDeviceControlClient(
         params.updateB64,
         updatedAt,
         updatedAt,
-      ],
+      ]
     );
     await database.execute(
       `UPDATE ${tables.yjsDocuments} SET updated_at = ? WHERE id = ? AND julianday(?) > COALESCE(julianday(updated_at), 0)`,
-      [updatedAt, params.documentId, updatedAt],
+      [updatedAt, params.documentId, updatedAt]
     );
-    await recordActivity(database, { documentId: params.documentId }, updatedAt);
+    await recordActivity(
+      database,
+      { documentId: params.documentId },
+      updatedAt
+    );
     return updatedAt;
   };
   const replaceRichTextBlocks = async (
     doc: Doc,
-    blocks: Parameters<typeof replaceRichTextDocument>[1],
+    blocks: Parameters<typeof replaceRichTextDocument>[1]
   ) => {
     try {
       return await replaceRichTextDocument(doc, blocks);
@@ -817,14 +833,14 @@ export function createDeviceControlClient(
     organizationId: string,
     workspaceId: string,
     operationInput: Record<string, unknown>,
-    request: PluginOperationRequest,
+    request: PluginOperationRequest
   ) => {
     const parsed = richTextReadMeOperationInputSchema.safeParse(operationInput);
     if (!parsed.success) {
       throw localError(
         "INVALID_RICH_TEXT_GUIDE_REQUEST",
         "Invalid Rich Text guide request",
-        400,
+        400
       );
     }
     await requireWorkspace(organizationId, workspaceId, request);
@@ -834,25 +850,28 @@ export function createDeviceControlClient(
     organizationId: string,
     workspaceId: string,
     operationInput: Record<string, unknown>,
-    request: PluginOperationRequest,
+    request: PluginOperationRequest
   ): Promise<RichTextDocumentOutput> => {
-    const parsed = richTextGetDocumentOperationInputSchema.safeParse(
-      operationInput,
-    );
+    const parsed =
+      richTextGetDocumentOperationInputSchema.safeParse(operationInput);
     if (!parsed.success) {
       throw localError(
         "INVALID_RICH_TEXT_DOCUMENT_REQUEST",
         "Invalid Rich Text document request",
-        400,
+        400
       );
     }
-    const workspace = await requireWorkspace(organizationId, workspaceId, request);
+    const workspace = await requireWorkspace(
+      organizationId,
+      workspaceId,
+      request
+    );
     const item = await requireRichTextResource(
       db,
       workspaceId,
       parsed.data.documentResourceId,
       request,
-      workspace.snapshot,
+      workspace.snapshot
     );
     const document = await requirePluginYjsDocument(
       db,
@@ -861,7 +880,7 @@ export function createDeviceControlClient(
       {
         errorCode: "RICH_TEXT_DOCUMENT_CONTENT_NOT_FOUND",
         errorMessage: "Rich Text document content not found",
-      },
+      }
     );
     return withYjsDocument(db, document.id, async (doc) => ({
       documentResourceId: item.id,
@@ -873,16 +892,15 @@ export function createDeviceControlClient(
     organizationId: string,
     workspaceId: string,
     operationInput: Record<string, unknown>,
-    request: PluginOperationRequest,
+    request: PluginOperationRequest
   ): Promise<RichTextDocumentOutput> => {
-    const parsed = richTextUpdateDocumentOperationInputSchema.safeParse(
-      operationInput,
-    );
+    const parsed =
+      richTextUpdateDocumentOperationInputSchema.safeParse(operationInput);
     if (!parsed.success) {
       throw localError(
         "INVALID_RICH_TEXT_DOCUMENT_UPDATE",
         "Invalid Rich Text document update",
-        400,
+        400
       );
     }
     const input = parsed.data;
@@ -896,14 +914,14 @@ export function createDeviceControlClient(
           organizationId,
           workspaceId,
           read,
-          database,
+          database
         );
         const item = await requireRichTextResource(
           database,
           workspaceId,
           input.documentResourceId,
           read,
-          workspace.snapshot,
+          workspace.snapshot
         );
         const document = await requirePluginYjsDocument(
           database,
@@ -912,13 +930,13 @@ export function createDeviceControlClient(
           {
             errorCode: "RICH_TEXT_DOCUMENT_CONTENT_NOT_FOUND",
             errorMessage: "Rich Text document content not found",
-          },
+          }
         );
         if (document.updated_at !== input.expectedRevision) {
           throw localError(
             "REVISION_CHANGED",
             "Rich Text document revision does not match",
-            409,
+            409
           );
         }
         return withYjsDocument(database, document.id, async (doc) => {
@@ -927,9 +945,7 @@ export function createDeviceControlClient(
           const now = await persistYjsUpdate(database, {
             documentId: document.id,
             workspaceId,
-            updateB64: Uint8ArrayTob64(
-              encodeStateAsUpdateV2(doc, before),
-            ),
+            updateB64: Uint8ArrayTob64(encodeStateAsUpdateV2(doc, before)),
             visibility: workspace.row.visibility,
           });
           return {
@@ -938,14 +954,14 @@ export function createDeviceControlClient(
             revision: now,
           };
         });
-      },
+      }
     );
   };
   const applyKanbanTaskProperties = (
     doc: Doc,
     taskId: string,
     properties: KanbanTaskProperties | undefined,
-    allowedPersonIds: ReadonlySet<string> | undefined,
+    allowedPersonIds: ReadonlySet<string> | undefined
   ) => {
     try {
       return updateKanbanTaskProperties(doc, taskId, properties, {
@@ -960,11 +976,11 @@ export function createDeviceControlClient(
   };
   const getOrganizationMemberIds = async (
     database: DatabaseOrTx,
-    organizationId: string,
+    organizationId: string
   ) => {
     const rows = await database.getAll<{ user_id: string }>(
       "SELECT user_id FROM member WHERE organization_id = ?",
-      [organizationId],
+      [organizationId]
     );
     return new Set(rows.map(({ user_id }) => user_id));
   };
@@ -972,7 +988,7 @@ export function createDeviceControlClient(
     database: DatabaseOrTx,
     organizationId: string,
     doc: Doc,
-    properties: KanbanTaskProperties | undefined,
+    properties: KanbanTaskProperties | undefined
   ) =>
     kanbanTaskPropertiesIncludePeople(doc, properties)
       ? getOrganizationMemberIds(database, organizationId)
@@ -981,26 +997,28 @@ export function createDeviceControlClient(
     organizationId: string,
     workspaceId: string,
     operationInput: Record<string, unknown>,
-    request: PluginOperationRequest,
+    request: PluginOperationRequest
   ) => {
     const parsed =
-      kanbanGetBoardPropertiesOperationInputSchema.safeParse(
-        operationInput,
-      );
+      kanbanGetBoardPropertiesOperationInputSchema.safeParse(operationInput);
     if (!parsed.success) {
       throw localError(
         "INVALID_KANBAN_BOARD_PROPERTY_REQUEST",
         "Invalid Kanban board property request",
-        400,
+        400
       );
     }
-    const workspace = await requireWorkspace(organizationId, workspaceId, request);
+    const workspace = await requireWorkspace(
+      organizationId,
+      workspaceId,
+      request
+    );
     const board = await requireKanbanBoard(
       db,
       workspaceId,
       parsed.data.boardId,
       request,
-      workspace.snapshot,
+      workspace.snapshot
     );
     const document = await requirePluginYjsDocument(
       db,
@@ -1009,20 +1027,23 @@ export function createDeviceControlClient(
       {
         errorCode: "KANBAN_BOARD_DOCUMENT_NOT_FOUND",
         errorMessage: "Kanban board document not found",
-      },
+      }
     );
-    return withYjsDocument(db, document.id, (doc) => {
-      return {
-        boardId: board.id,
-        properties: getKanbanBoardProperties(doc),
-      } satisfies KanbanGetBoardPropertiesOutput;
-    });
+    return withYjsDocument(
+      db,
+      document.id,
+      (doc) =>
+        ({
+          boardId: board.id,
+          properties: getKanbanBoardProperties(doc),
+        }) satisfies KanbanGetBoardPropertiesOutput
+    );
   };
   const createKanbanTask = async (
     organizationId: string,
     workspaceId: string,
     operationInput: Record<string, unknown>,
-    request: PluginOperationRequest,
+    request: PluginOperationRequest
   ) => {
     const parsed =
       kanbanCreateTaskOperationInputSchema.safeParse(operationInput);
@@ -1030,7 +1051,7 @@ export function createDeviceControlClient(
       throw localError(
         "INVALID_KANBAN_TASK_CREATION",
         "Invalid Kanban task creation",
-        400,
+        400
       );
     }
     const input = parsed.data;
@@ -1050,14 +1071,14 @@ export function createDeviceControlClient(
           organizationId,
           workspaceId,
           read,
-          database,
+          database
         );
         const board = await requireKanbanBoard(
           database,
           workspaceId,
           input.boardId,
           read,
-          workspace.snapshot,
+          workspace.snapshot
         );
         const tables = resolveWorkspaceScopedTables(workspace.row.visibility);
         const taskId = createId("res");
@@ -1067,7 +1088,7 @@ export function createDeviceControlClient(
         if (input.properties && Object.keys(input.properties).length > 0) {
           const updates = await getYjsDocumentUpdates(
             database,
-            board.yjsBackingId,
+            board.yjsBackingId
           );
           const doc = new Doc();
           try {
@@ -1081,12 +1102,10 @@ export function createDeviceControlClient(
                 database,
                 organizationId,
                 doc,
-                input.properties,
-              ),
+                input.properties
+              )
             );
-            updateB64 = Uint8ArrayTob64(
-              encodeStateAsUpdateV2(doc, before),
-            );
+            updateB64 = Uint8ArrayTob64(encodeStateAsUpdateV2(doc, before));
           } finally {
             doc.destroy();
           }
@@ -1096,13 +1115,13 @@ export function createDeviceControlClient(
           ((
             await database.getOptional<{ value: number | null }>(
               `SELECT MAX(position) AS value FROM ${tables.workspaceResources} WHERE workspace_id = ? AND parent_id IS ?`,
-              [workspaceId, board.id],
+              [workspaceId, board.id]
             )
           )?.value ?? -1) + 1;
         const now = new Date().toISOString();
         await database.execute(
           `INSERT INTO ${tables.yjsDocuments} (id, workspace_id, created_at, updated_at) VALUES (?, ?, ?, ?)`,
-          [taskDocumentId, workspaceId, now, now],
+          [taskDocumentId, workspaceId, now, now]
         );
         await database.execute(
           `INSERT INTO ${tables.workspaceResources} (id, workspace_id, name, icon, position, parent_id, resource_type_id, schema_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -1117,11 +1136,11 @@ export function createDeviceControlClient(
             1,
             now,
             now,
-          ],
+          ]
         );
         await database.execute(
           `INSERT INTO ${tables.workspaceStorageSlots} (id, workspace_id, resource_id, plugin_id, name, kind, backing_id, metadata, created_at, updated_at) VALUES (?, ?, ?, NULL, 'content', 'yjs', ?, NULL, ?, ?)`,
-          [createId("storage"), workspaceId, taskId, taskDocumentId, now, now],
+          [createId("storage"), workspaceId, taskId, taskDocumentId, now, now]
         );
         await recordActivity(database, { resourceId: taskId }, now);
         if (updateB64) {
@@ -1141,14 +1160,14 @@ export function createDeviceControlClient(
           taskId,
           updatedAt: now,
         };
-      },
+      }
     );
   };
   const updateKanbanTask = async (
     organizationId: string,
     workspaceId: string,
     operationInput: Record<string, unknown>,
-    request: PluginOperationRequest,
+    request: PluginOperationRequest
   ) => {
     const parsed =
       kanbanUpdateTaskOperationInputSchema.safeParse(operationInput);
@@ -1156,23 +1175,23 @@ export function createDeviceControlClient(
       throw localError(
         "INVALID_KANBAN_TASK_UPDATE",
         "Invalid Kanban task update",
-        400,
+        400
       );
     }
     const input = parsed.data;
     const propertiesChanged = Object.keys(input.properties ?? {}).length > 0;
-    if (!input.name && !propertiesChanged) {
+    if (!(input.name || propertiesChanged)) {
       throw localError(
         "INVALID_KANBAN_TASK_UPDATE",
         "Task update requires a name or at least one property",
-        400,
+        400
       );
     }
     if (input.name && !input.expectedRevision) {
       throw localError(
         "INVALID_KANBAN_TASK_UPDATE",
         "expectedRevision is required when changing the task name",
-        400,
+        400
       );
     }
 
@@ -1191,21 +1210,21 @@ export function createDeviceControlClient(
           organizationId,
           workspaceId,
           read,
-          database,
+          database
         );
         const board = await requireKanbanBoard(
           database,
           workspaceId,
           input.boardId,
           read,
-          workspace.snapshot,
+          workspace.snapshot
         );
         const task = await requireResourceRow(
           database,
           workspaceId,
           input.taskId,
           read,
-          workspace.snapshot,
+          workspace.snapshot
         );
         if (
           task.resource_type_id !== KANBAN_TASK_RESOURCE_TYPE_ID ||
@@ -1214,7 +1233,7 @@ export function createDeviceControlClient(
           throw localError(
             "KANBAN_TASK_NOT_FOUND",
             "Kanban task not found on this board",
-            404,
+            404
           );
         }
         if (
@@ -1224,13 +1243,13 @@ export function createDeviceControlClient(
           throw localError(
             "REVISION_CHANGED",
             "Task revision does not match",
-            409,
+            409
           );
         }
 
         const updates = await getYjsDocumentUpdates(
           database,
-          board.yjsBackingId,
+          board.yjsBackingId
         );
         const doc = new Doc();
         try {
@@ -1244,17 +1263,15 @@ export function createDeviceControlClient(
               database,
               organizationId,
               doc,
-              input.properties,
-            ),
+              input.properties
+            )
           );
           const now = new Date().toISOString();
           if (propertiesChanged) {
             await persistYjsUpdate(database, {
               documentId: board.yjsBackingId,
               workspaceId,
-              updateB64: Uint8ArrayTob64(
-                encodeStateAsUpdateV2(doc, before),
-              ),
+              updateB64: Uint8ArrayTob64(encodeStateAsUpdateV2(doc, before)),
               updatedAt: now,
               visibility: workspace.row.visibility,
             });
@@ -1262,7 +1279,7 @@ export function createDeviceControlClient(
           const tables = resolveWorkspaceScopedTables(workspace.row.visibility);
           await database.execute(
             `UPDATE ${tables.workspaceResources} SET name = ?, updated_at = ? WHERE id = ?`,
-            [input.name ?? task.name, now, task.id],
+            [input.name ?? task.name, now, task.id]
           );
           await recordActivity(database, { resourceId: task.id }, now);
           return {
@@ -1275,11 +1292,12 @@ export function createDeviceControlClient(
         } finally {
           doc.destroy();
         }
-      },
+      }
     );
   };
   const organizationProvenance = (): ContentProvenance => {
-    const snapshot = options.organizationSnapshot?.() ?? unknownContentSnapshot();
+    const snapshot =
+      options.organizationSnapshot?.() ?? unknownContentSnapshot();
     return {
       asOf: snapshot.confirmedAt ?? new Date(0).toISOString(),
       source: "cloud-cache",
@@ -1296,7 +1314,9 @@ export function createDeviceControlClient(
         upserts: {},
       };
       const batch = await db.getCrudBatch(100_000);
-      if (!batch) return changes;
+      if (!batch) {
+        return changes;
+      }
       changes.complete = !batch.haveMore;
       const pending = new Map<
         PendingContentTable,
@@ -1310,18 +1330,23 @@ export function createDeviceControlClient(
         ) {
           const slot = await db.getOptional<{ id: string }>(
             `SELECT id FROM (${STORAGE_SLOTS}) WHERE kind = 'yjs' AND backing_id = ? LIMIT 1`,
-            [entry.opData.document_id],
+            [entry.opData.document_id]
           );
-          if (slot) storageIds.add(slot.id);
+          if (slot) {
+            storageIds.add(slot.id);
+          }
         }
-        if (entry.table === "workspace_storage_slots") storageIds.add(entry.id);
-        if (!isPendingContentTable(entry.table)) continue;
+        if (entry.table === "workspace_storage_slots") {
+          storageIds.add(entry.id);
+        }
+        if (!isPendingContentTable(entry.table)) {
+          continue;
+        }
         const table =
-          pending.get(entry.table) ??
-          new Map<string, "delete" | "upsert">();
+          pending.get(entry.table) ?? new Map<string, "delete" | "upsert">();
         table.set(
           entry.id,
-          entry.op.toUpperCase() === "DELETE" ? "delete" : "upsert",
+          entry.op.toUpperCase() === "DELETE" ? "delete" : "upsert"
         );
         pending.set(entry.table, table);
       }
@@ -1337,282 +1362,331 @@ export function createDeviceControlClient(
     },
     async createWorkspace(organizationId, input, request) {
       requireCachedOrganization(options, organizationId);
-      return safety.idempotent("create_workspace", request?.idempotencyKey, {
-        input,
-        organizationId,
-      }, async (database) => {
-        const visibility = input.visibility ?? "shared";
-        let snapshot = localContentSnapshot();
-        if (visibility !== "local") {
-          requireActiveCloudOrganization(options, organizationId);
-          snapshot =
-            (await options.readCoordinator?.resolve(
-              { kind: "workspaces" },
-              mutationReadOptions(request),
-            )) ?? unknownContentSnapshot();
-        }
-        const duplicate = await database.getOptional<{ id: string }>(
-          `SELECT id FROM (${WORKSPACES}) workspaces WHERE organization_id = ? AND slug = ? LIMIT 1`,
-          [organizationId, input.slug],
-        );
-        if (duplicate) {
-          throw localError(
-            "WORKSPACE_SLUG_CONFLICT",
-            "Workspace slug already exists",
-            409,
-          );
-        }
-        const id = createId("workspace");
-        const now = new Date().toISOString();
-        const table = resolveWorkspaceScopedTables(visibility).workspaces;
-        await database.execute(
-          `INSERT INTO ${table} (id, name, slug, organization_id, visibility, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [id, input.name, input.slug, organizationId, visibility, now, now],
-        );
-        const row: WorkspaceRow = {
-          created_at: now,
-          id,
-          name: input.name,
-          organization_id: organizationId,
-          slug: input.slug,
-          updated_at: now,
-          visibility,
-        };
-        return {
-          ...toWorkspace(row),
-          provenance: contentProvenance(row.visibility, now, snapshot),
-        };
-      });
-    },
-    async createWorkspaceResource(organizationId, workspaceId, input, request) {
-      return safety.idempotent("create_resource", request?.idempotencyKey, {
-        expectedParentResourceTypeId: request?.expectedParentResourceTypeId,
-        input,
-        workspaceId,
-        organizationId,
-      }, async (database) => {
-        const read = mutationReadOptions(request);
-        const workspace = await requireWorkspace(
+      return safety.idempotent(
+        "create_workspace",
+        request?.idempotencyKey,
+        {
+          input,
           organizationId,
-          workspaceId,
-          read,
-          database,
-        );
-        if (request?.expectedParentResourceTypeId && !input.parentId) {
-          throw localError(
-            "RESOURCE_NOT_FOUND",
-            "Parent workspace resource not found",
-            404,
+        },
+        async (database) => {
+          const visibility = input.visibility ?? "shared";
+          let snapshot = localContentSnapshot();
+          if (visibility !== "local") {
+            requireActiveCloudOrganization(options, organizationId);
+            snapshot =
+              (await options.readCoordinator?.resolve(
+                { kind: "workspaces" },
+                mutationReadOptions(request)
+              )) ?? unknownContentSnapshot();
+          }
+          const duplicate = await database.getOptional<{ id: string }>(
+            `SELECT id FROM (${WORKSPACES}) workspaces WHERE organization_id = ? AND slug = ? LIMIT 1`,
+            [organizationId, input.slug]
           );
-        }
-        if (input.parentId) {
-          const parent = await requireResourceRow(
-            database,
-            workspaceId,
-            input.parentId,
-            read,
-            workspace.snapshot,
-          );
-          assertExpectedResourceTypeId(
-            parent.resource_type_id,
-            request?.expectedParentResourceTypeId,
-          );
-        }
-        const tables = resolveWorkspaceScopedTables(workspace.row.visibility);
-        const id = createId("res");
-        const resourceTypeId = input.resourceTypeId;
-        const now = new Date().toISOString();
-        const position =
-          input.position ??
-          ((
-            await database.getOptional<{ value: number | null }>(
-              `SELECT MAX(position) AS value FROM ${tables.workspaceResources} WHERE workspace_id = ? AND parent_id IS ?`,
-              [workspaceId, input.parentId ?? null],
-            )
-          )?.value ?? -1) + 1;
-        await database.execute(
-          `INSERT INTO ${tables.workspaceResources} (id, workspace_id, name, icon, position, parent_id, resource_type_id, schema_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            id,
-            workspaceId,
-            input.name,
-            input.icon ?? null,
-            position,
-            input.parentId ?? null,
-            resourceTypeId,
-            input.schemaVersion,
-            now,
-            now,
-          ],
-        );
-        const storage: WorkspaceResource["storage"] = {};
-        let yjsBackingId: string | null = null;
-        for (const [name, definition] of Object.entries(input.storage)) {
-          const storageId = createId("storage");
-          const backingId =
-            definition.kind === "yjs"
-              ? createId("yjs")
-              : definition.kind === "file"
-                ? createId("file")
-                : null;
-          if (definition.kind === "yjs") {
-            if (name === "content") yjsBackingId = backingId;
-            await database.execute(
-              `INSERT INTO ${tables.yjsDocuments} (id, workspace_id, created_at, updated_at) VALUES (?, ?, ?, ?)`,
-              [backingId, workspaceId, now, now],
+          if (duplicate) {
+            throw localError(
+              "WORKSPACE_SLUG_CONFLICT",
+              "Workspace slug already exists",
+              409
             );
           }
+          const id = createId("workspace");
+          const now = new Date().toISOString();
+          const table = resolveWorkspaceScopedTables(visibility).workspaces;
           await database.execute(
-            `INSERT INTO ${tables.workspaceStorageSlots} (id, workspace_id, resource_id, plugin_id, name, kind, backing_id, metadata, created_at, updated_at) VALUES (?, ?, ?, NULL, ?, ?, ?, NULL, ?, ?)`,
-            [storageId, workspaceId, id, name, definition.kind, backingId, now, now],
+            `INSERT INTO ${table} (id, name, slug, organization_id, visibility, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [id, input.name, input.slug, organizationId, visibility, now, now]
           );
-          storage[name] = { kind: definition.kind, storageId };
+          const row: WorkspaceRow = {
+            created_at: now,
+            id,
+            name: input.name,
+            organization_id: organizationId,
+            slug: input.slug,
+            updated_at: now,
+            visibility,
+          };
+          return {
+            ...toWorkspace(row),
+            provenance: contentProvenance(row.visibility, now, snapshot),
+          };
         }
-        const row: ResourceRow = {
-          created_at: now,
-          icon: input.icon ?? null,
-          id,
-          name: input.name,
-          parent_id: input.parentId ?? null,
-          resource_type_id: resourceTypeId,
-          schema_version: input.schemaVersion,
-          storage: JSON.stringify(storage),
-          position,
-          workspace_id: workspaceId,
-          updated_at: now,
-          yjs_backing_id: yjsBackingId,
-        };
-        await recordActivity(database, { resourceId: id }, now);
-        const item = toResource(row);
-        return {
-          ...item,
-          provenance: contentProvenance(
-            workspace.row.visibility,
-            item.updatedAt,
-            workspace.snapshot,
-          ),
-        };
-      });
+      );
+    },
+    async createWorkspaceResource(organizationId, workspaceId, input, request) {
+      return safety.idempotent(
+        "create_resource",
+        request?.idempotencyKey,
+        {
+          expectedParentResourceTypeId: request?.expectedParentResourceTypeId,
+          input,
+          workspaceId,
+          organizationId,
+        },
+        async (database) => {
+          const read = mutationReadOptions(request);
+          const workspace = await requireWorkspace(
+            organizationId,
+            workspaceId,
+            read,
+            database
+          );
+          if (request?.expectedParentResourceTypeId && !input.parentId) {
+            throw localError(
+              "RESOURCE_NOT_FOUND",
+              "Parent workspace resource not found",
+              404
+            );
+          }
+          if (input.parentId) {
+            const parent = await requireResourceRow(
+              database,
+              workspaceId,
+              input.parentId,
+              read,
+              workspace.snapshot
+            );
+            assertExpectedResourceTypeId(
+              parent.resource_type_id,
+              request?.expectedParentResourceTypeId
+            );
+          }
+          const tables = resolveWorkspaceScopedTables(workspace.row.visibility);
+          const id = createId("res");
+          const resourceTypeId = input.resourceTypeId;
+          const now = new Date().toISOString();
+          const position =
+            input.position ??
+            ((
+              await database.getOptional<{ value: number | null }>(
+                `SELECT MAX(position) AS value FROM ${tables.workspaceResources} WHERE workspace_id = ? AND parent_id IS ?`,
+                [workspaceId, input.parentId ?? null]
+              )
+            )?.value ?? -1) + 1;
+          await database.execute(
+            `INSERT INTO ${tables.workspaceResources} (id, workspace_id, name, icon, position, parent_id, resource_type_id, schema_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              id,
+              workspaceId,
+              input.name,
+              input.icon ?? null,
+              position,
+              input.parentId ?? null,
+              resourceTypeId,
+              input.schemaVersion,
+              now,
+              now,
+            ]
+          );
+          const storage: WorkspaceResource["storage"] = {};
+          let yjsBackingId: string | null = null;
+          for (const [name, definition] of Object.entries(input.storage)) {
+            const storageId = createId("storage");
+            const backingId =
+              definition.kind === "yjs"
+                ? createId("yjs")
+                : definition.kind === "file"
+                  ? createId("file")
+                  : null;
+            if (definition.kind === "yjs") {
+              if (name === "content") {
+                yjsBackingId = backingId;
+              }
+              await database.execute(
+                `INSERT INTO ${tables.yjsDocuments} (id, workspace_id, created_at, updated_at) VALUES (?, ?, ?, ?)`,
+                [backingId, workspaceId, now, now]
+              );
+            }
+            await database.execute(
+              `INSERT INTO ${tables.workspaceStorageSlots} (id, workspace_id, resource_id, plugin_id, name, kind, backing_id, metadata, created_at, updated_at) VALUES (?, ?, ?, NULL, ?, ?, ?, NULL, ?, ?)`,
+              [
+                storageId,
+                workspaceId,
+                id,
+                name,
+                definition.kind,
+                backingId,
+                now,
+                now,
+              ]
+            );
+            storage[name] = { kind: definition.kind, storageId };
+          }
+          const row: ResourceRow = {
+            created_at: now,
+            icon: input.icon ?? null,
+            id,
+            name: input.name,
+            parent_id: input.parentId ?? null,
+            resource_type_id: resourceTypeId,
+            schema_version: input.schemaVersion,
+            storage: JSON.stringify(storage),
+            position,
+            workspace_id: workspaceId,
+            updated_at: now,
+            yjs_backing_id: yjsBackingId,
+          };
+          await recordActivity(database, { resourceId: id }, now);
+          const item = toResource(row);
+          return {
+            ...item,
+            provenance: contentProvenance(
+              workspace.row.visibility,
+              item.updatedAt,
+              workspace.snapshot
+            ),
+          };
+        }
+      );
     },
     async deleteWorkspace(organizationId, workspaceId, previewToken, request) {
-      return safety.idempotent("delete_workspace", request?.idempotencyKey, {
-        previewToken,
-        workspaceId,
-        organizationId,
-      }, async (database) => {
-        const workspace = await requireWorkspace(
-          organizationId,
-          workspaceId,
-          mutationReadOptions(request),
-          database,
-        );
-        const tables = resolveWorkspaceScopedTables(workspace.row.visibility);
-        const state = await workspacePreviewState(
-          database,
-          workspace.row.visibility,
-          workspaceId,
-        );
-        await safety.consumePreview(
-          database,
+      return safety.idempotent(
+        "delete_workspace",
+        request?.idempotencyKey,
+        {
           previewToken,
-          "delete_workspace",
-          organizationId,
           workspaceId,
-          state.fingerprint,
-        );
-        await database.execute(`DELETE FROM ${tables.workspaceStorageValues} WHERE workspace_id = ?`, [workspaceId]);
-        await database.execute(`DELETE FROM ${tables.workspaceStorageSlots} WHERE workspace_id = ?`, [workspaceId]);
-        await database.execute(`DELETE FROM ${tables.workspaceExtensions} WHERE workspace_id = ?`, [workspaceId]);
-        await database.execute(
-          `DELETE FROM ${tables.workspaceResources} WHERE workspace_id = ?`,
-          [workspaceId],
-        );
-        await database.execute(`DELETE FROM ${tables.yjsDocumentUpdates} WHERE workspace_id = ?`, [workspaceId]);
-        await database.execute(`DELETE FROM ${tables.yjsDocuments} WHERE workspace_id = ?`, [workspaceId]);
-        await database.execute(
-          `DELETE FROM ${tables.workspaces} WHERE id = ?`,
-          [workspaceId],
-        );
-        return { id: workspaceId };
-      });
+          organizationId,
+        },
+        async (database) => {
+          const workspace = await requireWorkspace(
+            organizationId,
+            workspaceId,
+            mutationReadOptions(request),
+            database
+          );
+          const tables = resolveWorkspaceScopedTables(workspace.row.visibility);
+          const state = await workspacePreviewState(
+            database,
+            workspace.row.visibility,
+            workspaceId
+          );
+          await safety.consumePreview(
+            database,
+            previewToken,
+            "delete_workspace",
+            organizationId,
+            workspaceId,
+            state.fingerprint
+          );
+          await database.execute(
+            `DELETE FROM ${tables.workspaceStorageValues} WHERE workspace_id = ?`,
+            [workspaceId]
+          );
+          await database.execute(
+            `DELETE FROM ${tables.workspaceStorageSlots} WHERE workspace_id = ?`,
+            [workspaceId]
+          );
+          await database.execute(
+            `DELETE FROM ${tables.workspaceExtensions} WHERE workspace_id = ?`,
+            [workspaceId]
+          );
+          await database.execute(
+            `DELETE FROM ${tables.workspaceResources} WHERE workspace_id = ?`,
+            [workspaceId]
+          );
+          await database.execute(
+            `DELETE FROM ${tables.yjsDocumentUpdates} WHERE workspace_id = ?`,
+            [workspaceId]
+          );
+          await database.execute(
+            `DELETE FROM ${tables.yjsDocuments} WHERE workspace_id = ?`,
+            [workspaceId]
+          );
+          await database.execute(
+            `DELETE FROM ${tables.workspaces} WHERE id = ?`,
+            [workspaceId]
+          );
+          return { id: workspaceId };
+        }
+      );
     },
     async deleteWorkspaceResource(
       organizationId,
       workspaceId,
       resourceId,
       previewToken,
-      request,
+      request
     ) {
-      return safety.idempotent("delete_resource", request?.idempotencyKey, {
-        expectedResourceTypeId: request?.expectedResourceTypeId,
-        resourceId,
-        previewToken,
-        workspaceId,
-        organizationId,
-      }, async (database) => {
-        const read = mutationReadOptions(request);
-        const workspace = await requireWorkspace(
-          organizationId,
-          workspaceId,
-          read,
-          database,
-        );
-        const item = await requireResourceRow(
-          database,
-          workspaceId,
+      return safety.idempotent(
+        "delete_resource",
+        request?.idempotencyKey,
+        {
+          expectedResourceTypeId: request?.expectedResourceTypeId,
           resourceId,
-          read,
-          workspace.snapshot,
-        );
-        assertExpectedResourceTypeId(item.resource_type_id, request?.expectedResourceTypeId);
-        const tables = resolveWorkspaceScopedTables(workspace.row.visibility);
-        const state = await itemPreviewState(
-          database,
-          workspace.row.visibility,
-          workspaceId,
-          resourceId,
-        );
-        await safety.consumePreview(
-          database,
           previewToken,
-          "delete_resource",
+          workspaceId,
           organizationId,
-          resourceId,
-          state.fingerprint,
-        );
-        const descendants = await database.getAll<{ id: string }>(
-          `WITH RECURSIVE descendants(id, depth) AS (
+        },
+        async (database) => {
+          const read = mutationReadOptions(request);
+          const workspace = await requireWorkspace(
+            organizationId,
+            workspaceId,
+            read,
+            database
+          );
+          const item = await requireResourceRow(
+            database,
+            workspaceId,
+            resourceId,
+            read,
+            workspace.snapshot
+          );
+          assertExpectedResourceTypeId(
+            item.resource_type_id,
+            request?.expectedResourceTypeId
+          );
+          const tables = resolveWorkspaceScopedTables(workspace.row.visibility);
+          const state = await itemPreviewState(
+            database,
+            workspace.row.visibility,
+            workspaceId,
+            resourceId
+          );
+          await safety.consumePreview(
+            database,
+            previewToken,
+            "delete_resource",
+            organizationId,
+            resourceId,
+            state.fingerprint
+          );
+          const descendants = await database.getAll<{ id: string }>(
+            `WITH RECURSIVE descendants(id, depth) AS (
                SELECT id, 0 FROM ${tables.workspaceResources} WHERE id = ? AND workspace_id = ?
                UNION ALL
                SELECT child.id, parent.depth + 1 FROM ${tables.workspaceResources} child
                JOIN descendants parent ON child.parent_id = parent.id
              ) SELECT id FROM descendants ORDER BY depth DESC, id ASC`,
-          [resourceId, workspaceId],
-        );
-        await recordActivity(database, { resourceId });
-        const descendantIds = descendants.map((row) => row.id);
-        const trashedAt = new Date().toISOString();
-        const purgeAt = new Date(
-          Date.parse(trashedAt) + 30 * 24 * 60 * 60 * 1000,
-        ).toISOString();
-        for (const id of descendantIds) {
-          const updated = await database.execute(
-            `UPDATE ${tables.workspaceResourceTrash}
+            [resourceId, workspaceId]
+          );
+          await recordActivity(database, { resourceId });
+          const descendantIds = descendants.map((row) => row.id);
+          const trashedAt = new Date().toISOString();
+          const purgeAt = new Date(
+            Date.parse(trashedAt) + 30 * 24 * 60 * 60 * 1000
+          ).toISOString();
+          for (const id of descendantIds) {
+            const updated = await database.execute(
+              `UPDATE ${tables.workspaceResourceTrash}
              SET workspace_id = ?, trash_root_id = ?, trashed_at = ?, purge_at = ?
              WHERE id = ?`,
-            [workspaceId, resourceId, trashedAt, purgeAt, id],
-          );
-          if ((updated.rowsAffected ?? 0) === 0) {
-            await database.execute(
-              `INSERT INTO ${tables.workspaceResourceTrash}
+              [workspaceId, resourceId, trashedAt, purgeAt, id]
+            );
+            if ((updated.rowsAffected ?? 0) === 0) {
+              await database.execute(
+                `INSERT INTO ${tables.workspaceResourceTrash}
                (id, workspace_id, trash_root_id, trashed_at, purge_at)
                VALUES (?, ?, ?, ?, ?)`,
-              [id, workspaceId, resourceId, trashedAt, purgeAt],
-            );
+                [id, workspaceId, resourceId, trashedAt, purgeAt]
+              );
+            }
           }
+          return { id: resourceId };
         }
-        return { id: resourceId };
-      });
+      );
     },
     async executePluginOperation(
       organizationId,
@@ -1620,7 +1694,7 @@ export function createDeviceControlClient(
       pluginId,
       operation,
       operationInput,
-      request,
+      request
     ) {
       if (pluginId === KANBAN_PLUGIN_ID) {
         if (operation === "get_board_properties") {
@@ -1628,7 +1702,7 @@ export function createDeviceControlClient(
             organizationId,
             workspaceId,
             operationInput,
-            request,
+            request
           );
         }
         if (operation === "create_task") {
@@ -1636,7 +1710,7 @@ export function createDeviceControlClient(
             organizationId,
             workspaceId,
             operationInput,
-            request,
+            request
           );
         }
         if (operation === "update_task") {
@@ -1644,7 +1718,7 @@ export function createDeviceControlClient(
             organizationId,
             workspaceId,
             operationInput,
-            request,
+            request
           );
         }
       }
@@ -1654,7 +1728,7 @@ export function createDeviceControlClient(
             organizationId,
             workspaceId,
             operationInput,
-            request,
+            request
           );
         }
         if (operation === "get_document") {
@@ -1662,7 +1736,7 @@ export function createDeviceControlClient(
             organizationId,
             workspaceId,
             operationInput,
-            request,
+            request
           );
         }
         if (operation === "update_document") {
@@ -1670,14 +1744,14 @@ export function createDeviceControlClient(
             organizationId,
             workspaceId,
             operationInput,
-            request,
+            request
           );
         }
       }
       throw localError(
         "PLUGIN_OPERATION_NOT_FOUND",
         "Built-in extension operation not found",
-        404,
+        404
       );
     },
     async getYjsStorageState(
@@ -1685,7 +1759,7 @@ export function createDeviceControlClient(
       workspaceId,
       storageId,
       stateVectorB64,
-      request,
+      request
     ) {
       const storage = await resolveStorageSlot(
         db,
@@ -1694,13 +1768,13 @@ export function createDeviceControlClient(
         storageId,
         "yjs",
         request,
-        options,
+        options
       );
       const json = await content.getYjsStorageJson(
         organizationId,
         workspaceId,
         storageId,
-        request,
+        request
       );
       const updates = await getYjsDocumentUpdates(db, storage.backing_id!);
       const doc = new Doc();
@@ -1722,13 +1796,12 @@ export function createDeviceControlClient(
         doc.destroy();
       }
     },
-    async getFileDownloadUrl(
-      organizationId,
-      workspaceId,
-      storageId,
-      request,
-    ) {
-      const workspace = await requireWorkspace(organizationId, workspaceId, request);
+    async getFileDownloadUrl(organizationId, workspaceId, storageId, request) {
+      const workspace = await requireWorkspace(
+        organizationId,
+        workspaceId,
+        request
+      );
       const slot = await resolveStorageSlot(
         db,
         organizationId,
@@ -1736,7 +1809,7 @@ export function createDeviceControlClient(
         storageId,
         "file",
         request,
-        options,
+        options
       );
       const metadata = parseStorageMetadata(slot.metadata);
       const storedFile = await db.getOptional<{
@@ -1746,21 +1819,29 @@ export function createDeviceControlClient(
       }>(
         `SELECT filename, local_uri, media_type FROM attachments
          WHERE id = ? AND json_extract(meta_data, '$.workspaceId') = ? LIMIT 1`,
-        [slot.backing_id, workspaceId],
+        [slot.backing_id, workspaceId]
       );
       if (!storedFile?.local_uri) {
         throw localError(
           "INCOMPLETE_SYNC",
           "Cached file bytes are unavailable",
-          409,
+          409
         );
       }
-      const storage = new IndexedDbFileStorageAdapter(getFileStorageDatabaseName(workspaceId));
+      const storage = new IndexedDbFileStorageAdapter(
+        getFileStorageDatabaseName(workspaceId)
+      );
       try {
         const blob = await storage.readBlob(storedFile.local_uri);
         // The existing desktop agent bridge caps cached downloads at 25 MB.
         // Check before allocating its legacy base64 response buffer.
-        if (blob.size > 25_000_000) throw localError("RESPONSE_TOO_LARGE", "Cached attachment exceeds the size limit", 413);
+        if (blob.size > 25_000_000) {
+          throw localError(
+            "RESPONSE_TOO_LARGE",
+            "Cached attachment exceeds the size limit",
+            413
+          );
+        }
         const bytes = await blob.arrayBuffer();
         return {
           $download: {
@@ -1774,27 +1855,32 @@ export function createDeviceControlClient(
           provenance: contentProvenance(
             workspace.row.visibility,
             new Date().toISOString(),
-            workspace.snapshot,
+            workspace.snapshot
           ),
         } as unknown as { downloadUrl: string };
       } catch (error) {
-        if (error instanceof Error && "code" in error && error.code === "RESPONSE_TOO_LARGE") throw error;
+        if (
+          error instanceof Error &&
+          "code" in error &&
+          error.code === "RESPONSE_TOO_LARGE"
+        ) {
+          throw error;
+        }
         throw localError(
           "INCOMPLETE_SYNC",
           "Cached attachment bytes are unavailable",
-          409,
+          409
         );
       } finally {
         await storage.close();
       }
     },
-    async listKeyValueStorage(
-      organizationId,
-      workspaceId,
-      storageId,
-      request,
-    ) {
-      const workspace = await requireWorkspace(organizationId, workspaceId, request);
+    async listKeyValueStorage(organizationId, workspaceId, storageId, request) {
+      const workspace = await requireWorkspace(
+        organizationId,
+        workspaceId,
+        request
+      );
       const slot = await resolveStorageSlot(
         db,
         organizationId,
@@ -1802,7 +1888,7 @@ export function createDeviceControlClient(
         storageId,
         "key-value",
         request,
-        options,
+        options
       );
       const rows = await db.getAll<{
         key: string;
@@ -1811,7 +1897,7 @@ export function createDeviceControlClient(
       }>(
         `SELECT key, value, updated_at FROM (${STORAGE_VALUES})
          WHERE workspace_id = ? AND storage_id = ? ORDER BY key ASC`,
-        [workspaceId, storageId],
+        [workspaceId, storageId]
       );
       return {
         items: rows.map((row) => ({
@@ -1823,20 +1909,24 @@ export function createDeviceControlClient(
           workspace.row.visibility,
           rows.reduce(
             (latest, row) => latestTimestamp(latest, row.updated_at),
-            workspace.row.updated_at,
+            workspace.row.updated_at
           ),
-          workspace.snapshot,
+          workspace.snapshot
         ),
         resourceId: slot.resource_id!,
         storageId,
       };
     },
     async getOrganization(organizationId) {
-      const organization = options.organizations?.().find(
-        (candidate) => candidate.id === organizationId,
-      );
+      const organization = options
+        .organizations?.()
+        .find((candidate) => candidate.id === organizationId);
       if (!organization) {
-        throw localError("ORGANIZATION_NOT_FOUND", "Organization not cached", 404);
+        throw localError(
+          "ORGANIZATION_NOT_FOUND",
+          "Organization not cached",
+          404
+        );
       }
       return { ...organization, provenance: organizationProvenance() };
     },
@@ -1845,8 +1935,7 @@ export function createDeviceControlClient(
     async listOrganizations(input = {}) {
       const organizations = [...(options.organizations?.() ?? [])].sort(
         (left, right) =>
-          left.name.localeCompare(right.name) ||
-          left.id.localeCompare(right.id),
+          left.name.localeCompare(right.name) || left.id.localeCompare(right.id)
       );
       return page(
         organizations,
@@ -1855,36 +1944,45 @@ export function createDeviceControlClient(
           ...organization,
           provenance: organizationProvenance(),
         }),
-        options.organizationSnapshot?.(),
+        options.organizationSnapshot?.()
       );
     },
     async previewDeleteWorkspace(organizationId, workspaceId, request) {
       const workspace = await requireWorkspace(
         organizationId,
         workspaceId,
-        mutationReadOptions(request),
+        mutationReadOptions(request)
       );
       const state = await workspacePreviewState(
         db,
         workspace.row.visibility,
-        workspaceId,
+        workspaceId
       );
       return safety.preview(
         "delete_workspace",
         organizationId,
         workspaceId,
         state.impact,
-        state.fingerprint,
+        state.fingerprint
       );
     },
-    async previewDeleteWorkspaceResource(organizationId, workspaceId, resourceId, request) {
+    async previewDeleteWorkspaceResource(
+      organizationId,
+      workspaceId,
+      resourceId,
+      request
+    ) {
       const read = mutationReadOptions(request);
-      const workspace = await requireWorkspace(organizationId, workspaceId, read);
+      const workspace = await requireWorkspace(
+        organizationId,
+        workspaceId,
+        read
+      );
       const item = await content.getWorkspaceResource(
         organizationId,
         workspaceId,
         resourceId,
-        read,
+        read
       );
       assertExpectedResourceTypeId(
         item.resourceTypeId,
@@ -1894,174 +1992,175 @@ export function createDeviceControlClient(
         db,
         workspace.row.visibility,
         workspaceId,
-        resourceId,
+        resourceId
       );
       return safety.preview(
         "delete_resource",
         organizationId,
         resourceId,
         state.impact,
-        state.fingerprint,
+        state.fingerprint
       );
     },
     previewRemoveOrganizationMember: cloudRequired,
     removeOrganizationMember: cloudRequired,
     async updateWorkspace(organizationId, workspaceId, input, request) {
-      return safety.idempotent("update_workspace", request?.idempotencyKey, {
-        input,
-        workspaceId,
-        organizationId,
-      }, async (database) => {
-        const read = mutationReadOptions(request);
-        const workspace = await requireWorkspace(
-          organizationId,
+      return safety.idempotent(
+        "update_workspace",
+        request?.idempotencyKey,
+        {
+          input,
           workspaceId,
-          read,
-          database,
-        );
-        requireRevision(workspace.row.updated_at, input.expectedRevision);
-        const table = resolveWorkspaceScopedTables(
-          workspace.row.visibility,
-        ).workspaces;
-        const now = new Date().toISOString();
-        if (input.slug && input.slug !== workspace.row.slug) {
-          const duplicate = await database.getOptional<{ id: string }>(
-            `SELECT id FROM (${WORKSPACES}) workspaces
-               WHERE organization_id = ? AND slug = ? AND id <> ? LIMIT 1`,
-            [organizationId, input.slug, workspaceId],
+          organizationId,
+        },
+        async (database) => {
+          const read = mutationReadOptions(request);
+          const workspace = await requireWorkspace(
+            organizationId,
+            workspaceId,
+            read,
+            database
           );
-          if (duplicate) {
-            throw localError(
-              "WORKSPACE_SLUG_CONFLICT",
-              "Workspace slug already exists",
-              409,
+          requireRevision(workspace.row.updated_at, input.expectedRevision);
+          const table = resolveWorkspaceScopedTables(
+            workspace.row.visibility
+          ).workspaces;
+          const now = new Date().toISOString();
+          if (input.slug && input.slug !== workspace.row.slug) {
+            const duplicate = await database.getOptional<{ id: string }>(
+              `SELECT id FROM (${WORKSPACES}) workspaces
+               WHERE organization_id = ? AND slug = ? AND id <> ? LIMIT 1`,
+              [organizationId, input.slug, workspaceId]
             );
+            if (duplicate) {
+              throw localError(
+                "WORKSPACE_SLUG_CONFLICT",
+                "Workspace slug already exists",
+                409
+              );
+            }
           }
+          const row: WorkspaceRow = {
+            ...workspace.row,
+            name: input.name ?? workspace.row.name,
+            slug: input.slug ?? workspace.row.slug,
+            updated_at: now,
+          };
+          await database.execute(
+            `UPDATE ${table} SET name = ?, slug = ?, updated_at = ? WHERE id = ?`,
+            [row.name, row.slug, now, workspaceId]
+          );
+          return {
+            ...toWorkspace(row),
+            provenance: contentProvenance(
+              row.visibility,
+              now,
+              workspace.snapshot
+            ),
+          };
         }
-        const row: WorkspaceRow = {
-          ...workspace.row,
-          name: input.name ?? workspace.row.name,
-          slug: input.slug ?? workspace.row.slug,
-          updated_at: now,
-        };
-        await database.execute(
-          `UPDATE ${table} SET name = ?, slug = ?, updated_at = ? WHERE id = ?`,
-          [row.name, row.slug, now, workspaceId],
-        );
-        return {
-          ...toWorkspace(row),
-          provenance: contentProvenance(
-            row.visibility,
-            now,
-            workspace.snapshot,
-          ),
-        };
-      });
+      );
     },
     async updateWorkspaceResource(
       organizationId,
       workspaceId,
       resourceId,
       input,
-      request,
+      request
     ) {
-      return safety.idempotent("update_resource", request?.idempotencyKey, {
-        input,
-        resourceId,
-        workspaceId,
-        organizationId,
-      }, async (database) => {
-        const read = mutationReadOptions(request);
-        const workspace = await requireWorkspace(
-          organizationId,
-          workspaceId,
-          read,
-          database,
-        );
-        const item = await requireResourceRow(
-          database,
-          workspaceId,
+      return safety.idempotent(
+        "update_resource",
+        request?.idempotencyKey,
+        {
+          input,
           resourceId,
-          read,
-          workspace.snapshot,
-        );
-        requireRevision(item.updated_at, input.expectedRevision);
-        if (input.parentId) {
-          if (input.parentId === resourceId) {
-            throw localError(
-              "INVALID_PARENT",
-              "A workspace resource cannot be its own parent",
-              400,
-            );
-          }
-          await requireResourceRow(
+          workspaceId,
+          organizationId,
+        },
+        async (database) => {
+          const read = mutationReadOptions(request);
+          const workspace = await requireWorkspace(
+            organizationId,
+            workspaceId,
+            read,
+            database
+          );
+          const item = await requireResourceRow(
             database,
             workspaceId,
-            input.parentId,
+            resourceId,
             read,
-            workspace.snapshot,
+            workspace.snapshot
           );
-          const descendant = await database.getOptional<{ id: string }>(
-            `WITH RECURSIVE descendants(id) AS (
+          requireRevision(item.updated_at, input.expectedRevision);
+          if (input.parentId) {
+            if (input.parentId === resourceId) {
+              throw localError(
+                "INVALID_PARENT",
+                "A workspace resource cannot be its own parent",
+                400
+              );
+            }
+            await requireResourceRow(
+              database,
+              workspaceId,
+              input.parentId,
+              read,
+              workspace.snapshot
+            );
+            const descendant = await database.getOptional<{ id: string }>(
+              `WITH RECURSIVE descendants(id) AS (
                SELECT id FROM ${resolveWorkspaceScopedTables(workspace.row.visibility).workspaceResources} WHERE parent_id = ?
                UNION ALL
                SELECT child.id FROM ${resolveWorkspaceScopedTables(workspace.row.visibility).workspaceResources} child
                JOIN descendants parent ON child.parent_id = parent.id
              ) SELECT id FROM descendants WHERE id = ? LIMIT 1`,
-            [resourceId, input.parentId],
-          );
-          if (descendant) {
-            throw localError(
-              "INVALID_PARENT",
-              "A workspace resource cannot move below its descendant",
-              400,
+              [resourceId, input.parentId]
             );
+            if (descendant) {
+              throw localError(
+                "INVALID_PARENT",
+                "A workspace resource cannot move below its descendant",
+                400
+              );
+            }
           }
+          const table = resolveWorkspaceScopedTables(
+            workspace.row.visibility
+          ).workspaceResources;
+          const now = new Date().toISOString();
+          await recordActivity(database, { resourceId }, now);
+          const row: ResourceRow = {
+            ...item,
+            icon: input.icon === undefined ? item.icon : input.icon,
+            name: input.name ?? item.name,
+            parent_id:
+              input.parentId === undefined ? item.parent_id : input.parentId,
+            position: input.position ?? item.position,
+            updated_at: now,
+          };
+          await database.execute(
+            `UPDATE ${table} SET name = ?, icon = ?, parent_id = ?, position = ?, updated_at = ? WHERE id = ?`,
+            [row.name, row.icon, row.parent_id, row.position, now, resourceId]
+          );
+          await recordActivity(database, { resourceId }, now);
+          const result = toResource(row);
+          return {
+            ...result,
+            provenance: contentProvenance(
+              workspace.row.visibility,
+              result.updatedAt,
+              workspace.snapshot
+            ),
+          };
         }
-        const table = resolveWorkspaceScopedTables(
-          workspace.row.visibility,
-        ).workspaceResources;
-        const now = new Date().toISOString();
-        await recordActivity(database, { resourceId }, now);
-        const row: ResourceRow = {
-          ...item,
-          icon: input.icon === undefined ? item.icon : input.icon,
-          name: input.name ?? item.name,
-          parent_id:
-            input.parentId === undefined ? item.parent_id : input.parentId,
-          position: input.position ?? item.position,
-          updated_at: now,
-        };
-        await database.execute(
-          `UPDATE ${table} SET name = ?, icon = ?, parent_id = ?, position = ?, updated_at = ? WHERE id = ?`,
-          [
-            row.name,
-            row.icon,
-            row.parent_id,
-            row.position,
-            now,
-            resourceId,
-          ],
-        );
-        await recordActivity(database, { resourceId }, now);
-        const result = toResource(row);
-        return {
-          ...result,
-          provenance: contentProvenance(
-            workspace.row.visibility,
-            result.updatedAt,
-            workspace.snapshot,
-          ),
-        };
-      });
+      );
     },
     updateOrganization: cloudRequired,
   };
 }
 
-function isPendingContentTable(
-  value: string,
-): value is PendingContentTable {
+function isPendingContentTable(value: string): value is PendingContentTable {
   return [
     "workspace_resources",
     "workspace_storage_slots",
@@ -2123,7 +2222,9 @@ function parseResourceStorage(value: string): WorkspaceResource["storage"] {
 }
 
 function parseStorageMetadata(value: string | null): Record<string, unknown> {
-  if (!value) return {};
+  if (!value) {
+    return {};
+  }
   try {
     const parsed = JSON.parse(value) as unknown;
     return parsed && typeof parsed === "object" && !Array.isArray(parsed)
@@ -2141,26 +2242,26 @@ async function resolveStorageSlot(
   storageId: string,
   kind: StorageSlotRow["kind"],
   request: ContentRequestOptions | undefined,
-  options: DeviceContentServiceOptions,
+  options: DeviceContentServiceOptions
 ) {
   requireCachedOrganization(options, organizationId);
   const workspace = await database.getOptional<{ id: string }>(
     `SELECT id FROM (${WORKSPACES}) WHERE id = ? AND organization_id = ? LIMIT 1`,
-    [workspaceId, organizationId],
+    [workspaceId, organizationId]
   );
   const slot = workspace
     ? await database.getOptional<StorageSlotRow>(
         `SELECT * FROM (${STORAGE_SLOTS})
          WHERE id = ? AND workspace_id = ? AND kind = ? AND resource_id IS NOT NULL
          LIMIT 1`,
-        [storageId, workspaceId, kind],
+        [storageId, workspaceId, kind]
       )
     : null;
   if (!slot?.resource_id || (kind !== "key-value" && !slot.backing_id)) {
     throw localError(
       "STORAGE_NOT_FOUND",
       `${kind} storage not found${request?.consistency === "cached" ? " in cache" : ""}`,
-      404,
+      404
     );
   }
   return slot;
@@ -2168,14 +2269,14 @@ async function resolveStorageSlot(
 
 function withWorkspaceProvenance(
   workspace: Workspace,
-  snapshot: ContentSnapshot,
+  snapshot: ContentSnapshot
 ): Workspace {
   return {
     ...workspace,
     provenance: contentProvenance(
       workspace.visibility,
       workspace.updatedAt,
-      snapshot,
+      snapshot
     ),
   };
 }
@@ -2183,7 +2284,7 @@ function withWorkspaceProvenance(
 function contentProvenance(
   visibility: Workspace["visibility"],
   asOf: string,
-  snapshot: ContentSnapshot,
+  snapshot: ContentSnapshot
 ): ContentProvenance {
   return {
     asOf,
@@ -2197,20 +2298,20 @@ async function requireResourceRow(
   workspaceId: string,
   resourceId: string,
   request: ContentRequestOptions | undefined,
-  snapshot: ContentSnapshot,
+  snapshot: ContentSnapshot
 ) {
   const item = await database.getOptional<ResourceRow>(
     `SELECT * FROM (${RESOURCES}) items
      WHERE id = ? AND workspace_id = ?
      LIMIT 1`,
-    [resourceId, workspaceId],
+    [resourceId, workspaceId]
   );
   if (!item) {
     throw missingReadError(
       "RESOURCE_NOT_FOUND",
       "Workspace resource not found",
       request,
-      snapshot,
+      snapshot
     );
   }
   return item;
@@ -2218,7 +2319,7 @@ async function requireResourceRow(
 
 function assertExpectedResourceTypeId(
   actualPluginId: string | null,
-  expectedResourceTypeId: string | undefined,
+  expectedResourceTypeId: string | undefined
 ) {
   if (
     expectedResourceTypeId !== undefined &&
@@ -2232,7 +2333,7 @@ function page<T, R = T>(
   values: T[],
   input: PaginationInput,
   map: (value: T) => R = (value) => value as unknown as R,
-  snapshot?: ContentSnapshot,
+  snapshot?: ContentSnapshot
 ): Page<R> {
   const offset = decodeCursor(input.cursor)?.offset ?? 0;
   const limit = input.limit ?? 50;
@@ -2250,20 +2351,19 @@ function encodeCursor(value: { offset: number }) {
   return btoa(JSON.stringify(value))
     .replaceAll("+", "-")
     .replaceAll("/", "_")
-    .replace(/=+$/u, "");
+    .replace(/[=]+$/u, "");
 }
 
 function decodeCursor(cursor?: string) {
-  if (!cursor) return undefined;
+  if (!cursor) {
+    return;
+  }
   try {
     const normalized = cursor.replaceAll("-", "+").replaceAll("_", "/");
     const parsed = JSON.parse(atob(normalized)) as {
       offset?: unknown;
     };
-    if (
-      !Number.isInteger(parsed.offset) ||
-      (parsed.offset as number) < 0
-    ) {
+    if (!Number.isInteger(parsed.offset) || (parsed.offset as number) < 0) {
       throw new Error("Invalid cursor");
     }
     return {
@@ -2286,7 +2386,7 @@ function missingReadError(
   code: string,
   message: string,
   request: ContentRequestOptions | undefined,
-  snapshot: ContentSnapshot,
+  snapshot: ContentSnapshot
 ) {
   return request?.consistency === "cached" &&
     snapshot.completeness === "partial"
@@ -2308,7 +2408,7 @@ function unknownContentSnapshot(): ContentSnapshot {
 
 function requireCachedOrganization(
   options: DeviceContentServiceOptions,
-  organizationId: string,
+  organizationId: string
 ) {
   const organizations = options.organizations?.();
   if (
@@ -2321,20 +2421,20 @@ function requireCachedOrganization(
 
 function requireActiveCloudOrganization(
   options: DeviceContentServiceOptions,
-  organizationId: string,
+  organizationId: string
 ) {
   if (
     options.activeOrganizationId &&
     options.activeOrganizationId() !== organizationId
   ) {
     throw incompleteSyncError(
-      "Desktop sync is not active for this organization",
+      "Desktop sync is not active for this organization"
     );
   }
 }
 
 function mutationReadOptions(
-  request?: ContentRequestOptions,
+  request?: ContentRequestOptions
 ): ContentRequestOptions {
   return {
     consistency: "cached",
@@ -2345,35 +2445,36 @@ function mutationReadOptions(
 async function workspacePreviewState(
   database: DatabaseOrTx,
   visibility: Workspace["visibility"],
-  workspaceId: string,
+  workspaceId: string
 ) {
   const tables = resolveWorkspaceScopedTables(visibility);
-  const [workspace, items, documents, extensions, slots, values] = await Promise.all([
-    database.getOptional<Record<string, unknown>>(
-      `SELECT * FROM ${tables.workspaces} WHERE id = ? LIMIT 1`,
-      [workspaceId],
-    ),
-    database.getAll<Record<string, unknown>>(
-      `SELECT * FROM ${tables.workspaceResources} WHERE workspace_id = ? ORDER BY id ASC`,
-      [workspaceId],
-    ),
-    database.getAll<Record<string, unknown>>(
-      `SELECT * FROM ${tables.yjsDocuments} WHERE workspace_id = ? ORDER BY id ASC`,
-      [workspaceId],
-    ),
-    database.getAll<Record<string, unknown>>(
-      `SELECT * FROM ${tables.workspaceExtensions} WHERE workspace_id = ? ORDER BY id ASC`,
-      [workspaceId],
-    ),
-    database.getAll<Record<string, unknown>>(
-      `SELECT * FROM ${tables.workspaceStorageSlots} WHERE workspace_id = ? ORDER BY id ASC`,
-      [workspaceId],
-    ),
-    database.getAll<Record<string, unknown>>(
-      `SELECT * FROM ${tables.workspaceStorageValues} WHERE workspace_id = ? ORDER BY id ASC`,
-      [workspaceId],
-    ),
-  ]);
+  const [workspace, items, documents, extensions, slots, values] =
+    await Promise.all([
+      database.getOptional<Record<string, unknown>>(
+        `SELECT * FROM ${tables.workspaces} WHERE id = ? LIMIT 1`,
+        [workspaceId]
+      ),
+      database.getAll<Record<string, unknown>>(
+        `SELECT * FROM ${tables.workspaceResources} WHERE workspace_id = ? ORDER BY id ASC`,
+        [workspaceId]
+      ),
+      database.getAll<Record<string, unknown>>(
+        `SELECT * FROM ${tables.yjsDocuments} WHERE workspace_id = ? ORDER BY id ASC`,
+        [workspaceId]
+      ),
+      database.getAll<Record<string, unknown>>(
+        `SELECT * FROM ${tables.workspaceExtensions} WHERE workspace_id = ? ORDER BY id ASC`,
+        [workspaceId]
+      ),
+      database.getAll<Record<string, unknown>>(
+        `SELECT * FROM ${tables.workspaceStorageSlots} WHERE workspace_id = ? ORDER BY id ASC`,
+        [workspaceId]
+      ),
+      database.getAll<Record<string, unknown>>(
+        `SELECT * FROM ${tables.workspaceStorageValues} WHERE workspace_id = ? ORDER BY id ASC`,
+        [workspaceId]
+      ),
+    ]);
   return {
     fingerprint: await fingerprintValue({
       documents,
@@ -2396,7 +2497,7 @@ async function itemPreviewState(
   database: DatabaseOrTx,
   visibility: Workspace["visibility"],
   workspaceId: string,
-  resourceId: string,
+  resourceId: string
 ) {
   const table = resolveWorkspaceScopedTables(visibility).workspaceResources;
   const descendants = await database.getAll<Record<string, unknown>>(
@@ -2406,7 +2507,7 @@ async function itemPreviewState(
        SELECT child.* FROM ${table} child
        JOIN descendants parent ON child.parent_id = parent.id
      ) SELECT * FROM descendants ORDER BY id ASC`,
-    [resourceId, workspaceId],
+    [resourceId, workspaceId]
   );
   return {
     fingerprint: await fingerprintValue(descendants),

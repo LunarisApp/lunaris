@@ -10,8 +10,9 @@ import { resourceToolDefinitions, resolveResourceTool } from "./tools";
 
 const directories: string[] = [];
 afterEach(() => {
-  for (const directory of directories.splice(0))
+  for (const directory of directories.splice(0)) {
     rmSync(directory, { recursive: true, force: true });
+  }
 });
 function setup() {
   const directory = mkdtempSync(join(tmpdir(), "lunaris-agent-test-"));
@@ -20,7 +21,7 @@ function setup() {
   return {
     directory,
     runtime: new AgentWorkRuntime(directory, (event) =>
-      events.push(runtimeEventSchema.parse(event)),
+      events.push(runtimeEventSchema.parse(event))
     ),
     events,
   };
@@ -45,7 +46,7 @@ describe("Pi runtime", () => {
     const { directory, runtime, events } = setup();
     const manager = SessionManager.create(
       directory,
-      join(directory, "sessions"),
+      join(directory, "sessions")
     );
     manager.appendMessage({
       role: "user",
@@ -138,22 +139,23 @@ describe("resource tools", () => {
     const definitions = resourceToolDefinitions();
     expect(definitions.length).toBeGreaterThan(5);
     expect(definitions.map((tool) => tool.name)).not.toEqual(
-      expect.arrayContaining(["bash"]),
+      expect.arrayContaining(["bash"])
     );
-    for (const tool of definitions)
+    for (const tool of definitions) {
       expect(tool.parameters.properties).not.toHaveProperty("organizationId");
+    }
     expect(() => resolveResourceTool("bash", {}, "org-1")).toThrow(
-      "Unknown resource tool",
+      "Unknown resource tool"
     );
     expect(() =>
-      resolveResourceTool("update_organization", {}, "org-1"),
+      resolveResourceTool("update_organization", {}, "org-1")
     ).toThrow("Unknown resource tool");
   });
   it("pins reads to the active organization and validates input", () => {
     const resolved = resolveResourceTool(
       "list_workspaces",
       { organizationId: "other-org", limit: 10 },
-      "org-1",
+      "org-1"
     );
     expect(resolved).toMatchObject({
       mutation: false,
@@ -165,7 +167,7 @@ describe("resource tools", () => {
     const resolved = resolveResourceTool(
       "rich_text_create_document",
       { workspaceId: "ws-1", name: "Notes", idempotencyKey: "create-notes-1" },
-      "org-1",
+      "org-1"
     );
     expect(resolved.mutation).toBe(true);
     expect(resolved.request.method).toBe("POST");

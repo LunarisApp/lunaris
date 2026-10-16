@@ -91,7 +91,9 @@ function createApiReport(
   const entrypoints = Object.entries(manifest.exports).map(
     ([entrypoint, target]) => {
       const types = typeTarget(target);
-      if (!types) return { entrypoint, runtime: runtimeTarget(target) };
+      if (!types) {
+        return { entrypoint, runtime: runtimeTarget(target) };
+      }
 
       const declarationPath = resolve(packageDirectory, types);
       const program = ts.createProgram([declarationPath], {
@@ -100,7 +102,8 @@ function createApiReport(
         skipLibCheck: true,
       });
       const source = program.getSourceFile(declarationPath);
-      const symbol = source && program.getTypeChecker().getSymbolAtLocation(source);
+      const symbol =
+        source && program.getTypeChecker().getSymbolAtLocation(source);
       const symbols = symbol
         ? program
             .getTypeChecker()
@@ -137,8 +140,13 @@ function validateManifest(
   if (manifest.repository?.directory !== expected.directory) {
     throw new Error(`${manifest.name}: repository.directory is incorrect`);
   }
-  if (JSON.stringify(manifest.files) !== JSON.stringify(["dist", "LICENSE", "README.md"])) {
-    throw new Error(`${manifest.name}: files must contain only dist, LICENSE, README.md`);
+  if (
+    JSON.stringify(manifest.files) !==
+    JSON.stringify(["dist", "LICENSE", "README.md"])
+  ) {
+    throw new Error(
+      `${manifest.name}: files must contain only dist, LICENSE, README.md`
+    );
   }
   if (!existsSync(resolve(packageDirectory, "LICENSE"))) {
     throw new Error(`${manifest.name}: missing package-local LICENSE`);
@@ -147,18 +155,32 @@ function validateManifest(
   for (const [entrypoint, target] of Object.entries(manifest.exports)) {
     const targets = [typeTarget(target), runtimeTarget(target)].filter(Boolean);
     for (const relativeTarget of targets) {
-      if (relativeTarget?.includes("/src/") || relativeTarget?.startsWith("./src")) {
-        throw new Error(`${manifest.name} ${entrypoint}: source export ${relativeTarget}`);
+      if (
+        relativeTarget?.includes("/src/") ||
+        relativeTarget?.startsWith("./src")
+      ) {
+        throw new Error(
+          `${manifest.name} ${entrypoint}: source export ${relativeTarget}`
+        );
       }
-      if (!relativeTarget || !existsSync(resolve(packageDirectory, relativeTarget))) {
-        throw new Error(`${manifest.name} ${entrypoint}: missing ${relativeTarget}`);
+      if (
+        !(
+          relativeTarget &&
+          existsSync(resolve(packageDirectory, relativeTarget))
+        )
+      ) {
+        throw new Error(
+          `${manifest.name} ${entrypoint}: missing ${relativeTarget}`
+        );
       }
     }
   }
 
   const manifestText = JSON.stringify(manifest);
   if (manifestText.includes("workspace:") || manifestText.includes("@repo/")) {
-    throw new Error(`${manifest.name}: publish manifest contains a private dependency`);
+    throw new Error(
+      `${manifest.name}: publish manifest contains a private dependency`
+    );
   }
 
   const declaredDependencies = new Set([
@@ -168,22 +190,33 @@ function validateManifest(
   for (const file of listFiles(resolve(packageDirectory, "dist"))) {
     const isCode = /\.(?:[cm]?js|json|map|ts)$/.test(file);
     const isStylesheet = file.endsWith(".css");
-    if (!(isCode || isStylesheet)) continue;
+    if (!(isCode || isStylesheet)) {
+      continue;
+    }
 
     const contents = readFileSync(file, "utf8");
     const hasPrivateWorkspaceProtocol = /["']workspace:(?:\*|\^|~|\d)/.test(
-      contents,
+      contents
     );
-    if (isCode && (contents.includes("@repo/") || hasPrivateWorkspaceProtocol)) {
+    if (
+      isCode &&
+      (contents.includes("@repo/") || hasPrivateWorkspaceProtocol)
+    ) {
       throw new Error(`${manifest.name}: private reference in ${file}`);
     }
 
-    if (!isStylesheet) continue;
+    if (!isStylesheet) {
+      continue;
+    }
     for (const match of contents.matchAll(
       /@(?:import|reference)\s+["']([^"']+)["']/g
     )) {
       const specifier = match[1];
-      if (!specifier || specifier.startsWith(".") || specifier.startsWith("/")) {
+      if (
+        !specifier ||
+        specifier.startsWith(".") ||
+        specifier.startsWith("/")
+      ) {
         continue;
       }
       const dependency = packageName(specifier);
@@ -202,10 +235,16 @@ function packPackage(
   manifest: PackageManifest
 ): string {
   const result = JSON.parse(
-    run("npm", ["pack", "--json", "--pack-destination", tempDirectory], packageDirectory)
+    run(
+      "npm",
+      ["pack", "--json", "--pack-destination", tempDirectory],
+      packageDirectory
+    )
   ) as Array<{ filename: string }>;
   const filename = result[0]?.filename;
-  if (!filename) throw new Error(`${manifest.name}: npm pack returned no tarball`);
+  if (!filename) {
+    throw new Error(`${manifest.name}: npm pack returned no tarball`);
+  }
   const tarball = resolve(tempDirectory, filename);
   const entries = run("tar", ["-tzf", tarball]).split("\n");
   const invalid = entries.filter(
@@ -216,7 +255,9 @@ function packPackage(
       entry.includes("/test-utils/")
   );
   if (invalid.length > 0) {
-    throw new Error(`${manifest.name}: invalid packed files:\n${invalid.join("\n")}`);
+    throw new Error(
+      `${manifest.name}: invalid packed files:\n${invalid.join("\n")}`
+    );
   }
   return tarball;
 }
@@ -376,14 +417,21 @@ function validateFixture(tempDirectory: string, tarballs: Map<string, string>) {
   const fixture = resolve(tempDirectory, "minimal-extension");
   const sdkTarball = tarballs.get("@lunarisapp/plugin-sdk");
   const uiTarball = tarballs.get("@lunarisapp/ui");
-  if (!sdkTarball || !uiTarball) throw new Error("Missing public package tarballs");
+  if (!(sdkTarball && uiTarball)) {
+    throw new Error("Missing public package tarballs");
+  }
   createExtensionFixture(fixture, sdkTarball, uiTarball);
   run("bun", ["install", "--ignore-scripts"], fixture);
   run("bun", ["run", "typecheck"], fixture);
   run("bun", ["run", "build"], fixture);
   let output = readdirSync(resolve(fixture, "dist")).sort();
-  if (JSON.stringify(output) !== JSON.stringify(["main.js", "manifest.json", "runtime.json"])) {
-    throw new Error(`Unexpected extension fixture output: ${output.join(", ")}`);
+  if (
+    JSON.stringify(output) !==
+    JSON.stringify(["main.js", "manifest.json", "runtime.json"])
+  ) {
+    throw new Error(
+      `Unexpected extension fixture output: ${output.join(", ")}`
+    );
   }
 
   rmSync(resolve(fixture, "dist"), { force: true, recursive: true });
@@ -415,12 +463,17 @@ export default defineLunarisPluginConfig({ expectedId, root, tag });
     registryConfig,
   ]);
   output = readdirSync(resolve(fixture, "dist")).sort();
-  if (JSON.stringify(output) !== JSON.stringify(["main.js", "manifest.json", "runtime.json"])) {
+  if (
+    JSON.stringify(output) !==
+    JSON.stringify(["main.js", "manifest.json", "runtime.json"])
+  ) {
     throw new Error(`Unexpected trusted registry output: ${output.join(", ")}`);
   }
 }
 
-const temporaryDirectory = mkdtempSync(resolve(tmpdir(), "lunaris-public-packages-"));
+const temporaryDirectory = mkdtempSync(
+  resolve(tmpdir(), "lunaris-public-packages-")
+);
 const tarballs = new Map<string, string>();
 
 try {

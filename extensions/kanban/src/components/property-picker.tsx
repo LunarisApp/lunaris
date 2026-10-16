@@ -11,16 +11,12 @@ const widthClassNames = {
   people: "w-[min(18rem,calc(100vw-2rem))]",
 } satisfies Record<PropertyPickerWidth, string>;
 
-export const propertyPickerOptionClassName =
-  "py-1.5 pr-8 pl-2";
+export const propertyPickerOptionClassName = "py-1.5 pr-8 pl-2";
 
 export function propertyPickerContentClassName(
   width: PropertyPickerWidth
 ): string {
-  return cn(
-    "max-w-(--available-width) p-2.5",
-    widthClassNames[width]
-  );
+  return cn("max-w-(--available-width) p-2.5", widthClassNames[width]);
 }
 
 export function PropertyPickerList({
@@ -86,7 +82,7 @@ export function PropertyPickerMessage({
   return (
     <p
       className={cn(
-        "px-2 py-4 text-center text-xs text-muted-foreground",
+        "px-2 py-4 text-center text-muted-foreground text-xs",
         className
       )}
       {...props}

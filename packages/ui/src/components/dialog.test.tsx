@@ -18,7 +18,7 @@ describe("DialogContent", () => {
           <DialogTitle>Préférences</DialogTitle>
           <DialogDescription>Modifier les préférences.</DialogDescription>
         </DialogContent>
-      </Dialog>,
+      </Dialog>
     );
 
     expect(screen.getByRole("button", { name: "Fermer" })).toBeTruthy();

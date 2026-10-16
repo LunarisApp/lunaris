@@ -26,7 +26,9 @@ describe("organization deletion email", () => {
     const { html } = buildOrganizationDeletionEmail(params);
     expect(html).toContain("Acme &amp; &lt;script&gt;");
     expect(html).not.toContain("<script>");
-    expect(html).toContain('href="https://app.lunaris.test/acme?region=eu&amp;source=email"');
+    expect(html).toContain(
+      'href="https://app.lunaris.test/acme?region=eu&amp;source=email"'
+    );
   });
 
   it("uses reminder heading and stable content across retries", () => {

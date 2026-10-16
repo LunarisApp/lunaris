@@ -8,8 +8,9 @@ describe("configureSearchIndex", () => {
       execute,
       getAll: vi.fn().mockResolvedValue([]),
       getOptional: vi.fn().mockResolvedValue(null),
-      writeTransaction: async (callback: (tx: { execute: typeof execute }) => unknown) =>
-        callback({ execute }),
+      writeTransaction: async (
+        callback: (tx: { execute: typeof execute }) => unknown
+      ) => callback({ execute }),
     };
 
     await configureSearchIndex(db as never);
@@ -34,8 +35,9 @@ describe("configureSearchIndex", () => {
         { name: "search_index_entries_ad", type: "trigger" },
       ]),
       getOptional: vi.fn().mockResolvedValue({ value: "2" }),
-      writeTransaction: async (callback: (tx: { execute: typeof execute }) => unknown) =>
-        callback({ execute }),
+      writeTransaction: async (
+        callback: (tx: { execute: typeof execute }) => unknown
+      ) => callback({ execute }),
     };
 
     await configureSearchIndex(db as never);
@@ -56,8 +58,9 @@ describe("configureSearchIndex", () => {
         { name: "search_index_entries_ad", type: "trigger" },
       ]),
       getOptional: vi.fn().mockResolvedValue({ value: "1" }),
-      writeTransaction: async (callback: (tx: { execute: typeof execute }) => unknown) =>
-        callback({ execute }),
+      writeTransaction: async (
+        callback: (tx: { execute: typeof execute }) => unknown
+      ) => callback({ execute }),
     };
 
     await configureSearchIndex(db as never);

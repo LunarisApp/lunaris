@@ -31,11 +31,11 @@ export interface SearchQueryValueCompletion {
 const SEARCH_QUERY_FIELD_SET = new Set<string>(SEARCH_QUERY_FIELDS);
 const SEARCH_QUERY_EXACT_FIELD_COMPLETION_PATTERN = new RegExp(
   `(?:^|\\s)(@(${SEARCH_QUERY_FIELDS.join("|")}))$`,
-  "iu",
+  "iu"
 );
 const SEARCH_QUERY_VALUE_COMPLETION_PATTERN = new RegExp(
   `(?:^|\\s)(@?(${SEARCH_QUERY_FIELDS.join("|")}):\\s*(?:"((?:\\\\["\\\\]|[^"])*)|([^\\s"]*)))$`,
-  "iu",
+  "iu"
 );
 const WORD_PATTERN = /[\p{L}\p{N}]+/gu;
 
@@ -45,7 +45,7 @@ export function normalizeSearchQuery(query: string): string {
 
 function readQuotedValue(
   query: string,
-  start: number,
+  start: number
 ): { end: number; value: string } | null {
   let value = "";
   let index = start + 1;
@@ -72,14 +72,16 @@ function readQuotedValue(
 
 function readUnquotedValue(query: string, start: number) {
   let end = start;
-  while (end < query.length && !/\s/u.test(query[end] ?? "")) end += 1;
+  while (end < query.length && !/\s/u.test(query[end] ?? "")) {
+    end += 1;
+  }
   return { end, value: query.slice(start, end) };
 }
 
 function normalizedTerm(
   value: string,
   field: SearchQueryField | null,
-  exact: boolean,
+  exact: boolean
 ): SearchQueryTerm | null {
   const normalized = value.normalize("NFKC").trim();
   return normalized ? { exact, field, value: normalized } : null;
@@ -91,19 +93,27 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
   let index = 0;
 
   while (index < query.length) {
-    while (index < query.length && /\s/u.test(query[index] ?? "")) index += 1;
-    if (index >= query.length) break;
+    while (index < query.length && /\s/u.test(query[index] ?? "")) {
+      index += 1;
+    }
+    if (index >= query.length) {
+      break;
+    }
 
     const termStart = index;
-    const fieldMatch = query
-      .slice(index)
-      .match(/^@?([\p{L}][\p{L}\p{N}-]*):/u);
+    const fieldMatch = query.slice(index).match(/^@?([\p{L}][\p{L}\p{N}-]*):/u);
     const rawField = fieldMatch?.[1];
     const normalizedField = rawField?.toLowerCase();
 
-    if (rawField && normalizedField && SEARCH_QUERY_FIELD_SET.has(normalizedField)) {
+    if (
+      rawField &&
+      normalizedField &&
+      SEARCH_QUERY_FIELD_SET.has(normalizedField)
+    ) {
       index += fieldMatch[0].length;
-      while (index < query.length && /\s/u.test(query[index] ?? "")) index += 1;
+      while (index < query.length && /\s/u.test(query[index] ?? "")) {
+        index += 1;
+      }
 
       const field = normalizedField as SearchQueryField;
       if (query[index] === '"') {
@@ -116,9 +126,11 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
             const fallback = normalizedTerm(
               query.slice(termStart, quoted.end),
               null,
-              false,
+              false
             );
-            if (fallback) terms.push(fallback);
+            if (fallback) {
+              terms.push(fallback);
+            }
           }
           index = quoted.end;
           continue;
@@ -134,7 +146,9 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
       }
 
       const fallback = normalizedTerm(query.slice(termStart), null, false);
-      if (fallback) terms.push(fallback);
+      if (fallback) {
+        terms.push(fallback);
+      }
       break;
     }
 
@@ -148,22 +162,28 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
           const fallback = normalizedTerm(
             query.slice(index, quoted.end),
             null,
-            false,
+            false
           );
-          if (fallback) terms.push(fallback);
+          if (fallback) {
+            terms.push(fallback);
+          }
         }
         index = quoted.end;
         continue;
       }
 
       const fallback = normalizedTerm(query.slice(index), null, false);
-      if (fallback) terms.push(fallback);
+      if (fallback) {
+        terms.push(fallback);
+      }
       break;
     }
 
     const unquoted = readUnquotedValue(query, index);
     const term = normalizedTerm(unquoted.value, null, false);
-    if (term) terms.push(term);
+    if (term) {
+      terms.push(term);
+    }
     index = unquoted.end;
   }
 
@@ -172,17 +192,21 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
 
 /** Returns supported fields matching a trailing `@field` completion trigger. */
 export function getSearchQueryFieldCompletion(
-  query: string,
+  query: string
 ): SearchQueryFieldCompletion | null {
   const trigger = query.match(/(?:^|\s)@([\p{L}\p{N}-]*)$/u);
-  if (!trigger) return null;
+  if (!trigger) {
+    return null;
+  }
 
   const partial = (trigger[1] ?? "").normalize("NFKC").toLowerCase();
   const from = query.lastIndexOf("@");
-  if (isInsideQuotedValue(query, from)) return null;
+  if (isInsideQuotedValue(query, from)) {
+    return null;
+  }
 
   const fields = SEARCH_QUERY_FIELDS.filter((field) =>
-    field.startsWith(partial),
+    field.startsWith(partial)
   );
 
   return fields.length > 0 ? { fields: [...fields], from } : null;
@@ -203,32 +227,34 @@ function isInsideQuotedValue(query: string, end: number): boolean {
 export function completeSearchQueryField(
   query: string,
   completion: SearchQueryFieldCompletion,
-  field: SearchQueryField,
+  field: SearchQueryField
 ): string {
   return `${query.slice(0, completion.from)}@${field}:`;
 }
 
 /** Returns the active trailing filter value, including quoted partial values. */
 export function getSearchQueryValueCompletion(
-  query: string,
+  query: string
 ): SearchQueryValueCompletion | null {
   const exactFieldMatch = query.match(
-    SEARCH_QUERY_EXACT_FIELD_COMPLETION_PATTERN,
+    SEARCH_QUERY_EXACT_FIELD_COMPLETION_PATTERN
   );
   const match =
     exactFieldMatch ?? query.match(SEARCH_QUERY_VALUE_COMPLETION_PATTERN);
   const token = match?.[1];
   const rawField = match?.[2];
-  if (!(token && rawField)) return null;
+  if (!(token && rawField)) {
+    return null;
+  }
 
   const from = query.length - token.length;
-  if (isInsideQuotedValue(query, from)) return null;
+  if (isInsideQuotedValue(query, from)) {
+    return null;
+  }
 
   const field = rawField.toLowerCase() as SearchQueryField;
   const rawValue = exactFieldMatch ? "" : (match[3] ?? match[4] ?? "");
-  const value = rawValue
-    .replace(/\\(["\\])/gu, "$1")
-    .normalize("NFKC");
+  const value = rawValue.replace(/\\(["\\])/gu, "$1").normalize("NFKC");
 
   return { field, from, value };
 }
@@ -236,7 +262,7 @@ export function getSearchQueryValueCompletion(
 export function completeSearchQueryValue(
   query: string,
   completion: SearchQueryValueCompletion,
-  value: string,
+  value: string
 ): string {
   const escapedValue = value
     .normalize("NFKC")
@@ -247,7 +273,7 @@ export function completeSearchQueryValue(
 
 export function getSearchTerms(
   query: ParsedSearchQuery,
-  field: SearchQueryField | null,
+  field: SearchQueryField | null
 ): SearchQueryTerm[] {
   return query.terms.filter((term) => term.field === field);
 }
@@ -261,33 +287,35 @@ function normalizeWords(value: string): string[] {
 }
 
 function includesWordPhrase(haystack: string[], needle: string[]): boolean {
-  if (needle.length === 0 || needle.length > haystack.length) return false;
+  if (needle.length === 0 || needle.length > haystack.length) {
+    return false;
+  }
   return haystack.some((_, start) =>
-    needle.every((word, offset) => haystack[start + offset] === word),
+    needle.every((word, offset) => haystack[start + offset] === word)
   );
 }
 
 export function matchesSearchTerm(
   values: readonly string[],
-  term: SearchQueryTerm,
+  term: SearchQueryTerm
 ): boolean {
   if (term.exact) {
     const needle = normalizeWords(term.value);
     return values.some((value) =>
-      includesWordPhrase(normalizeWords(value), needle),
+      includesWordPhrase(normalizeWords(value), needle)
     );
   }
 
   const needle = normalizeSearchQuery(term.value);
   return Boolean(
     needle &&
-      values.some((value) => normalizeSearchQuery(value).includes(needle)),
+      values.some((value) => normalizeSearchQuery(value).includes(needle))
   );
 }
 
 export function matchesSearchTerms(
   values: readonly string[],
-  terms: readonly SearchQueryTerm[],
+  terms: readonly SearchQueryTerm[]
 ): boolean {
   return terms.every((term) => matchesSearchTerm(values, term));
 }

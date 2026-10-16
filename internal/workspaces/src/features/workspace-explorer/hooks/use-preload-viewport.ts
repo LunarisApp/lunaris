@@ -13,20 +13,27 @@ export function usePreloadViewport(
   const observer = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
-    if (!root || typeof IntersectionObserver === "undefined") return;
+    if (!root || typeof IntersectionObserver === "undefined") {
+      return;
+    }
     const instance = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries)
+        for (const entry of entries) {
           listeners.current.get(entry.target)?.(entry.isIntersecting);
+        }
       },
       { root, rootMargin: "200px 0px" }
     );
     observer.current = instance;
-    for (const element of listeners.current.keys()) instance.observe(element);
+    for (const element of listeners.current.keys()) {
+      instance.observe(element);
+    }
     return () => {
       instance.disconnect();
       observer.current = null;
-      for (const notify of listeners.current.values()) notify(false);
+      for (const notify of listeners.current.values()) {
+        notify(false);
+      }
     };
   }, [root]);
 

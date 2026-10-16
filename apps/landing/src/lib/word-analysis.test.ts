@@ -68,9 +68,9 @@ describe("analyzeText", () => {
 		] as const;
 
 		for (const [language, text, expectedWords] of cases) {
-			expect(analyzeText(text, language).topWords.map(({ word }) => word)).toEqual(
-				[...expectedWords],
-			);
+			expect(
+				analyzeText(text, language).topWords.map(({ word }) => word),
+			).toEqual([...expectedWords]);
 		}
 	});
 

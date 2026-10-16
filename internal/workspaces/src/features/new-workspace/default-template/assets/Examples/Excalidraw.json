@@ -151,16 +151,7 @@
         "updated": 1767603600000,
         "link": null,
         "locked": false,
-        "points": [
-          [
-            0,
-            0
-          ],
-          [
-            90,
-            0
-          ]
-        ],
+        "points": [[0, 0], [90, 0]],
         "lastCommittedPoint": null,
         "startBinding": {
           "elementId": "northstar-plan",
@@ -292,16 +283,7 @@
         "updated": 1767603600000,
         "link": null,
         "locked": false,
-        "points": [
-          [
-            0,
-            0
-          ],
-          [
-            90,
-            0
-          ]
-        ],
+        "points": [[0, 0], [90, 0]],
         "lastCommittedPoint": null,
         "startBinding": {
           "elementId": "northstar-prepare",

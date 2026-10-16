@@ -14,7 +14,11 @@ import { describe, expect, it, vi } from "vitest";
 import * as z from "zod";
 import type { PluginYjsProvider } from "./data-adapter";
 import type { ResourceStorageHandle } from "./types";
-import { useWorkspaceKeyValue, useYjsStorage, useYMapField } from "./data-hooks";
+import {
+  useWorkspaceKeyValue,
+  useYjsStorage,
+  useYMapField,
+} from "./data-hooks";
 import { definePlugin } from "./definition";
 import {
   useFileStorage,
@@ -63,13 +67,16 @@ describe("sandbox bundle runtime", () => {
       const uploadStarted = useRef(false);
       const stored = useWorkspaceKeyValue<string>(
         { kind: "key-value", storageId: "example.sandbox.settings" },
-        "greeting",
+        "greeting"
       );
-      const [title, setTitle] = useYMapField(yDoc.getMap<string>("metadata"), "title");
+      const [title, setTitle] = useYMapField(
+        yDoc.getMap<string>("metadata"),
+        "title"
+      );
       const persistenceState = useSyncExternalStore(
         yProvider.subscribePersistenceState,
         yProvider.getPersistenceState,
-        yProvider.getPersistenceState,
+        yProvider.getPersistenceState
       );
       const [responseText, setResponseText] = useState("loading");
       useEffect(() => {
@@ -78,35 +85,45 @@ describe("sandbox bundle runtime", () => {
             body: "request-body",
             headers: { "x-plugin": "sandbox" },
             method: "POST",
-          }),
+          })
         )
           .then((response) => response.text())
           .then(setResponseText)
           .catch((error: Error) => {
             // A replacement renderer may hydrate immediately from the shared
             // Y.Doc and start a request just before the sandbox is disposed.
-            if (error.message !== "Extension sandbox disposed") throw error;
+            if (error.message !== "Extension sandbox disposed") {
+              throw error;
+            }
           });
       }, [pluginFetch]);
       useEffect(() => {
-        if (title === "host") setTitle("sandbox");
+        if (title === "host") {
+          setTitle("sandbox");
+        }
       }, [setTitle, title]);
       useEffect(() => {
-        if (uploadStarted.current) return;
+        if (uploadStarted.current) {
+          return;
+        }
         uploadStarted.current = true;
-        void fileStorage.upload({
-          file: new File(["<h1>Sandbox app</h1>"], "app.html", {
-            type: "text/html",
-          }),
-          storage: fileHandle,
-        }).catch((error: Error) => {
-          if (error.message !== "Extension sandbox disposed") throw error;
-        });
-      }, [fileStorage.upload]);
+        void fileStorage
+          .upload({
+            file: new File(["<h1>Sandbox app</h1>"], "app.html", {
+              type: "text/html",
+            }),
+            storage: fileHandle,
+          })
+          .catch((error: Error) => {
+            if (error.message !== "Extension sandbox disposed") {
+              throw error;
+            }
+          });
+      }, [fileStorage.upload, fileHandle]);
       return createElement(
         "div",
         { id: "fixture-result" },
-        `${stored.value}|${title}|${responseText}|${storedFile.metadata?.fileId}|${storedFile.metadata?.filename}|${storedFile.objectUrl ? "blob" : "missing"}|${persistenceState}|${contentLastEdited.lastEditedAt?.toISOString()}|${secondaryLastEdited.isLoading}`,
+        `${stored.value}|${title}|${responseText}|${storedFile.metadata?.fileId}|${storedFile.metadata?.filename}|${storedFile.objectUrl ? "blob" : "missing"}|${persistenceState}|${contentLastEdited.lastEditedAt?.toISOString()}|${secondaryLastEdited.isLoading}`
       );
     }
 
@@ -119,7 +136,7 @@ describe("sandbox bundle runtime", () => {
       useEffect(() => reportReady?.(), [reportReady]);
       const ready = useYjsStorage(
         { kind: "yjs", storageId: "content-1" } as ResourceStorageHandle,
-        "workspace-1",
+        "workspace-1"
       );
       if (ready.isLoading || !ready.yDoc || !ready.yProvider) {
         return createElement("div", { id: "fixture-result" }, "loading");
@@ -174,7 +191,10 @@ describe("sandbox bundle runtime", () => {
         contributions.searchQuery({
           id: "example.sandbox.search-query",
           open: (_result, context) => {
-            context.openView({ titleKey: "sandbox.title", viewId: "example.sandbox" });
+            context.openView({
+              titleKey: "sandbox.title",
+              viewId: "example.sandbox",
+            });
           },
           query: async () => ({ items: [], nextCursor: null }),
         });
@@ -189,13 +209,16 @@ describe("sandbox bundle runtime", () => {
             currentVersion: 1,
             id: "example.sandbox.srcdoc.schema",
             read: ({ storage }) => ({
-              title: storage.content?.kind === "yjs"
-                ? storage.content.document.getMap("metadata").get("title")
-                : undefined,
+              title:
+                storage.content?.kind === "yjs"
+                  ? storage.content.document.getMap("metadata").get("title")
+                  : undefined,
             }),
             versions: { 1: z.object({ title: z.string() }) },
             write: (payload, { storage }) => {
-              if (storage.content?.kind !== "yjs") return;
+              if (storage.content?.kind !== "yjs") {
+                return;
+              }
               storage.content.document
                 .getMap("metadata")
                 .set("title", (payload as { title: string }).title);
@@ -222,33 +245,37 @@ describe("sandbox bundle runtime", () => {
     });
     const registration = installExternalPluginSandboxRuntime().register(
       "example.sandbox",
-      plugin,
+      plugin
     );
     await expect(registration).resolves.toEqual({});
     const channel = new MessageChannel();
     const hostDoc = new Doc();
     hostDoc.getMap("metadata").set("title", "host");
-    let resolveRegistered: (message: SandboxPluginMessage) => void = () => undefined;
-    let resolveActivated: (message: SandboxPluginMessage) => void = () => undefined;
+    let resolveRegistered: (message: SandboxPluginMessage) => void = () =>
+      undefined;
+    let resolveActivated: (message: SandboxPluginMessage) => void = () =>
+      undefined;
     let resolveReady: () => void = () => undefined;
-    let resolveCreated: (message: SandboxPluginMessage) => void = () => undefined;
-    let resolvePayloadRead: (message: SandboxPluginMessage) => void =
-      () => undefined;
-    let resolvePayloadWrite: (message: SandboxPluginMessage) => void =
-      () => undefined;
-    let resolveSearchIndex: (message: SandboxPluginMessage) => void =
-      () => undefined;
-    let resolveSearchQuery: (message: SandboxPluginMessage) => void =
-      () => undefined;
-    let resolveSearchOpen: (message: SandboxPluginMessage) => void =
-      () => undefined;
+    let resolveCreated: (message: SandboxPluginMessage) => void = () =>
+      undefined;
+    let resolvePayloadRead: (message: SandboxPluginMessage) => void = () =>
+      undefined;
+    let resolvePayloadWrite: (message: SandboxPluginMessage) => void = () =>
+      undefined;
+    let resolveSearchIndex: (message: SandboxPluginMessage) => void = () =>
+      undefined;
+    let resolveSearchQuery: (message: SandboxPluginMessage) => void = () =>
+      undefined;
+    let resolveSearchOpen: (message: SandboxPluginMessage) => void = () =>
+      undefined;
     let resolveRendererReady: () => void = () => undefined;
     let resolveYjs: () => void = () => undefined;
-    let resolveUnknownFailure: (message: SandboxPluginMessage) => void =
-      () => undefined;
-    let resolveMalformedFailure: (message: SandboxPluginMessage) => void =
-      () => undefined;
-    let resolveDisposed: (message: SandboxPluginMessage) => void = () => undefined;
+    let resolveUnknownFailure: (message: SandboxPluginMessage) => void = () =>
+      undefined;
+    let resolveMalformedFailure: (message: SandboxPluginMessage) => void = () =>
+      undefined;
+    let resolveDisposed: (message: SandboxPluginMessage) => void = () =>
+      undefined;
     let fetchArguments: unknown[] | undefined;
     let createItemArguments: unknown[] | undefined;
     let uploadArguments: unknown[] | undefined;
@@ -301,8 +328,12 @@ describe("sandbox bundle runtime", () => {
     });
     channel.port1.onmessage = (event: MessageEvent<SandboxPluginMessage>) => {
       const message = event.data;
-      if (message.type === "registered") resolveRegistered(message);
-      if (message.type === "ready" && message.id === "render-1") resolveReady();
+      if (message.type === "registered") {
+        resolveRegistered(message);
+      }
+      if (message.type === "ready" && message.id === "render-1") {
+        resolveReady();
+      }
       if (message.type === "ready" && message.id === "activate-1") {
         resolveActivated(message);
       }
@@ -333,7 +364,9 @@ describe("sandbox bundle runtime", () => {
       if (message.type === "ready" && message.id === "dispose-1") {
         resolveDisposed(message);
       }
-      if (message.type !== "host-call") return;
+      if (message.type !== "host-call") {
+        return;
+      }
       if (message.method === "renderer.reportReady") {
         resolveRendererReady();
         channel.port1.postMessage({ id: message.id, type: "host-result" });
@@ -415,7 +448,7 @@ describe("sandbox bundle runtime", () => {
           type: "lunaris-plugin-sandbox-connect",
         },
         ports: [channel.port2],
-      }),
+      })
     );
 
     await expect(registered).resolves.toMatchObject({
@@ -432,7 +465,8 @@ describe("sandbox bundle runtime", () => {
             type: "search-indexer",
           }),
           expect.objectContaining({
-            openHandler: "search-query-open:example.sandbox.search-query:default",
+            openHandler:
+              "search-query-open:example.sandbox.search-query:default",
             queryHandler: "search-query:example.sandbox.search-query:default",
             type: "search-query",
           }),
@@ -547,20 +581,25 @@ describe("sandbox bundle runtime", () => {
     expect(payloadWriteResult).toMatchObject({
       id: "payload-write-1",
       type: "result",
-      value: { content: { documentUpdate: expect.any(ArrayBuffer), kind: "yjs" } },
+      value: {
+        content: { documentUpdate: expect.any(ArrayBuffer), kind: "yjs" },
+      },
     });
     if (payloadWriteResult.type !== "result") {
       throw new Error("Payload write did not return a result");
     }
     applyUpdateV2(
       payloadDoc,
-      new Uint8Array((payloadWriteResult.value as any).content.documentUpdate),
+      new Uint8Array((payloadWriteResult.value as any).content.documentUpdate)
     );
     expect(payloadDoc.getMap("metadata").get("title")).toBe("migrated");
     payloadDoc.destroy();
     const initialUpdate = encodeStateAsUpdateV2(hostDoc);
     const host = {
-      currentWorkspace: { workspace: { id: "workspace-1", name: "Workspace" }, workspaceId: "workspace-1" },
+      currentWorkspace: {
+        workspace: { id: "workspace-1", name: "Workspace" },
+        workspaceId: "workspace-1",
+      },
       currentUser: { isLoading: false, user: { id: "user-1" } },
       lastEdited: [
         {
@@ -570,26 +609,28 @@ describe("sandbox bundle runtime", () => {
         },
         { storageId: "content-2", isLoading: true, lastEditedAt: null },
       ],
-      attachments: [{
-        attachment: {
-          hasSynced: true,
-          id: "att-1",
-          localUri: "local://app.html",
+      attachments: [
+        {
+          attachment: {
+            hasSynced: true,
+            id: "att-1",
+            localUri: "local://app.html",
+            mediaType: "text/html",
+            status: "synced",
+          },
+          bytes: new TextEncoder().encode("<h1>Stored app</h1>").buffer,
+          storageId: "file-1",
           mediaType: "text/html",
-          status: "synced",
+          metadata: {
+            attachmentId: "att-1",
+            fileExtension: "html",
+            filename: "stored.html",
+            mediaType: "text/html",
+            size: 19,
+            uploadedAt: "2026-08-14T00:00:00.000Z",
+          },
         },
-        bytes: new TextEncoder().encode("<h1>Stored app</h1>").buffer,
-        storageId: "file-1",
-        mediaType: "text/html",
-        metadata: {
-          attachmentId: "att-1",
-          fileExtension: "html",
-          filename: "stored.html",
-          mediaType: "text/html",
-          size: 19,
-          uploadedAt: "2026-08-14T00:00:00.000Z",
-        },
-      }],
+      ],
       storage: {
         slots: {
           "example.sandbox:example.sandbox.settings": {
@@ -599,16 +640,21 @@ describe("sandbox bundle runtime", () => {
           },
         },
       },
-      yjs: [{
-        storageId: "content-1",
-        persistenceState: "idle",
-        workspaceId: "workspace-1",
-      }],
+      yjs: [
+        {
+          storageId: "content-1",
+          persistenceState: "idle",
+          workspaceId: "workspace-1",
+        },
+      ],
     };
     channel.port1.postMessage({
       host: {
         ...host,
-        environment: { colorScheme: "dark", cssVariables: { "--background": "#191817" } },
+        environment: {
+          colorScheme: "dark",
+          cssVariables: { "--background": "#191817" },
+        },
       },
       id: "render-1",
       params: {},
@@ -616,21 +662,27 @@ describe("sandbox bundle runtime", () => {
       type: "render",
     });
     await ready;
-    expect(document.querySelector("#fixture-result")?.textContent).toBe("loading");
+    expect(document.querySelector("#fixture-result")?.textContent).toBe(
+      "loading"
+    );
     expect(document.documentElement.style.colorScheme).toBe("dark");
-    expect(document.documentElement.style.getPropertyValue("--background")).toBe("#191817");
+    expect(
+      document.documentElement.style.getPropertyValue("--background")
+    ).toBe("#191817");
     expect(yjsApplyCalls).toBe(0);
 
     channel.port1.postMessage({
       host: {
         ...host,
-        yjs: [{
-          ...host.yjs[0],
-          update: initialUpdate.buffer.slice(
-            initialUpdate.byteOffset,
-            initialUpdate.byteOffset + initialUpdate.byteLength,
-          ),
-        }],
+        yjs: [
+          {
+            ...host.yjs[0],
+            update: initialUpdate.buffer.slice(
+              initialUpdate.byteOffset,
+              initialUpdate.byteOffset + initialUpdate.byteLength
+            ),
+          },
+        ],
       },
       id: "render-1",
       type: "snapshot",
@@ -639,25 +691,27 @@ describe("sandbox bundle runtime", () => {
     await uploaded;
     await waitFor(() =>
       expect(document.querySelector("#fixture-result")?.textContent).toBe(
-        "stored|sandbox|approved|att-1|stored.html|blob|idle|2026-08-27T10:00:00.000Z|true",
-      ),
+        "stored|sandbox|approved|att-1|stored.html|blob|idle|2026-08-27T10:00:00.000Z|true"
+      )
     );
     channel.port1.postMessage({
       host: {
         ...host,
-        yjs: [{
-          ...host.yjs[0],
-          persistenceState: "persisting",
-          update: encodeStateAsUpdateV2(hostDoc).buffer,
-        }],
+        yjs: [
+          {
+            ...host.yjs[0],
+            persistenceState: "persisting",
+            update: encodeStateAsUpdateV2(hostDoc).buffer,
+          },
+        ],
       },
       id: "render-1",
       type: "snapshot",
     });
     await waitFor(() =>
       expect(document.querySelector("#fixture-result")?.textContent).toBe(
-        "stored|sandbox|approved|att-1|stored.html|blob|persisting|2026-08-27T10:00:00.000Z|true",
-      ),
+        "stored|sandbox|approved|att-1|stored.html|blob|persisting|2026-08-27T10:00:00.000Z|true"
+      )
     );
     expect(hostDoc.getMap("metadata").get("title")).toBe("sandbox");
     expect(fetchArguments).toMatchObject([
@@ -668,13 +722,13 @@ describe("sandbox bundle runtime", () => {
     ]);
     expect(
       new Headers(
-        (fetchArguments?.[1] as { headers: Array<[string, string]> }).headers,
-      ).get("x-plugin"),
+        (fetchArguments![1] as { headers: [string, string][] }).headers
+      ).get("x-plugin")
     ).toBe("sandbox");
     expect(
       new TextDecoder().decode(
-        (fetchArguments?.[1] as { body: ArrayBuffer }).body,
-      ),
+        (fetchArguments![1] as { body: ArrayBuffer }).body
+      )
     ).toBe("request-body");
     expect(uploadArguments?.[0]).toMatchObject({
       filename: "app.html",
@@ -683,17 +737,19 @@ describe("sandbox bundle runtime", () => {
     });
     expect(
       new TextDecoder().decode(
-        (uploadArguments?.[0] as { bytes: ArrayBuffer }).bytes,
-      ),
+        (uploadArguments![0] as { bytes: ArrayBuffer }).bytes
+      )
     ).toBe("<h1>Sandbox app</h1>");
     expect(document.querySelector("iframe")).toBeNull();
     channel.port1.postMessage({
       host: {
         ...host,
-        yjs: [{
-          ...host.yjs[0],
-          update: encodeStateAsUpdateV2(hostDoc).buffer,
-        }],
+        yjs: [
+          {
+            ...host.yjs[0],
+            update: encodeStateAsUpdateV2(hostDoc).buffer,
+          },
+        ],
       },
       id: "render-ready-1",
       params: {
@@ -736,7 +792,10 @@ describe("sandbox bundle runtime", () => {
       type: "failure",
     });
     expect(() =>
-      installExternalPluginSandboxRuntime().register("example.duplicate", plugin),
+      installExternalPluginSandboxRuntime().register(
+        "example.duplicate",
+        plugin
+      )
     ).toThrow("Duplicate extension registration");
     expect(effectCleanup).not.toHaveBeenCalled();
     expect(activationCleanup).not.toHaveBeenCalled();

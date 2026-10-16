@@ -25,14 +25,18 @@ function isLocalDevelopmentOrigin(origin: string) {
 
 export function isAllowedDesktopCookieOrigin(
   origin: string | undefined,
-  config: DesktopAuthConfig,
+  config: DesktopAuthConfig
 ) {
-  if (!origin || !isSerializedOrigin(origin)) return false;
+  if (!(origin && isSerializedOrigin(origin))) {
+    return false;
+  }
   const normalized = normalizeOrigin(origin);
-  if (!normalized) return false;
+  if (!normalized) {
+    return false;
+  }
   if (
     config.desktopAppOrigins.some(
-      (allowed) => normalizeOrigin(allowed) === normalized,
+      (allowed) => normalizeOrigin(allowed) === normalized
     )
   ) {
     return true;
@@ -42,7 +46,7 @@ export function isAllowedDesktopCookieOrigin(
 
 function bridgeDesktopCookie(
   request: FastifyRequest,
-  config: DesktopAuthConfig,
+  config: DesktopAuthConfig
 ) {
   const cookie = request.headers[DESKTOP_COOKIE_HEADER];
   const webOrigin = request.headers.origin;
@@ -71,15 +75,21 @@ function bridgeDesktopCookie(
   }
 
   const origin = webOrigin ?? desktopOrigin;
-  if (!isAllowedDesktopCookieOrigin(origin, config)) return;
+  if (!isAllowedDesktopCookieOrigin(origin, config)) {
+    return;
+  }
 
-  if (!webOrigin && origin) request.headers.origin = origin;
-  if (typeof cookie === "string") request.headers.cookie = cookie;
+  if (!webOrigin && origin) {
+    request.headers.origin = origin;
+  }
+  if (typeof cookie === "string") {
+    request.headers.cookie = cookie;
+  }
 }
 
 export function registerDesktopCookieBridge(
   app: FastifyInstance,
-  config: DesktopAuthConfig,
+  config: DesktopAuthConfig
 ) {
   app.addHook("onRequest", (request, _reply, done) => {
     bridgeDesktopCookie(request, config);

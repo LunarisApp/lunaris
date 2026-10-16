@@ -4,10 +4,7 @@ import {
   useEntityReferenceSearch,
   useOrganizationNavigation,
 } from "@lunarisapp/plugin-sdk";
-import {
-  BlockNoteSchema,
-  defaultInlineContentSpecs,
-} from "@blocknote/core";
+import { BlockNoteSchema, defaultInlineContentSpecs } from "@blocknote/core";
 import {
   createReactInlineContentSpec,
   SuggestionMenuController,
@@ -36,12 +33,15 @@ export interface EntityReferenceInlineProps {
   workspaceId: string;
 }
 
-const MENTION_TRANSLATION_KEY =
-  "extensions.catalog.lunaris.rich-text.mentions";
+const MENTION_TRANSLATION_KEY = "extensions.catalog.lunaris.rich-text.mentions";
 
 function entityReferenceIcon(kind: EntityReferenceInlineProps["kind"]) {
-  if (kind === "workspace") return FoldersIcon;
-  if (kind === "folder") return Folder01Icon;
+  if (kind === "workspace") {
+    return FoldersIcon;
+  }
+  if (kind === "folder") {
+    return Folder01Icon;
+  }
   return File01Icon;
 }
 
@@ -113,9 +113,7 @@ const EntityReferenceInlineSpec = createReactInlineContentSpec(
   {
     render: EntityReferenceInlineContent,
     toExternalHTML: ({ inlineContent }) => (
-      <span data-lunaris-entity-reference="">
-        @{inlineContent.props.name}
-      </span>
+      <span data-lunaris-entity-reference="">@{inlineContent.props.name}</span>
     ),
   }
 );
@@ -158,7 +156,9 @@ function shouldOpenEntityReferenceMenu(transaction: {
   };
 }): boolean {
   const { $from } = transaction.selection;
-  if ($from.parentOffset === 0) return true;
+  if ($from.parentOffset === 0) {
+    return true;
+  }
   const previous = $from.parent.textBetween(
     $from.parentOffset - 1,
     $from.parentOffset
@@ -168,10 +168,7 @@ function shouldOpenEntityReferenceMenu(transaction: {
 
 function SuggestionMenuLoading({ label }: { label: string }) {
   return (
-    <div
-      className="entity-reference-suggestion__loading"
-      role="status"
-    >
+    <div className="entity-reference-suggestion__loading" role="status">
       <span className="sr-only">{label}</span>
       {[0, 1, 2].map((index) => (
         <div
@@ -247,6 +244,8 @@ export function EntityReferenceSuggestionMenuContent({
                 ? typeLabel
                 : `${item.option.workspaceName} · ${typeLabel}`;
             return (
+              // biome-ignore lint/a11y/useFocusableInteractive: Editor owns focus and uses aria-activedescendant for keyboard navigation.
+              // biome-ignore lint/a11y/useKeyWithClickEvents: The editor suggestion controller handles keyboard selection while preserving editor focus.
               <div
                 aria-selected={index === selectedIndex}
                 className="entity-reference-suggestion__item"

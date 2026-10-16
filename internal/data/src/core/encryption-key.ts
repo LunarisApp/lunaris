@@ -60,14 +60,16 @@ export class OfflineEncryptionKeyError extends Error {
   override readonly cause: unknown;
 
   constructor(cause?: unknown) {
-    super("Reconnect once to unlock local data on this device. Nothing was deleted.");
+    super(
+      "Reconnect once to unlock local data on this device. Nothing was deleted."
+    );
     this.name = "OfflineEncryptionKeyError";
     this.cause = cause;
   }
 }
 
 export function isOfflineEncryptionKeyError(
-  error: unknown,
+  error: unknown
 ): error is OfflineEncryptionKeyError {
   return error instanceof OfflineEncryptionKeyError;
 }
@@ -80,7 +82,7 @@ export function isOfflineNetworkError(error: unknown): boolean {
 }
 
 export async function resolveEncryptionKey(
-  scope: EncryptionKeyScope,
+  scope: EncryptionKeyScope
 ): Promise<ResolvedEncryptionKey> {
   const scopeLease = captureScopeLease(scope);
   const cacheId = await createEncryptionKeyCacheId(scope);
@@ -143,7 +145,7 @@ export async function resolveEncryptionKey(
 }
 
 export async function refreshEncryptionKey(
-  scope: EncryptionKeyScope,
+  scope: EncryptionKeyScope
 ): Promise<ResolvedEncryptionKey> {
   const scopeLease = captureScopeLease(scope);
   const cacheId = await createEncryptionKeyCacheId(scope);
@@ -162,17 +164,21 @@ export async function refreshEncryptionKey(
 }
 
 export async function persistEncryptionKey(
-  resolved: Pick<ResolvedEncryptionKey, "cacheId" | "key">,
+  resolved: Pick<ResolvedEncryptionKey, "cacheId" | "key">
 ): Promise<void> {
   if (!VALID_KEY.test(resolved.key)) {
     throw new Error("Refusing to persist malformed encryption key");
   }
   const lease =
     resolvedKeyLeases.get(resolved) ?? captureCacheLease(resolved.cacheId);
-  if (!isLeaseValid(lease)) return;
+  if (!isLeaseValid(lease)) {
+    return;
+  }
 
   await enqueueVaultMutation(async () => {
-    if (!isLeaseValid(lease)) return;
+    if (!isLeaseValid(lease)) {
+      return;
+    }
     memoryKeys.set(resolved.cacheId, { key: resolved.key, lease });
     await writeEncryptionKeyVaultRecord({
       id: resolved.cacheId,
@@ -183,7 +189,7 @@ export async function persistEncryptionKey(
 }
 
 export async function deleteEncryptionKey(
-  scope: EncryptionKeyScope,
+  scope: EncryptionKeyScope
 ): Promise<void> {
   invalidateScope(scope);
   await enqueueVaultMutation(async () => {
@@ -211,11 +217,15 @@ export function clearEncryptionKeyMemory(): void {
 async function fetchEncryptionKey(
   scope: EncryptionKeyScope,
   cacheId: string,
-  lease: EncryptionKeyLease,
+  lease: EncryptionKeyLease
 ): Promise<string> {
   const inflight = inflightFetches.get(cacheId);
-  if (inflight && isLeaseValid(inflight.lease)) return inflight.promise;
-  if (inflight) inflightFetches.delete(cacheId);
+  if (inflight && isLeaseValid(inflight.lease)) {
+    return inflight.promise;
+  }
+  if (inflight) {
+    inflightFetches.delete(cacheId);
+  }
 
   const pending = (async () => {
     assertLeaseIsValid(lease);
@@ -252,10 +262,16 @@ async function fetchEncryptionKey(
   }
 }
 
-async function readStoredEncryptionKey(cacheId: string): Promise<string | null> {
+async function readStoredEncryptionKey(
+  cacheId: string
+): Promise<string | null> {
   const record = await readEncryptionKeyVaultRecord(cacheId);
-  if (!record) return null;
-  if (record.id === cacheId && VALID_KEY.test(record.key)) return record.key;
+  if (!record) {
+    return null;
+  }
+  if (record.id === cacheId && VALID_KEY.test(record.key)) {
+    return record.key;
+  }
 
   await enqueueVaultMutation(() => deleteEncryptionKeyVaultRecord(cacheId));
   return null;
@@ -274,9 +290,15 @@ function createResolvedEncryptionKey({
 
 function readMemoryKey(cacheId: string): string | null {
   const cached = memoryKeys.get(cacheId);
-  if (!cached) return null;
-  if (isLeaseValid(cached.lease)) return cached.key;
-  if (memoryKeys.get(cacheId) === cached) memoryKeys.delete(cacheId);
+  if (!cached) {
+    return null;
+  }
+  if (isLeaseValid(cached.lease)) {
+    return cached.key;
+  }
+  if (memoryKeys.get(cacheId) === cached) {
+    memoryKeys.delete(cacheId);
+  }
   return null;
 }
 
@@ -299,7 +321,7 @@ function captureCacheLease(cacheId: string): EncryptionKeyLease {
 
 function bindCacheLease(
   lease: EncryptionKeyLease,
-  cacheId: string,
+  cacheId: string
 ): EncryptionKeyLease {
   return {
     ...lease,
@@ -309,7 +331,9 @@ function bindCacheLease(
 }
 
 function isLeaseValid(lease: EncryptionKeyLease): boolean {
-  if (lease.globalGeneration !== globalGeneration) return false;
+  if (lease.globalGeneration !== globalGeneration) {
+    return false;
+  }
   if (
     lease.scopeId !== undefined &&
     lease.scopeGeneration !== (scopeGenerations.get(lease.scopeId) ?? 0)
@@ -323,7 +347,9 @@ function isLeaseValid(lease: EncryptionKeyLease): boolean {
 }
 
 function assertLeaseIsValid(lease: EncryptionKeyLease): void {
-  if (!isLeaseValid(lease)) throw new EncryptionKeyCacheInvalidatedError();
+  if (!isLeaseValid(lease)) {
+    throw new EncryptionKeyCacheInvalidatedError();
+  }
 }
 
 function invalidateScope(scope: EncryptionKeyScope): void {
@@ -349,7 +375,7 @@ function createEncryptionKeyScopeId(scope: EncryptionKeyScope): string {
 }
 
 async function createEncryptionKeyCacheId(
-  scope: EncryptionKeyScope,
+  scope: EncryptionKeyScope
 ): Promise<string> {
   return hashValue(createEncryptionKeyScopeId(scope));
 }

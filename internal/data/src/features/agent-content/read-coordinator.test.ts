@@ -1,20 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
 import { createDeviceReadCoordinator } from "./read-coordinator";
 
-function syncedDatabase(options: {
-  connected?: boolean;
-  hasSynced?: boolean;
-  lastSyncedAt?: Date;
-  retained?: boolean;
-} = {}) {
+function syncedDatabase(
+  options: {
+    connected?: boolean;
+    hasSynced?: boolean;
+    lastSyncedAt?: Date;
+    retained?: boolean;
+  } = {}
+) {
   const subscriptionStatus = {
     active: options.retained ?? true,
     expiresAt: null,
     hasExplicitSubscription: true,
     hasSynced: options.hasSynced ?? true,
     isDefault: false,
-    lastSyncedAt:
-      options.lastSyncedAt ?? new Date("2026-07-23T10:00:00.000Z"),
+    lastSyncedAt: options.lastSyncedAt ?? new Date("2026-07-23T10:00:00.000Z"),
     name: "workspace_index",
     parameters: null,
   };
@@ -42,7 +43,7 @@ function syncedDatabase(options: {
   const db = {
     currentStatus,
     syncStream: vi.fn(
-      (_name?: string, _parameters?: Record<string, string>) => stream,
+      (_name?: string, _parameters?: Record<string, string>) => stream
     ),
     waitForStatus: vi.fn(async () => undefined),
   };
@@ -75,10 +76,12 @@ describe("createDeviceReadCoordinator", () => {
     const { db, stream, subscription } = syncedDatabase();
     subscription.waitForFirstSync.mockImplementation(async () => {
       await sync;
-      return undefined;
     });
     const coordinator = createDeviceReadCoordinator(db as never);
-    const target = { kind: "workspace-content", workspaceId: "workspace-1" } as const;
+    const target = {
+      kind: "workspace-content",
+      workspaceId: "workspace-1",
+    } as const;
 
     const first = coordinator.resolve(target);
     const second = coordinator.resolve(target);
@@ -112,7 +115,7 @@ describe("createDeviceReadCoordinator", () => {
     ]);
 
     expect(
-      db.syncStream.mock.calls.filter(([name]) => name === "workspace_index"),
+      db.syncStream.mock.calls.filter(([name]) => name === "workspace_index")
     ).toHaveLength(1);
     expect(stream.subscribe).toHaveBeenCalledTimes(3);
   });
@@ -125,10 +128,7 @@ describe("createDeviceReadCoordinator", () => {
     const coordinator = createDeviceReadCoordinator(db as never);
 
     await expect(
-      coordinator.resolve(
-        { kind: "workspaces" },
-        { consistency: "cached" },
-      ),
+      coordinator.resolve({ kind: "workspaces" }, { consistency: "cached" })
     ).resolves.toEqual({
       completeness: "partial",
       confirmedAt: "2026-07-23T10:00:00.000Z",
@@ -148,8 +148,8 @@ describe("createDeviceReadCoordinator", () => {
     await expect(
       coordinator.resolve(
         { kind: "organization-resources" },
-        { consistency: "cached" },
-      ),
+        { consistency: "cached" }
+      )
     ).resolves.toEqual({
       completeness: "partial",
       confirmedAt: null,
@@ -161,7 +161,9 @@ describe("createDeviceReadCoordinator", () => {
     const { db } = syncedDatabase({ connected: false });
     const coordinator = createDeviceReadCoordinator(db as never);
 
-    await expect(coordinator.resolve({ kind: "workspaces" })).rejects.toMatchObject({
+    await expect(
+      coordinator.resolve({ kind: "workspaces" })
+    ).rejects.toMatchObject({
       code: "INCOMPLETE_SYNC",
       status: 409,
     });
@@ -170,7 +172,7 @@ describe("createDeviceReadCoordinator", () => {
   it("cancels pending reads when disposed", async () => {
     const { db, subscription } = syncedDatabase();
     subscription.waitForFirstSync.mockImplementation(
-      (_signal?: AbortSignal) => new Promise(() => undefined),
+      (_signal?: AbortSignal) => new Promise(() => undefined)
     );
     const coordinator = createDeviceReadCoordinator(db as never);
     const pending = coordinator.resolve({ kind: "workspaces" });

@@ -31,10 +31,10 @@ export function builtInAgentToolPolicy(
   name: string
 ): BuiltInAgentToolPolicy | null {
   const definition = findBuiltInPluginMcpTool(name);
-  if (!definition) return null;
-  return builtInPluginMcpToolRisk(definition) === "read"
-    ? "read"
-    : "mutation";
+  if (!definition) {
+    return null;
+  }
+  return builtInPluginMcpToolRisk(definition) === "read" ? "read" : "mutation";
 }
 
 export function builtInAgentToolScope(name: string) {
@@ -97,7 +97,11 @@ async function executeDelegatedTool(
     case "list_resources": {
       const { workspaceId, organizationId, ...filters } =
         agentOperationContracts.list_resources.input.parse(input);
-      return client.listWorkspaceResources(organizationId, workspaceId, filters);
+      return client.listWorkspaceResources(
+        organizationId,
+        workspaceId,
+        filters
+      );
     }
     case "create_resource": {
       const {

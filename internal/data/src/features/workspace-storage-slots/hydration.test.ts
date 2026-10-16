@@ -79,7 +79,7 @@ describe("resource storage hydration", () => {
     });
     expect(getYjsDocumentUpdatesMock).toHaveBeenCalledWith(
       expect.anything(),
-      "doc-id",
+      "doc-id"
     );
     expect(applyYjsDocumentUpdatesMock).toHaveBeenCalledOnce();
 
@@ -91,11 +91,13 @@ describe("resource storage hydration", () => {
       { id: "content-id", name: "content", kind: "yjs", backing_id: "doc-id" },
       { id: "settings-id", name: "settings", kind: "key-value" },
     ]);
-    getStorageValuesMock.mockResolvedValue([{ key: "title", value: "unquoted" }]);
+    getStorageValuesMock.mockResolvedValue([
+      { key: "title", value: "unquoted" },
+    ]);
     const destroy = vi.spyOn(Doc.prototype, "destroy");
 
     await expect(
-      hydrateResourceStorage({} as never, "resource-id"),
+      hydrateResourceStorage({} as never, "resource-id")
     ).rejects.toThrow(SyntaxError);
     expect(destroy).toHaveBeenCalledOnce();
   });
@@ -108,7 +110,7 @@ describe("resource storage hydration", () => {
     const destroy = vi.spyOn(Doc.prototype, "destroy");
 
     await expect(
-      hydrateResourceStorage({} as never, "resource-id"),
+      hydrateResourceStorage({} as never, "resource-id")
     ).rejects.toThrow("Storage slot has an invalid kind");
     expect(destroy).toHaveBeenCalledOnce();
   });
@@ -156,7 +158,7 @@ describe("resource storage hydration", () => {
     const destroy = vi.spyOn(Doc.prototype, "destroy");
 
     await expect(
-      hydrateResourceStorage({} as never, "resource-id"),
+      hydrateResourceStorage({} as never, "resource-id")
     ).rejects.toThrow("invalid update");
     expect(destroy).toHaveBeenCalledOnce();
   });

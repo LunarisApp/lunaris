@@ -56,12 +56,14 @@ describe("property definitions", () => {
       doc.getArray<YMap<unknown>>("properties").push([property]);
       property.set("id", "priority");
       property.set("name", "Priority");
-      if (type !== undefined) property.set("type", type);
+      if (type !== undefined) {
+        property.set("type", type);
+      }
 
       expect(parsePropertyDefinition(property)).toBeNull();
       expect(property.get("type")).toBe(type);
       doc.destroy();
-    },
+    }
   );
 });
 
@@ -96,9 +98,9 @@ describe("property values", () => {
     expect(
       normalizePropertyValue(definitions[1]!, ["bug", "bug", "missing"])
     ).toEqual(["bug"]);
-    expect(normalizePropertyValue(definitions[2]!, ["user-1", "user-1"])).toEqual([
-      "user-1",
-    ]);
+    expect(
+      normalizePropertyValue(definitions[2]!, ["user-1", "user-1"])
+    ).toEqual(["user-1"]);
     expect(normalizePropertyValue(definitions[3]!, "2026-08-25")).toBe(
       "2026-08-25"
     );
@@ -154,9 +156,9 @@ describe("property values", () => {
 
   it("formats options, people, and booleans", () => {
     expect(formatPropertyValue(definitions[0]!, "todo")).toBe("Todo");
-    expect(
-      formatPropertyValue(definitions[1]!, ["feature", "bug"])
-    ).toBe("Feature, Bug");
+    expect(formatPropertyValue(definitions[1]!, ["feature", "bug"])).toBe(
+      "Feature, Bug"
+    );
     expect(
       formatPropertyValue(definitions[2]!, ["user-1"], {
         resolvePerson: () => "Ada",

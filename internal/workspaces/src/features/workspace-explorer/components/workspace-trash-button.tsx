@@ -22,7 +22,7 @@ export function WorkspaceTrashButton() {
     () =>
       [...trash.values()].filter((entry) => entry.id === entry.trash_root_id)
         .length,
-    [trash],
+    [trash]
   );
 
   return (
@@ -43,9 +43,10 @@ export function WorkspaceTrashButton() {
         {count > 0 ? (
           <Badge
             aria-label={t("trash.resourceCount", { count })}
-            className="absolute -right-1 -top-1 h-4 min-w-4 px-1 text-[10px] text-muted-foreground"
+            className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] text-muted-foreground"
             variant="secondary"
           >
+            {/* biome-ignore lint/suspicious/noLeakedRender: Both ternary branches intentionally render valid ReactNode/text values. */}
             {count > 99 ? "99+" : count}
           </Badge>
         ) : null}

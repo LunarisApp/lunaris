@@ -82,10 +82,9 @@ describe("moveWorkspacePanelToWindow", () => {
     await expect(move()).resolves.toBe(false);
 
     expect(toastErrorMock).toHaveBeenCalledWith("Could not move panel");
-    expect(captureMock).toHaveBeenCalledWith(
-      "panel_move_to_window_failed",
-      { failure_reason: "manager_unavailable" }
-    );
+    expect(captureMock).toHaveBeenCalledWith("panel_move_to_window_failed", {
+      failure_reason: "manager_unavailable",
+    });
     expect(logErrorMock).toHaveBeenCalledWith({
       action: "panel_window.open",
       outcome: "failure",
@@ -106,15 +105,12 @@ describe("moveWorkspacePanelToWindow", () => {
     await expect(move(manager, invalidPanel)).resolves.toBe(false);
 
     expect(manager.open).not.toHaveBeenCalled();
-    expect(captureMock).toHaveBeenCalledWith(
-      "panel_move_to_window_failed",
-      {
-        failure_reason: "invalid_descriptor",
-        platform: "web",
-        plugin_id: "plugin",
-        renderer: "content",
-      }
-    );
+    expect(captureMock).toHaveBeenCalledWith("panel_move_to_window_failed", {
+      failure_reason: "invalid_descriptor",
+      platform: "web",
+      plugin_id: "plugin",
+      renderer: "content",
+    });
   });
 
   it("opens a window and reports success after readiness", async () => {
@@ -158,16 +154,13 @@ describe("moveWorkspacePanelToWindow", () => {
     await expect(move(createManager(open))).resolves.toBe(false);
 
     expect(close).toHaveBeenCalledOnce();
-    expect(captureMock).toHaveBeenCalledWith(
-      "panel_move_to_window_failed",
-      {
-        failure_reason: "open_failed",
-        extension_id: "plugin",
-        panel_kind: "resource",
-        platform: "web",
-        view_id: "content",
-      }
-    );
+    expect(captureMock).toHaveBeenCalledWith("panel_move_to_window_failed", {
+      failure_reason: "open_failed",
+      extension_id: "plugin",
+      panel_kind: "resource",
+      platform: "web",
+      view_id: "content",
+    });
   });
 
   it("closes the child and reports timeout", async () => {
@@ -183,16 +176,13 @@ describe("moveWorkspacePanelToWindow", () => {
 
     await expect(result).resolves.toBe(false);
     expect(close).toHaveBeenCalledOnce();
-    expect(captureMock).toHaveBeenCalledWith(
-      "panel_move_to_window_failed",
-      {
-        failure_reason: "timeout",
-        extension_id: "plugin",
-        panel_kind: "resource",
-        platform: "web",
-        view_id: "content",
-      }
-    );
+    expect(captureMock).toHaveBeenCalledWith("panel_move_to_window_failed", {
+      failure_reason: "timeout",
+      extension_id: "plugin",
+      panel_kind: "resource",
+      platform: "web",
+      view_id: "content",
+    });
   });
 });
 

@@ -38,7 +38,7 @@ function Workspace() {
   );
 }
 function mount(
-  entry: string | { pathname: string; key: string; state?: unknown } = "/team",
+  entry: string | { pathname: string; key: string; state?: unknown } = "/team"
 ) {
   const content = () => (
     <MemoryRouter initialEntries={[entry]}>
@@ -61,12 +61,10 @@ function mount(
 beforeEach(() => {
   localStorage.clear();
   mocks.canRead = true;
-  mocks.query
-    .mockReset()
-    .mockReturnValue({
-      data: [{ id: "ws", organization_id: "org", slug: "renamed" }],
-      isLoading: false,
-    });
+  mocks.query.mockReset().mockReturnValue({
+    data: [{ id: "ws", organization_id: "org", slug: "renamed" }],
+    isLoading: false,
+  });
   rememberWorkspace("user", "org", { workspaceId: "ws", viewPath: "/res_123" });
 });
 afterEach(cleanup);
@@ -107,7 +105,10 @@ describe("workspace startup", () => {
     mocks.query.mockReturnValue({ data: [], isLoading: false });
     const view = mount();
     expect(screen.getByText("workspace list")).toBeTruthy();
-    mocks.query.mockReturnValue({ data: [{ id: "ws", organization_id: "org", slug: "renamed" }], isLoading: false });
+    mocks.query.mockReturnValue({
+      data: [{ id: "ws", organization_id: "org", slug: "renamed" }],
+      isLoading: false,
+    });
     view.refresh();
     expect(screen.getByText("workspace list")).toBeTruthy();
   });

@@ -6,7 +6,7 @@ import posthog from "posthog-js";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate } from "react-router";
-import { object, string, z } from "zod";
+import { object, string, type z } from "zod";
 import { useRegion } from "../../region";
 import { AuthBackLink } from "../components/auth-back-link";
 import { AuthLayout } from "../components/auth-layout";
@@ -22,8 +22,13 @@ type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
   const auth = useAuth();
-  const { manifest, authUrl, pathWithRegion, selectionRequired, urlWithRegion } =
-    useRegion();
+  const {
+    manifest,
+    authUrl,
+    pathWithRegion,
+    selectionRequired,
+    urlWithRegion,
+  } = useRegion();
   const [sent, setSent] = useState(false);
   const {
     register,
@@ -39,8 +44,20 @@ export default function ForgotPasswordPage() {
   }
 
   if (manifest?.capabilities?.passwordResetEmail === false) {
-    return <AuthLayout title={t("auth.forgotPasswordTitle")} description={t("auth.emailRecoveryUnavailable")}
-      leading={<AuthBackLink label={t("auth.backToSignIn")} to={pathWithRegion("/auth/email")} />} >{null}</AuthLayout>;
+    return (
+      <AuthLayout
+        title={t("auth.forgotPasswordTitle")}
+        description={t("auth.emailRecoveryUnavailable")}
+        leading={
+          <AuthBackLink
+            label={t("auth.backToSignIn")}
+            to={pathWithRegion("/auth/email")}
+          />
+        }
+      >
+        {null}
+      </AuthLayout>
+    );
   }
 
   const onSubmit = async (data: ForgotPasswordSchema) => {
@@ -91,7 +108,9 @@ export default function ForgotPasswordPage() {
             <Field>
               <FieldLabel htmlFor="email">{t("auth.email")}</FieldLabel>
               <Input
-                aria-describedby={errors.email ? "forgot-email-error" : undefined}
+                aria-describedby={
+                  errors.email ? "forgot-email-error" : undefined
+                }
                 aria-invalid={!!errors.email}
                 autoComplete="email"
                 autoFocus
@@ -112,7 +131,7 @@ export default function ForgotPasswordPage() {
               {t("auth.sendResetLink")}
             </Button>
           </form>
-          <p className="text-muted-foreground mt-4 text-center text-sm">
+          <p className="mt-4 text-center text-muted-foreground text-sm">
             {t("auth.rememberedPassword")}{" "}
             <Link
               className="text-primary underline underline-offset-4"

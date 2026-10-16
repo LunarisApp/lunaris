@@ -21,8 +21,13 @@ export function removeRecentFilesByResourceIds(
   workspaceId: string,
   resourceIds: string[]
 ): void {
-  if (typeof window === "undefined" || !workspaceId || resourceIds.length === 0)
+  if (
+    typeof window === "undefined" ||
+    !workspaceId ||
+    resourceIds.length === 0
+  ) {
     return;
+  }
   const current = loadRecentFiles(workspaceId);
   const updated = removeRecentFilesFromList(current, resourceIds);
   if (updated.length !== current.length) {
@@ -36,14 +41,22 @@ export function removeRecentFilesByResourceIds(
  * @param workspaceId - The workspace ID
  */
 export function clearRecentFilesForWorkspace(workspaceId: string): void {
-  if (typeof window === "undefined" || !workspaceId) return;
+  if (typeof window === "undefined" || !workspaceId) {
+    return;
+  }
   clearStoredRecentFiles(workspaceId);
 }
 
 // No-op functions for when workspaceId is undefined
-const noopAdd = (_resourceId: string, _title: string, _pluginId?: string) => {};
-const noopRemove = (_resourceId: string) => {};
-const noopClear = () => {};
+const noopAdd = (_resourceId: string, _title: string, _pluginId?: string) => {
+  /* No action while this capability is unavailable. */
+};
+const noopRemove = (_resourceId: string) => {
+  /* No action while this capability is unavailable. */
+};
+const noopClear = () => {
+  /* No action while this capability is unavailable. */
+};
 
 export interface UseRecentFilesOptions {
   /**
@@ -74,10 +87,7 @@ export function useRecentFiles(
     }
 
     const loaded = loadRecentFiles(workspaceId);
-    const cleaned = filterRecentFilesByValidResources(
-      loaded,
-      validResourceIds
-    );
+    const cleaned = filterRecentFilesByValidResources(loaded, validResourceIds);
 
     if (cleaned.length !== loaded.length) {
       saveRecentFiles(workspaceId, cleaned);
@@ -87,7 +97,9 @@ export function useRecentFiles(
 
   const addRecentFile = useCallback(
     (resourceId: string, title: string, pluginId?: string) => {
-      if (!workspaceId) return;
+      if (!workspaceId) {
+        return;
+      }
       setRecentFiles((current) => {
         const updated = addRecentFileToList(
           current,
@@ -104,7 +116,9 @@ export function useRecentFiles(
 
   const removeRecentFile = useCallback(
     (resourceId: string) => {
-      if (!workspaceId) return;
+      if (!workspaceId) {
+        return;
+      }
       setRecentFiles((current) => {
         const updated = removeRecentFilesFromList(current, [resourceId]);
         saveRecentFiles(workspaceId, updated);
@@ -115,7 +129,9 @@ export function useRecentFiles(
   );
 
   const clearRecentFiles = useCallback(() => {
-    if (!workspaceId) return;
+    if (!workspaceId) {
+      return;
+    }
     setRecentFiles([]);
     clearStoredRecentFiles(workspaceId);
   }, [workspaceId]);

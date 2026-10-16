@@ -2,15 +2,26 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/biome/core", "ultracite/biome/react"],
   "files": {
-    "includes": ["!.claude", "!.agents"]
+    "includes": [
+      "!.claude",
+      "!.agents",
+      "!!apps/web/src/auto-imports.d.ts",
+      "!!apps/api/drizzle/meta",
+      // Generated API snapshots are compared byte-for-byte with generator output.
+      "!!packages/ui/api-report.json",
+      "!!packages/plugin-sdk/api-report.json"
+    ]
   },
   "overrides": [
     {
-      "includes": ["apps/api/**"],
+      // Nest parameter decorators and emitted metadata require runtime imports.
+      "includes": ["apps/api/**", "ee/*/src/server/**"],
+      "linter": { "rules": { "style": { "useImportType": "off" } } },
       "javascript": {
         "parser": {
           "unsafeParameterDecoratorsEnabled": true
-        }
+        },
+        "globals": ["Bun"]
       }
     },
     {
@@ -22,10 +33,134 @@
           }
         }
       }
+    },
+    {
+      "includes": ["apps/e2e/**"],
+      "javascript": {
+        "globals": [
+          "cy",
+          "Cypress",
+          "describe",
+          "it",
+          "expect",
+          "before",
+          "beforeEach",
+          "after",
+          "afterEach",
+          "context"
+        ]
+      }
+    },
+    {
+      "includes": ["tooling/**"],
+      "javascript": {
+        "globals": ["Bun"]
+      },
+      "linter": {
+        "rules": {
+          "correctness": {
+            "useHookAtTopLevel": "off",
+            "useExhaustiveDependencies": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/web/**", "apps/desktop/src/**", "internal/**"],
+      "javascript": {
+        "globals": ["__BUILD_VERSION__"]
+      }
+    },
+    {
+      "includes": ["apps/desktop/scripts/**"],
+      "javascript": {
+        "globals": ["Bun"]
+      }
+    },
+    {
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "**/test-stubs/**",
+        "apps/api/test/**"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noEmptyBlockStatements": "off",
+            "noThenProperty": "off"
+          },
+          // Test doubles intentionally omit production markup and behavior.
+          "a11y": "off",
+          "correctness": {
+            "noConstructorReturn": "off",
+            "useYield": "off"
+          }
+        }
+      },
+      "javascript": {
+        "globals": ["Bun"]
+      }
+    },
+    {
+      "includes": ["apps/api/drizzle/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.svg"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noSvgWithoutTitle": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/e2e/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNamespace": "off"
+          },
+          "suspicious": {
+            "noUnusedExpressions": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/api/test/**"],
+      "javascript": {
+        "parser": {
+          "unsafeParameterDecoratorsEnabled": true
+        },
+        "globals": ["Bun"]
+      }
+    },
+    {
+      "includes": ["apps/web/serve.ts"],
+      "javascript": {
+        "globals": ["Bun"]
+      }
+    },
+    {
+      "includes": ["infra/**/*.ts"],
+      "javascript": {
+        "globals": ["Bun"]
+      }
     }
   ],
   "formatter": {
-    "includes": ["!apps/web/src/auto-imports.d.ts"]
+    "includes": ["**", "!apps/web/src/auto-imports.d.ts"]
   },
   "assist": {
     "actions": {
@@ -40,15 +175,97 @@
   },
   "linter": {
     "includes": [
-      "!packages/ui/src/components",
+      "**",
+      "!packages/ui/src/components/**",
       "!apps/web/src/auto-imports.d.ts"
     ],
     "rules": {
       "a11y": {
-        "useAnchorContent": "off"
+        // Icon/render-prop link content and composite widgets escape static analysis.
+        "useAnchorContent": "off",
+        "useSemanticElements": "off",
+        "noLabelWithoutControl": {
+          "level": "error",
+          "options": {
+            "inputComponents": ["Checkbox"]
+          }
+        }
       },
+      // Avoid speculative optimization rules; profile before restricting callbacks or awaits.
       "performance": {
-        "noBarrelFile": "off"
+        "noBarrelFile": "off",
+        "noJsxPropsBind": "off",
+        "useTopLevelRegex": "off",
+        "noAwaitInLoops": "off",
+        "noNamespaceImport": "off",
+        "noDelete": "off"
+      },
+      // Keep formatting consistent without enforcing subjective TypeScript idioms.
+      "style": {
+        "noNonNullAssertion": "off",
+        "useDestructuring": "off",
+        "useConsistentMethodSignatures": "off",
+        "noParameterProperties": "off",
+        "useReadonlyClassProperties": "off",
+        "noNestedTernary": "off",
+        "noIncrementDecrement": "off",
+        "useConsistentTypeDefinitions": "off",
+        "noExportedImports": "off",
+        "useDefaultSwitchClause": "off",
+        "noDescendingSpecificity": "off",
+        "useErrorCause": "off",
+        "noParameterAssign": "off",
+        "noShoutyConstants": "off",
+        "useDefaultParameterLast": "off",
+        "useConsistentMemberAccessibility": "off",
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "filenameCases": ["kebab-case", "camelCase", "PascalCase"]
+          }
+        },
+        "useForOf": "off",
+        "useSymbolDescription": "off"
+      },
+      "complexity": {
+        "noVoid": "off",
+        "noExcessiveCognitiveComplexity": "off",
+        "noForEach": "off",
+        "noStaticOnlyClass": "off",
+        "noRedundantDefaultExport": "off",
+        "noUselessUndefined": "off"
+      },
+      "suspicious": {
+        "useAwait": "off",
+        "noUnnecessaryConditions": "off",
+        "noShadow": "off",
+        "noNestedPromises": "off",
+        "useStaticResponseMethods": "off",
+        "noBitwiseOperators": "off",
+        "noEqualsToNull": "off",
+        "noEvolvingTypes": "off",
+        "noImplicitAnyLet": "off",
+        "noConfusingVoidType": "off",
+        "noReactForwardRef": "off",
+        "noReturnAssign": "off",
+        "noAssignInExpressions": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": {
+          "level": "error",
+          "options": {
+            // CRDT revisions intentionally invalidate reads behind stable object references.
+            "reportUnnecessaryDependencies": false
+          }
+        },
+        "useImageSize": "off",
+        "useHookAtTopLevel": {
+          "level": "error",
+          "options": {
+            "ignore": ["useLogger", "useSecurityHeaders"]
+          }
+        },
+        "noChildrenProp": "off"
       }
     }
   }

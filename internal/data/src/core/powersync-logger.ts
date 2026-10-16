@@ -8,19 +8,27 @@ import { log, parseError } from "evlog";
 const loggerLevels = new WeakMap<PowerSyncLogger, { minimumLevel: number }>();
 
 function shouldForwardDebugLogs(debugMode?: boolean) {
-  if (debugMode != null) return debugMode;
+  if (debugMode != null) {
+    return debugMode;
+  }
 
   const meta = import.meta as ImportMeta & { env?: { DEV?: boolean } };
   return meta.env?.DEV === true;
 }
 
 function formatPowerSyncArg(value: unknown) {
-  if (value instanceof Error) return value.message;
-  if (typeof value === "string") return value;
+  if (value instanceof Error) {
+    return value.message;
+  }
+  if (typeof value === "string") {
+    return value;
+  }
   if (typeof value === "number" || typeof value === "boolean") {
     return String(value);
   }
-  if (value == null) return undefined;
+  if (value == null) {
+    return;
+  }
 
   try {
     return JSON.stringify(value);
@@ -30,13 +38,19 @@ function formatPowerSyncArg(value: unknown) {
 }
 
 function normalizePowerSyncArg(value: unknown) {
-  if (value instanceof Error) return parseError(value);
+  if (value instanceof Error) {
+    return parseError(value);
+  }
   return value;
 }
 
 function createPowerSyncPayload(messages: unknown[]) {
   const firstError = messages.find((value) => value instanceof Error);
-  const text = messages.map(formatPowerSyncArg).filter(Boolean).join(" ").trim();
+  const text = messages
+    .map(formatPowerSyncArg)
+    .filter(Boolean)
+    .join(" ")
+    .trim();
 
   return {
     tag: "Sync" as const,
@@ -57,7 +71,9 @@ export function createPowerSyncLogger(debugMode?: boolean): PowerSyncLogger {
   };
 
   const write = ({ error, level, message }: LogRecord) => {
-    if (level < state.minimumLevel) return;
+    if (level < state.minimumLevel) {
+      return;
+    }
 
     const payload = createPowerSyncPayload(
       error === undefined ? [message] : [message, error]

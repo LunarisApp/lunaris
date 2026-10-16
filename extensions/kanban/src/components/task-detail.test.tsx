@@ -7,24 +7,21 @@ import type {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TaskDetail, resolveCreator } from "./task-detail";
 
-const {
-  currentUser,
-  propertyMaps,
-  setDescription,
-} =
-  vi.hoisted(() => {
+const { currentUser, propertyMaps, setDescription } = vi.hoisted(() => {
   const makeMap = (values: Record<string, string>) => ({
     get: (key: string) => values[key],
   });
   return {
-    currentUser: { value: undefined as
-      | {
-          email?: string | null;
-          id?: string;
-          image?: string | null;
-          name?: string | null;
-        }
-      | undefined },
+    currentUser: {
+      value: undefined as
+        | {
+            email?: string | null;
+            id?: string;
+            image?: string | null;
+            name?: string | null;
+          }
+        | undefined,
+    },
     propertyMaps: [
       makeMap({
         id: "status",
@@ -43,7 +40,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) =>
       (
-        {
+        ({
           "extensions.catalog.lunaris.kanban.fields.description": "Description",
           "extensions.catalog.lunaris.kanban.fields.name": "Title",
           "extensions.catalog.lunaris.kanban.placeholders.description":
@@ -52,7 +49,7 @@ vi.mock("react-i18next", () => ({
           "extensions.catalog.lunaris.kanban.metadata.created": "Created",
           "extensions.catalog.lunaris.kanban.metadata.board": "Board",
           "extensions.catalog.lunaris.kanban.unknownCreator": "Unknown creator",
-        } as Record<string, string>
+        }) as Record<string, string>
       )[key] ?? key,
   }),
 }));
@@ -79,10 +76,7 @@ vi.mock("@lunarisapp/ui/hooks/use-gravatar-url", () => ({
 }));
 
 vi.mock("@lunarisapp/ui/components/button", () => ({
-  Button: ({
-    children,
-    ...props
-  }: ButtonHTMLAttributes<HTMLButtonElement>) => (
+  Button: ({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) => (
     <button type="button" {...props}>
       {children}
     </button>
@@ -91,7 +85,9 @@ vi.mock("@lunarisapp/ui/components/button", () => ({
 
 vi.mock("@lunarisapp/ui/components/select", () => ({
   Select: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  SelectContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  SelectContent: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
   SelectGroup: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   SelectItem: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   SelectTrigger: ({
@@ -199,26 +195,30 @@ describe("TaskDetail", () => {
     expect((screen.getByLabelText("Title") as HTMLTextAreaElement).value).toBe(
       "Existing task"
     );
-    expect(screen.getByLabelText("Description").getAttribute("placeholder")).toBe(
-      "Add description..."
-    );
+    expect(
+      screen.getByLabelText("Description").getAttribute("placeholder")
+    ).toBe("Add description...");
     const statusField = screen.getByRole("button", { name: "Status" });
     expect(statusField.textContent).toContain("Todo");
     expect(statusField.className.split(/\s+/)).not.toContain("w-full");
     expect(
-      screen.getByText("Status").parentElement?.querySelector("[aria-hidden=true]")
+      screen
+        .getByText("Status")
+        .parentElement?.querySelector("[aria-hidden=true]")
     ).toBeTruthy();
     for (const label of ["Created by", "Created", "Board"]) {
       expect(
-        screen.getByText(label).parentElement?.querySelector("[aria-hidden=true]")
+        screen
+          .getByText(label)
+          .parentElement?.querySelector("[aria-hidden=true]")
       ).toBeTruthy();
     }
     expect(screen.getByText("2026-04-01T12:00:00Z")).toBeTruthy();
     expect(screen.getByText("Roadmap")).toBeTruthy();
     expect(screen.getByText("Unknown creator")).toBeTruthy();
-    expect(screen.getByText("Unknown creator").parentElement?.className).toContain(
-      "px-1.5"
-    );
+    expect(
+      screen.getByText("Unknown creator").parentElement?.className
+    ).toContain("px-1.5");
     expect(screen.queryByRole("heading", { name: "Metadata" })).toBeNull();
     expect(
       screen

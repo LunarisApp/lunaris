@@ -61,19 +61,19 @@ export class AgentControlController {
     private readonly control: AgentControlService,
     private readonly items: WorkspaceResourcesService,
     private readonly workspaces: WorkspacesService,
-    private readonly safety: AgentSafetyService,
+    private readonly safety: AgentSafetyService
   ) {}
 
   @Get()
   @RequireAgentScope("organization:read")
   listOrganizations(
     @Req() request: AgentRequest,
-    @Query({ schema: AgentPaginationDto }) query: AgentPaginationDto,
+    @Query({ schema: AgentPaginationDto }) query: AgentPaginationDto
   ) {
     return this.control.listOrganizations(
       principal(request),
       query.limit,
-      query.cursor,
+      query.cursor
     );
   }
 
@@ -82,7 +82,7 @@ export class AgentControlController {
   @RequireAgentScope("organization:read")
   async getOrganization(
     @Session() session: UserSession,
-    @Param("organizationId") organizationId: string,
+    @Param("organizationId") organizationId: string
   ) {
     await this.access.requireOrganizationId(session, organizationId);
     return this.control.getOrganization(organizationId);
@@ -94,11 +94,11 @@ export class AgentControlController {
   async searchResources(
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
-    @Query({ schema: AgentResourceSearchDto }) query: AgentResourceSearchDto,
+    @Query({ schema: AgentResourceSearchDto }) query: AgentResourceSearchDto
   ) {
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     return this.control.searchResources(organizationId, query, userId);
   }
@@ -112,7 +112,7 @@ export class AgentControlController {
     @Param("organizationId") organizationId: string,
     @Body({ schema: UpdateOrganizationDto }) body: UpdateOrganizationDto,
     @Headers("if-match") expectedRevision?: string,
-    @Headers("idempotency-key") idempotencyKey?: string,
+    @Headers("idempotency-key") idempotencyKey?: string
   ) {
     await this.access.requireOrganizationId(session, organizationId);
     const actor = principal(request);
@@ -134,7 +134,7 @@ export class AgentControlController {
   async listMembers(
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
-    @Query({ schema: AgentPaginationDto }) query: AgentPaginationDto,
+    @Query({ schema: AgentPaginationDto }) query: AgentPaginationDto
   ) {
     await this.access.requireOrganizationId(session, organizationId);
     return this.control.listMembers(organizationId, query.limit, query.cursor);
@@ -149,7 +149,7 @@ export class AgentControlController {
     @Param("organizationId") organizationId: string,
     @Body({ schema: InviteOrganizationMemberDto })
     body: InviteOrganizationMemberDto,
-    @Headers("idempotency-key") idempotencyKey?: string,
+    @Headers("idempotency-key") idempotencyKey?: string
   ) {
     await this.access.requireOrganizationId(session, organizationId);
     const actor = principal(request);
@@ -170,7 +170,7 @@ export class AgentControlController {
     @Req() request: AgentRequest,
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
-    @Param("memberId") memberId: string,
+    @Param("memberId") memberId: string
   ) {
     await this.access.requireOrganizationId(session, organizationId);
     const actor = principal(request);
@@ -178,7 +178,7 @@ export class AgentControlController {
     return this.control.previewRemoveMember(
       organizationId,
       memberId,
-      actor.actorId,
+      actor.actorId
     );
   }
 
@@ -191,7 +191,7 @@ export class AgentControlController {
     @Param("organizationId") organizationId: string,
     @Param("memberId") memberId: string,
     @Headers("x-lunaris-preview") previewToken?: string,
-    @Headers("idempotency-key") idempotencyKey?: string,
+    @Headers("idempotency-key") idempotencyKey?: string
   ) {
     await this.access.requireOrganizationId(session, organizationId);
     const actor = principal(request);
@@ -211,11 +211,11 @@ export class AgentControlController {
   async listWorkspaces(
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
-    @Query({ schema: WorkspacesListQueryDto }) query: WorkspacesListQueryDto,
+    @Query({ schema: WorkspacesListQueryDto }) query: WorkspacesListQueryDto
   ) {
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     return this.control.listWorkspaces(organizationId, query, userId);
   }
@@ -228,11 +228,11 @@ export class AgentControlController {
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
     @Body({ schema: CreateWorkspaceDto }) body: CreateWorkspaceDto,
-    @Headers("idempotency-key") idempotencyKey?: string,
+    @Headers("idempotency-key") idempotencyKey?: string
   ) {
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     const actor = principal(request);
     return this.safety.idempotent({
@@ -242,7 +242,7 @@ export class AgentControlController {
       request: { body, organizationId },
       run: async () =>
         withCloudProvenance(
-          await this.workspaces.create(body, organizationId, userId),
+          await this.workspaces.create(body, organizationId, userId)
         ),
     });
   }
@@ -253,11 +253,11 @@ export class AgentControlController {
   async getWorkspace(
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
-    @Param("workspaceId") workspaceId: string,
+    @Param("workspaceId") workspaceId: string
   ) {
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     return this.control.getWorkspace(organizationId, workspaceId, userId);
   }
@@ -272,11 +272,11 @@ export class AgentControlController {
     @Param("workspaceId") workspaceId: string,
     @Body({ schema: UpdateWorkspaceDto }) body: UpdateWorkspaceDto,
     @Headers("if-match") expectedRevision?: string,
-    @Headers("idempotency-key") idempotencyKey?: string,
+    @Headers("idempotency-key") idempotencyKey?: string
   ) {
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     const actor = principal(request);
     const revision = requiredRevision(expectedRevision);
@@ -297,8 +297,8 @@ export class AgentControlController {
             body,
             organizationId,
             revision,
-            userId,
-          ),
+            userId
+          )
         ),
     });
   }
@@ -310,13 +310,13 @@ export class AgentControlController {
     @Req() request: AgentRequest,
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
-    @Param("workspaceId") workspaceId: string,
+    @Param("workspaceId") workspaceId: string
   ) {
     await this.access.requireOrganizationId(session, organizationId);
     return this.control.previewWorkspace(
       organizationId,
       workspaceId,
-      principal(request).actorId,
+      principal(request).actorId
     );
   }
 
@@ -329,7 +329,7 @@ export class AgentControlController {
     @Param("organizationId") organizationId: string,
     @Param("workspaceId") workspaceId: string,
     @Headers("x-lunaris-preview") previewToken?: string,
-    @Headers("idempotency-key") idempotencyKey?: string,
+    @Headers("idempotency-key") idempotencyKey?: string
   ) {
     await this.access.requireOrganizationId(session, organizationId);
     return this.control.deleteWorkspace({
@@ -348,17 +348,17 @@ export class AgentControlController {
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
     @Param("workspaceId") workspaceId: string,
-    @Query({ schema: AgentResourceFiltersDto }) query: AgentResourceFiltersDto,
+    @Query({ schema: AgentResourceFiltersDto }) query: AgentResourceFiltersDto
   ) {
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     return this.control.listResources(
       organizationId,
       workspaceId,
       query,
-      userId,
+      userId
     );
   }
 
@@ -373,7 +373,7 @@ export class AgentControlController {
     @Body({ schema: AgentCreateResourceDto }) body: AgentCreateResourceDto,
     @Headers("idempotency-key") idempotencyKey?: string,
     @Query("expectedParentResourceTypeId")
-    expectedParentResourceTypeId?: string,
+    expectedParentResourceTypeId?: string
   ) {
     await this.access.requireOrganizationId(session, organizationId);
     const actor = principal(request);
@@ -395,7 +395,7 @@ export class AgentControlController {
             input: body,
             workspaceId,
             organizationId,
-          }),
+          })
         ),
     });
   }
@@ -407,17 +407,17 @@ export class AgentControlController {
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
     @Param("workspaceId") workspaceId: string,
-    @Param("resourceId") resourceId: string,
+    @Param("resourceId") resourceId: string
   ) {
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     return this.control.getResource(
       organizationId,
       workspaceId,
       resourceId,
-      userId,
+      userId
     );
   }
 
@@ -432,7 +432,7 @@ export class AgentControlController {
     @Param("resourceId") resourceId: string,
     @Body({ schema: AgentUpdateResourceDto }) body: AgentUpdateResourceDto,
     @Headers("if-match") expectedRevision?: string,
-    @Headers("idempotency-key") idempotencyKey?: string,
+    @Headers("idempotency-key") idempotencyKey?: string
   ) {
     await this.access.requireOrganizationId(session, organizationId);
     const actor = principal(request);
@@ -456,14 +456,14 @@ export class AgentControlController {
             workspaceId,
             organizationId,
             revision,
-            actor.actorId,
-          ),
+            actor.actorId
+          )
         ),
     });
   }
 
   @Post(
-    ":organizationId/workspaces/:workspaceId/resources/:resourceId/deletion-preview",
+    ":organizationId/workspaces/:workspaceId/resources/:resourceId/deletion-preview"
   )
   @RequirePermission(permission.content.delete)
   @RequireAgentScope("workspace:delete")
@@ -473,7 +473,7 @@ export class AgentControlController {
     @Param("organizationId") organizationId: string,
     @Param("workspaceId") workspaceId: string,
     @Param("resourceId") resourceId: string,
-    @Query("expectedResourceTypeId") expectedResourceTypeId?: string,
+    @Query("expectedResourceTypeId") expectedResourceTypeId?: string
   ) {
     await this.access.requireOrganizationId(session, organizationId);
     return this.control.previewResource(
@@ -481,7 +481,7 @@ export class AgentControlController {
       workspaceId,
       resourceId,
       principal(request).actorId,
-      expectedResourceTypeId,
+      expectedResourceTypeId
     );
   }
 
@@ -496,7 +496,7 @@ export class AgentControlController {
     @Param("resourceId") resourceId: string,
     @Query("expectedResourceTypeId") expectedResourceTypeId?: string,
     @Headers("x-lunaris-preview") previewToken?: string,
-    @Headers("idempotency-key") idempotencyKey?: string,
+    @Headers("idempotency-key") idempotencyKey?: string
   ) {
     await this.access.requireOrganizationId(session, organizationId);
     return this.control.deleteResource({
@@ -517,17 +517,17 @@ export class AgentControlController {
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
     @Param("workspaceId") workspaceId: string,
-    @Param("storageId") storageId: string,
+    @Param("storageId") storageId: string
   ) {
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     return this.control.getYjsStorageJson(
       organizationId,
       workspaceId,
       storageId,
-      userId,
+      userId
     );
   }
 
@@ -539,11 +539,11 @@ export class AgentControlController {
     @Param("organizationId") organizationId: string,
     @Param("workspaceId") workspaceId: string,
     @Param("storageId") storageId: string,
-    @Query("stateVectorB64") stateVectorB64?: string,
+    @Query("stateVectorB64") stateVectorB64?: string
   ) {
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     return this.control.getYjsStorageState({
       workspaceId,
@@ -561,22 +561,22 @@ export class AgentControlController {
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
     @Param("workspaceId") workspaceId: string,
-    @Param("storageId") storageId: string,
+    @Param("storageId") storageId: string
   ) {
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     return this.control.listKeyValueStorage(
       organizationId,
       workspaceId,
       storageId,
-      userId,
+      userId
     );
   }
 
   @Get(
-    ":organizationId/workspaces/:workspaceId/storage/:storageId/file/download-url",
+    ":organizationId/workspaces/:workspaceId/storage/:storageId/file/download-url"
   )
   @RequirePermission(permission.content.read)
   @RequireAgentScope("file:read")
@@ -584,17 +584,17 @@ export class AgentControlController {
     @Session() session: UserSession,
     @Param("organizationId") organizationId: string,
     @Param("workspaceId") workspaceId: string,
-    @Param("storageId") storageId: string,
+    @Param("storageId") storageId: string
   ) {
     const { userId } = await this.access.requireOrganizationId(
       session,
-      organizationId,
+      organizationId
     );
     return this.control.getFileDownloadUrl(
       organizationId,
       workspaceId,
       storageId,
-      userId,
+      userId
     );
   }
 }
@@ -607,7 +607,9 @@ function principal(request: AgentRequest) {
 }
 
 function requiredHeader(value: string | undefined, name: string) {
-  if (!value) throw new BadRequestException(`${name} header is required`);
+  if (!value) {
+    throw new BadRequestException(`${name} header is required`);
+  }
   return value;
 }
 

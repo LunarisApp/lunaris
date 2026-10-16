@@ -8,7 +8,9 @@ export function usePreloadResourceRenderer(resourceTypeId: string | undefined) {
   const view = useView(resourceType?.defaultViewId ?? "");
   const preload = view?.definition.preload;
   useEffect(() => {
-    if (resourceTypeId) void preload?.().catch(() => undefined);
+    if (resourceTypeId) {
+      void preload?.().catch(() => undefined);
+    }
   }, [preload, resourceTypeId]);
 }
 
@@ -22,12 +24,14 @@ export function usePreloadRichTextRenderer(
   const activeReady = useResourceViewReady(activeResourceId);
 
   useEffect(() => {
-    if (!enabled || !preload || (activeResourceId && !activeReady)) return;
+    if (!(enabled && preload) || (activeResourceId && !activeReady)) {
+      return;
+    }
     const run = () => {
       void preload().catch(() => undefined);
     };
     if (typeof requestIdleCallback === "function") {
-      const id = requestIdleCallback(run, { timeout: 1_000 });
+      const id = requestIdleCallback(run, { timeout: 1000 });
       return () => cancelIdleCallback(id);
     }
     const id = setTimeout(run, 0);

@@ -19,7 +19,9 @@ function RegionProbe() {
     <div>
       <span>{region.id}</span>
       <span>{hasExplicitRegionSelection ? "explicit" : "default"}</span>
-      <span>{selectionRequired ? "selection-required" : "selection-ready"}</span>
+      <span>
+        {selectionRequired ? "selection-required" : "selection-ready"}
+      </span>
     </div>
   );
 }
@@ -166,7 +168,7 @@ describe("parseRegionDirectory", () => {
           apiUrl: "https://api-eu.example.com",
           status: "active",
         },
-      ]),
+      ])
     ).toThrow("Duplicate region id: us");
   });
 });
@@ -190,50 +192,53 @@ describe("parseRegionDiscovery", () => {
 
   it("rejects unsupported discovery schema versions", () => {
     expect(() =>
-      parseRegionDiscovery({ ...DISCOVERY, schemaVersion: 2 }),
+      parseRegionDiscovery({ ...DISCOVERY, schemaVersion: 2 })
     ).toThrow();
   });
 });
 
 describe("createAuthCallbackUrl", () => {
   it("creates web and desktop callback URLs from injected bases", () => {
-    expect(createAuthCallbackUrl("/auth/reset-password", "https://lunaris.app"))
-      .toBe("https://lunaris.app/auth/reset-password");
+    expect(
+      createAuthCallbackUrl("/auth/reset-password", "https://lunaris.app")
+    ).toBe("https://lunaris.app/auth/reset-password");
     expect(createAuthCallbackUrl("/auth/reset-password", "lunaris://")).toBe(
-      "lunaris:///auth/reset-password",
+      "lunaris:///auth/reset-password"
     );
   });
 });
 
 describe("RegionProvider", () => {
   it("discovers sign-in regions from the well-known directory", async () => {
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      if (String(input) === DEFAULT_REGION_DIRECTORY_URL) {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation((input) => {
+        if (String(input) === DEFAULT_REGION_DIRECTORY_URL) {
+          return Promise.resolve(
+            new Response(JSON.stringify(DISCOVERY), {
+              headers: { "Content-Type": "application/json" },
+            })
+          );
+        }
         return Promise.resolve(
-          new Response(JSON.stringify(DISCOVERY), {
+          new Response(JSON.stringify(US_MANIFEST), {
             headers: { "Content-Type": "application/json" },
-          }),
+          })
         );
-      }
-      return Promise.resolve(
-        new Response(JSON.stringify(US_MANIFEST), {
-          headers: { "Content-Type": "application/json" },
-        }),
-      );
-    });
+      });
 
     render(
       <MemoryRouter initialEntries={["/auth?region=us"]}>
         <RegionProvider>
           <RegionDirectoryProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(
       await screen.findByText(
-        "us:United States:active|eu:European Union:coming-soon",
-      ),
+        "us:United States:active|eu:European Union:coming-soon"
+      )
     ).toBeTruthy();
     expect(fetchMock).toHaveBeenCalledWith(DEFAULT_REGION_DIRECTORY_URL, {
       credentials: "omit",
@@ -243,12 +248,12 @@ describe("RegionProvider", () => {
         fetchMock.mock.calls.some(
           ([input, init]) =>
             String(input) === "https://api-us.example.com/v1/manifest" &&
-            init?.credentials === "omit",
-        ),
+            init?.credentials === "omit"
+        )
       ).toBe(true);
     });
     expect(
-      JSON.parse(localStorage.getItem(REGION_DIRECTORY_STORAGE_KEY) ?? "[]"),
+      JSON.parse(localStorage.getItem(REGION_DIRECTORY_STORAGE_KEY) ?? "[]")
     ).toEqual({
       [DEFAULT_REGION_DIRECTORY_URL]: parseRegionDiscovery(DISCOVERY),
     });
@@ -260,7 +265,7 @@ describe("RegionProvider", () => {
       REGION_DIRECTORY_STORAGE_KEY,
       JSON.stringify({
         [DEFAULT_REGION_DIRECTORY_URL]: parseRegionDiscovery(DISCOVERY),
-      }),
+      })
     );
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       if (String(input) === DEFAULT_REGION_DIRECTORY_URL) {
@@ -269,7 +274,7 @@ describe("RegionProvider", () => {
       return Promise.resolve(
         new Response(JSON.stringify(US_MANIFEST), {
           headers: { "Content-Type": "application/json" },
-        }),
+        })
       );
     });
 
@@ -278,21 +283,21 @@ describe("RegionProvider", () => {
         <RegionProvider>
           <RegionDirectoryProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(
       await screen.findByText(
-        "us:United States:active|eu:European Union:coming-soon",
-      ),
+        "us:United States:active|eu:European Union:coming-soon"
+      )
     ).toBeTruthy();
     await waitFor(() =>
       expect(warn).toHaveBeenCalledWith(
         expect.objectContaining({
           action: "region.directory.refresh",
           outcome: "failure",
-        }),
-      ),
+        })
+      )
     );
   });
 
@@ -301,11 +306,11 @@ describe("RegionProvider", () => {
       REGION_DIRECTORY_STORAGE_KEY,
       JSON.stringify({
         [DEFAULT_REGION_DIRECTORY_URL]: parseRegionDiscovery(DISCOVERY),
-      }),
+      })
     );
     localStorage.setItem(
       REGION_MANIFEST_STORAGE_KEY,
-      JSON.stringify({ us: US_MANIFEST }),
+      JSON.stringify({ us: US_MANIFEST })
     );
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
@@ -316,7 +321,7 @@ describe("RegionProvider", () => {
         <RegionProvider>
           <RegionManifestProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(screen.getByText("us")).toBeTruthy();
@@ -328,7 +333,7 @@ describe("RegionProvider", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify(US_MANIFEST), {
         headers: { "Content-Type": "application/json" },
-      }),
+      })
     );
     const createClients = vi.fn(() => ({
       apiClient: {} as never,
@@ -340,7 +345,7 @@ describe("RegionProvider", () => {
         <RegionProvider createClients={createClients} directory={DIRECTORY}>
           <RegionManifestProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(await screen.findByText("us")).toBeTruthy();
@@ -349,10 +354,9 @@ describe("RegionProvider", () => {
   it("prefers query param over stored region", async () => {
     localStorage.setItem("lunaris.region", "us");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify(EU_MANIFEST),
-        { headers: { "Content-Type": "application/json" } },
-      ),
+      new Response(JSON.stringify(EU_MANIFEST), {
+        headers: { "Content-Type": "application/json" },
+      })
     );
 
     render(
@@ -360,23 +364,22 @@ describe("RegionProvider", () => {
         <RegionProvider directory={DIRECTORY}>
           <RegionProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(await screen.findByText("eu")).toBeTruthy();
     expect(screen.getByText("explicit")).toBeTruthy();
     await waitFor(() =>
-      expect(localStorage.getItem("lunaris.region")).toBe("eu"),
+      expect(localStorage.getItem("lunaris.region")).toBe("eu")
     );
   });
 
   it("falls back to stored region before default", async () => {
     localStorage.setItem("lunaris.region", "us");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify(US_MANIFEST),
-        { headers: { "Content-Type": "application/json" } },
-      ),
+      new Response(JSON.stringify(US_MANIFEST), {
+        headers: { "Content-Type": "application/json" },
+      })
     );
 
     render(
@@ -384,7 +387,7 @@ describe("RegionProvider", () => {
         <RegionProvider directory={DIRECTORY}>
           <RegionProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(await screen.findByText("us")).toBeTruthy();
@@ -400,7 +403,7 @@ describe("RegionProvider", () => {
       return Promise.resolve(
         new Response(JSON.stringify(manifest), {
           headers: { "Content-Type": "application/json" },
-        }),
+        })
       );
     });
 
@@ -409,13 +412,13 @@ describe("RegionProvider", () => {
         <RegionProvider directory={DIRECTORY}>
           <RegionSelectionProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(await screen.findByText("eu")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Choose US" }));
     await waitFor(() =>
-      expect(localStorage.getItem("lunaris.region")).toBe("us"),
+      expect(localStorage.getItem("lunaris.region")).toBe("us")
     );
     first.unmount();
 
@@ -424,7 +427,7 @@ describe("RegionProvider", () => {
         <RegionProvider directory={DIRECTORY}>
           <RegionProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(await screen.findByText("us")).toBeTruthy();
@@ -438,11 +441,13 @@ describe("RegionProvider", () => {
       resolveUsManifest = resolve;
     });
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      if (String(input).includes("api-us")) return usManifestResponse;
+      if (String(input).includes("api-us")) {
+        return usManifestResponse;
+      }
       return Promise.resolve(
         new Response(JSON.stringify(EU_MANIFEST), {
           headers: { "Content-Type": "application/json" },
-        }),
+        })
       );
     });
 
@@ -451,30 +456,33 @@ describe("RegionProvider", () => {
         <RegionProvider directory={DIRECTORY}>
           <RegionSwitchManifestProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
-    expect((await screen.findByTestId("loaded-manifest")).textContent).toBe("eu");
+    await waitFor(() =>
+      expect(screen.getByTestId("loaded-manifest").textContent).toBe("eu")
+    );
     await user.click(screen.getByRole("button", { name: "Choose US" }));
     expect(screen.getByTestId("selected-region").textContent).toBe("us");
-    expect(screen.getByTestId("loaded-manifest").textContent).toBe("no-manifest");
+    expect(screen.getByTestId("loaded-manifest").textContent).toBe(
+      "no-manifest"
+    );
 
     resolveUsManifest?.(
       new Response(JSON.stringify(US_MANIFEST), {
         headers: { "Content-Type": "application/json" },
-      }),
+      })
     );
     await waitFor(() =>
-      expect(screen.getByTestId("loaded-manifest").textContent).toBe("us"),
+      expect(screen.getByTestId("loaded-manifest").textContent).toBe("us")
     );
   });
 
   it("treats configured default as satisfying selectionRequired", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify(EU_MANIFEST),
-        { headers: { "Content-Type": "application/json" } },
-      ),
+      new Response(JSON.stringify(EU_MANIFEST), {
+        headers: { "Content-Type": "application/json" },
+      })
     );
 
     render(
@@ -482,7 +490,7 @@ describe("RegionProvider", () => {
         <RegionProvider directory={DIRECTORY}>
           <RegionProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(await screen.findByText("eu")).toBeTruthy();
@@ -508,10 +516,9 @@ describe("RegionProvider", () => {
       },
     ];
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify(US_MANIFEST),
-        { headers: { "Content-Type": "application/json" } },
-      ),
+      new Response(JSON.stringify(US_MANIFEST), {
+        headers: { "Content-Type": "application/json" },
+      })
     );
 
     render(
@@ -519,7 +526,7 @@ describe("RegionProvider", () => {
         <RegionProvider directory={directoryWithoutDefault}>
           <RegionProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(await screen.findByText("us")).toBeTruthy();
@@ -531,7 +538,7 @@ describe("RegionProvider", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify(US_MANIFEST), {
         headers: { "Content-Type": "application/json" },
-      }),
+      })
     );
 
     render(
@@ -539,20 +546,20 @@ describe("RegionProvider", () => {
         <RegionProvider directory={DIRECTORY}>
           <RegionManifestProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(await screen.findByText("us")).toBeTruthy();
 
     expect(
-      JSON.parse(localStorage.getItem(REGION_MANIFEST_STORAGE_KEY) ?? "{}"),
+      JSON.parse(localStorage.getItem(REGION_MANIFEST_STORAGE_KEY) ?? "{}")
     ).toEqual({ us: US_MANIFEST });
   });
 
   it("uses stored manifest when manifest fetch rejects", async () => {
     localStorage.setItem(
       REGION_MANIFEST_STORAGE_KEY,
-      JSON.stringify({ us: US_MANIFEST }),
+      JSON.stringify({ us: US_MANIFEST })
     );
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("offline"));
 
@@ -561,7 +568,7 @@ describe("RegionProvider", () => {
         <RegionProvider directory={DIRECTORY}>
           <RegionManifestProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(await screen.findByText("us")).toBeTruthy();
@@ -572,16 +579,18 @@ describe("RegionProvider", () => {
     const warn = vi.spyOn(log, "warn");
     localStorage.setItem(
       REGION_MANIFEST_STORAGE_KEY,
-      JSON.stringify({ us: US_MANIFEST }),
+      JSON.stringify({ us: US_MANIFEST })
     );
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 500 }));
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(null, { status: 500 })
+    );
 
     render(
       <MemoryRouter initialEntries={["/auth?region=us"]}>
         <RegionProvider directory={DIRECTORY}>
           <RegionManifestProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(await screen.findByText("us")).toBeTruthy();
@@ -592,8 +601,8 @@ describe("RegionProvider", () => {
           action: "region.manifest.refresh",
           outcome: "failure",
           region: { id: "us" },
-        }),
-      ),
+        })
+      )
     );
   });
 
@@ -604,12 +613,12 @@ describe("RegionProvider", () => {
     };
     localStorage.setItem(
       REGION_MANIFEST_STORAGE_KEY,
-      JSON.stringify({ us: US_MANIFEST }),
+      JSON.stringify({ us: US_MANIFEST })
     );
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify(refreshedManifest), {
         headers: { "Content-Type": "application/json" },
-      }),
+      })
     );
 
     render(
@@ -617,16 +626,14 @@ describe("RegionProvider", () => {
         <RegionProvider directory={DIRECTORY}>
           <RegionManifestUrlProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(screen.getByText(US_MANIFEST.apiUrl)).toBeTruthy();
     await waitFor(() =>
       expect(
-        JSON.parse(
-          localStorage.getItem(REGION_MANIFEST_STORAGE_KEY) ?? "{}",
-        ),
-      ).toEqual({ us: refreshedManifest }),
+        JSON.parse(localStorage.getItem(REGION_MANIFEST_STORAGE_KEY) ?? "{}")
+      ).toEqual({ us: refreshedManifest })
     );
     expect(screen.getByText(US_MANIFEST.apiUrl)).toBeTruthy();
   });
@@ -639,19 +646,17 @@ describe("RegionProvider", () => {
     };
     localStorage.setItem(
       REGION_MANIFEST_STORAGE_KEY,
-      JSON.stringify({ eu: EU_MANIFEST, us: US_MANIFEST }),
+      JSON.stringify({ eu: EU_MANIFEST, us: US_MANIFEST })
     );
     vi.spyOn(globalThis, "fetch").mockImplementation((input) =>
       Promise.resolve(
         new Response(
           JSON.stringify(
-            String(input).includes("api-us")
-              ? refreshedManifest
-              : EU_MANIFEST,
+            String(input).includes("api-us") ? refreshedManifest : EU_MANIFEST
           ),
-          { headers: { "Content-Type": "application/json" } },
-        ),
-      ),
+          { headers: { "Content-Type": "application/json" } }
+        )
+      )
     );
 
     render(
@@ -659,16 +664,14 @@ describe("RegionProvider", () => {
         <RegionProvider directory={DIRECTORY}>
           <RegionSessionManifestProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(screen.getByText(US_MANIFEST.apiUrl)).toBeTruthy();
     await waitFor(() =>
       expect(
-        JSON.parse(
-          localStorage.getItem(REGION_MANIFEST_STORAGE_KEY) ?? "{}",
-        ).us,
-      ).toEqual(refreshedManifest),
+        JSON.parse(localStorage.getItem(REGION_MANIFEST_STORAGE_KEY) ?? "{}").us
+      ).toEqual(refreshedManifest)
     );
     await user.click(screen.getByRole("button", { name: "Choose EU" }));
     expect(await screen.findByText(EU_MANIFEST.apiUrl)).toBeTruthy();
@@ -680,7 +683,7 @@ describe("RegionProvider", () => {
   it("ignores stored manifest with wrong regionId", async () => {
     localStorage.setItem(
       REGION_MANIFEST_STORAGE_KEY,
-      JSON.stringify({ us: EU_MANIFEST }),
+      JSON.stringify({ us: EU_MANIFEST })
     );
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("offline"));
 
@@ -689,10 +692,12 @@ describe("RegionProvider", () => {
         <RegionProvider directory={DIRECTORY}>
           <RegionManifestProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
-    expect(await screen.findByText("Failed to fetch region manifest")).toBeTruthy();
+    expect(
+      await screen.findByText("Failed to fetch region manifest")
+    ).toBeTruthy();
     expect(screen.getByText("no-manifest")).toBeTruthy();
   });
 
@@ -705,10 +710,12 @@ describe("RegionProvider", () => {
         <RegionProvider directory={DIRECTORY}>
           <RegionManifestProbe />
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
-    expect(await screen.findByText("Failed to fetch region manifest")).toBeTruthy();
+    expect(
+      await screen.findByText("Failed to fetch region manifest")
+    ).toBeTruthy();
     expect(screen.getByText("no-manifest")).toBeTruthy();
   });
 });

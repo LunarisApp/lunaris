@@ -56,8 +56,12 @@ const WORKSPACE_STORAGE_SLOTS_UNION = `SELECT * FROM ${WORKSPACE_STORAGE_SLOTS_T
       UNION ALL
       SELECT * FROM ${LOCAL_WORKSPACE_STORAGE_SLOTS_TABLE}`;
 
-function parseFileMetadata(value: string | null | undefined): FileMetadata | null {
-  if (!value) return null;
+function parseFileMetadata(
+  value: string | null | undefined
+): FileMetadata | null {
+  if (!value) {
+    return null;
+  }
   try {
     const parsed = JSON.parse(value) as FileMetadata & { fileId?: string };
     const attachmentId = parsed.attachmentId ?? parsed.fileId;
@@ -104,18 +108,21 @@ export function createFileAttachmentWatcher(params: {
           WHERE pi.workspace_id = ?
             AND slot.metadata IS NOT NULL
             AND (a.state IS NULL OR a.state != ?)`,
-        [
-          workspaceId,
-          AttachmentState.ARCHIVED,
-        ]
+        [workspaceId, AttachmentState.ARCHIVED]
       )) {
-        if (signal.aborted) return;
+        if (signal.aborted) {
+          return;
+        }
         const rows = result.rows?._array ?? [];
         const attachments = rows.flatMap((row: { value?: string }) => {
-          if (!row.value) return [];
+          if (!row.value) {
+            return [];
+          }
           try {
             const metadata = parseFileMetadata(row.value);
-            if (!metadata) return [];
+            if (!metadata) {
+              return [];
+            }
             return [
               {
                 fileExtension: metadata.fileExtension,
@@ -137,7 +144,9 @@ export async function repairFileAttachmentPointers(params: {
   db: Database;
   workspaceId: string;
 }) {
-  if (typeof indexedDB === "undefined") return;
+  if (typeof indexedDB === "undefined") {
+    return;
+  }
 
   const { db, workspaceId } = params;
   const storage = new IndexedDbFileStorageAdapter(
@@ -166,11 +175,7 @@ export async function repairFileAttachmentPointers(params: {
       WHERE json_extract(a.meta_data, '$.workspaceId') = ?
          OR slot.workspace_id = ?
       GROUP BY a.id, a.local_uri, a.state, a.has_synced`,
-    [
-      workspaceId,
-      workspaceId,
-      workspaceId,
-    ]
+    [workspaceId, workspaceId, workspaceId]
   );
 
   for (const row of rows) {
@@ -208,7 +213,9 @@ async function reconcileFileAttachment(params: {
   }
 
   const metadata = parseAttachmentMetadata<FileMetadata>(row.value);
-  if (!metadata?.attachmentId || !metadata.fileExtension) return;
+  if (!(metadata?.attachmentId && metadata.fileExtension)) {
+    return;
+  }
 
   if (row.local_uri) {
     await restoreArchivedFileAttachment({ db, metadata, row, storage });
@@ -373,7 +380,9 @@ export async function createFileWorkspaceResource(params: {
         uploadedAt: new Date().toISOString(),
       };
       const content = result.storage.content;
-      if (!content) throw new Error("File storage was not provisioned");
+      if (!content) {
+        throw new Error("File storage was not provisioned");
+      }
       await setFileStorageMetadata({
         backingId: savedAttachment.id,
         db: tx as unknown as DatabaseOrTx,
@@ -384,7 +393,9 @@ export async function createFileWorkspaceResource(params: {
     },
   });
 
-  if (!resourceId) throw new Error("File resource was not created");
+  if (!resourceId) {
+    throw new Error("File resource was not created");
+  }
   return { attachment, id: resourceId, name: file.name };
 }
 
@@ -491,13 +502,12 @@ export async function getFileMetadataValue(params: {
   return parseFileMetadata((await getFileMetadata(params))?.value);
 }
 
-export function buildFileAttachmentQuery(resourceId: string, storageId?: string) {
+export function buildFileAttachmentQuery(
+  resourceId: string,
+  storageId?: string
+) {
   return {
-    params: [
-      storageId ?? "",
-      storageId ?? "",
-      resourceId,
-    ],
+    params: [storageId ?? "", storageId ?? "", resourceId],
     query: `SELECT slot.metadata AS value,
         a.id, a.local_uri, a.state, a.has_synced, a.media_type
       FROM (${WORKSPACE_RESOURCES_UNION}) pi
@@ -532,7 +542,8 @@ async function assertFileAttachmentUploadAvailable(params: {
   workspaceId: string;
   storageId: string;
 }) {
-  const { db, expectedAttachmentId, resourceId, workspaceId, storageId } = params;
+  const { db, expectedAttachmentId, resourceId, workspaceId, storageId } =
+    params;
   const resource = await getWorkspaceResource({ db, id: resourceId });
   const slot = await getStorageSlot(db, storageId);
   if (
@@ -560,7 +571,14 @@ export async function uploadFileAttachmentToWorkspaceResource(params: {
   replaceExisting?: boolean;
   storageId?: string;
 }) {
-  const { api, db, file, resourceId, workspaceId, replaceExisting = false } = params;
+  const {
+    api,
+    db,
+    file,
+    resourceId,
+    workspaceId,
+    replaceExisting = false,
+  } = params;
   const resource = await getWorkspaceResource({ db, id: resourceId });
   const pluginId = resource?.resource_type_id;
   if (!resource || resource.workspace_id !== workspaceId || !pluginId) {
@@ -569,11 +587,10 @@ export async function uploadFileAttachmentToWorkspaceResource(params: {
   const slot = params.storageId
     ? await getStorageSlot(db, params.storageId)
     : (await getResourceStorageSlots(db, resourceId)).find(
-        (candidate) => candidate.name === "content" && candidate.kind === "file",
+        (candidate) => candidate.name === "content" && candidate.kind === "file"
       );
   if (
-    !slot ||
-    slot.kind !== "file" ||
+    slot?.kind !== "file" ||
     slot.workspace_id !== workspaceId ||
     slot.resource_id !== resourceId
   ) {
@@ -621,8 +638,12 @@ export async function uploadFileAttachmentToWorkspaceResource(params: {
       id: attachmentId,
       mediaType,
       metaData: JSON.stringify({
-        fileExtension, filename: file.name, mediaType, workspaceId,
-        replacementFileId: existing?.attachmentId, replacementStorageId: slot.id,
+        fileExtension,
+        filename: file.name,
+        mediaType,
+        workspaceId,
+        replacementFileId: existing?.attachmentId,
+        replacementStorageId: slot.id,
       }),
       updateHook: async (tx, savedAttachment) => {
         const transactionDb = tx as unknown as DatabaseOrTx;
@@ -656,7 +677,9 @@ export async function uploadFileAttachmentToWorkspaceResource(params: {
     throw error;
   }
 
-  if (!metadata) throw new Error("File attachment metadata was not created");
+  if (!metadata) {
+    throw new Error("File attachment metadata was not created");
+  }
   return metadata;
 }
 

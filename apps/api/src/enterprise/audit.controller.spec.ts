@@ -7,10 +7,9 @@ import type { AuditService } from "./audit.service";
 
 const query = { limit: 50 } as AuditEventsQueryDto;
 
-function session(params: {
-  anonymous?: boolean;
-  organizationId?: string | null;
-} = {}): UserSession {
+function session(
+  params: { anonymous?: boolean; organizationId?: string | null } = {}
+): UserSession {
   return {
     session: {
       activeOrganizationId:
@@ -49,7 +48,7 @@ describe("AuditController", () => {
     } as unknown as AuditService);
 
     await expect(
-      controller.list(session({ anonymous: true }), query),
+      controller.list(session({ anonymous: true }), query)
     ).rejects.toMatchObject({ status: 403 });
     expect(assertReviewer).not.toHaveBeenCalled();
     expect(list).not.toHaveBeenCalled();
@@ -64,7 +63,7 @@ describe("AuditController", () => {
     } as unknown as AuditService);
 
     await expect(
-      controller.list(session({ organizationId: null }), query),
+      controller.list(session({ organizationId: null }), query)
     ).rejects.toBeInstanceOf(NoActiveOrganizationError);
     expect(assertReviewer).not.toHaveBeenCalled();
     expect(list).not.toHaveBeenCalled();

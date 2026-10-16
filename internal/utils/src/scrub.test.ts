@@ -48,9 +48,7 @@ describe("scrubString", () => {
     );
     expect(
       scrubString("https://example.com/callback?code=secret-code&safe=yes")
-    ).toBe(
-      "https://example.com/callback?code=[redacted]&safe=yes"
-    );
+    ).toBe("https://example.com/callback?code=[redacted]&safe=yes");
   });
 
   test("preserves harmless strings", () => {

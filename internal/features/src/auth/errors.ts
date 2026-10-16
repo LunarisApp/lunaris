@@ -1,7 +1,4 @@
-import {
-  getUserFacingDescription,
-  getUserFacingError,
-} from "@repo/data/http";
+import { getUserFacingDescription, getUserFacingError } from "@repo/data/http";
 import { toast } from "sonner";
 
 type Translate = Parameters<typeof getUserFacingDescription>[1];

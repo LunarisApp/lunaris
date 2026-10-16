@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  type PluginIconSource,
-} from "@lunarisapp/plugin-sdk";
+import type { PluginIconSource } from "@lunarisapp/plugin-sdk";
 import { usePreloadResourceRenderer } from "../../../extensions/use-preload-resource-renderer";
 import { Icon } from "@lunarisapp/ui/components/icon";
 import {
@@ -76,7 +74,7 @@ import {
 function highlightMatch(
   text: string,
   query: string,
-  ranges?: Array<{ end: number; start: number }>,
+  ranges?: Array<{ end: number; start: number }>
 ): ReactNode {
   if (ranges?.length) {
     const parts: ReactNode[] = [];
@@ -85,11 +83,11 @@ function highlightMatch(
       parts.push(text.slice(offset, range.start));
       parts.push(
         <mark
-          className="bg-yellow-200/60 dark:bg-yellow-500/30 rounded-sm px-0.5"
+          className="rounded-sm bg-yellow-200/60 px-0.5 dark:bg-yellow-500/30"
           key={`${range.start}-${range.end}-${index}`}
         >
           {text.slice(range.start, range.end)}
-        </mark>,
+        </mark>
       );
       offset = range.end;
     }
@@ -97,13 +95,17 @@ function highlightMatch(
     return parts;
   }
   const trimmedQuery = query.trim();
-  if (!trimmedQuery) return text;
+  if (!trimmedQuery) {
+    return text;
+  }
 
   const lowerText = text.toLowerCase();
   const lowerQuery = trimmedQuery.toLowerCase();
   const matchIndex = lowerText.indexOf(lowerQuery);
 
-  if (matchIndex === -1) return text;
+  if (matchIndex === -1) {
+    return text;
+  }
 
   const before = text.slice(0, matchIndex);
   const match = text.slice(matchIndex, matchIndex + trimmedQuery.length);
@@ -112,7 +114,7 @@ function highlightMatch(
   return (
     <>
       {before}
-      <mark className="bg-yellow-200/60 dark:bg-yellow-500/30 rounded-sm px-0.5">
+      <mark className="rounded-sm bg-yellow-200/60 px-0.5 dark:bg-yellow-500/30">
         {match}
       </mark>
       {after}
@@ -167,15 +169,23 @@ interface FilterValueSuggestion {
 
 function getSuggestionRank(values: string[], query: string): number {
   const needle = normalizeSearchQuery(query);
-  if (!needle) return 0;
+  if (!needle) {
+    return 0;
+  }
   return Math.min(
     ...values.map((value) => {
       const normalizedValue = normalizeSearchQuery(value);
-      if (normalizedValue === needle) return 0;
-      if (normalizedValue.startsWith(needle)) return 1;
-      if (normalizedValue.includes(needle)) return 2;
+      if (normalizedValue === needle) {
+        return 0;
+      }
+      if (normalizedValue.startsWith(needle)) {
+        return 1;
+      }
+      if (normalizedValue.includes(needle)) {
+        return 2;
+      }
       return 3;
-    }),
+    })
   );
 }
 
@@ -259,7 +269,11 @@ export function SearchDialogMenu({
   workspaceId?: string;
   workspaceSlug?: string;
   items?: ReturnType<typeof useWorkspaceResources>;
-  onOpenResource?: (resourceId: string, title: string, pluginId: string) => void;
+  onOpenResource?: (
+    resourceId: string,
+    title: string,
+    pluginId: string
+  ) => void;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -268,18 +282,18 @@ export function SearchDialogMenu({
   const { isOpen, query, close, setQuery } = useSearchDialog();
   const detectedFieldCompletion = useMemo(
     () => getSearchQueryFieldCompletion(query),
-    [query],
+    [query]
   );
   const valueCompletion = useMemo(
     () => getSearchQueryValueCompletion(query),
-    [query],
+    [query]
   );
   const fieldCompletion = valueCompletion ? null : detectedFieldCompletion;
   const fieldSuggestions = fieldCompletion?.fields ?? EMPTY_FIELD_SUGGESTIONS;
   const isCompleting = Boolean(fieldCompletion || valueCompletion);
   const isCompletingWorkspace = valueCompletion?.field === "workspace";
   const isCompletingResourceValue = Boolean(
-    valueCompletion && valueCompletion.field !== "workspace",
+    valueCompletion && valueCompletion.field !== "workspace"
   );
   const isQueryEmpty = !query.trim();
   const isShowingDefaultSuggestions = isQueryEmpty && !isCompleting;
@@ -292,14 +306,14 @@ export function SearchDialogMenu({
       limit: isShowingDefaultSuggestions
         ? DEFAULT_WORKSPACE_SUGGESTION_LIMIT
         : undefined,
-    },
+    }
   );
   const resourceResults = useResourceSearch(
     valueCompletion?.field === "title"
       ? valueCompletion.value
       : executableQuery,
     isCompletingResourceValue ? 100 : 150,
-    { includeAllWhenEmpty: isCompletingResourceValue },
+    { includeAllWhenEmpty: isCompletingResourceValue }
   );
   const contentResults = useResourceContentSearch(executableQuery, 300, isOpen);
   const resourceTypes = useSearchResourceTypes();
@@ -345,7 +359,9 @@ export function SearchDialogMenu({
   >;
 
   const valueSuggestions = useMemo<FilterValueSuggestion[]>(() => {
-    if (!valueCompletion) return EMPTY_VALUE_SUGGESTIONS;
+    if (!valueCompletion) {
+      return EMPTY_VALUE_SUGGESTIONS;
+    }
 
     if (valueCompletion.field === "workspace") {
       return workspaceResults.slice(0, MAX_VALUE_SUGGESTIONS).map((result) => ({
@@ -364,7 +380,7 @@ export function SearchDialogMenu({
           (left, right) =>
             getSuggestionRank([left.label], valueCompletion.value) -
               getSuggestionRank([right.label], valueCompletion.value) ||
-            left.label.localeCompare(right.label),
+            left.label.localeCompare(right.label)
         )
         .flatMap((result) => {
           const normalizedTitle = normalizeSearchQuery(result.label);
@@ -388,8 +404,8 @@ export function SearchDialogMenu({
     const searchResourceTypeIds = [
       ...new Set(
         resourceResults.flatMap((result) =>
-          result.pluginId ? [result.pluginId] : [],
-        ),
+          result.pluginId ? [result.pluginId] : []
+        )
       ),
     ];
     if (valueCompletion.field === "extension") {
@@ -398,18 +414,18 @@ export function SearchDialogMenu({
           searchResourceTypeIds.flatMap((resourceTypeId) => {
             const extensionId = resourceTypes.get(resourceTypeId)?.extensionId;
             return extensionId ? [extensionId] : [];
-          }),
+          })
         ),
       ];
       return extensionIds
         .filter((extensionId) =>
-          normalizeSearchQuery(extensionId).includes(partial),
+          normalizeSearchQuery(extensionId).includes(partial)
         )
         .sort(
           (left, right) =>
             getSuggestionRank([left], valueCompletion.value) -
               getSuggestionRank([right], valueCompletion.value) ||
-            left.localeCompare(right),
+            left.localeCompare(right)
         )
         .slice(0, MAX_VALUE_SUGGESTIONS)
         .map((extensionId) => ({
@@ -427,20 +443,19 @@ export function SearchDialogMenu({
       }))
       .filter(({ name, resourceTypeId }) =>
         [resourceTypeId, name].some((value) =>
-          normalizeSearchQuery(value).includes(partial),
-        ),
+          normalizeSearchQuery(value).includes(partial)
+        )
       )
       .sort(
         (left, right) =>
           getSuggestionRank(
             [left.resourceTypeId, left.name],
-            valueCompletion.value,
+            valueCompletion.value
           ) -
             getSuggestionRank(
               [right.resourceTypeId, right.name],
-              valueCompletion.value,
-            ) ||
-          left.name.localeCompare(right.name),
+              valueCompletion.value
+            ) || left.name.localeCompare(right.name)
       )
       .slice(0, MAX_VALUE_SUGGESTIONS)
       .map(({ name, resourceTypeId }) => ({
@@ -486,33 +501,35 @@ export function SearchDialogMenu({
     commandResults.length > 0;
   const hasRecent = recentFiles.length > 0;
 
-  const groupedItems = useMemo(() => {
-    return buildSearchGroups({
+  const groupedItems = useMemo(
+    () =>
+      buildSearchGroups({
+        commandResults,
+        resourceResults,
+        hasRecent,
+        isQueryEmpty,
+        labels: {
+          commands: t("search.groupCommands"),
+          contentMatches: t("search.groupContentMatches"),
+          resources: t("search.groupResources"),
+          workspaces: t("search.groupWorkspaces"),
+          recent: t("search.groupRecent"),
+        },
+        workspaceResults,
+        recentFiles,
+        uniqueContentResults,
+      }),
+    [
       commandResults,
       resourceResults,
       hasRecent,
       isQueryEmpty,
-      labels: {
-        commands: t("search.groupCommands"),
-        contentMatches: t("search.groupContentMatches"),
-        resources: t("search.groupResources"),
-        workspaces: t("search.groupWorkspaces"),
-        recent: t("search.groupRecent"),
-      },
       workspaceResults,
       recentFiles,
+      t,
       uniqueContentResults,
-    });
-  }, [
-    commandResults,
-    resourceResults,
-    hasRecent,
-    isQueryEmpty,
-    workspaceResults,
-    recentFiles,
-    t,
-    uniqueContentResults,
-  ]);
+    ]
+  );
 
   const handleWorkspaceSelect = (slug: string, isCurrent: boolean) => {
     posthog.capture("search_executed", { type: "workspace" });
@@ -530,10 +547,14 @@ export function SearchDialogMenu({
     workspaceSlug = currentWorkspaceSlug
   ) => {
     // Only open items with known pluginId
-    if (!pluginId) return;
+    if (!pluginId) {
+      return;
+    }
     posthog.capture("search_executed", { type: "resource" });
     if (resultWorkspaceId !== workspaceId) {
-      if (!(workspaceSlug && organizationSlug)) return;
+      if (!(workspaceSlug && organizationSlug)) {
+        return;
+      }
       navigate(
         pathWithRegion(`/${organizationSlug}/${workspaceSlug}/${resourceId}`)
       );
@@ -553,22 +574,28 @@ export function SearchDialogMenu({
 
   const completeField = useCallback(
     (field: SearchQueryField) => {
-      if (!fieldCompletion) return;
+      if (!fieldCompletion) {
+        return;
+      }
       setQuery(completeSearchQueryField(query, fieldCompletion, field));
     },
-    [fieldCompletion, query, setQuery],
+    [fieldCompletion, query, setQuery]
   );
 
   const completeValue = useCallback(
     (value: string) => {
-      if (!valueCompletion) return;
+      if (!valueCompletion) {
+        return;
+      }
       setQuery(completeSearchQueryValue(query, valueCompletion, value));
     },
-    [query, setQuery, valueCompletion],
+    [query, setQuery, valueCompletion]
   );
 
   const openFieldSuggestions = useCallback(() => {
-    if (isCompleting) return;
+    if (isCompleting) {
+      return;
+    }
     const separator = query && !/\s$/u.test(query) ? " " : "";
     setQuery(`${query}${separator}@`);
   }, [isCompleting, query, setQuery]);
@@ -576,14 +603,18 @@ export function SearchDialogMenu({
   /** Completes a filter or cycles between result groups with Tab. */
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {
-      if (e.key !== "Tab") return;
+      if (e.key !== "Tab") {
+        return;
+      }
 
       if (fieldCompletion && !e.shiftKey) {
         const selectedField =
           fieldSuggestions.find(
-            (field) => `search-filter-${field}` === selectedValue,
+            (field) => `search-filter-${field}` === selectedValue
           ) ?? fieldSuggestions[0];
-        if (!selectedField) return;
+        if (!selectedField) {
+          return;
+        }
         e.preventDefault();
         completeField(selectedField);
         return;
@@ -592,15 +623,19 @@ export function SearchDialogMenu({
       if (valueCompletion && !e.shiftKey) {
         const selectedSuggestion =
           valueSuggestions.find(
-            (suggestion) => suggestion.id === selectedValue,
+            (suggestion) => suggestion.id === selectedValue
           ) ?? valueSuggestions[0];
-        if (!selectedSuggestion) return;
+        if (!selectedSuggestion) {
+          return;
+        }
         e.preventDefault();
         completeValue(selectedSuggestion.value);
         return;
       }
 
-      if (isCompleting || groupedItems.length <= 1) return;
+      if (isCompleting || groupedItems.length <= 1) {
+        return;
+      }
 
       e.preventDefault();
 
@@ -623,7 +658,7 @@ export function SearchDialogMenu({
       selectedValue,
       valueCompletion,
       valueSuggestions,
-    ],
+    ]
   );
 
   return (
@@ -631,7 +666,9 @@ export function SearchDialogMenu({
       className="sm:max-w-2xl"
       description={t("search.description")}
       onOpenChange={(open) => {
-        if (!open) close();
+        if (!open) {
+          close();
+        }
       }}
       open={isOpen}
       title={t("search.title")}
@@ -651,7 +688,7 @@ export function SearchDialogMenu({
               aria-expanded={isCompleting}
               aria-haspopup="listbox"
               aria-label={t("search.addFilterLabel")}
-              className="flex h-6 items-center gap-1 rounded-md px-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex h-6 items-center gap-1 rounded-md px-1.5 font-medium text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               onClick={openFieldSuggestions}
               onMouseDown={(event) => event.preventDefault()}
               type="button"
@@ -670,7 +707,7 @@ export function SearchDialogMenu({
           className="max-h-[min(60vh,28rem)] scroll-py-2"
           id="search-dialog-results"
         >
-          {fieldCompletion && (
+          {!!fieldCompletion && (
             <CommandGroup
               heading={
                 <GroupHeading
@@ -693,7 +730,7 @@ export function SearchDialogMenu({
                       <span className="block truncate font-medium">
                         {details.label}
                       </span>
-                      <span className="block truncate text-xs text-muted-foreground">
+                      <span className="block truncate text-muted-foreground text-xs">
                         {details.description}
                       </span>
                     </span>
@@ -726,8 +763,8 @@ export function SearchDialogMenu({
                     <span className="block truncate font-medium">
                       {suggestion.label}
                     </span>
-                    {suggestion.description && (
-                      <span className="block truncate text-xs text-muted-foreground">
+                    {!!suggestion.description && (
+                      <span className="block truncate text-muted-foreground text-xs">
                         {suggestion.description}
                       </span>
                     )}
@@ -743,19 +780,19 @@ export function SearchDialogMenu({
           )}
           {valueCompletion && valueSuggestions.length === 0 && (
             <div
-              className="py-12 text-center text-sm text-muted-foreground"
+              className="py-12 text-center text-muted-foreground text-sm"
               role="status"
             >
               {t("search.noFilterValues")}
             </div>
           )}
-          {!isCompleting && !hasResults && !isQueryEmpty && (
+          {!(isCompleting || hasResults || isQueryEmpty) && (
             <CommandEmpty className="py-12">
               <span className="mx-auto mb-3 flex size-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                 <HugeiconsIcon className="size-5" icon={FileSearchIcon} />
               </span>
               <span className="font-medium">{t("search.noResults")}</span>
-              <span className="mt-1 block text-xs text-muted-foreground">
+              <span className="mt-1 block text-muted-foreground text-xs">
                 {t("search.noResultsHint")}
               </span>
             </CommandEmpty>
@@ -771,17 +808,15 @@ export function SearchDialogMenu({
             >
               {recentFiles.map((file) => {
                 const item = items.find((i) => i.id === file.resourceId);
-                if (!item) return null;
+                if (!item) {
+                  return null;
+                }
                 return (
                   <CommandItem
                     className="py-2"
                     key={`recent-${file.resourceId}`}
                     onSelect={() =>
-                      handleResourceSelect(
-                        item.id,
-                        file.title,
-                        file.pluginId
-                      )
+                      handleResourceSelect(item.id, file.title, file.pluginId)
                     }
                     value={`recent-${file.resourceId}`}
                   >
@@ -796,7 +831,7 @@ export function SearchDialogMenu({
           )}
           {!isCompleting && workspaceResults.length > 0 && (
             <CommandGroup
-              className="border-t border-border/60"
+              className="border-border/60 border-t"
               heading={
                 <GroupHeading
                   count={workspaceResults.length}
@@ -818,12 +853,12 @@ export function SearchDialogMenu({
                     <span className="block truncate font-medium">
                       {result.label}
                     </span>
-                    <span className="block truncate text-xs text-muted-foreground">
+                    <span className="block truncate text-muted-foreground text-xs">
                       {result.slug}
                     </span>
                   </span>
-                  {result.isCurrent && (
-                    <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:text-blue-300">
+                  {!!result.isCurrent && (
+                    <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 font-medium text-[10px] text-blue-700 dark:text-blue-300">
                       {t("search.currentWorkspace")}
                     </span>
                   )}
@@ -833,7 +868,7 @@ export function SearchDialogMenu({
           )}
           {!isCompleting && resourceResults.length > 0 && (
             <CommandGroup
-              className="border-t border-border/60"
+              className="border-border/60 border-t"
               heading={
                 <GroupHeading
                   count={resourceResults.length}
@@ -861,7 +896,7 @@ export function SearchDialogMenu({
                     <span className="block truncate font-medium">
                       {result.label}
                     </span>
-                    <span className="block truncate text-xs text-muted-foreground">
+                    <span className="block truncate text-muted-foreground text-xs">
                       {result.workspaceName}
                     </span>
                   </span>
@@ -871,7 +906,7 @@ export function SearchDialogMenu({
           )}
           {!isCompleting && uniqueContentResults.length > 0 && (
             <CommandGroup
-              className="border-t border-border/60"
+              className="border-border/60 border-t"
               heading={
                 <GroupHeading
                   count={uniqueContentResults.length}
@@ -899,8 +934,8 @@ export function SearchDialogMenu({
                     <span className="block truncate font-medium">
                       {result.label}
                     </span>
-                    {result.preview && (
-                      <span className="block truncate text-xs text-muted-foreground">
+                    {!!result.preview && (
+                      <span className="block truncate text-muted-foreground text-xs">
                         <span className="font-medium">
                           {result.workspaceName}
                         </span>
@@ -908,7 +943,7 @@ export function SearchDialogMenu({
                         {highlightMatch(
                           result.preview,
                           query,
-                          result.previewHighlights,
+                          result.previewHighlights
                         )}
                       </span>
                     )}
@@ -919,7 +954,7 @@ export function SearchDialogMenu({
           )}
           {!isCompleting && commandResults.length > 0 && (
             <CommandGroup
-              className="border-t border-border/60"
+              className="border-border/60 border-t"
               heading={
                 <GroupHeading
                   count={commandResults.length}
@@ -934,12 +969,9 @@ export function SearchDialogMenu({
                   onSelect={() => handleCommandSelect(result.id, result.action)}
                   value={result.id}
                 >
-                  <ResultIcon
-                    icon={result.icon ?? Terminal}
-                    tone="command"
-                  />
+                  <ResultIcon icon={result.icon ?? Terminal} tone="command" />
                   <span className="font-medium">{result.label}</span>
-                  {result.shortcut && (
+                  {!!result.shortcut && (
                     <CommandShortcut>{result.shortcut}</CommandShortcut>
                   )}
                 </CommandItem>
@@ -947,16 +979,14 @@ export function SearchDialogMenu({
             </CommandGroup>
           )}
         </CommandList>
-        <div className="flex min-h-10 flex-wrap items-center gap-x-3 gap-y-1 border-t border-border/60 px-3 py-2 text-[11px] text-muted-foreground">
+        <div className="flex min-h-10 flex-wrap items-center gap-x-3 gap-y-1 border-border/60 border-t px-3 py-2 text-[11px] text-muted-foreground">
           <span className="flex items-center gap-1">
             <Kbd>↑↓</Kbd>
             {t("search.hintNavigate")}
           </span>
           <span className="flex items-center gap-1">
             <Kbd>Tab</Kbd>
-            {isCompleting
-              ? t("search.hintComplete")
-              : t("search.hintGroups")}
+            {isCompleting ? t("search.hintComplete") : t("search.hintGroups")}
           </span>
           <span className="ml-auto flex items-center gap-1">
             <Kbd>↵</Kbd>

@@ -20,7 +20,7 @@ export class ExtensionRequestsController {
   @Throttle({ default: { limit: 5, ttl: seconds(60) } })
   submit(
     @Session() session: UserSession,
-    @Body({ schema: ExtensionRequestDto }) body: ExtensionRequestDto,
+    @Body({ schema: ExtensionRequestDto }) body: ExtensionRequestDto
   ): Promise<ExtensionRequestResponseDto> {
     return this.extensionRequests.submit({
       idea: body.idea,

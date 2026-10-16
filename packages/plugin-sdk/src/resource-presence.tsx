@@ -67,20 +67,23 @@ export function useResourcePresence(): ResourcePresenceResult {
 /** T describes application data; validate peer state before interpreting it. */
 export function useResourceAwareness<T extends JsonValue>(
   channel: string,
-  options?: PluginAwarenessOptions,
+  options?: PluginAwarenessOptions
 ): ResourceAwarenessResult<T> {
   usePluginPermission("content.read");
   const extensionId = useExtensionId();
   const capabilities = usePluginDataCapabilities();
-  if (!/^[a-zA-Z0-9._-]{1,64}$/.test(channel))
+  if (!/^[a-zA-Z0-9._-]{1,64}$/.test(channel)) {
     throw new Error("Invalid presence channel");
+  }
   return (capabilities.useResourceAwareness?.(
     extensionId,
     channel,
-    options,
+    options
   ) ?? {
     peers: [],
     status: "unavailable",
-    setState: () => {},
+    setState: () => {
+      /* No action while this capability is unavailable. */
+    },
   }) as unknown as ResourceAwarenessResult<T>;
 }

@@ -109,7 +109,7 @@ describe("resource open performance", () => {
       resourceTypeId: "lunaris.rich-text",
     });
 
-    vi.advanceTimersByTime(5_000);
+    vi.advanceTimersByTime(5000);
 
     expect(capture).toHaveBeenCalledWith(
       "resource_open_performance",

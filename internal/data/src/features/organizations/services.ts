@@ -53,24 +53,28 @@ interface OrganizationMemberRoleRow {
   role: string;
 }
 
-const INDEX_OPTIONS: AdditionalOptions = { streams: ORGANIZATION_INDEX_SYNC_STREAMS };
+const INDEX_OPTIONS: AdditionalOptions = {
+  streams: ORGANIZATION_INDEX_SYNC_STREAMS,
+};
 
 const DIRECTORY_OPTIONS: AdditionalOptions = {
   streams: ORGANIZATION_DIRECTORY_SYNC_STREAMS,
 };
 
-export function useOrganizationsQuery(options: AdditionalOptions = INDEX_OPTIONS) {
+export function useOrganizationsQuery(
+  options: AdditionalOptions = INDEX_OPTIONS
+) {
   return useQuery<OrganizationEntity>(
     `SELECT * FROM ${ORGANIZATIONS_TABLE}
      ORDER BY created_at ASC, id ASC`,
     [],
-    options,
+    options
   );
 }
 
 export function useOrganizationMembersQuery(
   organizationId: string | undefined,
-  options: AdditionalOptions = DIRECTORY_OPTIONS,
+  options: AdditionalOptions = DIRECTORY_OPTIONS
 ) {
   const query = useQuery<OrganizationMemberRow>(
     `SELECT
@@ -87,7 +91,7 @@ export function useOrganizationMembersQuery(
      WHERE member.organization_id = ?
      ORDER BY member.id ASC`,
     [organizationId ?? ""],
-    options,
+    options
   );
 
   return {
@@ -104,7 +108,7 @@ export function useOrganizationMembersQuery(
           image: row.image,
           name: row.name,
         },
-      }),
+      })
     ),
   };
 }
@@ -112,7 +116,7 @@ export function useOrganizationMembersQuery(
 export function useOrganizationMemberRoleQuery(
   organizationId: string | undefined,
   userId: string | undefined,
-  options: AdditionalOptions = INDEX_OPTIONS,
+  options: AdditionalOptions = INDEX_OPTIONS
 ) {
   const query = useQuery<OrganizationMemberRoleRow>(
     `SELECT role
@@ -121,7 +125,7 @@ export function useOrganizationMemberRoleQuery(
      ORDER BY id ASC
      LIMIT 1`,
     [organizationId ?? "", userId ?? ""],
-    options,
+    options
   );
 
   return {

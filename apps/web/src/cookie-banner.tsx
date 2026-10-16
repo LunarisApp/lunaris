@@ -13,7 +13,9 @@ if (proboCookieBannerEnabled) {
 }
 
 export function ProboCookieBanner() {
-  if (!proboCookieBannerEnabled) return null;
+  if (!proboCookieBannerEnabled) {
+    return null;
+  }
 
   return createElement(
     Fragment,
@@ -31,7 +33,7 @@ export function ProboCookieBanner() {
       hidden: true,
       role: "presentation",
       tabIndex: -1,
-    }),
+    })
   );
 }
 

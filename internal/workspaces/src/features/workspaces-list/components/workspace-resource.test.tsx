@@ -103,7 +103,7 @@ describe("WorkspaceResource", () => {
     render(
       <MemoryRouter>
         <WorkspaceResource workspace={workspace} organizationSlug="acme" />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     const item = screen.getByTestId("workspaces-list-item-atlas");
@@ -123,11 +123,11 @@ describe("WorkspaceResource", () => {
             view={view}
             workspace={workspace}
           />
-        </MemoryRouter>,
+        </MemoryRouter>
       );
 
       expect(screen.getByRole("listitem")).toBeTruthy();
-    },
+    }
   );
 
   it("shows workspace initials in the avatar", () => {
@@ -137,11 +137,11 @@ describe("WorkspaceResource", () => {
           workspace={{ ...workspace, name: "Atlas Research" }}
           organizationSlug="acme"
         />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(
-      container.querySelector('[data-slot="avatar-fallback"]')?.textContent,
+      container.querySelector('[data-slot="avatar-fallback"]')?.textContent
     ).toBe("AR");
   });
 
@@ -149,17 +149,26 @@ describe("WorkspaceResource", () => {
     render(
       <MemoryRouter>
         <WorkspaceResource
-          workspace={{ ...workspace, updated_at: "2026-01-01T00:00:00.000Z", last_activity_at: "2026-01-02T00:00:00.000Z" }}
+          workspace={{
+            ...workspace,
+            updated_at: "2026-01-01T00:00:00.000Z",
+            last_activity_at: "2026-01-02T00:00:00.000Z",
+          }}
           view="list"
           organizationSlug="acme"
         />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
-    const timestamps = screen.getAllByLabelText(/^workspaces.updated /);
+    const timestamps = screen.getAllByTitle(/^workspaces.updated /);
+    expect(
+      timestamps.every((time) =>
+        time.textContent?.startsWith("workspaces.updated ")
+      )
+    ).toBe(true);
     expect(timestamps).toHaveLength(2);
     expect(timestamps[0]?.getAttribute("datetime")).toBe(
-      "2026-01-02T00:00:00.000Z",
+      "2026-01-02T00:00:00.000Z"
     );
   });
 
@@ -172,7 +181,9 @@ describe("WorkspaceResource", () => {
       </PermissionProvider>
     );
 
-    expect(screen.getByTestId("workspace-options").dataset.canDelete).toBe("false");
+    expect(screen.getByTestId("workspace-options").dataset.canDelete).toBe(
+      "false"
+    );
   });
 
   it("opens workspace settings at the canonical settings slug", () => {
@@ -200,7 +211,7 @@ describe("WorkspaceResource", () => {
         <MemoryRouter>
           <WorkspaceResource workspace={workspace} organizationSlug="acme" />
         </MemoryRouter>
-      </PermissionProvider>,
+      </PermissionProvider>
     );
 
     const options = screen.getByTestId("workspace-options");
@@ -218,7 +229,7 @@ describe("WorkspaceResource", () => {
           }}
           organizationSlug="acme"
         />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     const options = screen.getByTestId("workspace-options");

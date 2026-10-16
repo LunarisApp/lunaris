@@ -10,7 +10,7 @@ export const workspaceSlugSchema = z
   .min(3, "Slug must be at least 3 characters")
   .regex(
     /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-    "Slug must be lowercase with hyphens only",
+    "Slug must be lowercase with hyphens only"
   )
   .refine((slug) => !reservedWorkspaceSlugs.has(slug), "Slug is reserved");
 

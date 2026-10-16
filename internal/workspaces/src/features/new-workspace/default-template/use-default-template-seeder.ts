@@ -34,16 +34,18 @@ export function useDefaultTemplateWorkspaceSeeder(params: {
 
   useEffect(() => {
     if (
-      !organizationId ||
-      !canCreate ||
+      !(organizationId && canCreate) ||
       workspacesQuery.isLoading ||
       workspacesQuery.isFetching ||
       inFlightRef.current
-    )
+    ) {
       return;
+    }
 
     const marker = readDefaultWorkspaceSeedMarker();
-    if (!marker) return;
+    if (!marker) {
+      return;
+    }
 
     if (workspaces.length > 0) {
       clearDefaultWorkspaceSeedMarker();
@@ -51,7 +53,9 @@ export function useDefaultTemplateWorkspaceSeeder(params: {
     }
 
     if (marker.kind === "registered") {
-      if (!currentUserEmail) return;
+      if (!currentUserEmail) {
+        return;
+      }
       if (marker.email.toLowerCase() !== currentUserEmail.toLowerCase()) {
         clearDefaultWorkspaceSeedMarker();
         return;
@@ -62,7 +66,7 @@ export function useDefaultTemplateWorkspaceSeeder(params: {
     void (async () => {
       const { seedDefaultTemplateWorkspace } = await import("./seed-service");
       const resourceCapacityReservation = await reserveResourceCapacity(
-        DEFAULT_TEMPLATE_ITEM_COUNT,
+        DEFAULT_TEMPLATE_ITEM_COUNT
       );
       await seedDefaultTemplateWorkspace({
         db,

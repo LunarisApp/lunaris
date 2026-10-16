@@ -15,9 +15,7 @@ interface ExtensionRequest {
 
 @Injectable()
 export class ExtensionRequestsService {
-  constructor(
-    @Inject(RESEND_CLIENT) private readonly resend: Resend | null
-  ) {}
+  constructor(@Inject(RESEND_CLIENT) private readonly resend: Resend | null) {}
 
   async submit(request: ExtensionRequest): Promise<{ success: true }> {
     const log = useLogger();

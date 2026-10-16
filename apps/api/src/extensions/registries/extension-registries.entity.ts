@@ -28,11 +28,11 @@ export const organizationExtensionRegistriesDb = pgTable(
     primaryKey({ columns: [table.organizationId, table.id] }),
     unique("organization_extension_registries_org_location_unique").on(
       table.organizationId,
-      table.location,
+      table.location
     ),
     index("organization_extension_registries_org_added_idx").on(
       table.organizationId,
-      table.addedAt,
+      table.addedAt
     ),
-  ],
+  ]
 );

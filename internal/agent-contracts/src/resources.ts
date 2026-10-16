@@ -20,7 +20,8 @@ export const agentResourceDefinitions = [
   {
     name: "workspace",
     operation: "get_workspace",
-    uriTemplate: "lunaris://organizations/{organizationId}/workspaces/{workspaceId}",
+    uriTemplate:
+      "lunaris://organizations/{organizationId}/workspaces/{workspaceId}",
   },
   {
     name: "workspace-resources",

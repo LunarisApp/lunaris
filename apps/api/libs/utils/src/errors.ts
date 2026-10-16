@@ -15,7 +15,9 @@ export class AppError extends EvlogError {
         ? { message: opts, status: 500 }
         : { status: 500, ...opts }
     );
-    if (typeof opts === "object") this.reason = opts.reason;
+    if (typeof opts === "object") {
+      this.reason = opts.reason;
+    }
     this.name = "AppError";
   }
 }

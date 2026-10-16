@@ -77,7 +77,10 @@ async function initializeDatabase(options: {
   let mode = resolveRuntimeFlags();
 
   for (;;) {
-    const database = createWebPowerSyncDatabase({ ...options, runtimeMode: mode });
+    const database = createWebPowerSyncDatabase({
+      ...options,
+      runtimeMode: mode,
+    });
     try {
       await database.init();
       await configureSearchIndex(database);
@@ -85,7 +88,9 @@ async function initializeDatabase(options: {
       return database;
     } catch (error) {
       await closeDatabase(database);
-      if (isKeyMismatch(error)) throw error;
+      if (isKeyMismatch(error)) {
+        throw error;
+      }
 
       const fallback = getFallbackRuntimeMode(mode);
       if (fallback) {
@@ -134,7 +139,9 @@ async function initializeWithResolvedKey({
 }
 
 async function requestPersistentStorage() {
-  if (typeof navigator === "undefined" || !navigator.storage?.persist) return;
+  if (typeof navigator === "undefined" || !navigator.storage?.persist) {
+    return;
+  }
   try {
     await navigator.storage.persist();
   } catch (error) {

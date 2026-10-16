@@ -52,12 +52,10 @@ describe("panel window descriptors", () => {
   });
 
   it("rejects decoded payloads over 16 KiB before parsing", () => {
-    const oversized = btoa(
-      "x".repeat(PANEL_WINDOW_DESCRIPTOR_LIMIT + 1)
-    )
+    const oversized = btoa("x".repeat(PANEL_WINDOW_DESCRIPTOR_LIMIT + 1))
       .replaceAll("+", "-")
       .replaceAll("/", "_")
-      .replace(/=+$/u, "");
+      .replace(/[=]+$/u, "");
 
     expect(() => decodePanelWindowDescriptor(oversized)).toThrow(
       "Panel window descriptor exceeds 16 KiB"

@@ -29,7 +29,9 @@ describe("EncryptionKeyService", () => {
   });
 
   it("is deterministic for the same master + session id", () => {
-    expect(service.derive("session-abc")).toEqual(service.derive("session-abc"));
+    expect(service.derive("session-abc")).toEqual(
+      service.derive("session-abc")
+    );
   });
 
   it("returns different keys for different session ids", () => {

@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 describe("audit events migration", () => {
   const migration = readFileSync(
     resolve(process.cwd(), "drizzle/0031_nifty_krista_starr.sql"),
-    "utf8",
+    "utf8"
   );
 
   it("creates indexed, idempotent audit storage", () => {
@@ -18,12 +18,10 @@ describe("audit events migration", () => {
     expect(migration).toContain('CREATE TRIGGER "audit_events_immutable"');
     expect(migration).toContain("audit_events is append-only");
     expect(migration).toContain("interval '7 years'");
-    expect(migration).toContain(
-      "DISABLE TRIGGER audit_events_immutable",
-    );
+    expect(migration).toContain("DISABLE TRIGGER audit_events_immutable");
     expect(migration).not.toContain("app.audit_retention_purge");
     expect(migration).toContain(
-      'REVOKE ALL ON FUNCTION "purge_expired_audit_events"',
+      'REVOKE ALL ON FUNCTION "purge_expired_audit_events"'
     );
   });
 });

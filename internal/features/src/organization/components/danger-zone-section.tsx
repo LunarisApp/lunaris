@@ -41,7 +41,7 @@ export function DangerZoneSection({
   const recentSignIn = Boolean(
     session &&
       Date.now() - new Date(session.session.createdAt).getTime() <=
-        15 * 60 * 1000,
+        15 * 60 * 1000
   );
   const location = useLocation();
   const navigate = useNavigate();
@@ -55,17 +55,34 @@ export function DangerZoneSection({
   useEffect(() => {
     if (
       searchParams.get("confirmOrganizationDeletion") !== organization.id ||
-      !recentSignIn || !isOwner || !canDelete
-    ) return;
+      !recentSignIn ||
+      !isOwner ||
+      !canDelete
+    ) {
+      return;
+    }
     setOpen(true);
     const next = new URLSearchParams(searchParams);
     next.delete("confirmOrganizationDeletion");
     setSearchParams(next, { replace: true });
-  }, [searchParams, setSearchParams, organization.id, recentSignIn, isOwner, canDelete]);
+  }, [
+    searchParams,
+    setSearchParams,
+    organization.id,
+    recentSignIn,
+    isOwner,
+    canDelete,
+  ]);
 
   const beginDeletion = () => {
-    if (pending) return;
-    if (session && Date.now() - new Date(session.session.createdAt).getTime() <= 15 * 60 * 1000) {
+    if (pending) {
+      return;
+    }
+    if (
+      session &&
+      Date.now() - new Date(session.session.createdAt).getTime() <=
+        15 * 60 * 1000
+    ) {
       setOpen(true);
       return;
     }
@@ -74,11 +91,13 @@ export function DangerZoneSection({
     const returnTo = `${location.pathname}?${next}${location.hash}`;
     navigate(
       appendRedirectToPath(pathWithRegion("/auth?addAccount=true"), returnTo),
-      { state: { email: session?.user.email } },
+      { state: { email: session?.user.email } }
     );
   };
 
-  if (!isOwner || !canDelete) return null;
+  if (!(isOwner && canDelete)) {
+    return null;
+  }
 
   if (isPersonalOrganization(organization)) {
     return (
@@ -94,7 +113,9 @@ export function DangerZoneSection({
   }
 
   const handleDeleteRequest = async () => {
-    if (!canDelete || pending) return;
+    if (!canDelete || pending) {
+      return;
+    }
     if (
       !session ||
       Date.now() - new Date(session.session.createdAt).getTime() >
@@ -112,22 +133,28 @@ export function DangerZoneSection({
             organizationId: organization.id,
             confirmationSlug: organization.slug,
           },
-        },
+        }
       );
       const nextOrganization = organizations.data?.find(
-        (candidate) => candidate.id !== organization.id && candidate.slug &&
-          !candidate.deletion_requested_at && !candidate.deletion_purge_after &&
+        (candidate) =>
+          candidate.id !== organization.id &&
+          candidate.slug &&
+          !candidate.deletion_requested_at &&
+          !candidate.deletion_purge_after &&
           !["scheduled", "purging", "unavailable"].includes(
             queryClient.getQueryData<OrganizationDeletionStatus>(
-              organizationDeletionKey(candidate.id),
-            )?.status ?? "active",
-          ),
+              organizationDeletionKey(candidate.id)
+            )?.status ?? "active"
+          )
       );
       queryClient.setQueryData(
         organizationDeletionRedirectKey(organization.id),
-        nextOrganization?.slug ?? null,
+        nextOrganization?.slug ?? null
       );
-      queryClient.setQueryData(organizationDeletionKey(organization.id), status);
+      queryClient.setQueryData(
+        organizationDeletionKey(organization.id),
+        status
+      );
       posthog.capture("organization_delete_requested");
       setOpen(false);
       toast.success(t("organization.deletionScheduledTitle"));
@@ -147,20 +174,19 @@ export function DangerZoneSection({
       className="grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
     >
       <h2
-        className="text-base font-semibold text-destructive"
+        className="font-semibold text-base text-destructive"
         id="organization-danger-zone-heading"
       >
         {t("organization.dangerZone")}
       </h2>
-      <div className="border-destructive/20 bg-destructive/[0.025] flex max-w-3xl flex-col gap-5 rounded-xl border p-4 sm:p-5 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex max-w-3xl flex-col gap-5 rounded-xl border border-destructive/20 bg-destructive/[0.025] p-4 sm:p-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 space-y-2">
-          <p className="text-sm font-medium text-destructive">
+          <p className="font-medium text-destructive text-sm">
             {t("organization.deleteOrganization")}
           </p>
-          <p className="max-w-prose text-sm leading-relaxed text-destructive">
+          <p className="max-w-prose text-destructive text-sm leading-relaxed">
             {t("organization.deleteSummary")}
           </p>
-
         </div>
         <Button
           disabled={pending}

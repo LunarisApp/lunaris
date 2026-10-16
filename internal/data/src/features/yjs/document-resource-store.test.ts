@@ -69,10 +69,14 @@ vi.mock("./provider", () => {
       const entry = {
         documentId,
         emitSynced: () => {
-          for (const cb of this.listeners.get("synced") ?? []) cb();
+          for (const cb of this.listeners.get("synced") ?? []) {
+            cb();
+          }
         },
         emitError: (error: Error) => {
-          for (const cb of this.listeners.get("error") ?? []) cb(error);
+          for (const cb of this.listeners.get("error") ?? []) {
+            cb(error);
+          }
         },
         getListenerCount: (event: string) =>
           this.listeners.get(event)?.size ?? 0,
@@ -86,13 +90,14 @@ vi.mock("./provider", () => {
         setUserId,
         waitForPersistence: this.waitForPersistence,
       };
-      // biome-ignore lint/complexity/noUselessThisAlias: shared closure getter
       const self = this;
       providerInstances.push(entry as (typeof providerInstances)[number]);
     }
 
     on(event: string, cb: (...args: unknown[]) => void) {
-      if (!this.listeners.has(event)) this.listeners.set(event, new Set());
+      if (!this.listeners.has(event)) {
+        this.listeners.set(event, new Set());
+      }
       this.listeners.get(event)!.add(cb);
     }
     off(event: string, cb: (...args: unknown[]) => void) {
@@ -115,8 +120,7 @@ const createYjsDocumentWithIdMock = vi.fn(
 );
 
 vi.mock("./services", () => ({
-  yjsDocumentExists: (db: unknown, id: string) =>
-    yjsDocumentExistsMock(db, id),
+  yjsDocumentExists: (db: unknown, id: string) => yjsDocumentExistsMock(db, id),
   createYjsDocumentWithId: (db: unknown, id: string, workspaceId: string) =>
     createYjsDocumentWithIdMock(db, id, workspaceId),
   watchYjsDocumentUpdates: vi.fn(),
@@ -145,8 +149,11 @@ function flushMicrotasks(times = 5) {
   return new Promise<void>((resolve) => {
     let remaining = times;
     const tick = () => {
-      if (remaining-- <= 0) resolve();
-      else queueMicrotask(tick);
+      if (remaining-- <= 0) {
+        resolve();
+      } else {
+        queueMicrotask(tick);
+      }
     };
     tick();
   });
@@ -170,7 +177,11 @@ describe("preloadYjsDocument", () => {
 
   it("dedupes concurrent preloads of the same document into one provider", async () => {
     const handles = Array.from({ length: 5 }, () =>
-      preloadYjsDocument({ db, documentId: "doc_a", workspaceId: "workspace_1" })
+      preloadYjsDocument({
+        db,
+        documentId: "doc_a",
+        workspaceId: "workspace_1",
+      })
     );
     // Give tasks a chance to run acquireYDoc before we emit synced.
     await flushMicrotasks();
@@ -310,7 +321,9 @@ describe("preloadYjsDocument", () => {
     // B should never have constructed a provider.
     expect(providerInstances).toHaveLength(1);
     const state = _getPreloadStateForTests();
-    expect(state.entries.find((e) => e.key.startsWith("doc_b"))).toBeUndefined();
+    expect(
+      state.entries.find((e) => e.key.startsWith("doc_b"))
+    ).toBeUndefined();
   });
 
   it("releases an in-flight slot when an unsynced preload expires", async () => {
@@ -534,7 +547,7 @@ describe("waitForYjsDocumentPersistence", () => {
   }
 
   it("reports loading immediately when a storage lookup first supplies a document ID", () => {
-    const observed: Array<ReturnType<typeof useReadyYjsDocument>> = [];
+    const observed: ReturnType<typeof useReadyYjsDocument>[] = [];
     const { rerender } = renderHook(
       ({ id }) => {
         const value = useReadyYjsDocument(id, "workspace_1", {
@@ -554,7 +567,7 @@ describe("waitForYjsDocumentPersistence", () => {
   });
 
   it("never exposes the previous Y.Doc while switching document identity", async () => {
-    const observed: Array<ReturnType<typeof useReadyYjsDocument>> = [];
+    const observed: ReturnType<typeof useReadyYjsDocument>[] = [];
     const { rerender, result } = renderHook(
       ({ id }) => {
         const value = useReadyYjsDocument(id, "workspace_1");

@@ -58,7 +58,8 @@ export function PeopleField({
     () =>
       [...people.entries()]
         .filter(([, user]) => {
-          const haystack = `${user.name ?? ""} ${user.email ?? ""}`.toLocaleLowerCase();
+          const haystack =
+            `${user.name ?? ""} ${user.email ?? ""}`.toLocaleLowerCase();
           return haystack.includes(query.toLocaleLowerCase());
         })
         .sort(([, left], [, right]) =>
@@ -75,16 +76,11 @@ export function PeopleField({
           <PropertyFieldButton
             appearance={appearance}
             aria-label={propertyName}
-            className={cn(
-              "h-7 min-w-20 justify-start",
-              className
-            )}
+            className={cn("h-7 min-w-20 justify-start", className)}
           />
         }
       >
-        {appearance === "composer" ? (
-          <PropertyTypeIcon type="people" />
-        ) : null}
+        {appearance === "composer" ? <PropertyTypeIcon type="people" /> : null}
         {value.length > 0 && appearance === "metadata" ? (
           <PersonValue
             apiBaseUrl={apiBaseUrl}
@@ -189,7 +185,7 @@ function PersonOption({
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm">{label}</span>
           {user.email && user.email !== user.name ? (
-            <span className="block truncate text-xs text-muted-foreground">
+            <span className="block truncate text-muted-foreground text-xs">
               {user.email}
             </span>
           ) : null}
@@ -223,7 +219,7 @@ function PersonValue({
       />
       <span className="min-w-0 flex-1 truncate text-sm">{label}</span>
       {remaining > 0 ? (
-        <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+        <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-muted-foreground text-xs">
           +{remaining}
         </span>
       ) : null}
@@ -258,8 +254,12 @@ function getUploadedAvatarUrl(
   apiBaseUrl: string,
   user: PluginUser | undefined
 ): string | undefined {
-  if (!user?.image) return undefined;
-  if (!user.id) return user.image;
+  if (!user?.image) {
+    return undefined;
+  }
+  if (!user.id) {
+    return user.image;
+  }
 
   const baseUrl = apiBaseUrl.replace(/\/+$/, "");
   return `${baseUrl}/v1/account/avatar/${encodeURIComponent(user.id)}`;

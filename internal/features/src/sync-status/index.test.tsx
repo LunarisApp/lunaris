@@ -37,10 +37,7 @@ vi.mock("react-router", () => ({
 }));
 
 vi.mock("@lunarisapp/ui/components/button", () => ({
-  Button: ({
-    children,
-    ...props
-  }: ButtonHTMLAttributes<HTMLButtonElement>) => (
+  Button: ({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) => (
     <button {...props}>{children}</button>
   ),
 }));
@@ -67,7 +64,9 @@ vi.mock("@lunarisapp/ui/components/hover-card", () => ({
 vi.mock("@lunarisapp/ui/components/popover", () => ({
   Popover: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   PopoverTrigger: ({ render }: { render: ReactNode }) => <div>{render}</div>,
-  PopoverContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  PopoverContent: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 vi.mock("@lunarisapp/ui/hooks/use-mobile", () => ({
@@ -166,13 +165,15 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
-function setStatus(overrides: Partial<{
-  connected: boolean;
-  connecting: boolean;
-  lastSyncedAt: Date | undefined;
-  uploadError: Error | undefined;
-  downloadError: Error | undefined;
-}>) {
+function setStatus(
+  overrides: Partial<{
+    connected: boolean;
+    connecting: boolean;
+    lastSyncedAt: Date | undefined;
+    uploadError: Error | undefined;
+    downloadError: Error | undefined;
+  }>
+) {
   mockUseStatus.mockReturnValue({
     connected: false,
     connecting: false,
@@ -283,7 +284,9 @@ describe("SyncStatusIndicator", () => {
     render(<SyncStatusIndicator />);
 
     expect(
-      screen.queryByText("You are offline. Changes will sync when you reconnect.")
+      screen.queryByText(
+        "You are offline. Changes will sync when you reconnect."
+      )
     ).toBeNull();
     expect(screen.queryByText("You Are Offline")).toBeNull();
     expect(screen.queryByTestId("sync-icon")).toBeNull();
@@ -297,7 +300,10 @@ describe("SyncStatusIndicator", () => {
       consecutiveClientErrors: 3,
       lastClientErrorStatus: 401,
     });
-    setStatus({ connected: false, lastSyncedAt: new Date("2026-04-07T00:00:00Z") });
+    setStatus({
+      connected: false,
+      lastSyncedAt: new Date("2026-04-07T00:00:00Z"),
+    });
 
     render(<SyncStatusIndicator />);
 
@@ -321,7 +327,10 @@ describe("SyncStatusIndicator", () => {
       consecutiveClientErrors: 3,
       lastClientErrorStatus: 403,
     });
-    setStatus({ connected: false, lastSyncedAt: new Date("2026-04-07T00:00:00Z") });
+    setStatus({
+      connected: false,
+      lastSyncedAt: new Date("2026-04-07T00:00:00Z"),
+    });
 
     render(<SyncStatusIndicator />);
 
@@ -337,7 +346,7 @@ describe("SyncStatusIndicator", () => {
 
     await user.click(screen.getByRole("button", { name: "Review Billing" }));
     expect(mockNavigate).toHaveBeenCalledWith(
-      "/northstar/settings?tab=billing",
+      "/northstar/settings?tab=billing"
     );
   });
 
@@ -348,7 +357,10 @@ describe("SyncStatusIndicator", () => {
       consecutiveClientErrors: 3,
       lastClientErrorStatus: 409,
     });
-    setStatus({ connected: false, lastSyncedAt: new Date("2026-04-07T00:00:00Z") });
+    setStatus({
+      connected: false,
+      lastSyncedAt: new Date("2026-04-07T00:00:00Z"),
+    });
 
     render(<SyncStatusIndicator />);
 
@@ -379,7 +391,10 @@ describe("SyncStatusIndicator", () => {
       consecutiveClientErrors: 3,
       lastClientErrorStatus: 409,
     });
-    setStatus({ connected: false, lastSyncedAt: new Date("2026-04-07T00:00:00Z") });
+    setStatus({
+      connected: false,
+      lastSyncedAt: new Date("2026-04-07T00:00:00Z"),
+    });
     mockClearUploadQueue.mockResolvedValue(undefined);
 
     render(<SyncStatusIndicator />);

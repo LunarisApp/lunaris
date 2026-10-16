@@ -20,23 +20,21 @@ const PAGE_SIZE = 100;
 
 type PageFetcher<T> = (
   input: PaginationInput,
-  options?: ContentRequestOptions,
+  options?: ContentRequestOptions
 ) => Promise<Page<T>>;
 
 export function createHybridControlClient(
   local: PendingAwareControlClient,
-  cloud: LunarisControlClient,
+  cloud: LunarisControlClient
 ): LunarisControlClient {
   const workspaceSource = async (
     organizationId: string,
-    workspaceId: string,
+    workspaceId: string
   ): Promise<{ complete: boolean; workspace?: Workspace }> => {
     try {
-      const workspace = await local.getWorkspace(
-        organizationId,
-        workspaceId,
-        { consistency: "cached" },
-      );
+      const workspace = await local.getWorkspace(organizationId, workspaceId, {
+        consistency: "cached",
+      });
       return {
         complete:
           workspace.visibility === "local" ||
@@ -44,7 +42,9 @@ export function createHybridControlClient(
         workspace,
       };
     } catch (error) {
-      if (isExpectedLocalMiss(error)) return { complete: false };
+      if (isExpectedLocalMiss(error)) {
+        return { complete: false };
+      }
       throw error;
     }
   };
@@ -60,7 +60,7 @@ export function createHybridControlClient(
       pendingRefs?: PendingReference[];
       pendingRefsForValue?: (value: T) => PendingReference[];
       trustUntrackedCache?: boolean;
-    } = {},
+    } = {}
   ) => {
     if (options?.consistency === "cached") {
       return localRead(options);
@@ -73,20 +73,24 @@ export function createHybridControlClient(
     try {
       cached = await localRead({ ...options, consistency: "cached" });
     } catch (error) {
-      if (!isExpectedLocalMiss(error)) throw error;
+      if (!isExpectedLocalMiss(error)) {
+        throw error;
+      }
     }
     const changes = await pendingChanges();
     const overlay = pendingOverlay(changes);
     const references = [
       ...(behavior.pendingRefs ?? []),
-      ...(cached !== undefined
-        ? (behavior.pendingRefsForValue?.(cached) ?? [])
-        : []),
+      ...(cached === undefined
+        ? []
+        : (behavior.pendingRefsForValue?.(cached) ?? [])),
     ];
     const pendingDelete = references.some(({ id, table }) =>
       overlay.deletes.get(table)?.has(id)
     );
-    if (pendingDelete) throw pendingDeleteError(references);
+    if (pendingDelete) {
+      throw pendingDeleteError(references);
+    }
     const pendingUpsert = references.some(({ id, table }) =>
       overlay.upserts.get(table)?.has(id)
     );
@@ -106,7 +110,7 @@ export function createHybridControlClient(
       localRead({ ...options, consistency: "confirmed" }),
       cloudRead(options ?? {}),
       cached,
-      options,
+      options
     );
   };
 
@@ -114,7 +118,9 @@ export function createHybridControlClient(
     try {
       return await run();
     } catch (error) {
-      if (isConnectivityError(error)) throw cloudUnavailable();
+      if (isConnectivityError(error)) {
+        throw cloudUnavailable();
+      }
       throw exposeCloudError(error);
     }
   };
@@ -131,14 +137,14 @@ export function createHybridControlClient(
       pluginId,
       operation,
       input,
-      options,
+      options
     ) {
       const definition = findBuiltInPluginMcpProcedure(pluginId, operation);
       if (!definition) {
         return Promise.reject(
           new TypeError(
-            `Unknown built-in extension operation: ${pluginId}:${operation}`,
-          ),
+            `Unknown built-in extension operation: ${pluginId}:${operation}`
+          )
         );
       }
       const client =
@@ -151,7 +157,7 @@ export function createHybridControlClient(
         pluginId,
         operation,
         input,
-        options,
+        options
       );
     },
 
@@ -167,7 +173,7 @@ export function createHybridControlClient(
         {
           storageId,
           pendingRefs: [{ id: workspaceId, table: "workspaces" }],
-        },
+        }
       );
     },
 
@@ -176,7 +182,7 @@ export function createHybridControlClient(
       workspaceId,
       storageId,
       stateVectorB64,
-      options,
+      options
     ) {
       return workspaceRead(
         organizationId,
@@ -188,7 +194,7 @@ export function createHybridControlClient(
             workspaceId,
             storageId,
             stateVectorB64,
-            read,
+            read
           ),
         (read) =>
           cloud.getYjsStorageState(
@@ -196,21 +202,16 @@ export function createHybridControlClient(
             workspaceId,
             storageId,
             stateVectorB64,
-            read,
+            read
           ),
         {
           storageId,
           pendingRefs: [{ id: workspaceId, table: "workspaces" }],
-        },
+        }
       );
     },
 
-    async getFileDownloadUrl(
-      organizationId,
-      workspaceId,
-      storageId,
-      options,
-    ) {
+    async getFileDownloadUrl(organizationId, workspaceId, storageId, options) {
       return workspaceRead(
         organizationId,
         workspaceId,
@@ -220,19 +221,19 @@ export function createHybridControlClient(
             organizationId,
             workspaceId,
             storageId,
-            read,
+            read
           ),
         (read) =>
           cloud.getFileDownloadUrl(
             organizationId,
             workspaceId,
             storageId,
-            read,
+            read
           ),
         {
           pendingRefs: [{ id: workspaceId, table: "workspaces" }],
           trustUntrackedCache: true,
-        },
+        }
       );
     },
 
@@ -260,16 +261,11 @@ export function createHybridControlClient(
         }),
         cloud.getWorkspace(organizationId, workspaceId, options),
         source.workspace,
-        options,
+        options
       );
     },
 
-    async listKeyValueStorage(
-      organizationId,
-      workspaceId,
-      storageId,
-      options,
-    ) {
+    async listKeyValueStorage(organizationId, workspaceId, storageId, options) {
       return workspaceRead(
         organizationId,
         workspaceId,
@@ -279,39 +275,52 @@ export function createHybridControlClient(
             organizationId,
             workspaceId,
             storageId,
-            read,
+            read
           ),
         (read) =>
           cloud.listKeyValueStorage(
             organizationId,
             workspaceId,
             storageId,
-            read,
+            read
           ),
         {
-          pendingRefs: [
-            { id: workspaceId, table: "workspaces" },
-          ],
+          pendingRefs: [{ id: workspaceId, table: "workspaces" }],
           storageId,
-        },
+        }
       );
     },
 
-    async getWorkspaceResource(organizationId, workspaceId, resourceId, options) {
+    async getWorkspaceResource(
+      organizationId,
+      workspaceId,
+      resourceId,
+      options
+    ) {
       return workspaceRead(
         organizationId,
         workspaceId,
         options,
         (read) =>
-          local.getWorkspaceResource(organizationId, workspaceId, resourceId, read),
+          local.getWorkspaceResource(
+            organizationId,
+            workspaceId,
+            resourceId,
+            read
+          ),
         (read) =>
-          cloud.getWorkspaceResource(organizationId, workspaceId, resourceId, read),
+          cloud.getWorkspaceResource(
+            organizationId,
+            workspaceId,
+            resourceId,
+            read
+          ),
         {
           pendingRefs: [
             { id: workspaceId, table: "workspaces" },
             { id: resourceId, table: "workspace_resources" },
           ],
-        },
+        }
       );
     },
 
@@ -325,37 +334,62 @@ export function createHybridControlClient(
           ...options,
           consistency: "cached",
         });
-        if (resourceIsCurrent(cached)) return cached;
+        if (resourceIsCurrent(cached)) {
+          return cached;
+        }
       } catch (error) {
-        if (!isExpectedLocalMiss(error)) throw error;
+        if (!isExpectedLocalMiss(error)) {
+          throw error;
+        }
       }
       try {
         return await cloud.getOrganization(organizationId, options);
       } catch (error) {
-        if (!isConnectivityError(error)) throw exposeCloudError(error);
-        if (options?.consistency === "confirmed") throw incompleteSync();
-        if (cached) return cached;
+        if (!isConnectivityError(error)) {
+          throw exposeCloudError(error);
+        }
+        if (options?.consistency === "confirmed") {
+          throw incompleteSync();
+        }
+        if (cached) {
+          return cached;
+        }
         throw incompleteSync();
       }
     },
 
     inviteOrganizationMember(organizationId, input, options) {
       return cloudRequired(() =>
-        cloud.inviteOrganizationMember(organizationId, input, options),
+        cloud.inviteOrganizationMember(organizationId, input, options)
       );
     },
 
-    async listWorkspaceResources(organizationId, workspaceId, input = {}, options) {
+    async listWorkspaceResources(
+      organizationId,
+      workspaceId,
+      input = {},
+      options
+    ) {
       const source = await workspaceSource(organizationId, workspaceId);
       if (source.workspace?.visibility === "local") {
-        return local.listWorkspaceResources(organizationId, workspaceId, input, options);
+        return local.listWorkspaceResources(
+          organizationId,
+          workspaceId,
+          input,
+          options
+        );
       }
       return hybridPage({
         cloud: (page, read) =>
-          cloud.listWorkspaceResources(organizationId, workspaceId, {
-            ...input,
-            ...page,
-          }, read),
+          cloud.listWorkspaceResources(
+            organizationId,
+            workspaceId,
+            {
+              ...input,
+              ...page,
+            },
+            read
+          ),
         compare: compareWorkspaceResources,
         compareCursor: compareWorkspaceResourceCursor,
         cursorScope: JSON.stringify([
@@ -369,10 +403,15 @@ export function createHybridControlClient(
         input,
         key: (value) => value.id,
         local: (page, read) =>
-          local.listWorkspaceResources(organizationId, workspaceId, {
-            ...input,
-            ...page,
-          }, read),
+          local.listWorkspaceResources(
+            organizationId,
+            workspaceId,
+            {
+              ...input,
+              ...page,
+            },
+            read
+          ),
         options,
         pending: pendingChanges,
         pendingRefs: (value) => [
@@ -401,7 +440,7 @@ export function createHybridControlClient(
 
     listOrganizationMembers(organizationId, input = {}, options) {
       return cloudRequired(() =>
-        cloud.listOrganizationMembers(organizationId, input, options),
+        cloud.listOrganizationMembers(organizationId, input, options)
       );
     },
 
@@ -425,23 +464,18 @@ export function createHybridControlClient(
 
     previewRemoveOrganizationMember(organizationId, memberId, options) {
       return cloudRequired(() =>
-        cloud.previewRemoveOrganizationMember(organizationId, memberId, options),
+        cloud.previewRemoveOrganizationMember(organizationId, memberId, options)
       );
     },
 
-    removeOrganizationMember(
-      organizationId,
-      memberId,
-      previewToken,
-      options,
-    ) {
+    removeOrganizationMember(organizationId, memberId, previewToken, options) {
       return cloudRequired(() =>
         cloud.removeOrganizationMember(
           organizationId,
           memberId,
           previewToken,
-          options,
-        ),
+          options
+        )
       );
     },
 
@@ -476,7 +510,7 @@ export function createHybridControlClient(
 
     updateOrganization(organizationId, input, options) {
       return cloudRequired(() =>
-        cloud.updateOrganization(organizationId, input, options),
+        cloud.updateOrganization(organizationId, input, options)
       );
     },
   };
@@ -517,7 +551,7 @@ async function hybridPage<T>({
       page.snapshot,
       page.hasMore,
       cursorScope,
-      toCursor,
+      toCursor
     );
   const include = after
     ? (value: T) => compareCursor(value, after) > 0
@@ -528,20 +562,19 @@ async function hybridPage<T>({
       local,
       target,
       { consistency: "cached", signal: options?.signal },
-      include,
+      include
     );
   } catch (error) {
-    if (!isExpectedLocalMiss(error)) throw error;
+    if (!isExpectedLocalMiss(error)) {
+      throw error;
+    }
     localPage = {
       hasMore: false,
       items: [],
       snapshot: incompleteSnapshot(),
     };
   }
-  if (
-    options?.consistency === "cached" ||
-    isComplete(localPage.snapshot)
-  ) {
+  if (options?.consistency === "cached" || isComplete(localPage.snapshot)) {
     return finish(localPage);
   }
   const changes = await pending?.();
@@ -550,8 +583,7 @@ async function hybridPage<T>({
   }
   const overlay = pendingOverlay(changes);
   const includeCloud = (value: T) =>
-    (include?.(value) ?? true) &&
-    !isPendingDelete(value, overlay, pendingRefs);
+    (include?.(value) ?? true) && !isPendingDelete(value, overlay, pendingRefs);
 
   const result = await raceRead(
     collectPages(
@@ -561,9 +593,11 @@ async function hybridPage<T>({
         consistency: "confirmed",
         signal: options?.signal,
       },
-      include,
+      include
     ).then((page) => {
-      if (!isComplete(page.snapshot)) throw incompleteSync();
+      if (!isComplete(page.snapshot)) {
+        throw incompleteSync();
+      }
       return { kind: "local" as const, page };
     }),
     collectPages(cloud, target, options, includeCloud).then((page) => ({
@@ -571,7 +605,7 @@ async function hybridPage<T>({
       page,
     })),
     { kind: "local" as const, page: localPage },
-    options,
+    options
   );
   if (result.kind === "local") {
     return finish(result.page);
@@ -585,7 +619,7 @@ async function hybridPage<T>({
       compare,
       key,
       overlay,
-      pendingRefs,
+      pendingRefs
     ),
     snapshot:
       changes && !changes.complete
@@ -605,16 +639,16 @@ interface PendingOverlay {
 }
 
 function pendingOverlay(
-  changes: PendingContentChanges | undefined,
+  changes: PendingContentChanges | undefined
 ): PendingOverlay {
   const collect = (
-    source: PendingContentChanges["deletes"],
+    source: PendingContentChanges["deletes"]
   ): Map<PendingContentTable, Set<string>> =>
     new Map(
       Object.entries(source).map(([table, ids]) => [
         table as PendingContentTable,
         new Set(ids),
-      ]),
+      ])
     );
   return {
     deletes: collect(changes?.deletes ?? {}),
@@ -625,7 +659,7 @@ function pendingOverlay(
 function hasPendingReference<T>(
   value: T,
   overlay: Map<PendingContentTable, Set<string>>,
-  references?: (value: T) => PendingReference[],
+  references?: (value: T) => PendingReference[]
 ) {
   return (
     references?.(value).some(({ id, table }) => overlay.get(table)?.has(id)) ??
@@ -636,7 +670,7 @@ function hasPendingReference<T>(
 function isPendingDelete<T>(
   value: T,
   overlay: PendingOverlay,
-  references?: (value: T) => PendingReference[],
+  references?: (value: T) => PendingReference[]
 ) {
   return hasPendingReference(value, overlay.deletes, references);
 }
@@ -644,7 +678,7 @@ function isPendingDelete<T>(
 function isPendingUpsert<T>(
   value: T,
   overlay: PendingOverlay,
-  references?: (value: T) => PendingReference[],
+  references?: (value: T) => PendingReference[]
 ) {
   return hasPendingReference(value, overlay.upserts, references);
 }
@@ -655,7 +689,7 @@ function mergePageItems<T>(
   compare: (left: T, right: T) => number,
   key: (value: T) => string,
   overlay: PendingOverlay,
-  references?: (value: T) => PendingReference[],
+  references?: (value: T) => PendingReference[]
 ) {
   const merged = new Map<string, T>();
   for (const value of cloud) {
@@ -687,15 +721,18 @@ async function collectPages<T>(
   fetchPage: PageFetcher<T>,
   target: number,
   options?: ContentRequestOptions,
-  include?: (value: T) => boolean,
+  include?: (value: T) => boolean
 ): Promise<CollectedPage<T>> {
   const items: T[] = [];
   let cursor: string | undefined;
   let snapshot: ContentSnapshot | undefined;
   do {
     const page = await fetchPage(
-      { cursor, limit: Math.min(PAGE_SIZE, Math.max(1, target - items.length)) },
-      options,
+      {
+        cursor,
+        limit: Math.min(PAGE_SIZE, Math.max(1, target - items.length)),
+      },
+      options
     );
     items.push(...(include ? page.items.filter(include) : page.items));
     snapshot = page.snapshot ?? snapshot;
@@ -710,7 +747,7 @@ function slicePage<T>(
   snapshot?: ContentSnapshot,
   hasMore = false,
   cursorScope = "",
-  toCursor: (value: T) => CursorKey = () => [],
+  toCursor: (value: T) => CursorKey = () => []
 ): Page<T> {
   const values = items.slice(0, limit);
   const last = values.at(-1);
@@ -730,11 +767,13 @@ function encodeCursor(after: CursorKey, scope: string) {
   return btoa(JSON.stringify({ after, scope, version: 2 }))
     .replaceAll("+", "-")
     .replaceAll("/", "_")
-    .replace(/=+$/u, "");
+    .replace(/[=]+$/u, "");
 }
 
 function decodeCursor(cursor: string | undefined, scope: string) {
-  if (!cursor) return;
+  if (!cursor) {
+    return;
+  }
   try {
     const normalized = cursor.replaceAll("-", "+").replaceAll("_", "/");
     const value = JSON.parse(atob(normalized)) as {
@@ -763,15 +802,14 @@ function isCursorKey(value: unknown): value is CursorKey {
       (item) =>
         item === null ||
         typeof item === "string" ||
-        (typeof item === "number" && Number.isFinite(item)),
+        (typeof item === "number" && Number.isFinite(item))
     )
   );
 }
 
 function isComplete(snapshot?: ContentSnapshot) {
   return (
-    snapshot?.completeness === "complete" &&
-    snapshot.syncState === "current"
+    snapshot?.completeness === "complete" && snapshot.syncState === "current"
   );
 }
 
@@ -790,9 +828,15 @@ function resourceIsCurrent(value: unknown) {
 }
 
 function preferLocalValue(value: unknown) {
-  if (!value || typeof value !== "object") return false;
-  if ("visibility" in value && value.visibility === "local") return true;
-  if (!("provenance" in value)) return false;
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  if ("visibility" in value && value.visibility === "local") {
+    return true;
+  }
+  if (!("provenance" in value)) {
+    return false;
+  }
   const provenance = value.provenance;
   return (
     typeof provenance === "object" &&
@@ -811,7 +855,7 @@ function completeSnapshot(): ContentSnapshot {
 }
 
 function incompleteSnapshot(
-  syncState: ContentSnapshot["syncState"] = "unknown",
+  syncState: ContentSnapshot["syncState"] = "unknown"
 ): ContentSnapshot {
   return {
     completeness: "partial",
@@ -853,7 +897,10 @@ function compareWorkspaceCursor(value: Workspace, cursor: CursorKey) {
   );
 }
 
-function compareWorkspaceResources(left: WorkspaceResource, right: WorkspaceResource) {
+function compareWorkspaceResources(
+  left: WorkspaceResource,
+  right: WorkspaceResource
+) {
   return (
     left.position - right.position ||
     left.createdAt.localeCompare(right.createdAt) ||
@@ -867,7 +914,7 @@ function workspaceResourceCursor(value: WorkspaceResource): CursorKey {
 
 function compareWorkspaceResourceCursor(
   value: WorkspaceResource,
-  cursor: CursorKey,
+  cursor: CursorKey
 ) {
   return (
     value.position - cursorNumber(cursor, 0) ||
@@ -877,9 +924,14 @@ function compareWorkspaceResourceCursor(
 }
 
 function compareSearchResults(input: WorkspaceResourceSearchInput) {
-  return (left: WorkspaceResourceSearchResult, right: WorkspaceResourceSearchResult) =>
+  return (
+    left: WorkspaceResourceSearchResult,
+    right: WorkspaceResourceSearchResult
+  ) =>
     searchRank(left, input) - searchRank(right, input) ||
-    left.name.toLocaleLowerCase().localeCompare(right.name.toLocaleLowerCase()) ||
+    left.name
+      .toLocaleLowerCase()
+      .localeCompare(right.name.toLocaleLowerCase()) ||
     left.workspaceName
       .toLocaleLowerCase()
       .localeCompare(right.workspaceName.toLocaleLowerCase()) ||
@@ -907,25 +959,33 @@ function compareSearchCursor(input: WorkspaceResourceSearchInput) {
 
 function searchRank(
   value: WorkspaceResourceSearchResult,
-  input: WorkspaceResourceSearchInput,
+  input: WorkspaceResourceSearchInput
 ) {
   const search = input.search.trim().toLocaleLowerCase();
   const item = value.name.toLocaleLowerCase();
   const workspace = value.workspaceName.toLocaleLowerCase();
-  if (item === search || workspace === search) return 0;
-  if (item.startsWith(search) || workspace.startsWith(search)) return 1;
+  if (item === search || workspace === search) {
+    return 0;
+  }
+  if (item.startsWith(search) || workspace.startsWith(search)) {
+    return 1;
+  }
   return 2;
 }
 
 function cursorString(cursor: CursorKey, index: number) {
   const value = cursor[index];
-  if (typeof value !== "string") throw invalidCursor();
+  if (typeof value !== "string") {
+    throw invalidCursor();
+  }
   return value;
 }
 
 function cursorNumber(cursor: CursorKey, index: number) {
   const value = cursor[index];
-  if (typeof value !== "number") throw invalidCursor();
+  if (typeof value !== "number") {
+    throw invalidCursor();
+  }
   return value;
 }
 
@@ -936,7 +996,11 @@ function invalidCursor() {
 function pendingDeleteError(references: PendingReference[] = []) {
   const table = references.at(-1)?.table;
   if (table === "workspace_resources") {
-    return exposedError(404, "RESOURCE_NOT_FOUND", "Workspace resource not found");
+    return exposedError(
+      404,
+      "RESOURCE_NOT_FOUND",
+      "Workspace resource not found"
+    );
   }
   return exposedError(404, "WORKSPACE_NOT_FOUND", "Workspace not found");
 }
@@ -955,20 +1019,23 @@ async function raceRead<T>(
   local: Promise<T>,
   cloud: Promise<T>,
   cached: T | undefined,
-  options?: ContentRequestOptions,
+  options?: ContentRequestOptions
 ): Promise<T> {
   const localAttempt = attempt("local", local);
   const cloudAttempt = attempt("cloud", cloud);
   const first = await Promise.race([localAttempt, cloudAttempt]);
-  if (first.ok) return first.value;
+  if (first.ok) {
+    return first.value;
+  }
   if (first.source === "cloud" && !isConnectivityError(first.error)) {
     throw exposeCloudError(first.error);
   }
   const second =
     first.source === "local" ? await cloudAttempt : await localAttempt;
-  if (second.ok) return second.value;
-  const cloudError =
-    first.source === "cloud" ? first.error : second.error;
+  if (second.ok) {
+    return second.value;
+  }
+  const cloudError = first.source === "cloud" ? first.error : second.error;
   if (!isConnectivityError(cloudError)) {
     throw exposeCloudError(cloudError);
   }
@@ -981,7 +1048,7 @@ async function raceRead<T>(
 function attempt<T>(source: "cloud" | "local", promise: Promise<T>) {
   return promise.then(
     (value) => ({ ok: true as const, source, value }),
-    (error: unknown) => ({ error, ok: false as const, source }),
+    (error: unknown) => ({ error, ok: false as const, source })
   );
 }
 
@@ -1003,7 +1070,7 @@ function exposeCloudError(error: unknown) {
     return exposedError(
       status,
       errorCode(error) ?? `HTTP_${status}`,
-      error.message,
+      error.message
     );
   }
   return error;
@@ -1013,7 +1080,7 @@ function cloudUnavailable() {
   return exposedError(
     503,
     "CLOUD_UNAVAILABLE",
-    "Cloud connectivity is required for this operation",
+    "Cloud connectivity is required for this operation"
   );
 }
 
@@ -1021,20 +1088,26 @@ function incompleteSync() {
   return exposedError(
     409,
     "INCOMPLETE_SYNC",
-    "Required Desktop content is unavailable or incomplete",
+    "Required Desktop content is unavailable or incomplete"
   );
 }
 
 function errorCode(error: unknown) {
-  if (!error || typeof error !== "object") return;
-  if ("code" in error && typeof error.code === "string") return error.code;
+  if (!error || typeof error !== "object") {
+    return;
+  }
+  if ("code" in error && typeof error.code === "string") {
+    return error.code;
+  }
   if ("reason" in error && typeof error.reason === "string") {
     return error.reason;
   }
 }
 
 function errorStatus(error: unknown) {
-  if (!error || typeof error !== "object") return -1;
+  if (!error || typeof error !== "object") {
+    return -1;
+  }
   if ("status" in error && typeof error.status === "number") {
     return error.status;
   }
@@ -1057,7 +1130,7 @@ function exposedError(
   status: number,
   code: string,
   message: string,
-  details?: unknown,
+  details?: unknown
 ) {
   return Object.assign(new Error(message), {
     code,

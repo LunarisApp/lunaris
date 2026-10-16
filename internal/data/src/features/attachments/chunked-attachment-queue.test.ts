@@ -9,7 +9,9 @@ import { ChunkedAttachmentQueue } from "./chunked-attachment-queue";
 
 const cleanup: (() => Promise<void>)[] = [];
 afterEach(async () => {
-  for (const close of cleanup.splice(0)) await close();
+  for (const close of cleanup.splice(0)) {
+    await close();
+  }
   vi.unstubAllGlobals();
 });
 
@@ -22,7 +24,8 @@ function harness() {
   let observe!: (items: WatchedAttachmentItem[]) => Promise<void>;
   let beforeWrite = () => {};
   const tx = {
-    getAll: async (sql: string, params: SQLInputValue[] = []) => sqlite.prepare(sql).all(...params),
+    getAll: async (sql: string, params: SQLInputValue[] = []) =>
+      sqlite.prepare(sql).all(...params),
     execute: async (sql: string, params: SQLInputValue[] = []) =>
       sqlite.prepare(sql).run(...params),
   };
@@ -33,7 +36,9 @@ function harness() {
       await run(tx);
     },
   } as unknown as Database;
-  const api = { get: vi.fn(async () => ({ downloadUrl: "https://storage.test/file" })) };
+  const api = {
+    get: vi.fn(async () => ({ downloadUrl: "https://storage.test/file" })),
+  };
   const queue = new ChunkedAttachmentQueue({
     db,
     api: api as unknown as ApiClient,
@@ -47,9 +52,20 @@ function harness() {
   const insert = (state: AttachmentState, localUri: string | null = null) => {
     sqlite
       .prepare("INSERT INTO attachments VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-      .run("file", "file.bin", localUri, 3, "application/octet-stream", metadata, 0, state, 1);
+      .run(
+        "file",
+        "file.bin",
+        localUri,
+        3,
+        "application/octet-stream",
+        metadata,
+        0,
+        state,
+        1
+      );
   };
-  const row = () => sqlite.prepare("SELECT * FROM attachments WHERE id = 'file'").get();
+  const row = () =>
+    sqlite.prepare("SELECT * FROM attachments WHERE id = 'file'").get();
   cleanup.push(async () => {
     await queue.stopSync();
     await queue.localStorage.close();
@@ -60,7 +76,8 @@ function harness() {
     api,
     insert,
     row,
-    observe: () => observe([{ id: "file", fileExtension: "bin", metaData: metadata }]),
+    observe: () =>
+      observe([{ id: "file", fileExtension: "bin", metaData: metadata }]),
     beforeWrite: (run: () => void) => {
       beforeWrite = run;
     },
@@ -74,9 +91,13 @@ it.each(["api", "provider"])(
     h.insert(AttachmentState.QUEUED_DOWNLOAD);
     const fetch = vi.fn(async () => new Response(new Uint8Array([1, 2, 3])));
     vi.stubGlobal("fetch", fetch);
-    if (source === "api")
-      h.api.get.mockRejectedValueOnce(Object.assign(new Error("Pending upload"), { status: 404 }));
-    else fetch.mockResolvedValueOnce(new Response(null, { status: 404 }));
+    if (source === "api") {
+      h.api.get.mockRejectedValueOnce(
+        Object.assign(new Error("Pending upload"), { status: 404 })
+      );
+    } else {
+      fetch.mockResolvedValueOnce(new Response(null, { status: 404 }));
+    }
     await h.queue.startSync();
     await vi.waitFor(() => expect(h.api.get).toHaveBeenCalledTimes(1));
     await h.queue.stopSync();
@@ -84,7 +105,7 @@ it.each(["api", "provider"])(
     await h.queue.startSync();
     await vi.waitFor(() => expect(h.row()?.state).toBe(AttachmentState.SYNCED));
     expect(h.row()?.size).toBe(3);
-  },
+  }
 );
 
 it("does not overwrite local bytes committed while observation waits for its transaction", async () => {

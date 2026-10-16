@@ -25,7 +25,7 @@ import { WorkspacesService } from "./workspaces.service";
 export class WorkspacesController {
   constructor(
     private readonly access: UserDataAccessService,
-    private readonly workspaces: WorkspacesService,
+    private readonly workspaces: WorkspacesService
   ) {}
 
   @ListApi({
@@ -35,7 +35,7 @@ export class WorkspacesController {
   @RequirePermission(permission.workspace.read)
   async list(
     @Session() session: UserSession,
-    @Query({ schema: WorkspacesListQueryDto }) query: WorkspacesListQueryDto,
+    @Query({ schema: WorkspacesListQueryDto }) query: WorkspacesListQueryDto
   ): Promise<WorkspacesListResponseDto> {
     const organization = await this.access.requireOrganization(session);
     this.log("list");
@@ -49,7 +49,7 @@ export class WorkspacesController {
   @RequirePermission(permission.workspace.create)
   async create(
     @Session() session: UserSession,
-    @Body({ schema: CreateWorkspaceDto }) body: CreateWorkspaceDto,
+    @Body({ schema: CreateWorkspaceDto }) body: CreateWorkspaceDto
   ): Promise<WorkspaceDto> {
     const { organizationId, userId } =
       await this.access.requireOrganization(session);
@@ -65,7 +65,7 @@ export class WorkspacesController {
   @RequirePermission(permission.workspace.read)
   async get(
     @Session() session: UserSession,
-    @Param({ schema: WorkspaceParamsDto }) params: WorkspaceParamsDto,
+    @Param({ schema: WorkspaceParamsDto }) params: WorkspaceParamsDto
   ): Promise<WorkspaceDto> {
     const { organizationId, userId } =
       await this.access.requireOrganization(session);
@@ -82,7 +82,7 @@ export class WorkspacesController {
   async update(
     @Session() session: UserSession,
     @Param({ schema: WorkspaceParamsDto }) params: WorkspaceParamsDto,
-    @Body({ schema: UpdateWorkspaceDto }) body: UpdateWorkspaceDto,
+    @Body({ schema: UpdateWorkspaceDto }) body: UpdateWorkspaceDto
   ): Promise<WorkspaceDto> {
     const { organizationId, userId } =
       await this.access.requireOrganization(session);
@@ -92,7 +92,7 @@ export class WorkspacesController {
       body,
       organizationId,
       undefined,
-      userId,
+      userId
     );
   }
 
@@ -103,7 +103,7 @@ export class WorkspacesController {
   @RequirePermission(permission.workspace.delete)
   async delete(
     @Session() session: UserSession,
-    @Param({ schema: WorkspaceParamsDto }) params: WorkspaceParamsDto,
+    @Param({ schema: WorkspaceParamsDto }) params: WorkspaceParamsDto
   ): Promise<{ id: string }> {
     const { organizationId, userId } =
       await this.access.requireOrganization(session);

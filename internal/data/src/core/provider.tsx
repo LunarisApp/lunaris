@@ -17,7 +17,9 @@ const PowerSyncSessionContext = createContext<PowerSyncSession | null>(null);
 export function usePowerSyncSession(): PowerSyncSession {
   const session = useContext(PowerSyncSessionContext);
   if (!session) {
-    throw new Error("usePowerSyncSession must be used within PowerSyncProvider");
+    throw new Error(
+      "usePowerSyncSession must be used within PowerSyncProvider"
+    );
   }
   return session;
 }
@@ -71,7 +73,9 @@ export function PowerSyncProvider({
       statusChanged: (status) => {
         const snapshot = statusSnapshot(status);
         const serialized = JSON.stringify(snapshot);
-        if (serialized === previous) return;
+        if (serialized === previous) {
+          return;
+        }
         previous = serialized;
         log.info({ tag: "Sync", msg: "db status changed", ...snapshot });
       },
@@ -87,7 +91,9 @@ export function PowerSyncProvider({
     }
 
     void session.connect().catch((error) => {
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
       log.error({
         tag: "Sync",
         msg: "db connect failed",

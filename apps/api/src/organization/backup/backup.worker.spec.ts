@@ -20,7 +20,7 @@ describe("BackupWorker", () => {
       databaseService as never,
       {} as never,
       {} as never,
-      null,
+      null
     );
 
     await worker.cleanupExpired();
@@ -30,7 +30,7 @@ describe("BackupWorker", () => {
     expect(query.params.slice(1)).toEqual(["ready", "expired"]);
     expect(query.sql).toContain('"backup_exports"."expiresAt" < $1');
     expect(query.sql).toContain(
-      '("backup_exports"."status" = $2 or ("backup_exports"."status" = $3 and "backup_exports"."objectKey" is not null))',
+      '("backup_exports"."status" = $2 or ("backup_exports"."status" = $3 and "backup_exports"."objectKey" is not null))'
     );
   });
 });

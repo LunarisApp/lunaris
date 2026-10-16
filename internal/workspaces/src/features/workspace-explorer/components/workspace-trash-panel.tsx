@@ -44,14 +44,17 @@ export function WorkspaceTrashPanel() {
   const selectedHasExpired = roots.some(
     (root) =>
       selected.has(root.id) &&
-      (!root.purge_at || Date.parse(root.purge_at) <= Date.now()),
+      (!root.purge_at || Date.parse(root.purge_at) <= Date.now())
   );
   const resourceTypeIcons = useMemo(
     () =>
       new Map(
-        resourceTypes.map((resource) => [resource.resourceTypeId, resource.icon]),
+        resourceTypes.map((resource) => [
+          resource.resourceTypeId,
+          resource.icon,
+        ])
       ),
-    [resourceTypes],
+    [resourceTypes]
   );
 
   useEffect(() => {
@@ -63,13 +66,20 @@ export function WorkspaceTrashPanel() {
   }, [roots]);
 
   const runAction = async (action: "purge" | "restore") => {
-    if (selectedIds.length === 0) return;
+    if (selectedIds.length === 0) {
+      return;
+    }
     setBusy(action);
     try {
-      if (action === "restore") await restoreResources(selectedIds);
-      else await purgeResources(selectedIds);
+      if (action === "restore") {
+        await restoreResources(selectedIds);
+      } else {
+        await purgeResources(selectedIds);
+      }
       setSelected(new Set());
-      toast.success(t(action === "restore" ? "trash.restored" : "trash.purged"));
+      toast.success(
+        t(action === "restore" ? "trash.restored" : "trash.purged")
+      );
     } catch (error) {
       log.error({
         tag: "WorkspaceTrash",
@@ -78,7 +88,9 @@ export function WorkspaceTrashPanel() {
         workspaceId,
         resourceIds: selectedIds,
       });
-      toast.error(t(action === "restore" ? "trash.restoreFailed" : "trash.purgeFailed"));
+      toast.error(
+        t(action === "restore" ? "trash.restoreFailed" : "trash.purgeFailed")
+      );
     } finally {
       setBusy(null);
     }
@@ -91,10 +103,10 @@ export function WorkspaceTrashPanel() {
       data-testid="workspace-trash-panel"
     >
       <header className="border-b px-4 py-3">
-        <h1 className="text-sm font-semibold" id="trash-title">
+        <h1 className="font-semibold text-sm" id="trash-title">
           {t("trash.title")}
         </h1>
-        <p className="mt-0.5 text-xs text-muted-foreground">
+        <p className="mt-0.5 text-muted-foreground text-xs">
           {t("trash.description")}
         </p>
       </header>
@@ -116,10 +128,12 @@ export function WorkspaceTrashPanel() {
               aria-label={t("trash.selectAll")}
               checked={allSelected}
               onCheckedChange={(checked) =>
-                setSelected(checked ? new Set(roots.map(({ id }) => id)) : new Set())
+                setSelected(
+                  checked ? new Set(roots.map(({ id }) => id)) : new Set()
+                )
               }
             />
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               {t("trash.selectAll")}
             </span>
           </div>
@@ -138,11 +152,12 @@ export function WorkspaceTrashPanel() {
                       dateStyle: "medium",
                     }).format(new Date(root.trashed_at))
                   : "";
-                const deadline = purgeTime > Date.now()
-                  ? new Intl.DateTimeFormat(i18n.language, {
-                      dateStyle: "medium",
-                    }).format(new Date(purgeTime))
-                  : t("trash.expired");
+                const deadline =
+                  purgeTime > Date.now()
+                    ? new Intl.DateTimeFormat(i18n.language, {
+                        dateStyle: "medium",
+                      }).format(new Date(purgeTime))
+                    : t("trash.expired");
                 return (
                   <li data-testid="workspace-trash-item" key={root.id}>
                     <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted/60 has-focus-visible:ring-2 has-focus-visible:ring-ring">
@@ -154,8 +169,11 @@ export function WorkspaceTrashPanel() {
                         onCheckedChange={(checked) =>
                           setSelected((current) => {
                             const next = new Set(current);
-                            if (checked) next.add(root.id);
-                            else next.delete(root.id);
+                            if (checked) {
+                              next.add(root.id);
+                            } else {
+                              next.delete(root.id);
+                            }
                             return next;
                           })
                         }
@@ -164,10 +182,10 @@ export function WorkspaceTrashPanel() {
                         {icon ? <Icon className="size-4" icon={icon} /> : null}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium">
+                        <span className="block truncate font-medium text-sm">
                           {root.name || t("common.untitled")}
                         </span>
-                        <span className="block truncate text-xs text-muted-foreground">
+                        <span className="block truncate text-muted-foreground text-xs">
                           {t("trash.deletedOn", { date: trashedOn })}
                           {` · ${t("trash.deletesOn", { date: deadline })}`}
                           {root.descendant_count > 0

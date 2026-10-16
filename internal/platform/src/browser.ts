@@ -19,40 +19,52 @@ const pluginCacheRequestKey = (key: string) =>
 export function createBrowserPluginArtifactStore(): PluginArtifactStore {
   return {
     async delete(key) {
-      if (!("caches" in globalThis)) return;
+      if (!("caches" in globalThis)) {
+        return;
+      }
       const cache = await caches.open(PLUGIN_CACHE);
       await cache.delete(pluginCacheRequestKey(key));
     },
     async get(key) {
-      if (!("caches" in globalThis)) return null;
+      if (!("caches" in globalThis)) {
+        return null;
+      }
       const cache = await caches.open(PLUGIN_CACHE);
       const response = await cache.match(pluginCacheRequestKey(key));
       return response ? new Uint8Array(await response.arrayBuffer()) : null;
     },
     async put(key, value) {
-      if (!("caches" in globalThis)) return;
+      if (!("caches" in globalThis)) {
+        return;
+      }
       const cache = await caches.open(PLUGIN_CACHE);
       await cache.put(
         pluginCacheRequestKey(key),
-        new Response(Uint8Array.from(value).buffer),
+        new Response(Uint8Array.from(value).buffer)
       );
     },
   };
 }
 
 export function createBrowserPluginFetch(
-  sourceFetch: typeof globalThis.fetch = globalThis.fetch.bind(globalThis),
+  sourceFetch: typeof globalThis.fetch = globalThis.fetch.bind(globalThis)
 ): typeof globalThis.fetch {
-  const pluginFetch = (input: Parameters<typeof globalThis.fetch>[0], init?: Parameters<typeof globalThis.fetch>[1]) => {
+  const pluginFetch = (
+    input: Parameters<typeof globalThis.fetch>[0],
+    init?: Parameters<typeof globalThis.fetch>[1]
+  ) => {
     const sourceRequest = input instanceof Request ? input : undefined;
-    const url = new URL(sourceRequest?.url ?? String(input), window.location.href);
+    const url = new URL(
+      sourceRequest?.url ?? String(input),
+      window.location.href
+    );
     const isLocalDevelopment =
       import.meta.env.DEV &&
       url.protocol === "http:" &&
       (url.hostname === "localhost" || url.hostname === "127.0.0.1");
     if (url.protocol !== "https:" && !isLocalDevelopment) {
       return Promise.reject(
-        new TypeError("Extension network requests must use HTTPS"),
+        new TypeError("Extension network requests must use HTTPS")
       );
     }
     return sourceFetch(input, {
@@ -70,20 +82,28 @@ interface NavigatorWithUserAgentData extends Navigator {
 }
 
 export function detectOperatingSystem(
-  platform: string | undefined,
+  platform: string | undefined
 ): OperatingSystem {
   const normalized = platform?.toLowerCase() ?? "";
-  if (normalized.includes("mac")) return "mac";
-  if (normalized.includes("win")) return "windows";
-  if (normalized.includes("linux")) return "linux";
+  if (normalized.includes("mac")) {
+    return "mac";
+  }
+  if (normalized.includes("win")) {
+    return "windows";
+  }
+  if (normalized.includes("linux")) {
+    return "linux";
+  }
   return "unknown";
 }
 
 export function getOperatingSystem(): OperatingSystem | undefined {
-  if (typeof navigator === "undefined") return undefined;
+  if (typeof navigator === "undefined") {
+    return undefined;
+  }
   const browserNavigator = navigator as NavigatorWithUserAgentData;
   return detectOperatingSystem(
-    browserNavigator.userAgentData?.platform ?? browserNavigator.platform,
+    browserNavigator.userAgentData?.platform ?? browserNavigator.platform
   );
 }
 
@@ -144,12 +164,10 @@ export function createBrowserPlatform({
     },
     operatingSystem: getOperatingSystem,
     panelWindows,
-    plugins:
-      plugins ??
-      {
-        artifacts: createBrowserPluginArtifactStore(),
-        fetch: createBrowserPluginFetch(),
-      },
+    plugins: plugins ?? {
+      artifacts: createBrowserPluginArtifactStore(),
+      fetch: createBrowserPluginFetch(),
+    },
     viewport: {
       width: () => window.innerWidth,
     },

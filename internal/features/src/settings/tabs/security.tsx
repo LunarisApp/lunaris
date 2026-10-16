@@ -40,10 +40,7 @@ import {
   settingsQueryKeys,
 } from "../queries";
 import { PasskeySection } from "./passkey-section";
-import {
-  ChangePasswordDialog,
-  SetPasswordDialog,
-} from "./password-dialogs";
+import { ChangePasswordDialog, SetPasswordDialog } from "./password-dialogs";
 import {
   DisableTwoFactorDialog,
   RegenerateBackupCodesDialog,
@@ -54,22 +51,35 @@ function parseUserAgent(ua: string): { browser: string; os: string } {
   let browser = "Unknown";
   let os = "Unknown";
 
-  if (/Firefox\/|FxiOS\//i.test(ua)) browser = "Firefox";
-  else if (/EdgA?\/|EdgiOS\//i.test(ua)) browser = "Edge";
-  else if (/Chrome\/|CriOS\//i.test(ua)) browser = "Chrome";
-  else if (/Safari\//i.test(ua)) browser = "Safari";
+  if (/Firefox\/|FxiOS\//i.test(ua)) {
+    browser = "Firefox";
+  } else if (/EdgA?\/|EdgiOS\//i.test(ua)) {
+    browser = "Edge";
+  } else if (/Chrome\/|CriOS\//i.test(ua)) {
+    browser = "Chrome";
+  } else if (/Safari\//i.test(ua)) {
+    browser = "Safari";
+  }
 
-  if (/Windows/i.test(ua)) os = "Windows";
-  else if (/Android/i.test(ua)) os = "Android";
-  else if (/iPhone|iPad/i.test(ua)) os = "iOS";
-  else if (/Mac OS/i.test(ua)) os = "macOS";
-  else if (/Linux/i.test(ua)) os = "Linux";
+  if (/Windows/i.test(ua)) {
+    os = "Windows";
+  } else if (/Android/i.test(ua)) {
+    os = "Android";
+  } else if (/iPhone|iPad/i.test(ua)) {
+    os = "iOS";
+  } else if (/Mac OS/i.test(ua)) {
+    os = "macOS";
+  } else if (/Linux/i.test(ua)) {
+    os = "Linux";
+  }
 
   return { browser, os };
 }
 
 function formatRelativeDate(date: Date, locale?: string): string {
-  if (Number.isNaN(date.getTime())) return "";
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
 
   const elapsedSeconds = Math.round((date.getTime() - Date.now()) / 1000);
   const absoluteSeconds = Math.abs(elapsedSeconds);
@@ -79,8 +89,8 @@ function formatRelativeDate(date: Date, locale?: string): string {
   if (absoluteSeconds >= 86_400) {
     value = Math.round(elapsedSeconds / 86_400);
     unit = "day";
-  } else if (absoluteSeconds >= 3_600) {
-    value = Math.round(elapsedSeconds / 3_600);
+  } else if (absoluteSeconds >= 3600) {
+    value = Math.round(elapsedSeconds / 3600);
     unit = "hour";
   } else if (absoluteSeconds >= 60) {
     value = Math.round(elapsedSeconds / 60);
@@ -89,7 +99,7 @@ function formatRelativeDate(date: Date, locale?: string): string {
 
   return new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(
     value,
-    unit,
+    unit
   );
 }
 
@@ -108,10 +118,10 @@ export function PasswordSection(props: PasswordSectionProps) {
       data-testid="settings-security-password"
     >
       <div className="min-w-0 space-y-1">
-        <h4 className="text-sm font-medium" id="security-password-heading">
+        <h4 className="font-medium text-sm" id="security-password-heading">
           {t("settings.security.passwordTitle")}
         </h4>
-        <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">
+        <p className="max-w-2xl text-muted-foreground text-sm leading-relaxed">
           {props.hasPassword
             ? t("settings.security.changePasswordDescription")
             : t("settings.security.setPasswordDescription")}
@@ -130,10 +140,7 @@ export function PasswordSection(props: PasswordSectionProps) {
       </Button>
 
       {props.hasPassword ? (
-        <ChangePasswordDialog
-          onOpenChange={setDialogOpen}
-          open={dialogOpen}
-        />
+        <ChangePasswordDialog onOpenChange={setDialogOpen} open={dialogOpen} />
       ) : (
         <SetPasswordDialog
           onOpenChange={setDialogOpen}
@@ -169,16 +176,19 @@ export function TwoFactorSection({ enabled }: { enabled: boolean }) {
     >
       <div className="min-w-0 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h4 className="text-sm font-medium" id="security-two-factor-heading">
+          <h4 className="font-medium text-sm" id="security-two-factor-heading">
             {t("settings.security.twoFactorTitle")}
           </h4>
-          <Badge aria-live="polite" variant={isEnabled ? "default" : "secondary"}>
+          <Badge
+            aria-live="polite"
+            variant={isEnabled ? "default" : "secondary"}
+          >
             {isEnabled
               ? t("settings.security.twoFactorEnabled")
               : t("settings.security.twoFactorDisabled")}
           </Badge>
         </div>
-        <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">
+        <p className="max-w-2xl text-muted-foreground text-sm leading-relaxed">
           {t("settings.security.twoFactorDescription")}
         </p>
       </div>
@@ -199,7 +209,7 @@ export function TwoFactorSection({ enabled }: { enabled: boolean }) {
               {t("settings.security.manageTwoFactor")}
               <HugeiconsIcon
                 aria-hidden="true"
-                className="text-muted-foreground size-3.5"
+                className="size-3.5 text-muted-foreground"
                 icon={ArrowDown01Icon}
                 strokeWidth={2}
               />
@@ -265,9 +275,12 @@ export function GoogleAccountSection({
   const location = useLocation();
   const [action, setAction] = useState<"connect" | "disconnect" | null>(null);
 
-  const googleAccount = accounts.find((account) => account.providerId === "google");
-  const signInMethods = accounts.filter((account) =>
-    account.providerId === "credential" || account.providerId === "google"
+  const googleAccount = accounts.find(
+    (account) => account.providerId === "google"
+  );
+  const signInMethods = accounts.filter(
+    (account) =>
+      account.providerId === "credential" || account.providerId === "google"
   );
   const isDisconnectBlocked = signInMethods.length <= 1;
 
@@ -278,7 +291,7 @@ export function GoogleAccountSection({
       const result = await auth.linkSocial({
         provider: "google",
         callbackURL: authUrl(
-          buildAuthRedirectPath(pathWithRegion("/auth"), location),
+          buildAuthRedirectPath(pathWithRegion("/auth"), location)
         ),
       });
       if (result.error) {
@@ -290,7 +303,9 @@ export function GoogleAccountSection({
       }
 
       const refreshedAccounts = await onRefresh();
-      if (!refreshedAccounts.some((account) => account.providerId === "google")) {
+      if (
+        !refreshedAccounts.some((account) => account.providerId === "google")
+      ) {
         throw new Error("Google account link was not confirmed");
       }
       posthog.capture("google_account_linked");
@@ -308,7 +323,9 @@ export function GoogleAccountSection({
   };
 
   const handleDisconnect = async () => {
-    if (!googleAccount) return;
+    if (!googleAccount) {
+      return;
+    }
     if (isDisconnectBlocked) {
       toast.error(t("settings.security.googleDisconnectBlocked"));
       return;
@@ -350,10 +367,10 @@ export function GoogleAccountSection({
         <div className="flex min-w-0 items-center gap-3">
           <Google aria-hidden="true" className="size-5 shrink-0" />
           <div className="min-w-0">
-            <h4 className="text-sm font-medium" id="security-google-heading">
+            <h4 className="font-medium text-sm" id="security-google-heading">
               {t("settings.security.googleTitle")}
             </h4>
-            <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">
+            <p className="max-w-2xl text-muted-foreground text-sm leading-relaxed">
               {t("settings.security.googleDescription")}
             </p>
           </div>
@@ -365,7 +382,7 @@ export function GoogleAccountSection({
               className={
                 googleAccount
                   ? "size-1.5 rounded-full bg-emerald-500"
-                  : "bg-muted-foreground/50 size-1.5 rounded-full"
+                  : "size-1.5 rounded-full bg-muted-foreground/50"
               }
             />
             {googleAccount
@@ -438,7 +455,7 @@ function ActiveSessionsSection() {
       queryClient.setQueryData(
         settingsQueryKeys.securitySessions(),
         (prev: SessionInfo[] | undefined) =>
-          (prev ?? []).filter((session) => session.token !== token),
+          (prev ?? []).filter((session) => session.token !== token)
       );
       toast.success(t("settings.security.sessionRevoked"));
     } catch (e) {
@@ -461,7 +478,7 @@ function ActiveSessionsSection() {
       queryClient.setQueryData(
         settingsQueryKeys.securitySessions(),
         (prev: SessionInfo[] | undefined) =>
-          (prev ?? []).filter((session) => session.token === currentToken),
+          (prev ?? []).filter((session) => session.token === currentToken)
       );
       toast.success(t("settings.security.allSessionsRevoked"));
     } catch (e) {
@@ -477,7 +494,7 @@ function ActiveSessionsSection() {
   };
 
   const otherSessions = sessions.filter(
-    (session) => session.token !== currentToken,
+    (session) => session.token !== currentToken
   );
 
   const handleReauthenticate = () => {
@@ -485,7 +502,7 @@ function ActiveSessionsSection() {
       buildAddAccountPath(pathWithRegion("/auth"), location),
       currentSession?.user?.email
         ? { state: { email: currentSession.user.email } }
-        : undefined,
+        : undefined
     );
   };
 
@@ -496,7 +513,7 @@ function ActiveSessionsSection() {
         className="space-y-3"
       >
         <h3
-          className="text-sm font-medium"
+          className="font-medium text-sm"
           id="security-active-sessions-heading"
         >
           {t("settings.security.activeSessions")}
@@ -519,7 +536,7 @@ function ActiveSessionsSection() {
                 ? "settings.security.offlineToLoad"
                 : needsReauthentication
                   ? "settings.security.reauthenticationRequired"
-                : "settings.security.failedToLoad",
+                  : "settings.security.failedToLoad"
             )}
           </p>
           {needsReauthentication ? (
@@ -556,7 +573,7 @@ function ActiveSessionsSection() {
         className="space-y-3"
       >
         <h3
-          className="text-sm font-medium"
+          className="font-medium text-sm"
           id="security-active-sessions-heading"
         >
           {t("settings.security.activeSessions")}
@@ -586,7 +603,7 @@ function ActiveSessionsSection() {
     >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <h3
-          className="text-sm font-medium"
+          className="font-medium text-sm"
           id="security-active-sessions-heading"
         >
           {t("settings.security.activeSessions")}
@@ -618,7 +635,7 @@ function ActiveSessionsSection() {
           const lastActive = session.updatedAt
             ? formatRelativeDate(
                 new Date(session.updatedAt),
-                i18n.resolvedLanguage ?? i18n.language,
+                i18n.resolvedLanguage ?? i18n.language
               )
             : "";
           const sessionDetails = [
@@ -638,19 +655,19 @@ function ActiveSessionsSection() {
               <div className="flex min-w-0 flex-1 items-center gap-3">
                 <HugeiconsIcon
                   aria-hidden="true"
-                  className="text-muted-foreground size-4.5 shrink-0"
+                  className="size-4.5 shrink-0 text-muted-foreground"
                   icon={ComputerIcon}
                   strokeWidth={1.8}
                 />
                 <div className="min-w-0">
                   <p
-                    className="truncate text-sm font-medium"
+                    className="truncate font-medium text-sm"
                     id={`session-name-${session.id}`}
                   >
                     {browser} — {os}
                   </p>
                   {sessionDetails ? (
-                    <p className="text-muted-foreground truncate text-xs">
+                    <p className="truncate text-muted-foreground text-xs">
                       {sessionDetails}
                     </p>
                   ) : null}
@@ -658,7 +675,7 @@ function ActiveSessionsSection() {
               </div>
               {isCurrent ? (
                 <Badge
-                  className="border-emerald-600/20 bg-emerald-500/10 self-start text-emerald-700 lg:self-auto dark:text-emerald-400"
+                  className="self-start border-emerald-600/20 bg-emerald-500/10 text-emerald-700 lg:self-auto dark:text-emerald-400"
                   variant="outline"
                 >
                   <span
@@ -699,7 +716,7 @@ export function SecurityContent() {
   const isAnonymous = session?.user?.isAnonymous ?? false;
   const accountsQuery = useQuery({
     ...securityAccountsQueryOptions(auth),
-    enabled: !sessionPending && !isAnonymous,
+    enabled: !(sessionPending || isAnonymous),
   });
   const accounts = accountsQuery.data ?? [];
   const accountsPaused = accountsQuery.fetchStatus === "paused";
@@ -711,19 +728,21 @@ export function SecurityContent() {
   const passkeysSupported = authSupportsPasskeys(auth);
 
   const hasPassword = accounts.some(
-    (account) => account.providerId === "credential",
+    (account) => account.providerId === "credential"
   );
 
   const refreshAccounts = async () => {
     const result = await accountsQuery.refetch();
-    if (result.isError) throw result.error;
+    if (result.isError) {
+      throw result.error;
+    }
     return result.data ?? [];
   };
 
   return (
     <div className="space-y-8" data-testid="settings-panel-security">
       {isAnonymous ? (
-        <p className="text-muted-foreground py-2 text-sm">
+        <p className="py-2 text-muted-foreground text-sm">
           {t("settings.security.anonymousNote")}
         </p>
       ) : (
@@ -733,7 +752,7 @@ export function SecurityContent() {
             className="space-y-3"
           >
             <h3
-              className="text-sm font-medium"
+              className="font-medium text-sm"
               id="security-sign-in-methods-heading"
             >
               {t("settings.security.signInMethods")}
@@ -752,7 +771,7 @@ export function SecurityContent() {
                     {t(
                       accountsPaused
                         ? "settings.security.offlineToLoad"
-                        : "settings.security.failedToLoadAccounts",
+                        : "settings.security.failedToLoadAccounts"
                     )}
                   </p>
                   {accountsQuery.isError ? (
@@ -767,53 +786,51 @@ export function SecurityContent() {
                   ) : null}
                 </div>
               ) : null}
-              {!accountsUnavailable ? (
-                accountsLoading ? (
-                  <div
-                    aria-label={t("common.loading")}
-                    className="divide-y"
-                    role="status"
-                  >
-                    <div className="space-y-2 py-5">
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-3 w-72 max-w-full" />
-                    </div>
-                    <div className="space-y-2 py-5">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-64 max-w-full" />
-                    </div>
+              {accountsUnavailable ? null : accountsLoading ? (
+                <div
+                  aria-label={t("common.loading")}
+                  className="divide-y"
+                  role="status"
+                >
+                  <div className="space-y-2 py-5">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-72 max-w-full" />
                   </div>
-                ) : (
-                  <div className="divide-y">
-                    {hasPassword ? (
-                      <PasswordSection hasPassword />
-                    ) : (
-                      <PasswordSection
-                        hasPassword={false}
-                        onPasswordSet={() => void refreshAccounts()}
-                      />
-                    )}
-                    {hasPassword || passkeysSupported ? (
-                      <div
-                        className="divide-y"
-                        data-testid="settings-security-authentication-card"
-                      >
-                        {hasPassword ? (
-                          <TwoFactorSection
-                            enabled={Boolean(session?.user?.twoFactorEnabled)}
-                          />
-                        ) : null}
-                        {passkeysSupported ? <PasskeySection /> : null}
-                      </div>
-                    ) : null}
-                    <GoogleAccountSection
-                      accounts={accounts}
-                      loading={accountsLoading}
-                      onRefresh={refreshAccounts}
+                  <div className="space-y-2 py-5">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-64 max-w-full" />
+                  </div>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {hasPassword ? (
+                    <PasswordSection hasPassword />
+                  ) : (
+                    <PasswordSection
+                      hasPassword={false}
+                      onPasswordSet={() => void refreshAccounts()}
                     />
-                  </div>
-                )
-              ) : null}
+                  )}
+                  {hasPassword || passkeysSupported ? (
+                    <div
+                      className="divide-y"
+                      data-testid="settings-security-authentication-card"
+                    >
+                      {hasPassword ? (
+                        <TwoFactorSection
+                          enabled={Boolean(session?.user?.twoFactorEnabled)}
+                        />
+                      ) : null}
+                      {passkeysSupported ? <PasskeySection /> : null}
+                    </div>
+                  ) : null}
+                  <GoogleAccountSection
+                    accounts={accounts}
+                    loading={accountsLoading}
+                    onRefresh={refreshAccounts}
+                  />
+                </div>
+              )}
             </div>
           </section>
           <ActiveSessionsSection />

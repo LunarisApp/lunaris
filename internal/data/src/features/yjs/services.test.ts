@@ -1,6 +1,12 @@
 import { WORKSPACE_VISIBILITY } from "@repo/auth/sync-access";
 import { describe, expect, it, vi } from "vitest";
-import { Doc, encodeStateAsUpdateV2, XmlElement, XmlText, Map as YMap } from "yjs";
+import {
+  Doc,
+  encodeStateAsUpdateV2,
+  XmlElement,
+  XmlText,
+  Map as YMap,
+} from "yjs";
 import {
   compileYjsDocumentJson,
   getYjsDocumentUpdateCount,
@@ -9,7 +15,9 @@ import {
 } from "./services";
 
 vi.mock("../workspaces/services", () => ({
-  resolveWorkspaceVisibility: vi.fn().mockResolvedValue(WORKSPACE_VISIBILITY.shared),
+  resolveWorkspaceVisibility: vi
+    .fn()
+    .mockResolvedValue(WORKSPACE_VISIBILITY.shared),
 }));
 
 function toB64(update: Uint8Array) {
@@ -22,9 +30,7 @@ describe("yjs services", () => {
       getAll: vi.fn().mockResolvedValue([]),
     };
 
-    await expect(
-      compileYjsDocumentJson(db, "doc_1")
-    ).resolves.toEqual({});
+    await expect(compileYjsDocumentJson(db, "doc_1")).resolves.toEqual({});
   });
 
   it("replays updates and returns final merged json", async () => {
@@ -37,15 +43,15 @@ describe("yjs services", () => {
     doc.destroy();
 
     const db = {
-      getAll: vi.fn().mockResolvedValue([
-        { update_b64: toB64(updateA) },
-        { update_b64: toB64(updateB) },
-      ]),
+      getAll: vi
+        .fn()
+        .mockResolvedValue([
+          { update_b64: toB64(updateA) },
+          { update_b64: toB64(updateB) },
+        ]),
     };
 
-    await expect(
-      compileYjsDocumentJson(db, "doc_1")
-    ).resolves.toEqual({
+    await expect(compileYjsDocumentJson(db, "doc_1")).resolves.toEqual({
       meta: {
         title: "Second",
         status: "draft",
@@ -68,9 +74,9 @@ describe("yjs services", () => {
       getAll: vi.fn().mockResolvedValue([{ update_b64: toB64(update) }]),
     };
 
-    await expect(
-      compileYjsDocumentJson(db, "doc_1")
-    ).resolves.toEqual("<paragraph>Hello world</paragraph>");
+    await expect(compileYjsDocumentJson(db, "doc_1")).resolves.toEqual(
+      "<paragraph>Hello world</paragraph>"
+    );
   });
 
   it("preserves unnamed roots in mixed-root documents under $root", async () => {
@@ -89,9 +95,7 @@ describe("yjs services", () => {
       getAll: vi.fn().mockResolvedValue([{ update_b64: toB64(update) }]),
     };
 
-    await expect(
-      compileYjsDocumentJson(db, "doc_1")
-    ).resolves.toEqual({
+    await expect(compileYjsDocumentJson(db, "doc_1")).resolves.toEqual({
       meta: {
         title: "Doc",
       },
@@ -120,9 +124,7 @@ describe("yjs services", () => {
       getAll: vi.fn().mockResolvedValue([{ update_b64: toB64(update) }]),
     };
 
-    await expect(
-      compileYjsDocumentJson(db, "doc_1")
-    ).resolves.toEqual({
+    await expect(compileYjsDocumentJson(db, "doc_1")).resolves.toEqual({
       properties: [{ id: "prop_1", name: "Status" }],
       items: [{ id: "item_1", name: "Task 1" }],
     });
@@ -185,7 +187,9 @@ describe("yjs services", () => {
     );
 
     expect(db.execute).toHaveBeenCalledWith(
-      expect.stringContaining("(id, document_id, workspace_id, user_id, update_b64, created_at, updated_at)"),
+      expect.stringContaining(
+        "(id, document_id, workspace_id, user_id, update_b64, created_at, updated_at)"
+      ),
       expect.arrayContaining(["doc_1", "workspace_1", "user_1", "update-b64"])
     );
   });
@@ -195,7 +199,12 @@ describe("yjs services", () => {
       execute: vi.fn().mockResolvedValue(undefined),
     };
 
-    await insertYjsDocumentUpdate(db as never, "doc_1", "workspace_1", "update-b64");
+    await insertYjsDocumentUpdate(
+      db as never,
+      "doc_1",
+      "workspace_1",
+      "update-b64"
+    );
 
     expect(db.execute).toHaveBeenCalledWith(
       expect.any(String),

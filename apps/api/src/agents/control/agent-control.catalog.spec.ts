@@ -1,9 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { RequestMethod } from "@nestjs/common";
-import {
-  METHOD_METADATA,
-  PATH_METADATA,
-} from "@nestjs/common/constants";
+import { METHOD_METADATA, PATH_METADATA } from "@nestjs/common/constants";
 import {
   type AgentOperationId,
   agentOperationIds,
@@ -30,14 +27,11 @@ const requestMethods: Partial<Record<RequestMethod, string>> = {
 describe("AgentControlController catalog", () => {
   it("matches every shared operation route, method, and scope", () => {
     expect(
-      Reflect.getMetadata(
-        DEFER_PERMISSION_METADATA,
-        AgentControlController,
-      ),
+      Reflect.getMetadata(DEFER_PERMISSION_METADATA, AgentControlController)
     ).toBe(true);
     const controllerPath = Reflect.getMetadata(
       PATH_METADATA,
-      AgentControlController,
+      AgentControlController
     ) as string;
     const prototype = AgentControlController.prototype as unknown as Record<
       string,
@@ -49,7 +43,9 @@ describe("AgentControlController catalog", () => {
         const method = Reflect.getMetadata(METHOD_METADATA, handler) as
           | RequestMethod
           | undefined;
-        if (method === undefined) return [];
+        if (method === undefined) {
+          return [];
+        }
         const operation = agentOperationId(handlerName) as AgentOperationId;
         const path = Reflect.getMetadata(PATH_METADATA, handler) as string;
         return [
@@ -64,11 +60,11 @@ describe("AgentControlController catalog", () => {
             scope: Reflect.getMetadata(AGENT_SCOPE_METADATA, handler),
           },
         ];
-      },
+      }
     );
 
     expect(catalog.map(({ operation }) => operation).sort()).toEqual(
-      [...agentOperationIds].sort(),
+      [...agentOperationIds].sort()
     );
     for (const route of catalog) {
       const definition = agentOperations[route.operation];
@@ -85,9 +81,8 @@ describe("AgentControlController catalog", () => {
       }
     }
     expect(
-      catalog.find(
-        ({ operation }) => operation === "get_file_download_url",
-      )?.permission,
+      catalog.find(({ operation }) => operation === "get_file_download_url")
+        ?.permission
     ).toEqual(permission.content.read);
   });
 });

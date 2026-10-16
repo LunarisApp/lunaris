@@ -20,7 +20,7 @@ describe("pending organization", () => {
         id: "org-1",
         name: "Acme",
         slug: "acme",
-      }),
+      })
     );
 
     expect(readPendingOrganization()).toEqual({

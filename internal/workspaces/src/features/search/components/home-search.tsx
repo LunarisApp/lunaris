@@ -31,11 +31,15 @@ function HomeSearchRuntime({
   });
 
   useEffect(() => {
-    if (isOpen) setActivated(true);
+    if (isOpen) {
+      setActivated(true);
+    }
   }, [isOpen]);
 
   useEffect(() => {
-    if (!activated) return;
+    if (!activated) {
+      return;
+    }
     let cancelled = false;
     onReadyChange(false);
     void reconcile({
@@ -44,25 +48,29 @@ function HomeSearchRuntime({
       runtimeRevisions: registry.runtimeRevisions,
     })
       .then((errors) => {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         for (const [extensionId, error] of Object.entries(errors)) {
-          if (error)
+          if (error) {
             log.warn({
               tag: "Search",
               msg: "search extension unavailable",
               extensionId,
               error: parseError(error),
             });
+          }
         }
         onReadyChange(true);
       })
       .catch((error: unknown) => {
-        if (!cancelled)
+        if (!cancelled) {
           log.warn({
             tag: "Search",
             msg: "search extensions failed to initialize",
             error: parseError(error),
           });
+        }
       });
     return () => {
       cancelled = true;
@@ -103,7 +111,7 @@ function HomeSearchContent({
 }
 
 export function HomeSearchProvider(
-  props: Parameters<typeof HomeSearchContent>[0],
+  props: Parameters<typeof HomeSearchContent>[0]
 ) {
   return (
     <ExtensionHostProvider key={props.organizationId}>

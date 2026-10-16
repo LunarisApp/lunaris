@@ -1,12 +1,8 @@
 /** @vitest-environment happy-dom */
 
-import React from "react";
+import type React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  act,
-  render,
-  screen,
-} from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 
 vi.mock("virtual:pwa-register/react", () => ({
   useRegisterSW: () => ({
@@ -64,11 +60,8 @@ vi.mock("@repo/features/region", () => ({
 }));
 
 vi.mock("../extensions/host", () => ({
-  ExtensionHostProvider: ({
-    children,
-  }: {
-    children?: React.ReactNode;
-  }) => children ?? null,
+  ExtensionHostProvider: ({ children }: { children?: React.ReactNode }) =>
+    children ?? null,
 }));
 
 vi.mock("../extensions/registry", () => ({
@@ -138,12 +131,18 @@ describe("WorkspacePage", () => {
       authClient: null,
     } as ReturnType<typeof useRegionClients>);
 
-    render(<MemoryRouter><WorkspacePage shell="desktop" /></MemoryRouter>);
-
-    expect(screen.getByTestId("desktop-workspace-loading-shell")).not.toBeNull();
-    expect(screen.getAllByTestId("desktop-workspace-loading-group")).toHaveLength(
-      2
+    render(
+      <MemoryRouter>
+        <WorkspacePage shell="desktop" />
+      </MemoryRouter>
     );
+
+    expect(
+      screen.getByTestId("desktop-workspace-loading-shell")
+    ).not.toBeNull();
+    expect(
+      screen.getAllByTestId("desktop-workspace-loading-group")
+    ).toHaveLength(2);
     expect(screen.getByTestId("workspace-tree-skeleton")).not.toBeNull();
     expect(screen.queryByTestId("generic-loader")).toBeNull();
   });
@@ -153,7 +152,11 @@ describe("WorkspacePage", () => {
       authClient: null,
     } as ReturnType<typeof useRegionClients>);
 
-    render(<MemoryRouter><WorkspacePage shell="mobile" /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <WorkspacePage shell="mobile" />
+      </MemoryRouter>
+    );
 
     expect(screen.getByTestId("generic-loader")).not.toBeNull();
     expect(screen.queryByTestId("desktop-workspace-loading-shell")).toBeNull();
@@ -167,9 +170,15 @@ describe("WorkspacePage", () => {
     } as ReturnType<typeof useRegionClients>);
     currentWorkspaceMock.mockReturnValue({ isLoading: true, workspace: null });
 
-    render(<MemoryRouter><WorkspacePage shell="desktop" /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <WorkspacePage shell="desktop" />
+      </MemoryRouter>
+    );
 
-    expect(screen.getByTestId("desktop-workspace-loading-shell")).not.toBeNull();
+    expect(
+      screen.getByTestId("desktop-workspace-loading-shell")
+    ).not.toBeNull();
     expect(screen.queryByText("workspace-not-found")).toBeNull();
     expect(organizationControllerMock).not.toHaveBeenCalled();
   });
@@ -182,7 +191,11 @@ describe("WorkspacePage", () => {
     } as ReturnType<typeof useRegionClients>);
     currentWorkspaceMock.mockReturnValue({ isLoading: true, workspace: null });
 
-    render(<MemoryRouter><WorkspacePage shell="mobile" /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <WorkspacePage shell="mobile" />
+      </MemoryRouter>
+    );
 
     expect(screen.getByTestId("generic-loader")).not.toBeNull();
     expect(screen.queryByText("workspace-not-found")).toBeNull();
@@ -202,7 +215,11 @@ describe("WorkspacePage", () => {
       workspaceContentHasSynced: false,
     });
 
-    const { rerender } = render(<MemoryRouter><WorkspacePage shell="desktop" /></MemoryRouter>);
+    const { rerender } = render(
+      <MemoryRouter>
+        <WorkspacePage shell="desktop" />
+      </MemoryRouter>
+    );
 
     expect(preloadWorkspacePluginsMock).not.toHaveBeenCalled();
 
@@ -212,7 +229,11 @@ describe("WorkspacePage", () => {
       workspace: { id: "workspace_1" },
       workspaceContentHasSynced: true,
     });
-    rerender(<MemoryRouter><WorkspacePage shell="desktop" /></MemoryRouter>);
+    rerender(
+      <MemoryRouter>
+        <WorkspacePage shell="desktop" />
+      </MemoryRouter>
+    );
 
     expect(preloadWorkspacePluginsMock).toHaveBeenCalledWith("workspace_1");
     expect(organizationControllerMock).not.toHaveBeenCalled();
@@ -226,16 +247,28 @@ describe("WorkspacePage", () => {
     } as ReturnType<typeof useRegionClients>);
     currentWorkspaceMock.mockReturnValue({ isLoading: true, workspace: null });
 
-    const { rerender } = render(<MemoryRouter><WorkspacePage shell="desktop" /></MemoryRouter>);
+    const { rerender } = render(
+      <MemoryRouter>
+        <WorkspacePage shell="desktop" />
+      </MemoryRouter>
+    );
 
-    expect(screen.getByTestId("desktop-workspace-loading-shell")).not.toBeNull();
+    expect(
+      screen.getByTestId("desktop-workspace-loading-shell")
+    ).not.toBeNull();
 
     currentWorkspaceMock.mockReturnValue({
       isLoading: false,
       isUnavailableOffline: false,
       workspace: { id: "workspace_1" },
     });
-    await act(async () => rerender(<MemoryRouter><WorkspacePage shell="desktop" /></MemoryRouter>));
+    await act(async () =>
+      rerender(
+        <MemoryRouter>
+          <WorkspacePage shell="desktop" />
+        </MemoryRouter>
+      )
+    );
     await vi.dynamicImportSettled();
 
     expect(screen.queryByTestId("desktop-workspace-loading-shell")).toBeNull();
@@ -250,7 +283,11 @@ describe("WorkspacePage", () => {
     } as ReturnType<typeof useRegionClients>);
     currentWorkspaceMock.mockReturnValue({ isLoading: false, workspace: null });
 
-    render(<MemoryRouter><WorkspacePage shell="desktop" /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <WorkspacePage shell="desktop" />
+      </MemoryRouter>
+    );
 
     expect(screen.getByText("workspace-not-found")).not.toBeNull();
     expect(organizationControllerMock).not.toHaveBeenCalled();
@@ -277,7 +314,7 @@ describe("WorkspacePage", () => {
             />
           </Routes>
         </PermissionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(screen.getByTestId("permission-denied")).not.toBeNull();
@@ -309,7 +346,7 @@ describe("WorkspacePage", () => {
             path="/:organizationSlug/:workspaceSlug"
           />
         </Routes>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(screen.getByTestId("permission-denied")).not.toBeNull();
@@ -345,7 +382,9 @@ describe("WorkspacePage", () => {
       expect(
         screen.getByTestId("workspace-unavailable-offline").textContent
       ).toBe("/lunar");
-      expect(screen.queryByTestId("desktop-workspace-loading-shell")).toBeNull();
+      expect(
+        screen.queryByTestId("desktop-workspace-loading-shell")
+      ).toBeNull();
       expect(screen.queryByTestId("generic-loader")).toBeNull();
       expect(organizationControllerMock).not.toHaveBeenCalled();
     }
@@ -362,34 +401,58 @@ describe("WorkspacePage", () => {
     render(
       <MemoryRouter initialEntries={["/lunar/atlas/res_123"]}>
         <Routes>
-          <Route path="/:organizationSlug/:workspaceSlug" element={<WorkspacePage shell="desktop" />}>
+          <Route
+            path="/:organizationSlug/:workspaceSlug"
+            element={<WorkspacePage shell="desktop" />}
+          >
             <Route path=":viewId" element={null} />
           </Route>
         </Routes>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
-    expect(readLastWorkspace("user_1", "org_1")).toEqual({ workspaceId: "workspace_1", viewPath: "/res_123" });
+    expect(readLastWorkspace("user_1", "org_1")).toEqual({
+      workspaceId: "workspace_1",
+      viewPath: "/res_123",
+    });
   });
 
-  it.each(["missing", "offline", "denied"])("falls back to workspace list when restored workspace is %s", async (reason) => {
-    vi.mocked(useRegionClients).mockReturnValue({
-      authClient: { useActiveOrganization: () => ({ data: { id: "org_1" } }) },
-    } as ReturnType<typeof useRegionClients>);
-    currentWorkspaceMock.mockReturnValue({
-      isLoading: false,
-      isUnavailableOffline: reason === "offline",
-      workspace: reason === "missing" ? null : { id: "workspace_1", visibility: "private", owner_id: "other" },
-    });
-    render(
-      <MemoryRouter initialEntries={[{ pathname: "/lunar/atlas", state: { restoredWorkspace: true } }]}>
-        <Routes>
-          <Route path="/:organizationSlug/:workspaceSlug" element={<WorkspacePage shell="desktop" />} />
-          <Route path="/:organizationSlug" element={<div>workspace-list-fallback</div>} />
-        </Routes>
-      </MemoryRouter>,
-    );
-    expect(await screen.findByText("workspace-list-fallback")).toBeTruthy();
-  });
+  it.each(["missing", "offline", "denied"])(
+    "falls back to workspace list when restored workspace is %s",
+    async (reason) => {
+      vi.mocked(useRegionClients).mockReturnValue({
+        authClient: {
+          useActiveOrganization: () => ({ data: { id: "org_1" } }),
+        },
+      } as ReturnType<typeof useRegionClients>);
+      currentWorkspaceMock.mockReturnValue({
+        isLoading: false,
+        isUnavailableOffline: reason === "offline",
+        workspace:
+          reason === "missing"
+            ? null
+            : { id: "workspace_1", visibility: "private", owner_id: "other" },
+      });
+      render(
+        <MemoryRouter
+          initialEntries={[
+            { pathname: "/lunar/atlas", state: { restoredWorkspace: true } },
+          ]}
+        >
+          <Routes>
+            <Route
+              path="/:organizationSlug/:workspaceSlug"
+              element={<WorkspacePage shell="desktop" />}
+            />
+            <Route
+              path="/:organizationSlug"
+              element={<div>workspace-list-fallback</div>}
+            />
+          </Routes>
+        </MemoryRouter>
+      );
+      expect(await screen.findByText("workspace-list-fallback")).toBeTruthy();
+    }
+  );
 
   it("mounts shell controller only after workspace resolves", () => {
     vi.mocked(useRegionClients).mockReturnValue({
@@ -398,7 +461,11 @@ describe("WorkspacePage", () => {
       },
     } as ReturnType<typeof useRegionClients>);
 
-    render(<MemoryRouter><WorkspacePage shell="desktop" /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <WorkspacePage shell="desktop" />
+      </MemoryRouter>
+    );
 
     expect(screen.getByText("desktop-shell")).not.toBeNull();
     expect(organizationControllerMock).toHaveBeenCalledTimes(1);

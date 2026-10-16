@@ -28,15 +28,16 @@ const registeredContexts = new WeakMap<object, Properties>();
 export function scrubPostHogCapture(
   capture: CaptureResult | null
 ): CaptureResult | null {
-  if (!capture) return null;
+  if (!capture) {
+    return null;
+  }
   return {
     ...capture,
     properties:
       (scrubTelemetryProperties(capture.properties) as Properties) ?? {},
     ...(capture.$set
       ? {
-          $set:
-            (scrubTelemetryProperties(capture.$set) as Properties) ?? {},
+          $set: (scrubTelemetryProperties(capture.$set) as Properties) ?? {},
         }
       : {}),
     ...(capture.$set_once
@@ -56,7 +57,9 @@ export function initPostHogBrowser(
   client: BrowserPostHogClient,
   options: BrowserPostHogOptions
 ): boolean {
-  if (!options.key || !options.apiHost || !options.uiHost) return false;
+  if (!(options.key && options.apiHost && options.uiHost)) {
+    return false;
+  }
 
   client.init(options.key, {
     api_host: options.apiHost,
@@ -86,8 +89,7 @@ export function initPostHogBrowser(
     ],
     person_profiles: "identified_only",
     opt_out_capturing_by_default: options.optOutCapturingByDefault ?? false,
-    opt_out_persistence_by_default:
-      options.optOutPersistenceByDefault ?? false,
+    opt_out_persistence_by_default: options.optOutPersistenceByDefault ?? false,
     persistence: options.persistence,
     respect_dnt: true,
   });
@@ -109,5 +111,7 @@ export function initPostHogBrowser(
 export function resetPostHogIdentity(client: BrowserPostHogClient): void {
   client.reset();
   const context = registeredContexts.get(client);
-  if (context) client.register(context);
+  if (context) {
+    client.register(context);
+  }
 }

@@ -18,30 +18,40 @@ describe("plugin downloads", () => {
   });
 
   it("rejects invalid names, MIME types, and data over 64 MiB", () => {
-    expect(() => assertPluginDownloadInput({
-      data: new ArrayBuffer(0),
-      mimeType: "application/pdf",
-      suggestedName: "../report.pdf",
-    })).toThrow("invalid filename");
-    expect(() => assertPluginDownloadInput({
-      data: new ArrayBuffer(0),
-      mimeType: "application/pdf",
-      suggestedName: "report?.pdf",
-    })).toThrow("invalid filename");
-    expect(() => assertPluginDownloadInput({
-      data: new ArrayBuffer(0),
-      mimeType: "application/pdf",
-      suggestedName: ".",
-    })).toThrow("invalid filename");
-    expect(() => assertPluginDownloadInput({
-      data: new ArrayBuffer(0),
-      mimeType: "pdf",
-      suggestedName: "report.pdf",
-    })).toThrow("invalid MIME type");
-    expect(() => assertPluginDownloadInput({
-      data: new ArrayBuffer(MAX_PLUGIN_DOWNLOAD_BYTES + 1),
-      mimeType: "application/pdf",
-      suggestedName: "report.pdf",
-    })).toThrow("64 MiB");
+    expect(() =>
+      assertPluginDownloadInput({
+        data: new ArrayBuffer(0),
+        mimeType: "application/pdf",
+        suggestedName: "../report.pdf",
+      })
+    ).toThrow("invalid filename");
+    expect(() =>
+      assertPluginDownloadInput({
+        data: new ArrayBuffer(0),
+        mimeType: "application/pdf",
+        suggestedName: "report?.pdf",
+      })
+    ).toThrow("invalid filename");
+    expect(() =>
+      assertPluginDownloadInput({
+        data: new ArrayBuffer(0),
+        mimeType: "application/pdf",
+        suggestedName: ".",
+      })
+    ).toThrow("invalid filename");
+    expect(() =>
+      assertPluginDownloadInput({
+        data: new ArrayBuffer(0),
+        mimeType: "pdf",
+        suggestedName: "report.pdf",
+      })
+    ).toThrow("invalid MIME type");
+    expect(() =>
+      assertPluginDownloadInput({
+        data: new ArrayBuffer(MAX_PLUGIN_DOWNLOAD_BYTES + 1),
+        mimeType: "application/pdf",
+        suggestedName: "report.pdf",
+      })
+    ).toThrow("64 MiB");
   });
 });

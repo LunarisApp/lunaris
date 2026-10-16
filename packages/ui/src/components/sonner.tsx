@@ -42,11 +42,15 @@ function ToastAnnouncer() {
 
   useEffect(() => {
     for (const toast of toasts) {
-      if (announcedIds.current.has(toast.id)) continue;
+      if (announcedIds.current.has(toast.id)) {
+        continue;
+      }
       announcedIds.current.add(toast.id);
 
       const text = getToastText(toast);
-      if (!text) continue;
+      if (!text) {
+        continue;
+      }
 
       if (toast.type === "error") {
         setAssertiveMessage(text);

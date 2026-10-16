@@ -5,9 +5,9 @@ import type { ResourceSearchResult } from "./types";
 describe("content search helpers", () => {
   it("removes content results duplicated by title matches", () => {
     const contentResults = [result("item-1"), result("item-2")];
-    expect(filterDuplicateContentResults(contentResults, [result("item-1")])).toEqual([
-      contentResults[1],
-    ]);
+    expect(
+      filterDuplicateContentResults(contentResults, [result("item-1")])
+    ).toEqual([contentResults[1]]);
   });
 });
 

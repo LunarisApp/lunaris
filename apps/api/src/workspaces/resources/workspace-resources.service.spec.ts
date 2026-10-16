@@ -14,7 +14,7 @@ describe("WorkspaceResourcesService", () => {
           syncedUpdatedAt: now,
           updatedAt: now,
         },
-      ]),
+      ])
     );
     const values = mock((value: Record<string, unknown>) => {
       inserted = value;
@@ -41,7 +41,7 @@ describe("WorkspaceResourcesService", () => {
     const service = new WorkspaceResourcesService(
       { db } as never,
       { assertCanCreateResource } as never,
-      {} as never,
+      {} as never
     );
 
     const result = await service.create(
@@ -52,7 +52,7 @@ describe("WorkspaceResourcesService", () => {
         storage: {},
       },
       "workspace_1",
-      "org_1",
+      "org_1"
     );
 
     expect(assertCanCreateResource).toHaveBeenCalledWith(tx, "org_1");
@@ -63,7 +63,7 @@ describe("WorkspaceResourcesService", () => {
         resourceTypeId: "lunaris.rich-text",
         position: 0,
         workspaceId: "workspace_1",
-      }),
+      })
     );
     expect(result.id).toStartWith("res_");
     expect(result.storage).toEqual({});
@@ -81,11 +81,13 @@ describe("WorkspaceResourcesService", () => {
     };
     const database = {
       db: {
-        transaction: mock(async (run: (value: typeof tx) => Promise<unknown>) => {
-          const result = await run(tx);
-          committed = true;
-          return result;
-        }),
+        transaction: mock(
+          async (run: (value: typeof tx) => Promise<unknown>) => {
+            const result = await run(tx);
+            committed = true;
+            return result;
+          }
+        ),
       },
     };
     const deleteFile = mock(() => {
@@ -95,20 +97,31 @@ describe("WorkspaceResourcesService", () => {
     const service = new WorkspaceResourcesService(
       database as never,
       {} as never,
-      { deleteFile } as never,
+      { deleteFile } as never
     );
     service.purgeWithDb = mock(() =>
       Promise.resolve({
         fileBackings: [{ backingId: "file_1", fileExtension: "txt" }],
         id: "res_1",
-      }),
+      })
     );
 
     const deletion = await database.db.transaction((value) =>
-      service.purgeWithDb(value as never, "res_1", "workspace_1", "org_1", "user_1"),
+      service.purgeWithDb(
+        value as never,
+        "res_1",
+        "workspace_1",
+        "org_1",
+        "user_1"
+      )
     );
     await expect(
-      service.finalizeDeletion(deletion as never, "workspace_1", "org_1", "user_1"),
+      service.finalizeDeletion(
+        deletion as never,
+        "workspace_1",
+        "org_1",
+        "user_1"
+      )
     ).resolves.toEqual({ id: "res_1" });
     expect(deleteFile).toHaveBeenCalledTimes(1);
   });
@@ -118,8 +131,10 @@ describe("WorkspaceResourcesService", () => {
       {} as never,
       {} as never,
       {
-        deleteFile: mock(() => Promise.reject(new Error("storage unavailable"))),
-      } as never,
+        deleteFile: mock(() =>
+          Promise.reject(new Error("storage unavailable"))
+        ),
+      } as never
     );
 
     await expect(
@@ -130,8 +145,8 @@ describe("WorkspaceResourcesService", () => {
         },
         "workspace_1",
         "org_1",
-        "user_1",
-      ),
+        "user_1"
+      )
     ).resolves.toEqual({ id: "res_1" });
   });
 });

@@ -21,7 +21,7 @@ vi.mock("react-i18next", () => ({
         .split(".")
         .reduce<unknown>(
           (value, part) => (value as Record<string, unknown>)?.[part],
-          en,
+          en
         ) ?? key,
   }),
 }));
@@ -41,8 +41,8 @@ const custom = {
 function mount(enabled = false, marketplaces = false) {
   api.get.mockImplementation((url: string) =>
     Promise.resolve(
-      url.endsWith("developer-mode") ? { enabled } : [official, custom],
-    ),
+      url.endsWith("developer-mode") ? { enabled } : [official, custom]
+    )
   );
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -54,7 +54,7 @@ function mount(enabled = false, marketplaces = false) {
       ) : (
         <DeveloperModeSection organizationId="org-1" />
       )}
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
   return { ...view, client };
 }
@@ -75,17 +75,17 @@ describe("DeveloperModeSection", () => {
     expect(screen.queryByLabelText("Marketplace URL")).toBeNull();
     await user.click(toggle);
     expect(screen.getByRole("alertdialog").textContent).toContain(
-      "not for production use",
+      "not for production use"
     );
     expect(api.patch).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(api.patch).not.toHaveBeenCalled();
     await user.click(toggle);
     await user.click(
-      screen.getByRole("button", { name: "Enable for development" }),
+      screen.getByRole("button", { name: "Enable for development" })
     );
     await waitFor(() =>
-      expect(toggle.getAttribute("aria-checked")).toBe("true"),
+      expect(toggle.getAttribute("aria-checked")).toBe("true")
     );
     expect(screen.queryByLabelText("Marketplace URL")).toBeNull();
     expect(api.patch).toHaveBeenCalledWith(`${path}/developer-mode`, {
@@ -98,18 +98,18 @@ describe("DeveloperModeSection", () => {
     api.patch.mockRejectedValue(new Error("Unavailable"));
     mount();
     await waitFor(() =>
-      expect(screen.getByRole("switch").hasAttribute("disabled")).toBe(false),
+      expect(screen.getByRole("switch").hasAttribute("disabled")).toBe(false)
     );
     await user.click(screen.getByRole("switch"));
     await user.click(
-      screen.getByRole("button", { name: "Enable for development" }),
+      screen.getByRole("button", { name: "Enable for development" })
     );
     await waitFor(() =>
       expect(
         screen
           .getByRole("button", { name: "Enable for development" })
-          .hasAttribute("disabled"),
-      ).toBe(false),
+          .hasAttribute("disabled")
+      ).toBe(false)
     );
     expect(screen.getByRole("alertdialog")).toBeTruthy();
     expect(screen.queryByLabelText("Marketplace URL")).toBeNull();
@@ -121,18 +121,14 @@ describe("DeveloperModeSection", () => {
     const { client } = mount(true);
     const toggle = screen.getByRole("switch");
     await waitFor(() =>
-      expect(toggle.getAttribute("aria-checked")).toBe("true"),
+      expect(toggle.getAttribute("aria-checked")).toBe("true")
     );
     await user.click(toggle);
     await waitFor(() =>
-      expect(toggle.getAttribute("aria-checked")).toBe("false"),
+      expect(toggle.getAttribute("aria-checked")).toBe("false")
     );
     expect(
-      client.getQueryData([
-        "organization-developer-mode",
-        api.baseUrl,
-        "org-1",
-      ]),
+      client.getQueryData(["organization-developer-mode", api.baseUrl, "org-1"])
     ).toEqual({ enabled: false });
     expect(api.patch).toHaveBeenCalledWith(`${path}/developer-mode`, {
       body: { enabled: false },
@@ -144,11 +140,11 @@ describe("DeveloperModeSection", () => {
     mount(true);
     await waitFor(() =>
       expect(screen.getByRole("switch").getAttribute("aria-checked")).toBe(
-        "true",
-      ),
+        "true"
+      )
     );
     expect(
-      api.get.mock.calls.every(([url]) => url === `${path}/developer-mode`),
+      api.get.mock.calls.every(([url]) => url === `${path}/developer-mode`)
     ).toBe(true);
     expect(screen.queryByLabelText("Marketplace URL")).toBeNull();
   });
@@ -164,13 +160,13 @@ describe("DeveloperModeSection", () => {
     await waitFor(() =>
       expect(api.post).toHaveBeenCalledWith(path, {
         body: { url: custom.location },
-      }),
+      })
     );
     await waitFor(() => expect((input as HTMLInputElement).value).toBe(""));
     expect(screen.getAllByRole("button", { name: /^Remove / })).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: /^Remove / }));
     await waitFor(() =>
-      expect(api.delete).toHaveBeenCalledWith(`${path}/custom`),
+      expect(api.delete).toHaveBeenCalledWith(`${path}/custom`)
     );
   });
 });
@@ -186,7 +182,7 @@ it("does not overwrite a saved mode with an older in-flight read", async () => {
     () =>
       new Promise<{ enabled: boolean }>((resolve) => {
         resolveRead = resolve;
-      }),
+      })
   );
   let refetch!: Promise<void>;
   act(() => {
@@ -196,7 +192,7 @@ it("does not overwrite a saved mode with an older in-flight read", async () => {
   });
   await user.click(toggle);
   await user.click(
-    screen.getByRole("button", { name: "Enable for development" }),
+    screen.getByRole("button", { name: "Enable for development" })
   );
   await waitFor(() => expect(toggle.getAttribute("aria-checked")).toBe("true"));
   await act(async () => {

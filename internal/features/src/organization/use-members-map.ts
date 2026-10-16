@@ -18,9 +18,7 @@ export function useOrgMembersMap(): {
   const { data: activeOrg } = auth.useActiveOrganization();
   const orgId = activeOrg?.id ?? "";
 
-  const query = useOrganizationMembersQuery(
-    orgId,
-  );
+  const query = useOrganizationMembersQuery(orgId);
 
   const map = useMemo(() => {
     const next = new Map<string, MemberUser>();

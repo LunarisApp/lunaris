@@ -23,9 +23,7 @@ export type LunarisTauriStorage = TauriClientStorage;
 type TauriClientActions = ReturnType<
   ReturnType<typeof tauriClient>["getActions"]
 >;
-type BetterAuthGetActions = NonNullable<
-  BetterAuthClientPlugin["getActions"]
->;
+type BetterAuthGetActions = NonNullable<BetterAuthClientPlugin["getActions"]>;
 export type LunarisTauriClientPlugin = Omit<
   BetterAuthClientPlugin,
   "getActions" | "id"
@@ -48,15 +46,21 @@ export function lunarisAuthCookieKey(regionId: string) {
 function isAllowedCookieName(name: string) {
   const bare = stripSecureCookiePrefix(name);
   return /^lunaris\.(?:session_token(?:_multi-[a-z0-9_-]+)?|dont_remember|last_used_login_method|(?:session_data|account_data)(?:\.\d+)?)$/i.test(
-    bare,
+    bare
   );
 }
 
-function parseStoredCookieJar(value: string | null): Record<string, StoredCookie> {
-  if (!value) return {};
+function parseStoredCookieJar(
+  value: string | null
+): Record<string, StoredCookie> {
+  if (!value) {
+    return {};
+  }
   try {
     const parsed = JSON.parse(value) as unknown;
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return {};
+    }
 
     return Object.fromEntries(
       Object.entries(parsed).filter(
@@ -67,8 +71,8 @@ function parseStoredCookieJar(value: string | null): Record<string, StoredCookie
           "value" in entry[1] &&
           typeof entry[1].value === "string" &&
           "expires" in entry[1] &&
-          (entry[1].expires === null || typeof entry[1].expires === "string"),
-      ),
+          (entry[1].expires === null || typeof entry[1].expires === "string")
+      )
     );
   } catch {
     return {};
@@ -88,7 +92,7 @@ function wrapStorage(storage: LunarisTauriStorage, cookieKey: string) {
     setItem: async (key: string, value: string) => {
       await storage.setItem(
         key,
-        key === cookieKey ? serializeFilteredCookieJar(value) : value,
+        key === cookieKey ? serializeFilteredCookieJar(value) : value
       );
     },
   } satisfies LunarisTauriStorage;
@@ -126,7 +130,9 @@ export async function persistLunarisAuthCookies({
   let changed = false;
 
   for (const [name, cookie] of parseSetCookieHeader(setCookie)) {
-    if (!isAllowedCookieName(name)) continue;
+    if (!isAllowedCookieName(name)) {
+      continue;
+    }
 
     const maxAge = cookie["max-age"];
     const maxAgeSeconds = maxAge === undefined ? null : Number(maxAge);
@@ -157,6 +163,8 @@ export async function persistLunarisAuthCookies({
     changed = true;
   }
 
-  if (changed) await storage.setItem(cookieKey, JSON.stringify(jar));
+  if (changed) {
+    await storage.setItem(cookieKey, JSON.stringify(jar));
+  }
   return changed;
 }

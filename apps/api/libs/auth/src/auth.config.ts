@@ -11,12 +11,14 @@ export class AuthConfig {
   constructor(config: ConfigService) {
     this._googleClientId = optionalString.parse(config.get("GOOGLE_CLIENT_ID"));
     this._googleClientSecret = optionalString.parse(
-      config.get("GOOGLE_CLIENT_SECRET"),
+      config.get("GOOGLE_CLIENT_SECRET")
     );
-    this.signupsAllowed = booleanString.parse(config.get("SIGNUPS_ALLOWED") ?? "true");
+    this.signupsAllowed = booleanString.parse(
+      config.get("SIGNUPS_ALLOWED") ?? "true"
+    );
     this.selfHosted = config.get("DEPLOYMENT_MODE") === "self-hosted";
     this.emailVerificationDisabled = booleanString.parse(
-      config.get("EMAIL_VERIFICATION_DISABLED") ?? "false",
+      config.get("EMAIL_VERIFICATION_DISABLED") ?? "false"
     );
   }
 
@@ -35,7 +37,9 @@ export class AuthConfig {
   }
 
   get values() {
-    if (!this._googleClientId || !this._googleClientSecret) return undefined;
+    if (!(this._googleClientId && this._googleClientSecret)) {
+      return undefined;
+    }
 
     return {
       google: {

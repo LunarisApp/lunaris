@@ -10,11 +10,11 @@ import {
 import type { CommandSearchResult } from "../types";
 
 export interface CommandAction {
-	action: () => void;
-	icon?: IconSvgObject;
-	id: string;
-	label: string;
-	shortcut?: string;
+  action: () => void;
+  icon?: IconSvgObject;
+  id: string;
+  label: string;
+  shortcut?: string;
 }
 
 /**
@@ -23,14 +23,15 @@ export interface CommandAction {
  * @param actions Map of command id to callback
  */
 export function useCommandSearch(
-	query: string,
-	actions: CommandActions,
+  query: string,
+  actions: CommandActions
 ): CommandSearchResult[] {
-	const { t } = useTranslation();
+  const { t } = useTranslation();
 
-	return useMemo(() => {
-		return buildCommandSearchResults(query, actions, t);
-	}, [query, actions, t]);
+  return useMemo(
+    () => buildCommandSearchResults(query, actions, t),
+    [query, actions, t]
+  );
 }
 
 export type { CommandActions };

@@ -62,7 +62,9 @@ export function WorkspaceExplorerTree({
 
   const handleOpenResource = useCallback(
     (item: WorkspaceResourceEntity) => {
-      if (!item.resource_type_id) return;
+      if (!item.resource_type_id) {
+        return;
+      }
       openResource({
         resourceId: item.id,
         resourceTypeId: item.resource_type_id,
@@ -79,7 +81,7 @@ export function WorkspaceExplorerTree({
       resourceId: string,
       resourceTypeId: string,
       title = "",
-      schemaVersion = 1,
+      schemaVersion = 1
     ) => {
       openResource({ resourceId, resourceTypeId, title, schemaVersion });
     },
@@ -87,7 +89,8 @@ export function WorkspaceExplorerTree({
   );
 
   const { tree } = useWorkspaceTree({ onOpenResource: handleOpenResource });
-  const { canCreate, createFolder, createResource } = useWorkspaceResourceCreation();
+  const { canCreate, createFolder, createResource } =
+    useWorkspaceResourceCreation();
   const registerTree = useRegisterTree();
   const resources = useAvailableResources();
   const items = useWorkspaceResources();
@@ -103,7 +106,9 @@ export function WorkspaceExplorerTree({
       showSkeleton,
     });
 
-    if (previousDebugSnapshotRef.current === snapshot) return;
+    if (previousDebugSnapshotRef.current === snapshot) {
+      return;
+    }
     previousDebugSnapshotRef.current = snapshot;
 
     log.debug({
@@ -145,7 +150,9 @@ export function WorkspaceExplorerTree({
   const [activeResultIndex, setActiveResultIndex] = useState(0);
   const searchResultsId = useId();
   const activeDescendantId =
-    isSearching && activeResultIndex >= 0 && activeResultIndex < filteredResults.length
+    isSearching &&
+    activeResultIndex >= 0 &&
+    activeResultIndex < filteredResults.length
       ? `${searchResultsId}-option-${activeResultIndex}`
       : undefined;
 
@@ -158,8 +165,12 @@ export function WorkspaceExplorerTree({
   // Clamp if results shrink below the current selection.
   useEffect(() => {
     setActiveResultIndex((prev) => {
-      if (filteredResults.length === 0) return -1;
-      if (prev < 0 || prev >= filteredResults.length) return 0;
+      if (filteredResults.length === 0) {
+        return -1;
+      }
+      if (prev < 0 || prev >= filteredResults.length) {
+        return 0;
+      }
       return prev;
     });
   }, [filteredResults.length]);
@@ -167,7 +178,9 @@ export function WorkspaceExplorerTree({
   const handleSearchKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
       // Don't intercept IME composition (CJK candidates).
-      if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+      if (e.nativeEvent.isComposing || e.keyCode === 229) {
+        return;
+      }
 
       if (!isSearching || filteredResults.length === 0) {
         if (e.key === "Escape" && searchQuery) {
@@ -285,8 +298,11 @@ export function WorkspaceExplorerTree({
         tree={tree}
       />
       {isMobile ? (
+        // biome-ignore lint/a11y/noNoninteractiveElementInteractions: Delegated container click clears selection only on empty space; tree items own keyboard interaction.
+        // biome-ignore lint/a11y/useKeyWithClickEvents: Delegated container click clears selection only on empty space; tree items own keyboard interaction.
+        // biome-ignore lint/a11y/noStaticElementInteractions: Delegated container click clears selection only on empty space; tree items own keyboard interaction.
         <div
-          className="flex-1 min-h-0 overflow-y-auto pt-2"
+          className="min-h-0 flex-1 overflow-y-auto pt-2"
           onClick={handleContainerClick}
           ref={setPreloadViewport}
         >
@@ -304,6 +320,9 @@ export function WorkspaceExplorerTree({
       ) : (
         <ContextMenu>
           <ContextMenuTrigger className="min-h-0 flex-1">
+            {/* biome-ignore lint/a11y/useKeyWithClickEvents: Delegated container click clears selection only on empty space; tree items own keyboard interaction. */}
+            {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: Delegated container click clears selection only on empty space; tree items own keyboard interaction. */}
+            {/* biome-ignore lint/a11y/noStaticElementInteractions: Delegated container click clears selection only on empty space; tree items own keyboard interaction. */}
             <div
               className="h-full min-h-0 overflow-y-auto"
               onClick={handleContainerClick}
@@ -321,46 +340,52 @@ export function WorkspaceExplorerTree({
               )}
             </div>
           </ContextMenuTrigger>
-          {canCreate && <ContextMenuContent>
-            <AddItemSubmenu
-              resources={resources}
-              onAddItem={async (resource) => {
-                const resourceTypeId = resource.resourceTypeId;
-                const result = await createResource(
-                  VIRTUAL_ROOT_ID,
-                  resource
-                );
-                if (!result) return;
-                if (!result.name) {
-                  setTimeout(
-                    () =>
-                      tree.getItemInstance(result.resourceId).startRenaming(),
-                    0
+          {!!canCreate && (
+            <ContextMenuContent>
+              <AddItemSubmenu
+                resources={resources}
+                onAddItem={async (resource) => {
+                  const resourceTypeId = resource.resourceTypeId;
+                  const result = await createResource(
+                    VIRTUAL_ROOT_ID,
+                    resource
                   );
-                }
-                openResourceById(
-                  result.resourceId,
-                  resourceTypeId,
-                  result.name,
-                  resource.schema.currentVersion
-                );
-              }}
-            />
-            <AddFolderMenuItem
-              onAddFolder={async () => {
-                const newId = await createFolder(VIRTUAL_ROOT_ID);
-                if (!newId) return;
-                setTimeout(() => {
-                  tree.setSelectedItems([newId]);
-                  tree.getItemInstance(newId).expand();
-                  tree.getItemInstance(newId).startRenaming();
-                }, 0);
-              }}
-            />
-          </ContextMenuContent>}
+                  if (!result) {
+                    return;
+                  }
+                  if (!result.name) {
+                    setTimeout(
+                      () =>
+                        tree.getItemInstance(result.resourceId).startRenaming(),
+                      0
+                    );
+                  }
+                  openResourceById(
+                    result.resourceId,
+                    resourceTypeId,
+                    result.name,
+                    resource.schema.currentVersion
+                  );
+                }}
+              />
+              <AddFolderMenuItem
+                onAddFolder={async () => {
+                  const newId = await createFolder(VIRTUAL_ROOT_ID);
+                  if (!newId) {
+                    return;
+                  }
+                  setTimeout(() => {
+                    tree.setSelectedItems([newId]);
+                    tree.getItemInstance(newId).expand();
+                    tree.getItemInstance(newId).startRenaming();
+                  }, 0);
+                }}
+              />
+            </ContextMenuContent>
+          )}
         </ContextMenu>
       )}
-      {!isMobile ? (
+      {isMobile ? null : (
         <div
           className="flex shrink-0 items-center justify-between border-t p-1"
           data-testid="workspace-explorer-footer"
@@ -375,7 +400,7 @@ export function WorkspaceExplorerTree({
             {footerActions}
           </div>
         </div>
-      ) : null}
+      )}
       <ConfirmationDialog
         cancelLabel={t("common.cancel")}
         confirmLabel={t("common.continue")}

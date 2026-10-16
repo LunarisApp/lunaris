@@ -7,7 +7,7 @@ import posthog from "posthog-js";
 const hasPostHogConfig = Boolean(
   import.meta.env.VITE_POSTHOG_API_HOST &&
     import.meta.env.VITE_POSTHOG_KEY &&
-    import.meta.env.VITE_POSTHOG_UI_HOST,
+    import.meta.env.VITE_POSTHOG_UI_HOST
 );
 const posthogDrain = createPostHogBrowserDrain(posthog);
 let posthogInitialized = false;
@@ -15,9 +15,11 @@ let posthogInitialized = false;
 const consent = getConsent();
 
 function initializePostHogWithConsent(
-  categories: Readonly<Record<string, boolean>>,
+  categories: Readonly<Record<string, boolean>>
 ) {
-  if (posthogInitialized) return;
+  if (posthogInitialized) {
+    return;
+  }
   const analyticsAllowed = categories.analytics === true;
 
   posthogInitialized = initPostHogBrowser(posthog, {
@@ -33,7 +35,9 @@ function initializePostHogWithConsent(
     uiHost: import.meta.env.VITE_POSTHOG_UI_HOST,
   });
 
-  if (!posthogInitialized) return;
+  if (!posthogInitialized) {
+    return;
+  }
 
   posthog.set_config({
     logs: {
@@ -59,7 +63,9 @@ consent.onReady(initializePostHogWithConsent);
 initLogger({
   drain: hasPostHogConfig
     ? (context) => {
-        if (posthogInitialized) posthogDrain(context);
+        if (posthogInitialized) {
+          posthogDrain(context);
+        }
       }
     : undefined,
   env: {

@@ -4,7 +4,7 @@ import { localTable } from "../../core/utils";
 
 export const WORKSPACE_RESOURCE_TRASH_TABLE = "workspace_resource_trash";
 export const LOCAL_WORKSPACE_RESOURCE_TRASH_TABLE = localTable(
-  WORKSPACE_RESOURCE_TRASH_TABLE,
+  WORKSPACE_RESOURCE_TRASH_TABLE
 );
 
 export const createWorkspaceResourceTrashTable = ({
@@ -22,10 +22,16 @@ export const createWorkspaceResourceTrashTable = ({
       localOnly,
       viewName,
       indexes: {
-        workspace_resource_trash_workspace_purge_idx: ["workspace_id", "purge_at"],
-        workspace_resource_trash_workspace_root_idx: ["workspace_id", "trash_root_id"],
+        workspace_resource_trash_workspace_purge_idx: [
+          "workspace_id",
+          "purge_at",
+        ],
+        workspace_resource_trash_workspace_root_idx: [
+          "workspace_id",
+          "trash_root_id",
+        ],
       },
-    },
+    }
   );
 
 export type WorkspaceResourceTrashEntity = RowType<

@@ -124,7 +124,9 @@ export function RichTextVersionHistoryPanel({
 
         startTransition(() => {
           setError(
-            nextError instanceof Error ? nextError : new Error(String(nextError))
+            nextError instanceof Error
+              ? nextError
+              : new Error(String(nextError))
           );
           setIsInitialLoading(false);
           setIsRefreshing(false);
@@ -133,22 +135,17 @@ export function RichTextVersionHistoryPanel({
     };
 
     void refreshHistory();
-  }, [
-    storage,
-    isLastEditedLoading,
-    lastEditedAt,
-    loadYjsStorageUpdateRows,
-  ]);
+  }, [storage, isLastEditedLoading, lastEditedAt, loadYjsStorageUpdateRows]);
 
   return (
     <aside
       aria-label={t("common.versionHistory")}
-      className="absolute inset-y-3 right-3 z-20 flex w-[calc(100%-1.5rem)] max-w-80 shrink-0 flex-col overflow-hidden rounded-xl border bg-card text-card-foreground @3xl:relative @3xl:inset-auto @3xl:z-auto @3xl:m-3 @3xl:ml-0 @3xl:w-80"
+      className="absolute @3xl:relative @3xl:inset-auto inset-y-3 right-3 @3xl:z-auto z-20 @3xl:m-3 @3xl:ml-0 flex @3xl:w-80 w-[calc(100%-1.5rem)] max-w-80 shrink-0 flex-col overflow-hidden rounded-xl border bg-card text-card-foreground"
       data-testid="rich-text-version-history"
     >
       <header className="flex items-start gap-3 border-b px-4 py-3">
         <div className="min-w-0 flex-1 space-y-0.5">
-          <h2 className="text-sm leading-5 font-semibold">
+          <h2 className="font-semibold text-sm leading-5">
             {t("common.versionHistory")}
           </h2>
           {lastEditedAt ? (
@@ -161,9 +158,7 @@ export function RichTextVersionHistoryPanel({
         </div>
         {onClose ? (
           <Button
-            aria-label={t(
-              "extensions.catalog.lunaris.rich-text.history.close"
-            )}
+            aria-label={t("extensions.catalog.lunaris.rich-text.history.close")}
             className="-mt-1 -mr-1"
             onClick={onClose}
             size="icon-sm"
@@ -178,9 +173,7 @@ export function RichTextVersionHistoryPanel({
         {error ? (
           <PanelError
             description={error.message}
-            title={t(
-              "extensions.catalog.lunaris.rich-text.history.errorTitle"
-            )}
+            title={t("extensions.catalog.lunaris.rich-text.history.errorTitle")}
             variant="error"
           />
         ) : isInitialLoading ? (
@@ -195,7 +188,9 @@ export function RichTextVersionHistoryPanel({
                 {t("extensions.catalog.lunaris.rich-text.history.emptyTitle")}
               </EmptyTitle>
               <EmptyDescription>
-                {t("extensions.catalog.lunaris.rich-text.history.emptyDescription")}
+                {t(
+                  "extensions.catalog.lunaris.rich-text.history.emptyDescription"
+                )}
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -203,7 +198,10 @@ export function RichTextVersionHistoryPanel({
           <>
             <div className="divide-y">
               {entries.map((entry) => (
-                <details className="group py-3 first:pt-0 last:pb-0" key={entry.id}>
+                <details
+                  className="group py-3 first:pt-0 last:pb-0"
+                  key={entry.id}
+                >
                   <summary className="-mx-2 flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-md px-2 py-2 outline-none transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -215,7 +213,11 @@ export function RichTextVersionHistoryPanel({
                           t={t}
                         />
                         <span className="text-muted-foreground text-xs">
-                          {formatAbsoluteTime(new Date(entry.endedAt), locale, t)}
+                          {formatAbsoluteTime(
+                            new Date(entry.endedAt),
+                            locale,
+                            t
+                          )}
                         </span>
                       </div>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -249,18 +251,18 @@ export function RichTextVersionHistoryPanel({
                               ? "break-words text-emerald-700 dark:text-emerald-400"
                               : "break-words text-rose-700 dark:text-rose-400"
                           }
+                          // biome-ignore lint/suspicious/noArrayIndexKey: Fixed placeholders or stateless rows; position is the intended identity.
                           key={`${entry.id}-${index}`}
                         >
                           {line.kind === "added" ? "+" : "-"} {line.text}
                         </div>
                       ))}
                     {entry.lines.length > MAX_VISIBLE_DIFF_LINES ? (
-                      <p className="text-muted-foreground pt-1 font-sans text-xs">
+                      <p className="pt-1 font-sans text-muted-foreground text-xs">
                         {t(
                           "extensions.catalog.lunaris.rich-text.history.moreLines",
                           {
-                            count:
-                              entry.lines.length - MAX_VISIBLE_DIFF_LINES,
+                            count: entry.lines.length - MAX_VISIBLE_DIFF_LINES,
                           }
                         )}
                       </p>
@@ -269,7 +271,9 @@ export function RichTextVersionHistoryPanel({
                 </details>
               ))}
             </div>
-            {isRefreshing ? <div className="sr-only">Refreshing history</div> : null}
+            {isRefreshing ? (
+              <div className="sr-only">Refreshing history</div>
+            ) : null}
           </>
         )}
       </div>
@@ -281,7 +285,11 @@ function VersionHistorySkeleton() {
   return (
     <div className="divide-y">
       {Array.from({ length: 4 }).map((_, index) => (
-        <div className="space-y-2 py-3 first:pt-0 last:pb-0" key={index}>
+        <div
+          className="space-y-2 py-3 first:pt-0 last:pb-0"
+          // biome-ignore lint/suspicious/noArrayIndexKey: Fixed placeholders or stateless rows; position is the intended identity.
+          key={index}
+        >
           <Skeleton className="h-4 w-40" />
           <div className="flex gap-2">
             <Skeleton className="h-5 w-20 rounded-full" />
@@ -313,7 +321,7 @@ function ActorBadge({
   return (
     <span className="flex min-w-0 items-center gap-2">
       <ExtensionUserAvatar apiBaseUrl={apiBaseUrl} user={resolved.user} />
-      <span className="truncate text-sm font-medium">{resolved.label}</span>
+      <span className="truncate font-medium text-sm">{resolved.label}</span>
     </span>
   );
 }
@@ -327,7 +335,8 @@ function ExtensionUserAvatar({
 }) {
   const label = user?.name?.trim() || user?.email?.trim() || "?";
   const uploadedAvatarUrl = getUploadedAvatarUrl(apiBaseUrl, user);
-  const avatarUrl = uploadedAvatarUrl ?? useGravatarUrl(user?.email, 48);
+  const gravatarUrl = useGravatarUrl(user?.email, 48);
+  const avatarUrl = uploadedAvatarUrl ?? gravatarUrl;
   return (
     <Avatar data-testid={`avatar-${user?.id ?? "none"}`} size="sm">
       {avatarUrl ? <AvatarImage alt={label} src={avatarUrl} /> : null}
@@ -376,9 +385,12 @@ function resolveActor(
   if (member) {
     return {
       user: member,
-      label: member.name || member.email || t("extensions.catalog.lunaris.rich-text.history.collaborator", {
-        id: actorId.slice(0, 8),
-      }),
+      label:
+        member.name ||
+        member.email ||
+        t("extensions.catalog.lunaris.rich-text.history.collaborator", {
+          id: actorId.slice(0, 8),
+        }),
     };
   }
 

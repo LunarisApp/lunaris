@@ -1,6 +1,11 @@
 "use client";
 
-import { SYNC_ACCESS, usePowerSync, useQuery, useSyncAccess } from "@repo/data/core";
+import {
+  SYNC_ACCESS,
+  usePowerSync,
+  useQuery,
+  useSyncAccess,
+} from "@repo/data/core";
 import { useOrganizationWorkspaceResourcesQuery } from "@repo/data/features/workspace-resources";
 import {
   buildSearchIndexQuery,
@@ -31,7 +36,7 @@ const EMPTY_SEARCH_QUERY = `
 export function useResourceContentSearch(
   query: string,
   debounceMs = 300,
-  enabled = true,
+  enabled = true
 ): ResourceSearchResult[] {
   const { t } = useTranslation();
   const db = usePowerSync();
@@ -51,34 +56,36 @@ export function useResourceContentSearch(
       getSearchableResources(
         resourcesQuery.data ?? [],
         t("common.untitled"),
-        resourceTypes,
+        resourceTypes
       ),
-    [resourcesQuery.data, resourceTypes, t],
+    [resourcesQuery.data, resourceTypes, t]
   );
   const parsedQuery = useMemo(
     () => parseSearchQuery(debouncedQuery),
-    [debouncedQuery],
+    [debouncedQuery]
   );
   const immediateQuery = useMemo(() => parseSearchQuery(query), [query]);
   const unscopedTerms = useMemo(
     () => getSearchTerms(parsedQuery, null),
-    [parsedQuery],
+    [parsedQuery]
   );
   const filteredResources = useMemo(
-    () => resources.filter((resource) => matchesResourceFilters(resource, parsedQuery)),
-    [resources, parsedQuery],
+    () =>
+      resources.filter((resource) =>
+        matchesResourceFilters(resource, parsedQuery)
+      ),
+    [resources, parsedQuery]
   );
   const otherWorkspaceIds = useMemo(
     () => getCloudContentWorkspaceIds(filteredResources, workspaceId),
-    [filteredResources, workspaceId],
+    [filteredResources, workspaceId]
   );
   const isSearchActive =
     enabled &&
     unscopedTerms.length > 0 &&
     getSearchTerms(immediateQuery, null).length > 0;
   const shouldHydrateContent =
-    enabled &&
-    (parsedQuery.terms.length === 0 || unscopedTerms.length > 0);
+    enabled && (parsedQuery.terms.length === 0 || unscopedTerms.length > 0);
 
   useEffect(() => {
     if (
@@ -104,11 +111,14 @@ export function useResourceContentSearch(
         }
         subscriptions.push(subscription);
         await subscription.waitForFirstSync(abortController.signal);
-      }),
+      })
     ).then((outcomes) => {
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
       const failure = outcomes.find(
-        (outcome): outcome is PromiseRejectedResult => outcome.status === "rejected",
+        (outcome): outcome is PromiseRejectedResult =>
+          outcome.status === "rejected"
       );
       if (failure) {
         log.warn({
@@ -122,16 +132,22 @@ export function useResourceContentSearch(
     return () => {
       cancelled = true;
       abortController.abort();
-      for (const subscription of subscriptions) subscription.unsubscribe();
+      for (const subscription of subscriptions) {
+        subscription.unsubscribe();
+      }
     };
   }, [db, otherWorkspaceIds, shouldHydrateContent, syncAccess]);
 
   const workspaceIds = useMemo(
     () =>
       getSearchTerms(parsedQuery, "workspace").length > 0
-        ? [...new Set(filteredResources.map((resource) => resource.workspaceId))]
+        ? [
+            ...new Set(
+              filteredResources.map((resource) => resource.workspaceId)
+            ),
+          ]
         : undefined,
-    [filteredResources, parsedQuery],
+    [filteredResources, parsedQuery]
   );
   const resourceTypeIds = useMemo(
     () =>
@@ -139,14 +155,14 @@ export function useResourceContentSearch(
       getSearchTerms(parsedQuery, "resource-type").length > 0
         ? [...new Set(filteredResources.map((resource) => resource.pluginId))]
         : undefined,
-    [filteredResources, parsedQuery],
+    [filteredResources, parsedQuery]
   );
   const resourceIds = useMemo(
     () =>
       getSearchTerms(parsedQuery, "title").length > 0
         ? filteredResources.map((resource) => resource.resourceId)
         : undefined,
-    [filteredResources, parsedQuery],
+    [filteredResources, parsedQuery]
   );
   const search = isSearchActive
     ? buildSearchIndexQuery({
@@ -159,7 +175,7 @@ export function useResourceContentSearch(
     : null;
   const results = useQuery<SearchIndexResultRow>(
     search?.sql ?? EMPTY_SEARCH_QUERY,
-    search?.params ?? [],
+    search?.params ?? []
   );
   const stableResultRowsRef = useRef<{
     rows: SearchIndexResultRow[];
@@ -175,7 +191,9 @@ export function useResourceContentSearch(
     stableResultRowsRef.current.rows = results.data ?? [];
   }
 
-  if (!isSearchActive) return [];
+  if (!isSearchActive) {
+    return [];
+  }
   return stableResultRowsRef.current.rows.map((row) => {
     const preview = parseSearchSnippet(row.preview);
     return {

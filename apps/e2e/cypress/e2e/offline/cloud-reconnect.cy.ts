@@ -12,7 +12,7 @@ function emulateOffline(offline: boolean) {
         downloadThroughput: -1,
         uploadThroughput: -1,
       },
-    }),
+    })
   );
 }
 
@@ -54,51 +54,49 @@ describe("registered-user offline cloud sync", () => {
 
   it("retains a cloud-workspace edit across offline reload and reconnect", () => {
     cy.resetE2eState();
-    cy.registerVerifiedUser({ prefix: "offline-cloud" }).then(
-      () => {
-        cy.visit("/");
-        cy.createWorkspace({ name: "Cloud Offline" });
-        cy.get('[data-testid="workspaces-list-item-cloud-offline"]').click();
-        cy.location("pathname").then(() => {
-          cy.get('button[aria-label="Add file"]').click();
-          cy.contains('[role="menuitem"]', "Rich Text").click();
-          typeYjsText(documentBodySelector, "Online opening");
-          waitForServiceWorkerControl();
+    cy.registerVerifiedUser({ prefix: "offline-cloud" }).then(() => {
+      cy.visit("/");
+      cy.createWorkspace({ name: "Cloud Offline" });
+      cy.get('[data-testid="workspaces-list-item-cloud-offline"]').click();
+      cy.location("pathname").then(() => {
+        cy.get('button[aria-label="Add file"]').click();
+        cy.contains('[role="menuitem"]', "Rich Text").click();
+        typeYjsText(documentBodySelector, "Online opening");
+        waitForServiceWorkerControl();
 
-          emulateOffline(true);
-          cy.contains(documentBodySelector, "Online opening")
-            .click()
-            .type("{end} plus offline ending");
-          cy.contains(
-            documentBodySelector,
-            "Online opening plus offline ending",
-          ).should("be.visible");
-          cy.get("[data-yjs-persistence-state]").should(
-            "have.attr",
-            "data-yjs-persistence-state",
-            "idle",
-          );
-          cy.reload();
-          cy.contains(
-            documentBodySelector,
-            "Online opening plus offline ending",
-            { timeout: 15_000 },
-          ).should("be.visible");
+        emulateOffline(true);
+        cy.contains(documentBodySelector, "Online opening")
+          .click()
+          .type("{end} plus offline ending");
+        cy.contains(
+          documentBodySelector,
+          "Online opening plus offline ending"
+        ).should("be.visible");
+        cy.get("[data-yjs-persistence-state]").should(
+          "have.attr",
+          "data-yjs-persistence-state",
+          "idle"
+        );
+        cy.reload();
+        cy.contains(
+          documentBodySelector,
+          "Online opening plus offline ending",
+          { timeout: 15_000 }
+        ).should("be.visible");
 
-          restoreOnline();
-          cy.window().then((win) =>
-            win.fetch("http://localhost:3000/v1/health").then((response) => {
-              expect(response.ok).to.eq(true);
-            }),
-          );
-          cy.window().then((win) => win.dispatchEvent(new Event("online")));
-          cy.contains(
-            documentBodySelector,
-            "Online opening plus offline ending",
-            { timeout: 15_000 },
-          ).should("be.visible");
-        });
-      },
-    );
+        restoreOnline();
+        cy.window().then((win) =>
+          win.fetch("http://localhost:3000/v1/health").then((response) => {
+            expect(response.ok).to.eq(true);
+          })
+        );
+        cy.window().then((win) => win.dispatchEvent(new Event("online")));
+        cy.contains(
+          documentBodySelector,
+          "Online opening plus offline ending",
+          { timeout: 15_000 }
+        ).should("be.visible");
+      });
+    });
   });
 });

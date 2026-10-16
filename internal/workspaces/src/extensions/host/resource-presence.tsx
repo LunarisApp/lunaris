@@ -67,12 +67,12 @@ export function ResourcePresenceBoundary({
   const browserVisible = useSyncExternalStore(
     subscribeVisibility,
     () => document.visibilityState === "visible",
-    () => false,
+    () => false
   );
   const eligible = Boolean(
     session?.user.id &&
       workspaceVisibility !== "local" &&
-      sync === SYNC_ACCESS.cloud,
+      sync === SYNC_ACCESS.cloud
   );
   const active = eligible && isVisible && browserVisible && online;
   const key = JSON.stringify([
@@ -82,7 +82,9 @@ export function ResourcePresenceBoundary({
     session?.session.activeOrganizationId,
   ]);
   const entry = useMemo(() => {
-    if (!eligible) return null;
+    if (!eligible) {
+      return null;
+    }
     let cache = caches.get(api);
     if (!cache) {
       cache = new Map();
@@ -104,7 +106,7 @@ export function ResourcePresenceBoundary({
   }, [api, key, eligible, workspaceId, resourceId]);
   const channels = useMemo(
     () => new AwarenessChannels(api, workspaceId, resourceId, storage),
-    [api, key, storage],
+    [api, key, storage, workspaceId, resourceId]
   );
   useLayoutEffect(() => {
     channels.setActive(active);
@@ -112,7 +114,9 @@ export function ResourcePresenceBoundary({
   }, [channels, active]);
   useEffect(() => () => channels.destroy(), [channels]);
   useEffect(() => {
-    if (!entry) return;
+    if (!entry) {
+      return;
+    }
     clearTimeout(entry.timer);
     entry.leases++;
     return () => {
@@ -126,7 +130,9 @@ export function ResourcePresenceBoundary({
     };
   }, [api, key, entry]);
   useEffect(() => {
-    if (!entry || !active) return;
+    if (!(entry && active)) {
+      return;
+    }
     return entry.connection.acquire();
   }, [entry, active]);
   const store = useMemo(() => {
@@ -139,21 +145,26 @@ export function ResourcePresenceBoundary({
         | PresenceUser
         | undefined;
       const users = new Map<string, PresenceUser>();
-      if (status === "connected")
+      if (status === "connected") {
         for (const state of connection!.awareness.getStates().values()) {
           const user = state.user as PresenceUser | undefined;
-          if (user?.id && user.id !== self?.id) users.set(user.id, user);
+          if (user?.id && user.id !== self?.id) {
+            users.set(user.id, user);
+          }
         }
+      }
       const next = {
         status,
         self: self ?? null,
         participants: [...users.values()].sort((a, b) =>
-          a.id.localeCompare(b.id),
+          a.id.localeCompare(b.id)
         ),
       };
       if (JSON.stringify(next) !== JSON.stringify(snapshot)) {
         snapshot = next;
-        for (const fn of listeners) fn();
+        for (const fn of listeners) {
+          fn();
+        }
       }
     };
     return {
@@ -174,11 +185,11 @@ export function ResourcePresenceBoundary({
   const presence = useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,
-    () => UNAVAILABLE_RESOURCE_PRESENCE,
+    () => UNAVAILABLE_RESOURCE_PRESENCE
   );
   const value = useMemo(
     () => ({ resourceId, storage, isVisible: active, presence }),
-    [resourceId, storage, active, presence],
+    [resourceId, storage, active, presence]
   );
   return (
     <Channels.Provider value={channels}>
@@ -192,7 +203,7 @@ export function ResourcePresenceBoundary({
 export function useHostResourceAwareness(
   extensionId: string,
   channel: string,
-  options?: PluginAwarenessOptions,
+  options?: PluginAwarenessOptions
 ): ResourceAwarenessResult<import("@lunarisapp/plugin-sdk").JsonValue> {
   const manager = useAwarenessChannels();
   const scope = useResourceViewPresenceScope();
@@ -200,31 +211,39 @@ export function useHostResourceAwareness(
   const revision = useSyncExternalStore(
     manager?.subscribe ?? emptySubscribe,
     manager?.getSnapshot ?? zero,
-    zero,
+    zero
   );
   const enabled = options?.enabled !== false && Boolean(scope?.isVisible);
   useEffect(() => {
-    if (!manager || !enabled) return;
+    if (!(manager && enabled)) {
+      return;
+    }
     return manager.acquireChannel(id, extensionId, channel);
   }, [manager, id, extensionId, channel, enabled]);
   const setState = useCallback(
     (value: import("@lunarisapp/plugin-sdk").JsonValue | null) => {
-      if (enabled) manager?.update(id, value);
+      if (enabled) {
+        manager?.update(id, value);
+      }
     },
-    [manager, id, enabled],
+    [manager, id, enabled]
   );
   return useMemo(
     () => ({
       ...(enabled ? (manager?.result(id) ?? unavailable) : unavailable),
       setState,
     }),
-    [manager, id, revision, enabled, setState],
+    [manager, id, revision, enabled, setState]
   );
 }
-const emptySubscribe = () => () => {};
+const emptySubscribe = () => () => {
+  /* No action while this capability is unavailable. */
+};
 const zero = () => 0;
 const unavailable = {
   peers: [],
   status: "unavailable" as const,
-  setState: () => {},
+  setState: () => {
+    /* No action while this capability is unavailable. */
+  },
 };

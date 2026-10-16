@@ -80,11 +80,11 @@ export function CreateApi(params: {
         : {
             description: "Returns the created resource.",
             standardSchema: serializer,
-          },
+          }
     ),
     ApiResponse(defaultApiResponse.validationError),
     ApiResponse(defaultApiResponse.unauthorized),
-    SerializeOptions({ schema: serializer }),
+    SerializeOptions({ schema: serializer })
   );
 }
 
@@ -110,11 +110,11 @@ export function ActionApi(params: {
       ok ?? {
         description: "Returns the affected resource.",
         standardSchema: serializer,
-      },
+      }
     ),
     ApiResponse(defaultApiResponse.validationError),
     ApiResponse(defaultApiResponse.unauthorized),
-    SerializeOptions({ schema: serializer }),
+    SerializeOptions({ schema: serializer })
   );
 }
 
@@ -144,7 +144,7 @@ export function RetrieveApi(params: {
       ok ?? {
         description: "Returns the requested resource.",
         standardSchema: serializer,
-      },
+      }
     ),
     SerializeOptions({ schema: serializer }),
   ];
@@ -182,7 +182,7 @@ export function ListApi(params: {
       ok ?? {
         description: "Returns a list of resources.",
         standardSchema: paginatedSerializer,
-      },
+      }
     ),
     SerializeOptions({ schema: paginatedSerializer }),
   ];
@@ -224,7 +224,7 @@ export function UpdateApi(params: {
       ok ?? {
         description: "Returns the updated resource.",
         standardSchema: serializer,
-      },
+      }
     ),
     SerializeOptions({ schema: serializer }),
   ];
@@ -264,7 +264,7 @@ export function DeleteApi(params?: {
     ApiOkResponse(
       ok ?? {
         description: "Returns ID of the deleted resource.",
-      },
+      }
     ),
   ];
   if (withUnauthorized) {

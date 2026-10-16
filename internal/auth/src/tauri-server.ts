@@ -48,7 +48,9 @@ export function validateGoogleAuthorizationUrl({
   baseURL: string;
   googleClientId?: string;
 }) {
-  if (!googleClientId) invalidAuthorizationRequest();
+  if (!googleClientId) {
+    invalidAuthorizationRequest();
+  }
 
   let url: URL;
   try {
@@ -75,7 +77,9 @@ export function validateGoogleAuthorizationUrl({
     "response_type",
     "state",
   ]) {
-    if (!hasSingleParameter(url, parameter)) invalidAuthorizationRequest();
+    if (!hasSingleParameter(url, parameter)) {
+      invalidAuthorizationRequest();
+    }
   }
 
   const state = url.searchParams.get("state");
@@ -97,7 +101,7 @@ export function validateGoogleAuthorizationUrl({
 export function validateDesktopOAuthState(
   state: string,
   verification: VerificationValue | null,
-  now = Date.now(),
+  now = Date.now()
 ) {
   if (!verification || verification.expiresAt.getTime() <= now) {
     invalidAuthorizationRequest();
@@ -124,9 +128,7 @@ export function validateDesktopOAuthState(
   }
 }
 
-function createLunarisAuthorizationProxy(
-  options: LunarisTauriServerOptions,
-) {
+function createLunarisAuthorizationProxy(options: LunarisTauriServerOptions) {
   return createAuthEndpoint(
     "/tauri-authorization-proxy",
     {
@@ -149,25 +151,26 @@ function createLunarisAuthorizationProxy(
         baseURL: ctx.context.baseURL,
         googleClientId: options.googleClientId,
       });
-      const verification = await ctx.context.internalAdapter.findVerificationValue(
-        state,
-      );
+      const verification =
+        await ctx.context.internalAdapter.findVerificationValue(state);
       validateDesktopOAuthState(state, verification);
 
-      const stateCookie = ctx.context.createAuthCookie("state", { maxAge: 300 });
+      const stateCookie = ctx.context.createAuthCookie("state", {
+        maxAge: 300,
+      });
       await ctx.setSignedCookie(
         stateCookie.name,
         state,
         ctx.context.secret,
-        stateCookie.attributes,
+        stateCookie.attributes
       );
       return ctx.redirect(url.toString());
-    },
+    }
   );
 }
 
 export function lunarisTauriServer(
-  options: LunarisTauriServerOptions,
+  options: LunarisTauriServerOptions
 ): BetterAuthPlugin {
   const upstream = tauri({ disableOriginOverride: true });
   const { onRequest: _unsafeCookieBridge, ...safeUpstream } = upstream;

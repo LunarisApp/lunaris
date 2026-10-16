@@ -5,10 +5,7 @@ import type { Doc } from "yjs";
 import type { IconSvgObject, PluginIconSource } from "./constants";
 import type { PluginResourceReadContext } from "./resource-data";
 import type { JsonObject, JsonValue } from "./json";
-import type {
-  PluginFetch,
-  PluginStoredFileMetadata,
-} from "./runtime-context";
+import type { PluginFetch, PluginStoredFileMetadata } from "./runtime-context";
 
 export type ResourceStorageKind = "file" | "key-value" | "yjs";
 
@@ -100,7 +97,7 @@ export interface ResourceSchemaDefinition {
   /** Writes a staged, validated payload back to storage. Required when migrations exist. */
   write?: (
     payload: unknown,
-    context: ResourcePayloadContext,
+    context: ResourcePayloadContext
   ) => Promise<void> | void;
 }
 
@@ -108,14 +105,14 @@ export type ResourceStorageSlotDefinition =
   | { kind: "file" }
   | {
       initialize?: (
-        context: ResourceInitializeContext,
+        context: ResourceInitializeContext
       ) => Promise<JsonObject> | JsonObject;
       kind: "key-value";
     }
   | {
       initialize?: (
         document: Doc,
-        context: ResourceInitializeContext,
+        context: ResourceInitializeContext
       ) => Promise<void> | void;
       kind: "yjs";
     };
@@ -134,7 +131,7 @@ export interface ResourceHierarchyDefinition {
 /** Registered durable resource type. Contains persistence only; UI belongs to views. */
 export interface ResourceTypeDefinition {
   createInWorkspace?: (
-    context: ResourceCreationContext,
+    context: ResourceCreationContext
   ) => Promise<ResourceCreateResult | null>;
   /** Explicit default resource-targeted view. Omit for non-openable resources. */
   defaultViewId?: string;
@@ -284,7 +281,7 @@ export interface SearchIndexerInput {
 export interface SearchIndexerContribution extends ResourceTypeTarget {
   extractText(
     input: SearchIndexerInput,
-    context: SearchIndexerContext,
+    context: SearchIndexerContext
   ): Promise<string | null> | string | null;
   id: string;
 }
@@ -322,10 +319,10 @@ export interface SearchQueryContribution {
   id: string;
   open(
     result: SearchQueryResult,
-    context: SearchQueryOpenContext,
+    context: SearchQueryOpenContext
   ): Promise<void> | void;
   query(
     input: SearchQueryInput,
-    context: SearchQueryContext,
+    context: SearchQueryContext
   ): Promise<SearchQueryPage>;
 }

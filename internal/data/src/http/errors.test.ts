@@ -31,9 +31,7 @@ describe("ApiError", () => {
       const body = {
         statusCode: 400,
         message: "Validation failed",
-        errors: [
-          { code: "too_small", message: "Required", path: ["name"] },
-        ],
+        errors: [{ code: "too_small", message: "Required", path: ["name"] }],
       };
       const res = new Response(JSON.stringify(body), { status: 400 });
 

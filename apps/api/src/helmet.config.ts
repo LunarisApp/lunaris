@@ -29,7 +29,7 @@ type HeaderReply = {
 type HeaderApp = {
   addHook: (
     name: "onRequest",
-    hook: (_request: unknown, reply: HeaderReply, done: () => void) => void,
+    hook: (_request: unknown, reply: HeaderReply, done: () => void) => void
   ) => unknown;
 };
 
@@ -58,7 +58,7 @@ export function getSecurityHeadersConfig(isProduction: boolean) {
     },
     strictTransportSecurity: isProduction
       ? {
-          maxAge: 31536000,
+          maxAge: 31_536_000,
           includeSubDomains: true,
         }
       : false,

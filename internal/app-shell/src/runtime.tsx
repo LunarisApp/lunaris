@@ -22,6 +22,8 @@ export const AppRuntimeContext = createContext<AppRuntime | null>(null);
 
 export function useAppRuntime(): AppRuntime {
   const runtime = useContext(AppRuntimeContext);
-  if (!runtime) throw new Error("App runtime is not configured");
+  if (!runtime) {
+    throw new Error("App runtime is not configured");
+  }
   return runtime;
 }

@@ -29,10 +29,16 @@ export function usePersistPanelWindowDescriptor({
   const hasOpenedPanelRef = useRef(false);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session) {
+      return;
+    }
     const activePanel = panels.find((panel) => panel.id === activePanelId);
-    if (activePanel) hasOpenedPanelRef.current = true;
-    if (!activePanel && !hasOpenedPanelRef.current) return;
+    if (activePanel) {
+      hasOpenedPanelRef.current = true;
+    }
+    if (!(activePanel || hasOpenedPanelRef.current)) {
+      return;
+    }
 
     let descriptor = null;
     if (activePanel) {
@@ -80,7 +86,9 @@ function findTransferredPanel(
   session: PanelWindowSession
 ): Panel | undefined {
   const descriptor = session.descriptor;
-  if (!descriptor) return;
+  if (!descriptor) {
+    return;
+  }
 
   return panels.find(
     (panel) =>
@@ -117,7 +125,9 @@ export function useAcknowledgePanelWindowTransfer({
     }
 
     const panel = findTransferredPanel(panels, session);
-    if (!panel || !dockviewApi.getPanel(panel.id)) return;
+    if (!(panel && dockviewApi.getPanel(panel.id))) {
+      return;
+    }
 
     acknowledgedTransfersRef.current.add(transfer.transferId);
     panelWindows
@@ -130,7 +140,11 @@ export function useAcknowledgePanelWindowTransfer({
         completePanelWindowTransfer(session);
         const nextPathname =
           organizationSlug && workspaceSlug
-            ? getPathForActiveDesktopPanel(organizationSlug, workspaceSlug, panel)
+            ? getPathForActiveDesktopPanel(
+                organizationSlug,
+                workspaceSlug,
+                panel
+              )
             : pathname;
         navigate(
           {

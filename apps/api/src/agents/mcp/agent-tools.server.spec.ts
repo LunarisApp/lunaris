@@ -18,9 +18,10 @@ describe("agent tool registry", () => {
           calls.push(String(property));
           return { items: [], nextCursor: null };
         },
-      },
+      }
     ) as LunarisControlClient;
-    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
     const server = createAgentToolsServer(control);
     const client = new Client({ name: "test", version: "1" });
     await Promise.all([
@@ -33,10 +34,10 @@ describe("agent tool registry", () => {
       await readFile(
         new URL(
           "../../../../../internal/agent-contracts/generated/agent-mcp-manifest.json",
-          import.meta.url,
+          import.meta.url
         ),
-        "utf8",
-      ),
+        "utf8"
+      )
     ) as {
       tools: Array<{
         annotations: unknown;
@@ -49,55 +50,56 @@ describe("agent tool registry", () => {
     };
     const resources = await client.listResourceTemplates();
     expect(listed.tools.map((tool) => tool.name).sort()).toEqual(
-      [...agentMcpToolNames].sort(),
+      [...agentMcpToolNames].sort()
     );
     const hostedCatalog: unknown = listed.tools.map((tool) => ({
-        annotations: tool.annotations,
-        description: tool.description,
-        inputSchema: tool.inputSchema,
-        name: tool.name,
-        offlineAvailability:
-          tool._meta?.["app.lunaris/offlineAvailability"],
-        outputSchema: tool.outputSchema,
-      }));
+      annotations: tool.annotations,
+      description: tool.description,
+      inputSchema: tool.inputSchema,
+      name: tool.name,
+      offlineAvailability: tool._meta?.["app.lunaris/offlineAvailability"],
+      outputSchema: tool.outputSchema,
+    }));
     const desktopCatalog: unknown = desktopManifest.tools.map(
-        ({
-          annotations,
-          description,
-          inputSchema,
-          name,
-          offlineAvailability,
-          outputSchema,
-        }) => ({
-          annotations,
-          description,
-          inputSchema,
-          name,
-          offlineAvailability,
-          outputSchema,
-        }),
-      );
+      ({
+        annotations,
+        description,
+        inputSchema,
+        name,
+        offlineAvailability,
+        outputSchema,
+      }) => ({
+        annotations,
+        description,
+        inputSchema,
+        name,
+        offlineAvailability,
+        outputSchema,
+      })
+    );
     expect(hostedCatalog).toEqual(desktopCatalog);
     expect(
-      listed.tools.find((tool) => tool.name === "delete_workspace")?.annotations,
+      listed.tools.find((tool) => tool.name === "delete_workspace")?.annotations
     ).toMatchObject({ destructiveHint: true, idempotentHint: true });
     expect(
-      listed.tools.find((tool) => tool.name === "get_yjs_storage_json")?.annotations,
+      listed.tools.find((tool) => tool.name === "get_yjs_storage_json")
+        ?.annotations
     ).toMatchObject({ readOnlyHint: true });
     expect(
       listed.tools.find((tool) => tool.name === "preview_delete_workspace")
-        ?.annotations,
+        ?.annotations
     ).toMatchObject({ idempotentHint: false });
     expect(
-      listed.tools.find((tool) => tool.name === "list_organizations")?.outputSchema,
+      listed.tools.find((tool) => tool.name === "list_organizations")
+        ?.outputSchema
     ).toBeDefined();
     expect(
-      listed.tools.find((tool) => tool.name === "update_organization")?._meta,
+      listed.tools.find((tool) => tool.name === "update_organization")?._meta
     ).toMatchObject({
       "app.lunaris/offlineAvailability": "cloud-required",
     });
     expect(
-      listed.tools.find((tool) => tool.name === "kanban_list_tasks")?._meta,
+      listed.tools.find((tool) => tool.name === "kanban_list_tasks")?._meta
     ).toMatchObject({
       "app.lunaris/offlineAvailability": "supported",
       "app.lunaris/pluginId": "lunaris.kanban",
@@ -117,16 +119,16 @@ describe("agent tool registry", () => {
       nextCursor: null,
     });
     expect(
-      listed.tools.find((tool) => tool.name === "search_resources")?.annotations,
+      listed.tools.find((tool) => tool.name === "search_resources")?.annotations
     ).toMatchObject({ readOnlyHint: true });
     expect(
-      listed.tools.find((tool) => tool.name === "search_resources")?.description,
+      listed.tools.find((tool) => tool.name === "search_resources")?.description
     ).toContain("Organization-wide search is the default");
     expect(
-      listed.tools.find((tool) => tool.name === "search_resources")?.description,
+      listed.tools.find((tool) => tool.name === "search_resources")?.description
     ).toContain("exact workspace ID is already known");
     expect(
-      listed.tools.find((tool) => tool.name === "search_resources")?.inputSchema,
+      listed.tools.find((tool) => tool.name === "search_resources")?.inputSchema
     ).toMatchObject({
       properties: {
         workspaceId: {
@@ -156,12 +158,12 @@ describe("agent tool registry", () => {
       resources.resourceTemplates.map(({ name, uriTemplate }) => ({
         name,
         uriTemplate,
-      })),
+      }))
     ).toEqual(
       agentResourceDefinitions.map(({ name, uriTemplate }) => ({
         name,
         uriTemplate,
-      })),
+      }))
     );
     await client.close();
     await server.close();
@@ -345,9 +347,7 @@ describe("agent tool registry", () => {
             {
               id: "status",
               name: "Status",
-              options: [
-                { color: "#22c55e", id: "done", name: "Done" },
-              ],
+              options: [{ color: "#22c55e", id: "done", name: "Done" }],
               type: "select",
             },
           ],
@@ -394,7 +394,7 @@ describe("agent tool registry", () => {
   test("rejects handler output that violates the shared contract", async () => {
     const control = new Proxy(
       {},
-      { get: () => async () => ({ unexpected: true }) },
+      { get: () => async () => ({ unexpected: true }) }
     ) as LunarisControlClient;
     const [clientTransport, serverTransport] =
       InMemoryTransport.createLinkedPair();
@@ -421,13 +421,15 @@ describe("agent tool registry", () => {
       {},
       {
         get: () => async () => {
-          const error = new Error("Missing scope: organization:read") as Error & {
+          const error = new Error(
+            "Missing scope: organization:read"
+          ) as Error & {
             getStatus: () => number;
           };
           error.getStatus = () => 403;
           throw error;
         },
-      },
+      }
     ) as LunarisControlClient;
     const [clientTransport, serverTransport] =
       InMemoryTransport.createLinkedPair();
@@ -470,7 +472,7 @@ describe("agent tool registry", () => {
           });
           throw error;
         },
-      },
+      }
     ) as LunarisControlClient;
     const [clientTransport, serverTransport] =
       InMemoryTransport.createLinkedPair();

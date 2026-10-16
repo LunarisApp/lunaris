@@ -3,7 +3,11 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { createHotkeyOptions, HOTKEYS, useResolvedHotkeyBinding } from "@repo/features/hotkeys";
+import {
+  createHotkeyOptions,
+  HOTKEYS,
+  useResolvedHotkeyBinding,
+} from "@repo/features/hotkeys";
 import { useOrganizationNavigation } from "../organization-navigation";
 import { createOpenDebuggerPanelAction } from "./open-debugger";
 
@@ -17,5 +21,9 @@ export function useDebuggerHotkey() {
     [openTool, t]
   );
 
-  useHotkey(useResolvedHotkeyBinding(hotkey), openDebugger, createHotkeyOptions(hotkey, t));
+  useHotkey(
+    useResolvedHotkeyBinding(hotkey),
+    openDebugger,
+    createHotkeyOptions(hotkey, t)
+  );
 }

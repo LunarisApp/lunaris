@@ -13,7 +13,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) =>
       (
-        {
+        ({
           "auth.onboarding.description": "Help us tailor your experience.",
           "auth.onboarding.otherPlaceholder": "Something else...",
           "auth.onboarding.purposeAcademic": "Academic",
@@ -23,7 +23,7 @@ vi.mock("react-i18next", () => ({
           "auth.onboarding.purposeWriting": "Writing",
           "auth.onboarding.title": "What brings you to Lunaris?",
           "common.continue": "Continue",
-        } as Record<string, string>
+        }) as Record<string, string>
       )[key] ?? key,
   }),
 }));
@@ -47,14 +47,14 @@ describe("OnboardingPage", () => {
     const { container } = render(
       <MemoryRouter>
         <OnboardingPage />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     expect(
       screen.getByRole("heading", {
         level: 1,
         name: "What brings you to Lunaris?",
-      }),
+      })
     ).toBeTruthy();
 
     const writing = screen.getByRole("button", { name: "Writing" });

@@ -61,7 +61,9 @@ vi.mock("@lunarisapp/ui/components/badge", () => ({
 
 vi.mock("@lunarisapp/ui/components/empty", () => ({
   Empty: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  EmptyDescription: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  EmptyDescription: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
   EmptyHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   EmptyMedia: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   EmptyTitle: ({ children }: { children: ReactNode }) => <div>{children}</div>,
@@ -176,7 +178,9 @@ describe("RichTextVersionHistoryPanel", () => {
   it("loads initial snapshot once and does not subscribe to live update rows", async () => {
     const rows = [makeRow("u1", "2026-04-19T10:00:00.000Z")];
     mockGetYjsDocumentUpdateRows.mockResolvedValue(rows);
-    mockBuildRichTextVersionHistory.mockReturnValue([makeEntry("u1", "First change")]);
+    mockBuildRichTextVersionHistory.mockReturnValue([
+      makeEntry("u1", "First change"),
+    ]);
 
     const view = render(
       <RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />
@@ -190,7 +194,9 @@ describe("RichTextVersionHistoryPanel", () => {
     await waitFor(() => expect(screen.getByText(/First change/)).toBeTruthy());
 
     currentLastEditedAt = new Date("2026-04-19T10:00:00.000Z");
-    view.rerender(<RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />);
+    view.rerender(
+      <RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />
+    );
 
     await waitFor(() => expect(screen.getByText(/First change/)).toBeTruthy());
     expect(mockGetYjsDocumentUpdateRows).toHaveBeenCalledTimes(1);
@@ -215,9 +221,13 @@ describe("RichTextVersionHistoryPanel", () => {
     await waitFor(() => expect(screen.getByText(/First change/)).toBeTruthy());
 
     currentLastEditedAt = new Date("2026-04-19T10:05:00.000Z");
-    view.rerender(<RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />);
+    view.rerender(
+      <RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />
+    );
 
-    await waitFor(() => expect(mockGetYjsDocumentUpdateRows).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(mockGetYjsDocumentUpdateRows).toHaveBeenCalledTimes(2)
+    );
     expect(screen.getByText(/First change/)).toBeTruthy();
     expect(screen.queryByTestId("history-skeleton")).toBeNull();
 
@@ -241,7 +251,9 @@ describe("RichTextVersionHistoryPanel", () => {
       <RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />
     );
 
-    await waitFor(() => expect(screen.getByText(/Doc one change/)).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByText(/Doc one change/)).toBeTruthy()
+    );
 
     view.rerender(
       <RichTextVersionHistoryPanel
@@ -251,13 +263,17 @@ describe("RichTextVersionHistoryPanel", () => {
     );
 
     await waitFor(() =>
-      expect(screen.getAllByTestId("history-skeleton").length).toBeGreaterThan(0)
+      expect(screen.getAllByTestId("history-skeleton").length).toBeGreaterThan(
+        0
+      )
     );
     expect(screen.queryByText(/Doc one change/)).toBeNull();
 
     secondRequest.resolve([makeRow("u2", "2026-04-19T10:10:00.000Z")]);
 
-    await waitFor(() => expect(screen.getByText(/Doc two change/)).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByText(/Doc two change/)).toBeTruthy()
+    );
   });
 
   it("renders avatar and label for the current user's own session", async () => {
@@ -268,16 +284,16 @@ describe("RichTextVersionHistoryPanel", () => {
       { ...makeEntry("u1", "My edit"), actorId: "user_1" },
     ]);
 
-    render(<RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />);
+    render(
+      <RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />
+    );
 
     await waitFor(() => expect(screen.getByText(/My edit/)).toBeTruthy());
     expect(screen.getByText("You")).toBeTruthy();
     const avatar = screen
       .getByTestId("avatar-user_1")
       .querySelector("img") as HTMLImageElement;
-    expect(avatar.src).toBe(
-      "https://api.example.com/v1/account/avatar/user_1"
-    );
+    expect(avatar.src).toBe("https://api.example.com/v1/account/avatar/user_1");
   });
 
   it("loads Gravatar when a resolved member has no uploaded image", async () => {
@@ -288,7 +304,9 @@ describe("RichTextVersionHistoryPanel", () => {
       { ...makeEntry("u1", "Collaborator edit"), actorId: "user_2" },
     ]);
 
-    render(<RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />);
+    render(
+      <RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />
+    );
 
     await waitFor(() =>
       expect(screen.getByText(/Collaborator edit/)).toBeTruthy()
@@ -308,7 +326,9 @@ describe("RichTextVersionHistoryPanel", () => {
       { ...makeEntry("u1", "Unknown edit"), actorId: "user_unknown_9999" },
     ]);
 
-    render(<RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />);
+    render(
+      <RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />
+    );
 
     await waitFor(() => expect(screen.getByText(/Unknown edit/)).toBeTruthy());
     expect(screen.getByText(/Collaborator user_unk/)).toBeTruthy();
@@ -323,7 +343,9 @@ describe("RichTextVersionHistoryPanel", () => {
       { ...makeEntry("u1", "System change"), actorId: null },
     ]);
 
-    render(<RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />);
+    render(
+      <RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />
+    );
 
     await waitFor(() => expect(screen.getByText(/System change/)).toBeTruthy());
     expect(screen.getByText("System")).toBeTruthy();
@@ -333,11 +355,15 @@ describe("RichTextVersionHistoryPanel", () => {
   it("shows error state when snapshot refresh fails", async () => {
     mockGetYjsDocumentUpdateRows.mockRejectedValue(new Error("boom"));
 
-    render(<RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />);
+    render(
+      <RichTextVersionHistoryPanel storage={storage} resourceId="item_1" />
+    );
 
     await waitFor(() =>
       expect(
-        screen.getByText("extensions.catalog.lunaris.rich-text.history.errorTitle")
+        screen.getByText(
+          "extensions.catalog.lunaris.rich-text.history.errorTitle"
+        )
       ).toBeTruthy()
     );
     expect(screen.getByText("boom")).toBeTruthy();
@@ -346,7 +372,7 @@ describe("RichTextVersionHistoryPanel", () => {
 
 function makeRow(id: string, createdAt: string) {
   return {
-    createdAt: createdAt,
+    createdAt,
     id,
     updateBase64: id,
     userId: "user_1",

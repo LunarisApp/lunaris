@@ -12,7 +12,11 @@ export const SUPPORTED_LOCALES = [
   { code: "es", label: "Spanish", nativeLabel: "Español" },
   { code: "fr", label: "French", nativeLabel: "Français" },
   { code: "de", label: "German", nativeLabel: "Deutsch" },
-  { code: "pt-BR", label: "Portuguese (Brazil)", nativeLabel: "Português (Brasil)" },
+  {
+    code: "pt-BR",
+    label: "Portuguese (Brazil)",
+    nativeLabel: "Português (Brasil)",
+  },
 ] as const;
 
 export type LocaleCode = (typeof SUPPORTED_LOCALES)[number]["code"];

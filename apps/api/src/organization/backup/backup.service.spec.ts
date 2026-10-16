@@ -1,10 +1,7 @@
 import { describe, expect, it, mock } from "bun:test";
 import { ForbiddenException } from "@nestjs/common";
 import type { BackupExport } from "./backup.entity";
-import {
-  BackupService,
-  toBackupDto,
-} from "./backup.service";
+import { BackupService, toBackupDto } from "./backup.service";
 
 function makeDatabase(selectResults: unknown[][]) {
   const queue = [...selectResults];
@@ -58,29 +55,31 @@ describe("BackupService", () => {
   it("allows owners and rejects admins", async () => {
     const ownerService = new BackupService(
       makeDatabase([[{ organizationId: "org_1", role: "owner" }]]) as never,
-      {} as never,
+      {} as never
     );
-    await expect(ownerService.assertOwner("user_1", "org_1")).resolves.toBeUndefined();
+    await expect(
+      ownerService.assertOwner("user_1", "org_1")
+    ).resolves.toBeUndefined();
 
     const adminService = new BackupService(
       makeDatabase([[{ organizationId: "org_1", role: "editor" }]]) as never,
-      {} as never,
+      {} as never
     );
-    await expect(adminService.assertOwner("user_1", "org_1")).rejects.toBeInstanceOf(
-      ForbiddenException,
-    );
+    await expect(
+      adminService.assertOwner("user_1", "org_1")
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it("signs a short-lived attachment URL for a ready backup", async () => {
     const getSignedDownloadUrl = mock(() =>
-      Promise.resolve("https://storage.test/signed"),
+      Promise.resolve("https://storage.test/signed")
     );
     const service = new BackupService(
       makeDatabase([
         [{ organizationId: "org_1", role: "owner" }],
         [backup()],
       ]) as never,
-      { getSignedDownloadUrl } as never,
+      { getSignedDownloadUrl } as never
     );
 
     const result = await service.getDownloadUrl("user_1", "org_1", "backup_1");
@@ -89,7 +88,7 @@ describe("BackupService", () => {
     expect(getSignedDownloadUrl).toHaveBeenCalledWith(
       "backups/org_1/backup_1.zip",
       600,
-      'attachment; filename="acme-backup.zip"',
+      'attachment; filename="acme-backup.zip"'
     );
   });
 

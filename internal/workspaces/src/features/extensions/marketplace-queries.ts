@@ -17,7 +17,7 @@ export interface ExtensionMarketplaceQueryResult {
 
 export function extensionMarketplaceQueryOptions(
   plugins: PlatformPlugins,
-  manifestUrl: string,
+  manifestUrl: string
 ) {
   return {
     networkMode: "always" as const,
@@ -31,7 +31,9 @@ export function extensionMarketplaceQueryOptions(
         };
       } catch (error) {
         const cached = await readCachedJson(manifestUrl, plugins, parse);
-        if (cached) return { catalog: cached, source: "cache" };
+        if (cached) {
+          return { catalog: cached, source: "cache" };
+        }
         throw error;
       }
     },

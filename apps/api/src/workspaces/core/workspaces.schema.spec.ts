@@ -9,12 +9,14 @@ import {
 describe("createWorkspaceSchema", () => {
   it("accepts valid names and rejects reserved slugs", () => {
     expect(
-      createWorkspaceSchema.safeParse({ name: "Workspace", slug: "my-workspace" })
-        .success,
+      createWorkspaceSchema.safeParse({
+        name: "Workspace",
+        slug: "my-workspace",
+      }).success
     ).toBe(true);
     expect(
       createWorkspaceSchema.safeParse({ name: "Workspace", slug: "settings" })
-        .success,
+        .success
     ).toBe(false);
   });
 });
@@ -34,13 +36,13 @@ describe("workspaceSchema", () => {
       workspaceSchema.safeParse({
         ...workspace,
         visibility: WORKSPACE_VISIBILITY.shared,
-      }).success,
+      }).success
     ).toBe(true);
     expect(
       workspaceSchema.safeParse({
         ...workspace,
         visibility: WORKSPACE_VISIBILITY.local,
-      }).success,
+      }).success
     ).toBe(false);
   });
 });
@@ -52,7 +54,7 @@ describe("updateWorkspaceSchema", () => {
 
   it("accepts workspace detail updates", () => {
     expect(updateWorkspaceSchema.safeParse({ name: "New name" }).success).toBe(
-      true,
+      true
     );
   });
 
@@ -60,7 +62,7 @@ describe("updateWorkspaceSchema", () => {
     expect(
       updateWorkspaceSchema.safeParse({
         visibility: WORKSPACE_VISIBILITY.private,
-      }).success,
+      }).success
     ).toBe(true);
   });
 
@@ -68,13 +70,13 @@ describe("updateWorkspaceSchema", () => {
     expect(
       updateWorkspaceSchema.safeParse({
         visibility: WORKSPACE_VISIBILITY.local,
-      }).success,
+      }).success
     ).toBe(false);
     expect(
       updateWorkspaceSchema.safeParse({
         name: "New name",
         visibility: WORKSPACE_VISIBILITY.private,
-      }).success,
+      }).success
     ).toBe(false);
   });
 });

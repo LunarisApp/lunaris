@@ -46,18 +46,27 @@ export function WorkspaceProvider({
   const syncAccess = useSyncAccess();
   const isOnline = useOnlineStatus();
 
-  const workspacesQuery = useWorkspaceBySlugQuery(workspaceSlug, organizationId, {
-    streams:
-      syncAccess === SYNC_ACCESS.cloud
-        ? WORKSPACE_INDEX_SYNC_STREAMS
-        : undefined,
-  });
+  const workspacesQuery = useWorkspaceBySlugQuery(
+    workspaceSlug,
+    organizationId,
+    {
+      streams:
+        syncAccess === SYNC_ACCESS.cloud
+          ? WORKSPACE_INDEX_SYNC_STREAMS
+          : undefined,
+    }
+  );
   const workspaces = workspacesQuery.data ?? [];
 
   const workspace = workspaces[0] ?? null;
   const workspaceId = workspace?.id ?? "";
-  const workspaceVisibility = normalizeWorkspaceVisibility(workspace?.visibility);
-  const workspaceSync = useWorkspaceSync(workspaceId || undefined, workspaceVisibility);
+  const workspaceVisibility = normalizeWorkspaceVisibility(
+    workspace?.visibility
+  );
+  const workspaceSync = useWorkspaceSync(
+    workspaceId || undefined,
+    workspaceVisibility
+  );
 
   const isWorkspaceSyncPending =
     syncAccess === SYNC_ACCESS.cloud &&
@@ -73,8 +82,7 @@ export function WorkspaceProvider({
     isWorkspaceSyncPending && readyWorkspaceIdRef.current !== workspaceId;
   const isUnavailableOffline = isInitialWorkspaceSyncPending && !isOnline;
   const isLoading =
-    !workspaceSlug ||
-    !organizationId ||
+    !(workspaceSlug && organizationId) ||
     workspacesQuery.isLoading ||
     (workspacesQuery.isFetching && workspaces.length === 0) ||
     (isInitialWorkspaceSyncPending && !isUnavailableOffline);
@@ -104,7 +112,9 @@ export function WorkspaceProvider({
       syncAccess,
     });
 
-    if (previousDebugSnapshotRef.current === snapshot) return;
+    if (previousDebugSnapshotRef.current === snapshot) {
+      return;
+    }
     previousDebugSnapshotRef.current = snapshot;
 
     log.debug({
@@ -138,7 +148,9 @@ export function WorkspaceProvider({
     syncAccess,
   ]);
 
-  if (workspacesQuery.error) throw workspacesQuery.error;
+  if (workspacesQuery.error) {
+    throw workspacesQuery.error;
+  }
 
   if (!workspaceSlug) {
     return null;
@@ -163,7 +175,9 @@ export function WorkspaceProvider({
 export function useCurrentWorkspace() {
   const context = useContext(WorkspaceContext);
   if (!context) {
-    throw new Error("useCurrentWorkspace must be used within WorkspaceProvider");
+    throw new Error(
+      "useCurrentWorkspace must be used within WorkspaceProvider"
+    );
   }
   return context;
 }

@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  Doc,
-  Map as YMap,
-} from "yjs";
+import { Doc, Map as YMap } from "yjs";
 import {
   getKanbanBoardProperties,
   KanbanMcpInputError,
@@ -31,9 +28,7 @@ describe("getKanbanBoardProperties", () => {
     property.set("type", "select");
     property.set(
       "options",
-      JSON.stringify([
-        { color: "#f00", id: "high", name: "High" },
-      ]),
+      JSON.stringify([{ color: "#f00", id: "high", name: "High" }])
     );
 
     expect(getKanbanBoardProperties(doc)).toEqual([
@@ -62,13 +57,13 @@ describe("getKanbanBoardProperties", () => {
           internal: "must-not-leak",
           name: "High",
         },
-      ]),
+      ])
     );
 
     const [definition] = getKanbanBoardProperties(doc);
-    expect(definition && "options" in definition ? definition.options : []).toEqual([
-      { color: "#f00", id: "high", name: "High" },
-    ]);
+    expect(
+      definition && "options" in definition ? definition.options : []
+    ).toEqual([{ color: "#f00", id: "high", name: "High" }]);
   });
 
   it("keeps an explicitly initialized empty board empty", () => {
@@ -89,14 +84,14 @@ describe("updateKanbanTaskProperties", () => {
     expect(
       updateKanbanTaskProperties(doc, "task-1", {
         Status: "In Progress",
-      }),
+      })
     ).toEqual({ status: "in-progress" });
     expect(doc.getArray("properties")).toHaveLength(1);
     expect(
       doc
         .getMap<YMap<string>>("taskAssignments")
         .get("task-1")
-        ?.get("prop_status"),
+        ?.get("prop_status")
     ).toBe("in-progress");
   });
 
@@ -109,36 +104,39 @@ describe("updateKanbanTaskProperties", () => {
     property.set("type", "select");
     property.set(
       "options",
-      JSON.stringify([
-        { color: "#f00", id: "high", name: "High" },
-      ]),
+      JSON.stringify([{ color: "#f00", id: "high", name: "High" }])
     );
 
     expect(
-      updateKanbanTaskProperties(doc, "task-1", { priority: "high" }),
+      updateKanbanTaskProperties(doc, "task-1", { priority: "high" })
     ).toEqual({ priority: "high" });
     expect(
-      updateKanbanTaskProperties(doc, "task-1", { priority: null }),
+      updateKanbanTaskProperties(doc, "task-1", { priority: null })
     ).toEqual({});
-    expect(
-      doc.getMap<YMap<string>>("taskAssignments").has("task-1"),
-    ).toBe(false);
+    expect(doc.getMap<YMap<string>>("taskAssignments").has("task-1")).toBe(
+      false
+    );
   });
 
   it("rejects unknown properties and options", () => {
     const doc = new Doc();
     expect(() =>
-      updateKanbanTaskProperties(doc, "task-1", { Missing: "Value" }),
+      updateKanbanTaskProperties(doc, "task-1", { Missing: "Value" })
     ).toThrow(KanbanMcpInputError);
     expect(() =>
-      updateKanbanTaskProperties(doc, "task-1", { Status: "Blocked" }),
+      updateKanbanTaskProperties(doc, "task-1", { Status: "Blocked" })
     ).toThrow("Unknown Kanban option");
   });
 
   it("assigns every typed property and validates People membership", () => {
     const doc = new Doc();
     const definitions = [
-      { id: "labels", name: "Labels", type: "multi-select", options: [{ color: "#f00", id: "bug", name: "Bug" }] },
+      {
+        id: "labels",
+        name: "Labels",
+        type: "multi-select",
+        options: [{ color: "#f00", id: "bug", name: "Bug" }],
+      },
       { id: "people", name: "People", type: "people" },
       { id: "due", name: "Due", type: "date" },
       { id: "note", name: "Note", type: "text" },
@@ -149,10 +147,7 @@ describe("updateKanbanTaskProperties", () => {
     for (const definition of definitions) {
       const property = new YMap<unknown>();
       for (const [key, value] of Object.entries(definition)) {
-        property.set(
-          key,
-          key === "options" ? JSON.stringify(value) : value
-        );
+        property.set(key, key === "options" ? JSON.stringify(value) : value);
       }
       doc.getArray<YMap<unknown>>("properties").push([property]);
     }

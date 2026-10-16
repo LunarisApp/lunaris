@@ -9,10 +9,18 @@ export function editionPlugin(): Plugin {
     config() {
       return {
         resolve: {
-          alias: [{
-            find: "@app/edition",
-            replacement: resolve(import.meta.dirname, "../..", edition === "enterprise" ? "ee/composition/src/edition.tsx" : "internal/features/src/organization/edition.tsx"),
-          }],
+          alias: [
+            {
+              find: "@app/edition",
+              replacement: resolve(
+                import.meta.dirname,
+                "../..",
+                edition === "enterprise"
+                  ? "ee/composition/src/edition.tsx"
+                  : "internal/features/src/organization/edition.tsx"
+              ),
+            },
+          ],
         },
       };
     },
@@ -22,7 +30,11 @@ export function editionPlugin(): Plugin {
       }
     },
     generateBundle() {
-      this.emitFile({ type: "asset", fileName: "edition.json", source: JSON.stringify({ edition }) });
+      this.emitFile({
+        type: "asset",
+        fileName: "edition.json",
+        source: JSON.stringify({ edition }),
+      });
     },
   };
 }

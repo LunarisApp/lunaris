@@ -36,7 +36,7 @@ describe("editor/resource trash", () => {
     cy.get('[aria-label="Select Recover me"]').click();
     cy.contains("button", "Restore").click();
     cy.contains('[data-testid="workspace-tree-item"]', "Recover me").should(
-      "be.visible",
+      "be.visible"
     );
 
     trashFolder("Recover me");

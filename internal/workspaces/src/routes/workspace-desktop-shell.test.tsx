@@ -6,12 +6,7 @@ vi.mock("@repo/features/entitlements", () => ({
 
 import React, { useCallback, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  act,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 
 const {
   cleanupPluginsMock,
@@ -74,9 +69,7 @@ vi.mock("@repo/features/appbar", () => ({
     Leading: ({ children }) => (
       <div data-testid="appbar-leading">{children}</div>
     ),
-    Middle: ({ children }) => (
-      <div data-testid="appbar-middle">{children}</div>
-    ),
+    Middle: ({ children }) => <div data-testid="appbar-middle">{children}</div>,
     Trailing: ({ children }) => (
       <div data-testid="appbar-trailing">{children}</div>
     ),
@@ -105,7 +98,12 @@ vi.mock("@repo/workspaces/extensions", () => ({
 
 vi.mock("@repo/workspaces/grid-layout", () => ({
   completePanelWindowTransfer: completePanelWindowTransferMock,
-  createEmptyPanelDefinition: ({ allowDuplicate, groupId, initial, title }) => ({
+  createEmptyPanelDefinition: ({
+    allowDuplicate,
+    groupId,
+    initial,
+    title,
+  }) => ({
     ...(allowDuplicate ? { allowDuplicate: true } : {}),
     params: initial ? { __lunarisInitialEmptyPanel: true } : {},
     pluginId: "grid-layout",
@@ -132,11 +130,7 @@ vi.mock("@repo/workspaces/grid-layout", () => ({
 
 vi.mock("@repo/features/help-center", () => ({
   HelpCenterPopover: ({ variant }) => (
-    <button
-      data-testid="help-trigger"
-      data-variant={variant}
-      type="button"
-    />
+    <button data-testid="help-trigger" data-variant={variant} type="button" />
   ),
 }));
 
@@ -190,7 +184,10 @@ vi.mock("@repo/workspaces/search", () => ({
   ),
   SearchDialog: () => null,
   SearchProvider: ({ children, indexingReady }) => (
-    <div data-indexing-ready={String(indexingReady)} data-testid="search-provider">
+    <div
+      data-indexing-ready={String(indexingReady)}
+      data-testid="search-provider"
+    >
       {children}
     </div>
   ),
@@ -285,9 +282,8 @@ vi.mock("../extensions/host", async () => ({
   reportResourceOpenReady: vi.fn(),
   startResourceOpenStage: () => vi.fn(),
   startResourceOpen: vi.fn(),
-  usePluginRuntimeHost: (
-    await import("../extensions/host/plugin-runtime-host")
-  ).usePluginRuntimeHost,
+  usePluginRuntimeHost: (await import("../extensions/host/plugin-runtime-host"))
+    .usePluginRuntimeHost,
 }));
 
 vi.mock("../extensions/organization-runtime", () => ({
@@ -403,7 +399,7 @@ function createBootOptions(overrides = {}) {
     contributions: [],
     name: "Rich text",
     api: "^0.9.0",
-      permissions: [],
+    permissions: [],
     version: "1.0.0",
   };
   const options = {
@@ -448,10 +444,10 @@ function createBootOptions(overrides = {}) {
         : {
             enabledExtensionIds: options.enabledPluginIds,
             extensionAvailability: Object.fromEntries(
-              options.enabledPluginIds.map((id) => [id, "available"]),
+              options.enabledPluginIds.map((id) => [id, "available"])
             ),
             runtimeRevisions: Object.fromEntries(
-              options.enabledPluginIds.map((id) => [id, "current"]),
+              options.enabledPluginIds.map((id) => [id, "current"])
             ),
           },
   };
@@ -489,7 +485,7 @@ describe("filterPanelWindowSession", () => {
 
   it("removes a persisted plugin panel when its plugin is unavailable", () => {
     expect(
-      filterPanelWindowSession(pluginSession, ["lunaris.rich-text"]),
+      filterPanelWindowSession(pluginSession, ["lunaris.rich-text"])
     ).toEqual({
       descriptor: null,
       windowId: "plugin-window",
@@ -499,11 +495,19 @@ describe("filterPanelWindowSession", () => {
   it("restores legacy Agent Work windows without an installed extension", () => {
     const session = {
       windowId: "agent-window",
-      descriptor: { extensionId: "lunaris.ai-chat", viewId: "lunaris.ai-chat", title: "Assistant" },
+      descriptor: {
+        extensionId: "lunaris.ai-chat",
+        viewId: "lunaris.ai-chat",
+        title: "Assistant",
+      },
     };
     expect(filterPanelWindowSession(session, [])).toMatchObject({
       windowId: "agent-window",
-      descriptor: { extensionId: "system-agent-work", viewId: "agent-work", title: "Agent Work" },
+      descriptor: {
+        extensionId: "system-agent-work",
+        viewId: "agent-work",
+        title: "Agent Work",
+      },
     });
   });
 
@@ -512,7 +516,7 @@ describe("filterPanelWindowSession", () => {
       filterPanelWindowSession(pluginSession, [
         "lunaris.rich-text",
         "lunaris.restricted",
-      ]),
+      ])
     ).toBe(pluginSession);
   });
 });
@@ -671,12 +675,12 @@ describe("useDesktopWorkspaceBoot", () => {
     expect(options.registerRenderers).toHaveBeenCalledWith(
       "system-agent-work",
       "agent-work",
-      expect.any(Function),
+      expect.any(Function)
     );
     expect(options.registerRenderers).toHaveBeenCalledWith(
       "system-workspace-settings",
       "panel",
-      expect.any(Function),
+      expect.any(Function)
     );
   });
 
@@ -686,7 +690,7 @@ describe("useDesktopWorkspaceBoot", () => {
     render(React.createElement(BootHarness, { options }));
 
     const renderExplorer = options.registerRenderers.mock.calls.find(
-      ([pluginId]) => pluginId === "workspace-explorer",
+      ([pluginId]) => pluginId === "workspace-explorer"
     )?.[2];
     expect(renderExplorer).toBeTypeOf("function");
 
@@ -695,8 +699,8 @@ describe("useDesktopWorkspaceBoot", () => {
     const explorer = screen.getByTestId("workspace-explorer-tree");
     expect(
       Array.from(explorer.children).map((element) =>
-        element.getAttribute("data-testid"),
-      ),
+        element.getAttribute("data-testid")
+      )
     ).toEqual(["extensions-trigger", "workspace-settings-trigger"]);
   });
 
@@ -788,13 +792,13 @@ describe("useDesktopWorkspaceBoot", () => {
 
     expect(disablePluginMock).toHaveBeenCalledWith(
       "lunaris.rich-text",
-      expect.any(Function),
+      expect.any(Function)
     );
     expect(cleanupPluginsMock).not.toHaveBeenCalled();
     expect(
       firstOptions.addPanel.mock.calls.filter(
-        ([panel]) => panel.renderer === "empty-panel",
-      ),
+        ([panel]) => panel.renderer === "empty-panel"
+      )
     ).toHaveLength(1);
   });
 
@@ -809,7 +813,8 @@ describe("useDesktopWorkspaceBoot", () => {
     });
     const options = createBootOptions({
       extensionManifests: {
-        "lunaris.rich-text": createBootOptions().extensionManifests["lunaris.rich-text"],
+        "lunaris.rich-text":
+          createBootOptions().extensionManifests["lunaris.rich-text"],
         "lunaris.sheet": {
           description: "Sheet",
           developer: "Lunaris",
@@ -817,12 +822,13 @@ describe("useDesktopWorkspaceBoot", () => {
           contributions: [],
           name: "Sheet",
           api: "^0.9.0",
-      permissions: [],
+          permissions: [],
           version: "1.0.0",
         },
       },
       extensionMetadata: {
-        "lunaris.rich-text": createBootOptions().extensionMetadata["lunaris.rich-text"],
+        "lunaris.rich-text":
+          createBootOptions().extensionMetadata["lunaris.rich-text"],
         "lunaris.sheet": { icon: {}, id: "lunaris.sheet", version: "1.0.0" },
       },
     });
@@ -894,11 +900,13 @@ describe("useDesktopWorkspaceBoot", () => {
         "lunaris.sheet": { icon: {}, id: "lunaris.sheet", version: "1.0.0" },
       },
     });
-    initializePluginsMock
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([
-        { error: initError, pluginId: runtimePlugin.manifest.id, success: false },
-      ]);
+    initializePluginsMock.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      {
+        error: initError,
+        pluginId: runtimePlugin.manifest.id,
+        success: false,
+      },
+    ]);
 
     render(React.createElement(BootHarness, { options }));
 
@@ -1048,13 +1056,13 @@ describe("DesktopWorkspaceShell", () => {
     expect(gridState.register).toHaveBeenCalledWith(
       "workspace-explorer",
       "tree",
-      expect.any(Function),
+      expect.any(Function)
     );
     expect(gridState.addPanel).toHaveBeenCalledWith(
       expect.objectContaining({
         pluginId: "workspace-explorer",
         renderer: "tree",
-      }),
+      })
     );
     expect(screen.queryByTestId("desktop-workspace-loading-shell")).toBeNull();
     expect(screen.queryByTestId("workspace-explorer-button")).toBeNull();
@@ -1092,7 +1100,7 @@ describe("DesktopWorkspaceShell", () => {
           ...createDesktopController(),
           bootState: "loading",
         }}
-      />,
+      />
     );
 
     await waitFor(() => {
@@ -1146,39 +1154,48 @@ describe("DesktopWorkspaceShell", () => {
   });
 
   it.each(["res_1", "res_1::subview"])(
-    "suppresses route echoes only for the resource view (%s)", (activeViewId) => {
-    const gridState = mockDesktopShellEnv();
-    const openResource = vi.fn();
-    vi.mocked(useOrganizationNavigation).mockReturnValue({
-      openResource,
-      openView: vi.fn(),
-      openViewInNewWindow: vi.fn(async () => true),
-      openTool: vi.fn(),
-    });
-    vi.mocked(useParams).mockReturnValue({
-      organizationSlug: "ws-abc",
-      workspaceSlug: "novel",
-      viewId: "res_1",
-    });
-    vi.mocked(resolveWorkspaceView).mockReturnValue({
-      kind: "resource",
-      resourceId: "res_1",
-      resourceTypeId: "lunaris.rich-text",
-      parentId: null,
-      schemaVersion: 1,
-      title: "Spec",
-    });
-    Object.assign(gridState, {
-      dockviewApi: {
-        activePanel: { params: { resourceId: "res_1", viewId: activeViewId } },
-        onDidActivePanelChange: vi.fn(() => ({ dispose: vi.fn() })),
-        onDidRemovePanel: vi.fn(() => ({ dispose: vi.fn() })),
-      },
-    });
-    render(<DesktopWorkspaceShell controller={createDesktopController()} />);
-    if (activeViewId === "res_1") expect(openResource).not.toHaveBeenCalled();
-    else expect(openResource).toHaveBeenCalledWith(expect.objectContaining({ resourceId: "res_1" }));
-  });
+    "suppresses route echoes only for the resource view (%s)",
+    (activeViewId) => {
+      const gridState = mockDesktopShellEnv();
+      const openResource = vi.fn();
+      vi.mocked(useOrganizationNavigation).mockReturnValue({
+        openResource,
+        openView: vi.fn(),
+        openViewInNewWindow: vi.fn(async () => true),
+        openTool: vi.fn(),
+      });
+      vi.mocked(useParams).mockReturnValue({
+        organizationSlug: "ws-abc",
+        workspaceSlug: "novel",
+        viewId: "res_1",
+      });
+      vi.mocked(resolveWorkspaceView).mockReturnValue({
+        kind: "resource",
+        resourceId: "res_1",
+        resourceTypeId: "lunaris.rich-text",
+        parentId: null,
+        schemaVersion: 1,
+        title: "Spec",
+      });
+      Object.assign(gridState, {
+        dockviewApi: {
+          activePanel: {
+            params: { resourceId: "res_1", viewId: activeViewId },
+          },
+          onDidActivePanelChange: vi.fn(() => ({ dispose: vi.fn() })),
+          onDidRemovePanel: vi.fn(() => ({ dispose: vi.fn() })),
+        },
+      });
+      render(<DesktopWorkspaceShell controller={createDesktopController()} />);
+      if (activeViewId === "res_1") {
+        expect(openResource).not.toHaveBeenCalled();
+      } else {
+        expect(openResource).toHaveBeenCalledWith(
+          expect.objectContaining({ resourceId: "res_1" })
+        );
+      }
+    }
+  );
 
   it("shows editor navigation without a workspace picker once boot is ready", () => {
     mockDesktopShellEnv();
@@ -1212,7 +1229,7 @@ describe("DesktopWorkspaceShell", () => {
         AppBarLeading={AppBarLeading}
         AppBarTrailing={AppBarTrailing}
         controller={createDesktopController()}
-      />,
+      />
     );
 
     const middle = screen.getByTestId("appbar-middle");
@@ -1227,22 +1244,22 @@ describe("DesktopWorkspaceShell", () => {
     const leading = screen.getByTestId("appbar-leading");
     expect(
       Array.from(leading.children).map((element) =>
-        element.getAttribute("data-testid"),
-      ),
+        element.getAttribute("data-testid")
+      )
     ).toEqual(["app-logo", "app-navigation"]);
 
     const statusbarLeading = screen.getByTestId("statusbar-leading");
     expect(
       Array.from(statusbarLeading.children).map((element) =>
-        element.getAttribute("data-testid"),
-      ),
+        element.getAttribute("data-testid")
+      )
     ).toEqual(["workspace-explorer-button", "sync-status"]);
 
     const trailing = screen.getByTestId("appbar-trailing");
     expect(
       Array.from(trailing.children).map((element) =>
-        element.getAttribute("data-testid"),
-      ),
+        element.getAttribute("data-testid")
+      )
     ).toEqual(["help-trigger", "user-menu-trigger"]);
   });
 
@@ -1295,8 +1312,8 @@ describe("DesktopWorkspaceShell", () => {
     await waitFor(() =>
       expect(vi.mocked(OrganizationNavigationProvider)).toHaveBeenCalled()
     );
-    const navigation = vi.mocked(OrganizationNavigationProvider).mock.lastCall?.[0]
-      .navigation;
+    const navigation = vi.mocked(OrganizationNavigationProvider).mock
+      .lastCall?.[0].navigation;
     const input = {
       params: {
         resourceId: "board-1",
@@ -1347,8 +1364,8 @@ describe("DesktopWorkspaceShell", () => {
     await waitFor(() =>
       expect(vi.mocked(OrganizationNavigationProvider)).toHaveBeenCalled()
     );
-    const navigation = vi.mocked(OrganizationNavigationProvider).mock.lastCall?.[0]
-      .navigation;
+    const navigation = vi.mocked(OrganizationNavigationProvider).mock
+      .lastCall?.[0].navigation;
     const addPanelCallCount = gridState.addPanel.mock.calls.length;
 
     await expect(
@@ -1401,8 +1418,8 @@ describe("DesktopWorkspaceShell", () => {
     await waitFor(() =>
       expect(vi.mocked(OrganizationNavigationProvider)).toHaveBeenCalled()
     );
-    const navigation = vi.mocked(OrganizationNavigationProvider).mock.lastCall?.[0]
-      .navigation;
+    const navigation = vi.mocked(OrganizationNavigationProvider).mock
+      .lastCall?.[0].navigation;
     gridState.addPanel.mockClear();
 
     navigation?.openResource({
@@ -1791,7 +1808,7 @@ beforeEach(() => {
     plugins.map((plugin) => ({
       pluginId: plugin.manifest.id,
       success: true,
-    })),
+    }))
   );
   loadPluginMock.mockReset();
   loadPluginMock.mockImplementation(async (id: string) => ({

@@ -52,7 +52,7 @@ describe("WorkspacesService", () => {
     const result = await service.create(
       { name: "Workspace", slug: "workspace" },
       "org_1",
-      "user_1",
+      "user_1"
     );
 
     expect(values).toHaveBeenCalledWith(
@@ -62,7 +62,7 @@ describe("WorkspacesService", () => {
         ownerId: null,
         slug: "workspace",
         visibility: WORKSPACE_VISIBILITY.shared,
-      }),
+      })
     );
     expect(result).toEqual(toWorkspaceDto(workspaceRow()));
     expect(result).not.toHaveProperty("syncedUpdatedAt");
@@ -81,7 +81,7 @@ describe("WorkspacesService", () => {
     } as never);
 
     await expect(
-      service.create({ name: "Workspace", slug: "workspace" }, "org_1"),
+      service.create({ name: "Workspace", slug: "workspace" }, "org_1")
     ).rejects.toBeInstanceOf(ConflictException);
   });
 
@@ -89,10 +89,12 @@ describe("WorkspacesService", () => {
     let attempts = 0;
     const values = mock((value: { slug: string }) => {
       attempts += 1;
-      if (attempts === 1) throw uniqueSlugError();
+      if (attempts === 1) {
+        throw uniqueSlugError();
+      }
       return {
         returning: mock(() =>
-          Promise.resolve([{ ...workspaceRow(), slug: value.slug }]),
+          Promise.resolve([{ ...workspaceRow(), slug: value.slug }])
         ),
       };
     });
@@ -106,7 +108,7 @@ describe("WorkspacesService", () => {
     const result = await service.create(
       { name: "Workspace", slug: "hidden-workspace" },
       "org_1",
-      "user_1",
+      "user_1"
     );
 
     expect(result.slug).toMatch(/^hidden-workspace-[a-f0-9]{4}$/);
@@ -133,14 +135,14 @@ describe("WorkspacesService", () => {
         visibility: WORKSPACE_VISIBILITY.private,
       },
       "org_1",
-      "user_1",
+      "user_1"
     );
 
     expect(values).toHaveBeenCalledWith(
       expect.objectContaining({
         ownerId: "user_1",
         visibility: WORKSPACE_VISIBILITY.private,
-      }),
+      })
     );
     expect(result.visibility).toBe(WORKSPACE_VISIBILITY.private);
   });
@@ -155,8 +157,8 @@ describe("WorkspacesService", () => {
           slug: "local",
           visibility: WORKSPACE_VISIBILITY.local,
         },
-        "org_1",
-      ),
+        "org_1"
+      )
     ).rejects.toMatchObject({
       response: {
         code: "DESKTOP_ONLY",
@@ -179,8 +181,8 @@ describe("WorkspacesService", () => {
     const tx = { update: mock(() => ({ set })) };
     const service = new WorkspacesService({
       db: {
-        transaction: mock(
-          (operation: (transaction: typeof tx) => unknown) => operation(tx),
+        transaction: mock((operation: (transaction: typeof tx) => unknown) =>
+          operation(tx)
         ),
       },
     } as never);
@@ -190,14 +192,14 @@ describe("WorkspacesService", () => {
       { visibility: WORKSPACE_VISIBILITY.private },
       "org_1",
       undefined,
-      "user_1",
+      "user_1"
     );
 
     expect(set).toHaveBeenCalledWith(
       expect.objectContaining({
         ownerId: "user_1",
         visibility: WORKSPACE_VISIBILITY.private,
-      }),
+      })
     );
     expect(result.visibility).toBe(WORKSPACE_VISIBILITY.private);
   });
@@ -216,8 +218,8 @@ describe("WorkspacesService", () => {
     };
     const service = new WorkspacesService({
       db: {
-        transaction: mock(
-          (operation: (transaction: typeof tx) => unknown) => operation(tx),
+        transaction: mock((operation: (transaction: typeof tx) => unknown) =>
+          operation(tx)
         ),
       },
     } as never);
@@ -227,14 +229,14 @@ describe("WorkspacesService", () => {
       { visibility: WORKSPACE_VISIBILITY.shared },
       "org_1",
       undefined,
-      "user_1",
+      "user_1"
     );
 
     expect(set).toHaveBeenCalledWith(
       expect.objectContaining({
         ownerId: null,
         visibility: WORKSPACE_VISIBILITY.shared,
-      }),
+      })
     );
     expect(deleteWhere).toHaveBeenCalledTimes(1);
     expect(result.visibility).toBe(WORKSPACE_VISIBILITY.shared);

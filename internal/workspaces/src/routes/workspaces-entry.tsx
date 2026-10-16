@@ -39,8 +39,12 @@ function ResumeWorkspace({ children }: { children: ReactNode }) {
     permission.workspace.read,
     permission.content.read,
   ]);
-  if (!session || !organization) return <LoaderView />;
-  if (!canRead) return children;
+  if (!(session && organization)) {
+    return <LoaderView />;
+  }
+  if (!canRead) {
+    return children;
+  }
   return (
     <SavedWorkspace
       key={`${session.user.id}:${organization.id}`}
@@ -65,7 +69,9 @@ function SavedWorkspace({
   userId: string;
 }) {
   const [saved] = useState(() => readLastWorkspace(userId, organizationId));
-  if (!saved) return children;
+  if (!saved) {
+    return children;
+  }
   return (
     <AvailableWorkspace
       organizationId={organizationId}
@@ -99,19 +105,26 @@ function AvailableWorkspace({
   });
   const workspace = query.data?.find(
     (entry) =>
-      entry.id === saved.workspaceId &&
-      entry.organization_id === organizationId,
+      entry.id === saved.workspaceId && entry.organization_id === organizationId
   );
   const pending = query.isLoading || (query.isFetching && !query.data?.length);
   const [finished, setFinished] = useState(false);
-  const showList = Boolean(query.error) || (!pending && !workspace?.slug);
+  const showList = Boolean(query.error) || !(pending || workspace?.slug);
   useEffect(() => {
-    if (showList) setFinished(true);
+    if (showList) {
+      setFinished(true);
+    }
   }, [showList]);
   // Once the list is shown, later sync updates must not take navigation away.
-  if (finished || showList) return children;
-  if (pending) return <LoaderView />;
-  if (!workspace?.slug) return children;
+  if (finished || showList) {
+    return children;
+  }
+  if (pending) {
+    return <LoaderView />;
+  }
+  if (!workspace?.slug) {
+    return children;
+  }
   return (
     <Navigate
       replace

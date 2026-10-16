@@ -77,7 +77,7 @@ export function createBoundActions(params: {
     organizationNavigation,
   } = params;
 
-  const createWithCapacity = async <T,>(create: () => Promise<T>) => {
+  const createWithCapacity = async <T>(create: () => Promise<T>) => {
     const reservation = await reserveResourceCapacity();
     try {
       const result = await create();
@@ -91,95 +91,100 @@ export function createBoundActions(params: {
 
   const hardDeleteResources = async (
     resourceIds: string[],
-    allowActive = false,
+    allowActive = false
   ) => {
-    if (resourceIds.length === 0) return;
+    if (resourceIds.length === 0) {
+      return;
+    }
     requirePermission(permissionCheck, permission.content.delete);
 
     const roots = filterOutNestedSelections(resourceIds, getResourcesMap());
-    if (roots.length === 0) return;
+    if (roots.length === 0) {
+      return;
+    }
 
     try {
-      const { idsToDelete } = await ensureTx(
-        db,
-        async (tx) => {
-          const idsToDelete: string[] = [];
-          const removedBackings = new Map<
-            string,
-            { backingId: string; kind: "file" | "yjs"; metadata: string | null }
-          >();
-          const seen = new Set<string>();
+      const { idsToDelete } = await ensureTx(db, async (tx) => {
+        const idsToDelete: string[] = [];
+        const removedBackings = new Map<
+          string,
+          { backingId: string; kind: "file" | "yjs"; metadata: string | null }
+        >();
+        const seen = new Set<string>();
 
-          for (const rootId of roots) {
-            let groupIds = await getWorkspaceResourceTrashGroupIds({
+        for (const rootId of roots) {
+          let groupIds = await getWorkspaceResourceTrashGroupIds({
+            db: tx,
+            workspaceId,
+            rootId,
+          });
+          if (groupIds.length === 0 && allowActive) {
+            const rootItem = await getWorkspaceResource({ db: tx, id: rootId });
+            const descendants = await getWorkspaceResourceDescendants({
               db: tx,
               workspaceId,
-              rootId,
+              resourceId: rootId,
             });
-            if (groupIds.length === 0 && allowActive) {
-              const rootItem = await getWorkspaceResource({ db: tx, id: rootId });
-              const descendants = await getWorkspaceResourceDescendants({
-                db: tx,
-                workspaceId,
-                resourceId: rootId,
-              });
-              groupIds = [
-                ...(rootItem ? [rootItem.id] : []),
-                ...descendants.map(({ id }) => id),
-              ];
-            }
+            groupIds = [
+              ...(rootItem ? [rootItem.id] : []),
+              ...descendants.map(({ id }) => id),
+            ];
+          }
 
-            for (const id of groupIds) {
-              if (seen.has(id)) continue;
-              seen.add(id);
-              idsToDelete.push(id);
-              const storageSlots = await deleteResourceStorage(tx, id);
-              for (const slot of storageSlots) {
-                if (
-                  (slot.kind === "file" || slot.kind === "yjs") &&
-                  slot.backing_id
-                ) {
-                  removedBackings.set(`${slot.kind}:${slot.backing_id}`, {
-                    backingId: slot.backing_id,
-                    kind: slot.kind,
-                    metadata: slot.metadata,
-                  });
-                }
+          for (const id of groupIds) {
+            if (seen.has(id)) {
+              continue;
+            }
+            seen.add(id);
+            idsToDelete.push(id);
+            const storageSlots = await deleteResourceStorage(tx, id);
+            for (const slot of storageSlots) {
+              if (
+                (slot.kind === "file" || slot.kind === "yjs") &&
+                slot.backing_id
+              ) {
+                removedBackings.set(`${slot.kind}:${slot.backing_id}`, {
+                  backingId: slot.backing_id,
+                  kind: slot.kind,
+                  metadata: slot.metadata,
+                });
               }
             }
           }
-
-          for (const backing of removedBackings.values()) {
-            if (
-              await hasStorageBackingReference(
-                tx,
-                backing.kind,
-                backing.backingId,
-              )
-            ) {
-              continue;
-            }
-            if (backing.kind === "yjs") {
-              await deleteYjsDocument(tx, backing.backingId);
-              continue;
-            }
-            if (!backing.metadata) continue;
-            try {
-              await queueFileAttachmentDeletion({
-                db: tx,
-                metadata: JSON.parse(backing.metadata),
-                workspaceId,
-              });
-            } catch {
-              // Corrupt metadata must not block resource deletion.
-            }
-          }
-
-          await deleteWorkspaceResources({ db: tx, ids: idsToDelete });
-
-          return { idsToDelete };
         }
-      );
+
+        for (const backing of removedBackings.values()) {
+          if (
+            await hasStorageBackingReference(
+              tx,
+              backing.kind,
+              backing.backingId
+            )
+          ) {
+            continue;
+          }
+          if (backing.kind === "yjs") {
+            await deleteYjsDocument(tx, backing.backingId);
+            continue;
+          }
+          if (!backing.metadata) {
+            continue;
+          }
+          try {
+            await queueFileAttachmentDeletion({
+              db: tx,
+              metadata: JSON.parse(backing.metadata),
+              workspaceId,
+            });
+          } catch {
+            // Corrupt metadata must not block resource deletion.
+          }
+        }
+
+        await deleteWorkspaceResources({ db: tx, ids: idsToDelete });
+
+        return { idsToDelete };
+      });
 
       if (idsToDelete.length > 0) {
         organizationNavigation.closeViewInstances(idsToDelete);
@@ -200,12 +205,18 @@ export function createBoundActions(params: {
   };
 
   const deleteResources: WorkspaceExplorerActions["deleteResources"] = async (
-    resourceIds,
+    resourceIds
   ) => {
-    if (resourceIds.length === 0) return;
+    if (resourceIds.length === 0) {
+      return;
+    }
     requirePermission(permissionCheck, permission.content.delete);
     const roots = filterOutNestedSelections(resourceIds, getResourcesMap());
-    const trashedIds = await trashWorkspaceResourceSubtrees({ db, workspaceId, rootIds: roots });
+    const trashedIds = await trashWorkspaceResourceSubtrees({
+      db,
+      workspaceId,
+      rootIds: roots,
+    });
     organizationNavigation.closeViewInstances(trashedIds);
     removeRecentFilesByResourceIds(workspaceId, trashedIds);
     posthog.capture("explorer_resource_trashed", {
@@ -215,19 +226,25 @@ export function createBoundActions(params: {
   };
 
   const restoreResources: WorkspaceExplorerActions["restoreResources"] = async (
-    rootIds,
+    rootIds
   ) => {
-    if (rootIds.length === 0) return;
+    if (rootIds.length === 0) {
+      return;
+    }
     requirePermission(permissionCheck, permission.content.write);
     const groups = await Promise.all(
       rootIds.map((rootId) =>
-        getWorkspaceResourceTrashGroupIds({ db, workspaceId, rootId }),
-      ),
+        getWorkspaceResourceTrashGroupIds({ db, workspaceId, rootId })
+      )
     );
     const count = new Set(groups.flat()).size;
     const reservation = await reserveResourceCapacity(count);
     try {
-      const restored = await restoreWorkspaceResourceSubtrees({ db, workspaceId, rootIds });
+      const restored = await restoreWorkspaceResourceSubtrees({
+        db,
+        workspaceId,
+        rootIds,
+      });
       reservation.commit(restored);
       reservation.rollback();
       posthog.capture("explorer_resource_restored", {
@@ -241,10 +258,12 @@ export function createBoundActions(params: {
   };
 
   const purgeResources: WorkspaceExplorerActions["purgeResources"] = async (
-    rootIds,
+    rootIds
   ) => {
     const result = await hardDeleteResources(rootIds);
-    if (result) posthog.capture("explorer_resource_purged", result);
+    if (result) {
+      posthog.capture("explorer_resource_purged", result);
+    }
   };
 
   return {
@@ -284,7 +303,9 @@ export function createBoundActions(params: {
         const createdResourceIds = new Set<string>();
         const storageResourceIds = new Map<string, string>();
         const cleanupCreatedResources = async () => {
-          if (createdResourceIds.size === 0) return;
+          if (createdResourceIds.size === 0) {
+            return;
+          }
           await hardDeleteResources([...createdResourceIds], true);
           createdResourceIds.clear();
         };
@@ -304,25 +325,33 @@ export function createBoundActions(params: {
             },
             deleteResource: async (resourceId) => {
               if (!createdResourceIds.has(resourceId)) {
-                throw new Error("Create handler cannot delete an unrelated resource");
+                throw new Error(
+                  "Create handler cannot delete an unrelated resource"
+                );
               }
               await hardDeleteResources([resourceId], true);
               createdResourceIds.delete(resourceId);
               for (const [storageId, ownerId] of storageResourceIds) {
-                if (ownerId === resourceId) storageResourceIds.delete(storageId);
+                if (ownerId === resourceId) {
+                  storageResourceIds.delete(storageId);
+                }
               }
             },
             uploadFile: async ({ file, storage }) => {
               const resourceId = storageResourceIds.get(storage.storageId);
               if (!resourceId || storage.kind !== "file") {
-                throw new Error("Create handler cannot upload to unrelated storage");
+                throw new Error(
+                  "Create handler cannot upload to unrelated storage"
+                );
               }
-              if (!api) throw new Error("API client required for file upload");
+              if (!api) {
+                throw new Error("API client required for file upload");
+              }
               const metadata = await uploadFileAttachmentToWorkspaceResource({
                 api,
                 db,
                 file,
-                resourceId: resourceId,
+                resourceId,
                 workspaceId,
                 storageId: storage.storageId,
               });
@@ -398,11 +427,15 @@ export function createBoundActions(params: {
     ) => {
       requirePermission(permissionCheck, permission.content.write);
       const source = getResourcesMap().get(resourceId);
-      if (!source?.resource_type_id) return;
+      if (!source?.resource_type_id) {
+        return;
+      }
 
       const storage: Record<string, ResourceStorageDefinition[string]> = {};
       for (const slot of await getResourceStorageSlots(db, resourceId)) {
-        if (!slot.name || !slot.kind) continue;
+        if (!(slot.name && slot.kind)) {
+          continue;
+        }
         if (slot.kind === "yjs" && slot.backing_id) {
           const updates = await getYjsDocumentUpdates(db, slot.backing_id);
           storage[slot.name] = {
@@ -413,13 +446,15 @@ export function createBoundActions(params: {
           const values = Object.fromEntries(
             (await getStorageValues(db, slot.id)).map((row) => {
               const raw = row.value;
-              if (raw == null) return [row.key ?? "", null];
+              if (raw == null) {
+                return [row.key ?? "", null];
+              }
               try {
                 return [row.key ?? "", JSON.parse(raw)];
               } catch {
                 return [row.key ?? "", raw];
               }
-            }),
+            })
           );
           storage[slot.name] = { kind: "key-value", initialize: () => values };
         } else if (slot.kind === "file") {
@@ -446,15 +481,21 @@ export function createBoundActions(params: {
       });
     },
 
-    moveResource: async (resourceId: string, newParentId: string, newPosition: number) => {
+    moveResource: async (
+      resourceId: string,
+      newParentId: string,
+      newPosition: number
+    ) => {
       requirePermission(permissionCheck, permission.content.write);
-      await moveWorkspaceResource({ db, id: resourceId, newParentId: toDbParentId(newParentId), newPosition });
+      await moveWorkspaceResource({
+        db,
+        id: resourceId,
+        newParentId: toDbParentId(newParentId),
+        newPosition,
+      });
     },
 
-    reorderChildren: async (
-      _parentId: string,
-      orderedIds: string[]
-    ) => {
+    reorderChildren: async (_parentId: string, orderedIds: string[]) => {
       requirePermission(permissionCheck, permission.content.write);
       await reorderWorkspaceResources({ db, orderedIds });
     },

@@ -1,9 +1,6 @@
 import type { AuthClient } from "@repo/auth/client";
 import { type PowerSyncSession, usePowerSyncSession } from "@repo/data/core";
-import {
-  getUserFacingDescription,
-  getUserFacingError,
-} from "@repo/data/http";
+import { getUserFacingDescription, getUserFacingError } from "@repo/data/http";
 import { useQuery } from "@tanstack/react-query";
 import { log, parseError } from "evlog";
 import posthog from "posthog-js";
@@ -38,7 +35,7 @@ const accountSwitcherQueryKeys = {
 
 function deviceSessionsQueryOptions(
   auth: AuthClient,
-  currentUserId: string | undefined,
+  currentUserId: string | undefined
 ) {
   return {
     enabled: currentUserId !== undefined,
@@ -79,7 +76,9 @@ export async function activateAccountSession({
 
   try {
     const result = await authClient.multiSession.setActive({ sessionToken });
-    if (result.error) await powerSyncSession.connect();
+    if (result.error) {
+      await powerSyncSession.connect();
+    }
     return result;
   } catch (error) {
     await powerSyncSession.connect();
@@ -88,7 +87,9 @@ export async function activateAccountSession({
 }
 
 function isAccountSession(value: unknown): value is AccountSession {
-  if (!value || typeof value !== "object") return false;
+  if (!value || typeof value !== "object") {
+    return false;
+  }
   const candidate = value as {
     session?: Record<string, unknown>;
     user?: Record<string, unknown>;
@@ -104,8 +105,7 @@ function isAccountSession(value: unknown): value is AccountSession {
 export function useAccountSwitcher() {
   const { t } = useTranslation();
   const auth = useAuth();
-  const { data: currentSession, refetch: refetchSession } =
-    auth.useSession();
+  const { data: currentSession, refetch: refetchSession } = auth.useSession();
   const powerSyncSession = usePowerSyncSession();
   const { pathWithRegion } = useRegion();
   const location = useLocation();
@@ -117,7 +117,7 @@ export function useAccountSwitcher() {
     : null;
   const currentUserId = currentAccount?.user.id;
   const deviceSessionsQuery = useQuery(
-    deviceSessionsQueryOptions(auth, currentUserId),
+    deviceSessionsQueryOptions(auth, currentUserId)
   );
   const accountListStatus =
     deviceSessionsQuery.fetchStatus === "paused"
@@ -128,14 +128,18 @@ export function useAccountSwitcher() {
   const deviceSessions =
     accountListStatus === "ready" ? (deviceSessionsQuery.data ?? []) : [];
   const accountsByUserId = new Map(
-    deviceSessions.map((account) => [account.user.id, account]),
+    deviceSessions.map((account) => [account.user.id, account])
   );
   if (currentAccount) {
     accountsByUserId.set(currentAccount.user.id, currentAccount);
   }
   const accounts = [...accountsByUserId.values()].sort((left, right) => {
-    if (left.user.id === currentUserId) return -1;
-    if (right.user.id === currentUserId) return 1;
+    if (left.user.id === currentUserId) {
+      return -1;
+    }
+    if (right.user.id === currentUserId) {
+      return 1;
+    }
     return left.user.email.localeCompare(right.user.email);
   });
 
@@ -186,7 +190,9 @@ export function useAccountSwitcher() {
           msg: "account switch failed",
           error: parseError(error),
         });
-        if (!accountActivated) navigate(previousPath, { replace: true });
+        if (!accountActivated) {
+          navigate(previousPath, { replace: true });
+        }
         showError(error);
       } finally {
         setIsSwitching(false);
@@ -204,7 +210,7 @@ export function useAccountSwitcher() {
       powerSyncSession,
       refetchSession,
       t,
-    ],
+    ]
   );
 
   const addAccount = useCallback(() => {

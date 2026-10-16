@@ -12,7 +12,7 @@ export interface WorkspaceExtensionChange extends ExtensionRuntimeChange {
 const SOURCE_ID = crypto.randomUUID();
 
 export function notifyWorkspaceExtensionsChanged(
-  change: Omit<WorkspaceExtensionChange, "changeId" | "sourceId">,
+  change: Omit<WorkspaceExtensionChange, "changeId" | "sourceId">
 ): void {
   const detail = {
     ...change,
@@ -20,7 +20,9 @@ export function notifyWorkspaceExtensionsChanged(
     sourceId: SOURCE_ID,
   };
   window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail }));
-  if (!("BroadcastChannel" in globalThis)) return;
+  if (!("BroadcastChannel" in globalThis)) {
+    return;
+  }
   const channel = new BroadcastChannel(CHANNEL_NAME);
   channel.postMessage(detail);
   channel.close();
@@ -28,7 +30,7 @@ export function notifyWorkspaceExtensionsChanged(
 
 export function subscribeToWorkspaceExtensionChanges(
   workspaceId: string,
-  listener: (change: WorkspaceExtensionChange) => void,
+  listener: (change: WorkspaceExtensionChange) => void
 ): () => void {
   const seen = new Set<string>();
   const receive = (value: unknown) => {
@@ -39,7 +41,9 @@ export function subscribeToWorkspaceExtensionChanges(
       value.workspaceId === workspaceId
     ) {
       const change = value as WorkspaceExtensionChange;
-      if (seen.has(change.changeId)) return;
+      if (seen.has(change.changeId)) {
+        return;
+      }
       seen.add(change.changeId);
       listener(change);
     }
@@ -52,7 +56,9 @@ export function subscribeToWorkspaceExtensionChanges(
     "BroadcastChannel" in globalThis
       ? new BroadcastChannel(CHANNEL_NAME)
       : undefined;
-  if (channel) channel.onmessage = (event) => receive(event.data);
+  if (channel) {
+    channel.onmessage = (event) => receive(event.data);
+  }
 
   return () => {
     window.removeEventListener(EVENT_NAME, receiveWindow);

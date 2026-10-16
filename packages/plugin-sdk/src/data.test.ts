@@ -6,7 +6,9 @@ import type { ResourceStorageHandle } from "./types";
 
 function b64(bytes: Uint8Array): string {
   let s = "";
-  for (const b of bytes) s += String.fromCharCode(b);
+  for (const b of bytes) {
+    s += String.fromCharCode(b);
+  }
   return btoa(s);
 }
 
@@ -33,10 +35,12 @@ function createEmptyDb(): PluginResourceReadContext {
 
 describe("Yjs data helpers", () => {
   it("returns null when reconstructing an empty document", async () => {
-    await expect(reconstructYjsDoc(createEmptyDb(), {
-      kind: "yjs",
-      storageId: "storage-1",
-    } as ResourceStorageHandle)).resolves.toBeNull();
+    await expect(
+      reconstructYjsDoc(createEmptyDb(), {
+        kind: "yjs",
+        storageId: "storage-1",
+      } as ResourceStorageHandle)
+    ).resolves.toBeNull();
   });
 
   it("reconstructs Yjs state and destroys with withYjsDoc", async () => {

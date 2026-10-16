@@ -18,8 +18,12 @@ type CorsAppConfig = Pick<
 export function normalizeOrigin(value: string): string | null {
   try {
     const url = new URL(value);
-    if (url.origin !== "null") return url.origin;
-    if (!url.protocol || url.protocol === "file:") return null;
+    if (url.origin !== "null") {
+      return url.origin;
+    }
+    if (!url.protocol || url.protocol === "file:") {
+      return null;
+    }
     return `${url.protocol}//${url.host}`;
   } catch {
     return null;
@@ -30,19 +34,27 @@ export function isAllowedOrigin(
   origin: string | undefined,
   appConfig: CorsAppConfig
 ) {
-  if (!origin) return true;
+  if (!origin) {
+    return true;
+  }
   const requestOrigin = normalizeOrigin(origin);
-  if (!requestOrigin) return false;
+  if (!requestOrigin) {
+    return false;
+  }
   const allowedFrontend = normalizeOrigin(appConfig.frontendUrl);
-  if (allowedFrontend && requestOrigin === allowedFrontend) return true;
+  if (allowedFrontend && requestOrigin === allowedFrontend) {
+    return true;
+  }
   if (
     appConfig.desktopAppOrigins.some(
-      (origin) => normalizeOrigin(origin) === requestOrigin,
+      (origin) => normalizeOrigin(origin) === requestOrigin
     )
   ) {
     return true;
   }
-  if (appConfig.nodeEnv === "production") return false;
+  if (appConfig.nodeEnv === "production") {
+    return false;
+  }
 
   try {
     const url = new URL(requestOrigin);

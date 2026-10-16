@@ -24,7 +24,7 @@ describe("organization/backup", () => {
         cy.contains("Backup ready", { timeout: 90_000 }).should("be.visible");
 
         cy.intercept("GET", "**/v1/organization/backups/*/download-url").as(
-          "backupDownloadUrl",
+          "backupDownloadUrl"
         );
         cy.get('[data-testid="backups-section"]')
           .contains("button", "Download ZIP")
@@ -36,7 +36,7 @@ describe("organization/backup", () => {
             (download) => {
               expect(download.status).to.eq(200);
               expect(download.body.slice(0, 2)).to.eq("PK");
-            },
+            }
           );
         });
       });

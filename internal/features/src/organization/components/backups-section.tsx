@@ -1,4 +1,8 @@
-import { Alert, AlertDescription, AlertTitle } from "@lunarisapp/ui/components/alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@lunarisapp/ui/components/alert";
 import { Button } from "@lunarisapp/ui/components/button";
 import { Progress } from "@lunarisapp/ui/components/progress";
 import { permission } from "@repo/auth/permissions";
@@ -76,11 +80,11 @@ export function BackupsSection() {
     queryFn: async () => {
       if (requestedBackupId) {
         return api.get<OrganizationBackup>(
-          `/v1/organization/backups/${requestedBackupId}`,
+          `/v1/organization/backups/${requestedBackupId}`
         );
       }
       const result = await api.get<{ backup: OrganizationBackup | null }>(
-        "/v1/organization/backups/current",
+        "/v1/organization/backups/current"
       );
       return result.backup;
     },
@@ -93,7 +97,9 @@ export function BackupsSection() {
 
   const createMutation = useMutation({
     mutationFn: () =>
-      api.post<OrganizationBackup>("/v1/organization/backups", { timeout: 30_000 }),
+      api.post<OrganizationBackup>("/v1/organization/backups", {
+        timeout: 30_000,
+      }),
     onSuccess: (backup) => {
       posthog.capture("backup_requested");
       queryClient.setQueryData(backupKeys.detail(backup.id), backup);
@@ -112,10 +118,13 @@ export function BackupsSection() {
   });
 
   const backup = backupQuery.data;
-  const isActive = backup?.status === "queued" || backup?.status === "processing";
+  const isActive =
+    backup?.status === "queued" || backup?.status === "processing";
 
   const download = async () => {
-    if (!canRead || !backup || backup.status !== "ready") return;
+    if (!(canRead && backup) || backup.status !== "ready") {
+      return;
+    }
     try {
       const result = await api.get<{
         downloadUrl: string;
@@ -146,14 +155,14 @@ export function BackupsSection() {
         className="grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
       >
         <h2
-          className="text-base font-semibold"
+          className="font-semibold text-base"
           id="organization-backup-export-heading"
         >
           {t("organization.backups.exportTitle")}
         </h2>
         <div className="max-w-3xl">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-            <p className="max-w-xl text-sm text-muted-foreground">
+            <p className="max-w-xl text-muted-foreground text-sm">
               {t("organization.backups.exportDescription")}
             </p>
             {canCreate && !backup && !backupQuery.isLoading && (
@@ -169,82 +178,82 @@ export function BackupsSection() {
             )}
           </div>
 
-        {backupQuery.isLoading && (
-          <p
-            aria-live="polite"
-            className="mt-5 text-sm text-muted-foreground"
-            role="status"
-          >
-            {t("organization.backups.loading")}
-          </p>
-        )}
-
-        {backupQuery.isError && (
-          <div className="mt-5 flex items-center justify-between gap-4 border-t pt-5">
-            <p className="text-sm text-destructive" role="alert">
-              {t("organization.backups.loadFailed")}
+          {!!backupQuery.isLoading && (
+            <p
+              aria-live="polite"
+              className="mt-5 text-muted-foreground text-sm"
+              role="status"
+            >
+              {t("organization.backups.loading")}
             </p>
-            <Button
-              onClick={() => backupQuery.refetch()}
-              size="sm"
-              variant="outline"
-            >
-              {t("common.retry")}
-            </Button>
-          </div>
-        )}
+          )}
 
-        {isActive && backup && (
-          <BackupProgress backup={backup} />
-        )}
-
-        {backup?.status === "ready" && (
-          <div className="mt-5 flex flex-col gap-4 border-t border-primary/20 pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <div aria-live="polite" className="space-y-1" role="status">
-              <p className="text-sm font-medium">
-                {t("organization.backups.ready")}
+          {!!backupQuery.isError && (
+            <div className="mt-5 flex items-center justify-between gap-4 border-t pt-5">
+              <p className="text-destructive text-sm" role="alert">
+                {t("organization.backups.loadFailed")}
               </p>
-              <p className="text-sm text-muted-foreground">
-                {t("organization.backups.readyDescription", {
-                  expiresAt: formatDate(backup.expiresAt),
-                  size: formatBytes(backup.archiveSizeBytes),
-                })}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t("organization.backups.emailSent")}
-              </p>
+              <Button
+                onClick={() => backupQuery.refetch()}
+                size="sm"
+                variant="outline"
+              >
+                {t("common.retry")}
+              </Button>
             </div>
-            <Button onClick={download}>{t("organization.backups.download")}</Button>
-          </div>
-        )}
+          )}
 
-        {canCreate &&
-          (backup?.status === "failed" || backup?.status === "expired") && (
-          <div className="mt-5 flex flex-col gap-4 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <div
-              className="space-y-1"
-              role={backup.status === "failed" ? "alert" : "status"}
-            >
-              <p className="text-sm font-medium">
-                {backup.status === "failed"
-                  ? t("organization.backups.failed")
-                  : t("organization.backups.expired")}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {backup.status === "failed"
-                  ? t("organization.backups.failedDescription")
-                  : t("organization.backups.expiredDescription")}
-              </p>
+          {!!(isActive && backup) && <BackupProgress backup={backup} />}
+
+          {backup?.status === "ready" && (
+            <div className="mt-5 flex flex-col gap-4 border-primary/20 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <div aria-live="polite" className="space-y-1" role="status">
+                <p className="font-medium text-sm">
+                  {t("organization.backups.ready")}
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  {t("organization.backups.readyDescription", {
+                    expiresAt: formatDate(backup.expiresAt),
+                    size: formatBytes(backup.archiveSizeBytes),
+                  })}
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  {t("organization.backups.emailSent")}
+                </p>
+              </div>
+              <Button onClick={download}>
+                {t("organization.backups.download")}
+              </Button>
             </div>
-            <Button
-              disabled={createMutation.isPending}
-              onClick={() => createMutation.mutate()}
-              variant="outline"
-            >
-              {t("organization.backups.tryAgain")}
-            </Button>
-          </div>
-        )}
+          )}
+
+          {canCreate &&
+            (backup?.status === "failed" || backup?.status === "expired") && (
+              <div className="mt-5 flex flex-col gap-4 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
+                <div
+                  className="space-y-1"
+                  role={backup.status === "failed" ? "alert" : "status"}
+                >
+                  <p className="font-medium text-sm">
+                    {backup.status === "failed"
+                      ? t("organization.backups.failed")
+                      : t("organization.backups.expired")}
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    {backup.status === "failed"
+                      ? t("organization.backups.failedDescription")
+                      : t("organization.backups.expiredDescription")}
+                  </p>
+                </div>
+                <Button
+                  disabled={createMutation.isPending}
+                  onClick={() => createMutation.mutate()}
+                  variant="outline"
+                >
+                  {t("organization.backups.tryAgain")}
+                </Button>
+              </div>
+            )}
         </div>
       </section>
     </div>
@@ -257,7 +266,7 @@ function BackupProgress({ backup }: { backup: OrganizationBackup }) {
     backup.progress.totalBytes && backup.progress.totalBytes > 0
       ? Math.min(
           100,
-          (backup.progress.processedBytes / backup.progress.totalBytes) * 100,
+          (backup.progress.processedBytes / backup.progress.totalBytes) * 100
         )
       : undefined;
 
@@ -280,7 +289,7 @@ function BackupProgress({ backup }: { backup: OrganizationBackup }) {
         aria-label={t(`organization.backups.phase.${backup.phase}`)}
         value={percentage ?? null}
       />
-      <p className="text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-xs">
         {t("organization.backups.emailWhenReady")}
       </p>
     </div>
@@ -288,13 +297,19 @@ function BackupProgress({ backup }: { backup: OrganizationBackup }) {
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "—";
+  if (!value) {
+    return "—";
+  }
   return DATE_FORMATTER.format(new Date(value));
 }
 
 function formatBytes(value: number | null) {
-  if (value === null) return "—";
-  if (value < 1024) return `${value} B`;
+  if (value === null) {
+    return "—";
+  }
+  if (value < 1024) {
+    return `${value} B`;
+  }
   const units = ["KB", "MB", "GB", "TB"];
   let size = value / 1024;
   let unit = units[0];

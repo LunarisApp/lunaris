@@ -37,7 +37,7 @@ describe("helmet security headers", () => {
     expect(response.headers["permissions-policy"]).toBe(PERMISSIONS_POLICY);
     expect(response.headers["referrer-policy"]).toBe("no-referrer");
     expect(response.headers["strict-transport-security"]).toBe(
-      STRICT_TRANSPORT_SECURITY,
+      STRICT_TRANSPORT_SECURITY
     );
     expect(response.headers["x-content-type-options"]).toBe("nosniff");
     expect(response.headers["x-frame-options"]).toBe("SAMEORIGIN");
@@ -48,7 +48,7 @@ describe("helmet security headers", () => {
   it("keeps swagger-compatible html responses working", async () => {
     const app = await createApp({ isProduction: true });
     app.get("/api", (_request, reply) =>
-      reply.type("text/html").send("<html></html>"),
+      reply.type("text/html").send("<html></html>")
     );
 
     const response = await app.inject({
@@ -79,7 +79,7 @@ async function createApp(options: { isProduction: boolean }) {
   const nest = await NestFactory.create<NestFastifyApplication>(
     TestModule,
     new FastifyAdapter(),
-    { logger: false },
+    { logger: false }
   );
   const app = nest.getHttpAdapter().getInstance();
   registerPermissionsPolicyHeader(app);

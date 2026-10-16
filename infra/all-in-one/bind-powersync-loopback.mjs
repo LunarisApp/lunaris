@@ -10,5 +10,5 @@ if ([...source.matchAll(listener)].length !== 1) {
 }
 writeFileSync(
   path,
-  source.replace(listener, (match) => match.replace("0.0.0.0", "127.0.0.1")),
+  source.replace(listener, (match) => match.replace("0.0.0.0", "127.0.0.1"))
 );

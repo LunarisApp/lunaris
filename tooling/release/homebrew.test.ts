@@ -9,10 +9,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import {
-  renderHomebrewDefinition,
-  updateHomebrewTap,
-} from "./homebrew";
+import { renderHomebrewDefinition, updateHomebrewTap } from "./homebrew";
 
 const temporaryDirectories: string[] = [];
 
@@ -32,10 +29,7 @@ function fixture(assetName: string) {
   const contents = `artifact:${assetName}`;
   const sha256 = createHash("sha256").update(contents).digest("hex");
   writeFileSync(join(distDirectory, assetName), contents);
-  writeFileSync(
-    join(distDirectory, "SHA256SUMS"),
-    `${sha256}  ${assetName}\n`
-  );
+  writeFileSync(join(distDirectory, "SHA256SUMS"), `${sha256}  ${assetName}\n`);
   return { distDirectory, sha256, tapDirectory };
 }
 
@@ -56,7 +50,9 @@ describe("renderHomebrewDefinition", () => {
     );
     expect(definition.content).toContain('bin.install "lunaris"');
     expect(definition.content).toContain('license "MIT"');
-    expect(definition.content).toContain('pkgshare.install "LICENSE", "THIRD-PARTY-LICENSES.txt"');
+    expect(definition.content).toContain(
+      'pkgshare.install "LICENSE", "THIRD-PARTY-LICENSES.txt"'
+    );
     expect(definition.content).not.toContain("ad-hoc code signing");
   });
 
@@ -115,9 +111,7 @@ describe("updateHomebrewTap", () => {
   });
 
   test("updates a definition only for a newer version", () => {
-    const first = fixture(
-      "Lunaris-desktop-1.2.3-universal-adhoc.dmg"
-    );
+    const first = fixture("Lunaris-desktop-1.2.3-universal-adhoc.dmg");
     updateHomebrewTap({
       component: "desktop",
       distDirectory: first.distDirectory,

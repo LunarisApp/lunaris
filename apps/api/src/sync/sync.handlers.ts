@@ -18,7 +18,7 @@ export interface EntityHandler {
     id: string,
     data: Record<string, unknown> | undefined,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) => Promise<void>;
   /** Custom DELETE — if undefined, uses default delete. */
   delete?: (tx: DatabaseOrTx, id: string) => Promise<void>;
@@ -39,7 +39,7 @@ export interface EntityHandler {
     id: string,
     data: Record<string, unknown> | undefined,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) => Promise<(() => void) | undefined>;
   /** Custom PUT — if undefined, uses default insert. */
   put?: (

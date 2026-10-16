@@ -56,7 +56,6 @@ export function createPostHogBrowserDrain(client: PostHogLogClient): DrainFn {
           : {}),
       });
     } catch {
-      // biome-ignore lint/suspicious/noConsole: last-resort local diagnostic
       console.error("[telemetry] PostHog log enqueue failed");
     }
   };

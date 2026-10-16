@@ -2,13 +2,7 @@
 
 import Claude from "@thesvg/react/claude";
 import OpenaiChatgpt from "@thesvg/react/openai-chatgpt";
-import {
-	type KeyboardEvent,
-	useEffect,
-	useId,
-	useRef,
-	useState,
-} from "react";
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
 const providers = [
 	{
@@ -115,10 +109,7 @@ export function OpenInChat({
 		if (!open) return;
 
 		function handlePointerDown(event: PointerEvent) {
-			if (
-				rootRef.current &&
-				!rootRef.current.contains(event.target as Node)
-			) {
+			if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
 				setOpen(false);
 			}
 		}
@@ -145,8 +136,7 @@ export function OpenInChat({
 		}
 
 		document.addEventListener("keydown", handleTooltipEscape);
-		return () =>
-			document.removeEventListener("keydown", handleTooltipEscape);
+		return () => document.removeEventListener("keydown", handleTooltipEscape);
 	}, [exceedsUrlLimit]);
 
 	function focusItem(index: number) {
@@ -201,6 +191,7 @@ export function OpenInChat({
 	}
 
 	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: Blur bubbles from the menu controls; this wrapper is not an interactive target.
 		<div
 			className="group relative rounded-full"
 			onBlur={(event) => {

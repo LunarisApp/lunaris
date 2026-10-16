@@ -48,7 +48,9 @@ describe("file helpers", () => {
     expect(query.params).toEqual(["", "", "item_1"]);
     expect(query.query).toContain("FROM workspace_storage_slots");
     expect(query.query).toContain("LEFT JOIN attachments");
-    expect(query.query).toContain("json_extract(slot.metadata, '$.attachmentId')");
+    expect(query.query).toContain(
+      "json_extract(slot.metadata, '$.attachmentId')"
+    );
   });
 
   it("reads canonical slot metadata", async () => {
@@ -95,7 +97,7 @@ describe("file helpers", () => {
     const updated = new Promise<void>((resolve) => {
       const watcher = createFileAttachmentWatcher({
         db: {
-          watch: async function* (query: string, params: unknown[]) {
+          async *watch(query: string, params: unknown[]) {
             capturedQuery = query;
             capturedParams = params;
             yield { rows: { _array: [{ value: JSON.stringify(metadata) }] } };

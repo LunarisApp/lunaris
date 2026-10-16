@@ -20,13 +20,13 @@ describe("serializeErrorForLog", () => {
 
   test("scrubs PII from messages and stacks", () => {
     const error = new Error(
-      "Failed for writer@example.com in /Users/mrlightful/Documents",
+      "Failed for writer@example.com in /Users/mrlightful/Documents"
     );
 
     const result = serializeErrorForLog(error);
 
     expect(result.message).toBe(
-      "Failed for [email] in /Users/[redacted]/Documents",
+      "Failed for [email] in /Users/[redacted]/Documents"
     );
     expect(result.stack).not.toContain("writer@example.com");
     expect(result.stack).not.toContain("/Users/mrlightful");

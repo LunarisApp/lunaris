@@ -10,7 +10,7 @@ export type DrizzleTransaction = PgTransaction<
 export type DrizzleDatabase = ReturnType<typeof drizzle>;
 export type DatabaseOrTx = DrizzleDatabase | DrizzleTransaction;
 
-import assert from "node:assert";
+import assert from "node:assert/strict";
 import { sql } from "drizzle-orm";
 import { customType } from "drizzle-orm/pg-core";
 

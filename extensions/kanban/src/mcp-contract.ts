@@ -13,14 +13,14 @@ const kanbanPropertyDefinitionBaseSchema = z.object({
 
 const kanbanChoicePropertyDefinitionSchema =
   kanbanPropertyDefinitionBaseSchema.extend({
-  options: z.array(kanbanPropertyOptionSchema),
-  type: z.enum(["select", "multi-select"]),
-});
+    options: z.array(kanbanPropertyOptionSchema),
+    type: z.enum(["select", "multi-select"]),
+  });
 
 const kanbanScalarPropertyDefinitionSchema =
   kanbanPropertyDefinitionBaseSchema.extend({
-  type: z.enum(["people", "resource", "date", "text", "number", "checkbox"]),
-});
+    type: z.enum(["people", "resource", "date", "text", "number", "checkbox"]),
+  });
 
 export const kanbanPropertyDefinitionSchema = z.union([
   kanbanChoicePropertyDefinitionSchema,
@@ -52,10 +52,12 @@ const kanbanResourcePropertyValueBaseShape = {
   workspaceName: z.string(),
 };
 
-export const kanbanResourcePropertyValueSchema = z.object({
-  ...kanbanResourcePropertyValueBaseShape,
-  resourceTypeId: z.string().min(1),
-}).strict();
+export const kanbanResourcePropertyValueSchema = z
+  .object({
+    ...kanbanResourcePropertyValueBaseShape,
+    resourceTypeId: z.string().min(1),
+  })
+  .strict();
 
 export const kanbanPropertyValueSchema = z.union([
   z.string(),
@@ -66,12 +68,9 @@ export const kanbanPropertyValueSchema = z.union([
 ]);
 
 export const kanbanTaskPropertiesSchema = z
-  .record(
-    z.string().min(1),
-    kanbanPropertyValueSchema.nullable(),
-  )
+  .record(z.string().min(1), kanbanPropertyValueSchema.nullable())
   .describe(
-    "Task property assignments. Keys may be exact property IDs or names. Select values use an option ID or unique name; Multi-select values use arrays of option IDs or names; People values use arrays of exact organization member IDs; Resource values use the exact resourceId, name, resourceTypeId, workspaceId, and workspaceName returned by resource search; Date values use YYYY-MM-DD or RFC 3339; Text, Number, and Checkbox use their matching primitive. Null clears an assignment. Use kanban_get_board_properties to discover definitions, list_organization_members to discover People IDs, and search_resources to discover resources.",
+    "Task property assignments. Keys may be exact property IDs or names. Select values use an option ID or unique name; Multi-select values use arrays of option IDs or names; People values use arrays of exact organization member IDs; Resource values use the exact resourceId, name, resourceTypeId, workspaceId, and workspaceName returned by resource search; Date values use YYYY-MM-DD or RFC 3339; Text, Number, and Checkbox use their matching primitive. Null clears an assignment. Use kanban_get_board_properties to discover definitions, list_organization_members to discover People IDs, and search_resources to discover resources."
   );
 
 export const kanbanCreateTaskOperationInputSchema = z.object({
@@ -88,7 +87,7 @@ export const kanbanCreateTaskInputSchema =
       .min(8)
       .max(200)
       .describe(
-        "Stable unique key for this mutation. Reuse only when retrying the identical request.",
+        "Stable unique key for this mutation. Reuse only when retrying the identical request."
       ),
     workspaceId: z
       .string()
@@ -113,7 +112,7 @@ export const kanbanUpdateTaskOperationInputSchema = z.object({
     .min(1)
     .optional()
     .describe(
-      "Task updatedAt revision from a prior read. Required when changing the task name.",
+      "Task updatedAt revision from a prior read. Required when changing the task name."
     ),
   name: z.string().trim().min(1).optional().describe("New task name."),
   properties: kanbanTaskPropertiesSchema.optional(),
@@ -127,7 +126,7 @@ export const kanbanUpdateTaskInputSchema =
       .min(8)
       .max(200)
       .describe(
-        "Stable unique key for this mutation. Reuse only when retrying the identical request.",
+        "Stable unique key for this mutation. Reuse only when retrying the identical request."
       ),
     workspaceId: z
       .string()
@@ -156,7 +155,5 @@ export type KanbanCreateTaskOutput = z.output<
 export type KanbanGetBoardPropertiesOutput = z.output<
   typeof kanbanGetBoardPropertiesOutputSchema
 >;
-export type KanbanTaskProperties = z.output<
-  typeof kanbanTaskPropertiesSchema
->;
+export type KanbanTaskProperties = z.output<typeof kanbanTaskPropertiesSchema>;
 export type KanbanPropertyValue = z.output<typeof kanbanPropertyValueSchema>;

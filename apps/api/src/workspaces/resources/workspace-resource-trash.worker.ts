@@ -18,7 +18,7 @@ export class WorkspaceResourceTrashWorker {
   constructor(
     private readonly database: DatabaseService,
     private readonly resources: WorkspaceResourcesService,
-    @Inject(POSTHOG_CLIENT) private readonly posthog: PostHog | null,
+    @Inject(POSTHOG_CLIENT) private readonly posthog: PostHog | null
   ) {}
 
   @Cron("0 * * * *", { name: "workspace-resource-trash-purge" })
@@ -31,14 +31,20 @@ export class WorkspaceResourceTrashWorker {
         workspaceId: workspaceResourceTrashDb.workspaceId,
       })
       .from(workspaceResourceTrashDb)
-      .innerJoin(workspacesDb, eq(workspacesDb.id, workspaceResourceTrashDb.workspaceId))
+      .innerJoin(
+        workspacesDb,
+        eq(workspacesDb.id, workspaceResourceTrashDb.workspaceId)
+      )
       .where(
         and(
           eq(workspaceResourceTrashDb.id, workspaceResourceTrashDb.trashRootId),
-          lte(workspaceResourceTrashDb.purgeAt, now),
-        ),
+          lte(workspaceResourceTrashDb.purgeAt, now)
+        )
       )
-      .orderBy(asc(workspaceResourceTrashDb.purgeAt), asc(workspaceResourceTrashDb.id))
+      .orderBy(
+        asc(workspaceResourceTrashDb.purgeAt),
+        asc(workspaceResourceTrashDb.id)
+      )
       .limit(PURGE_BATCH_SIZE);
 
     for (const root of roots) {
@@ -47,7 +53,7 @@ export class WorkspaceResourceTrashWorker {
           root.id,
           root.workspaceId,
           root.organizationId,
-          now,
+          now
         );
         if (purged) {
           recordStandaloneComplianceAudit(
@@ -60,7 +66,7 @@ export class WorkspaceResourceTrashWorker {
                 tenantId: root.organizationId,
               },
             }),
-            { tenantId: root.organizationId },
+            { tenantId: root.organizationId }
           );
           this.posthog?.capture({
             distinctId: root.organizationId,
@@ -77,9 +83,14 @@ export class WorkspaceResourceTrashWorker {
         const logger = createLogger({ task: "workspace-resource-trash-purge" });
         logger.set({
           organization: { id: root.organizationId },
-          workspaceResource: { resourceId: root.id, workspaceId: root.workspaceId },
+          workspaceResource: {
+            resourceId: root.id,
+            workspaceId: root.workspaceId,
+          },
         });
-        logger.error(error instanceof Error ? error : new Error("Trash purge failed"));
+        logger.error(
+          error instanceof Error ? error : new Error("Trash purge failed")
+        );
         logger.emit();
       }
     }

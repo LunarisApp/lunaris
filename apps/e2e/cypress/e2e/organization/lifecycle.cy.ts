@@ -19,11 +19,13 @@ describe("organization/lifecycle", () => {
         cy.get('[data-testid="organization-selector-trigger"]').click();
         cy.get('[data-testid="organization-create-trigger"]').click();
         cy.get('[data-testid="organization-create-name"]').type("Writers Room");
-        cy.get('[data-testid="organization-create-slug"]').clear().type(initialSlug);
+        cy.get('[data-testid="organization-create-slug"]')
+          .clear()
+          .type(initialSlug);
         cy.get('[data-testid="organization-create-submit"]').click();
         cy.location("pathname", { timeout: 15_000 }).should(
           "eq",
-          `/${initialSlug}`,
+          `/${initialSlug}`
         );
 
         cy.intercept("POST", "**/v1/sync/ingest").as("teamWorkspaceSync");
@@ -37,14 +39,14 @@ describe("organization/lifecycle", () => {
           .click();
         cy.location("pathname", { timeout: 15_000 }).should("eq", personalPath);
         cy.get('[data-testid="workspaces-list-item-team-novel"]').should(
-          "not.exist",
+          "not.exist"
         );
 
         cy.get('[data-testid="organization-selector-trigger"]').click();
         cy.contains('[role="menuitemradio"]', "Writers Room").click();
         cy.location("pathname", { timeout: 15_000 }).should(
           "eq",
-          `/${initialSlug}`,
+          `/${initialSlug}`
         );
         cy.get('[data-testid="workspaces-list-item-team-novel"]', {
           timeout: 30_000,
@@ -58,7 +60,7 @@ describe("organization/lifecycle", () => {
           .blur();
         cy.get('[data-testid="organization-name"]').should(
           "have.value",
-          "Authors Room",
+          "Authors Room"
         );
         cy.get('[data-testid="organization-slug"]')
           .clear()
@@ -66,16 +68,16 @@ describe("organization/lifecycle", () => {
           .blur();
         cy.location("pathname", { timeout: 15_000 }).should(
           "eq",
-          `/${renamedSlug}/settings`,
+          `/${renamedSlug}/settings`
         );
         cy.get('[data-testid="organization-slug"]').should(
           "have.value",
-          renamedSlug,
+          renamedSlug
         );
         cy.get('a[aria-label="Lunaris"]').click();
         cy.get('[data-testid="organization-selector-trigger"]').should(
           "contain.text",
-          "Authors Room",
+          "Authors Room"
         );
         cy.get('[data-testid="workspaces-list-item-team-novel"]', {
           timeout: 30_000,
@@ -83,17 +85,16 @@ describe("organization/lifecycle", () => {
 
         cy.visit(`/${renamedSlug}/settings`);
         cy.intercept("POST", "**/v1/organization/delete-request").as(
-          "organizationDeleteRequest",
+          "organizationDeleteRequest"
         );
         cy.contains("button", "Delete organization").click();
         cy.get('[data-testid="input-confirm-input"]')
           .should("not.be.disabled")
           .type(renamedSlug);
         cy.get('[data-testid="input-confirm-submit"]').click();
-        cy.wait("@organizationDeleteRequest").its("response.statusCode").should(
-          "be.oneOf",
-          [200, 201],
-        );
+        cy.wait("@organizationDeleteRequest")
+          .its("response.statusCode")
+          .should("be.oneOf", [200, 201]);
       });
     });
   });

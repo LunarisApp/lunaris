@@ -12,7 +12,8 @@ let breadcrumbItems: Array<{
   resourceTypeId: string | null;
   schemaVersion: number;
 }> = [];
-let resources: Array<{ icon: object; name: string; resourceTypeId: string }> = [];
+let resources: Array<{ icon: object; name: string; resourceTypeId: string }> =
+  [];
 
 vi.mock("@repo/workspaces/workspace-explorer", () => ({
   useResourceBreadcrumb: () => breadcrumbItems,
@@ -32,14 +33,22 @@ vi.mock("@lunarisapp/ui/components/tooltip", () => ({
   TooltipContent: ({ children }: { children: ReactNode }) => (
     <span>{children}</span>
   ),
-  TooltipTrigger: ({ children, render }: { children: ReactNode; render: ReactNode }) => {
+  TooltipTrigger: ({
+    children,
+    render,
+  }: {
+    children: ReactNode;
+    render: ReactNode;
+  }) => {
     const trigger = render as ReactElement<{ children?: ReactNode }>;
     return cloneElement(trigger, undefined, children);
   },
 }));
 
 vi.mock("@lunarisapp/ui/icons", () => ({
-  HugeiconsIcon: () => <svg aria-hidden="true" data-testid="resource-type-icon" />,
+  HugeiconsIcon: () => (
+    <svg aria-hidden="true" data-testid="resource-type-icon" />
+  ),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -79,7 +88,7 @@ describe("EditorBreadcrumb", () => {
     expect(openResource).toHaveBeenCalledWith({
       resourceId: "board",
       resourceTypeId: "lunaris.kanban",
-        schemaVersion: 1,
+      schemaVersion: 1,
       replaceCurrent: true,
       title: "common.untitled",
     });
@@ -167,15 +176,17 @@ describe("EditorBreadcrumb", () => {
     expect(openResource).toHaveBeenCalledWith({
       resourceId: "board",
       resourceTypeId: "lunaris.kanban",
-        schemaVersion: 1,
+      schemaVersion: 1,
       replaceCurrent: true,
       title: "Roadmap",
     });
     expect(onNavigate).toHaveBeenCalledOnce();
-    expect(screen.getByText("Roadmap").closest("li")?.contains(icon)).toBe(true);
-    expect(screen.getByText("Draft release").closest("li")?.contains(icon)).toBe(
-      false
+    expect(screen.getByText("Roadmap").closest("li")?.contains(icon)).toBe(
+      true
     );
+    expect(
+      screen.getByText("Draft release").closest("li")?.contains(icon)
+    ).toBe(false);
     expect(screen.getByText("Draft release").getAttribute("aria-current")).toBe(
       "page"
     );

@@ -1,4 +1,8 @@
-import { Popover, PopoverContent, PopoverTrigger } from "@lunarisapp/ui/components/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@lunarisapp/ui/components/popover";
 import {
   Select,
   SelectContent,
@@ -52,7 +56,7 @@ export function SelectPropertyField({
     <Select
       disabled={disabled}
       onValueChange={(next) =>
-        onValueChange(next === CLEAR_VALUE ? null : next ?? null)
+        onValueChange(next === CLEAR_VALUE ? null : (next ?? null))
       }
       value={value ?? null}
     >
@@ -91,7 +95,7 @@ export function SelectPropertyField({
         </SelectGroup>
         {selected ? (
           <SelectItem
-            className="mt-2.5 h-6 w-fit py-0 pr-2 pl-2 text-xs font-medium"
+            className="mt-2.5 h-6 w-fit py-0 pr-2 pl-2 font-medium text-xs"
             value={CLEAR_VALUE}
           >
             {t("extensions.catalog.lunaris.kanban.clear")}
@@ -140,7 +144,9 @@ export function MultiSelectPropertyField({
   value,
 }: ChoicePropertyFieldProps & { value: string[] }) {
   const { t } = useTranslation();
-  const selected = property.options.filter((option) => value.includes(option.id));
+  const selected = property.options.filter((option) =>
+    value.includes(option.id)
+  );
   return (
     <Popover>
       <PopoverTrigger
@@ -224,7 +230,11 @@ function MultiSelectValue({
   }
 
   const visibleCount =
-    appearance === "composer" ? 1 : appearance === "control" ? 2 : selected.length;
+    appearance === "composer"
+      ? 1
+      : appearance === "control"
+        ? 2
+        : selected.length;
   return (
     <span
       className={cn(
@@ -233,14 +243,7 @@ function MultiSelectValue({
       )}
     >
       {selected.slice(0, visibleCount).map((option) =>
-        appearance !== "control" ? (
-          <ChoiceValue
-            className="max-w-full"
-            color={option.color}
-            key={option.id}
-            name={option.name}
-          />
-        ) : (
+        appearance === "control" ? (
           <PropertyTag
             className="min-w-0"
             color={option.color}
@@ -249,10 +252,17 @@ function MultiSelectValue({
           >
             <span className="max-w-24 truncate">{option.name}</span>
           </PropertyTag>
+        ) : (
+          <ChoiceValue
+            className="max-w-full"
+            color={option.color}
+            key={option.id}
+            name={option.name}
+          />
         )
       )}
       {appearance !== "metadata" && selected.length > visibleCount ? (
-        <span className="shrink-0 self-center text-xs text-muted-foreground">
+        <span className="shrink-0 self-center text-muted-foreground text-xs">
           +{selected.length - visibleCount}
         </span>
       ) : null}

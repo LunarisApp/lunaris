@@ -1,9 +1,6 @@
 import { Button } from "@lunarisapp/ui/components/button";
 import { PanelError } from "@lunarisapp/ui/components/panel-error";
-import {
-  getUserFacingDescription,
-  getUserFacingError,
-} from "@repo/data/http";
+import { getUserFacingDescription, getUserFacingError } from "@repo/data/http";
 import {
   buildAuthRedirectPath,
   getAccountSwitchTargetUserId,
@@ -35,14 +32,24 @@ function RedirectToAuth() {
 }
 
 export default function AuthGuard() {
-  const { t } = useTranslation();
-  const { pathWithRegion } = useRegion();
   const { authClient, manifest } = useRegionClients();
-  const location = useLocation();
-  if (!authClient || !manifest) {
+  if (!(authClient && manifest)) {
     return <LoaderView />;
   }
 
+  return <ReadyAuthGuard authClient={authClient} manifest={manifest} />;
+}
+
+function ReadyAuthGuard({
+  authClient,
+  manifest,
+}: {
+  authClient: NonNullable<ReturnType<typeof useRegionClients>["authClient"]>;
+  manifest: NonNullable<ReturnType<typeof useRegionClients>["manifest"]>;
+}) {
+  const { t } = useTranslation();
+  const { pathWithRegion } = useRegion();
+  const location = useLocation();
   const {
     data: session,
     isPending,
@@ -57,17 +64,16 @@ export default function AuthGuard() {
   } = authClient.useActiveOrganization();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const userId = session?.user.id;
-  const sessionId = session?.session.id;
   const telemetryIdentity = useRef<string | null | undefined>(undefined);
   const resolvingOrganizationUserId = useRef<string | null>(null);
-  const [orgResolutionFailureUserId, setOrgResolutionFailureUserId] =
-    useState<string | null>(null);
+  const [orgResolutionFailureUserId, setOrgResolutionFailureUserId] = useState<
+    string | null
+  >(null);
   const [orgResolutionError, setOrgResolutionError] = useState<{
     cause: unknown;
     userId: string;
   } | null>(null);
-  const orgResolutionFailed =
-    !!userId && orgResolutionFailureUserId === userId;
+  const orgResolutionFailed = !!userId && orgResolutionFailureUserId === userId;
   const currentOrgResolutionError =
     userId && orgResolutionError?.userId === userId
       ? orgResolutionError.cause
@@ -76,19 +82,20 @@ export default function AuthGuard() {
   const resolvedActiveOrg =
     activeOrg?.id === sessionOrganizationId ? activeOrg : null;
   const accountSwitchTargetUserId = getAccountSwitchTargetUserId(
-    location.state,
+    location.state
   );
-
-  useEffect(() => {
-  }, [manifest.apiUrl, sessionId]);
 
   // Stable product identity shared by analytics, exceptions, traces, and logs.
   // Deliberately exclude names and email addresses from analytics profiles.
   useEffect(() => {
-    if (isPending) return;
+    if (isPending) {
+      return;
+    }
     if (session?.user) {
       const identity = `${session.user.id}:${session.user.isAnonymous}`;
-      if (telemetryIdentity.current === identity) return;
+      if (telemetryIdentity.current === identity) {
+        return;
+      }
       posthog.identify(session.user.id, {
         is_anonymous: session.user.isAnonymous,
       });
@@ -112,15 +119,11 @@ export default function AuthGuard() {
   // Session exists but no active org (race condition on signup).
   // Resolve by setting the first available org as active.
   const needsOrgResolution =
-    !!session &&
-    !sessionOrganizationId &&
-    !activeOrgPending &&
-    !isPending;
+    !!session && !sessionOrganizationId && !activeOrgPending && !isPending;
 
   useEffect(() => {
     if (
-      !needsOrgResolution ||
-      !userId ||
+      !(needsOrgResolution && userId) ||
       orgResolutionFailed ||
       currentOrgResolutionError ||
       resolvingOrganizationUserId.current === userId
@@ -134,8 +137,12 @@ export default function AuthGuard() {
 
     const resolve = async () => {
       const { data: orgs, error } = await authClient.organization.list();
-      if (!isCurrent()) return;
-      if (error) throw error;
+      if (!isCurrent()) {
+        return;
+      }
+      if (error) {
+        throw error;
+      }
       const firstOrg = orgs?.[0];
       if (!firstOrg) {
         log.warn({
@@ -152,13 +159,19 @@ export default function AuthGuard() {
       const activation = await authClient.organization.setActive({
         organizationId: firstOrg.id,
       });
-      if (!isCurrent()) return;
-      if (activation.error) throw activation.error;
+      if (!isCurrent()) {
+        return;
+      }
+      if (activation.error) {
+        throw activation.error;
+      }
       await Promise.all([
         refetchSession({ query: { disableCookieCache: true } }),
         refetchActiveOrganization(),
       ]);
-      if (!isCurrent()) return;
+      if (!isCurrent()) {
+        return;
+      }
       setOrgResolutionError(null);
       log.info({
         action: "auth.organization.resolve",
@@ -168,9 +181,13 @@ export default function AuthGuard() {
     };
 
     queueMicrotask(() => {
-      if (!isCurrent()) return;
+      if (!isCurrent()) {
+        return;
+      }
       resolve().catch((err) => {
-        if (!isCurrent()) return;
+        if (!isCurrent()) {
+          return;
+        }
         log.error({
           action: "auth.organization.resolve",
           outcome: "failure",
@@ -203,7 +220,9 @@ export default function AuthGuard() {
       : null;
 
   useEffect(() => {
-    if (!logoutReason) return;
+    if (!logoutReason) {
+      return;
+    }
     log.warn({
       action: "auth.organization.resolve",
       outcome: "logout",
@@ -228,7 +247,9 @@ export default function AuthGuard() {
     sessionOrganizationId && activeOrg && !resolvedActiveOrg
       ? JSON.stringify([userId, sessionOrganizationId, activeOrg.id])
       : null;
-  const [reconciledMismatch, setReconciledMismatch] = useState<string | null>(null);
+  const [reconciledMismatch, setReconciledMismatch] = useState<string | null>(
+    null
+  );
 
   // Mutation listeners refresh these stores separately. A stale response can
   // briefly pair one organization's session with another organization's data.
@@ -238,18 +259,27 @@ export default function AuthGuard() {
       setReconciledMismatch(null);
       return;
     }
-    if (reconciledMismatch === mismatchKey) return;
+    if (reconciledMismatch === mismatchKey) {
+      return;
+    }
     let cancelled = false;
     void Promise.allSettled([
       refetchSession({ query: { disableCookieCache: true } }),
       refetchActiveOrganization(),
     ]).then(() => {
-      if (!cancelled) setReconciledMismatch(mismatchKey);
+      if (!cancelled) {
+        setReconciledMismatch(mismatchKey);
+      }
     });
     return () => {
       cancelled = true;
     };
-  }, [mismatchKey, reconciledMismatch, refetchSession, refetchActiveOrganization]);
+  }, [
+    mismatchKey,
+    reconciledMismatch,
+    refetchSession,
+    refetchActiveOrganization,
+  ]);
 
   const reconcilingOrganization =
     mismatchKey !== null && reconciledMismatch !== mismatchKey;
@@ -257,10 +287,10 @@ export default function AuthGuard() {
     missingResolvedOrganization &&
     !reconcilingOrganization &&
     (!accountSwitchTargetUserId || activeOrgError)
-      ? activeOrgError ?? new Error("Active organization is unavailable")
+      ? (activeOrgError ?? new Error("Active organization is unavailable"))
       : null;
   const blockingError =
-    (!isPending && !session && sessionError) ||
+    (!(isPending || session) && sessionError) ||
     currentOrgResolutionError ||
     missingOrganizationError;
 
@@ -290,7 +320,12 @@ export default function AuthGuard() {
     );
   }
 
-  if (isPending || activeOrgPending || isLoggingOut || reconcilingOrganization) {
+  if (
+    isPending ||
+    activeOrgPending ||
+    isLoggingOut ||
+    reconcilingOrganization
+  ) {
     return <LoaderView />;
   }
 
@@ -299,7 +334,7 @@ export default function AuthGuard() {
   }
 
   const isAnonymous = session.user.isAnonymous;
-  const needsVerification = !isAnonymous && !session.user.emailVerified;
+  const needsVerification = !(isAnonymous || session.user.emailVerified);
   if (needsVerification) {
     return <Navigate replace to={pathWithRegion("/auth/verify-email")} />;
   }

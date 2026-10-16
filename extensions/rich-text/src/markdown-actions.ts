@@ -4,7 +4,7 @@ import { compileBlockNoteMarkdown } from "./yjs-compile";
 
 export type ChatProvider = "chatgpt" | "claude";
 
-export const MAX_CHAT_URL_LENGTH = 8_000;
+export const MAX_CHAT_URL_LENGTH = 8000;
 
 const CHAT_PROVIDERS: Record<
   ChatProvider,

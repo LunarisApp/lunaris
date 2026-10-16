@@ -22,7 +22,9 @@ class FakeBroadcastChannel {
 
   postMessage(value: unknown) {
     for (const channel of FakeBroadcastChannel.channels) {
-      if (channel === this || channel.name !== this.name) continue;
+      if (channel === this || channel.name !== this.name) {
+        continue;
+      }
       channel.onmessage?.(new MessageEvent("message", { data: value }));
     }
   }
@@ -36,7 +38,10 @@ afterEach(() => {
 it("delivers one typed change per workspace across window and broadcast paths", () => {
   globalThis.BroadcastChannel = FakeBroadcastChannel as never;
   const listener = vi.fn();
-  const unsubscribe = subscribeToWorkspaceExtensionChanges("workspace-1", listener);
+  const unsubscribe = subscribeToWorkspaceExtensionChanges(
+    "workspace-1",
+    listener
+  );
 
   notifyWorkspaceExtensionsChanged({
     enabled: true,
@@ -60,7 +65,7 @@ it("delivers one typed change per workspace across window and broadcast paths", 
       operation: "enable",
       workspaceId: "workspace-1",
       revision: "release-1",
-    }),
+    })
   );
   unsubscribe();
 });

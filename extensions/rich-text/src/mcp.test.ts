@@ -18,10 +18,10 @@ describe("Rich Text MCP capabilities", () => {
 
   it("declares offline reads and revision-guarded writes", () => {
     const read = richTextMcpCapabilities.tools.find(
-      ({ name }) => name === "rich_text_get_document",
+      ({ name }) => name === "rich_text_get_document"
     );
     const update = richTextMcpCapabilities.tools.find(
-      ({ name }) => name === "rich_text_update_document",
+      ({ name }) => name === "rich_text_update_document"
     );
 
     expect(read?.execution).toMatchObject({
@@ -46,13 +46,13 @@ describe("Rich Text MCP capabilities", () => {
         idempotencyKey: "request-1",
         workspaceId: "workspace-1",
         organizationId: "organization-1",
-      }).success,
+      }).success
     ).toBe(true);
   });
 
   it("fixes the resource type for lifecycle operations", () => {
     const create = richTextMcpCapabilities.tools.find(
-      ({ name }) => name === "rich_text_create_document",
+      ({ name }) => name === "rich_text_create_document"
     );
     expect(create?.execution.kind).toBe("operation");
     if (create?.execution.kind !== "operation") {
@@ -63,7 +63,7 @@ describe("Rich Text MCP capabilities", () => {
     });
 
     for (const tool of richTextMcpCapabilities.tools.filter(({ name }) =>
-      name.includes("delete_document"),
+      name.includes("delete_document")
     )) {
       if (tool.execution.kind !== "operation") {
         throw new Error("Expected delegated document deletion");

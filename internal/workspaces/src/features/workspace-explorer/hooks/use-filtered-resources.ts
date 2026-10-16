@@ -31,12 +31,18 @@ export function useFilteredResources(
 
   return useMemo(() => {
     const trimmed = debouncedQuery.trim().toLowerCase();
-    if (!trimmed) return [];
+    if (!trimmed) {
+      return [];
+    }
 
     const matches: WorkspaceResourceEntity[] = [];
     for (const resource of resources) {
-      if (isFolder(resource)) continue;
-      if (!resource.resource_type_id) continue;
+      if (isFolder(resource)) {
+        continue;
+      }
+      if (!resource.resource_type_id) {
+        continue;
+      }
       const name = (resource.name || "").toLowerCase();
       if (name.includes(trimmed)) {
         matches.push(resource);

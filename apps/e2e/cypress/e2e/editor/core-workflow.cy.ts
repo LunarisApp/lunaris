@@ -2,8 +2,6 @@
 
 import { typeYjsText } from "../../support/yjs";
 
-export {};
-
 const documentBodySelector =
   '[data-yjs-persistence-state] .bn-block-content[data-content-type="paragraph"] .bn-inline-content';
 const renameInputSelector = 'input[aria-label="Rename resource"]';
@@ -12,7 +10,9 @@ function renameNewItem(name: string) {
   cy.get(documentBodySelector, { timeout: 15_000 }).should("be.visible");
   cy.get("body").then(($body) => {
     const input = $body.find(renameInputSelector);
-    if (input.length > 0) cy.wrap(input).type("{esc}");
+    if (input.length > 0) {
+      cy.wrap(input).type("{esc}");
+    }
   });
   cy.contains('[data-testid="workspace-tree-item"]', "Untitled").dblclick();
   cy.get(renameInputSelector).clear().type(`${name}{enter}`);
@@ -29,7 +29,7 @@ describe("editor/core workflow", () => {
     cy.get('[data-testid="workspace-add-folder"]').click();
     cy.get('input[aria-label="Rename resource"]').clear().type("Drafts{enter}");
     cy.contains('[data-testid="workspace-tree-item"]', "Drafts").should(
-      "be.visible",
+      "be.visible"
     );
 
     cy.get('button[aria-label="Add file"]').click();
@@ -48,7 +48,7 @@ describe("editor/core workflow", () => {
       cy.reload();
       cy.location("pathname").should("eq", documentPath);
       cy.contains(documentBodySelector, body, { timeout: 15_000 }).should(
-        "be.visible",
+        "be.visible"
       );
     });
 
@@ -67,11 +67,9 @@ describe("editor/core workflow", () => {
 
     cy.contains('[data-testid="workspace-tree-item"]', "Drafts").rightclick();
     cy.contains('[role="menuitem"]', "Delete").click();
-    cy.get('[role="alertdialog"]')
-      .contains("button", "Continue")
-      .click();
+    cy.get('[role="alertdialog"]').contains("button", "Continue").click();
     cy.contains('[data-testid="workspace-tree-item"]', "Drafts").should(
-      "not.exist",
+      "not.exist"
     );
   });
 });

@@ -29,7 +29,7 @@ function createDockviewApi() {
       dockviewGroups.find((group) => group.id === id)
     ),
     getPanel: vi.fn((id: string) =>
-      dockviewPanels.find((panel) => panel.id === id),
+      dockviewPanels.find((panel) => panel.id === id)
     ),
     groups: dockviewGroups,
     onDidActivePanelChange: vi.fn(() => disposable),
@@ -67,9 +67,7 @@ describe("useGridLayoutSync", () => {
       useGridLayoutSync({
         componentRenderers,
         dockviewRef: { current: api },
-        getOrCreateRenderer: vi.fn(
-          () => componentRenderers["test.content"]
-        ),
+        getOrCreateRenderer: vi.fn(() => componentRenderers["test.content"]),
         groups: [],
         markPanelActive: vi.fn(),
         panels,

@@ -11,7 +11,7 @@ export const agentApiKeyMetadataSchema = z.object({
 
 function agentApiKeyPermissions(
   _referenceId: string,
-  context: { body?: { metadata?: unknown } },
+  context: { body?: { metadata?: unknown } }
 ) {
   const metadata = agentApiKeyMetadataSchema.safeParse(context.body?.metadata);
   if (!metadata.success) {

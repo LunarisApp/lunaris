@@ -42,7 +42,9 @@ const SENSITIVE_OBJECT_KEY =
   /^(?:authorization|backupcodes?|content|cookies?|document(?:content|text)|email|name|password|passwd|prompt|secret|session(?:id|token)?|text|token|totpuri)$/i;
 
 function scrubValue(value: unknown, depth: number): unknown {
-  if (typeof value === "string") return scrubString(value);
+  if (typeof value === "string") {
+    return scrubString(value);
+  }
   if (
     value === null ||
     typeof value === "number" ||
@@ -51,7 +53,9 @@ function scrubValue(value: unknown, depth: number): unknown {
   ) {
     return value;
   }
-  if (depth >= MAX_SCRUB_DEPTH) return "[truncated]";
+  if (depth >= MAX_SCRUB_DEPTH) {
+    return "[truncated]";
+  }
   if (Array.isArray(value)) {
     return value
       .slice(0, MAX_SCRUB_ENTRIES)
@@ -100,14 +104,18 @@ const OPAQUE_ID_PATH_SEGMENT = /^(?=[a-z0-9_-]*\d)[a-z0-9_-]{24,}$/i;
 export function scrubTelemetryProperties(
   properties: Record<string | number, unknown> | undefined
 ): Record<string | number, unknown> | undefined {
-  if (!properties) return undefined;
+  if (!properties) {
+    return undefined;
+  }
 
   const scrubbed = scrubTelemetryValue(properties) as Record<
     string | number,
     unknown
   >;
   for (const [key, value] of Object.entries(scrubbed)) {
-    if (!URL_PROPERTY_KEYS.has(key) || typeof value !== "string") continue;
+    if (!URL_PROPERTY_KEYS.has(key) || typeof value !== "string") {
+      continue;
+    }
     scrubbed[key] = stripUrlDetails(value);
   }
   return scrubbed;
@@ -142,9 +150,13 @@ function stripUrlDetails(value: string): string {
 export function scrubError(err: Error): Error;
 export function scrubError(err: unknown): unknown;
 export function scrubError(err: unknown): unknown {
-  if (!(err instanceof Error)) return scrubTelemetryValue(err);
+  if (!(err instanceof Error)) {
+    return scrubTelemetryValue(err);
+  }
   const cloned = new Error(scrubString(err.message));
   cloned.name = err.name;
-  if (err.stack) cloned.stack = scrubString(err.stack);
+  if (err.stack) {
+    cloned.stack = scrubString(err.stack);
+  }
   return cloned;
 }

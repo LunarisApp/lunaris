@@ -11,7 +11,11 @@ import { EntitlementsConfig } from "../entitlements/core/entitlements.config";
 import { lockOrganizationCapacity } from "../entitlements/seats/organization-capacity";
 import { assertWorkspaceAccess } from "../workspaces/core/workspace-access";
 import { workspaceStorageSlotsDb } from "../workspaces/storage/workspace-storage.entity";
-import { fileObjectsDb, storedFilesDb, uploadSessionsDb } from "./file-storage.entity";
+import {
+  fileObjectsDb,
+  storedFilesDb,
+  uploadSessionsDb,
+} from "./file-storage.entity";
 import { readStorageAccounting } from "./storage-accounting";
 import {
   assertStorageCapacity,
@@ -43,7 +47,7 @@ export class UploadSessionsService {
     private readonly database: DatabaseService,
     private readonly storage: StorageService,
     private readonly billing: BillingService,
-    private readonly config: EntitlementsConfig,
+    private readonly config: EntitlementsConfig
   ) {}
 
   async create(actor: FileSessionActor, input: CreateUploadSession) {
@@ -55,7 +59,7 @@ export class UploadSessionsService {
           input.workspaceId,
           actor.organizationId,
           actor.userId,
-          "write",
+          "write"
         );
         const [existing] = await tx
           .select()
@@ -69,17 +73,23 @@ export class UploadSessionsService {
             existing.sizeBytes !== input.sizeBytes ||
             existing.mediaType !== input.mediaType ||
             existing.replacementFileId !== (input.replacementFileId ?? null) ||
-            existing.replacementStorageId !== (input.replacementStorageId ?? null)
+            existing.replacementStorageId !==
+              (input.replacementStorageId ?? null)
           ) {
             storageError("UPLOAD_CONFLICT", "Upload session identity changed");
           }
           return;
         }
-        const file = await this.findFile(tx, actor.organizationId, input.workspaceId, input.fileId);
+        const file = await this.findFile(
+          tx,
+          actor.organizationId,
+          input.workspaceId,
+          input.fileId
+        );
         if (file && input.replacementFileId !== input.fileId) {
           storageError(
             "FILE_EXISTS",
-            "File identity already exists; a replacement target is required",
+            "File identity already exists; a replacement target is required"
           );
         }
         const targets = [
@@ -93,35 +103,54 @@ export class UploadSessionsService {
             and(
               eq(uploadSessionsDb.organizationId, actor.organizationId),
               eq(uploadSessionsDb.workspaceId, input.workspaceId),
-              inArray(uploadSessionsDb.state, ["creating", "uploading", "completing", "canceling"]),
+              inArray(uploadSessionsDb.state, [
+                "creating",
+                "uploading",
+                "completing",
+                "canceling",
+              ]),
               or(
                 inArray(uploadSessionsDb.fileId, targets),
-                inArray(uploadSessionsDb.replacementFileId, targets),
-              ),
-            ),
+                inArray(uploadSessionsDb.replacementFileId, targets)
+              )
+            )
           );
-        if (active) storageError("UPLOAD_IN_PROGRESS", "A file already has an active upload");
+        if (active) {
+          storageError(
+            "UPLOAD_IN_PROGRESS",
+            "A file already has an active upload"
+          );
+        }
         const previous = input.replacementFileId
           ? await this.findFile(
               tx,
               actor.organizationId,
               input.workspaceId,
-              input.replacementFileId,
+              input.replacementFileId
             )
           : undefined;
         const credit =
-          previous && (await this.canRetire(tx, previous, input.replacementStorageId))
+          previous &&
+          (await this.canRetire(tx, previous, input.replacementStorageId))
             ? previous.sizeBytes
             : 0;
-        const accounting = await readStorageAccounting(tx, actor.organizationId);
+        const accounting = await readStorageAccounting(
+          tx,
+          actor.organizationId
+        );
         const limits = await this.limits(
           tx,
           actor.organizationId,
-          accounting.enterpriseOverrideBytes,
+          accounting.enterpriseOverrideBytes
         );
         // Initial inventory is a rollout gate, never an unmetered upload path.
-        if (!accounting.enforcementEnabled)
-          storageError("STORAGE_INITIALIZING", "Storage inventory is not ready for uploads", 503);
+        if (!accounting.enforcementEnabled) {
+          storageError(
+            "STORAGE_INITIALIZING",
+            "Storage inventory is not ready for uploads",
+            503
+          );
+        }
         const reservedBytes = assertStorageCapacity({
           size: input.sizeBytes,
           credit,
@@ -161,7 +190,10 @@ export class UploadSessionsService {
       if (session.state === "creating") {
         // Recover a provider create that succeeded before the DB transaction committed.
         await this.storage.abortMultipartForKey(session.objectKey);
-        const uploadId = await this.storage.createMultipart(session.objectKey, session.mediaType);
+        const uploadId = await this.storage.createMultipart(
+          session.objectKey,
+          session.mediaType
+        );
         await tx
           .update(uploadSessionsDb)
           .set({ uploadId, state: "uploading" })
@@ -184,8 +216,9 @@ export class UploadSessionsService {
             (part) =>
               part.PartNumber &&
               part.ETag &&
-              part.PartNumber <= Math.max(1, Math.ceil(session.sizeBytes / UPLOAD_PART_BYTES)) &&
-              part.Size === partLength(session.sizeBytes, part.PartNumber),
+              part.PartNumber <=
+                Math.max(1, Math.ceil(session.sizeBytes / UPLOAD_PART_BYTES)) &&
+              part.Size === partLength(session.sizeBytes, part.PartNumber)
           )
           .map((part) => part.PartNumber!),
       };
@@ -195,15 +228,16 @@ export class UploadSessionsService {
   async signPart(actor: FileSessionActor, id: string, partNumber: number) {
     return this.withSession(id, actor, async (_tx, session) => {
       this.assertActive(session);
-      if (session.state !== "uploading" || !session.uploadId)
+      if (session.state !== "uploading" || !session.uploadId) {
         storageError("UPLOAD_NOT_READY", "Upload is not accepting parts");
+      }
       const sizeBytes = partLength(session.sizeBytes, partNumber);
       return {
         url: await this.storage.signPart(
           session.objectKey,
           session.uploadId,
           partNumber,
-          sizeBytes,
+          sizeBytes
         ),
         sizeBytes,
       };
@@ -214,8 +248,12 @@ export class UploadSessionsService {
     // Durable intent lets reconciliation finish after a provider success/DB failure.
     await this.withSession(id, actor, async (tx, session) => {
       this.assertActive(session, true);
-      if (session.state === "completed") return;
-      if (!session.uploadId) storageError("UPLOAD_NOT_READY", "Upload has not started");
+      if (session.state === "completed") {
+        return;
+      }
+      if (!session.uploadId) {
+        storageError("UPLOAD_NOT_READY", "Upload has not started");
+      }
       await tx
         .update(uploadSessionsDb)
         .set({
@@ -227,45 +265,69 @@ export class UploadSessionsService {
         .where(eq(uploadSessionsDb.id, id));
     });
     if (!(await this.finish(id, actor))) {
-      storageError("UPLOAD_CANCELED", "Upload was canceled before completion", 410);
+      storageError(
+        "UPLOAD_CANCELED",
+        "Upload was canceled before completion",
+        410
+      );
     }
     return { id, state: "completed" as const };
   }
 
   async finish(id: string, actor?: FileSessionActor) {
     return this.withSession(id, actor, async (tx, session) => {
-      if (session.state === "completed") return true;
-      if (session.state !== "completing" || !session.uploadId) return false;
+      if (session.state === "completed") {
+        return true;
+      }
+      if (session.state !== "completing" || !session.uploadId) {
+        return false;
+      }
       // HEAD recovers an interrupted CompleteMultipartUpload; never trust client metadata.
       let size = await this.storage.objectSize(session.objectKey);
       if (size === null) {
-        const parts = await this.storage.listParts(session.objectKey, session.uploadId);
+        const parts = await this.storage.listParts(
+          session.objectKey,
+          session.uploadId
+        );
         verifyUploadParts(session.sizeBytes, parts);
-        await this.storage.completeMultipart(session.objectKey, session.uploadId, parts);
+        await this.storage.completeMultipart(
+          session.objectKey,
+          session.uploadId,
+          parts
+        );
         size = await this.storage.objectSize(session.objectKey);
       }
-      if (size !== session.sizeBytes)
-        storageError("UPLOAD_SIZE_MISMATCH", "Stored file size does not match reservation", 400);
-      const accounting = await readStorageAccounting(tx, session.organizationId);
+      if (size !== session.sizeBytes) {
+        storageError(
+          "UPLOAD_SIZE_MISMATCH",
+          "Stored file size does not match reservation",
+          400
+        );
+      }
+      const accounting = await readStorageAccounting(
+        tx,
+        session.organizationId
+      );
       const limits = await this.limits(
         tx,
         session.organizationId,
-        accounting.enterpriseOverrideBytes,
+        accounting.enterpriseOverrideBytes
       );
       const previous = session.replacementFileId
         ? await this.findFile(
             tx,
             session.organizationId,
             session.workspaceId,
-            session.replacementFileId,
+            session.replacementFileId
           )
         : undefined;
       const canRetire =
-        previous?.objectKey === session.previousObjectKey && (await this.canRetire(tx, previous));
+        previous?.objectKey === session.previousObjectKey &&
+        (await this.canRetire(tx, previous));
       if (session.creditBytes > 0 && !canRetire && previous?.state === "live") {
         storageError(
           "REPLACEMENT_METADATA_PENDING",
-          "Waiting for replacement metadata to synchronize",
+          "Waiting for replacement metadata to synchronize"
         );
       }
       const credit = canRetire ? previous!.sizeBytes : 0;
@@ -296,7 +358,11 @@ export class UploadSessionsService {
           objectKey: session.objectKey,
         })
         .onConflictDoUpdate({
-          target: [storedFilesDb.organizationId, storedFilesDb.workspaceId, storedFilesDb.fileId],
+          target: [
+            storedFilesDb.organizationId,
+            storedFilesDb.workspaceId,
+            storedFilesDb.fileId,
+          ],
           set: { objectKey: session.objectKey },
         });
       if (canRetire && session.previousObjectKey) {
@@ -315,14 +381,18 @@ export class UploadSessionsService {
 
   async cancel(actor: FileSessionActor | undefined, id: string) {
     await this.withSession(id, actor, async (tx, session) => {
-      if (session.state === "completed" || session.state === "canceled") return;
+      if (session.state === "completed" || session.state === "canceled") {
+        return;
+      }
       await tx
         .update(uploadSessionsDb)
         .set({ state: "canceling" })
         .where(eq(uploadSessionsDb.id, id));
     });
     return this.withSession(id, actor, async (tx, session) => {
-      if (session.state !== "canceling") return { id, state: session.state };
+      if (session.state !== "canceling") {
+        return { id, state: session.state };
+      }
       await this.storage.abortMultipartForKey(session.objectKey);
       // A failed completion may have left a full object. Retain reservation until both are gone.
       await this.storage.deleteObject(session.objectKey);
@@ -337,15 +407,19 @@ export class UploadSessionsService {
   async withSession<T>(
     id: string,
     actor: FileSessionActor | undefined,
-    run: (tx: DatabaseOrTx, session: UploadSession) => Promise<T>,
+    run: (tx: DatabaseOrTx, session: UploadSession) => Promise<T>
   ) {
     return this.database.db.transaction(async (tx) => {
       const [identity] = await tx
         .select({ organizationId: uploadSessionsDb.organizationId })
         .from(uploadSessionsDb)
         .where(eq(uploadSessionsDb.id, id));
-      if (!identity || (actor && actor.organizationId !== identity.organizationId))
+      if (
+        !identity ||
+        (actor && actor.organizationId !== identity.organizationId)
+      ) {
         throw new NotFoundException("Upload session not found");
+      }
       await lockOrganizationCapacity(tx, identity.organizationId);
       // Row lock still serializes cleanup after the organization row has been deleted.
       const [session] = await tx
@@ -353,36 +427,49 @@ export class UploadSessionsService {
         .from(uploadSessionsDb)
         .where(eq(uploadSessionsDb.id, id))
         .for("update");
-      if (!session) throw new NotFoundException("Upload session not found");
-      if (actor)
+      if (!session) {
+        throw new NotFoundException("Upload session not found");
+      }
+      if (actor) {
         await assertWorkspaceAccess(
           tx,
           session.workspaceId,
           actor.organizationId,
           actor.userId,
-          "write",
+          "write"
         );
+      }
       return run(tx, session);
     });
   }
 
   private assertActive(session: UploadSession, allowCompleted = false) {
-    if (allowCompleted && session.state === "completed") return;
+    if (allowCompleted && session.state === "completed") {
+      return;
+    }
     if (
       ["canceling", "canceled"].includes(session.state) ||
       session.expiresAt.getTime() <= Date.now()
     ) {
-      storageError("UPLOAD_EXPIRED", "Upload session expired or was canceled", 410);
+      storageError(
+        "UPLOAD_EXPIRED",
+        "Upload session expired or was canceled",
+        410
+      );
     }
   }
 
-  private async limits(tx: DatabaseOrTx, organizationId: string, override?: number | null) {
+  private async limits(
+    tx: DatabaseOrTx,
+    organizationId: string,
+    override?: number | null
+  ) {
     const active = this.config.developmentPlan
       ? null
       : await this.billing.readActiveSubscription(tx, organizationId);
     return resolveEntitlements(
       this.config.developmentPlan ?? active?.planSlug ?? PLAN.free,
-      override,
+      override
     );
   }
 
@@ -390,7 +477,7 @@ export class UploadSessionsService {
     tx: DatabaseOrTx,
     organizationId: string,
     workspaceId: string,
-    fileId: string,
+    fileId: string
   ) {
     const [file] = await tx
       .select({
@@ -407,24 +494,39 @@ export class UploadSessionsService {
         and(
           eq(storedFilesDb.organizationId, organizationId),
           eq(storedFilesDb.workspaceId, workspaceId),
-          eq(storedFilesDb.fileId, fileId),
-        ),
+          eq(storedFilesDb.fileId, fileId)
+        )
       );
     return file;
   }
 
   private async canRetire(
     tx: DatabaseOrTx,
-    file: { id: string; fileId: string; workspaceId: string; objectKey: string; state: string },
-    storageId?: string,
+    file: {
+      id: string;
+      fileId: string;
+      workspaceId: string;
+      objectKey: string;
+      state: string;
+    },
+    storageId?: string
   ) {
-    if (file.state !== "live") return false;
+    if (file.state !== "live") {
+      return false;
+    }
     const [shared] = await tx
       .select({ id: storedFilesDb.id })
       .from(storedFilesDb)
-      .where(and(eq(storedFilesDb.objectKey, file.objectKey), ne(storedFilesDb.id, file.id)))
+      .where(
+        and(
+          eq(storedFilesDb.objectKey, file.objectKey),
+          ne(storedFilesDb.id, file.id)
+        )
+      )
       .limit(1);
-    if (shared) return false;
+    if (shared) {
+      return false;
+    }
     const references = await tx
       .select({ id: workspaceStorageSlotsDb.id })
       .from(workspaceStorageSlotsDb)
@@ -432,8 +534,8 @@ export class UploadSessionsService {
         and(
           eq(workspaceStorageSlotsDb.workspaceId, file.workspaceId),
           eq(workspaceStorageSlotsDb.kind, "file"),
-          eq(workspaceStorageSlotsDb.backingId, file.fileId),
-        ),
+          eq(workspaceStorageSlotsDb.backingId, file.fileId)
+        )
       );
     return references.every((reference) => reference.id === storageId);
   }

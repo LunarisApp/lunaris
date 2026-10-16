@@ -59,9 +59,7 @@ function emptyReadyYjsDocumentState(
 }
 
 function loadedReadyYjsDocumentState(
-  resource: Parameters<
-    typeof yjsDocumentResourceStore.acquireMount
-  >[0],
+  resource: Parameters<typeof yjsDocumentResourceStore.acquireMount>[0],
   cacheOutcome: YjsCacheOutcome
 ): UseReadyYjsDocumentResult {
   return {
@@ -80,7 +78,9 @@ function loadedReadyYjsDocumentState(
   };
 }
 
-function failedReadyYjsDocumentState(error: unknown): UseReadyYjsDocumentResult {
+function failedReadyYjsDocumentState(
+  error: unknown
+): UseReadyYjsDocumentResult {
   return {
     error: error instanceof Error ? error : new Error(String(error)),
     isLoading: false,
@@ -111,7 +111,7 @@ export function useReadyYjsDocument(
     [db, documentId, workspaceId, enabled]
   );
   const readInitialState = (): UseReadyYjsDocumentResult => {
-    if (!documentId || !enabled) {
+    if (!(documentId && enabled)) {
       return emptyReadyYjsDocumentState(false);
     }
     const cached = yjsDocumentResourceStore.get(db, documentId, workspaceId);
@@ -128,7 +128,7 @@ export function useReadyYjsDocument(
   useEffect(() => {
     const setState = (value: UseReadyYjsDocumentResult) =>
       setSnapshot({ identity, value });
-    if (!documentId || !enabled) {
+    if (!(documentId && enabled)) {
       setState(emptyReadyYjsDocumentState(false));
       return;
     }
@@ -155,7 +155,9 @@ export function useReadyYjsDocument(
     const start = async () => {
       try {
         await resource.ready;
-        if (!mounted || !resource.provider) return;
+        if (!(mounted && resource.provider)) {
+          return;
+        }
         resource.provider.setUserId(userId);
         setState(loadedReadyYjsDocumentState(resource, cacheOutcome));
       } catch (e) {

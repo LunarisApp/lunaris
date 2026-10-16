@@ -14,24 +14,24 @@ describe("renderer presence capabilities", () => {
       "example.board",
       { content: { kind: "yjs", storageId: "slot" } },
       owned,
-      () => {},
+      () => {}
     );
     capabilities["presence.open"]("one", { channel: "selection" });
     expect(() =>
-      capabilities["presence.open"]("one", { channel: "pointer" }),
+      capabilities["presence.open"]("one", { channel: "pointer" })
     ).toThrow("Duplicate");
     expect(owned.has("one")).toBe(true);
     expect(channels.open).toHaveBeenCalledTimes(1);
     capabilities["presence.update"]("one", null);
     expect(channels.update).toHaveBeenCalledWith("one", null);
     expect(() => capabilities["presence.update"]("foreign", null)).toThrow(
-      "scope",
+      "scope"
     );
     expect(() =>
       capabilities["presence.open"]("bad", {
         storageId: "foreign",
         clientId: 7,
-      }),
+      })
     ).toThrow("scope");
     capabilities["presence.close"]("foreign");
     expect(channels.close).not.toHaveBeenCalled();
@@ -51,10 +51,10 @@ describe("renderer presence capabilities", () => {
       "example.board",
       {},
       owned,
-      () => {},
+      () => {}
     );
     expect(() =>
-      capabilities["presence.open"]("one", { channel: "selection" }),
+      capabilities["presence.open"]("one", { channel: "selection" })
     ).toThrow("capacity");
     expect(owned.size).toBe(0);
   });
@@ -66,11 +66,11 @@ describe("renderer presence capabilities", () => {
       new Request(`${base}/v1/workspaces/w/resources/r/%70resence/ticket/`),
     ]) {
       expect(() => assertNoPresenceTicketRequest(input, base)).toThrow(
-        "host-only",
+        "host-only"
       );
     }
     expect(() =>
-      assertNoPresenceTicketRequest("/v1/workspaces/w/resources/r", base),
+      assertNoPresenceTicketRequest("/v1/workspaces/w/resources/r", base)
     ).not.toThrow();
   });
 });

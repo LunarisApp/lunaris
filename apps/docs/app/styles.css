@@ -1,80 +1,80 @@
 :root {
-	--lunaris-border: #deddd7;
-	--lunaris-muted: #66645d;
+  --lunaris-border: #deddd7;
+  --lunaris-muted: #66645d;
 }
 
 .dark {
-	--lunaris-border: #34332f;
-	--lunaris-muted: #a3a19a;
+  --lunaris-border: #34332f;
+  --lunaris-muted: #a3a19a;
 }
 
 html {
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .lunaris-logo {
-	display: inline-flex;
-	align-items: center;
-	font-weight: 650;
-	letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
 .lunaris-brand-link {
-	display: inline-flex;
-	gap: 0.5rem;
-	align-items: center;
-	color: inherit;
-	text-decoration: none;
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
 }
 
 .lunaris-brand-link,
 .lunaris-logo-section {
-	transition: opacity 150ms ease;
+  transition: opacity 150ms ease;
 }
 
 .lunaris-brand-link:hover,
 .lunaris-logo-section:hover {
-	opacity: 0.75;
+  opacity: 0.75;
 }
 
 .lunaris-brand-link:focus-visible,
 .lunaris-logo-section:focus-visible {
-	outline: 2px solid currentColor;
-	outline-offset: 0.25rem;
-	border-radius: 0.25rem;
+  outline: 2px solid currentColor;
+  outline-offset: 0.25rem;
+  border-radius: 0.25rem;
 }
 
 .lunaris-mark {
-	flex: none;
-	width: 1.25rem;
-	height: 1.25rem;
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .lunaris-mark-dark {
-	display: none;
+  display: none;
 }
 
 .dark .lunaris-mark-light {
-	display: none;
+  display: none;
 }
 
 .dark .lunaris-mark-dark {
-	display: block;
+  display: block;
 }
 
 .lunaris-logo-section {
-	padding-left: 0.5rem;
-	margin-left: 0.5rem;
-	font-weight: 500;
-	color: var(--lunaris-muted);
-	text-decoration: none;
-	border-left: 1px solid var(--lunaris-border);
+  padding-left: 0.5rem;
+  margin-left: 0.5rem;
+  font-weight: 500;
+  color: var(--lunaris-muted);
+  text-decoration: none;
+  border-left: 1px solid var(--lunaris-border);
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.lunaris-brand-link,
-	.lunaris-logo-section {
-		transition: none;
-	}
+  .lunaris-brand-link,
+  .lunaris-logo-section {
+    transition: none;
+  }
 }

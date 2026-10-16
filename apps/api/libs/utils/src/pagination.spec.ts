@@ -22,7 +22,7 @@ describe("pagination cursors", () => {
 
   it("rejects malformed cursors", () => {
     expect(() => decodeCursor("not-json", (value) => value)).toThrow(
-      "Invalid pagination cursor",
+      "Invalid pagination cursor"
     );
   });
 

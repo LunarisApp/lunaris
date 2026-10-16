@@ -1,4 +1,8 @@
-import { fileObjectsDb, storedFilesDb, uploadSessionsDb } from "../../files/file-storage.entity";
+import {
+  fileObjectsDb,
+  storedFilesDb,
+  uploadSessionsDb,
+} from "../../files/file-storage.entity";
 import { DatabaseService } from "@app/db";
 import type { DatabaseOrTx } from "@app/db/utils";
 import {
@@ -68,7 +72,7 @@ export class WorkspaceResourcesService {
   constructor(
     private readonly database: DatabaseService,
     private readonly entitlements: EntitlementsService,
-    private readonly files: FilesService,
+    private readonly files: FilesService
   ) {}
 
   async list(params: {
@@ -82,9 +86,12 @@ export class WorkspaceResourcesService {
       this.database.db,
       params.workspaceId,
       params.organizationId,
-      params.userId,
+      params.userId
     );
-    const cursor = decodeCursor(params.cursor, workspaceResourceCursorSchema.parse);
+    const cursor = decodeCursor(
+      params.cursor,
+      workspaceResourceCursorSchema.parse
+    );
     const cursorDate = cursor ? new Date(cursor.createdAt) : undefined;
     const filters = [
       eq(workspaceResourcesDb.workspaceId, params.workspaceId),
@@ -93,7 +100,7 @@ export class WorkspaceResourcesService {
         this.database.db
           .select({ id: workspaceResourceTrashDb.id })
           .from(workspaceResourceTrashDb)
-          .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)),
+          .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id))
       ),
     ];
     if (cursor && cursorDate) {
@@ -102,31 +109,34 @@ export class WorkspaceResourcesService {
           gt(workspaceResourcesDb.position, cursor.position),
           and(
             eq(workspaceResourcesDb.position, cursor.position),
-            gt(workspaceResourcesDb.createdAt, cursorDate),
+            gt(workspaceResourcesDb.createdAt, cursorDate)
           ),
           and(
             eq(workspaceResourcesDb.position, cursor.position),
             eq(workspaceResourcesDb.createdAt, cursorDate),
-            gt(workspaceResourcesDb.id, cursor.id),
-          ),
-        )!,
+            gt(workspaceResourcesDb.id, cursor.id)
+          )
+        )!
       );
     }
 
     const rows = await this.database.db
       .select(getTableColumns(workspaceResourcesDb))
       .from(workspaceResourcesDb)
-      .innerJoin(workspacesDb, eq(workspaceResourcesDb.workspaceId, workspacesDb.id))
+      .innerJoin(
+        workspacesDb,
+        eq(workspaceResourcesDb.workspaceId, workspacesDb.id)
+      )
       .where(and(...filters))
       .orderBy(
         asc(workspaceResourcesDb.position),
         asc(workspaceResourcesDb.createdAt),
-        asc(workspaceResourcesDb.id),
+        asc(workspaceResourcesDb.id)
       )
       .limit(params.limit + 1);
     const storage = await getStorageHandles(
       this.database.db,
-      rows.map((row) => row.id),
+      rows.map((row) => row.id)
     );
 
     return toPage({
@@ -145,13 +155,13 @@ export class WorkspaceResourcesService {
     resourceId: string,
     workspaceId: string,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     const resource = await this.find(
       resourceId,
       workspaceId,
       organizationId,
-      userId,
+      userId
     );
     const storage = await getStorageHandles(this.database.db, [resourceId]);
     return toWorkspaceResourceDto(resource, storage.get(resourceId));
@@ -161,10 +171,10 @@ export class WorkspaceResourcesService {
     input: CreateWorkspaceResourceInput,
     workspaceId: string,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     return this.database.db.transaction((tx) =>
-      this.createWithDb(tx, input, workspaceId, organizationId, userId),
+      this.createWithDb(tx, input, workspaceId, organizationId, userId)
     );
   }
 
@@ -173,14 +183,14 @@ export class WorkspaceResourcesService {
     input: CreateWorkspaceResourceInput,
     workspaceId: string,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     await assertWorkspaceAccess(
       db,
       workspaceId,
       organizationId,
       userId,
-      "write",
+      "write"
     );
     await this.entitlements.assertCanCreateResource(db, organizationId);
     const id = createId("res");
@@ -248,7 +258,7 @@ export class WorkspaceResourcesService {
     workspaceId: string,
     organizationId: string,
     expectedRevision?: string,
-    userId?: string,
+    userId?: string
   ) {
     return this.database.db.transaction(async (tx) => {
       await assertWorkspaceAccess(
@@ -256,7 +266,7 @@ export class WorkspaceResourcesService {
         workspaceId,
         organizationId,
         userId,
-        "write",
+        "write"
       );
       const resource = await getWorkspaceResource(tx, resourceId, {
         lock: true,
@@ -267,10 +277,11 @@ export class WorkspaceResourcesService {
       }
       if (
         expectedRevision &&
-        resource.updatedAt.toISOString() !== expectedRevision.replaceAll('"', "")
+        resource.updatedAt.toISOString() !==
+          expectedRevision.replaceAll('"', "")
       ) {
         throw new ConflictException(
-          "Resource revision does not match If-Match",
+          "Resource revision does not match If-Match"
         );
       }
 
@@ -290,8 +301,8 @@ export class WorkspaceResourcesService {
         .where(
           and(
             eq(workspaceResourcesDb.id, resourceId),
-            eq(workspaceResourcesDb.workspaceId, workspaceId),
-          ),
+            eq(workspaceResourcesDb.workspaceId, workspaceId)
+          )
         )
         .returning();
       const storage = await getStorageHandles(tx, [resourceId]);
@@ -303,10 +314,10 @@ export class WorkspaceResourcesService {
     resourceId: string,
     workspaceId: string,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     return this.database.db.transaction((tx) =>
-      this.trashWithDb(tx, resourceId, workspaceId, organizationId, userId),
+      this.trashWithDb(tx, resourceId, workspaceId, organizationId, userId)
     );
   }
 
@@ -316,9 +327,15 @@ export class WorkspaceResourcesService {
     workspaceId: string,
     organizationId: string,
     userId?: string,
-    expectedResourceTypeId?: string,
+    expectedResourceTypeId?: string
   ) {
-    await assertWorkspaceAccess(db, workspaceId, organizationId, userId, "write");
+    await assertWorkspaceAccess(
+      db,
+      workspaceId,
+      organizationId,
+      userId,
+      "write"
+    );
     const [root] = await db
       .select({
         id: workspaceResourcesDb.id,
@@ -333,9 +350,9 @@ export class WorkspaceResourcesService {
             db
               .select({ id: workspaceResourceTrashDb.id })
               .from(workspaceResourceTrashDb)
-              .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)),
-          ),
-        ),
+              .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id))
+          )
+        )
       );
     if (!root) {
       const [existingMarker] = await db
@@ -345,8 +362,8 @@ export class WorkspaceResourcesService {
           and(
             eq(workspaceResourceTrashDb.id, resourceId),
             eq(workspaceResourceTrashDb.workspaceId, workspaceId),
-            eq(workspaceResourceTrashDb.trashRootId, resourceId),
-          ),
+            eq(workspaceResourceTrashDb.trashRootId, resourceId)
+          )
         );
       if (existingMarker) {
         if (expectedResourceTypeId) {
@@ -362,12 +379,18 @@ export class WorkspaceResourcesService {
       }
       throw new NotFoundException("Workspace resource not found");
     }
-    if (expectedResourceTypeId && root.resourceTypeId !== expectedResourceTypeId) {
+    if (
+      expectedResourceTypeId &&
+      root.resourceTypeId !== expectedResourceTypeId
+    ) {
       throw new NotFoundException("Workspace resource not found");
     }
 
     const resources = await db
-      .select({ id: workspaceResourcesDb.id, parentId: workspaceResourcesDb.parentId })
+      .select({
+        id: workspaceResourcesDb.id,
+        parentId: workspaceResourcesDb.parentId,
+      })
       .from(workspaceResourcesDb)
       .where(eq(workspaceResourcesDb.workspaceId, workspaceId));
     const descendants = new Set([resourceId]);
@@ -390,7 +413,13 @@ export class WorkspaceResourcesService {
     for (const id of descendants) {
       await db
         .insert(workspaceResourceTrashDb)
-        .values({ id, workspaceId, trashRootId: resourceId, trashedAt: now, purgeAt })
+        .values({
+          id,
+          workspaceId,
+          trashRootId: resourceId,
+          trashedAt: now,
+          purgeAt,
+        })
         .onConflictDoUpdate({
           target: workspaceResourceTrashDb.id,
           set: {
@@ -409,10 +438,16 @@ export class WorkspaceResourcesService {
     resourceId: string,
     workspaceId: string,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     return this.database.db.transaction(async (tx) => {
-      await assertWorkspaceAccess(tx, workspaceId, organizationId, userId, "write");
+      await assertWorkspaceAccess(
+        tx,
+        workspaceId,
+        organizationId,
+        userId,
+        "write"
+      );
       const [marker] = await tx
         .select()
         .from(workspaceResourceTrashDb)
@@ -420,8 +455,8 @@ export class WorkspaceResourcesService {
           and(
             eq(workspaceResourceTrashDb.id, resourceId),
             eq(workspaceResourceTrashDb.workspaceId, workspaceId),
-            eq(workspaceResourceTrashDb.trashRootId, resourceId),
-          ),
+            eq(workspaceResourceTrashDb.trashRootId, resourceId)
+          )
         )
         .for("update");
       if (!marker) {
@@ -431,10 +466,12 @@ export class WorkspaceResourcesService {
           .where(
             and(
               eq(workspaceResourcesDb.id, resourceId),
-              eq(workspaceResourcesDb.workspaceId, workspaceId),
-            ),
+              eq(workspaceResourcesDb.workspaceId, workspaceId)
+            )
           );
-        if (activeResource) return { id: resourceId };
+        if (activeResource) {
+          return { id: resourceId };
+        }
         throw new NotFoundException("Trashed workspace resource not found");
       }
       if (marker.purgeAt <= new Date()) {
@@ -451,8 +488,8 @@ export class WorkspaceResourcesService {
           .where(
             and(
               eq(workspaceResourcesDb.id, root.parentId),
-              eq(workspaceResourcesDb.workspaceId, workspaceId),
-            ),
+              eq(workspaceResourcesDb.workspaceId, workspaceId)
+            )
           );
         const [parentTrash] = await tx
           .select({ id: workspaceResourceTrashDb.id })
@@ -470,9 +507,11 @@ export class WorkspaceResourcesService {
                   tx
                     .select({ id: workspaceResourceTrashDb.id })
                     .from(workspaceResourceTrashDb)
-                    .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)),
-                ),
-              ),
+                    .where(
+                      eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)
+                    )
+                )
+              )
             );
           await tx
             .update(workspaceResourcesDb)
@@ -491,8 +530,8 @@ export class WorkspaceResourcesService {
         .where(
           and(
             eq(workspaceResourceTrashDb.workspaceId, workspaceId),
-            eq(workspaceResourceTrashDb.trashRootId, resourceId),
-          ),
+            eq(workspaceResourceTrashDb.trashRootId, resourceId)
+          )
         );
       for (let index = 0; index < rows.length; index++) {
         await this.entitlements.assertCanCreateResource(tx, organizationId);
@@ -508,10 +547,16 @@ export class WorkspaceResourcesService {
     resourceId: string,
     workspaceId: string,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     const deletion = await this.database.db.transaction(async (tx) => {
-      await assertWorkspaceAccess(tx, workspaceId, organizationId, userId, "write");
+      await assertWorkspaceAccess(
+        tx,
+        workspaceId,
+        organizationId,
+        userId,
+        "write"
+      );
       const [marker] = await tx
         .select({ id: workspaceResourceTrashDb.id })
         .from(workspaceResourceTrashDb)
@@ -519,8 +564,8 @@ export class WorkspaceResourcesService {
           and(
             eq(workspaceResourceTrashDb.id, resourceId),
             eq(workspaceResourceTrashDb.workspaceId, workspaceId),
-            eq(workspaceResourceTrashDb.trashRootId, resourceId),
-          ),
+            eq(workspaceResourceTrashDb.trashRootId, resourceId)
+          )
         );
       if (!marker) {
         const [resource] = await tx
@@ -529,15 +574,21 @@ export class WorkspaceResourcesService {
           .where(
             and(
               eq(workspaceResourcesDb.id, resourceId),
-              eq(workspaceResourcesDb.workspaceId, workspaceId),
-            ),
+              eq(workspaceResourcesDb.workspaceId, workspaceId)
+            )
           );
         if (resource) {
           throw new NotFoundException("Trashed workspace resource not found");
         }
         return { fileBackings: [], id: resourceId };
       }
-      return this.purgeWithDb(tx, resourceId, workspaceId, organizationId, userId);
+      return this.purgeWithDb(
+        tx,
+        resourceId,
+        workspaceId,
+        organizationId,
+        userId
+      );
     });
     return this.finalizeDeletion(deletion, workspaceId, organizationId, userId);
   }
@@ -549,14 +600,23 @@ export class WorkspaceResourcesService {
     organizationId: string,
     userId?: string,
     expectedResourceTypeId?: string,
-    skipAccess = false,
+    skipAccess = false
   ) {
     await lockOrganizationCapacity(db, organizationId);
     if (!skipAccess) {
-      await assertWorkspaceAccess(db, workspaceId, organizationId, userId, "write");
+      await assertWorkspaceAccess(
+        db,
+        workspaceId,
+        organizationId,
+        userId,
+        "write"
+      );
     }
     const resources = await db
-      .select({ id: workspaceResourcesDb.id, parentId: workspaceResourcesDb.parentId })
+      .select({
+        id: workspaceResourcesDb.id,
+        parentId: workspaceResourcesDb.parentId,
+      })
       .from(workspaceResourcesDb)
       .where(eq(workspaceResourcesDb.workspaceId, workspaceId));
     const descendants = new Set([resourceId]);
@@ -582,8 +642,8 @@ export class WorkspaceResourcesService {
           .where(
             and(
               inArray(workspaceStorageSlotsDb.resourceId, ids),
-              eq(workspaceStorageSlotsDb.kind, "yjs"),
-            ),
+              eq(workspaceStorageSlotsDb.kind, "yjs")
+            )
           )
       : [];
     const fileSlots = ids.length
@@ -596,8 +656,8 @@ export class WorkspaceResourcesService {
           .where(
             and(
               inArray(workspaceStorageSlotsDb.resourceId, ids),
-              eq(workspaceStorageSlotsDb.kind, "file"),
-            ),
+              eq(workspaceStorageSlotsDb.kind, "file")
+            )
           )
       : [];
     const [resource] = await db
@@ -608,21 +668,25 @@ export class WorkspaceResourcesService {
           eq(workspaceResourcesDb.workspaceId, workspaceId),
           ...(expectedResourceTypeId
             ? [eq(workspaceResourcesDb.resourceTypeId, expectedResourceTypeId)]
-            : []),
-        ),
+            : [])
+        )
       )
       .returning({ id: workspaceResourcesDb.id });
-    if (!resource) throw new NotFoundException("Workspace resource not found");
+    if (!resource) {
+      throw new NotFoundException("Workspace resource not found");
+    }
     for (const backingId of new Set(yjsSlots.map((slot) => slot.backingId))) {
-      if (!backingId) continue;
+      if (!backingId) {
+        continue;
+      }
       const [reference] = await db
         .select({ id: workspaceStorageSlotsDb.id })
         .from(workspaceStorageSlotsDb)
         .where(
           and(
             eq(workspaceStorageSlotsDb.kind, "yjs"),
-            eq(workspaceStorageSlotsDb.backingId, backingId),
-          ),
+            eq(workspaceStorageSlotsDb.backingId, backingId)
+          )
         )
         .limit(1);
       if (!reference) {
@@ -631,7 +695,9 @@ export class WorkspaceResourcesService {
     }
     const fileBackings = new Map<string, FileBackingCleanup>();
     for (const { backingId, metadata } of fileSlots) {
-      if (!backingId) continue;
+      if (!backingId) {
+        continue;
+      }
       const [reference] = await db
         .select({ id: workspaceStorageSlotsDb.id })
         .from(workspaceStorageSlotsDb)
@@ -639,32 +705,73 @@ export class WorkspaceResourcesService {
           and(
             eq(workspaceStorageSlotsDb.kind, "file"),
             eq(workspaceStorageSlotsDb.backingId, backingId),
-            eq(workspaceStorageSlotsDb.workspaceId, workspaceId),
-          ),
+            eq(workspaceStorageSlotsDb.workspaceId, workspaceId)
+          )
         )
         .limit(1);
-      if (reference) continue;
+      if (reference) {
+        continue;
+      }
       const parsed = parseFileMetadata(metadata);
-      if (!parsed) continue;
-      const [stored] = await db.select({ key: storedFilesDb.objectKey }).from(storedFilesDb).where(and(
-        eq(storedFilesDb.organizationId, organizationId), eq(storedFilesDb.workspaceId, workspaceId), eq(storedFilesDb.fileId, backingId),
-      ));
+      if (!parsed) {
+        continue;
+      }
+      const [stored] = await db
+        .select({ key: storedFilesDb.objectKey })
+        .from(storedFilesDb)
+        .where(
+          and(
+            eq(storedFilesDb.organizationId, organizationId),
+            eq(storedFilesDb.workspaceId, workspaceId),
+            eq(storedFilesDb.fileId, backingId)
+          )
+        );
       if (stored) {
-        const [shared] = await db.select({ id: storedFilesDb.id }).from(storedFilesDb).where(and(
-          eq(storedFilesDb.objectKey, stored.key),
-          or(ne(storedFilesDb.workspaceId, workspaceId), ne(storedFilesDb.fileId, backingId)),
-        )).limit(1);
+        const [shared] = await db
+          .select({ id: storedFilesDb.id })
+          .from(storedFilesDb)
+          .where(
+            and(
+              eq(storedFilesDb.objectKey, stored.key),
+              or(
+                ne(storedFilesDb.workspaceId, workspaceId),
+                ne(storedFilesDb.fileId, backingId)
+              )
+            )
+          )
+          .limit(1);
         if (shared) {
-          await db.delete(storedFilesDb).where(and(eq(storedFilesDb.workspaceId, workspaceId),
-            eq(storedFilesDb.fileId, backingId), eq(storedFilesDb.organizationId, organizationId)));
+          await db
+            .delete(storedFilesDb)
+            .where(
+              and(
+                eq(storedFilesDb.workspaceId, workspaceId),
+                eq(storedFilesDb.fileId, backingId),
+                eq(storedFilesDb.organizationId, organizationId)
+              )
+            );
         } else {
-          await db.update(fileObjectsDb).set({ state: "pending_delete" }).where(eq(fileObjectsDb.key, stored.key));
+          await db
+            .update(fileObjectsDb)
+            .set({ state: "pending_delete" })
+            .where(eq(fileObjectsDb.key, stored.key));
         }
       }
-      await db.update(uploadSessionsDb).set({ state: "canceling" }).where(and(
-        eq(uploadSessionsDb.organizationId, organizationId), eq(uploadSessionsDb.workspaceId, workspaceId),
-        eq(uploadSessionsDb.fileId, backingId), inArray(uploadSessionsDb.state, ["creating", "uploading", "completing"]),
-      ));
+      await db
+        .update(uploadSessionsDb)
+        .set({ state: "canceling" })
+        .where(
+          and(
+            eq(uploadSessionsDb.organizationId, organizationId),
+            eq(uploadSessionsDb.workspaceId, workspaceId),
+            eq(uploadSessionsDb.fileId, backingId),
+            inArray(uploadSessionsDb.state, [
+              "creating",
+              "uploading",
+              "completing",
+            ])
+          )
+        );
       fileBackings.set(backingId, { backingId, ...parsed });
     }
     return { fileBackings: [...fileBackings.values()], id: resource.id };
@@ -674,7 +781,7 @@ export class WorkspaceResourcesService {
     resourceId: string,
     workspaceId: string,
     organizationId: string,
-    now = new Date(),
+    now = new Date()
   ) {
     const deletion = await this.database.db.transaction(async (tx) => {
       const [marker] = await tx
@@ -685,11 +792,13 @@ export class WorkspaceResourcesService {
             eq(workspaceResourceTrashDb.id, resourceId),
             eq(workspaceResourceTrashDb.workspaceId, workspaceId),
             eq(workspaceResourceTrashDb.trashRootId, resourceId),
-            sql`${workspaceResourceTrashDb.purgeAt} <= ${now}`,
-          ),
+            sql`${workspaceResourceTrashDb.purgeAt} <= ${now}`
+          )
         )
         .for("update", { skipLocked: true });
-      if (!marker) return null;
+      if (!marker) {
+        return null;
+      }
       return this.purgeWithDb(
         tx,
         resourceId,
@@ -697,10 +806,12 @@ export class WorkspaceResourcesService {
         organizationId,
         undefined,
         undefined,
-        true,
+        true
       );
     });
-    if (!deletion) return null;
+    if (!deletion) {
+      return null;
+    }
     return this.finalizeDeletion(deletion, workspaceId, organizationId);
   }
 
@@ -708,7 +819,7 @@ export class WorkspaceResourcesService {
     deletion: WorkspaceResourceDeletion,
     workspaceId: string,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     for (const backing of deletion.fileBackings) {
       try {
@@ -721,7 +832,9 @@ export class WorkspaceResourcesService {
           userId,
         });
       } catch (error) {
-        const logger = createLogger({ task: "workspace-resource-file-cleanup" });
+        const logger = createLogger({
+          task: "workspace-resource-file-cleanup",
+        });
         logger.error(
           error instanceof Error
             ? error
@@ -733,7 +846,7 @@ export class WorkspaceResourcesService {
               workspaceId,
               resourceId: deletion.id,
             },
-          },
+          }
         );
         logger.emit();
       }
@@ -745,12 +858,15 @@ export class WorkspaceResourcesService {
     resourceId: string,
     workspaceId: string,
     organizationId: string,
-    userId?: string,
+    userId?: string
   ) {
     const [resource] = await this.database.db
       .select(getTableColumns(workspaceResourcesDb))
       .from(workspaceResourcesDb)
-      .innerJoin(workspacesDb, eq(workspaceResourcesDb.workspaceId, workspacesDb.id))
+      .innerJoin(
+        workspacesDb,
+        eq(workspaceResourcesDb.workspaceId, workspacesDb.id)
+      )
       .where(
         and(
           eq(workspaceResourcesDb.id, resourceId),
@@ -760,19 +876,21 @@ export class WorkspaceResourcesService {
             this.database.db
               .select({ id: workspaceResourceTrashDb.id })
               .from(workspaceResourceTrashDb)
-              .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)),
-          ),
-        ),
+              .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id))
+          )
+        )
       )
       .limit(1);
-    if (!resource) throw new NotFoundException("Workspace resource not found");
+    if (!resource) {
+      throw new NotFoundException("Workspace resource not found");
+    }
     return resource;
   }
 }
 
 export function toWorkspaceResourceDto(
   resource: WorkspaceResourceRow,
-  storage: StorageHandles = emptyStorageHandles(),
+  storage: StorageHandles = emptyStorageHandles()
 ): WorkspaceResourceDto {
   return {
     createdAt: resource.createdAt.toISOString(),
@@ -786,16 +904,20 @@ export function toWorkspaceResourceDto(
     workspaceId: resource.workspaceId,
     storage,
     updatedAt: resource.updatedAt.toISOString(),
-    lastActivityAt: (resource.lastActivityAt ?? resource.updatedAt).toISOString(),
+    lastActivityAt: (
+      resource.lastActivityAt ?? resource.updatedAt
+    ).toISOString(),
   };
 }
 
 export async function getStorageHandles(
   db: DatabaseOrTx,
-  resourceIds: string[],
+  resourceIds: string[]
 ): Promise<Map<string, StorageHandles>> {
   const result = new Map<string, StorageHandles>();
-  if (resourceIds.length === 0) return result;
+  if (resourceIds.length === 0) {
+    return result;
+  }
   const slots = await db
     .select({
       id: workspaceStorageSlotsDb.id,
@@ -806,7 +928,9 @@ export async function getStorageHandles(
     .from(workspaceStorageSlotsDb)
     .where(inArray(workspaceStorageSlotsDb.resourceId, resourceIds));
   for (const slot of slots) {
-    if (!slot.resourceId || !isStorageKind(slot.kind)) continue;
+    if (!(slot.resourceId && isStorageKind(slot.kind))) {
+      continue;
+    }
     const handles = result.get(slot.resourceId) ?? emptyStorageHandles();
     handles[slot.name] = { kind: slot.kind, storageId: slot.id };
     result.set(slot.resourceId, handles);
@@ -823,7 +947,9 @@ function isStorageKind(value: string): value is StorageHandle["kind"] {
 }
 
 function parseFileMetadata(value: string | null) {
-  if (!value) return null;
+  if (!value) {
+    return null;
+  }
   try {
     const metadata = JSON.parse(value) as {
       fileExtension?: unknown;

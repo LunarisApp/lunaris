@@ -12,12 +12,12 @@ describe("entity references", () => {
     expect(findMentionTrigger("hello@example", 13)).toBeNull();
     const trigger = findMentionTrigger("Review @lau tomorrow", 11);
     expect(trigger).not.toBeNull();
-    expect(insertMention("Review @lau tomorrow", trigger!, "Launch plan")).toEqual(
-      {
-        caret: 20,
-        text: "Review @Launch plan tomorrow",
-      }
-    );
+    expect(
+      insertMention("Review @lau tomorrow", trigger!, "Launch plan")
+    ).toEqual({
+      caret: 20,
+      text: "Review @Launch plan tomorrow",
+    });
   });
 
   it("normalizes and deduplicates resources by stable identity", () => {

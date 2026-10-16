@@ -3,17 +3,14 @@ import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PowerSyncBoundary } from "./power-sync-boundary";
 
-const {
-  activate,
-  createPowerSyncSession,
-  release,
-  testState,
-} = vi.hoisted(() => ({
-  activate: vi.fn(),
-  createPowerSyncSession: vi.fn(),
-  release: vi.fn(),
-  testState: { organizationId: "organization-1", sessionId: "session-1" },
-}));
+const { activate, createPowerSyncSession, release, testState } = vi.hoisted(
+  () => ({
+    activate: vi.fn(),
+    createPowerSyncSession: vi.fn(),
+    release: vi.fn(),
+    testState: { organizationId: "organization-1", sessionId: "session-1" },
+  })
+);
 
 vi.mock("../runtime", () => ({
   useAppRuntime: () => ({ createPowerSyncSession }),
@@ -37,9 +34,12 @@ vi.mock("@repo/data/core", () => ({
 vi.mock("@repo/features/api", () => ({
   ApiProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
-vi.mock("@repo/features/debug-logging", () => ({ DebugLoggingSync: () => null }));
+vi.mock("@repo/features/debug-logging", () => ({
+  DebugLoggingSync: () => null,
+}));
 vi.mock("@repo/features/entitlements", () => ({
-  EntitlementsProvider: ({ children }: { children: React.ReactNode }) => children,
+  EntitlementsProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
 }));
 vi.mock("@repo/features/region", () => ({
   useRegionClients: () => ({
@@ -61,8 +61,12 @@ vi.mock("@repo/features/region", () => ({
     },
   }),
 }));
-vi.mock("@repo/features/loading", () => ({ LoaderView: () => <span>loading</span> }));
-vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+vi.mock("@repo/features/loading", () => ({
+  LoaderView: () => <span>loading</span>,
+}));
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
 
 vi.mock("@repo/auth/sync-access", () => ({
   resolveSyncAccess: () => "cloud",
@@ -98,7 +102,7 @@ describe("PowerSyncBoundary offline boot", () => {
     render(
       <PowerSyncBoundary>
         <span>editor</span>
-      </PowerSyncBoundary>,
+      </PowerSyncBoundary>
     );
 
     expect(await screen.findByText("editor")).toBeTruthy();
@@ -108,7 +112,7 @@ describe("PowerSyncBoundary offline boot", () => {
         regionId: "eu",
         sessionId: "session-1",
         userId: "user-1",
-      }),
+      })
     );
   });
 
@@ -120,7 +124,7 @@ describe("PowerSyncBoundary offline boot", () => {
         <PowerSyncBoundary>
           <span>editor</span>
         </PowerSyncBoundary>
-      </StrictMode>,
+      </StrictMode>
     );
 
     expect(await screen.findByText("editor")).toBeTruthy();
@@ -128,20 +132,22 @@ describe("PowerSyncBoundary offline boot", () => {
   });
 
   it("stops rendering the old database session during account changes", async () => {
-    let resolveNextSession: ((session: ReturnType<typeof createSession>) => void) | undefined;
+    let resolveNextSession:
+      | ((session: ReturnType<typeof createSession>) => void)
+      | undefined;
     createPowerSyncSession
       .mockResolvedValueOnce(createSession())
       .mockImplementationOnce(
         () =>
           new Promise((resolve) => {
             resolveNextSession = resolve;
-          }),
+          })
       );
 
     const view = render(
       <PowerSyncBoundary>
         <span>editor</span>
-      </PowerSyncBoundary>,
+      </PowerSyncBoundary>
     );
     expect(await screen.findByText("editor")).toBeTruthy();
 
@@ -149,13 +155,15 @@ describe("PowerSyncBoundary offline boot", () => {
     view.rerender(
       <PowerSyncBoundary>
         <span>editor</span>
-      </PowerSyncBoundary>,
+      </PowerSyncBoundary>
     );
 
     expect(screen.queryByText("editor")).toBeNull();
     expect(screen.getByText("loading")).toBeTruthy();
 
-    await waitFor(() => expect(createPowerSyncSession).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(createPowerSyncSession).toHaveBeenCalledTimes(2)
+    );
     resolveNextSession?.(createSession());
     expect(await screen.findByText("editor")).toBeTruthy();
   });
@@ -165,7 +173,7 @@ describe("PowerSyncBoundary offline boot", () => {
     const view = render(
       <PowerSyncBoundary>
         <span>editor</span>
-      </PowerSyncBoundary>,
+      </PowerSyncBoundary>
     );
     expect(await screen.findByText("editor")).toBeTruthy();
 
@@ -173,12 +181,14 @@ describe("PowerSyncBoundary offline boot", () => {
     view.rerender(
       <PowerSyncBoundary>
         <span>editor</span>
-      </PowerSyncBoundary>,
+      </PowerSyncBoundary>
     );
 
     expect(screen.queryByText("editor")).toBeNull();
     expect(screen.getByText("loading")).toBeTruthy();
-    await waitFor(() => expect(createPowerSyncSession).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(createPowerSyncSession).toHaveBeenCalledTimes(2)
+    );
     expect(await screen.findByText("editor")).toBeTruthy();
   });
 
@@ -192,7 +202,7 @@ describe("PowerSyncBoundary offline boot", () => {
     render(
       <PowerSyncBoundary>
         <span>editor</span>
-      </PowerSyncBoundary>,
+      </PowerSyncBoundary>
     );
 
     expect(await screen.findByText("errors.offlineUnlock.title")).toBeTruthy();
@@ -213,19 +223,21 @@ describe("PowerSyncBoundary offline boot", () => {
     render(
       <PowerSyncBoundary>
         <span>editor</span>
-      </PowerSyncBoundary>,
+      </PowerSyncBoundary>
     );
     await screen.findByText("errors.offlineUnlock.title");
     await waitFor(() =>
       expect(addEventListener).toHaveBeenCalledWith(
         "online",
-        expect.any(Function),
-      ),
+        expect.any(Function)
+      )
     );
 
     fireEvent(window, new Event("online"));
 
-    await waitFor(() => expect(createPowerSyncSession).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(createPowerSyncSession).toHaveBeenCalledTimes(2)
+    );
     expect(await screen.findByText("editor")).toBeTruthy();
   });
 });

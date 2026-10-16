@@ -13,8 +13,17 @@ vi.mock("@lunarisapp/ui/components/tooltip", () => ({
   TooltipContent: ({ children }: { children: ReactNode }) => (
     <span>{children}</span>
   ),
-  TooltipTrigger: ({ children, render }: { children: ReactNode; render: ReactNode }) => (
-    <>{render}{children}</>
+  TooltipTrigger: ({
+    children,
+    render,
+  }: {
+    children: ReactNode;
+    render: ReactNode;
+  }) => (
+    <>
+      {render}
+      {children}
+    </>
   ),
 }));
 

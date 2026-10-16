@@ -27,7 +27,9 @@ export function SettingsPage({ buildVersion, shell }: SettingsPageProps) {
   const isAnonymous = session?.user?.isAnonymous ?? false;
 
   useEffect(() => {
-    if (isPending) return;
+    if (isPending) {
+      return;
+    }
     void preloadSettingsData({
       auth,
       isAnonymous,
@@ -84,7 +86,7 @@ function DesktopSettingsPage({ buildVersion }: { buildVersion?: ReactNode }) {
         icon: HardDriveIcon,
         id: "local-data",
         label: t("settings.tabs.local-data"),
-      },
+      }
     );
     return items.map((item) => {
       const to = `/settings/${item.id}`;

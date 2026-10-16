@@ -27,7 +27,6 @@ import {
   updateKanbanTaskProperties,
 } from "@extension/kanban/mcp-runtime";
 import { RICH_TEXT_PLUGIN_ID } from "@extension/rich-text/constants";
-import { createId } from "@repo/utils";
 import {
   type RichTextDocumentOutput,
   richTextGetDocumentOperationInputSchema,
@@ -40,18 +39,8 @@ import {
   RICH_TEXT_BLOCK_GUIDE,
   RichTextMcpInputError,
 } from "@extension/rich-text/mcp-runtime-server";
-import {
-  and,
-  asc,
-  eq,
-  max,
-  notExists,
-} from "drizzle-orm";
-import {
-  type Doc,
-  encodeStateAsUpdateV2,
-  encodeStateVector,
-} from "yjs";
+import { and, asc, eq, max, notExists } from "drizzle-orm";
+import { type Doc, encodeStateAsUpdateV2, encodeStateVector } from "yjs";
 import {
   workspaceResourcesDb,
   workspaceResourceTrashDb,
@@ -60,10 +49,7 @@ import { workspaceStorageSlotsDb } from "../../../workspaces/storage/workspace-s
 import { member } from "../../../auth/auth.entity";
 import { WorkspaceResourcesService } from "../../../workspaces/resources/workspace-resources.service";
 import { assertWorkspaceAccess } from "../../../workspaces/core/workspace-access";
-import {
-  yjsDocumentsDb,
-  yjsDocumentUpdatesDb,
-} from "../../../yjs/yjs.entity";
+import { yjsDocumentsDb, yjsDocumentUpdatesDb } from "../../../yjs/yjs.entity";
 import { reconstructYjsDocument } from "../../../yjs/yjs-document-state";
 import { YjsDocumentsService } from "../../../yjs/yjs-documents.service";
 
@@ -92,7 +78,7 @@ export class BuiltInPluginOperationsService {
   constructor(
     private readonly database: DatabaseService,
     private readonly items: WorkspaceResourcesService,
-    private readonly yjs: YjsDocumentsService,
+    _yjs: YjsDocumentsService
   ) {}
 
   execute(params: PluginOperationParams): Promise<unknown> {
@@ -122,7 +108,7 @@ export class BuiltInPluginOperationsService {
         params,
         richTextReadMeOperationInputSchema,
         RICH_TEXT_BLOCK_GUIDE,
-        "Invalid Rich Text guide request",
+        "Invalid Rich Text guide request"
       );
     }
     if (
@@ -141,10 +127,10 @@ export class BuiltInPluginOperationsService {
   }
 
   private async getRichTextDocument(
-    params: PluginOperationContext,
+    params: PluginOperationContext
   ): Promise<RichTextDocumentOutput> {
     const parsed = richTextGetDocumentOperationInputSchema.safeParse(
-      params.input,
+      params.input
     );
     if (!parsed.success) {
       throw new BadRequestException("Invalid Rich Text document request");
@@ -154,17 +140,17 @@ export class BuiltInPluginOperationsService {
         tx,
         params.workspaceId,
         params.organizationId,
-        params.actorId,
+        params.actorId
       );
       const item = await this.loadRichTextResource(
         tx,
         params.workspaceId,
-        parsed.data.documentResourceId,
+        parsed.data.documentResourceId
       );
       const { doc, updatedAt } = await this.loadRichTextDocument(
         tx,
         params.workspaceId,
-        item.yjsBackingId,
+        item.yjsBackingId
       );
       try {
         return {
@@ -179,10 +165,10 @@ export class BuiltInPluginOperationsService {
   }
 
   private async updateRichTextDocument(
-    params: PluginOperationContext,
+    params: PluginOperationContext
   ): Promise<RichTextDocumentOutput> {
     const parsed = richTextUpdateDocumentOperationInputSchema.safeParse(
-      params.input,
+      params.input
     );
     if (!parsed.success) {
       throw new BadRequestException("Invalid Rich Text document update");
@@ -194,24 +180,25 @@ export class BuiltInPluginOperationsService {
         params.workspaceId,
         params.organizationId,
         params.actorId,
-        "write",
+        "write"
       );
       const item = await this.loadRichTextResource(
         tx,
         params.workspaceId,
         input.documentResourceId,
-        true,
+        true
       );
-      const { doc, yjsBackingId, updatedAt } =
-        await this.loadRichTextDocument(
-          tx,
-          params.workspaceId,
-          item.yjsBackingId,
-          true,
-        );
+      const { doc, yjsBackingId, updatedAt } = await this.loadRichTextDocument(
+        tx,
+        params.workspaceId,
+        item.yjsBackingId,
+        true
+      );
       try {
         if (updatedAt.toISOString() !== input.expectedRevision) {
-          throw new ConflictException("Rich Text document revision does not match");
+          throw new ConflictException(
+            "Rich Text document revision does not match"
+          );
         }
         const before = encodeStateVector(doc);
         const content = await this.replaceRichTextBlocks(doc, input.blocks);
@@ -239,7 +226,7 @@ export class BuiltInPluginOperationsService {
     params: PluginOperationContext,
     schema: PluginOperationInputSchema,
     guide: string,
-    invalidMessage: string,
+    invalidMessage: string
   ) {
     if (!schema.safeParse(params.input).success) {
       throw new BadRequestException(invalidMessage);
@@ -248,16 +235,16 @@ export class BuiltInPluginOperationsService {
       this.database.db,
       params.workspaceId,
       params.organizationId,
-      params.actorId,
+      params.actorId
     );
     return { guide };
   }
 
   private async getKanbanBoardProperties(
-    params: PluginOperationContext,
+    params: PluginOperationContext
   ): Promise<KanbanGetBoardPropertiesOutput> {
     const parsed = kanbanGetBoardPropertiesOperationInputSchema.safeParse(
-      params.input,
+      params.input
     );
     if (!parsed.success) {
       throw new BadRequestException("Invalid Kanban board property request");
@@ -268,17 +255,17 @@ export class BuiltInPluginOperationsService {
         tx,
         params.workspaceId,
         params.organizationId,
-        params.actorId,
+        params.actorId
       );
       const board = await this.loadKanbanBoard(
         tx,
         params.workspaceId,
-        parsed.data.boardId,
+        parsed.data.boardId
       );
       const { doc } = await this.loadKanbanDocument(
         tx,
         params.workspaceId,
-        board.yjsBackingId,
+        board.yjsBackingId
       );
       try {
         return {
@@ -292,7 +279,7 @@ export class BuiltInPluginOperationsService {
   }
 
   private async createKanbanTask(
-    params: PluginOperationContext,
+    params: PluginOperationContext
   ): Promise<KanbanCreateTaskOutput> {
     const parsed = kanbanCreateTaskOperationInputSchema.safeParse(params.input);
     if (!parsed.success) {
@@ -306,13 +293,13 @@ export class BuiltInPluginOperationsService {
         params.workspaceId,
         params.organizationId,
         params.actorId,
-        "write",
+        "write"
       );
       const board = await this.loadKanbanBoard(
         tx,
         params.workspaceId,
         input.boardId,
-        true,
+        true
       );
       let position = input.position;
       if (position === undefined) {
@@ -327,9 +314,11 @@ export class BuiltInPluginOperationsService {
                 tx
                   .select({ id: workspaceResourceTrashDb.id })
                   .from(workspaceResourceTrashDb)
-                  .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)),
-              ),
-            ),
+                  .where(
+                    eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)
+                  )
+              )
+            )
           );
         position = (placement?.position ?? -1) + 1;
       }
@@ -345,7 +334,7 @@ export class BuiltInPluginOperationsService {
         },
         params.workspaceId,
         params.organizationId,
-        params.actorId,
+        params.actorId
       );
       let properties: Record<string, KanbanPropertyValue> = {};
       if (input.properties && Object.keys(input.properties).length > 0) {
@@ -353,7 +342,7 @@ export class BuiltInPluginOperationsService {
           tx,
           params.workspaceId,
           board.yjsBackingId,
-          true,
+          true
         );
         try {
           const before = encodeStateVector(doc);
@@ -365,8 +354,8 @@ export class BuiltInPluginOperationsService {
               tx,
               params.organizationId,
               doc,
-              input.properties,
-            ),
+              input.properties
+            )
           );
           const now = new Date();
           await this.persistYjsUpdate(tx, {
@@ -393,7 +382,7 @@ export class BuiltInPluginOperationsService {
   }
 
   private async updateKanbanTask(
-    params: PluginOperationContext,
+    params: PluginOperationContext
   ): Promise<KanbanUpdateTaskOutput> {
     const parsed = kanbanUpdateTaskOperationInputSchema.safeParse(params.input);
     if (!parsed.success) {
@@ -401,14 +390,14 @@ export class BuiltInPluginOperationsService {
     }
     const input = parsed.data;
     const propertiesChanged = Object.keys(input.properties ?? {}).length > 0;
-    if (!input.name && !propertiesChanged) {
+    if (!(input.name || propertiesChanged)) {
       throw new BadRequestException(
-        "Task update requires a name or at least one property",
+        "Task update requires a name or at least one property"
       );
     }
     if (input.name && !input.expectedRevision) {
       throw new BadRequestException(
-        "expectedRevision is required when changing the task name",
+        "expectedRevision is required when changing the task name"
       );
     }
 
@@ -418,13 +407,13 @@ export class BuiltInPluginOperationsService {
         params.workspaceId,
         params.organizationId,
         params.actorId,
-        "write",
+        "write"
       );
       const board = await this.loadKanbanBoard(
         tx,
         params.workspaceId,
         input.boardId,
-        true,
+        true
       );
       const [task] = await tx
         .select()
@@ -437,9 +426,9 @@ export class BuiltInPluginOperationsService {
               tx
                 .select({ id: workspaceResourceTrashDb.id })
                 .from(workspaceResourceTrashDb)
-                .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)),
-            ),
-          ),
+                .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id))
+            )
+          )
         )
         .for("update")
         .limit(1);
@@ -461,7 +450,7 @@ export class BuiltInPluginOperationsService {
         tx,
         params.workspaceId,
         board.yjsBackingId,
-        true,
+        true
       );
       try {
         const before = encodeStateVector(doc);
@@ -473,8 +462,8 @@ export class BuiltInPluginOperationsService {
             tx,
             params.organizationId,
             doc,
-            input.properties,
-          ),
+            input.properties
+          )
         );
 
         const now = new Date();
@@ -498,8 +487,8 @@ export class BuiltInPluginOperationsService {
           .where(
             and(
               eq(workspaceResourcesDb.id, task.id),
-              eq(workspaceResourcesDb.workspaceId, params.workspaceId),
-            ),
+              eq(workspaceResourcesDb.workspaceId, params.workspaceId)
+            )
           )
           .returning({
             name: workspaceResourcesDb.name,
@@ -523,7 +512,7 @@ export class BuiltInPluginOperationsService {
     db: DatabaseOrTx,
     workspaceId: string,
     boardId: string,
-    lock = false,
+    lock = false
   ): Promise<PluginStorageResourceRow> {
     return this.loadPluginResource(
       db,
@@ -531,7 +520,7 @@ export class BuiltInPluginOperationsService {
       boardId,
       KANBAN_PLUGIN_ID,
       "Kanban board not found",
-      lock,
+      lock
     );
   }
 
@@ -539,7 +528,7 @@ export class BuiltInPluginOperationsService {
     db: DatabaseOrTx,
     workspaceId: string,
     documentResourceId: string,
-    lock = false,
+    lock = false
   ): Promise<PluginStorageResourceRow> {
     return this.loadPluginResource(
       db,
@@ -547,7 +536,7 @@ export class BuiltInPluginOperationsService {
       documentResourceId,
       RICH_TEXT_PLUGIN_ID,
       "Rich Text document not found",
-      lock,
+      lock
     );
   }
 
@@ -557,7 +546,7 @@ export class BuiltInPluginOperationsService {
     resourceId: string,
     resourceTypeId: string,
     notFoundMessage: string,
-    lock: boolean,
+    lock: boolean
   ): Promise<PluginStorageResourceRow> {
     const query = db
       .select()
@@ -570,9 +559,9 @@ export class BuiltInPluginOperationsService {
             db
               .select({ id: workspaceResourceTrashDb.id })
               .from(workspaceResourceTrashDb)
-              .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)),
-          ),
-        ),
+              .where(eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id))
+          )
+        )
       );
     const [item] = await (lock ? query.for("update") : query).limit(1);
     if (!item || item.resourceTypeId !== resourceTypeId) {
@@ -586,8 +575,8 @@ export class BuiltInPluginOperationsService {
           eq(workspaceStorageSlotsDb.workspaceId, workspaceId),
           eq(workspaceStorageSlotsDb.resourceId, resourceId),
           eq(workspaceStorageSlotsDb.name, "content"),
-          eq(workspaceStorageSlotsDb.kind, "yjs"),
-        ),
+          eq(workspaceStorageSlotsDb.kind, "yjs")
+        )
       )
       .limit(1);
     if (!content?.backingId) {
@@ -600,14 +589,14 @@ export class BuiltInPluginOperationsService {
     db: DatabaseOrTx,
     workspaceId: string,
     yjsBackingId: string,
-    lock = false,
+    lock = false
   ) {
     return this.loadPluginDocument(
       db,
       workspaceId,
       yjsBackingId,
       "Kanban board document not found",
-      lock,
+      lock
     );
   }
 
@@ -615,14 +604,14 @@ export class BuiltInPluginOperationsService {
     db: DatabaseOrTx,
     workspaceId: string,
     yjsBackingId: string,
-    lock = false,
+    lock = false
   ) {
     return this.loadPluginDocument(
       db,
       workspaceId,
       yjsBackingId,
       "Rich Text document content not found",
-      lock,
+      lock
     );
   }
 
@@ -631,7 +620,7 @@ export class BuiltInPluginOperationsService {
     workspaceId: string,
     yjsBackingId: string,
     notFoundMessage: string,
-    lock: boolean,
+    lock: boolean
   ) {
     const query = db
       .select({ id: yjsDocumentsDb.id, updatedAt: yjsDocumentsDb.updatedAt })
@@ -639,8 +628,8 @@ export class BuiltInPluginOperationsService {
       .where(
         and(
           eq(yjsDocumentsDb.id, yjsBackingId),
-          eq(yjsDocumentsDb.workspaceId, workspaceId),
-        ),
+          eq(yjsDocumentsDb.workspaceId, workspaceId)
+        )
       );
     const [document] = await (lock ? query.for("update") : query).limit(1);
     if (!document) {
@@ -652,12 +641,12 @@ export class BuiltInPluginOperationsService {
       .where(
         and(
           eq(yjsDocumentUpdatesDb.documentId, document.id),
-          eq(yjsDocumentUpdatesDb.workspaceId, workspaceId),
-        ),
+          eq(yjsDocumentUpdatesDb.workspaceId, workspaceId)
+        )
       )
       .orderBy(
         asc(yjsDocumentUpdatesDb.createdAt),
-        asc(yjsDocumentUpdatesDb.id),
+        asc(yjsDocumentUpdatesDb.id)
       );
     return {
       doc: reconstructYjsDocument(updates),
@@ -670,7 +659,7 @@ export class BuiltInPluginOperationsService {
     doc: Doc,
     taskId: string,
     properties: KanbanTaskProperties | undefined,
-    allowedPersonIds: ReadonlySet<string> | undefined,
+    allowedPersonIds: ReadonlySet<string> | undefined
   ): Record<string, KanbanPropertyValue> {
     try {
       return updateKanbanTaskProperties(doc, taskId, properties, {
@@ -686,7 +675,7 @@ export class BuiltInPluginOperationsService {
 
   private async getOrganizationMemberIds(
     db: DatabaseOrTx,
-    organizationId: string,
+    organizationId: string
   ): Promise<Set<string>> {
     const rows = await db
       .select({ userId: member.userId })
@@ -699,7 +688,7 @@ export class BuiltInPluginOperationsService {
     db: DatabaseOrTx,
     organizationId: string,
     doc: Doc,
-    properties: KanbanTaskProperties | undefined,
+    properties: KanbanTaskProperties | undefined
   ): Promise<Set<string> | undefined> {
     return kanbanTaskPropertiesIncludePeople(doc, properties)
       ? this.getOrganizationMemberIds(db, organizationId)
@@ -708,7 +697,7 @@ export class BuiltInPluginOperationsService {
 
   private async replaceRichTextBlocks(
     doc: Doc,
-    blocks: Parameters<typeof replaceRichTextDocument>[1],
+    blocks: Parameters<typeof replaceRichTextDocument>[1]
   ) {
     try {
       return await replaceRichTextDocument(doc, blocks);
@@ -729,7 +718,7 @@ export class BuiltInPluginOperationsService {
       yjsBackingId: string;
       workspaceId: string;
       updatedAt: Date;
-    },
+    }
   ): Promise<void> {
     await db.insert(yjsDocumentUpdatesDb).values({
       createdAt: params.updatedAt,

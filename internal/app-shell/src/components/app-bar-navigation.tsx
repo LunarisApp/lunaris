@@ -60,12 +60,14 @@ function AppToolButton({
   useHotkey(
     hotkey,
     () => {
-      if (tool.enabled) void navigate(target);
+      if (tool.enabled) {
+        void navigate(target);
+      }
     },
     {
       ...createHotkeyOptions(HOTKEYS[tool.hotkeyId], t),
       enabled: tool.enabled && tool.id === "agent-work",
-    },
+    }
   );
   const baseLabel = t(tool.labelKey);
   const label = tool.enabled
@@ -151,7 +153,7 @@ export function AppBarNavigation({
   useHotkey(
     homeHotkey,
     () => void navigate("/"),
-    createHotkeyOptions(HOTKEYS["open-home"], t),
+    createHotkeyOptions(HOTKEYS["open-home"], t)
   );
 
   return (
@@ -183,7 +185,10 @@ export function AppBarNavigation({
           key={tool.id}
           tool={{
             ...tool,
-            enabled: tool.enabled && (tool.id !== "agent-work" || (agentWorkAccess.allowed && !agentWorkAccess.pending)),
+            enabled:
+              tool.enabled &&
+              (tool.id !== "agent-work" ||
+                (agentWorkAccess.allowed && !agentWorkAccess.pending)),
           }}
         />
       ))}

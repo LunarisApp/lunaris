@@ -83,7 +83,7 @@ const enrichAudit = auditEnricher({
           }
           if (typeof auditContext?.userAgent === "string") {
             auditContext.userAgent = sanitizeAuditUserAgent(
-              auditContext.userAgent,
+              auditContext.userAgent
             );
           }
         },
@@ -152,11 +152,12 @@ const enrichAudit = auditEnricher({
       provide: APP_INTERCEPTOR,
       inject: [POSTHOG_CLIENT],
       useFactory: (posthog: PostHog | null) => {
-        if (!posthog)
+        if (!posthog) {
           return {
             intercept: (_: unknown, next: { handle: () => unknown }) =>
               next.handle(),
           };
+        }
         return new PostHogInterceptor(posthog, { captureExceptions: true });
       },
     },

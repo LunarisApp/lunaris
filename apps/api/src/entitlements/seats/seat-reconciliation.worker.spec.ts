@@ -8,7 +8,7 @@ function makeWorker(
     failed: 0,
     updated: 1,
   })),
-  unlockError?: Error,
+  unlockError?: Error
 ) {
   const query = mock(async (statement: string) => {
     if (statement.includes("pg_advisory_unlock") && unlockError) {
@@ -26,7 +26,9 @@ function makeWorker(
       },
     } as never,
     { reconcileAllMemberSeats } as never,
-    { reconcileSubscriptions: mock(async () => ({ checked: 2, failed: 0 })) } as never,
+    {
+      reconcileSubscriptions: mock(async () => ({ checked: 2, failed: 0 })),
+    } as never
   );
 
   return { query, reconcileAllMemberSeats, release, worker };
@@ -63,7 +65,7 @@ describe("SeatReconciliationWorker", () => {
     });
     const { query, release, worker } = makeWorker(
       true,
-      reconcileAllMemberSeats,
+      reconcileAllMemberSeats
     );
 
     await expect(worker.reconcile()).resolves.toBeUndefined();
@@ -75,11 +77,7 @@ describe("SeatReconciliationWorker", () => {
 
   it("destroys the pooled connection when advisory unlock fails", async () => {
     const unlockError = new Error("unlock failed");
-    const { release, worker } = makeWorker(
-      true,
-      undefined,
-      unlockError,
-    );
+    const { release, worker } = makeWorker(true, undefined, unlockError);
 
     await expect(worker.reconcile()).resolves.toBeUndefined();
 

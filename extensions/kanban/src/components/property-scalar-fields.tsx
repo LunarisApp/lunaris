@@ -49,16 +49,11 @@ export function DateField({
           <PropertyFieldButton
             appearance={appearance}
             aria-label={propertyName}
-            className={cn(
-              "h-7 min-w-28 justify-start",
-              className
-            )}
+            className={cn("h-7 min-w-28 justify-start", className)}
           />
         }
       >
-        {appearance === "composer" ? (
-          <PropertyTypeIcon type="date" />
-        ) : null}
+        {appearance === "composer" ? <PropertyTypeIcon type="date" /> : null}
         {value ? (
           <span className="truncate">
             {formatPropertyDate(value, i18n.language)}
@@ -74,7 +69,9 @@ export function DateField({
         <Calendar
           mode="single"
           onSelect={(date) => {
-            if (!date) return;
+            if (!date) {
+              return;
+            }
             onValueChange(time ? withLocalTime(date, time) : localDate(date));
           }}
           selected={selected}
@@ -85,7 +82,9 @@ export function DateField({
             className="h-7"
             disabled={!selected}
             onChange={(event) => {
-              if (!selected) return;
+              if (!selected) {
+                return;
+              }
               onValueChange(
                 event.target.value
                   ? withLocalTime(selected, event.target.value)
@@ -170,10 +169,14 @@ export function DraftField({
           onBlur={commit}
           onChange={(event) => {
             setDraft(event.target.value);
-            if (invalid) setInvalid(false);
+            if (invalid) {
+              setInvalid(false);
+            }
           }}
           onKeyDown={(event) => {
-            if (event.key === "Enter") event.currentTarget.blur();
+            if (event.key === "Enter") {
+              event.currentTarget.blur();
+            }
             if (event.key === "Escape") {
               skipNextCommit.current = true;
               setDraft(value);
@@ -193,7 +196,7 @@ export function DraftField({
         />
       </span>
       {invalid ? (
-        <span className="text-xs text-destructive" role="alert">
+        <span className="text-destructive text-xs" role="alert">
           {t("extensions.catalog.lunaris.kanban.validation.finiteNumber")}
         </span>
       ) : null}
@@ -202,7 +205,9 @@ export function DraftField({
 }
 
 function dateForPicker(value: string): Date {
-  if (value.includes("T")) return new Date(value);
+  if (value.includes("T")) {
+    return new Date(value);
+  }
   const [year, month, day] = value.split("-").map(Number);
   return new Date(year!, month! - 1, day);
 }

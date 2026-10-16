@@ -19,7 +19,7 @@ function createAppUrl(path: string) {
 
 export function createAccountSwitchNavigationState(
   userId: string | null | undefined,
-  enabled = true,
+  enabled = true
 ) {
   return enabled && userId
     ? { [ACCOUNT_SWITCH_TARGET_STATE_KEY]: userId }
@@ -27,7 +27,9 @@ export function createAccountSwitchNavigationState(
 }
 
 export function getAccountSwitchTargetUserId(state: unknown) {
-  if (!state || typeof state !== "object") return null;
+  if (!state || typeof state !== "object") {
+    return null;
+  }
   const value = (state as Record<string, unknown>)[
     ACCOUNT_SWITCH_TARGET_STATE_KEY
   ];
@@ -39,16 +41,20 @@ export function createLogoutNavigationState() {
 }
 
 export function isLogoutNavigationState(state: unknown) {
-  if (!state || typeof state !== "object") return false;
-  return (
-    (state as Record<string, unknown>)[LOGOUT_PENDING_STATE_KEY] === true
-  );
+  if (!state || typeof state !== "object") {
+    return false;
+  }
+  return (state as Record<string, unknown>)[LOGOUT_PENDING_STATE_KEY] === true;
 }
 
 function normalizeRedirectTo(redirectTo: string | null | undefined) {
   const candidate = redirectTo?.trim();
-  if (!candidate) return null;
-  if (!candidate.startsWith("/") || candidate.startsWith("//")) return null;
+  if (!candidate) {
+    return null;
+  }
+  if (!candidate.startsWith("/") || candidate.startsWith("//")) {
+    return null;
+  }
   return candidate;
 }
 
@@ -74,10 +80,12 @@ function getRedirectToValue(location: {
 
 export function appendRedirectToPath(
   path: string,
-  redirectTo: string | null | undefined,
+  redirectTo: string | null | undefined
 ) {
   const candidate = normalizeRedirectTo(redirectTo);
-  if (!candidate) return path;
+  if (!candidate) {
+    return path;
+  }
 
   const url = createAppUrl(path);
   url.searchParams.set(REDIRECT_TO_QUERY_PARAM, candidate);
@@ -90,10 +98,10 @@ export function buildAddAccountPath(
     hash: string;
     pathname: string;
     search: string;
-  },
+  }
 ) {
   const url = createAppUrl(
-    location ? buildAuthRedirectPath(authPath, location) : authPath,
+    location ? buildAuthRedirectPath(authPath, location) : authPath
   );
   url.searchParams.set(ADD_ACCOUNT_QUERY_PARAM, "true");
   return `${url.pathname}${url.search}${url.hash}`;
@@ -101,10 +109,12 @@ export function buildAddAccountPath(
 
 export function appendRedirectToUrl(
   url: string,
-  redirectTo: string | null | undefined,
+  redirectTo: string | null | undefined
 ) {
   const candidate = normalizeRedirectTo(redirectTo);
-  if (!candidate) return url;
+  if (!candidate) {
+    return url;
+  }
 
   const nextUrl = new URL(url);
   nextUrl.searchParams.set(REDIRECT_TO_QUERY_PARAM, candidate);
@@ -117,7 +127,7 @@ export function buildAuthRedirectPath(
     hash: string;
     pathname: string;
     search: string;
-  },
+  }
 ) {
   return appendRedirectToPath(authPath, getRedirectToValue(location));
 }
@@ -133,7 +143,9 @@ export function resolveRedirectTo({
 }) {
   const fallback = ensureRegion(fallbackPath, regionId);
   const candidate = normalizeRedirectTo(redirectTo);
-  if (!candidate) return fallback;
+  if (!candidate) {
+    return fallback;
+  }
 
   const url = createAppUrl(candidate);
   if (isAuthPath(url.pathname) && !POST_AUTH_PATHS.has(url.pathname)) {
@@ -146,8 +158,7 @@ export function resolveRedirectTo({
 export function useAuthRedirect() {
   const { pathWithRegion, region, urlWithRegion } = useRegion();
   const [searchParams] = useSearchParams();
-  const isAddingAccount =
-    searchParams.get(ADD_ACCOUNT_QUERY_PARAM) === "true";
+  const isAddingAccount = searchParams.get(ADD_ACCOUNT_QUERY_PARAM) === "true";
   const redirectTo = searchParams.get(REDIRECT_TO_QUERY_PARAM);
   const resolvedRedirectTo = resolveRedirectTo({
     fallbackPath: pathWithRegion("/"),
@@ -158,19 +169,19 @@ export function useAuthRedirect() {
   const pathWithRedirect = useCallback(
     (path: string) => {
       const url = createAppUrl(
-        appendRedirectToPath(pathWithRegion(path), redirectTo),
+        appendRedirectToPath(pathWithRegion(path), redirectTo)
       );
       if (isAddingAccount) {
         url.searchParams.set(ADD_ACCOUNT_QUERY_PARAM, "true");
       }
       return `${url.pathname}${url.search}${url.hash}`;
     },
-    [isAddingAccount, pathWithRegion, redirectTo],
+    [isAddingAccount, pathWithRegion, redirectTo]
   );
 
   const urlWithRedirect = useCallback(
     (url: string) => appendRedirectToUrl(urlWithRegion(url), redirectTo),
-    [redirectTo, urlWithRegion],
+    [redirectTo, urlWithRegion]
   );
 
   return {

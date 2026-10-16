@@ -58,6 +58,7 @@ function Viewport({
         <Row
           documentId={i === 0 ? documentId : undefined}
           id={`row-${i}`}
+          // biome-ignore lint/suspicious/noArrayIndexKey: Fixed placeholders or stateless rows; position is the intended identity.
           key={i}
           observer={observer}
         />
@@ -116,7 +117,9 @@ describe("viewport document preloading", () => {
     });
     expect(observe).toHaveBeenCalledTimes(1000);
     expect(preload).not.toHaveBeenCalled();
-    for (let i = 0; i < 8; i++) intersect(`row-${i}`, true);
+    for (let i = 0; i < 8; i++) {
+      intersect(`row-${i}`, true);
+    }
     expect(preload).toHaveBeenCalledTimes(8);
     expect(preload.mock.calls[0]![0]).toMatchObject({
       documentId: "doc-0",
@@ -127,8 +130,9 @@ describe("viewport document preloading", () => {
     intersect("row-0", false);
     expect(firstHandle.release).toHaveBeenCalledOnce();
     unmount();
-    for (const result of preload.mock.results)
+    for (const result of preload.mock.results) {
       expect(result.value.release).toHaveBeenCalledOnce();
+    }
     expect(disconnect).toHaveBeenCalled();
   });
 

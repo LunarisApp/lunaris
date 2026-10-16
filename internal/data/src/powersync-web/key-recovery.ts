@@ -20,7 +20,9 @@ export async function openDatabaseWithKeyRecovery<T>({
   try {
     return { database: await open(initialKey.key), key: initialKey };
   } catch (error) {
-    if (!isKeyMismatch(error)) throw error;
+    if (!isKeyMismatch(error)) {
+      throw error;
+    }
   }
 
   if (initialKey.source === "network") {
@@ -45,7 +47,9 @@ export async function openDatabaseWithKeyRecovery<T>({
         key: authoritativeKey,
       };
     } catch (error) {
-      if (!isKeyMismatch(error)) throw error;
+      if (!isKeyMismatch(error)) {
+        throw error;
+      }
     }
   }
 

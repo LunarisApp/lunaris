@@ -18,7 +18,7 @@ export const organizationDeletionsDb = pgTable(
   (table) => [
     index("organization_deletions_due_idx").on(
       table.completedAt,
-      table.purgeAfter,
+      table.purgeAfter
     ),
-  ],
+  ]
 );

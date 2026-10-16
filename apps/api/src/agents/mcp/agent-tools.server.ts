@@ -34,7 +34,7 @@ const handlersByServer = new WeakMap<
 
 export function createAgentToolsServer(
   client: LunarisControlClient,
-  options: AgentToolsServerOptions = {},
+  options: AgentToolsServerOptions = {}
 ) {
   const server = new McpServer({
     name: options.name ?? "lunaris",
@@ -47,25 +47,26 @@ export function createAgentToolsServer(
 
 export function registerAgentTools(
   server: McpServer,
-  client: LunarisControlClient,
+  client: LunarisControlClient
 ) {
   tool(
     server,
     "list_organizations",
     agentOperationContracts.list_organizations.input,
-    (input) => client.listOrganizations(input),
+    (input) => client.listOrganizations(input)
   );
   tool(
     server,
     "get_organization",
     agentOperationContracts.get_organization.input,
-    (input) => client.getOrganization(input.organizationId),
+    (input) => client.getOrganization(input.organizationId)
   );
   tool(
     server,
     "list_organization_members",
     agentOperationContracts.list_organization_members.input,
-    ({ organizationId, ...input }) => client.listOrganizationMembers(organizationId, input),
+    ({ organizationId, ...input }) =>
+      client.listOrganizationMembers(organizationId, input)
   );
   registerContentTools(server, client);
   tool(
@@ -77,8 +78,8 @@ export function registerAgentTools(
         input.organizationId,
         input.workspaceId,
         input.storageId,
-        input.stateVectorB64,
-      ),
+        input.stateVectorB64
+      )
   );
   tool(
     server,
@@ -88,8 +89,8 @@ export function registerAgentTools(
       client.listKeyValueStorage(
         input.organizationId,
         input.workspaceId,
-        input.storageId,
-      ),
+        input.storageId
+      )
   );
   tool(
     server,
@@ -99,8 +100,8 @@ export function registerAgentTools(
       client.getFileDownloadUrl(
         input.organizationId,
         input.workspaceId,
-        input.storageId,
-      ),
+        input.storageId
+      )
   );
 
   tool(
@@ -108,21 +109,23 @@ export function registerAgentTools(
     "update_organization",
     agentOperationContracts.update_organization.input,
     ({ idempotencyKey, organizationId, ...input }) =>
-      client.updateOrganization(organizationId, input, { idempotencyKey }),
+      client.updateOrganization(organizationId, input, { idempotencyKey })
   );
   tool(
     server,
     "create_workspace",
     agentOperationContracts.create_workspace.input,
     ({ idempotencyKey, organizationId, ...input }) =>
-      client.createWorkspace(organizationId, input, { idempotencyKey }),
+      client.createWorkspace(organizationId, input, { idempotencyKey })
   );
   tool(
     server,
     "update_workspace",
     agentOperationContracts.update_workspace.input,
     ({ idempotencyKey, workspaceId, organizationId, ...input }) =>
-      client.updateWorkspace(organizationId, workspaceId, input, { idempotencyKey }),
+      client.updateWorkspace(organizationId, workspaceId, input, {
+        idempotencyKey,
+      })
   );
   tool(
     server,
@@ -140,30 +143,37 @@ export function registerAgentTools(
           ? {}
           : { expectedParentResourceTypeId }),
         idempotencyKey,
-      }),
+      })
   );
   tool(
     server,
     "update_resource",
     agentOperationContracts.update_resource.input,
     ({ idempotencyKey, resourceId, workspaceId, organizationId, ...input }) =>
-      client.updateWorkspaceResource(organizationId, workspaceId, resourceId, input, {
-        idempotencyKey,
-      }),
+      client.updateWorkspaceResource(
+        organizationId,
+        workspaceId,
+        resourceId,
+        input,
+        {
+          idempotencyKey,
+        }
+      )
   );
   tool(
     server,
     "invite_organization_member",
     agentOperationContracts.invite_organization_member.input,
     ({ idempotencyKey, organizationId, ...input }) =>
-      client.inviteOrganizationMember(organizationId, input, { idempotencyKey }),
+      client.inviteOrganizationMember(organizationId, input, { idempotencyKey })
   );
 
   tool(
     server,
     "preview_delete_workspace",
     agentOperationContracts.preview_delete_workspace.input,
-    (input) => client.previewDeleteWorkspace(input.organizationId, input.workspaceId),
+    (input) =>
+      client.previewDeleteWorkspace(input.organizationId, input.workspaceId)
   );
   tool(
     server,
@@ -174,8 +184,8 @@ export function registerAgentTools(
         input.organizationId,
         input.workspaceId,
         input.previewToken,
-        { idempotencyKey: input.idempotencyKey },
-      ),
+        { idempotencyKey: input.idempotencyKey }
+      )
   );
   tool(
     server,
@@ -188,8 +198,8 @@ export function registerAgentTools(
         input.resourceId,
         input.expectedResourceTypeId
           ? { expectedResourceTypeId: input.expectedResourceTypeId }
-          : undefined,
-      ),
+          : undefined
+      )
   );
   tool(
     server,
@@ -206,15 +216,18 @@ export function registerAgentTools(
             ? { expectedResourceTypeId: input.expectedResourceTypeId }
             : {}),
           idempotencyKey: input.idempotencyKey,
-        },
-      ),
+        }
+      )
   );
   tool(
     server,
     "preview_remove_organization_member",
     agentOperationContracts.preview_remove_organization_member.input,
     (input) =>
-      client.previewRemoveOrganizationMember(input.organizationId, input.memberId),
+      client.previewRemoveOrganizationMember(
+        input.organizationId,
+        input.memberId
+      )
   );
   tool(
     server,
@@ -225,47 +238,50 @@ export function registerAgentTools(
         input.organizationId,
         input.memberId,
         input.previewToken,
-        { idempotencyKey: input.idempotencyKey },
-      ),
+        { idempotencyKey: input.idempotencyKey }
+      )
   );
   registerBuiltInPluginTools(server, client);
 }
 
-function registerContentTools(
-  server: McpServer,
-  client: LunarisContentClient,
-) {
+function registerContentTools(server: McpServer, client: LunarisContentClient) {
   tool(
     server,
     "list_workspaces",
     agentOperationContracts.list_workspaces.input,
-    ({ organizationId, ...input }) => client.listWorkspaces(organizationId, input),
+    ({ organizationId, ...input }) =>
+      client.listWorkspaces(organizationId, input)
   );
   tool(
     server,
     "get_workspace",
     agentOperationContracts.get_workspace.input,
-    (input) => client.getWorkspace(input.organizationId, input.workspaceId),
+    (input) => client.getWorkspace(input.organizationId, input.workspaceId)
   );
   tool(
     server,
     "list_resources",
     agentOperationContracts.list_resources.input,
     ({ workspaceId, organizationId, ...input }) =>
-      client.listWorkspaceResources(organizationId, workspaceId, input),
+      client.listWorkspaceResources(organizationId, workspaceId, input)
   );
   tool(
     server,
     "search_resources",
     agentOperationContracts.search_resources.input,
-    ({ organizationId, ...input }) => client.searchResources(organizationId, input),
+    ({ organizationId, ...input }) =>
+      client.searchResources(organizationId, input)
   );
   tool(
     server,
     "get_resource",
     agentOperationContracts.get_resource.input,
     (input) =>
-      client.getWorkspaceResource(input.organizationId, input.workspaceId, input.resourceId),
+      client.getWorkspaceResource(
+        input.organizationId,
+        input.workspaceId,
+        input.resourceId
+      )
   );
   tool(
     server,
@@ -275,21 +291,18 @@ function registerContentTools(
       client.getYjsStorageJson(
         input.organizationId,
         input.workspaceId,
-        input.storageId,
-      ),
+        input.storageId
+      )
   );
 }
 
 export function registerAgentResources(
   server: McpServer,
-  client: LunarisControlClient,
+  client: LunarisControlClient
 ) {
   for (const definition of agentResourceDefinitions) {
-    resource(
-      server,
-      definition.name,
-      definition.uriTemplate,
-      (variables) => readAgentResource(client, definition.operation, variables),
+    resource(server, definition.name, definition.uriTemplate, (variables) =>
+      readAgentResource(client, definition.operation, variables)
     );
   }
 }
@@ -297,7 +310,7 @@ export function registerAgentResources(
 function readAgentResource(
   client: LunarisControlClient,
   operation: AgentOperationId,
-  variables: Record<string, string>,
+  variables: Record<string, string>
 ) {
   const organizationId = requiredVariable(variables.organizationId);
   switch (operation) {
@@ -308,18 +321,18 @@ function readAgentResource(
     case "get_workspace":
       return client.getWorkspace(
         organizationId,
-        requiredVariable(variables.workspaceId),
+        requiredVariable(variables.workspaceId)
       );
     case "list_resources":
       return client.listWorkspaceResources(
         organizationId,
-        requiredVariable(variables.workspaceId),
+        requiredVariable(variables.workspaceId)
       );
     case "get_yjs_storage_json":
       return client.getYjsStorageJson(
         organizationId,
         requiredVariable(variables.workspaceId),
-        requiredVariable(variables.storageId),
+        requiredVariable(variables.storageId)
       );
     default:
       throw new Error(`Unsupported agent resource operation: ${operation}`);
@@ -330,7 +343,7 @@ function tool<Schema extends z.ZodObject>(
   server: McpServer,
   name: AgentOperationId,
   inputSchema: Schema,
-  handler: (input: z.output<Schema>) => Promise<unknown>,
+  handler: (input: z.output<Schema>) => Promise<unknown>
 ) {
   const handlers =
     handlersByServer.get(server) ??
@@ -341,8 +354,8 @@ function tool<Schema extends z.ZodObject>(
   const callback = (input: unknown) =>
     callTool(async () =>
       agentOperationContracts[name].output.parse(
-        await handler(input as z.output<Schema>),
-      ),
+        await handler(input as z.output<Schema>)
+      )
     );
   server.registerTool(
     name,
@@ -356,13 +369,13 @@ function tool<Schema extends z.ZodObject>(
       inputSchema,
       outputSchema: agentOperationContracts[name].output,
     },
-    callback as never,
+    callback as never
   );
 }
 
 function registerBuiltInPluginTools(
   server: McpServer,
-  client: LunarisControlClient,
+  client: LunarisControlClient
 ) {
   for (const definition of builtInPluginMcpTools) {
     if (isBuiltInPluginMcpProcedureTool(definition)) {
@@ -376,7 +389,7 @@ function registerBuiltInPluginTools(
 function registerBuiltInPluginProcedure(
   server: McpServer,
   client: LunarisControlClient,
-  definition: BuiltInPluginMcpProcedureTool,
+  definition: BuiltInPluginMcpProcedureTool
 ) {
   server.registerTool(
     definition.name,
@@ -416,23 +429,23 @@ function registerBuiltInPluginProcedure(
             definition.pluginId,
             definition.execution.operation,
             operationInput,
-            { idempotencyKey: parsedIdempotencyKey },
-          ),
+            { idempotencyKey: parsedIdempotencyKey }
+          )
         );
-      }),
+      })
   );
 }
 
 function registerBuiltInPluginOperation(
   server: McpServer,
-  definition: BuiltInPluginMcpOperationTool,
+  definition: BuiltInPluginMcpOperationTool
 ) {
   const operationId = definition.execution.operation;
   const operation = agentOperations[operationId];
   const handler = handlersByServer.get(server)?.get(operationId);
   if (!handler) {
     throw new Error(
-      `Extension MCP tool "${definition.name}" has no API handler for "${operationId}"`,
+      `Extension MCP tool "${definition.name}" has no API handler for "${operationId}"`
     );
   }
   server.registerTool(
@@ -451,18 +464,16 @@ function registerBuiltInPluginOperation(
       callTool(async () => {
         const operationInput = resolvePluginMcpInput(
           definition,
-          input as Record<string, unknown>,
+          input as Record<string, unknown>
         );
         const contract = agentOperationContracts[operationId];
         const parsedInput = contract.input.parse(operationInput);
         return contract.output.parse(await handler(parsedInput));
-      }),
+      })
   );
 }
 
-async function callTool(
-  run: () => Promise<unknown>,
-): Promise<CallToolResult> {
+async function callTool(run: () => Promise<unknown>): Promise<CallToolResult> {
   try {
     return result(await run());
   } catch (error) {
@@ -484,7 +495,7 @@ function resource(
   server: McpServer,
   name: string,
   template: string,
-  handler: (variables: Record<string, string>) => Promise<unknown>,
+  handler: (variables: Record<string, string>) => Promise<unknown>
 ) {
   server.registerResource(
     name,
@@ -493,13 +504,19 @@ function resource(
     async (uri, variables) => {
       const value = await handler(
         Object.fromEntries(
-          Object.entries(variables).map(([key, item]) => [key, String(item)]),
-        ),
+          Object.entries(variables).map(([key, item]) => [key, String(item)])
+        )
       );
       return {
-        contents: [{ mimeType: "application/json", text: JSON.stringify(value), uri: uri.href }],
+        contents: [
+          {
+            mimeType: "application/json",
+            text: JSON.stringify(value),
+            uri: uri.href,
+          },
+        ],
       };
-    },
+    }
   );
 }
 
@@ -518,8 +535,7 @@ function failure(error: unknown): CallToolResult {
     stringField(error, "code") ??
     stringField(response, "code") ??
     (status ? `HTTP_${status}` : "INTERNAL_ERROR");
-  const details =
-    field(error, "details") ?? field(response, "details");
+  const details = field(error, "details") ?? field(response, "details");
   const responseMessage = field(response, "message");
   const message =
     typeof responseMessage === "string"
@@ -543,7 +559,9 @@ function failure(error: unknown): CallToolResult {
 }
 
 function errorResponse(error: unknown) {
-  if (typeof error !== "object" || error === null) return;
+  if (typeof error !== "object" || error === null) {
+    return;
+  }
   const getResponse = (error as { getResponse?: unknown }).getResponse;
   return typeof getResponse === "function"
     ? getResponse.call(error)
@@ -551,7 +569,9 @@ function errorResponse(error: unknown) {
 }
 
 function field(value: unknown, key: string) {
-  if (typeof value !== "object" || value === null) return;
+  if (typeof value !== "object" || value === null) {
+    return;
+  }
   return (value as Record<string, unknown>)[key];
 }
 
@@ -561,7 +581,9 @@ function stringField(value: unknown, key: string) {
 }
 
 function errorStatus(error: unknown) {
-  if (typeof error !== "object" || error === null) return undefined;
+  if (typeof error !== "object" || error === null) {
+    return;
+  }
   const candidate = error as {
     getStatus?: () => unknown;
     status?: unknown;
@@ -570,7 +592,7 @@ function errorStatus(error: unknown) {
   const status =
     typeof candidate.getStatus === "function"
       ? candidate.getStatus()
-      : candidate.status ?? candidate.statusCode;
+      : (candidate.status ?? candidate.statusCode);
   return typeof status === "number" ? status : undefined;
 }
 
@@ -582,7 +604,9 @@ function asObject(value: unknown): Record<string, unknown> {
 }
 
 function requiredVariable(value: string | undefined) {
-  if (!value) throw new Error("Resource URI variable is missing");
+  if (!value) {
+    throw new Error("Resource URI variable is missing");
+  }
   return value;
 }
 
@@ -594,10 +618,15 @@ function requiredInputString(value: unknown, name: string) {
 }
 
 function summary(value: unknown) {
-  if (typeof value !== "object" || value === null) return String(value);
+  if (typeof value !== "object" || value === null) {
+    return String(value);
+  }
   if ("items" in value && Array.isArray(value.items)) {
     return `${value.items.length} result${value.items.length === 1 ? "" : "s"}`;
   }
   const record = value as Record<string, unknown>;
-  return [record.name, record.id, record.storageId].filter(Boolean).join(" · ") || "OK";
+  return (
+    [record.name, record.id, record.storageId].filter(Boolean).join(" · ") ||
+    "OK"
+  );
 }

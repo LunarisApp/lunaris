@@ -23,10 +23,12 @@ export class PowerSyncSessionCoordinator {
   release(creation: Promise<PowerSyncSession>) {
     const cleanup = creation.then(
       async (created) => {
-        if (this.activeSession === created) this.activeSession = null;
+        if (this.activeSession === created) {
+          this.activeSession = null;
+        }
         await created.close();
       },
-      () => undefined,
+      () => undefined
     );
     this.transition = cleanup;
     void cleanup.catch(() => undefined);

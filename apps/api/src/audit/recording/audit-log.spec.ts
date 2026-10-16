@@ -24,9 +24,9 @@ describe("recordComplianceAudit", () => {
     recordComplianceAudit(mockEvlogLogger as never, input);
     recordComplianceAudit(mockEvlogLogger as never, input);
 
-    const calls = mockEvlogLogger.set.mock.calls as unknown as Array<
-      [{ audit: { idempotencyKey: string } }]
-    >;
+    const calls = mockEvlogLogger.set.mock.calls as unknown as [
+      { audit: { idempotencyKey: string } },
+    ][];
     const keys = calls.map(([event]) => event.audit.idempotencyKey);
     expect(keys).toHaveLength(2);
     expect(keys[0]).not.toBe(keys[1]);
@@ -36,12 +36,12 @@ describe("recordComplianceAudit", () => {
     recordComplianceAudit(
       mockEvlogLogger as never,
       input,
-      "Rejected account owner@example.com",
+      "Rejected account owner@example.com"
     );
 
     expect(mockEvlogLogger.audit.deny).toHaveBeenCalledWith(
       "Rejected account [email]",
-      expect.objectContaining({ action: "workspace.updated" }),
+      expect.objectContaining({ action: "workspace.updated" })
     );
   });
 });
@@ -63,7 +63,7 @@ describe("recordStandaloneComplianceAudit", () => {
 
     expect(captured.events).toHaveLength(2);
     expect(captured.events[0]?.idempotencyKey).not.toBe(
-      captured.events[1]?.idempotencyKey,
+      captured.events[1]?.idempotencyKey
     );
   });
 
@@ -74,7 +74,7 @@ describe("recordStandaloneComplianceAudit", () => {
     });
 
     expect(captured.assertAudit({ action: input.action }).reason).toBe(
-      "Rejected account [email]",
+      "Rejected account [email]"
     );
   });
 });

@@ -94,21 +94,20 @@ const EMPTY_MANIFEST_RESOLUTION: ManifestResolution = {
 
 function getReleaseFingerprint(
   manifest: PluginManifest,
-  iconSha256: string | null,
+  iconSha256: string | null
 ): string {
   return JSON.stringify([manifest, iconSha256]);
 }
 
 function bytesToDataUrl(value: Uint8Array, resource: string): string {
   let binary = "";
-  for (const byte of value) binary += String.fromCharCode(byte);
+  for (const byte of value) {
+    binary += String.fromCharCode(byte);
+  }
   return `data:${resource};base64,${btoa(binary)}`;
 }
 
-function releaseIcon(
-  value: Uint8Array,
-  resource: string,
-): PluginIconSource {
+function releaseIcon(value: Uint8Array, resource: string): PluginIconSource {
   return createElement(
     "svg",
     { viewBox: "0 0 24 24" },
@@ -116,12 +115,12 @@ function releaseIcon(
       height: 24,
       href: bytesToDataUrl(value, resource),
       width: 24,
-    }),
+    })
   );
 }
 
 function getCatalogSignature(
-  catalogs: Record<string, ExtensionMarketplace>,
+  catalogs: Record<string, ExtensionMarketplace>
 ): string {
   return JSON.stringify(catalogs);
 }
@@ -131,7 +130,9 @@ export function getAvailablePluginRegistry(): AvailablePluginRegistry {
   const extensionMetadata: Record<string, PluginMetadata> = {};
   for (const pluginId of allExtensionIds) {
     const metadata = PLUGIN_METADATA[pluginId];
-    if (metadata) extensionMetadata[pluginId] = metadata;
+    if (metadata) {
+      extensionMetadata[pluginId] = metadata;
+    }
   }
 
   return {
@@ -144,24 +145,27 @@ export function getAvailablePluginRegistry(): AvailablePluginRegistry {
     loadPlugins: loadBundledPlugins,
     refreshWorkspaceExtensions: async () => undefined,
     extensionAvailability: Object.fromEntries(
-      allExtensionIds.map((id) => [id, "available" as const]),
+      allExtensionIds.map((id) => [id, "available" as const])
     ),
     extensionManifests: Object.fromEntries(
       allExtensionIds.flatMap((id) => {
         const manifest = PLUGIN_MANIFESTS[id];
         return manifest ? [[id, manifest]] : [];
-      }),
+      })
     ),
     extensionMetadata,
     runtimeRevisions: Object.fromEntries(
-      allExtensionIds.map((id) => [id, `bundled:${PLUGIN_MANIFESTS[id]?.version ?? "unknown"}`]),
+      allExtensionIds.map((id) => [
+        id,
+        `bundled:${PLUGIN_MANIFESTS[id]?.version ?? "unknown"}`,
+      ])
     ),
     unloadPlugin: () => undefined,
   };
 }
 
 export function useAvailablePluginRegistry(
-  workspaceId?: string,
+  workspaceId?: string
 ): AvailablePluginRegistry & {
   pending: boolean;
 } {
@@ -176,12 +180,13 @@ export function useAvailablePluginRegistry(
         const installation = toWorkspaceExtensionInstallation(row);
         return installation ? [installation] : [];
       }),
-    [installationRows.data],
+    [installationRows.data]
   );
   const installations = { ...installationRows, data: installationData };
   const registries = useOrganizationExtensionRegistriesQuery(organization?.id);
-  const [catalogResolution, setCatalogResolution] =
-    useState<CatalogResolution>(EMPTY_CATALOG_RESOLUTION);
+  const [catalogResolution, setCatalogResolution] = useState<CatalogResolution>(
+    EMPTY_CATALOG_RESOLUTION
+  );
 
   const [manifestResolution, setManifestResolution] =
     useState<ManifestResolution>(EMPTY_MANIFEST_RESOLUTION);
@@ -201,23 +206,25 @@ export function useAvailablePluginRegistry(
       (installations.data ?? [])
         .filter(
           (installation) =>
-            !bundled.allExtensionIds.includes(installation.extensionId),
+            !bundled.allExtensionIds.includes(installation.extensionId)
         )
         .map(
           (installation) =>
-            `${installation.registryId}:${installation.extensionId}@${installation.version}:${installation.descriptorSha256 ?? "catalog"}`,
+            `${installation.registryId}:${installation.extensionId}@${installation.version}:${installation.descriptorSha256 ?? "catalog"}`
         )
         .join("|"),
-    [bundled.allExtensionIds, installations.data],
+    [bundled.allExtensionIds, installations.data]
   );
-  const directoryPending = externalInstallationKey !== "" &&
-    registries.isLoading === true && !registries.data?.length;
+  const directoryPending =
+    externalInstallationKey !== "" &&
+    registries.isLoading === true &&
+    !registries.data?.length;
   const marketplaceUrlKey =
     (registries.data ?? []).map((registry) => registry.manifestUrl).join("|") ||
     OFFICIAL_EXTENSION_MARKETPLACE_URL;
   const marketplaceUrls = useMemo(
     () => marketplaceUrlKey.split("|"),
-    [marketplaceUrlKey],
+    [marketplaceUrlKey]
   );
   const catalogLoadKey = `${externalInstallationKey}::${marketplaceUrls.join("|")}`;
   const catalogPending =
@@ -244,31 +251,41 @@ export function useAvailablePluginRegistry(
               catalogs: value,
               installationKey: catalogLoadKey,
               signature,
-            },
+            }
       );
     };
     const refresh = () => {
-      if (!platform.network.isOnline()) return;
+      if (!platform.network.isOnline()) {
+        return;
+      }
       void Promise.all(
         marketplaceUrls.map(async (url) => {
           try {
-            return [url, await fetchPluginCatalog(platform.plugins, url)] as const;
+            return [
+              url,
+              await fetchPluginCatalog(platform.plugins, url),
+            ] as const;
           } catch (error) {
             log.warn({
               action: "plugin.marketplace.load",
               outcome: "failure",
               error: parseError(error),
             });
-            return [url, await readCachedPluginCatalog(platform.plugins, url)] as const;
+            return [
+              url,
+              await readCachedPluginCatalog(platform.plugins, url),
+            ] as const;
           }
-        }),
+        })
       )
         .then((results) => {
-          if (cancelled) return;
+          if (cancelled) {
+            return;
+          }
           applyCatalog(
             Object.fromEntries(
-              results.flatMap(([url, value]) => (value ? [[url, value]] : [])),
-            ),
+              results.flatMap(([url, value]) => (value ? [[url, value]] : []))
+            )
           );
           setCatalogRefresh((value) => value + 1);
         })
@@ -281,7 +298,7 @@ export function useAvailablePluginRegistry(
                     catalogs: {},
                     installationKey: catalogLoadKey,
                     signature: "",
-                  },
+                  }
             );
             log.warn({
               action: "plugin.catalog.load",
@@ -292,16 +309,18 @@ export function useAvailablePluginRegistry(
         });
     };
     void Promise.all(
-      marketplaceUrls.map(async (url) => [
-        url,
-        await readCachedPluginCatalog(platform.plugins, url),
-      ] as const),
+      marketplaceUrls.map(
+        async (url) =>
+          [url, await readCachedPluginCatalog(platform.plugins, url)] as const
+      )
     ).then((cached) => {
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
       applyCatalog(
         Object.fromEntries(
-          cached.flatMap(([url, value]) => (value ? [[url, value]] : [])),
-        ),
+          cached.flatMap(([url, value]) => (value ? [[url, value]] : []))
+        )
       );
       refresh();
     });
@@ -312,9 +331,18 @@ export function useAvailablePluginRegistry(
       window.clearInterval(interval);
       unsubscribe();
     };
-  }, [catalogLoadKey, directoryPending, externalInstallationKey, marketplaceUrls, platform.network, platform.plugins]);
+  }, [
+    catalogLoadKey,
+    directoryPending,
+    externalInstallationKey,
+    marketplaceUrls,
+    platform.network,
+    platform.plugins,
+  ]);
 
-  const catalogByRegistryId = useMemo<Record<string, ExtensionMarketplace | null>>(
+  const catalogByRegistryId = useMemo<
+    Record<string, ExtensionMarketplace | null>
+  >(
     () => ({
       [OFFICIAL_MARKETPLACE_ID]:
         catalogs[OFFICIAL_EXTENSION_MARKETPLACE_URL] ?? null,
@@ -322,33 +350,35 @@ export function useAvailablePluginRegistry(
         (registries.data ?? []).map((registry) => [
           registry.id,
           catalogs[registry.manifestUrl] ?? null,
-        ]),
+        ])
       ),
     }),
-    [catalogs, registries.data],
+    [catalogs, registries.data]
   );
   const external = useMemo(
-    () => directoryPending ? [] :
-      (installations.data ?? []).flatMap((installation) =>
-        resolveExternalInstallations({
-          bundledPluginIds: bundled.allExtensionIds,
-          catalog: catalogByRegistryId[installation.registryId] ?? null,
-          installations: [installation],
-          online,
-        }),
-      ),
+    () =>
+      directoryPending
+        ? []
+        : (installations.data ?? []).flatMap((installation) =>
+            resolveExternalInstallations({
+              bundledPluginIds: bundled.allExtensionIds,
+              catalog: catalogByRegistryId[installation.registryId] ?? null,
+              installations: [installation],
+              online,
+            })
+          ),
     [
       bundled.allExtensionIds,
       directoryPending,
       catalogByRegistryId,
       installations.data,
       online,
-    ],
+    ]
   );
 
   const activeExternal = useMemo(
     () => external.filter(isLoadableExternalInstallation),
-    [external],
+    [external]
   );
 
   const externalManifestKey = useMemo(
@@ -356,13 +386,14 @@ export function useAvailablePluginRegistry(
       activeExternal
         .map(
           ({ installation, version }) =>
-            `${installation.extensionId}@${installation.version}:${version.descriptor.sha256}`,
+            `${installation.extensionId}@${installation.version}:${version.descriptor.sha256}`
         )
         .join("|"),
-    [activeExternal],
+    [activeExternal]
   );
   const externalManifestsPending =
-    externalManifestKey !== "" && manifestResolution.key !== externalManifestKey;
+    externalManifestKey !== "" &&
+    manifestResolution.key !== externalManifestKey;
 
   useEffect(() => {
     if (!externalManifestKey) {
@@ -381,7 +412,7 @@ export function useAvailablePluginRegistry(
               version: installation.version,
             },
             platform.plugins,
-            { allowNetwork: online },
+            { allowNetwork: online }
           );
           if (descriptor.status !== "active") {
             blockedExternalKeys.current.add(cacheKey);
@@ -396,13 +427,13 @@ export function useAvailablePluginRegistry(
           blockedExternalKeys.current.delete(cacheKey);
           const icon = descriptor.icon
             ? await loadExternalPluginIcon(descriptor, platform.plugins).catch(
-                () => null,
+                () => null
               )
             : null;
           return {
             fingerprint: getReleaseFingerprint(
               descriptor.manifest,
-              icon ? descriptor.icon?.sha256 ?? null : null,
+              icon ? (descriptor.icon?.sha256 ?? null) : null
             ),
             icon: icon
               ? releaseIcon(icon, descriptor.icon?.resource ?? "image/png")
@@ -411,7 +442,7 @@ export function useAvailablePluginRegistry(
             manifest: descriptor.manifest,
           };
         } catch {
-          if (!cancelled && !online) {
+          if (!(cancelled || online)) {
             setLoadFailures((current) => ({
               ...current,
               [cacheKey]: "missing-offline-cache",
@@ -419,25 +450,31 @@ export function useAvailablePluginRegistry(
           }
           return null;
         }
-      }),
+      })
     ).then((entries) => {
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
       setManifestResolution({
         fingerprints: Object.fromEntries(
-          entries.filter(
-            (entry): entry is NonNullable<typeof entry> => entry !== null,
-          ).map((entry) => [entry.id, entry.fingerprint]),
+          entries
+            .filter(
+              (entry): entry is NonNullable<typeof entry> => entry !== null
+            )
+            .map((entry) => [entry.id, entry.fingerprint])
         ),
         key: externalManifestKey,
         manifests: Object.fromEntries(
-          entries.filter(
-            (entry): entry is NonNullable<typeof entry> => entry !== null,
-          ).map((entry) => [entry.id, entry.manifest]),
+          entries
+            .filter(
+              (entry): entry is NonNullable<typeof entry> => entry !== null
+            )
+            .map((entry) => [entry.id, entry.manifest])
         ),
         icons: Object.fromEntries(
           entries.flatMap((entry) =>
-            entry?.icon ? [[entry.id, entry.icon]] : [],
-          ),
+            entry?.icon ? [[entry.id, entry.icon]] : []
+          )
         ),
       });
     });
@@ -449,24 +486,24 @@ export function useAvailablePluginRegistry(
   const externalById = useMemo(
     () =>
       new Map(
-        activeExternal.map((item) => [item.installation.extensionId, item]),
+        activeExternal.map((item) => [item.installation.extensionId, item])
       ),
-    [activeExternal],
+    [activeExternal]
   );
   const installedExternalById = useMemo(
     () =>
       new Map(external.map((item) => [item.installation.extensionId, item])),
-    [external],
+    [external]
   );
   const allowed = useMemo(
     () =>
       new Set(
         activeExternal.map(
           ({ installation }) =>
-            `${installation.extensionId}@${installation.registryId}:${installation.version}:${installation.descriptorSha256 ?? "catalog"}`,
-        ),
+            `${installation.extensionId}@${installation.registryId}:${installation.version}:${installation.descriptorSha256 ?? "catalog"}`
+        )
       ),
-    [activeExternal],
+    [activeExternal]
   );
   allowedExternalKeys.current = allowed;
 
@@ -474,13 +511,17 @@ export function useAvailablePluginRegistry(
     mounted.current = true;
     return () => {
       mounted.current = false;
-      for (const plugin of loaded.current.values()) plugin.dispose();
+      for (const plugin of loaded.current.values()) {
+        plugin.dispose();
+      }
       loaded.current.clear();
     };
   }, []);
 
   useEffect(() => {
-    if (!online) return;
+    if (!online) {
+      return;
+    }
     for (const { entry, installation, version } of activeExternal) {
       const cacheKey = `${entry.id}@${installation.version}`;
       void cachePluginRelease(
@@ -489,18 +530,22 @@ export function useAvailablePluginRegistry(
           id: entry.id,
           version: installation.version,
         },
-        platform.plugins,
+        platform.plugins
       )
         .then((descriptor) => {
           if (descriptor.status !== "active") {
             blockedExternalKeys.current.add(cacheKey);
             suppressedPluginIds.current.add(entry.id);
             setManifestResolution((resolution) => {
-              if (resolution.key !== externalManifestKey) return resolution;
+              if (resolution.key !== externalManifestKey) {
+                return resolution;
+              }
               if (
-                !(entry.id in resolution.fingerprints) &&
-                !(entry.id in resolution.manifests) &&
-                !(entry.id in resolution.icons)
+                !(
+                  entry.id in resolution.fingerprints ||
+                  entry.id in resolution.manifests ||
+                  entry.id in resolution.icons
+                )
               ) {
                 return resolution;
               }
@@ -515,7 +560,7 @@ export function useAvailablePluginRegistry(
             setLoadFailures((current) =>
               current[cacheKey] === "blocked"
                 ? current
-                : { ...current, [cacheKey]: "blocked" },
+                : { ...current, [cacheKey]: "blocked" }
             );
             return;
           }
@@ -526,7 +571,7 @@ export function useAvailablePluginRegistry(
             .then((icon) => {
               const fingerprint = getReleaseFingerprint(
                 descriptor.manifest,
-                icon ? descriptor.icon?.sha256 ?? null : null,
+                icon ? (descriptor.icon?.sha256 ?? null) : null
               );
               setManifestResolution((resolution) => {
                 if (
@@ -546,7 +591,7 @@ export function useAvailablePluginRegistry(
                         ...resolution.icons,
                         [entry.id]: releaseIcon(
                           icon,
-                          descriptor.icon?.resource ?? "image/png",
+                          descriptor.icon?.resource ?? "image/png"
                         ),
                       }
                     : resolution.icons,
@@ -572,7 +617,13 @@ export function useAvailablePluginRegistry(
         })
         .catch(() => undefined);
     }
-  }, [activeExternal, catalogRefresh, externalManifestKey, online, platform.plugins]);
+  }, [
+    activeExternal,
+    catalogRefresh,
+    externalManifestKey,
+    online,
+    platform.plugins,
+  ]);
   const loadPlugin = useCallback(
     async (id: string): Promise<PluginLoadResult> => {
       const reference = externalById.get(id);
@@ -582,7 +633,7 @@ export function useAvailablePluginRegistry(
           ? {
               id,
               error: new Error(
-                `Extension "${id}" is unavailable (${unavailable.availability})`,
+                `Extension "${id}" is unavailable (${unavailable.availability})`
               ),
             }
           : loadBundledPlugin(id);
@@ -598,7 +649,9 @@ export function useAvailablePluginRegistry(
       }
       suppressedPluginIds.current.delete(id);
       const cached = loaded.current.get(runtimeKey);
-      if (cached) return { id, plugin: cached.plugin };
+      if (cached) {
+        return { id, plugin: cached.plugin };
+      }
       try {
         let request = loading.current.get(runtimeKey);
         if (!request) {
@@ -609,7 +662,7 @@ export function useAvailablePluginRegistry(
               version: reference.installation.version,
             },
             platform.plugins,
-            { allowNetwork: online },
+            { allowNetwork: online }
           );
           loading.current.set(runtimeKey, request);
         }
@@ -619,18 +672,21 @@ export function useAvailablePluginRegistry(
           }
         });
         if (
-          !mounted.current ||
-          !allowedExternalKeys.current.has(runtimeKey) ||
+          !(mounted.current && allowedExternalKeys.current.has(runtimeKey)) ||
           suppressedPluginIds.current.has(id)
         ) {
           result.dispose();
           throw new Error(`Extension "${id}" is no longer enabled`);
         }
         const current = loaded.current.get(runtimeKey);
-        if (current === result) return { id, plugin: result.plugin };
+        if (current === result) {
+          return { id, plugin: result.plugin };
+        }
         loaded.current.set(runtimeKey, result);
         setLoadFailures((current) => {
-          if (!current[cacheKey]) return current;
+          if (!current[cacheKey]) {
+            return current;
+          }
           const next = { ...current };
           delete next[cacheKey];
           return next;
@@ -639,7 +695,9 @@ export function useAvailablePluginRegistry(
       } catch (error) {
         const normalized =
           error instanceof Error ? error : new Error(String(error));
-        if (!mounted.current) return { id, error: normalized };
+        if (!mounted.current) {
+          return { id, error: normalized };
+        }
         if (
           !allowedExternalKeys.current.has(runtimeKey) ||
           suppressedPluginIds.current.has(id)
@@ -655,30 +713,34 @@ export function useAvailablePluginRegistry(
         setLoadFailures((current) => ({
           ...current,
           [cacheKey]: /checksum|corrupt|size does not match/i.test(
-            normalized.message,
+            normalized.message
           )
             ? "corrupt-artifact"
-            : !online
-              ? "missing-offline-cache"
-              : "load-failure",
+            : online
+              ? "load-failure"
+              : "missing-offline-cache",
         }));
         return { id, error: normalized };
       }
     },
-    [externalById, installedExternalById, online, platform.plugins],
+    [externalById, installedExternalById, online, platform.plugins]
   );
   const loadPlugins = useCallback(
     async (ids: string[]) => {
       const results = await Promise.all(ids.map(loadPlugin));
       return results.flatMap(({ plugin }) => (plugin ? [plugin] : []));
     },
-    [loadPlugin],
+    [loadPlugin]
   );
   const unloadPlugin = useCallback((id: string, revision?: string) => {
     suppressedPluginIds.current.add(id);
     for (const [key, plugin] of loaded.current) {
-      if (!key.startsWith(`${id}@`)) continue;
-      if (revision && key !== `${id}@${revision}`) continue;
+      if (!key.startsWith(`${id}@`)) {
+        continue;
+      }
+      if (revision && key !== `${id}@${revision}`) {
+        continue;
+      }
       plugin.dispose();
       loaded.current.delete(key);
     }
@@ -688,11 +750,13 @@ export function useAvailablePluginRegistry(
     const value = { ...bundled.extensionMetadata };
     for (const { entry, installation } of external) {
       value[installation.extensionId] = {
-        description: entry?.description ?? "Workspace extension release unavailable",
+        description:
+          entry?.description ?? "Workspace extension release unavailable",
         developer: entry?.developer ?? "Unknown developer",
         icon:
           manifestResolution.key === externalManifestKey
-            ? manifestResolution.icons[installation.extensionId] ?? BlockGameIcon
+            ? (manifestResolution.icons[installation.extensionId] ??
+              BlockGameIcon)
             : BlockGameIcon,
         iconUrl: entry?.iconUrl,
         id: installation.extensionId,
@@ -714,14 +778,14 @@ export function useAvailablePluginRegistry(
         ? manifestResolution.manifests
         : {}),
     }),
-    [bundled.extensionManifests, externalManifestKey, manifestResolution],
+    [bundled.extensionManifests, externalManifestKey, manifestResolution]
   );
   const allExtensionIds = useMemo(
     () => [
       ...bundled.allExtensionIds,
       ...external.map(({ installation }) => installation.extensionId),
     ],
-    [bundled.allExtensionIds, external],
+    [bundled.allExtensionIds, external]
   );
   const defaultExtensionIds = bundled.defaultExtensionIds;
   const extensionAvailability = useMemo(
@@ -733,23 +797,32 @@ export function useAvailablePluginRegistry(
           loadFailures[
             `${item.installation.extensionId}@${item.installation.version}`
           ] ?? item.availability,
-        ]),
+        ])
       ),
     }),
-    [bundled.extensionAvailability, external, loadFailures],
+    [bundled.extensionAvailability, external, loadFailures]
   );
   const enabledExtensionIds = useMemo(() => {
-    if (!workspaceId) return bundled.enabledExtensionIds;
+    if (!workspaceId) {
+      return bundled.enabledExtensionIds;
+    }
     const enabled = resolveEnabledWorkspaceExtensionIds(
       installationRows.data ?? [],
-      bundled.defaultExtensionIds,
+      bundled.defaultExtensionIds
     );
     return allExtensionIds.filter((id) => enabled.has(id));
-  }, [allExtensionIds, bundled.defaultExtensionIds, bundled.enabledExtensionIds, installationRows.data, workspaceId]);
+  }, [
+    allExtensionIds,
+    bundled.defaultExtensionIds,
+    bundled.enabledExtensionIds,
+    installationRows.data,
+    workspaceId,
+  ]);
   const runtimeRevisions = useMemo(() => {
     const revisions = { ...bundled.runtimeRevisions };
     for (const { installation } of external) {
-      revisions[installation.extensionId] = `${installation.registryId}:${installation.version}:${installation.descriptorSha256 ?? "catalog"}`;
+      revisions[installation.extensionId] =
+        `${installation.registryId}:${installation.version}:${installation.descriptorSha256 ?? "catalog"}`;
     }
     return revisions;
   }, [bundled.runtimeRevisions, external]);
@@ -765,7 +838,7 @@ export function useAvailablePluginRegistry(
     key: allExtensionIds
       .map(
         (id) =>
-          `${id}@${extensionMetadata[id]?.version}:${extensionAvailability[id]}`,
+          `${id}@${extensionMetadata[id]?.version}:${extensionAvailability[id]}`
       )
       .join("|"),
     loadPlugin,

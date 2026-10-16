@@ -67,8 +67,12 @@ export function useEntityReferenceSearch(options?: {
       cache = { lunaris, workspaces: null, request: null };
       workspacesCacheRef.current = cache;
     }
-    if (cache.workspaces) return Promise.resolve(cache.workspaces);
-    if (cache.request) return cache.request;
+    if (cache.workspaces) {
+      return Promise.resolve(cache.workspaces);
+    }
+    if (cache.request) {
+      return cache.request;
+    }
 
     const request = listAllWorkspaces(lunaris, "confirmed")
       .catch(() => listAllWorkspaces(lunaris, "cached"))
@@ -113,7 +117,11 @@ export function useEntityReferenceSearch(options?: {
       const [workspaces, organizationItems] = await Promise.all([
         loadWorkspaces().catch(() => []),
         lunaris
-          .searchResources({ consistency: "confirmed", limit, search: query.trim() })
+          .searchResources({
+            consistency: "confirmed",
+            limit,
+            search: query.trim(),
+          })
           .catch(() =>
             lunaris.searchResources({
               consistency: "cached",

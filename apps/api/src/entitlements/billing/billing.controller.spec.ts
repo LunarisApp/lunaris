@@ -26,7 +26,7 @@ const planRequest = {
 describe("BillingController", () => {
   it("preserves legacy OpenAPI identifiers and grouping", () => {
     expect(
-      Reflect.getMetadata("swagger/apiUseTags", BillingController),
+      Reflect.getMetadata("swagger/apiUseTags", BillingController)
     ).toEqual(["Entitlements"]);
 
     for (const [method, operationId] of [
@@ -38,8 +38,8 @@ describe("BillingController", () => {
       expect(
         Reflect.getMetadata(
           "swagger/apiOperation",
-          BillingController.prototype[method],
-        ),
+          BillingController.prototype[method]
+        )
       ).toMatchObject({ operationId });
     }
   });
@@ -53,7 +53,7 @@ describe("BillingController", () => {
     } as unknown as BillingService);
 
     await expect(
-      controller.createCheckout(ownerSession, planRequest),
+      controller.createCheckout(ownerSession, planRequest)
     ).resolves.toEqual({ url: "https://polar.test/checkout/checkout-1" });
     expect(createCheckout).toHaveBeenCalledWith({
       ...planRequest,
@@ -73,7 +73,7 @@ describe("BillingController", () => {
     } as unknown as BillingService);
 
     await expect(
-      controller.changePlan(ownerSession, planRequest),
+      controller.changePlan(ownerSession, planRequest)
     ).resolves.toEqual({ success: true });
     expect(changePlan).toHaveBeenCalledWith({
       ...planRequest,
@@ -120,13 +120,13 @@ describe("BillingController", () => {
       billingPlanRequestSchema.safeParse({
         interval: "month",
         plan: "free",
-      }).success,
+      }).success
     ).toBe(false);
     expect(
       billingPlanRequestSchema.safeParse({
         ...planRequest,
         unexpected: true,
-      }).success,
+      }).success
     ).toBe(false);
   });
 
@@ -146,17 +146,17 @@ describe("BillingController", () => {
       user: ownerSession.user,
     } as unknown as UserSession;
 
-    expect(() => controller.createCheckout(noOrganization, planRequest)).toThrow(
-      NoActiveOrganizationError,
-    );
+    expect(() =>
+      controller.createCheckout(noOrganization, planRequest)
+    ).toThrow(NoActiveOrganizationError);
     expect(() => controller.createPortal(noOrganization)).toThrow(
-      NoActiveOrganizationError,
+      NoActiveOrganizationError
     );
     expect(() => controller.getBillingState(noOrganization)).toThrow(
-      NoActiveOrganizationError,
+      NoActiveOrganizationError
     );
     await expect(
-      controller.changePlan(noOrganization, planRequest),
+      controller.changePlan(noOrganization, planRequest)
     ).rejects.toBeInstanceOf(NoActiveOrganizationError);
     expect(createCheckout).not.toHaveBeenCalled();
     expect(createPortal).not.toHaveBeenCalled();

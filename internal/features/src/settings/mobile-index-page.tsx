@@ -55,7 +55,7 @@ export function MobileSettingsIndexPage() {
             {tabs.map((tab) => (
               <li key={tab.id}>
                 <Link
-                  className="hover:bg-accent/50 flex min-h-12 items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors active:bg-accent"
+                  className="flex min-h-12 items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors hover:bg-accent/50 active:bg-accent"
                   data-testid={`settings-tab-${tab.id}`}
                   to={`/settings/${tab.id}`}
                 >

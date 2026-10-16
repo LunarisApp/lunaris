@@ -68,17 +68,16 @@ function parsePublicHttpsUrl(value: string): URL {
 }
 
 export function normalizeMarketplaceSource(
-  input: MarketplaceSourceInput | string,
+  input: MarketplaceSourceInput | string
 ): NormalizedMarketplaceSource {
   const candidate =
     typeof input === "string"
       ? parsePublicHttpsUrl(input)
       : parsePublicHttpsUrl(
-          input.kind === "github" ? input.repositoryUrl : input.manifestUrl,
+          input.kind === "github" ? input.repositoryUrl : input.manifestUrl
         );
 
-  const requestedKind =
-    typeof input === "string" ? undefined : input.kind;
+  const requestedKind = typeof input === "string" ? undefined : input.kind;
   if (candidate.hostname.toLowerCase() === GITHUB_HOST) {
     if (requestedKind === "https") {
       return {
@@ -99,7 +98,14 @@ export function normalizeMarketplaceSource(
     }
     const owner = segments[0];
     const repository = segments[1]?.replace(/\.git$/, "");
-    if (!owner || !repository || !/^[A-Za-z0-9_.-]+$/.test(owner) || !/^[A-Za-z0-9_.-]+$/.test(repository)) {
+    if (
+      !(
+        owner &&
+        repository &&
+        /^[A-Za-z0-9_.-]+$/.test(owner) &&
+        /^[A-Za-z0-9_.-]+$/.test(repository)
+      )
+    ) {
       throw new Error("GitHub marketplace URL contains an invalid repository");
     }
     const location = `https://github.com/${owner}/${repository}`;
@@ -120,9 +126,7 @@ export function normalizeMarketplaceSource(
   };
 }
 
-const httpsUrlSchema = url()
-  .max(2048)
-  .refine(usesHttps, "URL must use HTTPS");
+const httpsUrlSchema = url().max(2048).refine(usesHttps, "URL must use HTTPS");
 
 const descriptorUrlSchema = string().min(1).max(2048);
 
@@ -213,7 +217,13 @@ const releaseStatusSchema = zEnum(["active", "blocked"]);
 
 const runtimeSchema = object({
   kind: literal("iframe"),
-  protocol: number().int().refine(isSupportedSandboxProtocol, "Unsupported sandbox protocol; expected 6 or 7").transform(value => value as 6 | 7),
+  protocol: number()
+    .int()
+    .refine(
+      isSupportedSandboxProtocol,
+      "Unsupported sandbox protocol; expected 6 or 7"
+    )
+    .transform((value) => value as 6 | 7),
 });
 
 const marketplaceRuntimeSchema = object({
@@ -290,7 +300,7 @@ const releaseDescriptorSchema = object({
 function resolveHttpsUrl(
   value: string,
   baseUrl: string | undefined,
-  subject: "asset" | "descriptor",
+  subject: "asset" | "descriptor"
 ): string {
   let resolved: URL;
   try {
@@ -310,7 +320,7 @@ function resolveDescriptorUrl(value: string, manifestUrl?: string): string {
 
 export function parseExtensionMarketplace(
   value: unknown,
-  manifestUrl?: string,
+  manifestUrl?: string
 ): ExtensionMarketplace {
   const marketplace = marketplaceSchema.parse(value);
   const ids = new Set<string>();
@@ -333,14 +343,14 @@ export function parseExtensionMarketplace(
     for (const version of extension.versions) {
       if (versions.has(version.version)) {
         throw new Error(
-          `Duplicate extension version: ${extension.id}@${version.version}`,
+          `Duplicate extension version: ${extension.id}@${version.version}`
         );
       }
       versions.add(version.version);
     }
     if (!versions.has(extension.latestVersion)) {
       throw new Error(
-        `Extension "${extension.id}" latest version is not published`,
+        `Extension "${extension.id}" latest version is not published`
       );
     }
 
@@ -361,22 +371,24 @@ export function parseExtensionMarketplace(
 export function parsePluginReleaseDescriptor(
   value: unknown,
   expected?: { id: string; version: string },
-  descriptorUrl?: string,
+  descriptorUrl?: string
 ): PluginReleaseDescriptor {
   const parsed = releaseDescriptorSchema.parse(value);
   const manifest = validateManifest(parsed.manifest);
   if (expected && manifest.id !== expected.id) {
     throw new Error(
-      `Extension release ID "${manifest.id}" does not match "${expected.id}"`,
+      `Extension release ID "${manifest.id}" does not match "${expected.id}"`
     );
   }
   if (expected && manifest.version !== expected.version) {
     throw new Error(
-      `Extension release version "${manifest.version}" does not match "${expected.version}"`,
+      `Extension release version "${manifest.version}" does not match "${expected.version}"`
     );
   }
   if (parsed.api !== manifest.api) {
-    throw new Error(`Extension "${manifest.id}" API range does not match manifest`);
+    throw new Error(
+      `Extension "${manifest.id}" API range does not match manifest`
+    );
   }
   const resolveAsset = (asset: PluginAsset): PluginAsset => ({
     ...asset,
@@ -393,7 +405,7 @@ export function parsePluginReleaseDescriptor(
 
 export function isMarketplaceVersionCompatible(
   apiVersions: string | readonly string[],
-  version: ExtensionMarketplaceVersion,
+  version: ExtensionMarketplaceVersion
 ): boolean {
   const supported =
     typeof apiVersions === "string" ? [apiVersions] : apiVersions;

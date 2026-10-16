@@ -32,13 +32,13 @@ export class ExtensionRegistriesService {
       .where(
         and(
           eq(member.organizationId, organizationId),
-          eq(member.userId, userId),
-        ),
+          eq(member.userId, userId)
+        )
       )
       .limit(1);
     if (membership?.role !== "owner") {
       throw new ForbiddenException(
-        "Only organization owners can manage developer mode and marketplaces",
+        "Only organization owners can manage developer mode and marketplaces"
       );
     }
   }
@@ -49,7 +49,9 @@ export class ExtensionRegistriesService {
       .from(organization)
       .where(eq(organization.id, organizationId))
       .limit(1);
-    if (!row) throw new NotFoundException("Organization not found");
+    if (!row) {
+      throw new NotFoundException("Organization not found");
+    }
     return row;
   }
 
@@ -59,13 +61,15 @@ export class ExtensionRegistriesService {
       .set({ developerMode: enabled })
       .where(eq(organization.id, organizationId))
       .returning({ enabled: organization.developerMode });
-    if (!row) throw new NotFoundException("Organization not found");
+    if (!row) {
+      throw new NotFoundException("Organization not found");
+    }
     return row;
   }
 
   private async requireDeveloperMode(
     organizationId: string,
-    tx: DrizzleTransaction,
+    tx: DrizzleTransaction
   ) {
     // Hold the organization row until the marketplace write commits. Disabling
     // developer mode must wait for writes already authorized under this lock.
@@ -75,11 +79,14 @@ export class ExtensionRegistriesService {
       .where(eq(organization.id, organizationId))
       .limit(1)
       .for("share");
-    if (!row) throw new NotFoundException("Organization not found");
-    if (!row.enabled)
+    if (!row) {
+      throw new NotFoundException("Organization not found");
+    }
+    if (!row.enabled) {
       throw new ForbiddenException(
-        "Enable developer mode to manage custom marketplaces",
+        "Enable developer mode to manage custom marketplaces"
       );
+    }
   }
 
   async list(organizationId: string) {
@@ -88,7 +95,7 @@ export class ExtensionRegistriesService {
       .select()
       .from(organizationExtensionRegistriesDb)
       .where(
-        eq(organizationExtensionRegistriesDb.organizationId, organizationId),
+        eq(organizationExtensionRegistriesDb.organizationId, organizationId)
       )
       .orderBy(asc(organizationExtensionRegistriesDb.addedAt));
     return rows.map(mapRegistryRow);
@@ -100,7 +107,7 @@ export class ExtensionRegistriesService {
       source = normalizeMarketplaceSource(url);
     } catch (cause) {
       throw new BadRequestException(
-        cause instanceof Error ? cause.message : "Invalid marketplace URL",
+        cause instanceof Error ? cause.message : "Invalid marketplace URL"
       );
     }
     if (source.location === OFFICIAL_MARKETPLACE_LOCATION) {
@@ -123,13 +130,15 @@ export class ExtensionRegistriesService {
           .returning();
         if (!row) {
           throw new InternalServerErrorException(
-            "Marketplace write returned no row",
+            "Marketplace write returned no row"
           );
         }
         return mapRegistryRow(row);
       });
     } catch (cause) {
-      if (cause instanceof InternalServerErrorException) throw cause;
+      if (cause instanceof InternalServerErrorException) {
+        throw cause;
+      }
       if (isUniqueViolation(cause)) {
         throw new ConflictException("Marketplace source is already configured");
       }
@@ -147,10 +156,10 @@ export class ExtensionRegistriesService {
           and(
             eq(
               organizationExtensionRegistriesDb.organizationId,
-              organizationId,
+              organizationId
             ),
-            eq(organizationExtensionRegistriesDb.id, registryId),
-          ),
+            eq(organizationExtensionRegistriesDb.id, registryId)
+          )
         )
         .limit(1)
         .for("update");
@@ -165,18 +174,18 @@ export class ExtensionRegistriesService {
         .from(workspaceExtensionsDb)
         .innerJoin(
           workspacesDb,
-          eq(workspacesDb.id, workspaceExtensionsDb.workspaceId),
+          eq(workspacesDb.id, workspaceExtensionsDb.workspaceId)
         )
         .where(
           and(
             eq(workspacesDb.organizationId, organizationId),
-            eq(workspaceExtensionsDb.registryId, registryId),
-          ),
+            eq(workspaceExtensionsDb.registryId, registryId)
+          )
         )
         .limit(1);
       if (installation) {
         throw new ConflictException(
-          "Uninstall workspace extensions before removing this marketplace",
+          "Uninstall workspace extensions before removing this marketplace"
         );
       }
       await tx
@@ -185,10 +194,10 @@ export class ExtensionRegistriesService {
           and(
             eq(
               organizationExtensionRegistriesDb.organizationId,
-              organizationId,
+              organizationId
             ),
-            eq(organizationExtensionRegistriesDb.id, registryId),
-          ),
+            eq(organizationExtensionRegistriesDb.id, registryId)
+          )
         );
       return { registryId };
     });
@@ -210,7 +219,7 @@ export class ExtensionRegistriesService {
 }
 
 function mapRegistryRow(
-  row: typeof organizationExtensionRegistriesDb.$inferSelect,
+  row: typeof organizationExtensionRegistriesDb.$inferSelect
 ) {
   return {
     addedAt: row.addedAt.toISOString(),

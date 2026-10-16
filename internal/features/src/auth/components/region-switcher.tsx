@@ -8,7 +8,7 @@ export function RegionSwitcher() {
 
   if (regions.length === 1) {
     return (
-      <p className="px-1 text-center text-xs text-muted-foreground">
+      <p className="px-1 text-center text-muted-foreground text-xs">
         {region.label}{" "}
         <span className="text-[10px] tracking-wide">
           ({region.id.toUpperCase()})
@@ -25,11 +25,11 @@ export function RegionSwitcher() {
       role="group"
     >
       <div className="space-y-0.5">
-        <p className="text-xs font-medium" id="auth-region-title">
+        <p className="font-medium text-xs" id="auth-region-title">
           {t("auth.regionTitle")}
         </p>
         <p
-          className="text-[11px] leading-snug text-muted-foreground"
+          className="text-[11px] text-muted-foreground leading-snug"
           id="auth-region-description"
         >
           {t("auth.regionDescription")}
@@ -48,7 +48,9 @@ export function RegionSwitcher() {
           >
             <span>{entry.label}</span>
             <span className="text-[10px] uppercase tracking-wide opacity-70">
-              {entry.status === "active" ? entry.id : t("auth.regionComingSoon")}
+              {entry.status === "active"
+                ? entry.id
+                : t("auth.regionComingSoon")}
             </span>
           </Button>
         ))}

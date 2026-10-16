@@ -3,10 +3,7 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "inputs": [
-        "$TURBO_EXTENDS$",
-        "$TURBO_ROOT$/tooling/clean-dist.ts"
-      ]
+      "inputs": ["$TURBO_EXTENDS$", "$TURBO_ROOT$/tooling/clean-dist.ts"]
     }
   }
 }

@@ -32,7 +32,7 @@ export const paginationInputSchema = z.object({
     .min(1)
     .optional()
     .describe(
-      "Opaque nextCursor value from the previous page. Omit for the first page.",
+      "Opaque nextCursor value from the previous page. Omit for the first page."
     ),
   limit: z
     .number()
@@ -48,11 +48,7 @@ export const contentSourceSchema = z.enum([
   "cloud-cache",
   "cloud-live",
 ]);
-export const contentSyncStateSchema = z.enum([
-  "current",
-  "stale",
-  "unknown",
-]);
+export const contentSyncStateSchema = z.enum(["current", "stale", "unknown"]);
 export const readConsistencySchema = z.enum(["confirmed", "cached"]);
 export const contentSnapshotSchema = z.object({
   completeness: z
@@ -62,19 +58,19 @@ export const contentSnapshotSchema = z.object({
     .string()
     .nullable()
     .describe(
-      "When the result was last confirmed against its source, or null when unknown.",
+      "When the result was last confirmed against its source, or null when unknown."
     ),
   syncState: contentSyncStateSchema.describe(
-    "Whether synchronized content is current, stale, or unknown.",
+    "Whether synchronized content is current, stale, or unknown."
   ),
 });
 export const contentProvenanceSchema = z.object({
   asOf: z.string().describe("Timestamp represented by this resource value."),
   source: contentSourceSchema.describe(
-    "Whether the value came from device-local data, a cloud cache, or live cloud data.",
+    "Whether the value came from device-local data, a cloud cache, or live cloud data."
   ),
   syncState: contentSyncStateSchema.describe(
-    "Whether synchronized content is current, stale, or unknown.",
+    "Whether synchronized content is current, stale, or unknown."
   ),
 });
 
@@ -82,7 +78,7 @@ const expectedRevision = z
   .string()
   .min(1)
   .describe(
-    "Current resource revision from the latest matching read. The update fails if this value is stale.",
+    "Current resource revision from the latest matching read. The update fails if this value is stale."
   );
 
 export const organizationSchema = z.object({
@@ -160,12 +156,16 @@ const reservedStorageKeyShape = {
 const storageRecordSchema = <Value extends z.ZodType>(value: Value) =>
   z.preprocess(
     toNullPrototypeRecord,
-    z.object(reservedStorageKeyShape).catchall(value),
+    z.object(reservedStorageKeyShape).catchall(value)
   ) as z.ZodType<Record<string, z.output<Value>>>;
 
 function toNullPrototypeRecord(value: unknown): unknown {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
-  if (Object.hasOwn(value, "__proto__")) return null;
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+  if (Object.hasOwn(value, "__proto__")) {
+    return null;
+  }
   return Object.assign(Object.create(null) as object, value);
 }
 
@@ -184,16 +184,17 @@ export const workspaceResourceSchema = z.object({
     z.object({
       kind: z.enum(["file", "key-value", "yjs"]),
       storageId: z.string().min(1),
-    }),
+    })
   ),
   updatedAt: z
     .string()
     .describe("Current resource revision required by update_resource."),
 });
 
-export const workspaceResourceSearchResultSchema = workspaceResourceSchema.extend({
-  workspaceName: z.string(),
-});
+export const workspaceResourceSearchResultSchema =
+  workspaceResourceSchema.extend({
+    workspaceName: z.string(),
+  });
 
 export const yjsStorageJsonSchema = z.object({
   resourceTypeId: z
@@ -236,7 +237,7 @@ export const fileDownloadSchema = z.object({
 
 export const keyValueStorageSchema = z.object({
   items: z.array(
-    z.object({ key: z.string(), updatedAt: z.string(), value: z.string() }),
+    z.object({ key: z.string(), updatedAt: z.string(), value: z.string() })
   ),
   provenance: contentProvenanceSchema.optional(),
   resourceId: z.string(),
@@ -253,7 +254,7 @@ export const createWorkspaceInputSchema = z.object({
     .enum(["local", "private", "shared"])
     .default("shared")
     .describe(
-      "Local keeps the workspace on this device; private syncs for its owner only; shared syncs for all organization members. Defaults to shared.",
+      "Local keeps the workspace on this device; private syncs for its owner only; shared syncs for all organization members. Defaults to shared."
     ),
 });
 
@@ -261,7 +262,10 @@ export const updateWorkspaceInputSchema = z
   .object({
     expectedRevision,
     name: z.string().min(3).optional(),
-    slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
+    slug: z
+      .string()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+      .optional(),
   })
   .refine((value) => value.name !== undefined || value.slug !== undefined, {
     message: "At least one workspace field is required",
@@ -280,14 +284,16 @@ export const createWorkspaceResourceInputSchema = z.object({
     .min(1)
     .nullable()
     .optional()
-    .describe("Parent resource ID, or null to place the resource at workspace root."),
+    .describe(
+      "Parent resource ID, or null to place the resource at workspace root."
+    ),
   position: z
     .number()
     .int()
     .optional()
     .describe("Integer ordering position among sibling resources."),
   storage: storageRecordSchema(
-    z.object({ kind: z.enum(["file", "key-value", "yjs"]) }).strict(),
+    z.object({ kind: z.enum(["file", "key-value", "yjs"]) }).strict()
   ),
 });
 
@@ -299,7 +305,9 @@ const workspaceResourceUpdateFields = {
     .min(1)
     .nullable()
     .optional()
-    .describe("New parent resource ID, or null to move the resource to workspace root."),
+    .describe(
+      "New parent resource ID, or null to move the resource to workspace root."
+    ),
   position: z
     .number()
     .int()
@@ -309,13 +317,17 @@ const workspaceResourceUpdateFields = {
 
 export const workspaceResourceChangesSchema = z
   .object(workspaceResourceUpdateFields)
-  .refine(hasDefinedValue, { message: "At least one resource field is required" });
+  .refine(hasDefinedValue, {
+    message: "At least one resource field is required",
+  });
 export const updateWorkspaceResourceInputSchema = z
   .object({
     expectedRevision,
     ...workspaceResourceUpdateFields,
   })
-  .refine(hasDefinedValue, { message: "At least one resource field is required" });
+  .refine(hasDefinedValue, {
+    message: "At least one resource field is required",
+  });
 
 export const workspaceResourceFiltersSchema = paginationInputSchema.extend({
   name: z
@@ -329,7 +341,7 @@ export const workspaceResourceFiltersSchema = paginationInputSchema.extend({
     .nullable()
     .optional()
     .describe(
-      "Return direct children of this parent resource, or null for workspace-root resources.",
+      "Return direct children of this parent resource, or null for workspace-root resources."
     ),
   resourceTypeId: z
     .string()
@@ -344,7 +356,7 @@ export const workspaceResourceSearchInputSchema = paginationInputSchema.extend({
     .min(1)
     .optional()
     .describe(
-      "Optional exact workspace scope. Omit this field for the default organization-wide search. Use it only when the exact workspace ID is already known and the search should intentionally be limited to that workspace.",
+      "Optional exact workspace scope. Omit this field for the default organization-wide search. Use it only when the exact workspace ID is already known and the search should intentionally be limited to that workspace."
     ),
   search: z
     .string()
@@ -352,7 +364,7 @@ export const workspaceResourceSearchInputSchema = paginationInputSchema.extend({
     .min(1)
     .max(200)
     .describe(
-      "Case-insensitive text to match against Lunaris resource or workspace titles. This does not search document content.",
+      "Case-insensitive text to match against Lunaris resource or workspace titles. This does not search document content."
     ),
 });
 
@@ -364,7 +376,9 @@ export const destructiveActionSchema = z.enum([
 
 export const actionPreviewSchema = z.object({
   action: destructiveActionSchema,
-  expiresAt: z.string().describe("Time after which the preview token is invalid."),
+  expiresAt: z
+    .string()
+    .describe("Time after which the preview token is invalid."),
   impact: z.object({
     documents: z.number().int().nonnegative(),
     resources: z.number().int().nonnegative(),
@@ -398,21 +412,27 @@ export function pageSchema<T extends z.ZodType>(item: T) {
       .string()
       .nullable()
       .describe(
-        "Opaque cursor for the next page, or null when no more results exist.",
+        "Opaque cursor for the next page, or null when no more results exist."
       ),
     snapshot: contentSnapshotSchema
       .optional()
-      .describe("Freshness and completeness of this result page when available."),
+      .describe(
+        "Freshness and completeness of this result page when available."
+      ),
   });
 }
 
 export type Organization = z.infer<typeof organizationSchema>;
 export type OrganizationMember = z.infer<typeof organizationMemberSchema>;
-export type UpdateOrganizationInput = z.infer<typeof updateOrganizationInputSchema>;
+export type UpdateOrganizationInput = z.infer<
+  typeof updateOrganizationInputSchema
+>;
 export type InviteOrganizationMemberInput = z.infer<
   typeof inviteOrganizationMemberInputSchema
 >;
-export type OrganizationInvitation = z.infer<typeof organizationInvitationSchema>;
+export type OrganizationInvitation = z.infer<
+  typeof organizationInvitationSchema
+>;
 export type Workspace = z.infer<typeof workspaceSchema>;
 export type WorkspaceResource = z.infer<typeof workspaceResourceSchema>;
 export type WorkspaceResourceSearchResult = z.infer<
@@ -433,14 +453,16 @@ export type CreateWorkspaceResourceInput = z.infer<
 export type UpdateWorkspaceResourceInput = z.infer<
   typeof updateWorkspaceResourceInputSchema
 >;
-export type WorkspaceResourceFilters = z.input<typeof workspaceResourceFiltersSchema>;
+export type WorkspaceResourceFilters = z.input<
+  typeof workspaceResourceFiltersSchema
+>;
 export type WorkspaceResourceSearchInput = z.input<
   typeof workspaceResourceSearchInputSchema
 >;
 
 function hasDefinedValue(value: Record<string, unknown>) {
   return Object.entries(value).some(
-    ([key, field]) => key !== "expectedRevision" && field !== undefined,
+    ([key, field]) => key !== "expectedRevision" && field !== undefined
   );
 }
 export type PaginationInput = z.input<typeof paginationInputSchema>;

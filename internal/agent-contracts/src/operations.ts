@@ -1,9 +1,6 @@
 import { agentOperationDescriptions } from "./descriptions";
 import type { AgentScope } from "./schemas";
-import {
-  type AgentOperationWireDefinition,
-  agentOperationWire,
-} from "./wire";
+import { type AgentOperationWireDefinition, agentOperationWire } from "./wire";
 
 export const agentOperationIds = [
   "list_organizations",
@@ -73,14 +70,12 @@ const definitions: AgentOperationMetadata[] = [
     "list_resources",
     "search_resources",
     "get_resource",
-  ].map(
-    (id) => ({
-      id: id as AgentOperationId,
-      description: agentOperationDescriptions[id as AgentOperationId],
-      risk: "read" as const,
-      scope: "workspace:read" as const,
-    }),
-  ),
+  ].map((id) => ({
+    id: id as AgentOperationId,
+    description: agentOperationDescriptions[id as AgentOperationId],
+    risk: "read" as const,
+    scope: "workspace:read" as const,
+  })),
   ...[
     "get_yjs_storage_json",
     "get_yjs_storage_state",
@@ -97,14 +92,17 @@ const definitions: AgentOperationMetadata[] = [
     risk: "read",
     scope: "file:read",
   },
-  ...["create_workspace", "update_workspace", "create_resource", "update_resource"].map(
-    (id) => ({
-      id: id as AgentOperationId,
-      description: agentOperationDescriptions[id as AgentOperationId],
-      risk: "write" as const,
-      scope: "workspace:write" as const,
-    }),
-  ),
+  ...[
+    "create_workspace",
+    "update_workspace",
+    "create_resource",
+    "update_resource",
+  ].map((id) => ({
+    id: id as AgentOperationId,
+    description: agentOperationDescriptions[id as AgentOperationId],
+    risk: "write" as const,
+    scope: "workspace:write" as const,
+  })),
   ...["update_organization", "invite_organization_member"].map((id) => ({
     offlineAvailability: "cloud-required" as const,
     id: id as AgentOperationId,
@@ -120,7 +118,9 @@ const definitions: AgentOperationMetadata[] = [
   ].map((id) => ({
     id: id as AgentOperationId,
     description: agentOperationDescriptions[id as AgentOperationId],
-    risk: id.startsWith("preview") ? ("read" as const) : ("destructive" as const),
+    risk: id.startsWith("preview")
+      ? ("read" as const)
+      : ("destructive" as const),
     scope: "workspace:delete" as const,
   })),
   ...["preview_remove_organization_member", "remove_organization_member"].map(
@@ -132,7 +132,7 @@ const definitions: AgentOperationMetadata[] = [
         ? ("read" as const)
         : ("destructive" as const),
       scope: "organization:manage" as const,
-    }),
+    })
   ),
 ];
 
@@ -144,5 +144,5 @@ export const agentOperations = Object.fromEntries(
       ...definition,
       transport: agentOperationWire[definition.id],
     },
-  ]),
+  ])
 ) as Record<AgentOperationId, AgentOperationDefinition>;

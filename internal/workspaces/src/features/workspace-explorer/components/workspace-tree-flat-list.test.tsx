@@ -141,7 +141,9 @@ describe("WorkspaceTreeFlatList", () => {
     render(
       <WorkspaceTreeFlatList
         activeIndex={0}
-        results={[makeItem({ id: "1", name: "orphan", resource_type_id: null })]}
+        results={[
+          makeItem({ id: "1", name: "orphan", resource_type_id: null }),
+        ]}
       />
     );
     fireEvent.click(screen.getAllByRole("button")[0] as HTMLElement);
@@ -165,9 +167,7 @@ describe("WorkspaceTreeFlatList", () => {
   });
 
   it("renders listbox + option roles in empty state", () => {
-    render(
-      <WorkspaceTreeFlatList activeIndex={-1} listId="lb" results={[]} />
-    );
+    render(<WorkspaceTreeFlatList activeIndex={-1} listId="lb" results={[]} />);
     expect(screen.getByRole("listbox").id).toBe("lb");
     expect(screen.getByText("explorer.searchNoResults")).toBeTruthy();
   });

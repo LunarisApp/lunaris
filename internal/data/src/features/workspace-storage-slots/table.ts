@@ -4,11 +4,11 @@ import { localTable } from "../../core/utils";
 
 export const WORKSPACE_STORAGE_SLOTS_TABLE = "workspace_storage_slots";
 export const LOCAL_WORKSPACE_STORAGE_SLOTS_TABLE = localTable(
-  WORKSPACE_STORAGE_SLOTS_TABLE,
+  WORKSPACE_STORAGE_SLOTS_TABLE
 );
 export const WORKSPACE_STORAGE_VALUES_TABLE = "workspace_storage_values";
 export const LOCAL_WORKSPACE_STORAGE_VALUES_TABLE = localTable(
-  WORKSPACE_STORAGE_VALUES_TABLE,
+  WORKSPACE_STORAGE_VALUES_TABLE
 );
 
 export const createWorkspaceStorageSlotsTable = ({
@@ -34,7 +34,7 @@ export const createWorkspaceStorageSlotsTable = ({
         pss_workspace_plugin_idx: ["workspace_id", "plugin_id"],
         pss_resource_idx: ["resource_id"],
       },
-    },
+    }
   );
 
 export const createWorkspaceStorageValuesTable = ({
@@ -56,7 +56,7 @@ export const createWorkspaceStorageValuesTable = ({
       indexes: {
         psv_storage_key_idx: ["storage_id", "key"],
       },
-    },
+    }
   );
 
 export type WorkspaceStorageSlotEntity = RowType<

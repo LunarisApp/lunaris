@@ -49,9 +49,9 @@ describe("encryption key vault", () => {
   });
 
   it("fetches a valid key without persisting before database boot", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ key: VALID_KEY })),
-    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ key: VALID_KEY })));
     vi.stubGlobal("fetch", fetchMock);
 
     const resolved = await resolveEncryptionKey(SCOPE);
@@ -59,22 +59,22 @@ describe("encryption key vault", () => {
     expect(resolved).toMatchObject({ key: VALID_KEY, source: "network" });
     expect(fetchMock).toHaveBeenCalledWith(
       "https://api.example.com/v1/client/encryption-key",
-      { credentials: "include" },
+      { credentials: "include" }
     );
 
     clearEncryptionKeyMemory();
     setOnline(false);
     await expect(resolveEncryptionKey(SCOPE)).rejects.toBeInstanceOf(
-      OfflineEncryptionKeyError,
+      OfflineEncryptionKeyError
     );
   });
 
   it("opens from persistent storage after a cold offline reload", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ key: VALID_KEY })),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(new Response(JSON.stringify({ key: VALID_KEY })))
     );
     const online = await resolveEncryptionKey(SCOPE);
     await persistEncryptionKey(online);
@@ -110,9 +110,9 @@ describe("encryption key vault", () => {
   });
 
   it("deduplicates concurrent network fetches per scope", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ key: VALID_KEY })),
-    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ key: VALID_KEY })));
     vi.stubGlobal("fetch", fetchMock);
 
     const [first, second] = await Promise.all([
@@ -132,7 +132,7 @@ describe("encryption key vault", () => {
 
     const resolution = resolveEncryptionKey(SCOPE);
     const rejection = expect(resolution).rejects.toThrow(
-      "Encryption key cache invalidated",
+      "Encryption key cache invalidated"
     );
     await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
 
@@ -142,16 +142,16 @@ describe("encryption key vault", () => {
 
     setOnline(false);
     await expect(resolveEncryptionKey(SCOPE)).rejects.toBeInstanceOf(
-      OfflineEncryptionKeyError,
+      OfflineEncryptionKeyError
     );
   });
 
   it("does not persist a resolved key after logout invalidates it", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ key: VALID_KEY })),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(new Response(JSON.stringify({ key: VALID_KEY })))
     );
     const resolved = await resolveEncryptionKey(SCOPE);
 
@@ -161,16 +161,16 @@ describe("encryption key vault", () => {
     setOnline(false);
 
     await expect(resolveEncryptionKey(SCOPE)).rejects.toBeInstanceOf(
-      OfflineEncryptionKeyError,
+      OfflineEncryptionKeyError
     );
   });
 
   it("orders logout clear after an active persistent write", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ key: VALID_KEY })),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(new Response(JSON.stringify({ key: VALID_KEY })))
     );
     const resolved = await resolveEncryptionKey(SCOPE);
     const writeStarted = deferred<void>();
@@ -181,7 +181,7 @@ describe("encryption key vault", () => {
         writeStarted.resolve();
         await finishWrite.promise;
         await writeRecord(record);
-      },
+      }
     );
 
     const persistence = persistEncryptionKey(resolved);
@@ -199,7 +199,7 @@ describe("encryption key vault", () => {
     setOnline(false);
 
     await expect(resolveEncryptionKey(SCOPE)).rejects.toBeInstanceOf(
-      OfflineEncryptionKeyError,
+      OfflineEncryptionKeyError
     );
   });
 
@@ -209,7 +209,7 @@ describe("encryption key vault", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(resolveEncryptionKey(SCOPE)).rejects.toBeInstanceOf(
-      OfflineEncryptionKeyError,
+      OfflineEncryptionKeyError
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -218,32 +218,35 @@ describe("encryption key vault", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("offline")));
 
     await expect(resolveEncryptionKey(SCOPE)).rejects.toBeInstanceOf(
-      OfflineEncryptionKeyError,
+      OfflineEncryptionKeyError
     );
   });
 
   it("rejects non-2xx and malformed key responses", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(null, { status: 500 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(null, { status: 500 }))
+    );
     await expect(resolveEncryptionKey(SCOPE)).rejects.toThrow(
-      /Encryption key fetch failed/,
+      /Encryption key fetch failed/
     );
 
     clearEncryptionKeyMemory();
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(new Response(JSON.stringify({ key: "bad" }))),
+      vi.fn().mockResolvedValue(new Response(JSON.stringify({ key: "bad" })))
     );
     await expect(refreshEncryptionKey(SCOPE)).rejects.toThrow(
-      /Encryption key fetch failed/,
+      /Encryption key fetch failed/
     );
   });
 
   it("deletes corrupt persistent records and fails safely offline", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ key: VALID_KEY })),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(new Response(JSON.stringify({ key: VALID_KEY })))
     );
     const resolved = await resolveEncryptionKey(SCOPE);
     await persistEncryptionKey(resolved);
@@ -265,7 +268,7 @@ describe("encryption key vault", () => {
     setOnline(false);
 
     await expect(resolveEncryptionKey(SCOPE)).rejects.toBeInstanceOf(
-      OfflineEncryptionKeyError,
+      OfflineEncryptionKeyError
     );
   });
 
@@ -284,7 +287,7 @@ describe("encryption key vault", () => {
     setOnline(false);
 
     await expect(resolveEncryptionKey(SCOPE)).rejects.toBeInstanceOf(
-      OfflineEncryptionKeyError,
+      OfflineEncryptionKeyError
     );
     await expect(resolveEncryptionKey(otherScope)).resolves.toMatchObject({
       key: OTHER_KEY,
@@ -309,7 +312,7 @@ describe("encryption key vault", () => {
     setOnline(false);
 
     await expect(resolveEncryptionKey(SCOPE)).rejects.toBeInstanceOf(
-      OfflineEncryptionKeyError,
+      OfflineEncryptionKeyError
     );
     await expect(resolveEncryptionKey(otherScope)).resolves.toMatchObject({
       key: OTHER_KEY,
@@ -362,9 +365,9 @@ describe("encryption key vault", () => {
   it("clears persistent and memory keys on logout", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ key: VALID_KEY })),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(new Response(JSON.stringify({ key: VALID_KEY })))
     );
     await persistEncryptionKey(await resolveEncryptionKey(SCOPE));
 
@@ -372,7 +375,7 @@ describe("encryption key vault", () => {
     setOnline(false);
 
     await expect(resolveEncryptionKey(SCOPE)).rejects.toBeInstanceOf(
-      OfflineEncryptionKeyError,
+      OfflineEncryptionKeyError
     );
   });
 });

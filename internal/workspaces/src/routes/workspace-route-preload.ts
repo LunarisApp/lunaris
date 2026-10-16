@@ -10,7 +10,7 @@ function loadWorkspaceShell(shell: WorkspaceShell) {
 }
 
 export async function loadWorkspacePage(
-  shell: WorkspaceShell,
+  shell: WorkspaceShell
 ): Promise<ComponentType<WorkspacePageProps>> {
   const [workspacePage] = await Promise.all([
     loadWorkspacePageModule(),
@@ -19,6 +19,8 @@ export async function loadWorkspacePage(
   return workspacePage.default;
 }
 
-export async function preloadWorkspaceRoute(shell: WorkspaceShell): Promise<void> {
+export async function preloadWorkspaceRoute(
+  shell: WorkspaceShell
+): Promise<void> {
   await Promise.all([loadWorkspacePageModule(), loadWorkspaceShell(shell)]);
 }

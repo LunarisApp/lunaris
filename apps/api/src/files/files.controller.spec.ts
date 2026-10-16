@@ -15,7 +15,7 @@ function makeSession() {
 }
 
 function loggedContext() {
-  return (loggerSet.mock.calls as unknown as Array<[unknown]>)[0]?.[0];
+  return (loggerSet.mock.calls as unknown as [unknown][])[0]?.[0];
 }
 
 describe("FilesController", () => {
@@ -29,17 +29,31 @@ describe("FilesController", () => {
   beforeEach(() => {
     loggerSet.mockReset();
     files = {
-      createUpload: mock(() => Promise.resolve({ key: "key", uploadUrl: "url" })),
+      createUpload: mock(() =>
+        Promise.resolve({ key: "key", uploadUrl: "url" })
+      ),
       getDownloadUrl: mock(() => Promise.resolve({ downloadUrl: "url" })),
       deleteFile: mock(() => Promise.resolve({ id: "att_1" })),
     };
-    controller = new FilesController(files as never, { create: files.createUpload } as never);
+    controller = new FilesController(
+      files as never,
+      { create: files.createUpload } as never
+    );
   });
 
   it("creates a session with the authenticated organization and user", async () => {
-    const body = { id: crypto.randomUUID(), fileId: "att_1", mediaType: "image/png", sizeBytes: 123, workspaceId: "workspace_1" };
+    const body = {
+      id: crypto.randomUUID(),
+      fileId: "att_1",
+      mediaType: "image/png",
+      sizeBytes: 123,
+      workspaceId: "workspace_1",
+    };
     await controller.createUpload(makeSession() as never, body);
-    expect(files.createUpload).toHaveBeenCalledWith({ organizationId: "org_1", userId: "user_1" }, body);
+    expect(files.createUpload).toHaveBeenCalledWith(
+      { organizationId: "org_1", userId: "user_1" },
+      body
+    );
   });
 
   it("sets safe download request log context", async () => {
@@ -82,20 +96,20 @@ describe("FilesController", () => {
     expect(
       Reflect.getMetadata(
         PERMISSION_METADATA,
-        FilesController.prototype.createUpload,
-      ),
+        FilesController.prototype.createUpload
+      )
     ).toEqual(permission.content.write);
     expect(
       Reflect.getMetadata(
         PERMISSION_METADATA,
-        FilesController.prototype.getDownloadUrl,
-      ),
+        FilesController.prototype.getDownloadUrl
+      )
     ).toEqual(permission.content.read);
     expect(
       Reflect.getMetadata(
         PERMISSION_METADATA,
-        FilesController.prototype.deleteFile,
-      ),
+        FilesController.prototype.deleteFile
+      )
     ).toEqual(permission.content.delete);
   });
 });

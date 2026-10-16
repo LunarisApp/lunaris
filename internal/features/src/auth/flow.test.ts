@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  getEmailPrefill,
-  parseEmailAuthContinuationState,
-} from "./flow";
+import { getEmailPrefill, parseEmailAuthContinuationState } from "./flow";
 
 describe("parseEmailAuthContinuationState", () => {
   it.each([
@@ -20,7 +17,7 @@ describe("parseEmailAuthContinuationState", () => {
       parseEmailAuthContinuationState({
         email: "writer@example.com",
         resolution: { kind: "social", provider: "github" },
-      }),
+      })
     ).toBeNull();
   });
 
@@ -32,7 +29,7 @@ describe("parseEmailAuthContinuationState", () => {
 describe("getEmailPrefill", () => {
   it("returns a valid email from navigation state", () => {
     expect(getEmailPrefill({ email: "writer@example.com" })).toBe(
-      "writer@example.com",
+      "writer@example.com"
     );
   });
 
@@ -40,6 +37,6 @@ describe("getEmailPrefill", () => {
     "returns an empty string for invalid state",
     (state) => {
       expect(getEmailPrefill(state)).toBe("");
-    },
+    }
   );
 });

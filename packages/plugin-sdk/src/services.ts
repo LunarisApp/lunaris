@@ -2,28 +2,28 @@ import type { SandboxWireObject, SandboxWireValue } from "./sandbox-protocol";
 import { valid } from "semver";
 
 export type PluginServiceMethod = (
-  input: SandboxWireValue,
+  input: SandboxWireValue
 ) => Promise<SandboxWireValue | undefined> | SandboxWireValue | undefined;
 
-export type PluginServiceMethods = Readonly<Record<string, PluginServiceMethod>>;
+export type PluginServiceMethods = Readonly<
+  Record<string, PluginServiceMethod>
+>;
 
 export interface PluginServiceDefinition<
   TMethods extends PluginServiceMethods = PluginServiceMethods,
 > {
   readonly id: string;
   readonly methods: readonly (keyof TMethods & string)[];
-  slot<
-    TMetadata extends object,
-    TInput,
-    TOutput,
-  >(id: string): PluginServiceSlotDefinition<TMetadata, TInput, TOutput>;
+  slot<TMetadata extends object, TInput, TOutput>(
+    id: string
+  ): PluginServiceSlotDefinition<TMetadata, TInput, TOutput>;
   readonly version: string;
 }
 
 export interface PluginServiceSlotDefinition<
-  TMetadata extends object = SandboxWireObject,
-  TInput = SandboxWireValue,
-  TOutput = SandboxWireValue,
+  _TMetadata extends object = SandboxWireObject,
+  _TInput = SandboxWireValue,
+  _TOutput = SandboxWireValue,
 > {
   readonly id: string;
   readonly serviceId: string;
@@ -82,27 +82,23 @@ export interface RegisteredPluginServiceSlotContribution<
 export interface PluginServiceStore {
   getService<TMethods extends PluginServiceMethods>(
     consumerId: string,
-    definition: PluginServiceDefinition<TMethods>,
+    definition: PluginServiceDefinition<TMethods>
   ): RegisteredPluginService<TMethods> | undefined;
-  getSlotContributions<
-    TMetadata extends object,
-    TInput,
-    TOutput,
-  >(
+  getSlotContributions<TMetadata extends object, TInput, TOutput>(
     consumerId: string,
-    slot: PluginServiceSlotDefinition<TMetadata, TInput, TOutput>,
+    slot: PluginServiceSlotDefinition<TMetadata, TInput, TOutput>
   ): RegisteredPluginServiceSlotContribution<TMetadata, TInput, TOutput>[];
   getVersion(): number;
   invokeService(
     consumerId: string,
     serviceId: string,
     method: string,
-    input: SandboxWireValue,
+    input: SandboxWireValue
   ): Promise<SandboxWireValue | undefined>;
   invokeSlot(
     consumerId: string,
     registrationId: string,
-    input: SandboxWireValue,
+    input: SandboxWireValue
   ): Promise<SandboxWireValue>;
   snapshot(consumerId: string): PluginServiceSnapshot;
   subscribe(listener: () => void): () => void;
@@ -126,7 +122,9 @@ export interface PluginServiceSnapshot {
 const SERVICE_ID_PATTERN = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/;
 const SLOT_ID_PATTERN = /^[a-z][a-z0-9-]*$/;
 
-export function definePluginService<TMethods extends PluginServiceMethods>(input: {
+export function definePluginService<
+  TMethods extends PluginServiceMethods,
+>(input: {
   id: string;
   methods: readonly (keyof TMethods & string)[];
   version: string;
@@ -146,12 +144,16 @@ export function definePluginService<TMethods extends PluginServiceMethods>(input
     methods,
     version: input.version,
     slot<TMetadata extends object, TInput, TOutput>(
-      id: string,
+      id: string
     ): PluginServiceSlotDefinition<TMetadata, TInput, TOutput> {
       if (!SLOT_ID_PATTERN.test(id)) {
         throw new Error(`Extension service "${input.id}" has an invalid slot`);
       }
-      return Object.freeze({ id, serviceId: input.id, serviceVersion: input.version });
+      return Object.freeze({
+        id,
+        serviceId: input.id,
+        serviceVersion: input.version,
+      });
     },
   });
 }

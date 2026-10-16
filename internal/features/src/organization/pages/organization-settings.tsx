@@ -107,7 +107,9 @@ export default function OrganizationSettingsPage({
   const canManageInvitations = role === "owner" && canReadInvitations;
 
   useEffect(() => {
-    if (!org) return;
+    if (!org?.id) {
+      return;
+    }
     void preloadOrganizationSettingsData({
       api,
       auth,
@@ -121,7 +123,7 @@ export default function OrganizationSettingsPage({
           ? { regionId: region.id, userId: sessionUserId }
           : undefined,
       invitations: canManageInvitations,
-      orgId: org.id,
+      orgId: org?.id,
       queryClient,
     });
   }, [
@@ -143,12 +145,14 @@ export default function OrganizationSettingsPage({
     role === "owner" && !isAnonymous && canUpdateOrganization;
   const developerMode = useOrganizationDeveloperMode(
     org?.id,
-    canManageMarketplaces,
+    canManageMarketplaces
   );
   const marketplacesEnabled =
     canManageMarketplaces && developerMode.data?.enabled === true;
 
-  if (!org) return null;
+  if (!org?.id) {
+    return null;
+  }
 
   const isPersonal = isPersonalOrganization(org);
   const isOwner = role === "owner";
@@ -173,7 +177,9 @@ export default function OrganizationSettingsPage({
     } else {
       next.set("tab", value);
     }
-    if (value !== "backups") next.delete("backup");
+    if (value !== "backups") {
+      next.delete("backup");
+    }
     setSearchParams(next, { replace: true });
   };
 
@@ -288,7 +294,7 @@ export default function OrganizationSettingsPage({
               className="grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
             >
               <h2
-                className="text-base font-semibold"
+                className="font-semibold text-base"
                 id="organization-general-heading"
               >
                 {t("settings.account.organization")}
@@ -320,11 +326,14 @@ export default function OrganizationSettingsPage({
           </Suspense>
         )}
 
-        {activeTab === "teams" && !isPersonal && canReadTeams && TeamsSection && (
-          <Suspense fallback={null}>
-            <TeamsSection />
-          </Suspense>
-        )}
+        {activeTab === "teams" &&
+          !isPersonal &&
+          canReadTeams &&
+          TeamsSection && (
+            <Suspense fallback={null}>
+              <TeamsSection />
+            </Suspense>
+          )}
 
         {activeTab === "billing" && !isAnonymous && canReadBilling && (
           <BillingSection isOwner={isOwner} organizationId={org.id} />
@@ -334,11 +343,15 @@ export default function OrganizationSettingsPage({
           <BackupsSection />
         )}
 
-        {activeTab === "audit" && !isAnonymous && isOwner && canReadAudit && AuditLogSection && (
-          <Suspense fallback={null}>
-            <AuditLogSection active key={org.id} organizationId={org.id} />
-          </Suspense>
-        )}
+        {activeTab === "audit" &&
+          !isAnonymous &&
+          isOwner &&
+          canReadAudit &&
+          AuditLogSection && (
+            <Suspense fallback={null}>
+              <AuditLogSection active key={org.id} organizationId={org.id} />
+            </Suspense>
+          )}
       </div>
     </SettingsLayout>
   );

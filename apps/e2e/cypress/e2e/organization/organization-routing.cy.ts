@@ -8,7 +8,10 @@ describe("organization/routing", () => {
 
   it("redirects root `/` to /:organizationSlug (workspaces list)", () => {
     cy.visit("/");
-    cy.location("pathname", { timeout: 15_000 }).should("match", /^\/[^/]+\/?$/);
+    cy.location("pathname", { timeout: 15_000 }).should(
+      "match",
+      /^\/[^/]+\/?$/
+    );
     cy.get('[data-testid="workspaces-page"]').should("be.visible");
   });
 
@@ -29,7 +32,9 @@ describe("organization/routing", () => {
       timeout: 30_000,
     }).should("be.visible");
     cy.visit("/does-not-exist");
-    cy.contains("Organization not found", { timeout: 15_000 }).should("be.visible");
+    cy.contains("Organization not found", { timeout: 15_000 }).should(
+      "be.visible"
+    );
   });
 
   it("routes to organization settings at /:organizationSlug/settings", () => {

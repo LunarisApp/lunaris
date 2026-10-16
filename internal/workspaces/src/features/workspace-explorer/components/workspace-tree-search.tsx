@@ -35,9 +35,9 @@ export function WorkspaceTreeSearch({
   return (
     <InputGroup
       className={cn(
-        "flex-1 min-w-0 border-input/40 bg-transparent dark:bg-transparent hover:border-input",
+        "min-w-0 flex-1 border-input/40 bg-transparent hover:border-input dark:bg-transparent",
         isMobile ? "h-10" : "h-7",
-        className,
+        className
       )}
     >
       <InputGroupAddon align="inline-start" className="text-muted-foreground">
@@ -49,7 +49,7 @@ export function WorkspaceTreeSearch({
         aria-expanded={value.length > 0}
         aria-haspopup="listbox"
         aria-label={t("explorer.searchPlaceholder")}
-        className="[&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-cancel-button]:hidden"
+        className="[&::-webkit-search-cancel-button]:hidden [&::-webkit-search-cancel-button]:appearance-none"
         onChange={(e: ChangeEvent<HTMLInputElement>) =>
           onChange(e.target.value)
         }

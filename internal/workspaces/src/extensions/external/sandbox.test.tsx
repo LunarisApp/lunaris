@@ -33,7 +33,9 @@ afterEach(() => {
   URL.createObjectURL = originalCreateObjectUrl;
   URL.revokeObjectURL = originalRevokeObjectUrl;
   document.body.replaceChildren();
-  document.head.querySelectorAll("script, style").forEach((node) => node.remove());
+  document.head.querySelectorAll("script, style").forEach((node) => {
+    node.remove();
+  });
 });
 
 function sandboxRuntime(): PluginSdkRuntime {
@@ -74,7 +76,7 @@ function sandboxRuntime(): PluginSdkRuntime {
         yDoc: null,
         yProvider: null,
       }),
-      useReadyYjsStorage: (storage: { storageId: string }) => ({
+      useReadyYjsStorage: (_storage: { storageId: string }) => ({
         error: null,
         isLoading: false,
         yDoc: null,
@@ -90,7 +92,10 @@ function sandboxRuntime(): PluginSdkRuntime {
         getYjsStorageUpdates: vi.fn(),
         resolveResource: vi.fn().mockResolvedValue({ status: "ready" }),
       }),
-      useCurrentWorkspace: () => ({ workspace: null, workspaceId: "workspace-1" }),
+      useCurrentWorkspace: () => ({
+        workspace: null,
+        workspaceId: "workspace-1",
+      }),
       useCurrentUser: () => ({ isLoading: false, user: { id: "user-1" } }),
       useYjsStorageLastEdited: () => ({
         isLoading: false,
@@ -157,44 +162,159 @@ describe("external extension iframe sandbox", () => {
     ]);
 
     expect(() =>
-      assertFileStorageScope(items, "owned", "example.plugin"),
+      assertFileStorageScope(items, "owned", "example.plugin")
     ).not.toThrow();
     expect(() =>
-      assertFileStorageScope(items, "foreign", "example.plugin"),
+      assertFileStorageScope(items, "foreign", "example.plugin")
     ).toThrow("File storage resource scope mismatch");
     expect(() =>
-      assertFileStorageScope(items, "missing", "example.plugin"),
+      assertFileStorageScope(items, "missing", "example.plugin")
     ).toThrow("File storage resource scope mismatch");
   });
 
-  it.each([6, 7] as const)("hydrates protocol %i with its compatible storage representation", async protocol => {
-    vi.stubGlobal("matchMedia", () => ({ addEventListener: vi.fn(), matches: false, removeEventListener: vi.fn() }));
-    const session = new ExternalPluginSandboxSession("example.plugin", new TextEncoder().encode("void 0"));
-    vi.spyOn(session, "protocol", "get").mockReturnValue(protocol);
-    const mount = vi.spyOn(session, "mount").mockReturnValue({ dispose: vi.fn(), update: vi.fn() });
-    const runtime = sandboxRuntime(); const doc = new Y.Doc(); doc.getMap("cells").set("A1", 42);
-    runtime.data.useReadyYjsStorage = () => ({ error: null, isLoading: false, yDoc: doc, yProvider: null });
-    runtime.host.useOrganizationAccess = () => ({ canWriteContent: false, canDeleteContent: false });
-    render(<ExtensionSdkProvider runtime={runtime}><SandboxedExtensionRenderer params={{ storage: { content: { kind: "yjs", storageId: "document-1" } } }} permissions={["content.read", "content.write"]} renderer="renderer:content:example.plugin" session={session} /></ExtensionSdkProvider>);
+  it.each([6, 7] as const)(
+    "hydrates protocol %i with its compatible storage representation",
+    async (protocol) => {
+      vi.stubGlobal("matchMedia", () => ({
+        addEventListener: vi.fn(),
+        matches: false,
+        removeEventListener: vi.fn(),
+      }));
+      const session = new ExternalPluginSandboxSession(
+        "example.plugin",
+        new TextEncoder().encode("void 0")
+      );
+      vi.spyOn(session, "protocol", "get").mockReturnValue(protocol);
+      const mount = vi
+        .spyOn(session, "mount")
+        .mockReturnValue({ dispose: vi.fn(), update: vi.fn() });
+      const runtime = sandboxRuntime();
+      const doc = new Y.Doc();
+      doc.getMap("cells").set("A1", 42);
+      runtime.data.useReadyYjsStorage = () => ({
+        error: null,
+        isLoading: false,
+        yDoc: doc,
+        yProvider: null,
+      });
+      runtime.host.useOrganizationAccess = () => ({
+        canWriteContent: false,
+        canDeleteContent: false,
+      });
+      render(
+        <ExtensionSdkProvider runtime={runtime}>
+          <SandboxedExtensionRenderer
+            params={{
+              storage: { content: { kind: "yjs", storageId: "document-1" } },
+            }}
+            permissions={["content.read", "content.write"]}
+            renderer="renderer:content:example.plugin"
+            session={session}
+          />
+        </ExtensionSdkProvider>
+      );
+      await waitFor(() => expect(mount).toHaveBeenCalledOnce());
+      const host = mount.mock.calls[0]![4] as {
+        yjs: Array<{
+          incremental: boolean;
+          available: boolean;
+          update?: ArrayBuffer;
+        }>;
+      };
+      expect(host.yjs[0]!.incremental).toBe(protocol === 7);
+      expect(host.yjs[0]!.available).toBe(true);
+      if (protocol === 7) {
+        expect(host.yjs[0]!.update).toBeUndefined();
+      } else {
+        expect(host.yjs[0]!.update).toBeInstanceOf(ArrayBuffer);
+      }
+      const capabilities = mount.mock.calls[0]![5];
+      const response = (await capabilities["yjs.sync"]!(
+        "document-1",
+        Uint8Array.from(Y.encodeStateVector(new Y.Doc())).buffer
+      )) as {
+        update: ArrayBuffer;
+        stateVector: ArrayBuffer;
+        cursor: { epoch: string; revision: number };
+      };
+      const replica = new Y.Doc();
+      Y.applyUpdateV2(replica, new Uint8Array(response.update));
+      expect(replica.getMap("cells").get("A1")).toBe(42);
+      doc.getMap("cells").set("A1", 43);
+      const delta = (await capabilities["yjs.sync"]!(
+        "document-1",
+        Uint8Array.from(Y.encodeStateVector(replica)).buffer,
+        response.cursor
+      )) as { update: ArrayBuffer; stateVector?: ArrayBuffer };
+      expect(delta.stateVector).toBeUndefined();
+      expect(delta.update.byteLength).toBeLessThan(100);
+      Y.applyUpdateV2(replica, new Uint8Array(delta.update));
+      expect(replica.getMap("cells").get("A1")).toBe(43);
+      expect(() =>
+        capabilities["yjs.sync"]!("foreign", new ArrayBuffer(0))
+      ).toThrow("scope");
+      expect(() =>
+        capabilities["yjs.applyUpdate"]!("document-1", response.update)
+      ).toThrow("Permission denied");
+      session.dispose();
+      doc.destroy();
+      replica.destroy();
+    }
+  );
+
+  it("keeps hook order stable when storage slots are added, removed, or reordered", async () => {
+    vi.stubGlobal("matchMedia", () => ({
+      addEventListener: vi.fn(),
+      matches: false,
+      removeEventListener: vi.fn(),
+    }));
+    const session = new ExternalPluginSandboxSession(
+      "example.plugin",
+      new TextEncoder().encode("void 0")
+    );
+    const dispose = vi.fn();
+    const mount = vi
+      .spyOn(session, "mount")
+      .mockReturnValue({ dispose, update: vi.fn() });
+    const runtime = sandboxRuntime();
+    const view = (
+      storage: Record<
+        string,
+        { kind: "file" | "yjs" | "key-value"; storageId: string }
+      >
+    ) => (
+      <ExtensionSdkProvider runtime={runtime}>
+        <SandboxedExtensionRenderer
+          params={{ resourceId: "item-1", storage }}
+          permissions={["content.read", "content.write", "files.read"]}
+          renderer="renderer:content:example.plugin"
+          session={session}
+        />
+      </ExtensionSdkProvider>
+    );
+    const rendered = render(view({}));
     await waitFor(() => expect(mount).toHaveBeenCalledOnce());
-    const host = mount.mock.calls[0]![4] as { yjs: Array<{ incremental: boolean; available: boolean; update?: ArrayBuffer }> };
-    expect(host.yjs[0]!.incremental).toBe(protocol === 7);
-    expect(host.yjs[0]!.available).toBe(true);
-    if (protocol === 7) expect(host.yjs[0]!.update).toBeUndefined();
-    else expect(host.yjs[0]!.update).toBeInstanceOf(ArrayBuffer);
-    const capabilities = mount.mock.calls[0]![5];
-    const response = await capabilities["yjs.sync"]!("document-1", Uint8Array.from(Y.encodeStateVector(new Y.Doc())).buffer) as { update: ArrayBuffer; stateVector: ArrayBuffer; cursor: { epoch: string; revision: number } };
-    const replica = new Y.Doc(); Y.applyUpdateV2(replica, new Uint8Array(response.update));
-    expect(replica.getMap("cells").get("A1")).toBe(42);
-    doc.getMap("cells").set("A1", 43);
-    const delta = await capabilities["yjs.sync"]!("document-1", Uint8Array.from(Y.encodeStateVector(replica)).buffer, response.cursor) as { update: ArrayBuffer; stateVector?: ArrayBuffer };
-    expect(delta.stateVector).toBeUndefined();
-    expect(delta.update.byteLength).toBeLessThan(100);
-    Y.applyUpdateV2(replica, new Uint8Array(delta.update));
-    expect(replica.getMap("cells").get("A1")).toBe(43);
-    expect(() => capabilities["yjs.sync"]!("foreign", new ArrayBuffer(0))).toThrow("scope");
-    expect(() => capabilities["yjs.applyUpdate"]!("document-1", response.update)).toThrow("Permission denied");
-    session.dispose(); doc.destroy(); replica.destroy();
+    const content = { kind: "yjs" as const, storageId: "document-1" };
+    const attachment = { kind: "file" as const, storageId: "file-1" };
+    const metadata = { kind: "key-value" as const, storageId: "metadata-1" };
+    rendered.rerender(view({ content, attachment, metadata }));
+    await waitFor(() =>
+      expect(mount.mock.lastCall?.[4]).toMatchObject({
+        yjs: [expect.objectContaining({ storageId: "document-1" })],
+        attachments: [expect.objectContaining({ storageId: "file-1" })],
+      })
+    );
+    rendered.rerender(view({ attachment, content, metadata }));
+    rendered.rerender(view({ metadata }));
+    await waitFor(() =>
+      expect(mount.mock.lastCall?.[4]).toMatchObject({
+        yjs: [],
+        attachments: [],
+      })
+    );
+    expect(dispose).toHaveBeenCalled();
+    rendered.unmount();
+    session.dispose();
   });
 
   it("exposes only manifest-authorized renderer data and RPC capabilities", async () => {
@@ -205,7 +325,7 @@ describe("external extension iframe sandbox", () => {
     }));
     const session = new ExternalPluginSandboxSession(
       "example.plugin",
-      new TextEncoder().encode("void 0"),
+      new TextEncoder().encode("void 0")
     );
     const mount = vi.spyOn(session, "mount").mockReturnValue({
       dispose: vi.fn(),
@@ -213,10 +333,7 @@ describe("external extension iframe sandbox", () => {
     });
 
     const runtime = sandboxRuntime();
-    const useReadyYjsStorage = vi.spyOn(
-      runtime.data,
-      "useReadyYjsStorage",
-    );
+    const useReadyYjsStorage = vi.spyOn(runtime.data, "useReadyYjsStorage");
     runtime.host.useYjsStorageLastEdited = vi.fn((storage) => ({
       isLoading: storage.storageId === "document-2",
       lastEditedAt:
@@ -248,7 +365,7 @@ describe("external extension iframe sandbox", () => {
           renderer="renderer:content:example.plugin"
           session={session}
         />
-      </ExtensionSdkProvider>,
+      </ExtensionSdkProvider>
     );
 
     await waitFor(() => expect(mount).toHaveBeenCalledOnce());
@@ -281,17 +398,17 @@ describe("external extension iframe sandbox", () => {
             workspaceId: "workspace-1",
           }),
         ],
-      }),
+      })
     );
     expect(useReadyYjsStorage).toHaveBeenCalledWith(
       { kind: "yjs", storageId: "document-1" },
       "workspace-1",
-      expect.objectContaining({ enabled: true, userId: "user-1" }),
+      expect.objectContaining({ enabled: true, userId: "user-1" })
     );
     expect(useReadyYjsStorage).toHaveBeenCalledWith(
       { kind: "yjs", storageId: "document-2" },
       "workspace-1",
-      expect.objectContaining({ enabled: true, userId: "user-1" }),
+      expect.objectContaining({ enabled: true, userId: "user-1" })
     );
     expect(host).not.toHaveProperty("api");
     expect(host).not.toHaveProperty("attachment");
@@ -323,7 +440,7 @@ describe("external extension iframe sandbox", () => {
     const session = new ExternalPluginSandboxSession(
       "example.plugin",
       new TextEncoder().encode("void 0"),
-      "body { color: red; }",
+      "body { color: red; }"
     );
     const registration = session.start();
     void registration.catch(() => undefined);
@@ -340,12 +457,14 @@ describe("external extension iframe sandbox", () => {
 
     const html = await blobs.at(-1)?.text();
     expect(html).toContain(
-      "default-src 'none'; script-src blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg='; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; worker-src blob:; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'",
+      "default-src 'none'; script-src blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg='; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; worker-src blob:; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'"
     );
     expect(html).toContain("connect-src 'none'");
     expect(html).toContain("worker-src blob:");
     expect(html).toContain("base-uri 'none'");
-    expect(html).toContain("sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg=");
+    expect(html).toContain(
+      "sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg="
+    );
     expect(html).not.toContain("body { color: red; }");
     const encodedStyle = html?.match(/id="lunaris-plugin-style">([^<]+)/)?.[1];
     expect(encodedStyle).toBeDefined();
@@ -365,7 +484,7 @@ describe("external extension iframe sandbox", () => {
     URL.revokeObjectURL = vi.fn();
     const session = new ExternalPluginSandboxSession(
       "example.plugin",
-      new TextEncoder().encode("void 0"),
+      new TextEncoder().encode("void 0")
     );
     const container = document.createElement("div");
     const onError = vi.fn();
@@ -377,7 +496,7 @@ describe("external extension iframe sandbox", () => {
       {},
       {},
       {},
-      onError,
+      onError
     );
     mount.dispose();
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -393,7 +512,7 @@ describe("external extension iframe sandbox", () => {
     URL.revokeObjectURL = vi.fn();
     const session = new ExternalPluginSandboxSession(
       "example.plugin",
-      new TextEncoder().encode("void 0"),
+      new TextEncoder().encode("void 0")
     );
     const container = document.createElement("div");
 
@@ -404,7 +523,7 @@ describe("external extension iframe sandbox", () => {
       {},
       {},
       {},
-      vi.fn(),
+      vi.fn()
     );
     container.querySelector("iframe")?.dispatchEvent(new Event("load"));
 
@@ -444,7 +563,7 @@ describe("external extension iframe sandbox", () => {
     URL.revokeObjectURL = vi.fn();
     const session = new ExternalPluginSandboxSession(
       "example.plugin",
-      new TextEncoder().encode("void 0"),
+      new TextEncoder().encode("void 0")
     );
     const container = document.createElement("div");
     document.body.append(container);
@@ -455,14 +574,16 @@ describe("external extension iframe sandbox", () => {
       {},
       { revision: "initial" },
       {},
-      vi.fn(),
+      vi.fn()
     );
     const iframe = container.querySelector("iframe");
-    if (!iframe?.contentWindow) throw new Error("Sandbox frame is missing");
+    if (!iframe?.contentWindow) {
+      throw new Error("Sandbox frame is missing");
+    }
     expect(iframe.style.visibility).toBe("hidden");
     expect(iframe.style.display).toBe("block");
     vi.spyOn(iframe.contentWindow, "postMessage").mockImplementation(
-      () => undefined,
+      () => undefined
     );
 
     iframe.dispatchEvent(new Event("load"));
@@ -475,7 +596,7 @@ describe("external extension iframe sandbox", () => {
     } as MessageEvent);
     await Promise.resolve();
     const initialRender = channels[0]?.port1.postMessage.mock.calls.find(
-      ([request]) => request.type === "render",
+      ([request]) => request.type === "render"
     )?.[0];
     expect(initialRender?.host).toEqual({ revision: "initial" });
     expect(iframe.style.visibility).toBe("hidden");
@@ -505,7 +626,7 @@ describe("external extension iframe sandbox", () => {
         host: { revision: "latest" },
         id: initialRender.id,
         type: "render",
-      }),
+      })
     );
     expect(iframe.style.visibility).toBe("hidden");
     channels[1]?.port1.onmessage?.({
@@ -545,7 +666,7 @@ describe("external extension iframe sandbox", () => {
     URL.revokeObjectURL = vi.fn();
     const session = new ExternalPluginSandboxSession(
       "example.plugin",
-      new TextEncoder().encode("void 0"),
+      new TextEncoder().encode("void 0")
     );
     const container = document.createElement("div");
     document.body.append(container);
@@ -558,18 +679,17 @@ describe("external extension iframe sandbox", () => {
       {},
       { revision: "initial" },
       { capability: initialCapability },
-      vi.fn(),
+      vi.fn()
     );
     const iframe = container.querySelector("iframe");
-    if (!iframe?.contentWindow) throw new Error("Sandbox frame is missing");
+    if (!iframe?.contentWindow) {
+      throw new Error("Sandbox frame is missing");
+    }
     vi.spyOn(iframe.contentWindow, "postMessage").mockImplementation(
-      () => undefined,
+      () => undefined
     );
 
-    mount.update(
-      { revision: "latest" },
-      { capability: latestCapability },
-    );
+    mount.update({ revision: "latest" }, { capability: latestCapability });
     iframe.dispatchEvent(new Event("load"));
     channels[0]?.port1.onmessage?.({
       data: {
@@ -581,7 +701,7 @@ describe("external extension iframe sandbox", () => {
     await Promise.resolve();
 
     const renderRequest = channels[0]?.port1.postMessage.mock.calls.find(
-      ([request]) => request.type === "render",
+      ([request]) => request.type === "render"
     )?.[0];
     expect(renderRequest?.host).toEqual({ revision: "latest" });
 
@@ -632,15 +752,19 @@ describe("external extension iframe sandbox", () => {
     URL.revokeObjectURL = vi.fn();
     const session = new ExternalPluginSandboxSession(
       "example.plugin",
-      new TextEncoder().encode("void 0"),
+      new TextEncoder().encode("void 0")
     );
     const registration = session.start();
     const iframe = document.querySelector("iframe");
-    if (!iframe) throw new Error("Sandbox frame is missing");
+    if (!iframe) {
+      throw new Error("Sandbox frame is missing");
+    }
     const remove = vi.spyOn(iframe, "remove");
-    if (!iframe.contentWindow) throw new Error("Sandbox window is missing");
+    if (!iframe.contentWindow) {
+      throw new Error("Sandbox window is missing");
+    }
     vi.spyOn(iframe.contentWindow, "postMessage").mockImplementation(
-      () => undefined,
+      () => undefined
     );
     iframe.dispatchEvent(new Event("load"));
     channels[0]?.port1.onmessage?.({
@@ -654,7 +778,7 @@ describe("external extension iframe sandbox", () => {
 
     const deactivation = session.deactivate();
     const request = channels[0]?.port1.postMessage.mock.calls.find(
-      ([message]) => message.type === "dispose",
+      ([message]) => message.type === "dispose"
     )?.[0];
     expect(request).toBeDefined();
     expect(remove).not.toHaveBeenCalled();
@@ -695,13 +819,15 @@ describe("external extension iframe sandbox", () => {
     URL.revokeObjectURL = vi.fn();
     const session = new ExternalPluginSandboxSession(
       "example.plugin",
-      new TextEncoder().encode("void 0"),
+      new TextEncoder().encode("void 0")
     );
     const registration = session.start();
     const control = document.body.querySelector("iframe");
-    if (!control?.contentWindow) throw new Error("Control frame is missing");
+    if (!control?.contentWindow) {
+      throw new Error("Control frame is missing");
+    }
     vi.spyOn(control.contentWindow, "postMessage").mockImplementation(
-      () => undefined,
+      () => undefined
     );
     control.dispatchEvent(new Event("load"));
     channels[0]?.port1.onmessage?.({
@@ -722,12 +848,14 @@ describe("external extension iframe sandbox", () => {
       {},
       {},
       {},
-      vi.fn(),
+      vi.fn()
     );
     const renderer = container.querySelector("iframe");
-    if (!renderer?.contentWindow) throw new Error("Renderer frame is missing");
+    if (!renderer?.contentWindow) {
+      throw new Error("Renderer frame is missing");
+    }
     vi.spyOn(renderer.contentWindow, "postMessage").mockImplementation(
-      () => undefined,
+      () => undefined
     );
     renderer.dispatchEvent(new Event("load"));
     channels[1]?.port1.onmessage?.({
@@ -741,14 +869,14 @@ describe("external extension iframe sandbox", () => {
 
     mount.dispose();
     const rendererDisposal = channels[1]?.port1.postMessage.mock.calls.find(
-      ([message]) => message.type === "dispose",
+      ([message]) => message.type === "dispose"
     )?.[0];
     expect(rendererDisposal).toBeDefined();
 
     const settled = vi.fn();
     const deactivation = session.deactivate().then(settled);
     const controlDisposal = channels[0]?.port1.postMessage.mock.calls.find(
-      ([message]) => message.type === "dispose",
+      ([message]) => message.type === "dispose"
     )?.[0];
     expect(controlDisposal).toBeDefined();
     channels[0]?.port1.onmessage?.({
@@ -769,7 +897,7 @@ describe("external extension iframe sandbox", () => {
     URL.revokeObjectURL = vi.fn();
     const session = new ExternalPluginSandboxSession(
       "example.plugin",
-      new TextEncoder().encode("void 0"),
+      new TextEncoder().encode("void 0")
     );
 
     await session.deactivate();
@@ -782,8 +910,8 @@ describe("external extension iframe sandbox", () => {
         {},
         {},
         {},
-        vi.fn(),
-      ),
+        vi.fn()
+      )
     ).toThrow("Extension sandbox disposed");
     expect(URL.createObjectURL).not.toHaveBeenCalled();
   });
@@ -793,7 +921,7 @@ describe("external extension iframe sandbox", () => {
     URL.revokeObjectURL = vi.fn();
     const session = new ExternalPluginSandboxSession(
       "example.plugin",
-      new TextEncoder().encode("void 0"),
+      new TextEncoder().encode("void 0")
     );
     const container = document.createElement("div");
     const onError = vi.fn();
@@ -805,7 +933,7 @@ describe("external extension iframe sandbox", () => {
       {},
       {},
       {},
-      onError,
+      onError
     );
     container.querySelector("iframe")?.dispatchEvent(new Event("error"));
     await vi.waitFor(() => expect(onError).toHaveBeenCalledOnce());
@@ -813,7 +941,7 @@ describe("external extension iframe sandbox", () => {
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({
         message: 'Extension "example.plugin" sandbox failed',
-      }),
+      })
     );
     session.dispose();
   });
@@ -827,7 +955,7 @@ describe("external extension iframe sandbox", () => {
     URL.revokeObjectURL = vi.fn();
     const session = new ExternalPluginSandboxSession(
       "example.plugin",
-      new TextEncoder().encode("void 0"),
+      new TextEncoder().encode("void 0")
     );
     const container = document.createElement("div");
     const mount = session.mount(
@@ -837,7 +965,7 @@ describe("external extension iframe sandbox", () => {
       {},
       {},
       {},
-      vi.fn(),
+      vi.fn()
     );
 
     const html = await blobs.at(-1)?.text();
@@ -848,7 +976,7 @@ describe("external extension iframe sandbox", () => {
     expect(html).toContain("media-src data: blob:");
     expect(html).not.toContain("connect-src 'none'");
     expect(container.querySelector("iframe")?.getAttribute("sandbox")).toBe(
-      "allow-scripts",
+      "allow-scripts"
     );
 
     mount.dispose();

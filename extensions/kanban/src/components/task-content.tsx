@@ -1,4 +1,7 @@
-import type { PluginResource, ResourceStorageHandle } from "@lunarisapp/plugin-sdk";
+import type {
+  PluginResource,
+  ResourceStorageHandle,
+} from "@lunarisapp/plugin-sdk";
 import {
   ViewReady,
   useWorkspaceResourceActions,
@@ -11,15 +14,10 @@ import { PanelError } from "@lunarisapp/ui/components/panel-error";
 import posthog from "posthog-js";
 import { useCallback } from "react";
 import type { Doc } from "yjs";
-import {
-  KANBAN_PLUGIN_ID,
-  KANBAN_TASK_RESOURCE_TYPE_ID,
-} from "../constants";
+import { KANBAN_PLUGIN_ID, KANBAN_TASK_RESOURCE_TYPE_ID } from "../constants";
 import { useTaskAssignments } from "../hooks";
 import { KanbanSkeleton } from "../kanban-skeleton";
-import {
-  setTaskPropertyValue,
-} from "../task-assignments";
+import { setTaskPropertyValue } from "../task-assignments";
 import type { PropertyValue } from "../types";
 import { useProperties } from "../use-properties";
 import { TaskDetail } from "./task-detail";
@@ -63,9 +61,7 @@ export function TaskEditor({
     );
   }
 
-  return (
-    <TaskDocuments board={board} reportReady={reportReady} task={task} />
-  );
+  return <TaskDocuments board={board} reportReady={reportReady} task={task} />;
 }
 
 function TaskDocuments({
@@ -86,7 +82,7 @@ function TaskDocuments({
   ) {
     return <KanbanSkeleton />;
   }
-  if (!taskDocument.yDoc || !boardDocument.yDoc) {
+  if (!(taskDocument.yDoc && boardDocument.yDoc)) {
     return (
       <PanelError
         description="The task or its parent board document is missing."
@@ -127,7 +123,9 @@ function TaskDetailContent({
 
   const changeProperty = useCallback(
     (propertyId: string, value: PropertyValue | null) => {
-      if (!access.canWriteContent) return;
+      if (!access.canWriteContent) {
+        return;
+      }
       boardDoc.transact(() => {
         setTaskPropertyValue(boardDoc, task.resourceId, propertyId, value);
       });
@@ -154,9 +152,7 @@ function TaskDetailContent({
           title,
         })
       }
-      onPropertyChange={
-        access.canWriteContent ? changeProperty : undefined
-      }
+      onPropertyChange={access.canWriteContent ? changeProperty : undefined}
       onRename={
         access.canWriteContent
           ? (name) => void actions.renameResource(task.resourceId, name)

@@ -23,7 +23,7 @@ describe("PowerSyncSessionCoordinator", () => {
       () =>
         new Promise<PowerSyncSession>((resolve) => {
           finishBoot = resolve;
-        }),
+        })
     );
 
     const cleanup = coordinator.release(creation);
@@ -40,7 +40,7 @@ describe("PowerSyncSessionCoordinator", () => {
     const first = createSession();
     let finishClose: (() => void) | undefined;
     vi.mocked(first.close).mockImplementation(
-      () => new Promise<void>((resolve) => (finishClose = resolve)),
+      () => new Promise<void>((resolve) => (finishClose = resolve))
     );
     const firstCreation = coordinator.create(async () => first);
     coordinator.activate(await firstCreation);
@@ -67,7 +67,9 @@ describe("PowerSyncSessionCoordinator", () => {
     await expect(failedCreation).rejects.toThrow("boot failed");
     await coordinator.release(failedCreation);
     const session = createSession();
-    await expect(coordinator.create(async () => session)).resolves.toBe(session);
+    await expect(coordinator.create(async () => session)).resolves.toBe(
+      session
+    );
   });
 
   it("blocks later creation when session cleanup fails", async () => {

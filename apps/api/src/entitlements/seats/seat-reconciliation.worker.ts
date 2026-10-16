@@ -16,12 +16,14 @@ export class SeatReconciliationWorker {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly seats: SeatService,
-    private readonly billing: BillingService,
+    private readonly billing: BillingService
   ) {}
 
   @Interval(RECONCILIATION_INTERVAL_MS)
   async reconcile() {
-    if (this.running) return;
+    if (this.running) {
+      return;
+    }
     this.running = true;
 
     const log = createLogger({ task: "organization-seat-reconciliation" });
@@ -33,7 +35,7 @@ export class SeatReconciliationWorker {
       client = await this.databaseService.pool.connect();
       const lock = await client.query<{ acquired: boolean }>(
         "SELECT pg_try_advisory_lock($1) AS acquired",
-        [SEAT_RECONCILIATION_LOCK_KEY],
+        [SEAT_RECONCILIATION_LOCK_KEY]
       );
       acquired = lock.rows[0]?.acquired === true;
       if (!acquired) {

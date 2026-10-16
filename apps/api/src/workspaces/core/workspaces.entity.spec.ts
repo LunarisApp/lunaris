@@ -7,13 +7,13 @@ describe("workspacesDb", () => {
     const config = getTableConfig(workspacesDb);
     const listIndex = config.indexes.find(
       (candidate) =>
-        candidate.config.name === "workspaces_org_visibility_updated_idx",
+        candidate.config.name === "workspaces_org_visibility_updated_idx"
     );
 
     expect(
       listIndex?.config.columns.map((column) =>
-        "name" in column ? column.name : null,
-      ),
+        "name" in column ? column.name : null
+      )
     ).toEqual(["organizationId", "visibility", "updatedAt", "id"]);
   });
 
@@ -34,7 +34,7 @@ describe("workspacesDb", () => {
     const config = getTableConfig(workspacesDb);
     const ownerReference = config.foreignKeys.find(
       (foreignKey) =>
-        foreignKey.reference().columns[0]?.name === workspacesDb.ownerId.name,
+        foreignKey.reference().columns[0]?.name === workspacesDb.ownerId.name
     );
 
     expect(ownerReference?.onDelete).toBe("cascade");

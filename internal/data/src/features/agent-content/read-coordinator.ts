@@ -21,13 +21,13 @@ export interface DeviceReadCoordinator {
   dispose(): void;
   resolve(
     target: DeviceReadTarget,
-    options?: ContentRequestOptions,
+    options?: ContentRequestOptions
   ): Promise<ContentSnapshot>;
 }
 
 export function createDeviceReadCoordinator(
   db: AbstractPowerSyncDatabase,
-  options: { timeoutMs?: number; ttlSeconds?: number } = {},
+  options: { timeoutMs?: number; ttlSeconds?: number } = {}
 ): DeviceReadCoordinator {
   const lifecycle = new AbortController();
   const pending = new Map<string, Promise<ContentSnapshot>>();
@@ -39,15 +39,17 @@ export function createDeviceReadCoordinator(
       ...streamsFor(db, target).map((stream) => streamSnapshot(db, stream)),
       ...(target.kind === "workspace-content"
         ? streamsFor(db, { kind: "organization-resources" }).map((stream) =>
-            streamSnapshot(db, stream),
+            streamSnapshot(db, stream)
           )
-        : []),
+        : [])
     );
 
   const confirm = (target: DeviceReadTarget): Promise<ContentSnapshot> => {
     const key = targetKey(target);
     const existing = pending.get(key);
-    if (existing) return existing;
+    if (existing) {
+      return existing;
+    }
     const confirmationOptions = {
       lifecycle: lifecycle.signal,
       timeoutMs,
@@ -61,7 +63,9 @@ export function createDeviceReadCoordinator(
           ]).then((snapshots) => mergeContentSnapshots(...snapshots))
         : confirmStreams(db, target, confirmationOptions);
     const promise: Promise<ContentSnapshot> = confirmation.finally(() => {
-      if (pending.get(key) === promise) pending.delete(key);
+      if (pending.get(key) === promise) {
+        pending.delete(key);
+      }
     });
     pending.set(key, promise);
     return promise;
@@ -73,7 +77,9 @@ export function createDeviceReadCoordinator(
       pending.clear();
     },
     async resolve(target, request = {}) {
-      if (request.consistency === "cached") return snapshot(target);
+      if (request.consistency === "cached") {
+        return snapshot(target);
+      }
       return waitWithSignal(confirm(target), request.signal);
     },
   };
@@ -91,20 +97,16 @@ export function mergeContentSnapshots(
   ...snapshots: ContentSnapshot[]
 ): ContentSnapshot {
   const confirmed = snapshots
-    .flatMap((snapshot) =>
-      snapshot.confirmedAt ? [snapshot.confirmedAt] : [],
-    )
+    .flatMap((snapshot) => (snapshot.confirmedAt ? [snapshot.confirmedAt] : []))
     .sort();
   return {
     completeness: snapshots.every(
-      (snapshot) => snapshot.completeness === "complete",
+      (snapshot) => snapshot.completeness === "complete"
     )
       ? "complete"
       : "partial",
     confirmedAt: confirmed[0] ?? null,
-    syncState: snapshots.every(
-      (snapshot) => snapshot.syncState === "current",
-    )
+    syncState: snapshots.every((snapshot) => snapshot.syncState === "current")
       ? "current"
       : snapshots.some((snapshot) => snapshot.syncState === "stale")
         ? "stale"
@@ -119,7 +121,7 @@ async function confirmStreams(
     lifecycle: AbortSignal;
     timeoutMs: number;
     ttl: number;
-  },
+  }
 ) {
   const streams = streamsFor(db, target);
   const timeout = AbortSignal.timeout(options.timeoutMs);
@@ -128,49 +130,51 @@ async function confirmStreams(
     stream.subscribe({
       priority: 0,
       ttl: options.ttl,
-    }),
+    })
   );
   let subscriptions: SyncStreamSubscription[] = [];
   try {
     subscriptions = await waitWithSignal(
       Promise.all(subscriptionPromises),
-      signal,
+      signal
     );
     await db.waitForStatus(
       (status) =>
         status.connected || status.dataFlowStatus.downloadError !== undefined,
-      signal,
+      signal
     );
     assertSyncAvailable(db, signal);
     await waitWithSignal(
       Promise.all(
         subscriptions.map((subscription) =>
-          subscription.waitForFirstSync(signal),
-        ),
+          subscription.waitForFirstSync(signal)
+        )
       ),
-      signal,
+      signal
     );
     assertSyncAvailable(db, signal);
     const snapshot = mergeContentSnapshots(
-      ...subscriptions.map((subscription) =>
-        streamSnapshot(db, subscription),
-      ),
+      ...subscriptions.map((subscription) => streamSnapshot(db, subscription))
     );
     if (snapshot.completeness !== "complete") {
       throw incompleteSync();
     }
     return snapshot;
   } catch (error) {
-    if (isExposedError(error)) throw error;
+    if (isExposedError(error)) {
+      throw error;
+    }
     throw incompleteSync();
   } finally {
     if (subscriptions.length === subscriptionPromises.length) {
-      for (const subscription of subscriptions) subscription.unsubscribe();
+      for (const subscription of subscriptions) {
+        subscription.unsubscribe();
+      }
     } else {
       for (const subscription of subscriptionPromises) {
         subscription.then(
           (lateSubscription) => lateSubscription.unsubscribe(),
-          () => undefined,
+          () => undefined
         );
       }
     }
@@ -179,7 +183,7 @@ async function confirmStreams(
 
 function assertSyncAvailable(
   db: AbstractPowerSyncDatabase,
-  signal: AbortSignal,
+  signal: AbortSignal
 ) {
   if (
     signal.aborted ||
@@ -192,7 +196,7 @@ function assertSyncAvailable(
 
 function streamsFor(
   db: AbstractPowerSyncDatabase,
-  target: DeviceReadTarget,
+  target: DeviceReadTarget
 ): SyncStream[] {
   if (target.kind === "workspace-content") {
     return [
@@ -204,7 +208,7 @@ function streamsFor(
 
 function streamSnapshot(
   db: AbstractPowerSyncDatabase,
-  stream: SyncStreamDescription,
+  stream: SyncStreamDescription
 ): ContentSnapshot {
   const status = db.currentStatus.forStream(stream)?.subscription;
   const confirmedAt = toIsoString(status?.lastSyncedAt);
@@ -228,7 +232,9 @@ function streamSnapshot(
 }
 
 function toIsoString(date: Date | null | undefined): string | null {
-  if (!date || Number.isNaN(date.getTime())) return null;
+  if (!date || Number.isNaN(date.getTime())) {
+    return null;
+  }
   return date.toISOString();
 }
 
@@ -239,8 +245,12 @@ function targetKey(target: DeviceReadTarget) {
 }
 
 function waitWithSignal<T>(promise: Promise<T>, signal?: AbortSignal) {
-  if (!signal) return promise;
-  if (signal.aborted) return Promise.reject(incompleteSync());
+  if (!signal) {
+    return promise;
+  }
+  if (signal.aborted) {
+    return Promise.reject(incompleteSync());
+  }
   return new Promise<T>((resolve, reject) => {
     const abort = () => reject(incompleteSync());
     signal.addEventListener("abort", abort, { once: true });
@@ -252,7 +262,7 @@ function waitWithSignal<T>(promise: Promise<T>, signal?: AbortSignal) {
       (error: unknown) => {
         signal.removeEventListener("abort", abort);
         reject(error);
-      },
+      }
     );
   });
 }
@@ -264,7 +274,7 @@ function incompleteSync() {
       code: "INCOMPLETE_SYNC",
       exposeToAgent: true,
       status: 409,
-    },
+    }
   );
 }
 

@@ -1,5 +1,9 @@
 import { Button } from "@lunarisapp/ui/components/button";
-import { CustomerSupportIcon, HugeiconsIcon, Mail01Icon } from "@lunarisapp/ui/icons";
+import {
+  CustomerSupportIcon,
+  HugeiconsIcon,
+  Mail01Icon,
+} from "@lunarisapp/ui/icons";
 import { useTranslation } from "react-i18next";
 
 const CEO_CHAT_URL = "https://cal.eu/rsirokov/chat";
@@ -25,19 +29,19 @@ export function HelpCenterSupportSection() {
             {t("helpCenter.contact")}
           </Button>
           <Button
-              nativeButton={false}
-              render={(
-                <a
-                  href={CEO_CHAT_URL}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                />
-              )}
-              variant="outline"
-            >
-              <HugeiconsIcon className="mr-0.5" icon={CustomerSupportIcon} />
-              {t("announcements.ceoChatCta")}
-            </Button>
+            nativeButton={false}
+            render={
+              <a
+                href={CEO_CHAT_URL}
+                rel="noopener noreferrer"
+                target="_blank"
+              />
+            }
+            variant="outline"
+          >
+            <HugeiconsIcon className="mr-0.5" icon={CustomerSupportIcon} />
+            {t("announcements.ceoChatCta")}
+          </Button>
         </div>
       </div>
     </div>

@@ -21,44 +21,69 @@ let auditWritten = false;
 try {
   auditFile = openSync("/data/admin-audit.jsonl", "a", 0o600);
   const descriptor = auditFile;
-  initLogger({ drain: ({ event }) => {
-    if (event.audit) {
-      writeSync(descriptor, `${JSON.stringify(event)}\n`);
-      fsyncSync(descriptor);
-      auditWritten = true;
-    }
-  } });
+  initLogger({
+    drain: ({ event }) => {
+      if (event.audit) {
+        writeSync(descriptor, `${JSON.stringify(event)}\n`);
+        fsyncSync(descriptor);
+        auditWritten = true;
+      }
+    },
+  });
   const log = createLogger({ task: "local-password-recovery" });
   const email = process.argv[2];
-  if (!email) throw new Error("Email required.");
+  if (!email) {
+    throw new Error("Email required.");
+  }
   const password = await Bun.stdin.text();
   const origin = process.env.PUBLIC_URL ?? "http://localhost:8080";
   const auth = createAuth(drizzle(pool), {
     schema: authSchema,
     backendUrl: origin,
     frontendUrl: origin,
-    redisConfig: { host: "127.0.0.1", port: 6379, password: process.env.REDIS_PASSWORD },
+    redisConfig: {
+      host: "127.0.0.1",
+      port: 6379,
+      password: process.env.REDIS_PASSWORD,
+    },
   });
   try {
     const userId = await resetLocalPassword(auth, email, password);
-    log.audit({ action: "auth.admin.password_reset", actor: { type: "system", id: "container-admin" }, target: { type: "user", id: userId }, outcome: "success" });
+    log.audit({
+      action: "auth.admin.password_reset",
+      actor: { type: "system", id: "container-admin" },
+      target: { type: "user", id: userId },
+      outcome: "success",
+    });
     log.emit();
     if (auditWritten) {
       process.stdout.write("Password reset. Existing sessions revoked.\n");
       exitCode = 0;
     } else {
-      process.stderr.write("Password reset and sessions revoked, but audit persistence failed. Check disk space and permissions.\n");
+      process.stderr.write(
+        "Password reset and sessions revoked, but audit persistence failed. Check disk space and permissions.\n"
+      );
     }
   } catch {
-    log.audit({ action: "auth.admin.password_reset", actor: { type: "system", id: "container-admin" }, outcome: "failure" });
+    log.audit({
+      action: "auth.admin.password_reset",
+      actor: { type: "system", id: "container-admin" },
+      outcome: "failure",
+    });
     log.emit();
-    process.stderr.write("Recovery failed. Check email, password policy, and database/Redis availability. Account must already have password login.\n");
+    process.stderr.write(
+      "Recovery failed. Check email, password policy, and database/Redis availability. Account must already have password login.\n"
+    );
   }
 } catch {
-  process.stderr.write("Recovery could not complete. Check configuration and audit-file permissions.\n");
+  process.stderr.write(
+    "Recovery could not complete. Check configuration and audit-file permissions.\n"
+  );
 } finally {
   await pool.end();
-  if (auditFile !== undefined) closeSync(auditFile);
+  if (auditFile !== undefined) {
+    closeSync(auditFile);
+  }
 }
 // The auth Redis client is private to Better Auth and has no disposal API.
 process.exit(exitCode);

@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  getUserFacingDescription,
-  getUserFacingError,
-} from "@repo/data/http";
+import { getUserFacingDescription, getUserFacingError } from "@repo/data/http";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -18,6 +15,6 @@ export function useWorkspaceSettingsErrorToast() {
         description: getUserFacingDescription(userError, t),
       });
     },
-    [t],
+    [t]
   );
 }

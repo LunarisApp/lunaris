@@ -22,26 +22,28 @@ type AuthenticatedRequest = FastifyRequest & {
 export class PermissionGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private readonly permissions: PermissionService,
+    private readonly permissions: PermissionService
   ) {}
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> {
     const targets = [context.getHandler(), context.getClass()];
     const deferred = this.reflector.getAllAndOverride<boolean>(
       DEFER_PERMISSION_METADATA,
-      targets,
+      targets
     );
-    if (deferred) return true;
+    if (deferred) {
+      return true;
+    }
 
     const required = this.reflector.getAllAndOverride<
       AppPermission | undefined
     >(PERMISSION_METADATA, targets);
 
-    if (!required) return true;
+    if (!required) {
+      return true;
+    }
 
-    const request = context
-      .switchToHttp()
-      .getRequest<AuthenticatedRequest>();
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     return this.permissions.hasPermission(required, {
       organizationId: request.session?.session.activeOrganizationId,
       workspaceId: request.params?.workspaceId,

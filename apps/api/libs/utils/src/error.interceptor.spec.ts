@@ -63,7 +63,7 @@ describe("ErrorInterceptor", () => {
               message: "downstream failed",
               why: "API timeout",
               reason: "service.unavailable",
-            }),
+            })
         ),
     };
 
@@ -96,7 +96,7 @@ describe("ErrorInterceptor", () => {
             new BadRequestError({
               message: "bad",
               reason: "validation.failed",
-            }),
+            })
         ),
     };
 
@@ -152,7 +152,7 @@ describe("ErrorInterceptor", () => {
   it("converts unknown errors to 500", async () => {
     const captureException = spyOn(
       Sentry,
-      "captureException",
+      "captureException"
     ).mockImplementation(() => "");
     const handler: CallHandler = {
       handle: () => throwError(() => new Error("unexpected")),
@@ -189,7 +189,7 @@ describe("ErrorInterceptor", () => {
 
     const captureException = spyOn(
       Sentry,
-      "captureException",
+      "captureException"
     ).mockImplementation(() => "");
 
     try {

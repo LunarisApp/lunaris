@@ -15,7 +15,7 @@ function plugin(
     dependencies?: Record<string, string>;
     effect?: () => (() => void) | void;
     resourceIds?: readonly string[];
-  } = {},
+  } = {}
 ): PluginDefinition {
   const resourceIds = options.resourceIds ?? [id];
   return definePlugin({
@@ -55,7 +55,9 @@ function plugin(
           target: { kind: "resource", resourceTypeIds: [resourceId] },
         });
       }
-      if (options.effect) effects.add(options.effect);
+      if (options.effect) {
+        effects.add(options.effect);
+      }
     },
   });
 }
@@ -79,8 +81,12 @@ describe("Cordis-backed extension lifecycle", () => {
     registry.subscribe(listener);
 
     const result = await lifecycle.initializePlugins(
-      [plugin("acme.notes", { resourceIds: ["acme.notes", "acme.notes.task"] })],
-      deps(),
+      [
+        plugin("acme.notes", {
+          resourceIds: ["acme.notes", "acme.notes.task"],
+        }),
+      ],
+      deps()
     );
 
     expect(result).toEqual([{ pluginId: "acme.notes", success: true }]);
@@ -142,13 +148,13 @@ describe("Cordis-backed extension lifecycle", () => {
     const lifecycleDeps = deps();
     await lifecycle.initializePlugins([value], lifecycleDeps);
 
-    expect((await lifecycle.reloadPlugin(value, lifecycleDeps)).success).toBe(true);
+    expect((await lifecycle.reloadPlugin(value, lifecycleDeps)).success).toBe(
+      true
+    );
     expect(
       registry
         .getResourceTypes()
-        .filter(
-          ({ definition }) => definition.resourceTypeId === "acme.notes",
-        ),
+        .filter(({ definition }) => definition.resourceTypeId === "acme.notes")
     ).toHaveLength(1);
   });
 
@@ -184,24 +190,28 @@ describe("Cordis-backed extension lifecycle", () => {
     expect(lifecycleDeps.gridLayoutRegister).toHaveBeenCalledWith(
       "acme.alt",
       "acme.alt.preview",
-      expect.any(Function),
+      expect.any(Function)
     );
     await lifecycle.disablePlugin("acme.alt");
     expect(lifecycleDeps.gridLayoutUnregister).toHaveBeenCalledWith(
       "acme.alt",
-      "acme.alt.preview",
+      "acme.alt.preview"
     );
   });
 
   it("scopes search capabilities and removes them on unload", async () => {
-    const extractText: SearchIndexerContribution["extractText"] = vi.fn(async (input, context) => {
-      const file = await context.readFile(input.storage.content!);
-      return file ? new TextDecoder().decode(file.bytes) : null;
-    });
-    const query: SearchQueryContribution["query"] = vi.fn(async (_input, context) => {
-      await context.fetch("https://example.com/search");
-      return { items: [], nextCursor: null };
-    });
+    const extractText: SearchIndexerContribution["extractText"] = vi.fn(
+      async (input, context) => {
+        const file = await context.readFile(input.storage.content!);
+        return file ? new TextDecoder().decode(file.bytes) : null;
+      }
+    );
+    const query: SearchQueryContribution["query"] = vi.fn(
+      async (_input, context) => {
+        await context.fetch("https://example.com/search");
+        return { items: [], nextCursor: null };
+      }
+    );
     const value = definePlugin({
       manifest: {
         api: "^0.9.0",
@@ -231,13 +241,18 @@ describe("Cordis-backed extension lifecycle", () => {
     const provider = registry.getSearchQueries()[0]?.definition;
     const bytes = new TextEncoder().encode("indexed").buffer;
     await expect(
-      indexer?.extractText({ storage: { content: { kind: "file", storageId: "file-1" } } } as never, {
-        readFile: () => Promise.resolve({ bytes, mediaType: "text/plain" }),
-      }),
+      indexer?.extractText(
+        {
+          storage: { content: { kind: "file", storageId: "file-1" } },
+        } as never,
+        {
+          readFile: () => Promise.resolve({ bytes, mediaType: "text/plain" }),
+        }
+      )
     ).resolves.toBe("indexed");
     const fetch = vi.fn().mockResolvedValue(new Response()) as never;
     await expect(
-      provider?.query({ limit: 10, text: "x" }, { fetch }),
+      provider?.query({ limit: 10, text: "x" }, { fetch })
     ).resolves.toEqual({ items: [], nextCursor: null });
     expect(fetch).toHaveBeenCalledOnce();
 
@@ -286,7 +301,7 @@ describe("Cordis-backed extension lifecycle", () => {
     await lifecycle.initializePlugins([value], deps());
 
     await expect(
-      lifecycle.disablePlugin("acme.notes", unregister),
+      lifecycle.disablePlugin("acme.notes", unregister)
     ).rejects.toThrow("cleanup failed");
     expect(unregister).toHaveBeenCalledWith("acme.notes");
   });
@@ -304,9 +319,9 @@ describe("Cordis-backed extension lifecycle", () => {
     });
     await lifecycle.initializePlugins([first, second], deps());
 
-    await expect(lifecycle.cleanupPlugins([first, second])).rejects.toBeInstanceOf(
-      AggregateError,
-    );
+    await expect(
+      lifecycle.cleanupPlugins([first, second])
+    ).rejects.toBeInstanceOf(AggregateError);
     expect(registry.has("acme.first")).toBe(false);
     expect(registry.has("acme.second")).toBe(false);
   });
@@ -335,7 +350,10 @@ describe("Cordis-backed extension lifecycle", () => {
             versions: { 1: z.object({}) },
           },
           storage: {
-            metadata: { initialize: () => ({ ready: true }), kind: "key-value" },
+            metadata: {
+              initialize: () => ({ ready: true }),
+              kind: "key-value",
+            },
           },
         });
         contributions.view({
@@ -349,8 +367,9 @@ describe("Cordis-backed extension lifecycle", () => {
       },
     });
     await lifecycle.initializePlugins([value], deps());
-    const initializer = registry.getResourceType("acme.storage")?.definition.storage
-      .metadata?.initialize;
+    const initializer =
+      registry.getResourceType("acme.storage")?.definition.storage.metadata
+        ?.initialize;
 
     expect(() =>
       initializer?.({
@@ -358,7 +377,7 @@ describe("Cordis-backed extension lifecycle", () => {
         parentId: null,
         resourceId: "resource-1",
         userId: null,
-      }),
+      })
     ).toThrow('has not declared permission "content.write"');
   });
 
@@ -423,24 +442,29 @@ describe("Cordis-backed extension lifecycle", () => {
     const direct = commands[0];
     const grouped = commands[1];
     expect(() =>
-      direct && "onExecute" in direct ? direct.onExecute({} as never) : undefined,
+      direct && "onExecute" in direct
+        ? direct.onExecute({} as never)
+        : undefined
     ).toThrow('permission "content.read"');
     expect(() =>
       grouped && "children" in grouped
         ? grouped.children?.[0]?.onExecute({} as never)
-        : undefined,
+        : undefined
     ).toThrow('permission "content.read"');
     expect(() =>
-      registry.getSearchIndexers()[0]?.definition.extractText(
-        { storage: {} } as never,
-        { readFile: vi.fn() },
-      ),
+      registry
+        .getSearchIndexers()[0]
+        ?.definition.extractText({ storage: {} } as never, {
+          readFile: vi.fn(),
+        })
     ).toThrow('permission "content.read"');
     await expect(
-      registry.getSearchQueries()[0]?.definition.query(
-        { limit: 10, text: "x" },
-        { fetch: vi.fn() as never },
-      ),
+      registry
+        .getSearchQueries()[0]
+        ?.definition.query(
+          { limit: 10, text: "x" },
+          { fetch: vi.fn() as never }
+        )
     ).rejects.toThrow('permission "network.https"');
     expect(command).not.toHaveBeenCalled();
   });
@@ -451,12 +475,21 @@ describe("Cordis-backed extension lifecycle", () => {
     ]);
     const i18n = {
       addResourceBundle: vi.fn(
-        (language: string, _namespace: string, resources: Record<string, unknown>) => {
-          bundles.set(language, { ...(bundles.get(language) ?? {}), ...resources });
-        },
+        (
+          language: string,
+          _namespace: string,
+          resources: Record<string, unknown>
+        ) => {
+          bundles.set(language, {
+            ...(bundles.get(language) ?? {}),
+            ...resources,
+          });
+        }
       ),
       getResourceBundle: vi.fn((language: string) => bundles.get(language)),
-      removeResourceBundle: vi.fn((language: string) => bundles.delete(language)),
+      removeResourceBundle: vi.fn((language: string) =>
+        bundles.delete(language)
+      ),
     };
     const value = definePlugin({
       manifest: {
@@ -487,16 +520,20 @@ describe("Cordis-backed extension lifecycle", () => {
 
     await lifecycle.initializePlugins([value], lifecycleDeps);
 
-    expect(registry.getWorkspaceStorage("acme.organization.settings")).toBeDefined();
+    expect(
+      registry.getWorkspaceStorage("acme.organization.settings")
+    ).toBeDefined();
     expect(lifecycleDeps.gridLayoutRegister).toHaveBeenCalledWith(
       "acme.organization",
       "acme.organization.view",
-      expect.any(Function),
+      expect.any(Function)
     );
     expect(i18n.addResourceBundle).toHaveBeenCalled();
 
     await lifecycle.disablePlugin("acme.organization");
-    expect(registry.getWorkspaceStorage("acme.organization.settings")).toBeUndefined();
+    expect(
+      registry.getWorkspaceStorage("acme.organization.settings")
+    ).toBeUndefined();
     expect(bundles.get("en")).toEqual({ base: "Base" });
   });
 
@@ -512,6 +549,7 @@ describe("Cordis-backed extension lifecycle", () => {
         version: "1.0.0",
       },
       activate() {
+        // biome-ignore lint/style/useThrowOnlyError: Exercises conversion of non-Error plugin exceptions.
         throw "reload failed";
       },
     });
@@ -588,7 +626,9 @@ describe("Cordis-backed extension lifecycle", () => {
           viewId: "acme.allowed.view",
         });
         contributions.command({
-          commands: [{ icon: [], id: "run", labelKey: "run", onExecute: command }],
+          commands: [
+            { icon: [], id: "run", labelKey: "run", onExecute: command },
+          ],
           id: "acme.allowed.commands",
           resourceTypeIds: ["acme.allowed"],
         });
@@ -619,33 +659,34 @@ describe("Cordis-backed extension lifecycle", () => {
         parentId: null,
         workspaceId: "workspace-1",
         uploadFile,
-      } as never),
+      } as never)
     ).resolves.toMatchObject({ resourceId: "resource-1" });
     expect(uploadFile).toHaveBeenCalledOnce();
 
     const registeredView = registry.getView("acme.allowed.view")?.definition;
     registeredView?.renderer({} as never);
-    registeredView && "statusBar" in registeredView
-      ? registeredView.statusBar?.({} as never)
-      : undefined;
+    if (registeredView && "statusBar" in registeredView) {
+      registeredView.statusBar?.({} as never);
+    }
     const registeredCommand = registry.getCommands()[0]?.definition.commands[0];
     expect(
       registeredCommand && "onExecute" in registeredCommand
         ? registeredCommand.onExecute({} as never)
-        : undefined,
+        : undefined
     ).toBe("ran");
     await expect(
-      registry.getSearchIndexers()[0]?.definition.extractText(
-        { storage: {} } as never,
-        { readFile: vi.fn().mockResolvedValue(null) },
-      ),
+      registry
+        .getSearchIndexers()[0]
+        ?.definition.extractText({ storage: {} } as never, {
+          readFile: vi.fn().mockResolvedValue(null),
+        })
     ).resolves.toBe("indexed");
     const provider = registry.getSearchQueries()[0]?.definition;
     await expect(
       provider?.query(
         { limit: 1, text: "x" },
-        { fetch: vi.fn().mockResolvedValue(new Response()) as never },
-      ),
+        { fetch: vi.fn().mockResolvedValue(new Response()) as never }
+      )
     ).resolves.toEqual({ items: [], nextCursor: null });
     provider?.open({ id: "result" } as never, {} as never);
     expect(open).toHaveBeenCalledOnce();

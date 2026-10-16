@@ -13,14 +13,14 @@ import {
 
 export function configureHttpSecurity(
   app: NestFastifyApplication,
-  config: AppConfig,
+  config: AppConfig
 ) {
   const fastify = app.getHttpAdapter().getInstance();
   app.enableCors(getCorsConfig(config));
   registerDesktopCookieBridge(fastify, config);
   registerPermissionsPolicyHeader(fastify);
   app.useSecurityHeaders(
-    getSecurityHeadersConfig(config.nodeEnv === "production"),
+    getSecurityHeadersConfig(config.nodeEnv === "production")
   );
   app.enableCsrfProtection(getCsrfProtectionOptions(config));
   registerOriginValidation(fastify);

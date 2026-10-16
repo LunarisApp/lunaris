@@ -33,15 +33,17 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) =>
       (
-        {
+        ({
           "auth.regionComingSoon": "soon",
           "auth.regionDescription": "Give your data a place to call home.",
           "auth.regionTitle": "Data region",
-        } as const
-      )[key as
-        | "auth.regionComingSoon"
-        | "auth.regionDescription"
-        | "auth.regionTitle"] ?? key,
+        }) as const
+      )[
+        key as
+          | "auth.regionComingSoon"
+          | "auth.regionDescription"
+          | "auth.regionTitle"
+      ] ?? key,
   }),
 }));
 
@@ -63,7 +65,9 @@ describe("RegionSwitcher", () => {
     expect(container.querySelector(".text-muted-foreground")).toBeTruthy();
     expect(container.querySelector(".text-center")).toBeTruthy();
     expect(screen.queryByText("Data region")).toBeNull();
-    expect(screen.queryByText("Give your data a place to call home.")).toBeNull();
+    expect(
+      screen.queryByText("Give your data a place to call home.")
+    ).toBeNull();
     expect(screen.queryByRole("button")).toBeNull();
   });
 
@@ -80,15 +84,17 @@ describe("RegionSwitcher", () => {
     render(<RegionSwitcher />);
 
     expect(screen.getByText("Data region")).toBeTruthy();
-    expect(screen.getByText("Give your data a place to call home.")).toBeTruthy();
+    expect(
+      screen.getByText("Give your data a place to call home.")
+    ).toBeTruthy();
     expect(screen.getByRole("group", { name: "Data region" })).toBeTruthy();
     expect(screen.getAllByRole("button")).toHaveLength(2);
     expect(
-      screen.getByRole("button", { name: /Local/ }).getAttribute("aria-pressed"),
+      screen.getByRole("button", { name: /Local/ }).getAttribute("aria-pressed")
     ).toBe("true");
     expect(
       (screen.getByRole("button", { name: /Europe/ }) as HTMLButtonElement)
-        .disabled,
+        .disabled
     ).toBe(true);
   });
 

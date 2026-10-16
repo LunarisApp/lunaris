@@ -1,9 +1,6 @@
 import type { PluginIconSource } from "./constants";
 import { satisfies } from "semver";
-import {
-  type PluginManifest,
-  validateSupportedManifest,
-} from "./manifest";
+import { type PluginManifest, validateSupportedManifest } from "./manifest";
 import type {
   ResourceCommandContribution,
   WorkspaceStorageDefinition,
@@ -24,7 +21,10 @@ import type {
   PluginServiceSlotDefinition,
   PluginServiceSlotRegistration,
 } from "./services";
-import { cloneSandboxWireValue, type SandboxWireObject } from "./sandbox-protocol";
+import {
+  cloneSandboxWireValue,
+  type SandboxWireObject,
+} from "./sandbox-protocol";
 
 const STORAGE_KINDS = new Set<ResourceStorageKind>([
   "file",
@@ -63,7 +63,7 @@ export type PluginContribution =
 
 export type PluginDisposable = () => Promise<void> | void;
 export type PluginEffect = (
-  signal: AbortSignal,
+  signal: AbortSignal
 ) => PluginDisposable | Promise<PluginDisposable | void> | void;
 
 export interface PluginContributionRegistrar {
@@ -82,42 +82,36 @@ export interface PluginActivationContext {
   readonly plugin: Readonly<{ id: string; version: string }>;
   readonly services: {
     optional<TMethods extends PluginServiceMethods>(
-      definition: PluginServiceDefinition<TMethods>,
+      definition: PluginServiceDefinition<TMethods>
     ): PluginServiceReference<TMethods>;
     provide<TMethods extends PluginServiceMethods>(
       definition: PluginServiceDefinition<TMethods>,
-      implementation: TMethods,
+      implementation: TMethods
     ): void;
     require<TMethods extends PluginServiceMethods>(
-      definition: PluginServiceDefinition<TMethods>,
+      definition: PluginServiceDefinition<TMethods>
     ): PluginServiceReference<TMethods>;
   };
   readonly signal: AbortSignal;
   readonly slots: {
-    contribute<
-      TMetadata extends object,
-      TInput,
-      TOutput,
-    >(
+    contribute<TMetadata extends object, TInput, TOutput>(
       slot: PluginServiceSlotDefinition<TMetadata, TInput, TOutput>,
-      contribution: PluginServiceSlotContribution<TMetadata, TInput, TOutput>,
+      contribution: PluginServiceSlotContribution<TMetadata, TInput, TOutput>
     ): void;
   };
 }
 
 export interface PluginDefinition {
-  activate(context: PluginActivationContext):
-    | PluginDisposable
-    | Promise<PluginDisposable | void>
-    | void;
+  activate(
+    context: PluginActivationContext
+  ): PluginDisposable | Promise<PluginDisposable | void> | void;
   manifest: PluginManifest;
 }
 
 export interface PluginDefinitionInput {
-  activate(context: PluginActivationContext):
-    | PluginDisposable
-    | Promise<PluginDisposable | void>
-    | void;
+  activate(
+    context: PluginActivationContext
+  ): PluginDisposable | Promise<PluginDisposable | void> | void;
   manifest: unknown;
 }
 
@@ -171,13 +165,13 @@ export interface PluginMetadata {
 function assertNamespaced(pluginId: string, id: string): void {
   if (id !== pluginId && !id.startsWith(`${pluginId}.`)) {
     throw new Error(
-      `Extension "${pluginId}" contribution "${id}" must use its namespace`,
+      `Extension "${pluginId}" contribution "${id}" must use its namespace`
     );
   }
 }
 
 function assertTarget(target: ResourceTypeTarget, label: string): void {
-  if (!target.resourceTypeIds?.length && !target.schemas?.length) {
+  if (!(target.resourceTypeIds?.length || target.schemas?.length)) {
     throw new Error(`${label} must target a resource type or schema`);
   }
   for (const schema of target.schemas ?? []) {
@@ -195,7 +189,7 @@ function assertTarget(target: ResourceTypeTarget, label: string): void {
 
 function targetMatchesResourceType(
   target: ResourceTypeTarget,
-  resourceType: ResourceTypeDefinition,
+  resourceType: ResourceTypeDefinition
 ): boolean {
   const typeMatches =
     !target.resourceTypeIds?.length ||
@@ -206,7 +200,7 @@ function targetMatchesResourceType(
       ({ id, maximumVersion = Number.POSITIVE_INFINITY, minimumVersion = 1 }) =>
         id === resourceType.schema.id &&
         resourceType.schema.currentVersion >= minimumVersion &&
-        resourceType.schema.currentVersion <= maximumVersion,
+        resourceType.schema.currentVersion <= maximumVersion
     );
   return typeMatches && schemaMatches;
 }
@@ -215,42 +209,42 @@ function assertResourceType(definition: ResourceTypeDefinition): void {
   const { currentVersion, migrations = [], versions } = definition.schema;
   if (!Number.isInteger(currentVersion) || currentVersion < 1) {
     throw new Error(
-      `Resource type "${definition.resourceTypeId}" schema version must be positive`,
+      `Resource type "${definition.resourceTypeId}" schema version must be positive`
     );
   }
   for (let version = 1; version <= currentVersion; version += 1) {
     if (!versions[version]) {
       throw new Error(
-        `Resource type "${definition.resourceTypeId}" has no validator for schema version ${version}`,
+        `Resource type "${definition.resourceTypeId}" has no validator for schema version ${version}`
       );
     }
   }
   const ordered = [...migrations].sort((left, right) => left.from - right.from);
   if (ordered.length !== currentVersion - 1) {
     throw new Error(
-      `Resource type "${definition.resourceTypeId}" must define every migration from version 1`,
+      `Resource type "${definition.resourceTypeId}" must define every migration from version 1`
     );
   }
   for (const [index, migration] of ordered.entries()) {
     if (migration.to !== migration.from + 1) {
       throw new Error(
-        `Resource type "${definition.resourceTypeId}" migrations must advance one version`,
+        `Resource type "${definition.resourceTypeId}" migrations must advance one version`
       );
     }
-    if (!versions[migration.from] || !versions[migration.to]) {
+    if (!(versions[migration.from] && versions[migration.to])) {
       throw new Error(
-        `Resource type "${definition.resourceTypeId}" migration validator is missing`,
+        `Resource type "${definition.resourceTypeId}" migration validator is missing`
       );
     }
     if (migration.from !== index + 1) {
       throw new Error(
-        `Resource type "${definition.resourceTypeId}" migrations must be contiguous`,
+        `Resource type "${definition.resourceTypeId}" migrations must be contiguous`
       );
     }
   }
   if (migrations.length && !definition.schema.write) {
     throw new Error(
-      `Resource type "${definition.resourceTypeId}" migrations require schema.write`,
+      `Resource type "${definition.resourceTypeId}" migrations require schema.write`
     );
   }
   if (
@@ -259,28 +253,30 @@ function assertResourceType(definition: ResourceTypeDefinition): void {
     Array.isArray(definition.storage)
   ) {
     throw new Error(
-      `Resource type "${definition.resourceTypeId}" storage must be a slot map`,
+      `Resource type "${definition.resourceTypeId}" storage must be a slot map`
     );
   }
   for (const [name, slot] of Object.entries(definition.storage)) {
     if (!/^[a-z][a-z0-9-]*$/.test(name)) {
       throw new Error(
-        `Resource type "${definition.resourceTypeId}" has invalid storage slot "${name}"`,
+        `Resource type "${definition.resourceTypeId}" has invalid storage slot "${name}"`
       );
     }
     if (!slot || typeof slot !== "object" || !isStorageKind(slot.kind)) {
       throw new Error(
-        `Resource type "${definition.resourceTypeId}" has invalid storage kind for slot "${name}"`,
+        `Resource type "${definition.resourceTypeId}" has invalid storage kind for slot "${name}"`
       );
     }
     if (slot.kind === "file" && "initialize" in slot) {
-      throw new Error(`File storage slot "${name}" cannot define an initializer`);
+      throw new Error(
+        `File storage slot "${name}" cannot define an initializer`
+      );
     }
   }
 }
 
 export function defineResourceType(
-  definition: ResourceTypeDefinition,
+  definition: ResourceTypeDefinition
 ): ResourceTypeContribution {
   assertResourceType(definition);
   return { ...definition, type: "resource-type" };
@@ -291,27 +287,29 @@ export function defineView(definition: ViewDefinition): ViewContribution {
     const resourceView = definition as ResourceViewDefinition;
     assertTarget(resourceView.target, `View "${definition.viewId}"`);
     for (const [name, kind] of Object.entries(
-      resourceView.storageRequirements,
+      resourceView.storageRequirements
     )) {
       if (!/^[a-z][a-z0-9-]*$/.test(name)) {
-        throw new Error(`View "${definition.viewId}" has invalid storage slot "${name}"`);
+        throw new Error(
+          `View "${definition.viewId}" has invalid storage slot "${name}"`
+        );
       }
       if (!isStorageKind(kind)) {
         throw new Error(
-          `View "${definition.viewId}" has invalid storage kind for slot "${name}"`,
+          `View "${definition.viewId}" has invalid storage kind for slot "${name}"`
         );
       }
     }
   } else if (definition.statusBar !== undefined) {
     throw new Error(
-      `Standalone view "${definition.viewId}" cannot define status-bar content`,
+      `Standalone view "${definition.viewId}" cannot define status-bar content`
     );
   }
   return { ...definition, type: "view" };
 }
 
 export function defineWorkspaceStorage(
-  definition: WorkspaceStorageDefinition,
+  definition: WorkspaceStorageDefinition
 ): WorkspaceStorageContribution {
   if (
     typeof definition.storageId !== "string" ||
@@ -321,89 +319,94 @@ export function defineWorkspaceStorage(
   }
   if (definition.kind !== "key-value") {
     throw new Error(
-      `Workspace storage "${definition.storageId}" must use key-value storage`,
+      `Workspace storage "${definition.storageId}" must use key-value storage`
     );
   }
   return { ...definition, type: "workspace-storage" };
 }
 
 export function getResourceTypeContributions(
-  value: ActivatedPluginContributions,
+  value: ActivatedPluginContributions
 ): ResourceTypeContribution[] {
   return value.contributions.filter(
     (contribution): contribution is ResourceTypeContribution =>
-      contribution.type === "resource-type",
+      contribution.type === "resource-type"
   );
 }
 
 export function getViewContributions(
-  value: ActivatedPluginContributions,
+  value: ActivatedPluginContributions
 ): ViewContribution[] {
   return value.contributions.filter(
-    (contribution): contribution is ViewContribution => contribution.type === "view",
+    (contribution): contribution is ViewContribution =>
+      contribution.type === "view"
   );
 }
 
 export function getWorkspaceStorageContributions(
-  value: ActivatedPluginContributions,
+  value: ActivatedPluginContributions
 ): WorkspaceStorageContribution[] {
   return value.contributions.filter(
     (contribution): contribution is WorkspaceStorageContribution =>
-      contribution.type === "workspace-storage",
+      contribution.type === "workspace-storage"
   );
 }
 
 export function getResourceCommandContributions(
-  value: ActivatedPluginContributions,
+  value: ActivatedPluginContributions
 ): ResourceCommandRegistration[] {
   return value.contributions.filter(
     (contribution): contribution is ResourceCommandRegistration =>
-      contribution.type === "resource-command",
+      contribution.type === "resource-command"
   );
 }
 
 export function getSearchIndexerContributions(
-  value: ActivatedPluginContributions,
+  value: ActivatedPluginContributions
 ): SearchIndexerRegistration[] {
   return value.contributions.filter(
     (contribution): contribution is SearchIndexerRegistration =>
-      contribution.type === "search-indexer",
+      contribution.type === "search-indexer"
   );
 }
 
 export function getSearchQueryContributions(
-  value: ActivatedPluginContributions,
+  value: ActivatedPluginContributions
 ): SearchQueryRegistration[] {
   return value.contributions.filter(
     (contribution): contribution is SearchQueryRegistration =>
-      contribution.type === "search-query",
+      contribution.type === "search-query"
   );
 }
 
 function assertDefaultViewsCompatible(
-  value: ActivatedPluginContributions,
+  value: ActivatedPluginContributions
 ): void {
   const views = new Map(
-    getViewContributions(value).map((view) => [view.viewId, view]),
+    getViewContributions(value).map((view) => [view.viewId, view])
   );
   for (const resourceType of getResourceTypeContributions(value)) {
-    if (!resourceType.defaultViewId) continue;
+    if (!resourceType.defaultViewId) {
+      continue;
+    }
     const view = views.get(resourceType.defaultViewId);
-    if (!view || view.target.kind !== "resource") {
+    if (view?.target.kind !== "resource") {
       throw new Error(
-        `Resource type "${resourceType.resourceTypeId}" default view "${resourceType.defaultViewId}" is not registered`,
+        `Resource type "${resourceType.resourceTypeId}" default view "${resourceType.defaultViewId}" is not registered`
       );
     }
     if (!targetMatchesResourceType(view.target, resourceType)) {
       throw new Error(
-        `Resource type "${resourceType.resourceTypeId}" default view "${resourceType.defaultViewId}" is incompatible`,
+        `Resource type "${resourceType.resourceTypeId}" default view "${resourceType.defaultViewId}" is incompatible`
       );
     }
     const resourceView = view as ResourceViewDefinition;
-    for (const [name, kind] of Object.entries(resourceView.storageRequirements)) {
+    for (const [name, kind] of Object.entries(
+      resourceView.storageRequirements
+    )) {
       if (resourceType.storage[name]?.kind !== kind) {
         throw new Error(
-          `Resource type "${resourceType.resourceTypeId}" default view "${resourceType.defaultViewId}" requires ${name}:${kind}`,
+          `Resource type "${resourceType.resourceTypeId}" default view "${resourceType.defaultViewId}" requires ${name}:${kind}`
         );
       }
     }
@@ -416,7 +419,9 @@ export function createViewInstanceId(viewId: string): string {
   return `${VIEW_ID_PREFIX}${viewId}`;
 }
 
-export function getViewIdFromInstanceId(viewInstanceId: string): string | undefined {
+export function getViewIdFromInstanceId(
+  viewInstanceId: string
+): string | undefined {
   return viewInstanceId.startsWith(VIEW_ID_PREFIX)
     ? viewInstanceId.slice(VIEW_ID_PREFIX.length)
     : undefined;
@@ -433,7 +438,7 @@ export function definePlugin(input: PluginDefinitionInput): PluginDefinition {
 }
 
 export async function preparePluginActivation(
-  plugin: PluginDefinition,
+  plugin: PluginDefinition
 ): Promise<PreparedPluginActivation> {
   const controller = new AbortController();
   const contributions: PluginContribution[] = [];
@@ -451,19 +456,21 @@ export async function preparePluginActivation(
   const assertRegistrationOpen = (): void => {
     if (!acceptingRegistrations) {
       throw new Error(
-        `Extension "${plugin.manifest.id}" registration is already complete`,
+        `Extension "${plugin.manifest.id}" registration is already complete`
       );
     }
   };
 
   const register = <T extends PluginContribution>(
     contribution: T,
-    contributionId: string,
+    contributionId: string
   ): void => {
     assertRegistrationOpen();
     assertNamespaced(plugin.manifest.id, contributionId);
     const key = `${contribution.type}:${contributionId}`;
-    if (keys.has(key)) throw new Error(`Duplicate extension contribution: ${key}`);
+    if (keys.has(key)) {
+      throw new Error(`Duplicate extension contribution: ${key}`);
+    }
     keys.add(key);
     contributions.push(contribution);
   };
@@ -475,26 +482,25 @@ export async function preparePluginActivation(
     return Object.entries(dependencies)
       .filter(
         ([dependencyId]) =>
-          serviceId === dependencyId ||
-          serviceId.startsWith(`${dependencyId}.`),
+          serviceId === dependencyId || serviceId.startsWith(`${dependencyId}.`)
       )
       .sort(([left], [right]) => right.length - left.length)[0]?.[1];
   };
 
   const referenceService = <TMethods extends PluginServiceMethods>(
     definition: PluginServiceDefinition<TMethods>,
-    optional: boolean,
+    optional: boolean
   ): PluginServiceReference<TMethods> => {
     assertRegistrationOpen();
     const range = dependencyRange(definition.id, optional);
     if (!range) {
       throw new Error(
-        `Extension "${plugin.manifest.id}" has not declared ${optional ? "optional" : "required"} dependency "${definition.id}"`,
+        `Extension "${plugin.manifest.id}" has not declared ${optional ? "optional" : "required"} dependency "${definition.id}"`
       );
     }
     if (!satisfies(definition.version, range)) {
       throw new Error(
-        `Extension service "${definition.id}" ${definition.version} does not satisfy ${range}`,
+        `Extension service "${definition.id}" ${definition.version} does not satisfy ${range}`
       );
     }
     return Object.freeze({ definition, optional });
@@ -517,20 +523,16 @@ export async function preparePluginActivation(
           register(defineWorkspaceStorage(definition), definition.storageId),
         resourceType: (definition) => {
           assertNamespaced(plugin.manifest.id, definition.schema.id);
-          register(
-            defineResourceType(definition),
-            definition.resourceTypeId,
-          );
+          register(defineResourceType(definition), definition.resourceTypeId);
         },
         searchIndexer: (definition) => {
           assertTarget(definition, `Search indexer "${definition.id}"`);
           if (typeof definition.extractText !== "function") {
-            throw new Error(`Search indexer "${definition.id}" requires extractText`);
+            throw new Error(
+              `Search indexer "${definition.id}" requires extractText`
+            );
           }
-          register(
-            { ...definition, type: "search-indexer" },
-            definition.id,
-          );
+          register({ ...definition, type: "search-indexer" }, definition.id);
         },
         searchQuery: (definition) => {
           if (
@@ -538,7 +540,7 @@ export async function preparePluginActivation(
             typeof definition.open !== "function"
           ) {
             throw new Error(
-              `Search query provider "${definition.id}" requires query and open`,
+              `Search query provider "${definition.id}" requires query and open`
             );
           }
           register({ ...definition, type: "search-query" }, definition.id);
@@ -560,14 +562,18 @@ export async function preparePluginActivation(
           assertNamespaced(plugin.manifest.id, definition.id);
           if (definition.version !== plugin.manifest.version) {
             throw new Error(
-              `Extension service "${definition.id}" version must match its provider`,
+              `Extension service "${definition.id}" version must match its provider`
             );
           }
           const key = `service:${definition.id}`;
-          if (keys.has(key)) throw new Error(`Duplicate extension contribution: ${key}`);
+          if (keys.has(key)) {
+            throw new Error(`Duplicate extension contribution: ${key}`);
+          }
           for (const method of definition.methods) {
             if (typeof implementation[method] !== "function") {
-              throw new Error(`Extension service "${definition.id}" is missing method "${method}"`);
+              throw new Error(
+                `Extension service "${definition.id}" is missing method "${method}"`
+              );
             }
           }
           keys.add(key);
@@ -588,16 +594,18 @@ export async function preparePluginActivation(
             dependencyRange(slot.serviceId, true);
           if (!range) {
             throw new Error(
-              `Extension "${plugin.manifest.id}" has not declared dependency "${slot.serviceId}"`,
+              `Extension "${plugin.manifest.id}" has not declared dependency "${slot.serviceId}"`
             );
           }
           if (!satisfies(slot.serviceVersion, range)) {
             throw new Error(
-              `Extension service slot "${slot.serviceId}.${slot.id}" ${slot.serviceVersion} does not satisfy ${range}`,
+              `Extension service slot "${slot.serviceId}.${slot.id}" ${slot.serviceVersion} does not satisfy ${range}`
             );
           }
           if (typeof contribution.invoke !== "function") {
-            throw new Error(`Extension slot contribution "${contribution.id}" requires invoke`);
+            throw new Error(
+              `Extension slot contribution "${contribution.id}" requires invoke`
+            );
           }
           if (
             !contribution.metadata ||
@@ -606,18 +614,20 @@ export async function preparePluginActivation(
             contribution.metadata instanceof ArrayBuffer
           ) {
             throw new Error(
-              `Extension slot contribution "${contribution.id}" metadata must be an object`,
+              `Extension slot contribution "${contribution.id}" metadata must be an object`
             );
           }
           const key = `slot:${slot.serviceId}:${slot.id}:${contribution.id}`;
-          if (keys.has(key)) throw new Error(`Duplicate extension contribution: ${key}`);
+          if (keys.has(key)) {
+            throw new Error(`Duplicate extension contribution: ${key}`);
+          }
           keys.add(key);
           slotContributions.push({
             contribution: {
               ...contribution,
               metadata: cloneSandboxWireValue(
                 contribution.metadata,
-                `Extension slot contribution "${contribution.id}" metadata`,
+                `Extension slot contribution "${contribution.id}" metadata`
               ) as SandboxWireObject,
             } as unknown as PluginServiceSlotContribution,
             slot: slot as PluginServiceSlotDefinition,
@@ -628,10 +638,12 @@ export async function preparePluginActivation(
     acceptingRegistrations = false;
     if (cleanup !== undefined && typeof cleanup !== "function") {
       throw new Error(
-        `Extension "${plugin.manifest.id}" activate must return a cleanup function`,
+        `Extension "${plugin.manifest.id}" activate must return a cleanup function`
       );
     }
-    if (cleanup) activationCleanup = cleanup;
+    if (cleanup) {
+      activationCleanup = cleanup;
+    }
 
     assertDefaultViewsCompatible({
       contributions,
@@ -645,13 +657,18 @@ export async function preparePluginActivation(
     try {
       await activationCleanup?.();
     } catch (cleanupError) {
-      throw new AggregateError([error, cleanupError], "Extension activation failed");
+      throw new AggregateError(
+        [error, cleanupError],
+        "Extension activation failed"
+      );
     }
     throw error;
   }
 
   const dispose = async () => {
-    if (disposed) return;
+    if (disposed) {
+      return;
+    }
     disposed = true;
     controller.abort();
     const errors: unknown[] = [];
@@ -667,13 +684,21 @@ export async function preparePluginActivation(
     } catch (error) {
       errors.push(error);
     }
-    if (errors.length === 1) throw errors[0];
-    if (errors.length > 1) throw new AggregateError(errors, "Extension cleanup failed");
+    if (errors.length === 1) {
+      throw errors[0];
+    }
+    if (errors.length > 1) {
+      throw new AggregateError(errors, "Extension cleanup failed");
+    }
   };
 
   const start = async () => {
-    if (disposed) throw new Error(`Extension "${plugin.manifest.id}" is disposed`);
-    if (started) return;
+    if (disposed) {
+      throw new Error(`Extension "${plugin.manifest.id}" is disposed`);
+    }
+    if (started) {
+      return;
+    }
     started = true;
     try {
       for (const effect of effects) {
@@ -681,7 +706,9 @@ export async function preparePluginActivation(
         if (cleanup !== undefined && typeof cleanup !== "function") {
           throw new Error("Extension effect must return a cleanup function");
         }
-        if (cleanup) cleanups.push(cleanup);
+        if (cleanup) {
+          cleanups.push(cleanup);
+        }
       }
     } catch (error) {
       await dispose().catch(() => undefined);
@@ -699,7 +726,10 @@ export async function preparePluginActivation(
   };
 }
 
-function assertSameManifest(actual: PluginManifest, expected: PluginManifest): void {
+function assertSameManifest(
+  actual: PluginManifest,
+  expected: PluginManifest
+): void {
   const fields = [
     "id",
     "version",
@@ -713,7 +743,7 @@ function assertSameManifest(actual: PluginManifest, expected: PluginManifest): v
   for (const field of fields) {
     if (actual[field] !== expected[field]) {
       throw new Error(
-        `Extension "${actual.id}" runtime ${field} does not match manifest declaration`,
+        `Extension "${actual.id}" runtime ${field} does not match manifest declaration`
       );
     }
   }
@@ -724,11 +754,13 @@ function assertSameManifest(actual: PluginManifest, expected: PluginManifest): v
   ] as const) {
     const normalize = (value: Readonly<Record<string, string>>) =>
       JSON.stringify(
-        Object.entries(value).sort(([left], [right]) => left.localeCompare(right)),
+        Object.entries(value).sort(([left], [right]) =>
+          left.localeCompare(right)
+        )
       );
     if (normalize(actual[field]) !== normalize(expected[field])) {
       throw new Error(
-        `Extension "${actual.id}" runtime ${field} does not match manifest declaration`,
+        `Extension "${actual.id}" runtime ${field} does not match manifest declaration`
       );
     }
   }
@@ -737,30 +769,40 @@ function assertSameManifest(actual: PluginManifest, expected: PluginManifest): v
     JSON.stringify([...expected.permissions].sort())
   ) {
     throw new Error(
-      `Extension "${actual.id}" runtime permissions does not match manifest declaration`,
+      `Extension "${actual.id}" runtime permissions does not match manifest declaration`
     );
   }
-  if (JSON.stringify(actual.keywords ?? []) !== JSON.stringify(expected.keywords ?? [])) {
+  if (
+    JSON.stringify(actual.keywords ?? []) !==
+    JSON.stringify(expected.keywords ?? [])
+  ) {
     throw new Error(
-      `Extension "${actual.id}" runtime keywords does not match manifest declaration`,
+      `Extension "${actual.id}" runtime keywords does not match manifest declaration`
     );
   }
 }
 
 export function assertPluginDefinitionMatchesManifest(
   input: PluginDefinitionInput,
-  expectedManifest: unknown,
+  expectedManifest: unknown
 ): PluginDefinition {
   const plugin = definePlugin(input);
-  assertSameManifest(plugin.manifest, validateSupportedManifest(expectedManifest));
+  assertSameManifest(
+    plugin.manifest,
+    validateSupportedManifest(expectedManifest)
+  );
   return plugin;
 }
 
-export function definePluginDescriptor(input: PluginDescriptorInput): PluginDescriptor {
+export function definePluginDescriptor(
+  input: PluginDescriptorInput
+): PluginDescriptor {
   return { ...input, manifest: validateSupportedManifest(input.manifest) };
 }
 
-export function descriptorMetadata(descriptor: PluginDescriptor): PluginMetadata {
+export function descriptorMetadata(
+  descriptor: PluginDescriptor
+): PluginMetadata {
   const { manifest, icon, routes } = descriptor;
   return {
     description: manifest.description,
@@ -779,7 +821,7 @@ export function descriptorMetadata(descriptor: PluginDescriptor): PluginMetadata
 }
 
 export async function loadPluginDescriptor(
-  descriptor: PluginDescriptor,
+  descriptor: PluginDescriptor
 ): Promise<PluginDefinition> {
   const module = await descriptor.load();
   const plugin = definePlugin(module.default);

@@ -73,8 +73,8 @@ describe("VerifyEmailPage", () => {
           regionId: "us",
           storageUrl: "https://storage-us.example.com",
         }),
-        { headers: { "Content-Type": "application/json" } },
-      ),
+        { headers: { "Content-Type": "application/json" } }
+      )
     );
 
     render(
@@ -120,14 +120,14 @@ describe("VerifyEmailPage", () => {
             </Routes>
           </AuthProvider>
         </RegionProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     await waitFor(() => {
       expect(refetch).toHaveBeenCalledOnce();
       expect(screen.getByTestId("auth-verify-page")).not.toBeNull();
       expect(screen.getByTestId("location").textContent).toBe(
-        "/auth/verify-email?region=us&redirectTo=%2Fworkspaces%3Ftab%3Drecent%23verify",
+        "/auth/verify-email?region=us&redirectTo=%2Fworkspaces%3Ftab%3Drecent%23verify"
       );
     });
   });

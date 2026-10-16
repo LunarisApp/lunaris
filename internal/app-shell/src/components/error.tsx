@@ -23,9 +23,7 @@ export function CriticalError({
   error: propError,
   resetErrorBoundary,
 }: Partial<FallbackProps>) {
-  return (
-    <CriticalErrorView error={propError} reset={resetErrorBoundary} />
-  );
+  return <CriticalErrorView error={propError} reset={resetErrorBoundary} />;
 }
 
 function CriticalErrorView({
@@ -53,7 +51,6 @@ function CriticalErrorView({
         error: parseError(error),
       });
     } catch (logErr) {
-      // biome-ignore lint/suspicious/noConsole: logging-only fallback
       console.error("[CriticalError]", logErr);
     }
     captureExceptionSafe(error);
@@ -72,13 +69,13 @@ function CriticalErrorView({
       actions={
         <div className="flex flex-col items-center gap-3">
           <Button onClick={onRetry}>{retryLabel}</Button>
-          {ufe.requestId && (
+          {!!ufe.requestId && (
             <RequestId
               id={ufe.requestId}
               label={t("errors.boundary.requestIdLabel", "Request ID")}
             />
           )}
-          {import.meta.env.DEV && error instanceof Error && error.stack && (
+          {!!(import.meta.env.DEV && error instanceof Error && error.stack) && (
             <details className="max-w-md text-left">
               <summary className="cursor-pointer text-muted-foreground text-xs">
                 {t("errors.boundary.devDetails", "Developer details")}

@@ -1,16 +1,6 @@
-import {
-  describe,
-  expect,
-  it,
-  mock,
-} from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { getRichTextDocument } from "@extension/rich-text/mcp-runtime-server";
-import {
-  applyUpdateV2,
-  Doc,
-  encodeStateAsUpdateV2,
-  Map as YMap,
-} from "yjs";
+import { applyUpdateV2, Doc, encodeStateAsUpdateV2, Map as YMap } from "yjs";
 import { BuiltInPluginOperationsService } from "./plugin-operations.service";
 
 const selectOne = (rows: unknown[]) => ({
@@ -49,9 +39,7 @@ function createDocumentHarness(params: {
     ]),
     selectOne([]),
     selectOne([{ backingId: params.documentId }]),
-    selectOneForUpdate([
-      { id: params.documentId, updatedAt: params.revision },
-    ]),
+    selectOneForUpdate([{ id: params.documentId, updatedAt: params.revision }]),
   ];
   const select = mock(() => selections[selectIndex++] ?? selectUpdates());
   const tx = {
@@ -74,7 +62,7 @@ function createDocumentHarness(params: {
       },
     } as never,
     {} as never,
-    {} as never,
+    {} as never
   );
   return { service, updates };
 }
@@ -96,7 +84,7 @@ describe("BuiltInPluginOperationsService", () => {
         pluginId: "lunaris.excalidraw",
         workspaceId: "workspace-1",
         organizationId: "organization-1",
-      }),
+      })
     ).toThrow("Built-in extension operation not found");
   });
 
@@ -136,10 +124,9 @@ describe("BuiltInPluginOperationsService", () => {
     expect(updates).toHaveLength(1);
     const doc = new Doc();
     applyUpdateV2(doc, updates[0]!);
-    expect((await getRichTextDocument(doc)).blocks.map(({ id }) => id)).toEqual([
-      "title",
-      "body",
-    ]);
+    expect((await getRichTextDocument(doc)).blocks.map(({ id }) => id)).toEqual(
+      ["title", "body"]
+    );
     doc.destroy();
   });
 
@@ -160,7 +147,7 @@ describe("BuiltInPluginOperationsService", () => {
       "options",
       JSON.stringify([
         { color: "#f59e0b", id: "in-progress", name: "In Progress" },
-      ]),
+      ])
     );
     const assignees = new YMap<unknown>();
     assignees.set("id", "assignees");
@@ -226,8 +213,7 @@ describe("BuiltInPluginOperationsService", () => {
           from: () => ({
             where: () => ({
               for: () => ({
-                limit: () =>
-                  Promise.resolve([{ id: "board-document" }]),
+                limit: () => Promise.resolve([{ id: "board-document" }]),
               }),
             }),
           }),
@@ -273,24 +259,22 @@ describe("BuiltInPluginOperationsService", () => {
         }),
       })),
     };
-    const transaction = mock(
-      (run: (database: typeof tx) => Promise<unknown>) => run(tx),
+    const transaction = mock((run: (database: typeof tx) => Promise<unknown>) =>
+      run(tx)
     );
-    const createDocument = mock(() =>
-      Promise.resolve({ id: "task-document" }),
-    );
+    const createDocument = mock(() => Promise.resolve({ id: "task-document" }));
     const createResource = mock(() =>
       Promise.resolve({
         id: "task-1",
         name: "Ship it",
         position: 3,
         updatedAt: "2026-01-01T00:00:00.000Z",
-      }),
+      })
     );
     const service = new BuiltInPluginOperationsService(
       { db: { transaction } } as never,
       { createWithDb: createResource } as never,
-      { createWithDb: createDocument } as never,
+      { createWithDb: createDocument } as never
     );
 
     await expect(
@@ -308,7 +292,7 @@ describe("BuiltInPluginOperationsService", () => {
         pluginId: "lunaris.kanban",
         workspaceId: "workspace-1",
         organizationId: "organization-1",
-      }),
+      })
     ).resolves.toEqual({
       boardId: board.id,
       name: "Ship it",
@@ -332,7 +316,7 @@ describe("BuiltInPluginOperationsService", () => {
       }),
       "workspace-1",
       "organization-1",
-      "user-1",
+      "user-1"
     );
     expect(boardUpdate).toBeDefined();
     const doc = new Doc();
@@ -341,13 +325,13 @@ describe("BuiltInPluginOperationsService", () => {
       doc
         .getMap<YMap<unknown>>("taskAssignments")
         .get("task-1")
-        ?.get("prop_status"),
+        ?.get("prop_status")
     ).toBe("in-progress");
     expect(
       doc
         .getMap<YMap<unknown>>("taskAssignments")
         .get("task-1")
-        ?.get("prop_assignees"),
+        ?.get("prop_assignees")
     ).toEqual(["user-1"]);
     doc.destroy();
   });

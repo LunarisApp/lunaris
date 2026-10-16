@@ -43,7 +43,7 @@ interface PresenceSnapshot {
   version: 1;
 }
 export function remotePresence(
-  bridge: AwarenessBridge,
+  bridge: AwarenessBridge
 ): PresenceSnapshot | undefined {
   const value = bridge.getSnapshot().presence as PresenceSnapshot | undefined;
   return value?.version === 1 ? value : undefined;
@@ -102,14 +102,14 @@ export function useRemoteResourcePresence(bridge: AwarenessBridge) {
   useSyncExternalStore(
     bridge.subscribe,
     bridge.getSnapshot,
-    bridge.getSnapshot,
+    bridge.getSnapshot
   );
   return remotePresence(bridge)?.membership ?? UNAVAILABLE_RESOURCE_PRESENCE;
 }
 function useRemoteSubscription(
   bridge: AwarenessBridge,
   input: { channel?: string; storageId?: string; clientId?: number },
-  enabled: boolean,
+  enabled: boolean
 ) {
   const key = JSON.stringify(input);
   const entry = useMemo(() => {
@@ -129,50 +129,60 @@ function useRemoteSubscription(
   useSyncExternalStore(
     bridge.subscribe,
     bridge.getSnapshot,
-    bridge.getSnapshot,
+    bridge.getSnapshot
   );
   const supported = Boolean(remotePresence(bridge)?.active);
   useEffect(() => {
-    if (!supported || !enabled) return;
+    if (!(supported && enabled)) {
+      return;
+    }
     clearTimeout(entry.timer);
     if (entry.leases++ === 0 && !entry.timer) {
-      void bridge.call("presence.open", [id, input]).catch(() => {});
+      void bridge.call("presence.open", [id, JSON.parse(key)]).catch(() => {
+        /* Presence is best-effort; transport teardown can reject pending calls. */
+      });
     }
     entry.timer = undefined;
     return () => {
       entry.leases--;
-      if (entry.leases) return;
+      if (entry.leases) {
+        return;
+      }
       entry.timer = setTimeout(() => {
         entry.timer = undefined;
         if (entry.leases === 0) {
-          void bridge.call("presence.close", [id]).catch(() => {});
+          void bridge.call("presence.close", [id]).catch(() => {
+            /* Presence is best-effort; transport teardown can reject pending calls. */
+          });
         }
       }, 0);
     };
-  }, [bridge, entry, id, enabled, supported]);
+  }, [bridge, entry, id, key, enabled, supported]);
   const snapshot = remotePresence(bridge)?.channels.find(
-    (entry) => entry.id === id,
+    (entry) => entry.id === id
   );
   return { id, snapshot, entry };
 }
 export function useRemoteResourceAwareness(
   bridge: AwarenessBridge,
   channel: string,
-  options?: PluginAwarenessOptions,
+  options?: PluginAwarenessOptions
 ): ResourceAwarenessResult<JsonValue> {
   const { id, snapshot, entry } = useRemoteSubscription(
     bridge,
     { channel },
-    options?.enabled !== false,
+    options?.enabled !== false
   );
   const active =
     Boolean(remotePresence(bridge)?.active) && options?.enabled !== false;
   const connected = active && snapshot?.status === "connected";
   const publish = useCallback(
     (state: JsonValue | null) => {
-      void bridge.call("presence.update", [id, state]).catch(() => {});
+      void bridge.call("presence.update", [id, state]).catch(() => {
+        /* Presence is best-effort; transport teardown can reject pending calls. */
+      });
     },
-    [bridge, id],
+    [bridge, id]
   );
   const visible = useRef(active);
   visible.current = active;
@@ -180,14 +190,20 @@ export function useRemoteResourceAwareness(
   connection.current = connected;
   const setState = useCallback(
     (value: JsonValue | null) => {
-      if (!visible.current) return;
+      if (!visible.current) {
+        return;
+      }
       entry.desired = { value };
-      if (connection.current) publish(value);
+      if (connection.current) {
+        publish(value);
+      }
     },
-    [entry, publish],
+    [entry, publish]
   );
   useEffect(() => {
-    if (connected && entry.desired) publish(entry.desired.value);
+    if (connected && entry.desired) {
+      publish(entry.desired.value);
+    }
   }, [connected, entry, publish]);
   return {
     peers: active ? (snapshot?.peers ?? []) : [],
@@ -203,7 +219,7 @@ const relays = new WeakMap<
 function acquireAwarenessRelay(
   bridge: AwarenessBridge,
   id: string,
-  awareness: Awareness,
+  awareness: Awareness
 ) {
   let relay = relays.get(awareness);
   if (!relay) {
@@ -217,29 +233,35 @@ function acquireAwarenessRelay(
       removeAwarenessStates(
         awareness,
         [...awareness.getStates().keys()],
-        REMOTE,
+        REMOTE
       );
-      for (const clientId of awareness.meta.keys())
-        if (clientId !== awareness.clientID) awareness.meta.delete(clientId);
+      for (const clientId of awareness.meta.keys()) {
+        if (clientId !== awareness.clientID) {
+          awareness.meta.delete(clientId);
+        }
+      }
     };
     const update = (
       event: { added: number[]; updated: number[]; removed: number[] },
-      origin: unknown,
+      origin: unknown
     ) => {
       if (
         origin === REMOTE ||
         current()?.status !== "connected" ||
         ![...event.added, ...event.updated, ...event.removed].includes(
-          awareness.clientID,
+          awareness.clientID
         )
-      )
+      ) {
         return;
+      }
       void bridge
         .call("presence.update", [
           id,
           encodeAwarenessUpdate(awareness, [awareness.clientID]).buffer,
         ])
-        .catch(() => {});
+        .catch(() => {
+          /* Presence is best-effort; transport teardown can reject pending calls. */
+        });
     };
     const refresh = () => {
       const snapshot = current();
@@ -248,15 +270,18 @@ function acquireAwarenessRelay(
         return;
       }
       const local = awareness.getLocalState();
-      if (!local) awareness.setLocalState({ user: snapshot.user });
-      else if (JSON.stringify(local.user) !== JSON.stringify(snapshot.user))
+      if (!local) {
+        awareness.setLocalState({ user: snapshot.user });
+      } else if (JSON.stringify(local.user) !== JSON.stringify(snapshot.user)) {
         awareness.setLocalStateField("user", snapshot.user);
-      if (snapshot.update)
+      }
+      if (snapshot.update) {
         applyAwarenessUpdate(
           awareness,
           new Uint8Array(snapshot.update),
-          REMOTE,
+          REMOTE
         );
+      }
     };
     awareness.on("update", update);
     const unsubscribe = bridge.subscribe(refresh);
@@ -284,11 +309,11 @@ export function useRemoteYjsAwareness(
   bridge: AwarenessBridge,
   storageId: string | undefined,
   workspaceId: string,
-  options?: PluginAwarenessOptions,
+  options?: PluginAwarenessOptions
 ): PluginAwarenessResult {
   const doc = useRemotePresenceDocument(
     bridge,
-    JSON.stringify([workspaceId, storageId]),
+    JSON.stringify([workspaceId, storageId])
   );
   const awareness = useMemo(() => {
     let value = sharedAwareness.get(doc);
@@ -302,13 +327,15 @@ export function useRemoteYjsAwareness(
   const { id, snapshot } = useRemoteSubscription(
     bridge,
     { storageId, clientId: doc.clientID },
-    Boolean(storageId) && options?.enabled !== false,
+    Boolean(storageId) && options?.enabled !== false
   );
   const active =
     Boolean(storageId && remotePresence(bridge)?.active) &&
     options?.enabled !== false;
   useEffect(() => {
-    if (active) return acquireAwarenessRelay(bridge, id, awareness);
+    if (active) {
+      return acquireAwarenessRelay(bridge, id, awareness);
+    }
   }, [awareness, bridge, id, active]);
   return {
     awareness: storageId && remotePresence(bridge) ? awareness : null,

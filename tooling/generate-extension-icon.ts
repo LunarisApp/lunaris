@@ -16,12 +16,13 @@ export type ExtensionIconFormat = "png" | "webp";
 
 const defaultBackgroundPath = path.join(
   import.meta.dir,
-  "assets/extension-icon-background.webp",
+  "assets/extension-icon-background.webp"
 );
 
-export type HugeiconDefinition = readonly (
-  readonly [string, Readonly<Record<string, number | string>>]
-)[];
+export type HugeiconDefinition = readonly (readonly [
+  string,
+  Readonly<Record<string, number | string>>,
+])[];
 
 export interface ResolvedHugeicon {
   definition: HugeiconDefinition;
@@ -49,13 +50,16 @@ function isHugeiconDefinition(value: unknown): value is HugeiconDefinition {
         node.length === 2 &&
         typeof node[0] === "string" &&
         typeof node[1] === "object" &&
-        node[1] !== null,
+        node[1] !== null
     )
   );
 }
 
 function levenshtein(left: string, right: string): number {
-  const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  const previous = Array.from(
+    { length: right.length + 1 },
+    (_, index) => index
+  );
 
   for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
     const current = [leftIndex];
@@ -64,7 +68,7 @@ function levenshtein(left: string, right: string): number {
         (current[rightIndex - 1] ?? 0) + 1,
         (previous[rightIndex] ?? 0) + 1,
         (previous[rightIndex - 1] ?? 0) +
-          (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1),
+          (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1)
       );
     }
     previous.splice(0, previous.length, ...current);
@@ -74,19 +78,19 @@ function levenshtein(left: string, right: string): number {
 }
 
 function availableIcons(
-  iconSet: Readonly<Record<string, unknown>>,
+  iconSet: Readonly<Record<string, unknown>>
 ): ResolvedHugeicon[] {
   return Object.entries(iconSet)
     .filter(
       (entry): entry is [string, HugeiconDefinition] =>
-        entry[0].endsWith("Icon") && isHugeiconDefinition(entry[1]),
+        entry[0].endsWith("Icon") && isHugeiconDefinition(entry[1])
     )
     .map(([name, definition]) => ({ definition, name }));
 }
 
 export function resolveHugeicon(
   requestedName: string,
-  iconSet: Readonly<Record<string, unknown>> = hugeicons,
+  iconSet: Readonly<Record<string, unknown>> = hugeicons
 ): ResolvedHugeicon {
   const icons = availableIcons(iconSet);
   const normalized = normalizeIconName(requestedName);
@@ -94,10 +98,12 @@ export function resolveHugeicon(
     ? normalized
     : `${normalized}icon`;
   const match = icons.find(
-    ({ name }) => normalizeIconName(name) === normalizedName,
+    ({ name }) => normalizeIconName(name) === normalizedName
   );
 
-  if (match) return match;
+  if (match) {
+    return match;
+  }
 
   const suggestions = icons
     .map(({ name }) => ({
@@ -106,7 +112,7 @@ export function resolveHugeicon(
     }))
     .sort(
       (left, right) =>
-        left.distance - right.distance || left.name.localeCompare(right.name),
+        left.distance - right.distance || left.name.localeCompare(right.name)
     )
     .slice(0, 5)
     .map(({ name }) => name);
@@ -125,7 +131,10 @@ function escapeXml(value: number | string): string {
 }
 
 function toSvgAttributeName(name: string): string {
-  return name.replaceAll(/[A-Z]/g, (character) => `-${character.toLowerCase()}`);
+  return name.replaceAll(
+    /[A-Z]/g,
+    (character) => `-${character.toLowerCase()}`
+  );
 }
 
 function renderSvgNodes(definition: HugeiconDefinition): string {
@@ -137,8 +146,7 @@ function renderSvgNodes(definition: HugeiconDefinition): string {
       })
         .filter(([name]) => name !== "key")
         .map(
-          ([name, value]) =>
-            `${toSvgAttributeName(name)}="${escapeXml(value)}"`,
+          ([name, value]) => `${toSvgAttributeName(name)}="${escapeXml(value)}"`
         )
         .join(" ");
       return `<${tag}${attributes ? ` ${attributes}` : ""}/>`;
@@ -218,7 +226,7 @@ Examples:
 }
 
 export async function runGenerateExtensionIconCli(
-  arguments_ = process.argv.slice(2),
+  arguments_ = process.argv.slice(2)
 ): Promise<void> {
   const { positionals, values } = parseArgs({
     allowPositionals: true,
@@ -238,7 +246,9 @@ export async function runGenerateExtensionIconCli(
     return;
   }
   if (positionals.length !== 1) {
-    throw new Error("Provide exactly one Hugeicons icon name. Use --help for usage.");
+    throw new Error(
+      "Provide exactly one Hugeicons icon name. Use --help for usage."
+    );
   }
 
   const icon = resolveHugeicon(positionals[0] ?? "");
@@ -250,7 +260,7 @@ export async function runGenerateExtensionIconCli(
   validateSize(size);
   const outputPath = path.resolve(
     process.cwd(),
-    values.output ?? `${icon.name}.${format}`,
+    values.output ?? `${icon.name}.${format}`
   );
   if (path.extname(outputPath).toLowerCase() !== `.${format}`) {
     throw new Error(`Output path must use the .${format} extension.`);
@@ -263,7 +273,11 @@ export async function runGenerateExtensionIconCli(
 
   await mkdir(path.dirname(outputPath), { recursive: true });
   try {
-    await writeFile(outputPath, output, values.force ? undefined : { flag: "wx" });
+    await writeFile(
+      outputPath,
+      output,
+      values.force ? undefined : { flag: "wx" }
+    );
   } catch (error) {
     if (
       !values.force &&
@@ -272,7 +286,7 @@ export async function runGenerateExtensionIconCli(
       error.code === "EEXIST"
     ) {
       throw new Error(
-        `Output already exists: ${outputPath}. Pass --force to overwrite it.`,
+        `Output already exists: ${outputPath}. Pass --force to overwrite it.`
       );
     }
     throw error;
@@ -285,7 +299,9 @@ if (import.meta.main) {
   try {
     await runGenerateExtensionIconCli();
   } catch (error) {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.stderr.write(
+      `${error instanceof Error ? error.message : String(error)}\n`
+    );
     process.exitCode = 1;
   }
 }

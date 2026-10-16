@@ -25,7 +25,7 @@ export interface PluginResourceReadContext {
   getWorkspaceResource(resourceId: string): Promise<PluginResourceData | null>;
   getWorkspaceResourceChildren(parentId: string): Promise<PluginResourceData[]>;
   getYjsStorageUpdates(
-    storage: ResourceStorageHandle,
+    storage: ResourceStorageHandle
   ): Promise<Array<{ updateBase64: string }>>;
   resolveResource(resourceId: string): Promise<PluginResourceResolution>;
 }

@@ -5,7 +5,11 @@ import type { UseHotkeyOptions } from "@tanstack/react-hotkeys";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { createHotkeyOptions, HOTKEYS, useResolvedHotkeyBinding } from "@repo/features/hotkeys";
+import {
+  createHotkeyOptions,
+  HOTKEYS,
+  useResolvedHotkeyBinding,
+} from "@repo/features/hotkeys";
 import { usePermission } from "@repo/features/permissions";
 import { useWorkspaceActions } from "../store";
 import { type DeleteTarget, toDeleteTargetName } from "../utils";
@@ -35,9 +39,15 @@ export function canTriggerDeleteShortcut({
   confirmDeleteOpen,
   treeElement,
 }: CanTriggerDeleteShortcutOptions): boolean {
-  if (confirmDeleteOpen) return false;
-  if (!treeElement) return false;
-  if (!activeElement) return false;
+  if (confirmDeleteOpen) {
+    return false;
+  }
+  if (!treeElement) {
+    return false;
+  }
+  if (!activeElement) {
+    return false;
+  }
 
   return treeElement.contains(activeElement);
 }
@@ -59,7 +69,9 @@ export function useDeleteKeyboardShortcut({
   const hotkey = HOTKEYS["delete-resource"];
 
   const handleDelete = useCallback(() => {
-    if (!canDelete) return;
+    if (!canDelete) {
+      return;
+    }
     if (
       !canTriggerDeleteShortcut({
         activeElement: document.activeElement,
@@ -71,7 +83,9 @@ export function useDeleteKeyboardShortcut({
     }
 
     const selectedItems = tree.getSelectedItems();
-    if (selectedItems.length === 0) return;
+    if (selectedItems.length === 0) {
+      return;
+    }
 
     const targets: DeleteTarget[] = selectedItems.map((instance) => ({
       id: instance.getId(),
@@ -83,7 +97,9 @@ export function useDeleteKeyboardShortcut({
   }, [canDelete, confirmDeleteOpen, tree]);
 
   const handleConfirmDelete = useCallback(async () => {
-    if (!canDelete || itemsToDelete.length === 0) return;
+    if (!canDelete || itemsToDelete.length === 0) {
+      return;
+    }
     const ids = itemsToDelete.map((t) => t.id);
     setConfirmDeleteOpen(false);
     setItemsToDelete([]);

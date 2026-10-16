@@ -22,7 +22,7 @@ describe("safe fetch URL validation", () => {
       parseSafeUrl("http://localhost/manifest", {
         allowedProtocols: ["http:", "https:"],
         allowPrivateNetwork: true,
-      }).hostname,
+      }).hostname
     ).toBe("localhost");
   });
 });
@@ -37,7 +37,7 @@ describe("safe fetch transport", () => {
         if (pathname === "/redirect") {
           return Response.redirect(
             `http://127.0.0.1:${server.port}/content`,
-            302,
+            302
           );
         }
         if (pathname === "/large") {
@@ -62,8 +62,8 @@ describe("safe fetch transport", () => {
         allowNonStandardPorts: true,
         allowPrivateNetwork: true,
         maxBytes: 100,
-        signal: AbortSignal.timeout(1_000),
-      },
+        signal: AbortSignal.timeout(1000),
+      }
     );
 
     expect(response.body.toString()).toBe("ready");
@@ -77,8 +77,8 @@ describe("safe fetch transport", () => {
         allowNonStandardPorts: true,
         allowPrivateNetwork: true,
         maxBytes: 5,
-        signal: AbortSignal.timeout(1_000),
-      }),
+        signal: AbortSignal.timeout(1000),
+      })
     ).rejects.toThrow("URL response is too large");
   });
 });

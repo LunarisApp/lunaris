@@ -10,15 +10,15 @@ import { createId, type JsonObject, parseUTCTimestamp } from "@repo/utils";
 import { v4 as uuidv4 } from "uuid";
 import { Doc, encodeStateAsUpdateV2 } from "yjs";
 import { type DatabaseOrTx, ensureTx } from "../../core/utils";
-import { buildUnionAllQuery, resolveWorkspaceScopedTables } from "../workspace-storage";
+import {
+  buildUnionAllQuery,
+  resolveWorkspaceScopedTables,
+} from "../workspace-storage";
 import {
   resolveWorkspaceVisibility,
   WORKSPACE_INDEX_SYNC_STREAMS,
 } from "../workspaces/services";
-import {
-  LOCAL_WORKSPACES_TABLE,
-  WORKSPACES_TABLE,
-} from "../workspaces/table";
+import { LOCAL_WORKSPACES_TABLE, WORKSPACES_TABLE } from "../workspaces/table";
 import { Uint8ArrayTob64 } from "../yjs/utils";
 import {
   LOCAL_WORKSPACE_RESOURCES_TABLE,
@@ -41,7 +41,7 @@ const WORKSPACES_UNION_QUERY = buildUnionAllQuery(
 );
 const WORKSPACE_RESOURCE_TRASH_UNION_QUERY = buildUnionAllQuery(
   `SELECT * FROM ${WORKSPACE_RESOURCE_TRASH_TABLE}`,
-  `SELECT * FROM ${LOCAL_WORKSPACE_RESOURCE_TRASH_TABLE}`,
+  `SELECT * FROM ${LOCAL_WORKSPACE_RESOURCE_TRASH_TABLE}`
 );
 
 export function getWorkspaceResourcesSyncStreams(): QuerySyncStreamOptions[] {
@@ -153,13 +153,13 @@ async function getNextSiblingPosition(params: {
   const result = await db.getOptional<{ max_pos: number | null }>(
     `SELECT MAX(position) as max_pos FROM (${buildUnionAllQuery(
       `SELECT id, position, workspace_id, parent_id FROM ${WORKSPACE_RESOURCES_TABLE}`,
-      `SELECT id, position, workspace_id, parent_id FROM ${LOCAL_WORKSPACE_RESOURCES_TABLE}`,
+      `SELECT id, position, workspace_id, parent_id FROM ${LOCAL_WORKSPACE_RESOURCES_TABLE}`
     )}) workspace_resources WHERE workspace_id = ? AND ${parentFilter.sql}
       AND NOT EXISTS (
         SELECT 1 FROM (${WORKSPACE_RESOURCE_TRASH_UNION_QUERY}) trash
         WHERE trash.id = workspace_resources.id
       )`,
-    [workspaceId, ...parentFilter.params],
+    [workspaceId, ...parentFilter.params]
   );
   return (result?.max_pos ?? -1) + 1;
 }
@@ -188,17 +188,21 @@ export function useWorkspaceResourcesSuspenseQuery(
 
 export function useWorkspaceResourceTimestamps(resourceId: string | undefined) {
   const { data, isLoading } = useQuery<
-    Pick<WorkspaceResourceEntity, "created_at" | "updated_at" | "last_activity_at">
-  >(
-    `${buildWorkspaceResourcesQuery("id = ?")} LIMIT 1`,
-    [resourceId ?? ""]
-  );
+    Pick<
+      WorkspaceResourceEntity,
+      "created_at" | "updated_at" | "last_activity_at"
+    >
+  >(`${buildWorkspaceResourcesQuery("id = ?")} LIMIT 1`, [resourceId ?? ""]);
   const resource = data.at(0);
 
   return {
-    createdAt: resource?.created_at ? parseUTCTimestamp(resource.created_at) : null,
+    createdAt: resource?.created_at
+      ? parseUTCTimestamp(resource.created_at)
+      : null,
     isLoading: Boolean(resourceId) && isLoading,
-    updatedAt: resource ? latestTimestamp(resource.updated_at, resource.last_activity_at) : null,
+    updatedAt: resource
+      ? latestTimestamp(resource.updated_at, resource.last_activity_at)
+      : null,
   };
 }
 
@@ -235,7 +239,7 @@ export async function createWorkspaceResource(params: {
               parentId: string | null;
               resourceId: string;
               userId: string | null;
-            },
+            }
           ) => Promise<void> | void;
           kind: "yjs";
         }
@@ -260,7 +264,10 @@ export async function createWorkspaceResource(params: {
   const id = createId("res");
   const now = new Date().toISOString();
   const tables = resolveWorkspaceScopedTables(visibility);
-  const handles: Record<string, { kind: "file" | "key-value" | "yjs"; storageId: string }> = {};
+  const handles: Record<
+    string,
+    { kind: "file" | "key-value" | "yjs"; storageId: string }
+  > = {};
 
   const pos =
     position ?? (await getNextSiblingPosition({ db, workspaceId, parentId }));
@@ -290,7 +297,7 @@ export async function createWorkspaceResource(params: {
         backingId = createId("yjs");
         await tx.execute(
           `INSERT INTO ${tables.yjsDocuments} (id, workspace_id, created_at, updated_at) VALUES (?, ?, ?, ?)`,
-          [backingId, workspaceId, now, now],
+          [backingId, workspaceId, now, now]
         );
       } else if (definition.kind === "file") {
         backingId = createId("file");
@@ -299,10 +306,25 @@ export async function createWorkspaceResource(params: {
         `INSERT INTO ${tables.workspaceStorageSlots}
           (id, workspace_id, resource_id, plugin_id, name, kind, backing_id, metadata, created_at, updated_at)
          VALUES (?, ?, ?, NULL, ?, ?, ?, NULL, ?, ?)`,
-        [storageId, workspaceId, id, slotName, definition.kind, backingId, now, now],
+        [
+          storageId,
+          workspaceId,
+          id,
+          slotName,
+          definition.kind,
+          backingId,
+          now,
+          now,
+        ]
       );
 
-      const context = { createdAt: now, initialPayload, parentId, resourceId: id, userId };
+      const context = {
+        createdAt: now,
+        initialPayload,
+        parentId,
+        resourceId: id,
+        userId,
+      };
       if (definition.kind === "key-value" && definition.initialize) {
         const values = await definition.initialize(context);
         for (const [key, value] of Object.entries(values)) {
@@ -310,7 +332,15 @@ export async function createWorkspaceResource(params: {
             `INSERT INTO ${tables.workspaceStorageValues}
               (id, storage_id, workspace_id, key, value, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [createId("storage-value"), storageId, workspaceId, key, JSON.stringify(value), now, now],
+            [
+              createId("storage-value"),
+              storageId,
+              workspaceId,
+              key,
+              JSON.stringify(value),
+              now,
+              now,
+            ]
           );
         }
       }
@@ -321,7 +351,15 @@ export async function createWorkspaceResource(params: {
           const update = encodeStateAsUpdateV2(doc);
           await tx.execute(
             `INSERT INTO ${tables.yjsDocumentUpdates} (id, document_id, workspace_id, user_id, update_b64, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [uuidv4(), backingId, workspaceId, userId, Uint8ArrayTob64(update), now, now],
+            [
+              uuidv4(),
+              backingId,
+              workspaceId,
+              userId,
+              Uint8ArrayTob64(update),
+              now,
+              now,
+            ]
           );
         } finally {
           doc.destroy();
@@ -356,9 +394,17 @@ export async function compareAndSetWorkspaceResourceVersion(params: {
     const table = resolveWorkspaceScopedTables(visibility).workspaceResources;
     const result = await tx.execute(
       `UPDATE ${table} SET schema_version = ?, updated_at = ? WHERE id = ? AND workspace_id = ? AND schema_version = ?`,
-      [nextVersion, new Date().toISOString(), resourceId, workspaceId, expectedVersion],
+      [
+        nextVersion,
+        new Date().toISOString(),
+        resourceId,
+        workspaceId,
+        expectedVersion,
+      ]
     );
-    if (result.rowsAffected !== 1) return false;
+    if (result.rowsAffected !== 1) {
+      return false;
+    }
     await mutatePayload(tx);
     await recordActivity(tx, { resourceId });
     return true;
@@ -374,24 +420,30 @@ export async function createWorkspaceFolder(params: {
   workspaceId: string;
 }) {
   return ensureTx(params.db, async (db) => {
-    const {
-      workspaceId,
-      name,
-      parentId,
-      icon,
-      position,
-    } = params;
+    const { workspaceId, name, parentId, icon, position } = params;
     const visibility = await resolveWorkspaceVisibility(db, workspaceId);
     const id = createId("res");
     const now = new Date().toISOString();
-    const tableName = resolveWorkspaceScopedTables(visibility).workspaceResources;
+    const tableName =
+      resolveWorkspaceScopedTables(visibility).workspaceResources;
 
     const pos =
       position ?? (await getNextSiblingPosition({ db, workspaceId, parentId }));
 
     await db.execute(
       `INSERT INTO ${tableName} (id, workspace_id, name, icon, position, parent_id, resource_type_id, schema_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, workspaceId, name, icon ?? null, pos, parentId, "lunaris.folder", 1, now, now]
+      [
+        id,
+        workspaceId,
+        name,
+        icon ?? null,
+        pos,
+        parentId,
+        "lunaris.folder",
+        1,
+        now,
+        now,
+      ]
     );
 
     await recordActivity(db, { resourceId: id }, now);
@@ -429,10 +481,18 @@ export async function deleteWorkspaceResource(params: {
     const { id } = params;
     await recordActivity(db, { resourceId: id });
     await Promise.all([
-      db.execute(`DELETE FROM ${WORKSPACE_RESOURCE_TRASH_TABLE} WHERE id = ?`, [id]),
-      db.execute(`DELETE FROM ${LOCAL_WORKSPACE_RESOURCE_TRASH_TABLE} WHERE id = ?`, [id]),
+      db.execute(`DELETE FROM ${WORKSPACE_RESOURCE_TRASH_TABLE} WHERE id = ?`, [
+        id,
+      ]),
+      db.execute(
+        `DELETE FROM ${LOCAL_WORKSPACE_RESOURCE_TRASH_TABLE} WHERE id = ?`,
+        [id]
+      ),
       db.execute(`DELETE FROM ${WORKSPACE_RESOURCES_TABLE} WHERE id = ?`, [id]),
-      db.execute(`DELETE FROM ${LOCAL_WORKSPACE_RESOURCES_TABLE} WHERE id = ?`, [id]),
+      db.execute(
+        `DELETE FROM ${LOCAL_WORKSPACE_RESOURCES_TABLE} WHERE id = ?`,
+        [id]
+      ),
     ]);
   });
 }
@@ -443,19 +503,26 @@ export async function deleteWorkspaceResources(params: {
 }) {
   return ensureTx(params.db, async (db) => {
     const { ids } = params;
-    if (ids.length === 0) return;
-    for (const id of ids) await recordActivity(db, { resourceId: id });
+    if (ids.length === 0) {
+      return;
+    }
+    for (const id of ids) {
+      await recordActivity(db, { resourceId: id });
+    }
     const placeholders = ids.map(() => "?").join(",");
     await Promise.all([
       db.execute(
         `DELETE FROM ${WORKSPACE_RESOURCE_TRASH_TABLE} WHERE id IN (${placeholders})`,
-        ids,
+        ids
       ),
       db.execute(
         `DELETE FROM ${LOCAL_WORKSPACE_RESOURCE_TRASH_TABLE} WHERE id IN (${placeholders})`,
-        ids,
+        ids
       ),
-      db.execute(`DELETE FROM ${WORKSPACE_RESOURCES_TABLE} WHERE id IN (${placeholders})`, ids),
+      db.execute(
+        `DELETE FROM ${WORKSPACE_RESOURCES_TABLE} WHERE id IN (${placeholders})`,
+        ids
+      ),
       db.execute(
         `DELETE FROM ${LOCAL_WORKSPACE_RESOURCES_TABLE} WHERE id IN (${placeholders})`,
         ids
@@ -495,10 +562,10 @@ export async function touchWorkspaceResource(params: {
     const { id } = params;
     const now = new Date().toISOString();
     await Promise.all([
-      db.execute(`UPDATE ${WORKSPACE_RESOURCES_TABLE} SET updated_at = ? WHERE id = ?`, [
-        now,
-        id,
-      ]),
+      db.execute(
+        `UPDATE ${WORKSPACE_RESOURCES_TABLE} SET updated_at = ? WHERE id = ?`,
+        [now, id]
+      ),
       db.execute(
         `UPDATE ${LOCAL_WORKSPACE_RESOURCES_TABLE} SET updated_at = ? WHERE id = ?`,
         [now, id]
@@ -534,7 +601,10 @@ export async function moveWorkspaceResource(params: {
 
 export function getWorkspaceResource(params: { db: DatabaseOrTx; id: string }) {
   const { db, id } = params;
-  return db.getOptional<WorkspaceResourceEntity>(buildWorkspaceResourcesQuery("id = ?"), [id]);
+  return db.getOptional<WorkspaceResourceEntity>(
+    buildWorkspaceResourcesQuery("id = ?"),
+    [id]
+  );
 }
 
 export function getWorkspaceResourceChildren(params: {
@@ -562,7 +632,9 @@ export async function getWorkspaceResourceDescendants(params: {
 
   while (queue.length > 0) {
     const parentId = queue.shift()!;
-    if (visited.has(parentId)) continue;
+    if (visited.has(parentId)) {
+      continue;
+    }
     visited.add(parentId);
 
     const children = await db.getAll<WorkspaceResourceEntity>(

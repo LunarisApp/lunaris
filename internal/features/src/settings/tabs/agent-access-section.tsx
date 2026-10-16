@@ -28,7 +28,9 @@ export function AgentAccessSection() {
   const [copied, setCopied] = useState(false);
 
   const refresh = useCallback(async () => {
-    if (!manager) return;
+    if (!manager) {
+      return;
+    }
     try {
       setStatus(await manager.status());
       setError(null);
@@ -36,20 +38,22 @@ export function AgentAccessSection() {
       setError(
         cause instanceof Error
           ? cause.message
-          : t("settings.local-data.agentAccess.failed"),
+          : t("settings.local-data.agentAccess.failed")
       );
     }
   }, [manager, t]);
 
   useEffect(() => {
-    if (!manager) return;
+    if (!manager) {
+      return;
+    }
     void refresh();
-    const timer = window.setInterval(() => void refresh(), 2_000);
+    const timer = window.setInterval(() => void refresh(), 2000);
     return () => window.clearInterval(timer);
   }, [manager, refresh]);
 
   useEffect(() => {
-    if (!manager || !status?.enabled) {
+    if (!(manager && status?.enabled)) {
       setMcpSetup(null);
       return;
     }
@@ -57,17 +61,21 @@ export function AgentAccessSection() {
     void manager
       .mcpSetup(mcpAccess)
       .then((setup) => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setMcpSetup(setup);
         setMcpError(null);
       })
       .catch((cause: unknown) => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setMcpSetup(null);
         setMcpError(
           cause instanceof Error
             ? cause.message
-            : t("settings.local-data.agentAccess.mcpFailed"),
+            : t("settings.local-data.agentAccess.mcpFailed")
         );
       });
     return () => {
@@ -76,8 +84,10 @@ export function AgentAccessSection() {
   }, [manager, mcpAccess, status?.enabled, t]);
 
   useEffect(() => {
-    if (!copied) return;
-    const timer = window.setTimeout(() => setCopied(false), 2_000);
+    if (!copied) {
+      return;
+    }
+    const timer = window.setTimeout(() => setCopied(false), 2000);
     return () => window.clearTimeout(timer);
   }, [copied]);
 
@@ -91,19 +101,23 @@ export function AgentAccessSection() {
         setError(
           cause instanceof Error
             ? cause.message
-            : t("settings.local-data.agentAccess.failed"),
+            : t("settings.local-data.agentAccess.failed")
         );
       } finally {
         setBusy(false);
       }
     },
-    [t],
+    [t]
   );
 
-  if (!manager) return null;
+  if (!manager) {
+    return null;
+  }
 
   const copyCommand = async () => {
-    if (!mcpSetup) return;
+    if (!mcpSetup) {
+      return;
+    }
     try {
       await clipboard.writeText(mcpSetup.displayCommand);
       setCopied(true);
@@ -116,7 +130,7 @@ export function AgentAccessSection() {
     <section aria-labelledby="agent-access-heading" className="space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <h2 className="text-sm font-medium" id="agent-access-heading">
+          <h2 className="font-medium text-sm" id="agent-access-heading">
             {t("settings.local-data.agentAccess.title")}
           </h2>
           <p className="text-muted-foreground text-xs">
@@ -134,13 +148,13 @@ export function AgentAccessSection() {
         />
       </div>
 
-      {error && (
+      {!!error && (
         <p className="text-destructive text-xs" role="alert">
           {error}
         </p>
       )}
 
-      {status?.enabled && (
+      {!!status?.enabled && (
         <div
           className={
             status.pending.length > 0 ? "grid gap-6 md:grid-cols-2" : ""
@@ -148,7 +162,7 @@ export function AgentAccessSection() {
         >
           {status.pending.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-medium">
+              <p className="font-medium text-xs">
                 {t("settings.local-data.agentAccess.pairingRequests")}
               </p>
               <ul className="divide-y">
@@ -164,10 +178,11 @@ export function AgentAccessSection() {
                       >
                         {request.clientName}
                       </p>
-                      <p className="text-muted-foreground font-mono text-xs">
-                        {t("settings.local-data.agentAccess.code")}: {request.code}
+                      <p className="font-mono text-muted-foreground text-xs">
+                        {t("settings.local-data.agentAccess.code")}:{" "}
+                        {request.code}
                       </p>
-                      <p className="text-muted-foreground truncate font-mono text-xs">
+                      <p className="truncate font-mono text-muted-foreground text-xs">
                         {request.scopes.join(", ")}
                       </p>
                     </div>
@@ -190,7 +205,7 @@ export function AgentAccessSection() {
           )}
 
           <div className="space-y-2">
-            <p className="text-xs font-medium">
+            <p className="font-medium text-xs">
               {t("settings.local-data.agentAccess.approvedClients")}
             </p>
             {status.grants.length === 0 ? (
@@ -211,7 +226,7 @@ export function AgentAccessSection() {
                       >
                         {grant.clientName}
                       </p>
-                      <p className="text-muted-foreground truncate font-mono text-xs">
+                      <p className="truncate font-mono text-muted-foreground text-xs">
                         {grant.scopes.join(", ")}
                       </p>
                     </div>
@@ -236,10 +251,10 @@ export function AgentAccessSection() {
         </div>
       )}
 
-      {status?.enabled && (
+      {!!status?.enabled && (
         <div className="space-y-4 border-t pt-5">
           <div className="space-y-1">
-            <h3 className="text-sm font-medium">
+            <h3 className="font-medium text-sm">
               {t("settings.local-data.agentAccess.mcpTitle")}
             </h3>
             <p className="text-muted-foreground text-xs">
@@ -248,13 +263,11 @@ export function AgentAccessSection() {
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            <label className="text-xs font-medium" htmlFor="agent-mcp-access">
+            <label className="font-medium text-xs" htmlFor="agent-mcp-access">
               {t("settings.local-data.agentAccess.mcpAccess")}
             </label>
             <Select
-              onValueChange={(value) =>
-                setMcpAccess(value as AgentMcpAccess)
-              }
+              onValueChange={(value) => setMcpAccess(value as AgentMcpAccess)}
               value={mcpAccess}
             >
               <SelectTrigger id="agent-mcp-access" size="sm">
@@ -263,26 +276,24 @@ export function AgentAccessSection() {
               <SelectContent align="end">
                 {(["read", "write", "full"] as const).map((access) => (
                   <SelectItem key={access} value={access}>
-                    {t(
-                      `settings.local-data.agentAccess.mcpAccess_${access}`,
-                    )}
+                    {t(`settings.local-data.agentAccess.mcpAccess_${access}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {mcpError && (
+          {!!mcpError && (
             <p className="text-destructive text-xs" role="alert">
               {mcpError}
             </p>
           )}
 
-          {mcpSetup && (
+          {!!mcpSetup && (
             <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_15rem]">
-              <div className="bg-muted divide-y overflow-hidden rounded-md">
+              <div className="divide-y overflow-hidden rounded-md bg-muted">
                 <div className="p-3">
-                  <p className="text-muted-foreground mb-1 text-[11px] font-medium">
+                  <p className="mb-1 font-medium text-[11px] text-muted-foreground">
                     {t("settings.local-data.agentAccess.mcpCommand")}
                   </p>
                   <code className="block overflow-x-auto text-xs">
@@ -290,7 +301,7 @@ export function AgentAccessSection() {
                   </code>
                 </div>
                 <div className="p-3">
-                  <p className="text-muted-foreground mb-1 text-[11px] font-medium">
+                  <p className="mb-1 font-medium text-[11px] text-muted-foreground">
                     {t("settings.local-data.agentAccess.mcpArguments")}
                   </p>
                   <code className="block overflow-x-auto text-xs">
@@ -298,7 +309,7 @@ export function AgentAccessSection() {
                   </code>
                 </div>
                 <div className="p-3">
-                  <p className="text-muted-foreground mb-1 text-[11px] font-medium">
+                  <p className="mb-1 font-medium text-[11px] text-muted-foreground">
                     {t("settings.local-data.agentAccess.mcpFullCommand")}
                   </p>
                   <code className="block overflow-x-auto text-xs">
@@ -317,11 +328,11 @@ export function AgentAccessSection() {
                     {t(
                       copied
                         ? "settings.local-data.agentAccess.mcpCopied"
-                        : "settings.local-data.agentAccess.mcpCopy",
+                        : "settings.local-data.agentAccess.mcpCopy"
                     )}
                   </span>
                 </Button>
-                <ol className="text-muted-foreground list-outside list-decimal space-y-1 pl-4 text-xs">
+                <ol className="list-outside list-decimal space-y-1 pl-4 text-muted-foreground text-xs">
                   <li>{t("settings.local-data.agentAccess.mcpStep1")}</li>
                   <li>{t("settings.local-data.agentAccess.mcpStep2")}</li>
                   <li>{t("settings.local-data.agentAccess.mcpStep3")}</li>
@@ -333,7 +344,7 @@ export function AgentAccessSection() {
         </div>
       )}
 
-      {status?.enabled && (
+      {!!status?.enabled && (
         <p className="text-muted-foreground text-xs">
           {t("settings.local-data.agentAccess.disableWarning")}
         </p>

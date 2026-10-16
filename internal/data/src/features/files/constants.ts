@@ -35,13 +35,19 @@ const SAFE_FILE_EXTENSION = /^[a-z0-9]{1,32}$/;
 
 export function getFileExtension(mediaType: string, filename: string) {
   const mapped = MIME_TO_EXTENSION[mediaType];
-  if (mapped) return mapped;
+  if (mapped) {
+    return mapped;
+  }
   const ext = filename.split(".").pop()?.toLowerCase();
   return ext && SAFE_FILE_EXTENSION.test(ext) ? ext : "bin";
 }
 
 export function getFileMediaType(mediaType: string, filename: string) {
-  if (mediaType && mediaType !== "application/octet-stream") return mediaType;
+  if (mediaType && mediaType !== "application/octet-stream") {
+    return mediaType;
+  }
   const extension = filename.split(".").pop()?.toLowerCase() ?? "";
-  return EXTENSION_TO_MIME[extension] ?? (mediaType || "application/octet-stream");
+  return (
+    EXTENSION_TO_MIME[extension] ?? (mediaType || "application/octet-stream")
+  );
 }

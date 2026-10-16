@@ -9,7 +9,9 @@ describe("settings/preferences", () => {
     cy.openSettings();
     cy.openSettingsTab("preferences");
 
-    cy.get('[data-testid="settings-preferences-locale-trigger"]').click({ force: true });
+    cy.get('[data-testid="settings-preferences-locale-trigger"]').click({
+      force: true,
+    });
     cy.get('[data-slot="select-content"]').should("be.visible");
     cy.get('[data-testid="settings-preferences-locale-es"]')
       .trigger("mousemove")
@@ -23,7 +25,9 @@ describe("settings/preferences", () => {
     cy.get('[data-testid="settings-preferences-theme-dark"]').click();
     cy.get("html").should("have.class", "dark");
 
-    cy.get('[data-testid="settings-preferences-font-size-extra-large"]').click();
+    cy.get(
+      '[data-testid="settings-preferences-font-size-extra-large"]'
+    ).click();
     cy.get("html").should("have.class", "font-size-extra-large");
 
     cy.get('[data-testid="settings-preferences-font-family-serif"]').click();

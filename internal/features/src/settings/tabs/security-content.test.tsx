@@ -13,8 +13,8 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { fetchAuth, listSessions, listUserPasskeys, navigate, sessionState } = vi.hoisted(
-  () => ({
+const { fetchAuth, listSessions, listUserPasskeys, navigate, sessionState } =
+  vi.hoisted(() => ({
     fetchAuth: vi.fn(),
     listSessions: vi.fn(),
     listUserPasskeys: vi.fn(),
@@ -29,8 +29,7 @@ const { fetchAuth, listSessions, listUserPasskeys, navigate, sessionState } = vi
       },
       isPending: false,
     },
-  }),
-);
+  }));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -70,7 +69,7 @@ function renderSecurity() {
   return render(
     <QueryClientProvider client={queryClient}>
       <SecurityContent />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
 
@@ -97,7 +96,7 @@ describe("SecurityContent passkey layout", () => {
     renderSecurity();
 
     expect(
-      await screen.findAllByText("settings.security.offlineToLoad"),
+      await screen.findAllByText("settings.security.offlineToLoad")
     ).toHaveLength(2);
     expect(screen.queryByText("common.loading")).toBeNull();
     expect(fetchAuth).not.toHaveBeenCalled();
@@ -113,13 +112,11 @@ describe("SecurityContent passkey layout", () => {
     renderSecurity();
 
     const card = await screen.findByTestId(
-      "settings-security-authentication-card",
+      "settings-security-authentication-card"
     );
+    expect(within(card).getByTestId("settings-security-passkeys")).toBeTruthy();
     expect(
-      within(card).getByTestId("settings-security-passkeys"),
-    ).toBeTruthy();
-    expect(
-      within(card).queryByText("settings.security.twoFactorTitle"),
+      within(card).queryByText("settings.security.twoFactorTitle")
     ).toBeNull();
     expect(screen.getByText("settings.security.setPassword")).toBeTruthy();
   });
@@ -133,12 +130,12 @@ describe("SecurityContent passkey layout", () => {
     renderSecurity();
 
     const card = await screen.findByTestId(
-      "settings-security-authentication-card",
+      "settings-security-authentication-card"
     );
     await waitFor(() =>
       expect(
-        within(card).getByText("settings.security.twoFactorTitle"),
-      ).toBeTruthy(),
+        within(card).getByText("settings.security.twoFactorTitle")
+      ).toBeTruthy()
     );
     expect(within(card).getByTestId("settings-security-passkeys")).toBeTruthy();
     expect(card.children).toHaveLength(2);
@@ -161,13 +158,13 @@ describe("SecurityContent passkey layout", () => {
     renderSecurity();
 
     expect(
-      await screen.findByText("settings.security.reauthenticationRequired"),
+      await screen.findByText("settings.security.reauthenticationRequired")
     ).toBeTruthy();
     fireEvent.click(screen.getByText("settings.security.signInAgain"));
 
     expect(navigate).toHaveBeenCalledWith(
       "/auth?redirectTo=%2Fsettings%2Faccount&addAccount=true",
-      { state: { email: "writer@example.com" } },
+      { state: { email: "writer@example.com" } }
     );
   });
 });

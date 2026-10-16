@@ -4,9 +4,11 @@
  */
 export function parseUTCTimestamp(value: string): Date {
   if (
-    !value.endsWith("Z") &&
-    !value.includes("+") &&
-    !/\d{2}:\d{2}$/.test(value.slice(-6))
+    !(
+      value.endsWith("Z") ||
+      value.includes("+") ||
+      /\d{2}:\d{2}$/.test(value.slice(-6))
+    )
   ) {
     return new Date(`${value}Z`);
   }
@@ -19,16 +21,18 @@ const DAY = 24 * HOUR;
 
 export type TranslateTimeFn = (
   key: string,
-  options?: Record<string, unknown>,
+  options?: Record<string, unknown>
 ) => string;
 
 export function formatRelativeTime(
   date: Date,
   locale?: string,
-  t?: TranslateTimeFn,
+  t?: TranslateTimeFn
 ): string {
   const diff = Date.now() - date.getTime();
-  if (diff < MINUTE) return t ? t("time.justNow") : "Just now";
+  if (diff < MINUTE) {
+    return t ? t("time.justNow") : "Just now";
+  }
 
   if (diff < HOUR) {
     const minutes = Math.floor(diff / MINUTE);
@@ -44,7 +48,9 @@ export function formatRelativeTime(
       : `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
   }
 
-  if (diff < 2 * DAY) return t ? t("time.yesterday") : "Yesterday";
+  if (diff < 2 * DAY) {
+    return t ? t("time.yesterday") : "Yesterday";
+  }
 
   return date.toLocaleDateString(locale ?? "en-US", {
     day: "numeric",
@@ -55,7 +61,7 @@ export function formatRelativeTime(
 export function formatAbsoluteTime(
   date: Date,
   locale?: string,
-  t?: TranslateTimeFn,
+  t?: TranslateTimeFn
 ): string {
   const resolvedLocale = locale ?? "en-US";
   const datePart = date.toLocaleDateString(resolvedLocale, {

@@ -15,9 +15,15 @@ export interface Page<T> {
 /** App-owned database, identity lookup, log lifecycle, and pagination adapters. */
 export interface AuditDependencies {
   db: Pick<NodePgDatabase, "select" | "insert">;
-  decodeCursor: <T>(cursor: string | undefined, parse: (value: unknown) => T) => T | undefined;
+  decodeCursor: <T>(
+    cursor: string | undefined,
+    parse: (value: unknown) => T
+  ) => T | undefined;
   flushLogDrain: () => Promise<void>;
-  getMemberRole: (userId: string, tenantId: string) => Promise<string | undefined>;
+  getMemberRole: (
+    userId: string,
+    tenantId: string
+  ) => Promise<string | undefined>;
   registerAuditDrain: (drain: DrainFn) => void;
   toPage: <Row, Item>(params: {
     encode: (row: Row) => unknown;
@@ -51,7 +57,7 @@ export class AuditService {
     this.signatureKeyId = process.env.AUDIT_LOG_HMAC_KEY_ID ?? "v1";
     const drain = auditOnly(
       signed(this.write.bind(this), { secret, strategy: "hmac" }),
-      { await: true },
+      { await: true }
     );
     dependencies.registerAuditDrain(drain);
   }
@@ -64,23 +70,26 @@ export class AuditService {
 
   async assertReviewer(userId: string, tenantId: string): Promise<void> {
     const role = await this.dependencies.getMemberRole(userId, tenantId);
-    const roles = role?.split(",")
+    const roles = role
+      ?.split(",")
       .map((role) => role.trim())
       .filter(Boolean);
     if (!roles?.some((role) => REVIEWER_ROLES.has(role))) {
       throw new ForbiddenException(
-        "Organization owner role required to review audit events",
+        "Organization owner role required to review audit events"
       );
     }
   }
 
   async list(
     tenantId: string,
-    query: AuditEventsQueryDto,
+    query: AuditEventsQueryDto
   ): Promise<Page<ReturnType<typeof mapAuditRow>>> {
     const cursor = this.dependencies.decodeCursor(query.cursor, parseCursor);
     const conditions: SQL[] = [eq(auditEventsDb.tenantId, tenantId)];
-    if (query.action) conditions.push(eq(auditEventsDb.action, query.action));
+    if (query.action) {
+      conditions.push(eq(auditEventsDb.action, query.action));
+    }
     if (query.actorId) {
       conditions.push(eq(auditEventsDb.actorId, query.actorId));
     }
@@ -90,7 +99,9 @@ export class AuditService {
     if (query.from) {
       conditions.push(gte(auditEventsDb.occurredAt, query.from));
     }
-    if (query.to) conditions.push(lte(auditEventsDb.occurredAt, query.to));
+    if (query.to) {
+      conditions.push(lte(auditEventsDb.occurredAt, query.to));
+    }
     if (cursor) {
       const occurredAt = new Date(cursor.occurredAt);
       conditions.push(
@@ -98,9 +109,9 @@ export class AuditService {
           lt(auditEventsDb.occurredAt, occurredAt),
           and(
             eq(auditEventsDb.occurredAt, occurredAt),
-            lt(auditEventsDb.id, cursor.id),
-          ),
-        )!,
+            lt(auditEventsDb.id, cursor.id)
+          )
+        )!
       );
     }
 
@@ -124,7 +135,7 @@ export class AuditService {
 
   private readonly write: DrainFn = async (ctx: DrainContext) => {
     const audit = ctx.event.audit;
-    if (!audit?.signature || !audit.idempotencyKey) {
+    if (!(audit?.signature && audit.idempotencyKey)) {
       throw new Error("Signed audit event is missing integrity fields");
     }
     const context = audit.context ?? {};
@@ -180,21 +191,34 @@ function mapAuditRow(row: AuditRow) {
 }
 
 function parseChangedFields(value: unknown): string[] {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return [];
+  }
   const changedFields = new Set<string>();
 
   for (const phaseName of ["before", "after"] as const) {
-    const phase = phaseName === "before"
-      ? ("before" in value ? value.before : undefined)
-      : ("after" in value ? value.after : undefined);
-    if (!phase || typeof phase !== "object" || Array.isArray(phase)) continue;
+    const phase =
+      phaseName === "before"
+        ? "before" in value
+          ? value.before
+          : undefined
+        : "after" in value
+          ? value.after
+          : undefined;
+    if (!phase || typeof phase !== "object" || Array.isArray(phase)) {
+      continue;
+    }
 
     for (const field of Object.keys(phase)) {
-      if (field !== "fields") changedFields.add(field);
+      if (field !== "fields") {
+        changedFields.add(field);
+      }
     }
 
     const fields = "fields" in phase ? phase.fields : undefined;
-    if (!Array.isArray(fields)) continue;
+    if (!Array.isArray(fields)) {
+      continue;
+    }
     for (const field of fields) {
       if (typeof field === "string" && field.length > 0) {
         changedFields.add(field);

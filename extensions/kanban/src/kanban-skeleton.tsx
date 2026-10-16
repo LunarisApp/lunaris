@@ -21,6 +21,7 @@ export function KanbanSkeleton() {
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             className="flex min-w-56 max-w-60 flex-1 flex-col rounded-lg bg-muted/40 p-3"
+            // biome-ignore lint/suspicious/noArrayIndexKey: Fixed placeholders or stateless rows; position is the intended identity.
             key={index}
           >
             <div className="mb-3 flex items-center justify-between gap-2">

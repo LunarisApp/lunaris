@@ -33,7 +33,7 @@ export class BillingController {
   @Throttle({ default: { limit: 10, ttl: seconds(60) } })
   createCheckout(
     @Session() session: UserSession,
-    @Body({ schema: BillingPlanRequestDto }) body: BillingPlanRequestDto,
+    @Body({ schema: BillingPlanRequestDto }) body: BillingPlanRequestDto
   ): Promise<BillingCheckoutResponseDto> {
     return this.billing.createCheckout({
       ...body,
@@ -58,7 +58,7 @@ export class BillingController {
 
   @Throttle({ default: { limit: 10, ttl: seconds(60) } })
   createPortal(
-    @Session() session: UserSession,
+    @Session() session: UserSession
   ): Promise<BillingPortalResponseDto> {
     return this.billing.createPortal({
       organizationId: requireActiveOrganization(session),
@@ -79,7 +79,7 @@ export class BillingController {
   @Throttle({ default: { limit: 10, ttl: seconds(60) } })
   async changePlan(
     @Session() session: UserSession,
-    @Body({ schema: BillingPlanRequestDto }) body: BillingPlanRequestDto,
+    @Body({ schema: BillingPlanRequestDto }) body: BillingPlanRequestDto
   ): Promise<BillingPlanChangeResponseDto> {
     await this.billing.changePlan({
       ...body,
@@ -99,7 +99,7 @@ export class BillingController {
   })
   @RequirePermission(permission.billing.read)
   getBillingState(
-    @Session() session: UserSession,
+    @Session() session: UserSession
   ): Promise<BillingStateResponseDto> {
     return this.billing.getBillingState({
       organizationId: requireActiveOrganization(session),

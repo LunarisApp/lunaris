@@ -89,7 +89,8 @@ describe("uploadFileAttachmentToWorkspaceResource", () => {
       generateAttachmentId: generateAttachmentIdMock,
       localStorage: {
         deleteFile: localStorageDeleteMock,
-        getLocalUri: (filename: string) => `indexeddb://queue/files/${filename}`,
+        getLocalUri: (filename: string) =>
+          `indexeddb://queue/files/${filename}`,
         initialize: initializeMock,
       },
       saveFile: saveFileMock,
@@ -113,7 +114,11 @@ describe("uploadFileAttachmentToWorkspaceResource", () => {
     const transactionDb = { getOptional: vi.fn().mockResolvedValue(null) };
     const db = { getOptional: vi.fn().mockResolvedValue(null) };
     saveFileMock.mockImplementation(
-      async ({ updateHook }: { updateHook: (db: unknown, row: { id: string }) => void }) => {
+      async ({
+        updateHook,
+      }: {
+        updateHook: (db: unknown, row: { id: string }) => void;
+      }) => {
         await updateHook(transactionDb, { id: "att_1" });
       }
     );
@@ -198,7 +203,11 @@ describe("uploadFileAttachmentToWorkspaceResource", () => {
         resource_id: "item_1",
       });
     saveFileMock.mockImplementation(
-      async ({ updateHook }: { updateHook: (db: unknown, row: { id: string }) => void }) => {
+      async ({
+        updateHook,
+      }: {
+        updateHook: (db: unknown, row: { id: string }) => void;
+      }) => {
         await updateHook(transactionDb, { id: "att_1" });
       }
     );

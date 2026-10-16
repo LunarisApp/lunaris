@@ -59,13 +59,15 @@ function SettingsNavigation({
 
   const selectItem = (item: SettingsNavigationItem) => {
     item.onSelect?.();
-    if (isMobile) setOpenMobile(false);
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
 
   return (
     <nav aria-label={title}>
       <SidebarGroup>
-        <SidebarGroupLabel className="h-auto min-h-8 py-1.5 text-sm font-semibold leading-tight text-sidebar-foreground/70">
+        <SidebarGroupLabel className="h-auto min-h-8 py-1.5 font-semibold text-sidebar-foreground/70 text-sm leading-tight">
           {title}
         </SidebarGroupLabel>
         <SidebarGroupContent>
@@ -75,27 +77,27 @@ function SettingsNavigation({
                 {item.isPending ? (
                   <div
                     aria-hidden="true"
-                    className="flex h-8 items-center gap-2 rounded-md px-2 in-data-[mobile=true]:h-12 in-data-[mobile=true]:px-3"
+                    className="flex h-8 in-data-[mobile=true]:h-12 items-center gap-2 rounded-md in-data-[mobile=true]:px-3 px-2"
                   >
                     <div className="size-4 rounded bg-sidebar-accent" />
                     <div className="h-4 w-24 rounded bg-sidebar-accent" />
                   </div>
                 ) : (
-                <SidebarMenuButton
-                  aria-current={item.isActive ? "page" : undefined}
-                  className="in-data-[mobile=true]:h-12 in-data-[mobile=true]:px-3"
-                  data-testid={item.testId}
-                  isActive={item.isActive}
-                  onClick={() => selectItem(item)}
-                  render={item.to ? <Link replace to={item.to} /> : undefined}
-                >
-                  <HugeiconsIcon
-                    aria-hidden="true"
-                    icon={item.icon}
-                    strokeWidth={2}
-                  />
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
+                  <SidebarMenuButton
+                    aria-current={item.isActive ? "page" : undefined}
+                    className="in-data-[mobile=true]:h-12 in-data-[mobile=true]:px-3"
+                    data-testid={item.testId}
+                    isActive={item.isActive}
+                    onClick={() => selectItem(item)}
+                    render={item.to ? <Link replace to={item.to} /> : undefined}
+                  >
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={item.icon}
+                      strokeWidth={2}
+                    />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
                 )}
               </SidebarMenuItem>
             ))}
@@ -157,7 +159,7 @@ export function SettingsLayout({
                 width={28}
               />
             </span>
-            <span className="text-base/none font-[650] tracking-[0.04em] uppercase">
+            <span className="font-[650] text-base/none uppercase tracking-[0.04em]">
               Lunaris
             </span>
           </Link>
@@ -198,11 +200,9 @@ export function SettingsLayout({
           <SidebarTrigger className="md:hidden" />
           <Separator className="h-8 md:hidden" orientation="vertical" />
           <div className="min-w-0">
-            <h1 className="truncate text-xl font-semibold">
-              {contentTitle}
-            </h1>
+            <h1 className="truncate font-semibold text-xl">{contentTitle}</h1>
             {contentDescription ? (
-              <p className="text-muted-foreground truncate text-sm">
+              <p className="truncate text-muted-foreground text-sm">
                 {contentDescription}
               </p>
             ) : null}

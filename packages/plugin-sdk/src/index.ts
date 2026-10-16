@@ -262,9 +262,7 @@ export type {
   ViewRendererProps,
   ViewTarget,
 } from "./types";
-export {
-  definePluginService,
-} from "./services";
+export { definePluginService } from "./services";
 export type {
   PluginServiceDefinition,
   PluginServiceMethod,
@@ -296,5 +294,17 @@ export type {
   PluginAwarenessOptions,
 } from "./awareness";
 
-export { useResourcePresence, useResourceAwareness, ResourceViewPresenceProvider, useResourceViewPresenceScope, UNAVAILABLE_RESOURCE_PRESENCE } from "./resource-presence";
-export type { PresenceUser, ResourcePresenceResult, ResourceAwarenessResult, ResourceAwarenessPeer, ResourceViewPresenceScope } from "./resource-presence";
+export {
+  useResourcePresence,
+  useResourceAwareness,
+  ResourceViewPresenceProvider,
+  useResourceViewPresenceScope,
+  UNAVAILABLE_RESOURCE_PRESENCE,
+} from "./resource-presence";
+export type {
+  PresenceUser,
+  ResourcePresenceResult,
+  ResourceAwarenessResult,
+  ResourceAwarenessPeer,
+  ResourceViewPresenceScope,
+} from "./resource-presence";

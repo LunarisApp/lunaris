@@ -17,7 +17,7 @@ describe("workspace permissions", () => {
         create: useCanCreateWorkspace(),
         delete: useCanDeleteWorkspace(),
       }),
-      { wrapper },
+      { wrapper }
     );
 
     expect(result.current).toEqual({

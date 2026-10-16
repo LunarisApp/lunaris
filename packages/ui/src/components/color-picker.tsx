@@ -138,7 +138,9 @@ function rgbToHsv(color: ColorValue): HSVColorValue {
     }
   }
   h = Math.round(h * 60);
-  if (h < 0) h += 360;
+  if (h < 0) {
+    h += 360;
+  }
 
   const s = max === 0 ? 0 : diff / max;
   const v = max;
@@ -539,15 +541,17 @@ function ColorPicker(props: ColorPickerProps) {
     onFormatChange,
   });
 
-  const store = useMemo<Store>(() => {
-    return {
+  const store = useMemo<Store>(
+    () => ({
       subscribe: (cb) => {
         listenersRef.current.add(cb);
         return () => listenersRef.current.delete(cb);
       },
       getState: () => stateRef.current,
       setColor: (value: ColorValue) => {
-        if (Object.is(stateRef.current.color, value)) return;
+        if (Object.is(stateRef.current.color, value)) {
+          return;
+        }
 
         const prevState = { ...stateRef.current };
         stateRef.current.color = value;
@@ -560,7 +564,9 @@ function ColorPicker(props: ColorPickerProps) {
         store.notify();
       },
       setHsv: (value: HSVColorValue) => {
-        if (Object.is(stateRef.current.hsv, value)) return;
+        if (Object.is(stateRef.current.hsv, value)) {
+          return;
+        }
 
         const prevState = { ...stateRef.current };
         stateRef.current.hsv = value;
@@ -574,7 +580,9 @@ function ColorPicker(props: ColorPickerProps) {
         store.notify();
       },
       setOpen: (value: boolean) => {
-        if (Object.is(stateRef.current.open, value)) return;
+        if (Object.is(stateRef.current.open, value)) {
+          return;
+        }
 
         stateRef.current.open = value;
 
@@ -585,7 +593,9 @@ function ColorPicker(props: ColorPickerProps) {
         store.notify();
       },
       setFormat: (value: ColorFormat) => {
-        if (Object.is(stateRef.current.format, value)) return;
+        if (Object.is(stateRef.current.format, value)) {
+          return;
+        }
 
         stateRef.current.format = value;
 
@@ -600,8 +610,9 @@ function ColorPicker(props: ColorPickerProps) {
           cb();
         }
       },
-    };
-  }, [listenersRef, stateRef, propsRef]);
+    }),
+    [listenersRef, stateRef, propsRef]
+  );
 
   return (
     <StoreContext.Provider value={store}>
@@ -700,7 +711,7 @@ function ColorPickerImpl(props: ColorPickerImplProps) {
     return (
       <ColorPickerContext.Provider value={contextValue}>
         {rootElement}
-        {isFormControl && (
+        {!!isFormControl && (
           <VisuallyHiddenInput
             control={formTrigger}
             disabled={disabled}
@@ -724,7 +735,7 @@ function ColorPickerImpl(props: ColorPickerImplProps) {
         open={open}
       >
         {rootElement}
-        {isFormControl && (
+        {!!isFormControl && (
           <VisuallyHiddenInput
             control={formTrigger}
             disabled={disabled}
@@ -754,7 +765,7 @@ function ColorPickerTrigger(
     <PopoverTrigger
       disabled={isDisabled}
       render={<Button data-slot="color-picker-trigger" {...triggerProps} />}
-    ></PopoverTrigger>
+    />
   );
 }
 
@@ -827,7 +838,9 @@ function ColorPickerArea(props: DivProps) {
 
   const updateColorFromPosition = useCallback(
     (clientX: number, clientY: number) => {
-      if (!areaRef.current) return;
+      if (!areaRef.current) {
+        return;
+      }
 
       const rect = areaRef.current.getBoundingClientRect();
       const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
@@ -851,9 +864,13 @@ function ColorPickerArea(props: DivProps) {
 
   const onPointerDown = useCallback(
     (event: ReactPointerEvent<AreaElement>) => {
-      if (context.disabled) return;
+      if (context.disabled) {
+        return;
+      }
       propsRef.current.onPointerDown?.(event);
-      if (event.defaultPrevented) return;
+      if (event.defaultPrevented) {
+        return;
+      }
 
       isDraggingRef.current = true;
       areaRef.current?.setPointerCapture(event.pointerId);
@@ -865,7 +882,9 @@ function ColorPickerArea(props: DivProps) {
   const onPointerMove = useCallback(
     (event: ReactPointerEvent<AreaElement>) => {
       propsRef.current.onPointerMove?.(event);
-      if (event.defaultPrevented) return;
+      if (event.defaultPrevented) {
+        return;
+      }
 
       if (isDraggingRef.current) {
         updateColorFromPosition(event.clientX, event.clientY);
@@ -877,7 +896,9 @@ function ColorPickerArea(props: DivProps) {
   const onPointerUp = useCallback(
     (event: ReactPointerEvent<AreaElement>) => {
       propsRef.current.onPointerUp?.(event);
-      if (event.defaultPrevented) return;
+      if (event.defaultPrevented) {
+        return;
+      }
 
       isDraggingRef.current = false;
       areaRef.current?.releasePointerCapture(event.pointerId);
@@ -1072,9 +1093,9 @@ function ColorPickerSwatch(props: DivProps) {
     };
   }, [color]);
 
-  const ariaLabel = !color
-    ? "No color selected"
-    : `Current color: ${colorToString(color, format)}`;
+  const ariaLabel = color
+    ? `Current color: ${colorToString(color, format)}`
+    : "No color selected";
 
   return useRender({
     defaultTagName: "div",
@@ -1110,7 +1131,9 @@ function ColorPickerEyeDropper(props: ComponentProps<typeof Button>) {
   const isDisabled = disabled || context.disabled;
 
   const onEyeDropper = useCallback(async () => {
-    if (!window.EyeDropper) return;
+    if (!window.EyeDropper) {
+      return;
+    }
 
     try {
       const eyeDropper = new window.EyeDropper();
@@ -1130,7 +1153,9 @@ function ColorPickerEyeDropper(props: ComponentProps<typeof Button>) {
 
   const hasEyeDropper = typeof window !== "undefined" && !!window.EyeDropper;
 
-  if (!hasEyeDropper) return null;
+  if (!hasEyeDropper) {
+    return null;
+  }
 
   const size = sizeProp ?? (children ? "default" : "icon");
 

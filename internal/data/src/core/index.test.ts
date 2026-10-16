@@ -40,7 +40,10 @@ const originalSharedWorker = Object.getOwnPropertyDescriptor(
   globalThis,
   "SharedWorker"
 );
-const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+const originalNavigator = Object.getOwnPropertyDescriptor(
+  globalThis,
+  "navigator"
+);
 const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
 
 function setGlobal(name: "Worker" | "SharedWorker", value: unknown) {
@@ -113,7 +116,10 @@ describe("createWebPowerSyncDatabase", () => {
     );
     setWindow({});
 
-    createWebPowerSyncDatabase({ encryptionKey: TEST_KEY, dbFilename: TEST_FILENAME });
+    createWebPowerSyncDatabase({
+      encryptionKey: TEST_KEY,
+      dbFilename: TEST_FILENAME,
+    });
 
     expect(mockPowerSyncDatabase).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -141,7 +147,10 @@ describe("createWebPowerSyncDatabase", () => {
     );
     setWindow({});
 
-    createWebPowerSyncDatabase({ encryptionKey: TEST_KEY, dbFilename: TEST_FILENAME });
+    createWebPowerSyncDatabase({
+      encryptionKey: TEST_KEY,
+      dbFilename: TEST_FILENAME,
+    });
 
     expect(mockPowerSyncDatabase).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -168,7 +177,10 @@ describe("createWebPowerSyncDatabase", () => {
     );
     setWindow({ safari: {} });
 
-    createWebPowerSyncDatabase({ encryptionKey: TEST_KEY, dbFilename: TEST_FILENAME });
+    createWebPowerSyncDatabase({
+      encryptionKey: TEST_KEY,
+      dbFilename: TEST_FILENAME,
+    });
 
     expect(mockPowerSyncDatabase).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -190,7 +202,10 @@ describe("createWebPowerSyncDatabase", () => {
     setNavigator("Mozilla/5.0");
     setWindow({});
 
-    createWebPowerSyncDatabase({ encryptionKey: TEST_KEY, dbFilename: TEST_FILENAME });
+    createWebPowerSyncDatabase({
+      encryptionKey: TEST_KEY,
+      dbFilename: TEST_FILENAME,
+    });
 
     expect(mockPowerSyncDatabase).toHaveBeenCalledWith(
       expect.objectContaining({

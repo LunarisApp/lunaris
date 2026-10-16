@@ -27,14 +27,46 @@ const HANDLE_CONFIG: Array<{
   cursor: string;
   direction: ResizeDirection;
 }> = [
-  { className: "-top-2 -left-2 size-4", cursor: "cursor-nwse-resize", direction: "nw" },
-  { className: "-top-2 left-1/2 h-4 w-10 -translate-x-1/2", cursor: "cursor-ns-resize", direction: "n" },
-  { className: "-top-2 -right-2 size-4", cursor: "cursor-nesw-resize", direction: "ne" },
-  { className: "top-1/2 -right-2 h-10 w-4 -translate-y-1/2", cursor: "cursor-ew-resize", direction: "e" },
-  { className: "-right-2 -bottom-2 size-4", cursor: "cursor-nwse-resize", direction: "se" },
-  { className: "-bottom-2 left-1/2 h-4 w-10 -translate-x-1/2", cursor: "cursor-ns-resize", direction: "s" },
-  { className: "-bottom-2 -left-2 size-4", cursor: "cursor-nesw-resize", direction: "sw" },
-  { className: "top-1/2 -left-2 h-10 w-4 -translate-y-1/2", cursor: "cursor-ew-resize", direction: "w" },
+  {
+    className: "-top-2 -left-2 size-4",
+    cursor: "cursor-nwse-resize",
+    direction: "nw",
+  },
+  {
+    className: "-top-2 left-1/2 h-4 w-10 -translate-x-1/2",
+    cursor: "cursor-ns-resize",
+    direction: "n",
+  },
+  {
+    className: "-top-2 -right-2 size-4",
+    cursor: "cursor-nesw-resize",
+    direction: "ne",
+  },
+  {
+    className: "top-1/2 -right-2 h-10 w-4 -translate-y-1/2",
+    cursor: "cursor-ew-resize",
+    direction: "e",
+  },
+  {
+    className: "-right-2 -bottom-2 size-4",
+    cursor: "cursor-nwse-resize",
+    direction: "se",
+  },
+  {
+    className: "-bottom-2 left-1/2 h-4 w-10 -translate-x-1/2",
+    cursor: "cursor-ns-resize",
+    direction: "s",
+  },
+  {
+    className: "-bottom-2 -left-2 size-4",
+    cursor: "cursor-nesw-resize",
+    direction: "sw",
+  },
+  {
+    className: "top-1/2 -left-2 h-10 w-4 -translate-y-1/2",
+    cursor: "cursor-ew-resize",
+    direction: "w",
+  },
 ];
 
 export function ImageRenderer({ metadata, objectUrl }: ImageRendererProps) {
@@ -50,12 +82,18 @@ export function ImageRenderer({ metadata, objectUrl }: ImageRendererProps) {
   }, [objectUrl]);
 
   useEffect(() => {
-    if (!dimensions || typeof ResizeObserver === "undefined") return;
+    if (!dimensions || typeof ResizeObserver === "undefined") {
+      return;
+    }
     const panel = panelRef.current;
-    if (!panel) return;
+    if (!panel) {
+      return;
+    }
     const observer = new ResizeObserver(() => {
       setDisplaySize((size) => {
-        if (!size) return initialDisplaySize(dimensions, panel);
+        if (!size) {
+          return initialDisplaySize(dimensions, panel);
+        }
         return clampToPanel(size.width, dimensions, panel);
       });
     });
@@ -67,7 +105,9 @@ export function ImageRenderer({ metadata, objectUrl }: ImageRendererProps) {
     event: ReactPointerEvent<HTMLButtonElement>,
     direction: ResizeDirection
   ) => {
-    if (!displaySize || !dimensions) return;
+    if (!(displaySize && dimensions)) {
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture?.(event.pointerId);
@@ -81,7 +121,9 @@ export function ImageRenderer({ metadata, objectUrl }: ImageRendererProps) {
     const handlePointerMove = (moveEvent: PointerEvent) => {
       const drag = dragRef.current;
       const panel = panelRef.current;
-      if (!drag || !panel) return;
+      if (!(drag && panel)) {
+        return;
+      }
       const nextWidth = widthFromDrag({
         deltaX: moveEvent.clientX - drag.pointerX,
         deltaY: moveEvent.clientY - drag.pointerY,
@@ -118,6 +160,7 @@ export function ImageRenderer({ metadata, objectUrl }: ImageRendererProps) {
           width: displaySize ? `${displaySize.width}px` : undefined,
         }}
       >
+        {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: Image load measures intrinsic size; resize controls are separate buttons. */}
         <img
           alt={metadata.filename}
           className="h-full w-full object-contain"
@@ -129,17 +172,21 @@ export function ImageRenderer({ metadata, objectUrl }: ImageRendererProps) {
             };
             setDimensions(nextDimensions);
             const panel = panelRef.current;
-            if (panel) setDisplaySize(initialDisplaySize(nextDimensions, panel));
+            if (panel) {
+              setDisplaySize(initialDisplaySize(nextDimensions, panel));
+            }
           }}
           src={objectUrl}
         />
         {HANDLE_CONFIG.map((handle) => (
           <button
             aria-label={`Resize image ${handle.direction}`}
-            className={`absolute z-10 touch-none rounded-sm bg-primary/20 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${handle.cursor} ${handle.className}`}
+            className={`absolute z-10 touch-none rounded-sm bg-primary/20 opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100 ${handle.cursor} ${handle.className}`}
             data-resize-direction={handle.direction}
             key={handle.direction}
-            onPointerDown={(event) => handlePointerDown(event, handle.direction)}
+            onPointerDown={(event) =>
+              handlePointerDown(event, handle.direction)
+            }
             type="button"
           />
         ))}
@@ -156,7 +203,9 @@ export function ImageRenderer({ metadata, objectUrl }: ImageRendererProps) {
         {dimensions ? (
           <>
             <span className="text-muted-foreground/60">·</span>
-            <span className="shrink-0">{dimensions.width} x {dimensions.height}</span>
+            <span className="shrink-0">
+              {dimensions.width} x {dimensions.height}
+            </span>
           </>
         ) : null}
       </div>
@@ -196,7 +245,9 @@ function widthFromDrag(params: {
   if (horizontalDelta && verticalDelta) {
     const horizontalChange = Math.abs(widthFromHorizontal - size.width);
     const verticalChange = Math.abs(widthFromVertical - size.width);
-    return horizontalChange >= verticalChange ? widthFromHorizontal : widthFromVertical;
+    return horizontalChange >= verticalChange
+      ? widthFromHorizontal
+      : widthFromVertical;
   }
   return horizontalDelta ? widthFromHorizontal : widthFromVertical;
 }
@@ -210,11 +261,20 @@ function clampToPanel(
   const panelHeight = panel.clientHeight || 720;
   const aspectRatio = dimensions.width / dimensions.height;
   const minWidth = aspectRatio >= 1 ? 120 * aspectRatio : 120;
-  const maxWidth = Math.max(minWidth, Math.min(panelWidth, panelHeight * aspectRatio));
-  return sizeFromWidth(Math.min(Math.max(width, minWidth), maxWidth), dimensions);
+  const maxWidth = Math.max(
+    minWidth,
+    Math.min(panelWidth, panelHeight * aspectRatio)
+  );
+  return sizeFromWidth(
+    Math.min(Math.max(width, minWidth), maxWidth),
+    dimensions
+  );
 }
 
-function sizeFromWidth(width: number, dimensions: ImageDimensions): ImageDimensions {
+function sizeFromWidth(
+  width: number,
+  dimensions: ImageDimensions
+): ImageDimensions {
   return {
     height: Math.round(width / (dimensions.width / dimensions.height)),
     width: Math.round(width),

@@ -36,7 +36,7 @@ function setup() {
     doc,
     { baseUrl: "https://api.example.com", post } as unknown as ApiClient,
     "workspace",
-    "storage",
+    "storage"
   );
   connections.push(connection);
   return { connection, post, doc };
@@ -54,8 +54,12 @@ beforeEach(() => {
   vi.stubGlobal("WebSocket", Socket);
 });
 afterEach(() => {
-  for (const connection of connections.splice(0)) connection.destroy();
-  for (const doc of docs.splice(0)) doc.destroy();
+  for (const connection of connections.splice(0)) {
+    connection.destroy();
+  }
+  for (const doc of docs.splice(0)) {
+    doc.destroy();
+  }
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
@@ -107,10 +111,13 @@ describe("awareness connection leases", () => {
     const { connection } = setup();
     const release = connection.acquire();
     const socket = await ready();
-    const peerDoc = new Doc(); docs.push(peerDoc);
+    const peerDoc = new Doc();
+    docs.push(peerDoc);
     const peer = new Awareness(peerDoc);
     peer.setLocalState({ user: { ...user, id: "grace" } });
-    const snapshot = new Uint8Array(encodeAwarenessUpdate(peer, [peerDoc.clientID])).buffer;
+    const snapshot = new Uint8Array(
+      encodeAwarenessUpdate(peer, [peerDoc.clientID])
+    ).buffer;
     socket.onmessage?.({ data: snapshot });
     socket.close();
     expect(connection.awareness.getStates().has(peerDoc.clientID)).toBe(false);
@@ -118,15 +125,23 @@ describe("awareness connection leases", () => {
     const reconnected = await ready();
     reconnected.onmessage?.({ data: snapshot });
     expect(connection.awareness.getStates().has(peerDoc.clientID)).toBe(true);
-    release(); peer.destroy();
+    release();
+    peer.destroy();
   });
   it("aborts a stalled ticket request and retries", async () => {
     const { connection, post } = setup();
     let signal: AbortSignal | undefined;
-    post.mockImplementationOnce((_path, options) => new Promise((_resolve, reject) => {
-      signal = options.signal;
-      signal!.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
-    }));
+    post.mockImplementationOnce(
+      (_path, options) =>
+        new Promise((_resolve, reject) => {
+          signal = options.signal;
+          signal!.addEventListener(
+            "abort",
+            () => reject(new Error("aborted")),
+            { once: true }
+          );
+        })
+    );
     const release = connection.acquire();
     await vi.advanceTimersByTimeAsync(5000);
     expect(signal?.aborted).toBe(true);
@@ -163,7 +178,7 @@ describe("awareness connection leases", () => {
     release();
     connection.awareness.setLocalStateField("user", user);
     expect(connection.awareness.getLocalState()).toBeNull();
-    await vi.advanceTimersByTimeAsync(60000);
+    await vi.advanceTimersByTimeAsync(60_000);
     expect(post).toHaveBeenCalledTimes(1);
   });
   it("ignores a ticket arriving after view closes", async () => {

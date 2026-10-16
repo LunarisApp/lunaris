@@ -12,7 +12,9 @@ const {
   clearEncryptionKeyCache: vi.fn(),
   clearEntitlementSnapshots: vi.fn(),
   deleteFileStorageDatabases: vi.fn().mockResolvedValue(undefined),
-  getFileStorageWorkspaceIds: vi.fn().mockResolvedValue(["workspace_1", "workspace_2"]),
+  getFileStorageWorkspaceIds: vi
+    .fn()
+    .mockResolvedValue(["workspace_1", "workspace_2"]),
   posthogCapture: vi.fn(),
   posthogReset: vi.fn(),
 }));
@@ -29,7 +31,6 @@ vi.mock("@repo/data/features/attachments", () => ({
 vi.mock("../entitlements", () => ({
   clearEntitlementSnapshots,
 }));
-
 
 vi.mock("posthog-js", () => ({
   default: { capture: posthogCapture, reset: posthogReset },

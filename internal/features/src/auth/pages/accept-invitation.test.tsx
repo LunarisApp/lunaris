@@ -61,7 +61,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, values?: Record<string, string>) =>
       (
-        {
+        ({
           "auth.acceptInvitation": "Accept invitation",
           "auth.acceptInvitationCta": "Accept invitation",
           "auth.acceptInvitationDescription": `Join ${values?.organization ?? ""} on Lunaris as ${values?.role ?? ""} with ${values?.email ?? ""}.`,
@@ -81,22 +81,24 @@ vi.mock("react-i18next", () => ({
             "Organization member limit reached",
           "errors.reason.auth.organizationMemberLimit.desc":
             "Upgrade this organization to add more members.",
-        } as const
-      )[key as
-        | "auth.acceptInvitation"
-        | "auth.acceptInvitationCta"
-        | "auth.acceptInvitationDescription"
-        | "auth.acceptInvitationSuccess"
-        | "auth.invitationEmailMismatch"
-        | "auth.invitationNeedsVerification"
-        | "auth.invitationNotFound"
-        | "auth.invitationNotFoundDescription"
-        | "auth.switchAccount"
-        | "auth.verifyEmail"
-        | "common.error"
-        | "common.loading"
-        | "errors.reason.auth.organizationMemberLimit.title"
-        | "errors.reason.auth.organizationMemberLimit.desc"] ?? key,
+        }) as const
+      )[
+        key as
+          | "auth.acceptInvitation"
+          | "auth.acceptInvitationCta"
+          | "auth.acceptInvitationDescription"
+          | "auth.acceptInvitationSuccess"
+          | "auth.invitationEmailMismatch"
+          | "auth.invitationNeedsVerification"
+          | "auth.invitationNotFound"
+          | "auth.invitationNotFoundDescription"
+          | "auth.switchAccount"
+          | "auth.verifyEmail"
+          | "common.error"
+          | "common.loading"
+          | "errors.reason.auth.organizationMemberLimit.title"
+          | "errors.reason.auth.organizationMemberLimit.desc"
+      ] ?? key,
   }),
 }));
 
@@ -151,10 +153,16 @@ function renderPage({
         }
       >
         <Routes>
-          <Route element={<AcceptInvitationPage />} path="/auth/accept-invitation" />
+          <Route
+            element={<AcceptInvitationPage />}
+            path="/auth/accept-invitation"
+          />
           <Route element={<div>Auth Page</div>} path="/auth" />
           <Route element={<div>Verify Page</div>} path="/auth/verify-email" />
-          <Route element={<div>Invited Organization</div>} path="/alpha-space" />
+          <Route
+            element={<div>Invited Organization</div>}
+            path="/alpha-space"
+          />
         </Routes>
         <LocationDisplay />
       </AuthProvider>
@@ -171,8 +179,8 @@ describe("AcceptInvitationPage", () => {
     expect(screen.getByText("Auth Page")).toBeTruthy();
     expect(
       screen.getByText(
-        "/auth?region=us&redirectTo=%2Fauth%2Faccept-invitation%3Fregion%3Dus%26invitationId%3Dinvite_1",
-      ),
+        "/auth?region=us&redirectTo=%2Fauth%2Faccept-invitation%3Fregion%3Dus%26invitationId%3Dinvite_1"
+      )
     ).toBeTruthy();
   });
 
@@ -199,7 +207,9 @@ describe("AcceptInvitationPage", () => {
           "Sign in with the invited email address to accept this organization invitation."
         )
       ).toBeTruthy();
-      expect(screen.getByRole("button", { name: "Switch account" })).toBeTruthy();
+      expect(
+        screen.getByRole("button", { name: "Switch account" })
+      ).toBeTruthy();
     });
   });
 
@@ -222,15 +232,15 @@ describe("AcceptInvitationPage", () => {
     });
 
     await user.click(
-      await screen.findByRole("button", { name: "Switch account" }),
+      await screen.findByRole("button", { name: "Switch account" })
     );
 
     expect(await screen.findByText("Auth Page")).toBeTruthy();
     expect(signOut).not.toHaveBeenCalled();
     expect(
       screen.getByText(
-        "/auth?region=us&redirectTo=%2Fauth%2Faccept-invitation%3Fregion%3Dus%26invitationId%3Dinvite_1&addAccount=true",
-      ),
+        "/auth?region=us&redirectTo=%2Fauth%2Faccept-invitation%3Fregion%3Dus%26invitationId%3Dinvite_1&addAccount=true"
+      )
     ).toBeTruthy();
   });
 
@@ -254,8 +264,8 @@ describe("AcceptInvitationPage", () => {
 
     expect(
       await screen.findByText(
-        "Verify your email before accepting this organization invitation.",
-      ),
+        "Verify your email before accepting this organization invitation."
+      )
     ).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Switch account" })).toBeNull();
 
@@ -328,7 +338,9 @@ describe("AcceptInvitationPage", () => {
       );
       expect(screen.queryByText("Invited Organization")).toBeNull();
       expect(
-        screen.getByText("/auth/accept-invitation?region=us&invitationId=invite_1")
+        screen.getByText(
+          "/auth/accept-invitation?region=us&invitationId=invite_1"
+        )
       ).toBeTruthy();
     });
   });

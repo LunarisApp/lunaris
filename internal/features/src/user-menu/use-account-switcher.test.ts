@@ -48,7 +48,7 @@ describe("activateAccountSession", () => {
         } as never,
         powerSyncSession: powerSyncSession as never,
         sessionToken: "invalid",
-      }),
+      })
     ).resolves.toEqual({ data: null, error });
 
     expect(powerSyncSession.disconnect).toHaveBeenCalledOnce();

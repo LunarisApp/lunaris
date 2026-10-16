@@ -15,24 +15,22 @@ const {
   refreshEntitlements,
   region,
   toastError,
-} = vi.hoisted(
-  () => ({
-    api: { get: vi.fn(), post: vi.fn() },
-    auth: {
-      useSession: vi.fn(),
-    },
-    entitlementStatus: {
-      billingManagement: "polar" as "polar" | "unavailable",
-      displayPlan: "business",
-      freshness: "live" as "live" | "cached" | "expired" | "unverified",
-      isOnline: true,
-      verifiedAt: "2026-07-16T10:00:00.000Z" as string | null,
-    },
-    refreshEntitlements: vi.fn(),
-    region: { id: "eu" },
-    toastError: vi.fn(),
-  }),
-);
+} = vi.hoisted(() => ({
+  api: { get: vi.fn(), post: vi.fn() },
+  auth: {
+    useSession: vi.fn(),
+  },
+  entitlementStatus: {
+    billingManagement: "polar" as "polar" | "unavailable",
+    displayPlan: "business",
+    freshness: "live" as "live" | "cached" | "expired" | "unverified",
+    isOnline: true,
+    verifiedAt: "2026-07-16T10:00:00.000Z" as string | null,
+  },
+  refreshEntitlements: vi.fn(),
+  region: { id: "eu" },
+  toastError: vi.fn(),
+}));
 
 vi.mock("../../api", () => ({ useApi: () => api }));
 vi.mock("../../auth", () => ({ useAuth: () => auth }));
@@ -47,7 +45,7 @@ vi.mock("react-i18next", () => ({
     i18n: { language: "en" },
     t: (
       key: string,
-      options?: { count?: number; date?: string; name?: string },
+      options?: { count?: number; date?: string; name?: string }
     ) => {
       const labels: Record<string, string> = {
         "organization.billing.active": "Active",
@@ -84,7 +82,7 @@ function renderBilling({ isOwner = true }: { isOwner?: boolean } = {}) {
   const view = render(
     <QueryClientProvider client={queryClient}>
       <BillingSection isOwner={isOwner} organizationId="organization-1" />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
   return { ...view, queryClient };
 }
@@ -103,8 +101,8 @@ describe("BillingSection", () => {
           ? { url: "https://checkout.example/session" }
           : path === "/v1/entitlements/portal"
             ? { url: "https://billing.example/portal" }
-            : { success: true },
-      ),
+            : { success: true }
+      )
     );
     entitlementStatus.billingManagement = "polar";
     entitlementStatus.displayPlan = "business";
@@ -121,13 +119,13 @@ describe("BillingSection", () => {
     renderBilling();
 
     expect(
-      screen.getByRole("heading", { level: 2, name: "Current Plan" }),
+      screen.getByRole("heading", { level: 2, name: "Current Plan" })
     ).toBeTruthy();
     expect(
-      screen.getByRole("heading", { level: 2, name: "Choose a plan" }),
+      screen.getByRole("heading", { level: 2, name: "Choose a plan" })
     ).toBeTruthy();
     expect(
-      screen.getByRole("heading", { level: 3, name: "Plus" }),
+      screen.getByRole("heading", { level: 3, name: "Plus" })
     ).toBeTruthy();
   });
 
@@ -141,9 +139,9 @@ describe("BillingSection", () => {
     expect(screen.getByText("Business")).toBeTruthy();
     expect(screen.getByText("Cached")).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: "Manage Billing" }).hasAttribute(
-        "disabled",
-      ),
+      screen
+        .getByRole("button", { name: "Manage Billing" })
+        .hasAttribute("disabled")
     ).toBe(true);
     expect(screen.queryByText("Choose a plan")).toBeNull();
     expect(api.get).not.toHaveBeenCalled();
@@ -162,7 +160,9 @@ describe("BillingSection", () => {
   it("refreshes usage without fetching billing when Polar is unavailable", async () => {
     entitlementStatus.billingManagement = "unavailable";
     renderBilling();
-    await userEvent.click(screen.getByRole("button", { name: "common.refresh" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "common.refresh" })
+    );
     expect(refreshEntitlements).toHaveBeenCalledOnce();
     expect(api.get).not.toHaveBeenCalled();
   });
@@ -188,46 +188,50 @@ describe("BillingSection", () => {
           "state",
           "eu",
           "user-1",
-        ])?.status,
-      ).toBe("success"),
+        ])?.status
+      ).toBe("success")
     );
   });
 
   it("shows total subscription charge with taken seat count", async () => {
     api.get.mockResolvedValue({
-      activeSubscriptions: [{
-        amount: 4800,
-        cancelAtPeriodEnd: false,
-        currency: "USD",
-        currentPeriodEnd: "2026-08-16T10:00:00.000Z",
-        id: "subscription-1",
-        productId: "business-monthly",
-        recurringInterval: "month",
-        seats: 3,
-        status: "active",
-      }],
+      activeSubscriptions: [
+        {
+          amount: 4800,
+          cancelAtPeriodEnd: false,
+          currency: "USD",
+          currentPeriodEnd: "2026-08-16T10:00:00.000Z",
+          id: "subscription-1",
+          productId: "business-monthly",
+          recurringInterval: "month",
+          seats: 3,
+          status: "active",
+        },
+      ],
     });
 
     renderBilling();
 
     expect(
-      await screen.findByText(/\$48\.00 \/ month · 3 seats taken/),
+      await screen.findByText(/\$48\.00 \/ month · 3 seats taken/)
     ).toBeTruthy();
   });
 
   it("does not invent a seat count when Polar omits it", async () => {
     api.get.mockResolvedValue({
-      activeSubscriptions: [{
-        amount: 1600,
-        cancelAtPeriodEnd: false,
-        currency: "USD",
-        currentPeriodEnd: "2026-08-16T10:00:00.000Z",
-        id: "subscription-1",
-        productId: "business-monthly",
-        recurringInterval: "month",
-        seats: null,
-        status: "active",
-      }],
+      activeSubscriptions: [
+        {
+          amount: 1600,
+          cancelAtPeriodEnd: false,
+          currency: "USD",
+          currentPeriodEnd: "2026-08-16T10:00:00.000Z",
+          id: "subscription-1",
+          productId: "business-monthly",
+          recurringInterval: "month",
+          seats: null,
+          status: "active",
+        },
+      ],
     });
 
     renderBilling();
@@ -251,7 +255,9 @@ describe("BillingSection", () => {
 
     expect(screen.getAllByText("Business").length).toBeGreaterThan(0);
     await waitFor(() =>
-      expect(screen.getByText("Failed to load billing information")).toBeTruthy(),
+      expect(
+        screen.getByText("Failed to load billing information")
+      ).toBeTruthy()
     );
   });
 
@@ -264,13 +270,13 @@ describe("BillingSection", () => {
 
     renderBilling();
     await user.click(
-      await screen.findByRole("button", { name: "Choose Plus" }),
+      await screen.findByRole("button", { name: "Choose Plus" })
     );
 
     await waitFor(() =>
       expect(api.post).toHaveBeenCalledWith("/v1/entitlements/checkout", {
         body: { interval: "year", plan: "plus" },
-      }),
+      })
     );
     expect(assign).toHaveBeenCalledWith("https://checkout.example/session");
     expect(api.get).not.toHaveBeenCalled();
@@ -302,7 +308,7 @@ describe("BillingSection", () => {
     await waitFor(() =>
       expect(api.post).toHaveBeenCalledWith("/v1/entitlements/checkout", {
         body: { interval: "month", plan: "plus" },
-      }),
+      })
     );
   });
 
@@ -330,14 +336,12 @@ describe("BillingSection", () => {
     await waitFor(() => expect(api.get).toHaveBeenCalledOnce());
     api.get.mockClear();
 
-    await user.click(
-      screen.getByRole("button", { name: "Choose Business" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Choose Business" }));
 
     await waitFor(() =>
       expect(api.post).toHaveBeenCalledWith("/v1/entitlements/change-plan", {
         body: { interval: "year", plan: "business" },
-      }),
+      })
     );
     expect(refreshEntitlements).toHaveBeenCalledOnce();
     await waitFor(() => expect(api.get).toHaveBeenCalledOnce());
@@ -360,13 +364,13 @@ describe("BillingSection", () => {
 
     renderBilling();
     await user.click(
-      await screen.findByRole("button", { name: "Manage Billing" }),
+      await screen.findByRole("button", { name: "Manage Billing" })
     );
 
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        "Failed to load billing information",
-      ),
+        "Failed to load billing information"
+      )
     );
   });
 

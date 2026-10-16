@@ -5,10 +5,12 @@ function invalidProductionEnvironment(message: string): never {
 }
 
 export function validateDesktopProductionEnv(
-  env: Record<string, string | undefined>,
+  env: Record<string, string | undefined>
 ) {
   const value = env.VITE_REGION_DIRECTORY_URL;
-  if (!value) return;
+  if (!value) {
+    return;
+  }
 
   let url: URL;
   try {
@@ -25,11 +27,10 @@ export function validateDesktopProductionEnv(
     url.pathname !== DIRECTORY_PATH ||
     url.search !== "" ||
     url.hash !== "" ||
-    (url.hostname !== "lunaris.app" &&
-      !url.hostname.endsWith(".lunaris.app"))
+    (url.hostname !== "lunaris.app" && !url.hostname.endsWith(".lunaris.app"))
   ) {
     invalidProductionEnvironment(
-      "region directory must use HTTPS on a Lunaris domain",
+      "region directory must use HTTPS on a Lunaris domain"
     );
   }
 }

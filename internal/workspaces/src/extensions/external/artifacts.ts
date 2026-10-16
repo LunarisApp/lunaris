@@ -6,10 +6,10 @@ const PLUGIN_ASSET_TIMEOUT_MS = 30_000;
 export async function sha256(value: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest(
     "SHA-256",
-    Uint8Array.from(value).buffer,
+    Uint8Array.from(value).buffer
   );
   return Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(16).padStart(2, "0"),
+    byte.toString(16).padStart(2, "0")
   ).join("");
 }
 
@@ -17,7 +17,7 @@ export async function verifiedAsset(
   asset: PluginAsset,
   maximumBytes: number,
   plugins: PlatformPlugins,
-  { allowNetwork = true }: { allowNetwork?: boolean } = {},
+  { allowNetwork = true }: { allowNetwork?: boolean } = {}
 ): Promise<Uint8Array> {
   if (asset.bytes > maximumBytes) {
     throw new Error(`Extension asset exceeds ${maximumBytes} bytes`);
@@ -32,12 +32,14 @@ export async function verifiedAsset(
     return cached;
   }
   const corruptCache = Boolean(cached);
-  if (corruptCache) await plugins.artifacts.delete(asset.url);
+  if (corruptCache) {
+    await plugins.artifacts.delete(asset.url);
+  }
   if (!allowNetwork) {
     throw new Error(
       corruptCache
         ? "Extension artifact cache is corrupt"
-        : "Extension artifact is not cached",
+        : "Extension artifact is not cached"
     );
   }
 
@@ -49,16 +51,19 @@ export async function verifiedAsset(
     });
   } catch (cause) {
     if (corruptCache) {
-      throw new Error("Extension artifact cache is corrupt and refetch failed", {
-        cause,
-      });
+      throw new Error(
+        "Extension artifact cache is corrupt and refetch failed",
+        {
+          cause,
+        }
+      );
     }
     throw cause;
   }
   if (!response.ok) {
     if (corruptCache) {
       throw new Error(
-        `Extension artifact cache is corrupt and refetch failed (${response.status})`,
+        `Extension artifact cache is corrupt and refetch failed (${response.status})`
       );
     }
     throw new Error(`Extension asset request failed (${response.status})`);

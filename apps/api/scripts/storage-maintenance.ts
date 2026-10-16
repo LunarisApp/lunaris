@@ -42,17 +42,20 @@ const db = new DatabaseService(
           : false,
     },
     casing: "snake_case",
-  }),
+  })
 );
 const storage = new StorageService(
-  new StorageConfig(new ConfigService(environment)),
+  new StorageConfig(new ConfigService(environment))
 );
 const [command, organizationId, rawBytes] = process.argv.slice(2);
 try {
   if (command === "inventory") {
     const inventory = new StorageReconciliationService(db, storage, undefined!);
-    if (organizationId) await inventory.inventoryOrganization(organizationId);
-    else await inventory.inventory();
+    if (organizationId) {
+      await inventory.inventoryOrganization(organizationId);
+    } else {
+      await inventory.inventory();
+    }
   } else if (command === "begin-cutover") {
     await db.db
       .insert(organizationStorageDb)
@@ -73,7 +76,7 @@ try {
         Date.now() - rollout.inventoryCompletedAt.getTime() < 600_000
       ) {
         throw new Error(
-          "Run begin-cutover after removing old upload endpoints, then wait ten minutes for legacy URLs to drain",
+          "Run begin-cutover after removing old upload endpoints, then wait ten minutes for legacy URLs to drain"
         );
       }
       const organizations = await tx
@@ -91,7 +94,7 @@ try {
             new Date(rollout.inventoryCompletedAt.getTime() + 600_000)
         ) {
           throw new Error(
-            `Inventory must complete after legacy drain: ${org.id}`,
+            `Inventory must complete after legacy drain: ${org.id}`
           );
         }
       }
@@ -119,14 +122,15 @@ try {
             eq(subscription.planSlug, "enterprise"),
             or(
               eq(subscription.status, "active"),
-              eq(subscription.status, "trialing"),
-            ),
-          ),
+              eq(subscription.status, "trialing")
+            )
+          )
         );
-      if (!active)
+      if (!active) {
         throw new Error(
-          "Storage overrides require an active Enterprise contract",
+          "Storage overrides require an active Enterprise contract"
         );
+      }
       await tx
         .insert(organizationStorageDb)
         .values({ organizationId: id, enterpriseOverrideBytes: bytes })
@@ -135,10 +139,11 @@ try {
           set: { enterpriseOverrideBytes: bytes },
         });
     });
-  } else
+  } else {
     throw new Error(
-      "Expected inventory [organizationId], begin-cutover, enable, or enterprise-override <organizationId> <bytes|default>",
+      "Expected inventory [organizationId], begin-cutover, enable, or enterprise-override <organizationId> <bytes|default>"
     );
+  }
   process.stdout.write(`Storage maintenance completed: ${command}\n`);
 } finally {
   await db.pool.end();

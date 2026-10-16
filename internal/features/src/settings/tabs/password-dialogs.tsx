@@ -20,7 +20,9 @@ import { toast } from "sonner";
 import { useAuth } from "../../auth";
 
 function ErrorMessage({ error }: { error: string | null }) {
-  if (!error) return null;
+  if (!error) {
+    return null;
+  }
   return (
     <p className="text-destructive text-sm" role="alert">
       {error}
@@ -129,14 +131,20 @@ export function ChangePasswordDialog({
   };
 
   const requestOpenChange = (nextOpen: boolean) => {
-    if (saving) return;
-    if (!nextOpen) reset();
+    if (saving) {
+      return;
+    }
+    if (!nextOpen) {
+      reset();
+    }
     onOpenChange(nextOpen);
   };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit) {
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -260,14 +268,20 @@ export function SetPasswordDialog({
   };
 
   const requestOpenChange = (nextOpen: boolean) => {
-    if (saving) return;
-    if (!nextOpen) reset();
+    if (saving) {
+      return;
+    }
+    if (!nextOpen) {
+      reset();
+    }
     onOpenChange(nextOpen);
   };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit) {
+      return;
+    }
     setSaving(true);
     setError(null);
     try {

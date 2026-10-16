@@ -1,7 +1,13 @@
 /** @vitest-environment happy-dom */
 
 import type { IconSvgObject } from "@lunarisapp/ui/icons";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PermissionProvider } from "@repo/features/permissions";
@@ -23,27 +29,31 @@ const registry = {
 const marketplace = {
   displayName: "Lunaris",
   enabled: true,
-  extensions: [{
-    description: "Draw diagrams",
-    developer: "Lunaris",
-    homepageUrl: "https://excalidraw.example",
-    id: "lunaris.excalidraw",
-    keywords: ["diagram", "whiteboard"],
-    latestVersion: "0.0.1",
-    name: "Excalidraw",
-    repository: "https://github.com/lunaris/excalidraw",
-    versions: [{
-      api: "^0.9.0",
-      descriptor: {
-        bytes: 123,
-        sha256: "a".repeat(64),
-        url: "https://extensions.example/excalidraw.json",
-      },
-      runtime: { kind: "iframe" as const, protocol: 6 as const },
-      status: "active" as const,
-      version: "0.0.1",
-    }],
-  }],
+  extensions: [
+    {
+      description: "Draw diagrams",
+      developer: "Lunaris",
+      homepageUrl: "https://excalidraw.example",
+      id: "lunaris.excalidraw",
+      keywords: ["diagram", "whiteboard"],
+      latestVersion: "0.0.1",
+      name: "Excalidraw",
+      repository: "https://github.com/lunaris/excalidraw",
+      versions: [
+        {
+          api: "^0.9.0",
+          descriptor: {
+            bytes: 123,
+            sha256: "a".repeat(64),
+            url: "https://extensions.example/excalidraw.json",
+          },
+          runtime: { kind: "iframe" as const, protocol: 6 as const },
+          status: "active" as const,
+          version: "0.0.1",
+        },
+      ],
+    },
+  ],
   generatedAt: "2026-01-01T00:00:00.000Z",
   name: "lunaris",
   schemaVersion: 1 as const,
@@ -198,13 +208,18 @@ describe("ExtensionsPanel", () => {
     restoreMock.mockResolvedValue(undefined);
     setEnabledMock.mockResolvedValue(undefined);
     uninstallMock.mockResolvedValue(undefined);
-    liveCatalogMock.mockResolvedValue({ catalog: marketplace, source: "network" });
+    liveCatalogMock.mockResolvedValue({
+      catalog: marketplace,
+      source: "network",
+    });
     workspaceRowsMock.mockReturnValue({
       data: [{ enabled: 1, extension_id: "lunaris.rich-text" }],
     });
-    marketplaceQueriesMock.mockReturnValue([{
-      data: { catalog: marketplace, source: "network" },
-    }]);
+    marketplaceQueriesMock.mockReturnValue([
+      {
+        data: { catalog: marketplace, source: "network" },
+      },
+    ]);
   });
 
   it("does not query a fallback marketplace while directory sync is pending", () => {
@@ -219,7 +234,9 @@ describe("ExtensionsPanel", () => {
     registriesQueryMock.mockReturnValue({ data: [], isLoading: false });
     marketplaceQueriesMock.mockReturnValue([]);
     renderPanel();
-    expect(marketplaceQueriesMock).toHaveBeenLastCalledWith({ queries: [expect.any(Object)] });
+    expect(marketplaceQueriesMock).toHaveBeenLastCalledWith({
+      queries: [expect.any(Object)],
+    });
   });
 
   it("mixes bundled and marketplace extensions without registry UI", () => {
@@ -228,7 +245,7 @@ describe("ExtensionsPanel", () => {
     expect(screen.getByText("Rich Text")).toBeTruthy();
     expect(screen.getByText("Excalidraw")).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: "organization.extensions.install" }),
+      screen.getByRole("button", { name: "organization.extensions.install" })
     ).toBeTruthy();
     expect(document.body.textContent).not.toContain("lunaris/extensions");
     expect(document.body.textContent).not.toContain("marketplace.json");
@@ -239,8 +256,12 @@ describe("ExtensionsPanel", () => {
   it("uses generated WebPs for bundled extension icons", () => {
     renderPanel();
 
-    const builtinCard = screen.getByText("Rich Text").closest('[data-slot="card"]');
-    const externalCard = screen.getByText("Excalidraw").closest('[data-slot="card"]');
+    const builtinCard = screen
+      .getByText("Rich Text")
+      .closest('[data-slot="card"]');
+    const externalCard = screen
+      .getByText("Excalidraw")
+      .closest('[data-slot="card"]');
     const builtinIcon = builtinCard?.querySelector<HTMLImageElement>("img");
     const externalIcon = externalCard?.querySelector<HTMLImageElement>("img");
 
@@ -252,9 +273,11 @@ describe("ExtensionsPanel", () => {
   it("zooms and de-zooms bundled extension screenshots on click", async () => {
     renderPanel();
 
-    fireEvent.click(screen.getAllByRole("button", {
-      name: "organization.extensions.viewDetailsFor",
-    })[0]!);
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: "organization.extensions.viewDetailsFor",
+      })[0]!
+    );
 
     const name = "Rich text document with formatting menu open in Lunaris";
     const zoomTrigger = await screen.findByRole("button", { name });
@@ -269,19 +292,25 @@ describe("ExtensionsPanel", () => {
     expect(zoomDialog.className).toContain("data-closed:zoom-out-85");
     expect(zoomDialog.className).toContain("data-closed:duration-300");
     expect(zoomDialog.className).toContain("motion-reduce:animate-none");
-    expect(within(zoomDialog).queryByRole("button", { name: "Close" })).toBeNull();
+    expect(
+      within(zoomDialog).queryByRole("button", { name: "Close" })
+    ).toBeNull();
     const zoomOutTrigger = within(zoomDialog).getByRole("button", { name });
     expect(within(zoomOutTrigger).getByRole("img", { name })).toBeTruthy();
 
     fireEvent.click(zoomOutTrigger);
 
-    await waitFor(() => expect(screen.queryByRole("dialog", { name })).toBeNull());
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name })).toBeNull()
+    );
   });
 
   it("persists bundled toggles for workspace writers", async () => {
     renderPanel();
 
-    fireEvent.click(screen.getByRole("button", { name: "extensions.enableExtension" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "extensions.enableExtension" })
+    );
 
     await waitFor(() =>
       expect(setEnabledMock).toHaveBeenCalledWith(
@@ -289,8 +318,8 @@ describe("ExtensionsPanel", () => {
         true,
         expect.objectContaining({
           defaultExtensionIds: ["lunaris.rich-text"],
-        }),
-      ),
+        })
+      )
     );
   });
 
@@ -299,14 +328,14 @@ describe("ExtensionsPanel", () => {
     renderPanel();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "extensions.disableExtension" }),
+      screen.getByRole("button", { name: "extensions.disableExtension" })
     );
 
     await waitFor(() => expect(toastWarningMock).toHaveBeenCalledOnce());
     expect(setEnabledMock).toHaveBeenCalledWith(
       "lunaris.rich-text",
       false,
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(setEnabledMock).toHaveBeenCalledOnce();
   });
@@ -317,50 +346,70 @@ describe("ExtensionsPanel", () => {
     expect(screen.getAllByText("extensions.builtIn")).toHaveLength(2);
     expect(screen.queryByText("extensions.enabled")).toBeNull();
     expect(screen.queryByText("extensions.available")).toBeNull();
-    expect(screen.getByRole("button", {
-      name: "extensions.enableExtension",
-    })).toBeTruthy();
-    expect(screen.getByRole("button", {
-      name: "extensions.disableExtension",
-    })).toBeTruthy();
+    expect(
+      screen.getByRole("button", {
+        name: "extensions.enableExtension",
+      })
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", {
+        name: "extensions.disableExtension",
+      })
+    ).toBeTruthy();
 
-    fireEvent.click(screen.getAllByRole("button", {
-      name: "organization.extensions.viewDetailsFor",
-    })[0]!);
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: "organization.extensions.viewDetailsFor",
+      })[0]!
+    );
 
     const dialog = await screen.findByRole("dialog");
     const header = dialog.querySelector('[data-slot="dialog-header"]');
     const footer = dialog.querySelector('[data-slot="dialog-footer"]');
     expect(header).not.toBeNull();
     expect(footer).not.toBeNull();
-    expect(within(header as HTMLElement).queryByText("extensions.builtIn")).toBeNull();
-    expect(within(header as HTMLElement).queryByText("extensions.enabled")).toBeNull();
-    expect(within(footer as HTMLElement).getByText("extensions.builtIn")).toBeTruthy();
-    expect(within(footer as HTMLElement).getByRole("button", {
-      name: "extensions.disableExtension",
-    })).toBeTruthy();
+    expect(
+      within(header as HTMLElement).queryByText("extensions.builtIn")
+    ).toBeNull();
+    expect(
+      within(header as HTMLElement).queryByText("extensions.enabled")
+    ).toBeNull();
+    expect(
+      within(footer as HTMLElement).getByText("extensions.builtIn")
+    ).toBeTruthy();
+    expect(
+      within(footer as HTMLElement).getByRole("button", {
+        name: "extensions.disableExtension",
+      })
+    ).toBeTruthy();
     expect(screen.getAllByText("extensions.builtIn")).toHaveLength(3);
   });
 
   it("uses short and long manifest descriptions without repeating author", async () => {
     renderPanel();
 
-    fireEvent.click(screen.getAllByRole("button", {
-      name: "organization.extensions.viewDetailsFor",
-    })[0]!);
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: "organization.extensions.viewDetailsFor",
+      })[0]!
+    );
 
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Rich text")).toBeTruthy();
-    expect(within(dialog).getByText("Write and format rich text documents.")).toBeTruthy();
+    expect(
+      within(dialog).getByText("Write and format rich text documents.")
+    ).toBeTruthy();
     expect(within(dialog).getAllByText("Lunaris")).toHaveLength(1);
   });
 
   it("shows extension metadata in sidebar without API constraint", async () => {
     renderPanel();
 
-    fireEvent.click(screen.getAllByRole("button", {
-      name: "organization.extensions.viewDetailsFor",
-    })[0]!);
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: "organization.extensions.viewDetailsFor",
+      })[0]!
+    );
 
     const dialog = await screen.findByRole("dialog");
     const sidebar = dialog.querySelector("aside");
@@ -372,20 +421,24 @@ describe("ExtensionsPanel", () => {
     expect(details.getByText("writing")).toBeTruthy();
     const detailLabels = Array.from(
       (sidebar as HTMLElement).querySelectorAll("dt"),
-      (label) => label.textContent,
+      (label) => label.textContent
     );
     expect(detailLabels.at(-1)).toBe("organization.extensions.pluginId");
-    expect(details.getByRole("link", { name: /lunaris\.app/ }).getAttribute("href"))
-      .toBe("https://lunaris.app/extensions/rich-text");
+    expect(
+      details.getByRole("link", { name: /lunaris\.app/ }).getAttribute("href")
+    ).toBe("https://lunaris.app/extensions/rich-text");
     expect(details.queryByText("organization.extensions.api")).toBeNull();
   });
 
   it("finds extensions by keyword", () => {
     renderPanel();
 
-    fireEvent.change(screen.getByRole("searchbox", {
-      name: "organization.extensions.search",
-    }), { target: { value: "whiteboard" } });
+    fireEvent.change(
+      screen.getByRole("searchbox", {
+        name: "organization.extensions.search",
+      }),
+      { target: { value: "whiteboard" } }
+    );
 
     expect(screen.getByText("Excalidraw")).toBeTruthy();
     expect(screen.queryByText("Rich Text")).toBeNull();
@@ -396,35 +449,49 @@ describe("ExtensionsPanel", () => {
       <PermissionProvider check={() => false}>{panel}</PermissionProvider>
     ));
 
-    expect((screen.getByRole("button", {
-      name: "extensions.enableExtension",
-    }) as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByRole("button", {
-      name: "organization.extensions.install",
-    }) as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "extensions.enableExtension",
+        }) as HTMLButtonElement
+      ).disabled
+    ).toBe(true);
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "organization.extensions.install",
+        }) as HTMLButtonElement
+      ).disabled
+    ).toBe(true);
   });
 
   it("does not install from a cached marketplace", () => {
-    marketplaceQueriesMock.mockReturnValue([{
-      data: { catalog: marketplace, source: "cache" },
-    }]);
+    marketplaceQueriesMock.mockReturnValue([
+      {
+        data: { catalog: marketplace, source: "cache" },
+      },
+    ]);
     renderPanel();
 
-    expect((screen.getByRole("button", {
-      name: "organization.extensions.install",
-    }) as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "organization.extensions.install",
+        }) as HTMLButtonElement
+      ).disabled
+    ).toBe(true);
   });
 
   it("confirms trust before installing a pinned marketplace release", async () => {
     renderPanel();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "organization.extensions.install" }),
+      screen.getByRole("button", { name: "organization.extensions.install" })
     );
     fireEvent.click(
       await screen.findByRole("button", {
         name: "organization.extensions.confirmInstall",
-      }),
+      })
     );
 
     await waitFor(() =>
@@ -435,8 +502,8 @@ describe("ExtensionsPanel", () => {
           registryId: "lunaris-official",
           version: "0.0.1",
         },
-        expect.any(Object),
-      ),
+        expect.any(Object)
+      )
     );
   });
 
@@ -444,25 +511,29 @@ describe("ExtensionsPanel", () => {
     liveCatalogMock.mockResolvedValue({
       catalog: {
         ...marketplace,
-        extensions: [{
-          ...marketplace.extensions[0]!,
-          versions: [{
-            ...marketplace.extensions[0]!.versions[0]!,
-            status: "blocked",
-          }],
-        }],
+        extensions: [
+          {
+            ...marketplace.extensions[0]!,
+            versions: [
+              {
+                ...marketplace.extensions[0]!.versions[0]!,
+                status: "blocked",
+              },
+            ],
+          },
+        ],
       },
       source: "network",
     });
     renderPanel();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "organization.extensions.install" }),
+      screen.getByRole("button", { name: "organization.extensions.install" })
     );
     fireEvent.click(
       await screen.findByRole("button", {
         name: "organization.extensions.confirmInstall",
-      }),
+      })
     );
 
     await waitFor(() => expect(logErrorMock).toHaveBeenCalled());
@@ -470,24 +541,26 @@ describe("ExtensionsPanel", () => {
   });
 
   it("keeps a failed new install pinned but disabled", async () => {
-    applyRuntimeChangeMock.mockRejectedValueOnce(new Error("activation failed"));
+    applyRuntimeChangeMock.mockRejectedValueOnce(
+      new Error("activation failed")
+    );
     renderPanel();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "organization.extensions.install" }),
+      screen.getByRole("button", { name: "organization.extensions.install" })
     );
     fireEvent.click(
       await screen.findByRole("button", {
         name: "organization.extensions.confirmInstall",
-      }),
+      })
     );
 
     await waitFor(() =>
       expect(setEnabledMock).toHaveBeenCalledWith(
         "lunaris.excalidraw",
         false,
-        expect.any(Object),
-      ),
+        expect.any(Object)
+      )
     );
     expect(uninstallMock).not.toHaveBeenCalled();
   });
@@ -503,11 +576,13 @@ describe("ExtensionsPanel", () => {
     };
     const upgradeMarketplace = {
       ...marketplace,
-      extensions: [{
-        ...marketplace.extensions[0]!,
-        latestVersion: "0.0.2",
-        versions: [nextRelease, marketplace.extensions[0]!.versions[0]!],
-      }],
+      extensions: [
+        {
+          ...marketplace.extensions[0]!,
+          latestVersion: "0.0.2",
+          versions: [nextRelease, marketplace.extensions[0]!.versions[0]!],
+        },
+      ],
     };
     const previous = {
       descriptorBytes: 123,
@@ -519,19 +594,23 @@ describe("ExtensionsPanel", () => {
       version: "0.0.1",
     };
     workspaceRowsMock.mockReturnValue({
-      data: [{
-        descriptor_bytes: previous.descriptorBytes,
-        descriptor_sha256: previous.descriptorSha256,
-        descriptor_url: previous.descriptorUrl,
-        enabled: 1,
-        extension_id: previous.extensionId,
-        registry_id: previous.registryId,
-        version: previous.version,
-      }],
+      data: [
+        {
+          descriptor_bytes: previous.descriptorBytes,
+          descriptor_sha256: previous.descriptorSha256,
+          descriptor_url: previous.descriptorUrl,
+          enabled: 1,
+          extension_id: previous.extensionId,
+          registry_id: previous.registryId,
+          version: previous.version,
+        },
+      ],
     });
-    marketplaceQueriesMock.mockReturnValue([{
-      data: { catalog: upgradeMarketplace, source: "network" },
-    }]);
+    marketplaceQueriesMock.mockReturnValue([
+      {
+        data: { catalog: upgradeMarketplace, source: "network" },
+      },
+    ]);
     liveCatalogMock.mockResolvedValue({
       catalog: upgradeMarketplace,
       source: "network",
@@ -540,12 +619,12 @@ describe("ExtensionsPanel", () => {
     renderPanel();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "organization.extensions.update" }),
+      screen.getByRole("button", { name: "organization.extensions.update" })
     );
     fireEvent.click(
       await screen.findByRole("button", {
         name: "organization.extensions.confirmInstall",
-      }),
+      })
     );
 
     await waitFor(() => expect(restoreMock).toHaveBeenCalledWith(previous));
@@ -553,15 +632,17 @@ describe("ExtensionsPanel", () => {
 
   it("uninstalls from cards and warns without reinstalling after cleanup fails", async () => {
     workspaceRowsMock.mockReturnValue({
-      data: [{
-        descriptor_bytes: 123,
-        descriptor_sha256: "a".repeat(64),
-        descriptor_url: "https://extensions.example/excalidraw.json",
-        enabled: 1,
-        extension_id: "lunaris.excalidraw",
-        registry_id: "lunaris-official",
-        version: "0.0.1",
-      }],
+      data: [
+        {
+          descriptor_bytes: 123,
+          descriptor_sha256: "a".repeat(64),
+          descriptor_url: "https://extensions.example/excalidraw.json",
+          enabled: 1,
+          extension_id: "lunaris.excalidraw",
+          registry_id: "lunaris-official",
+          version: "0.0.1",
+        },
+      ],
     });
     applyRuntimeChangeMock.mockRejectedValueOnce(new Error("cleanup failed"));
     renderPanel();
@@ -569,7 +650,7 @@ describe("ExtensionsPanel", () => {
     fireEvent.click(
       screen.getByRole("button", {
         name: "organization.extensions.uninstall",
-      }),
+      })
     );
 
     await waitFor(() => expect(toastWarningMock).toHaveBeenCalledOnce());

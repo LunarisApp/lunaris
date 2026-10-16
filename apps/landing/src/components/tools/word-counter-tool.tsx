@@ -170,11 +170,7 @@ function DisclosureIcon() {
 			strokeWidth="1.7"
 			viewBox="0 0 24 24"
 		>
-			<path
-				d="m9 5 7 7-7 7"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-			/>
+			<path d="m9 5 7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
 		</svg>
 	);
 }
@@ -236,9 +232,9 @@ export function WordCounterTool({
 	const [coreMetrics, setCoreMetrics] = useState<CoreMetricsState>({
 		status: "idle",
 	});
-	const [copyStatus, setCopyStatus] = useState<
-		"ready" | "copied" | "failed"
-	>("ready");
+	const [copyStatus, setCopyStatus] = useState<"ready" | "copied" | "failed">(
+		"ready",
+	);
 	const [confirmClear, setConfirmClear] = useState(false);
 	const [limitReached, setLimitReached] = useState(false);
 	const [announcement, setAnnouncement] = useState("");
@@ -645,9 +641,7 @@ export function WordCounterTool({
 			: "—";
 	const coreMetricValue = (value: number, decimal = false) => {
 		if (!metricsReady) return "—";
-		return decimal
-			? decimalFormat.format(value)
-			: numberFormat.format(value);
+		return decimal ? decimalFormat.format(value) : numberFormat.format(value);
 	};
 	const syllableValue = (key: keyof SyllableMetrics, decimal = false) => {
 		if (!metricsReady) return "—";
@@ -655,9 +649,7 @@ export function WordCounterTool({
 		if (syllableMetrics.status !== "ready") return "—";
 
 		const value = syllableMetrics.result[key];
-		return decimal
-			? decimalFormat.format(value)
-			: numberFormat.format(value);
+		return decimal ? decimalFormat.format(value) : numberFormat.format(value);
 	};
 	const editorStatus = limitReached
 		? copy.editor.limitReached
@@ -689,7 +681,9 @@ export function WordCounterTool({
 				}`}
 				ref={organizationRef}
 			>
-				<div className={`flex flex-col ${isFullscreen ? "min-h-0 flex-1" : ""}`}>
+				<div
+					className={`flex flex-col ${isFullscreen ? "min-h-0 flex-1" : ""}`}
+				>
 					<div className="flex min-w-0 flex-1 flex-col">
 						<div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-olive-950/10 px-4 py-2 sm:gap-3 sm:px-6 dark:border-white/10">
 							<label
@@ -773,8 +767,7 @@ export function WordCounterTool({
 								if (copyStatus !== "ready") setCopyStatus("ready");
 							}}
 							onPaste={(event) => {
-								const pastedLength =
-									event.clipboardData.getData("text").length;
+								const pastedLength = event.clipboardData.getData("text").length;
 								const selectionLength =
 									event.currentTarget.selectionEnd -
 									event.currentTarget.selectionStart;
@@ -825,62 +818,62 @@ export function WordCounterTool({
 						</dl>
 					</div>
 				</div>
-					<div className="flex flex-col gap-3 border-t border-olive-950/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 dark:border-white/10">
-						<p className="text-xs/5 text-olive-600 dark:text-olive-400">
-							Powered by our open-source{" "}
-							<a
-								className="font-medium text-olive-800 underline decoration-olive-400/50 underline-offset-4 transition hover:text-olive-950 hover:decoration-olive-600 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-600 dark:text-olive-200 dark:decoration-olive-500/60 dark:hover:text-white"
-								href="https://github.com/LunarisApp/text-tools"
-								rel="noreferrer"
-								target="_blank"
-							>
-								@LunarisApp/text-tools
-							</a>
-						</p>
-						<div className="flex w-full items-center justify-end gap-3 sm:w-auto">
-							<select
-								aria-label={copy.controls.language}
-								className="min-h-10 min-w-0 flex-1 rounded-full border border-olive-950/10 bg-white py-1.5 pr-8 pl-3 text-sm/6 text-olive-950 outline-none transition focus:border-olive-500 focus:ring-2 focus:ring-olive-700 dark:focus:ring-olive-300 sm:flex-none dark:border-white/10 dark:bg-white/5 dark:text-white"
-								onChange={(event) => {
-									const nextLanguage = event.target.value;
-									if (isAnalysisLanguage(nextLanguage)) {
-										updateLanguage(nextLanguage);
-									}
-								}}
-								value={language}
-							>
-								{languageOptions.map((option) => (
-									<option key={option.value} value={option.value}>
-										{option.label}
-									</option>
-								))}
-							</select>
+				<div className="flex flex-col gap-3 border-t border-olive-950/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 dark:border-white/10">
+					<p className="text-xs/5 text-olive-600 dark:text-olive-400">
+						Powered by our open-source{" "}
+						<a
+							className="font-medium text-olive-800 underline decoration-olive-400/50 underline-offset-4 transition hover:text-olive-950 hover:decoration-olive-600 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-600 dark:text-olive-200 dark:decoration-olive-500/60 dark:hover:text-white"
+							href="https://github.com/LunarisApp/text-tools"
+							rel="noreferrer"
+							target="_blank"
+						>
+							@LunarisApp/text-tools
+						</a>
+					</p>
+					<div className="flex w-full items-center justify-end gap-3 sm:w-auto">
+						<select
+							aria-label={copy.controls.language}
+							className="min-h-10 min-w-0 flex-1 rounded-full border border-olive-950/10 bg-white py-1.5 pr-8 pl-3 text-sm/6 text-olive-950 outline-none transition focus:border-olive-500 focus:ring-2 focus:ring-olive-700 dark:focus:ring-olive-300 sm:flex-none dark:border-white/10 dark:bg-white/5 dark:text-white"
+							onChange={(event) => {
+								const nextLanguage = event.target.value;
+								if (isAnalysisLanguage(nextLanguage)) {
+									updateLanguage(nextLanguage);
+								}
+							}}
+							value={language}
+						>
+							{languageOptions.map((option) => (
+								<option key={option.value} value={option.value}>
+									{option.label}
+								</option>
+							))}
+						</select>
 
-							<button
-								aria-label={
-									isFullscreen
-										? copy.actions.exitFullscreen
-										: copy.actions.enterFullscreen
-								}
-								className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-olive-950/10 bg-white px-3 text-sm/6 font-medium text-olive-700 transition hover:border-olive-950/20 hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive-600 dark:border-white/10 dark:bg-white/5 dark:text-olive-300 dark:hover:border-white/20 dark:hover:text-white"
-								onClick={toggleFullscreen}
-								title={
-									isFullscreen
-										? copy.actions.exitFullscreen
-										: copy.actions.enterFullscreen
-								}
-								type="button"
-							>
-								<FullscreenIcon active={isFullscreen} />
-								<span className="hidden xl:inline">
-									{isFullscreen
-										? copy.actions.exitFullscreen
-										: copy.actions.enterFullscreen}
-								</span>
-							</button>
-						</div>
+						<button
+							aria-label={
+								isFullscreen
+									? copy.actions.exitFullscreen
+									: copy.actions.enterFullscreen
+							}
+							className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-olive-950/10 bg-white px-3 text-sm/6 font-medium text-olive-700 transition hover:border-olive-950/20 hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive-600 dark:border-white/10 dark:bg-white/5 dark:text-olive-300 dark:hover:border-white/20 dark:hover:text-white"
+							onClick={toggleFullscreen}
+							title={
+								isFullscreen
+									? copy.actions.exitFullscreen
+									: copy.actions.enterFullscreen
+							}
+							type="button"
+						>
+							<FullscreenIcon active={isFullscreen} />
+							<span className="hidden xl:inline">
+								{isFullscreen
+									? copy.actions.exitFullscreen
+									: copy.actions.enterFullscreen}
+							</span>
+						</button>
 					</div>
 				</div>
+			</div>
 
 			<div className="mt-10 divide-y divide-olive-950/10 border-y border-olive-950/10 dark:divide-white/10 dark:border-white/10">
 				<details className="group">
@@ -932,10 +925,7 @@ export function WordCounterTool({
 							</dd>
 						</div>
 						{[
-							[
-								copy.metrics.sentences,
-								coreMetricValue(metrics.sentences),
-							],
+							[copy.metrics.sentences, coreMetricValue(metrics.sentences)],
 							[
 								copy.metrics.averageSentence,
 								coreMetricValue(metrics.averageWordsPerSentence, true),
@@ -944,10 +934,7 @@ export function WordCounterTool({
 								copy.metrics.averageCharacters,
 								coreMetricValue(metrics.averageCharactersPerWord, true),
 							],
-							[
-								copy.metrics.longWords,
-								coreMetricValue(metrics.longWords),
-							],
+							[copy.metrics.longWords, coreMetricValue(metrics.longWords)],
 							[copy.metrics.syllables, syllableValue("syllables")],
 							[
 								copy.metrics.averageSyllables,
@@ -1006,36 +993,33 @@ export function WordCounterTool({
 										{copy.readability.bands[readability.result.band].label}
 									</p>
 									<p className="mt-1 max-w-xl text-sm/6 text-olive-600 dark:text-olive-400">
-										{
-											copy.readability.bands[readability.result.band]
-												.guidance
-										}
+										{copy.readability.bands[readability.result.band].guidance}
 									</p>
 								</div>
 								<div className="border-t border-olive-950/10 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-8 dark:border-white/10">
 									<dl className="grid grid-cols-2 gap-4">
-									<div>
-										<dt className="text-xs/5 text-olive-600 dark:text-olive-400">
-											{copy.readability.score}
-										</dt>
-										<dd className="mt-1 text-xl/7 font-medium tabular-nums text-olive-950 dark:text-white">
-											{decimalFormat.format(readability.result.score)}
-											<span className="ml-1 text-sm/5 font-normal text-olive-500 dark:text-olive-400">
-												/100
-											</span>
-										</dd>
-									</div>
-									<div>
-										<dt className="text-xs/5 text-olive-600 dark:text-olive-400">
-											{copy.readability.grade}
-										</dt>
-										<dd className="mt-1 text-xl/7 font-medium tabular-nums text-olive-950 dark:text-white">
-											{decimalFormat.format(readability.result.grade)}
-											<span className="ml-1 text-sm/5 font-normal text-olive-500 dark:text-olive-400">
-												/18
-											</span>
-										</dd>
-									</div>
+										<div>
+											<dt className="text-xs/5 text-olive-600 dark:text-olive-400">
+												{copy.readability.score}
+											</dt>
+											<dd className="mt-1 text-xl/7 font-medium tabular-nums text-olive-950 dark:text-white">
+												{decimalFormat.format(readability.result.score)}
+												<span className="ml-1 text-sm/5 font-normal text-olive-500 dark:text-olive-400">
+													/100
+												</span>
+											</dd>
+										</div>
+										<div>
+											<dt className="text-xs/5 text-olive-600 dark:text-olive-400">
+												{copy.readability.grade}
+											</dt>
+											<dd className="mt-1 text-xl/7 font-medium tabular-nums text-olive-950 dark:text-white">
+												{decimalFormat.format(readability.result.grade)}
+												<span className="ml-1 text-sm/5 font-normal text-olive-500 dark:text-olive-400">
+													/18
+												</span>
+											</dd>
+										</div>
 									</dl>
 									<p className="mt-4 text-xs/5 text-olive-600 dark:text-olive-400">
 										{copy.readability.formula}

@@ -31,7 +31,6 @@ describe("settings/navigation", () => {
     cy.openSettingsTab("account");
     cy.get('[data-testid="settings-account-claim-email"]').click();
     cy.location("pathname").should("eq", "/auth/register");
-
   });
 
   it("opens app settings from the hotkey outside a workspace", () => {

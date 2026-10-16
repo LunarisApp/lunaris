@@ -2,10 +2,7 @@ import { describe, expect, it, mock } from "bun:test";
 import { createHash } from "node:crypto";
 import { Readable } from "node:stream";
 import * as unzipper from "unzipper";
-import {
-  ArchiveService,
-  MissingBackupFileError,
-} from "./archive.service";
+import { ArchiveService, MissingBackupFileError } from "./archive.service";
 
 const FILE_BYTES = new TextEncoder().encode("<h1>Mini App</h1>");
 
@@ -33,7 +30,11 @@ function makeDatabase(objectKey?: string) {
       }
 
       const sql = input.cursor?.text ?? "";
-      if (sql.includes("SELECT slot.id, slot.workspace_id, slot.metadata AS value")) {
+      if (
+        sql.includes(
+          "SELECT slot.id, slot.workspace_id, slot.metadata AS value"
+        )
+      ) {
         return Readable.from([
           {
             id: "storage_1",
@@ -55,7 +56,10 @@ function makeDatabase(objectKey?: string) {
   };
 }
 
-function makeStorage(includeFile: boolean, objectKey = "files/org_1/workspace_1/att_1.html") {
+function makeStorage(
+  includeFile: boolean,
+  objectKey = "files/org_1/workspace_1/att_1.html"
+) {
   const uploaded: Uint8Array[] = [];
   const deleteObject = mock(() => Promise.resolve());
   return {
@@ -65,7 +69,9 @@ function makeStorage(includeFile: boolean, objectKey = "files/org_1/workspace_1/
       return new Blob([FILE_BYTES]).stream();
     },
     async *listObjects() {
-      if (!includeFile) return;
+      if (!includeFile) {
+        return;
+      }
       yield {
         key: objectKey,
         lastModified: Date.now(),
@@ -80,7 +86,9 @@ function makeStorage(includeFile: boolean, objectKey = "files/org_1/workspace_1/
       };
     },
     async putObjectStream(_key: string, body: ReadableStream<Uint8Array>) {
-      for await (const chunk of body) uploaded.push(chunk);
+      for await (const chunk of body) {
+        uploaded.push(chunk);
+      }
       return {
         size: uploaded.reduce((size, chunk) => size + chunk.byteLength, 0),
       };
@@ -97,7 +105,7 @@ describe("ArchiveService", () => {
     const storage = makeStorage(true, objectKey);
     const service = new ArchiveService(
       makeDatabase(objectKey) as never,
-      storage as never,
+      storage as never
     );
 
     const result = await service.createArchive({
@@ -106,7 +114,9 @@ describe("ArchiveService", () => {
       onProgress: mock(() => undefined),
     });
 
-    const bytes = Buffer.concat(storage.uploaded.map((chunk) => Buffer.from(chunk)));
+    const bytes = Buffer.concat(
+      storage.uploaded.map((chunk) => Buffer.from(chunk))
+    );
     expect(bytes.subarray(0, 2).toString()).toBe("PK");
     expect(result.archiveSizeBytes).toBe(bytes.byteLength);
     expect(result.filename).toStartWith("acme-backup-");
@@ -133,12 +143,12 @@ describe("ArchiveService", () => {
     ]);
     expect(
       new Uint8Array(
-        await files.get("objects/files/org_1/workspace_1/att_1.html")!.buffer(),
-      ),
+        await files.get("objects/files/org_1/workspace_1/att_1.html")!.buffer()
+      )
     ).toEqual(FILE_BYTES);
 
     const organization = JSON.parse(
-      (await files.get("data/organization.json")!.buffer()).toString(),
+      (await files.get("data/organization.json")!.buffer()).toString()
     );
     expect(organization).toEqual({
       created_at: "2026-07-15T10:00:00.000Z",
@@ -163,7 +173,7 @@ describe("ArchiveService", () => {
     });
 
     const manifest = JSON.parse(
-      (await files.get("manifest.json")!.buffer()).toString(),
+      (await files.get("manifest.json")!.buffer()).toString()
     );
     expect(manifest).toMatchObject({
       backup_id: "backup_1",
@@ -198,14 +208,14 @@ describe("ArchiveService", () => {
 
   it.each(["lunaris.file", "lunaris.mini-app"])(
     "streams exact cloud bytes for %s attachments",
-    expectArchive,
+    expectArchive
   );
 
   it("fails and deletes partial output when referenced file is missing", async () => {
     const storage = makeStorage(false);
     const service = new ArchiveService(
       makeDatabase() as never,
-      storage as never,
+      storage as never
     );
 
     await expect(
@@ -213,10 +223,10 @@ describe("ArchiveService", () => {
         backupId: "backup_1",
         organizationId: "org_1",
         onProgress: mock(() => undefined),
-      }),
+      })
     ).rejects.toBeInstanceOf(MissingBackupFileError);
     expect(storage.deleteObject).toHaveBeenCalledWith(
-      "backups/org_1/backup_1.zip",
+      "backups/org_1/backup_1.zip"
     );
   });
 });

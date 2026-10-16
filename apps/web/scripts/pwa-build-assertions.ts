@@ -14,31 +14,40 @@ function normalizeAssetUrl(url: string): string {
 export function extractUniquePrecacheUrls(serviceWorker: string): Set<string> {
   return new Set(
     [...serviceWorker.matchAll(/\burl:"([^"]+)"/g)].map(([, url]) =>
-      normalizeAssetUrl(url ?? ""),
-    ),
+      normalizeAssetUrl(url ?? "")
+    )
   );
 }
 
 export function isGeneratedServiceWorkerFile(url: string): boolean {
   const normalizedUrl = normalizeAssetUrl(url);
-  return normalizedUrl === "sw.js" || GENERATED_WORKBOX_FILE.test(normalizedUrl);
+  return (
+    normalizedUrl === "sw.js" || GENERATED_WORKBOX_FILE.test(normalizedUrl)
+  );
 }
 
 export function findMissingPrecacheUrls(
   distUrls: Iterable<string>,
-  precacheUrls: Iterable<string>,
+  precacheUrls: Iterable<string>
 ): string[] {
   const cached = new Set(
-    [...precacheUrls].map((url) => normalizeAssetUrl(url)),
+    [...precacheUrls].map((url) => normalizeAssetUrl(url))
   );
   return [...new Set([...distUrls].map((url) => normalizeAssetUrl(url)))]
-    .filter((url) => !isGeneratedServiceWorkerFile(url) && !NETWORK_ONLY_DISCOVERY_URLS.includes(url) && !cached.has(url))
+    .filter(
+      (url) =>
+        !(
+          isGeneratedServiceWorkerFile(url) ||
+          NETWORK_ONLY_DISCOVERY_URLS.includes(url) ||
+          cached.has(url)
+        )
+    )
     .sort();
 }
 
 export function collectDistFileUrls(
   directory: string,
-  relativeDirectory = "",
+  relativeDirectory = ""
 ): string[] {
   const files: string[] = [];
   const currentDirectory = path.join(directory, relativeDirectory);

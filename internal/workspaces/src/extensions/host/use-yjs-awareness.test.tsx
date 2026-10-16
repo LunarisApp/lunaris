@@ -15,7 +15,10 @@ const state = vi.hoisted(() => ({
   post: vi.fn(),
 }));
 vi.mock("@lunarisapp/plugin-sdk", () => ({
-  useResourceViewPresenceScope: () => ({ isVisible: true, storage: { content: { kind: "yjs", storageId: "slot" } } }),
+  useResourceViewPresenceScope: () => ({
+    isVisible: true,
+    storage: { content: { kind: "yjs", storageId: "slot" } },
+  }),
 }));
 vi.mock("@repo/data/core", () => ({
   SYNC_ACCESS: { cloud: "cloud" },
@@ -61,12 +64,12 @@ describe("resource view presence visibility", () => {
   it("does not announce inactive views and shares leases across visible panes", () => {
     const a = renderHook(
       ({ enabled }) => useHostYjsAwareness(storage, "workspace", { enabled }),
-      { initialProps: { enabled: false } },
+      { initialProps: { enabled: false } }
     );
     expect(state.post).not.toHaveBeenCalled();
     a.rerender({ enabled: true });
     const b = renderHook(() =>
-      useHostYjsAwareness(storage, "workspace", { enabled: true }),
+      useHostYjsAwareness(storage, "workspace", { enabled: true })
     );
     expect(state.post).toHaveBeenCalledTimes(1);
     expect(a.result.current.awareness).toBe(b.result.current.awareness);
@@ -76,7 +79,7 @@ describe("resource view presence visibility", () => {
   });
   it("releases hidden tabs and starts a fresh lease when visible", () => {
     const view = renderHook(() =>
-      useHostYjsAwareness(storage, "workspace", { enabled: true }),
+      useHostYjsAwareness(storage, "workspace", { enabled: true })
     );
     act(() => {
       Object.defineProperty(document, "visibilityState", {
@@ -100,7 +103,7 @@ describe("resource view presence visibility", () => {
   it("never connects local workspaces and releases on logout", () => {
     state.visibility = "local";
     const view = renderHook(() =>
-      useHostYjsAwareness(storage, "workspace", { enabled: true }),
+      useHostYjsAwareness(storage, "workspace", { enabled: true })
     );
     expect(state.post).not.toHaveBeenCalled();
     expect(view.result.current.awareness).toBeNull();
