@@ -69,7 +69,7 @@ if (mode === "version") {
   }
   output("sha", git("rev-parse", "HEAD"));
   output("publish", "true");
-} else if (mode === "tags" || mode === "complete") {
+} else if (mode === "tags") {
   const { sha, manifest } = verifyReleaseCommit();
   for (const entry of manifest.releases) {
     const existing = run(
@@ -81,48 +81,36 @@ if (mode === "version") {
       throw new Error(`Tag ${entry.tag} points at another commit`);
     }
     if (!existing.ok) {
-      if (mode === "complete") {
-        throw new Error(`Missing tag ${entry.tag}`);
-      }
       git("tag", entry.tag, sha);
       git("push", "origin", `refs/tags/${entry.tag}`);
     }
-    if (mode === "tags") {
-      const releases = JSON.parse(
-        run("gh", [
-          "api",
-          "--paginate",
-          `repos/${repository}/releases?per_page=100`,
-        ]).text.replace(/\]\s*\[/g, ",")
-      ) as { tag_name: string }[];
-      if (!releases.some((release) => release.tag_name === entry.tag)) {
-        const notes = `${process.env.RUNNER_TEMP ?? "/tmp"}/release-notes.md`;
-        writeFileSync(notes, `${entry.notes}\n\nSource: ${sha}\n`);
-        run("gh", [
-          "release",
-          "create",
-          entry.tag,
-          "--verify-tag",
-          "--draft",
-          "--title",
-          entry.tag,
-          "--notes-file",
-          notes,
-        ]);
-      }
-    } else {
+    const releases = JSON.parse(
+      run("gh", [
+        "api",
+        "--paginate",
+        `repos/${repository}/releases?per_page=100`,
+      ]).text.replace(/\]\s*\[/g, ",")
+    ) as { tag_name: string }[];
+    if (!releases.some((release) => release.tag_name === entry.tag)) {
+      const notes = `${process.env.RUNNER_TEMP ?? "/tmp"}/release-notes.md`;
+      writeFileSync(notes, `${entry.notes}\n\nSource: ${sha}\n`);
       run("gh", [
         "release",
-        "edit",
+        "create",
         entry.tag,
-        "--draft=false",
-        "--latest=false",
+        "--verify-tag",
+        "--draft",
+        "--title",
+        entry.tag,
+        "--notes-file",
+        notes,
       ]);
     }
   }
+
   summary(
-    `${mode === "complete" ? "Released" : "Tagged (publication pending)"}: ${sha}\n\n${manifest.releases.map((entry) => `- ${entry.tag}`).join("\n")}`
+    `Tagged (publication pending): ${sha}\n\n${manifest.releases.map((entry) => `- ${entry.tag}`).join("\n")}`
   );
 } else {
-  throw new Error("Expected version, tags, or complete");
+  throw new Error("Expected version or tags");
 }

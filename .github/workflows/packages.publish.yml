@@ -1,22 +1,41 @@
 name: Packages - Publish
 on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Original validated release commit
+        required: true
+        type: string
   workflow_call:
     inputs:
       ref:
         required: true
         type: string
+# Serialize npm attempts, including manual recovery.
+concurrency:
+  group: npm-publication
+  cancel-in-progress: false
 permissions:
-  contents: read
+  contents: write
   id-token: write
 jobs:
   publish:
     runs-on: ubuntu-latest
     environment: release
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ inputs.ref }}
           fetch-depth: 0
+      # Recovery runs corrected tooling while preserving the release package tree.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          ref: ${{ github.sha }}
+          path: .release-tools
+          sparse-checkout: tooling/release/automation
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.4.0
@@ -26,4 +45,12 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
       - run: bun run public:validate
-      - run: bun tooling/release/automation/publish-npm.ts
+      - name: Publish and verify packages
+        env:
+          RECOVERY: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          if [ "$RECOVERY" = true ]; then
+            bun .release-tools/tooling/release/automation/publish-npm.ts
+          else
+            bun tooling/release/automation/publish-npm.ts
+          fi

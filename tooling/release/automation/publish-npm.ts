@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { verifyPublicationCommit } from "./manifest";
-import { ensureNpmPublication } from "./npm-registry";
+import { ensureNpmPublication, inspectNpmIntegrity } from "./npm-registry";
 import { run, summary } from "./process";
 
 const { sha, manifest } = verifyPublicationCommit();
@@ -21,19 +21,7 @@ for (const entry of manifest.releases.filter(
   await ensureNpmPublication(
     entry.tag,
     integrity,
-    async () => {
-      const response = await fetch(url, {
-        signal: AbortSignal.timeout(30_000),
-      });
-      if (response.status === 404) {
-        return null;
-      }
-      if (!response.ok) {
-        throw new Error(`Cannot inspect npm ${entry.tag}: ${response.status}`);
-      }
-      return ((await response.json()) as { dist: { integrity: string } }).dist
-        .integrity;
-    },
+    (signal) => inspectNpmIntegrity(url, signal),
     () => {
       run(
         "npm",
@@ -46,11 +34,14 @@ for (const entry of manifest.releases.filter(
           "latest",
           "--provenance",
         ],
-        { cwd: entry.path }
+        { cwd: entry.path, inheritOutput: true }
       );
     }
   );
   summary(
     `Published/verified ${entry.tag}; source ${sha}; integrity ${integrity}`
   );
+  // Promote only this verified target; unrelated failures keep their drafts.
+  run("gh", ["release", "edit", entry.tag, "--draft=false", "--latest=false"]);
+  summary(`Released ${entry.tag}; source ${sha}`);
 }

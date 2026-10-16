@@ -4,18 +4,23 @@ import { spawnSync } from "node:child_process";
 export function run(
   command: string,
   args: string[],
-  options: { allowFailure?: boolean; cwd?: string } = {}
+  options: {
+    allowFailure?: boolean;
+    cwd?: string;
+    inheritOutput?: boolean;
+  } = {}
 ) {
   const result = spawnSync(command, args, {
     encoding: "utf8",
     cwd: options.cwd,
+    stdio: options.inheritOutput ? "inherit" : "pipe",
   });
   if (result.status !== 0 && !options.allowFailure) {
     throw new Error(
       `${command} ${args.join(" ")} failed:\n${result.stderr}${result.stdout}`
     );
   }
-  return { ok: result.status === 0, text: result.stdout.trim() };
+  return { ok: result.status === 0, text: result.stdout?.trim() ?? "" };
 }
 export function git(...args: string[]) {
   return run("git", args).text;

@@ -26,9 +26,12 @@ environments or prereleases. Self-hosted container publication is deferred.
 6. CI checks that exact version commit, including E2E. Only then does automation
    create immutable `<package>@<version>` tags and draft GitHub Releases.
 7. Independent jobs publish npm packages and deploy hosted apps. Back-merge runs
-   after tagging, independently of downstream publication jobs. Releases become
-   public only after both publication jobs succeed. The workflow result also
-   reports back-merge failures.
+   after tagging, independently of downstream publication jobs. Each npm release
+   becomes public after its registry integrity matches. Each hosted release becomes
+   public after all its destinations and health checks succeed (including the API's
+   existing sync configuration step). Failed or unattempted targets stay draft;
+   already verified targets remain public. The workflow result still reports
+   publication and back-merge failures.
 
 Feature PRs into `next`, draft release PRs, and ordinary branch pushes run CI
 without full E2E. Ready PRs into `main`, including hotfixes, require E2E success.
@@ -197,7 +200,10 @@ these validation windows.
   a durable release queue. Feature work may continue on `next`.
 - npm publishes are immutable. If one package succeeds and another fails, retry
   verifies successful tarball integrity and publishes only missing versions.
-- Railway receipts are attached to draft releases per service. They record source
+  Verification also promotes that package's GitHub Release, including on recovery
+  runs. A failed GitHub promotion fails the job; rerunning retries promotion without
+  republishing matching npm versions.
+- Railway receipts are attached to GitHub Releases per service. They record source
   SHA and every deployment ID. Retries resume known deployments; failed/crashed
   deployments may be retried. An upload intent without an ID means an uncertain
   upload: inspect Railway history and repair that receipt before retrying. Never
