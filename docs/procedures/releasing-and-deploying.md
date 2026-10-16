@@ -1,17 +1,19 @@
 # Releasing and deploying
 
 `next` is the development branch. `main` contains stable releases. Public packages
-and hosted apps version independently through Changesets. There are no preview
-environments or prereleases. Self-hosted container publication is deferred.
+and hosted apps version independently through Changesets, alongside the
+`self-hosted` deployment bundle. There are no preview environments or prereleases.
 
 ## Feature and release flow
 
 1. Branch from `next`. Add `bun changeset` entries for each affected release target:
-   `@lunarisapp/plugin-sdk`, `@lunarisapp/ui`, `api`, `web`, `docs`, or `landing`.
+   `@lunarisapp/plugin-sdk`, `@lunarisapp/ui`, `api`, `web`, `docs`, `landing`, or
+   `self-hosted`.
    CI follows workspace dependencies, including private libraries. Lockfile/root
-   build configuration changes require entries for all six targets. Tests and
+   build configuration changes require entries for all seven targets. Tests and
    repository README/AGENTS/CHANGELOG edits alone need no Changeset; docs-site
-   content does. Changes to PowerSync configuration require an API Changeset.
+   content does. API, web, and PowerSync configuration changes also require a
+   `self-hosted` Changeset; PowerSync changes require an API Changeset too.
 2. Open a PR into `next` and squash merge after CI/code-owner review.
 3. `Release - Prepare` creates one draft `next` to `main` PR. Its body previews
    Changesets versions and changelogs without committing bumps to `next`. Updates
@@ -19,19 +21,30 @@ environments or prereleases. Self-hosted container publication is deferred.
 4. Mark the PR ready for review when preparing a release. Full E2E runs on that
    revision and every subsequent update; superseded PR runs are cancelled. Wait
    for CI on the latest revision, then merge with a **merge commit**. This is the
-   release approval: npm publication and Railway production deployment follow automatically.
-5. `Release - Publish` consumes only the six allowed targets' Changesets, commits
+   release approval: npm publication, Railway production deployment, and self-hosted
+   publication follow automatically.
+5. `Release - Publish` consumes only the seven allowed targets' Changesets, commits
    versions, changelogs, lockfile updates, and `.release/manifest.json` to `main`.
    CLI/Desktop entries, including entries in mixed Changesets, remain pending.
 6. CI checks that exact version commit, including E2E. Only then does automation
    create immutable `<package>@<version>` tags and draft GitHub Releases.
-7. Independent jobs publish npm packages and deploy hosted apps. Back-merge runs
+7. Independent jobs publish npm packages, deploy hosted apps, and publish self-hosted
+   images and bundles. Back-merge runs
    after tagging, independently of downstream publication jobs. Each npm release
    becomes public after its registry integrity matches. Each hosted release becomes
    public after all its destinations and health checks succeed (including the API's
    existing sync configuration step). Failed or unattempted targets stay draft;
    already verified targets remain public. The workflow result still reports
    publication and back-merge failures.
+
+Self-hosted releases publish Community Edition API/web images for AMD64 and
+ARM64, a digest-pinned deployment bundle, `install.sh`, and `SHA256SUMS` from the
+same validated commit. Both GHCR packages must be public for anonymous installs;
+after first image publication, set their visibility and rerun the bundle job.
+The release stays draft until all assets are uploaded and image access is verified.
+The landing site's `/install.sh` selects the latest stable self-hosted installer;
+deploy the landing route before advertising that command. See the
+[self-hosting guide](../../infra/self-host/README.md) for installation and upgrades.
 
 Feature PRs into `next`, draft release PRs, and ordinary branch pushes run CI
 without full E2E. Ready PRs into `main`, including hotfixes, require E2E success.

@@ -94,8 +94,11 @@ clients can discover the server through `/.well-known/lunaris-servers`.
 
 Keep deployment files unchanged; use `compose.override.yaml` for local Docker
 customizations. Installer and documented commands load the same override file.
-For an existing HTTPS reverse proxy, override web's published ports and ensure it
-preserves Host, supports WebSockets, and streams `/sync/` without buffering.
+The bundled web service handles TLS. Running behind a proxy that terminates TLS
+requires a custom Caddy configuration and entrypoint for an internal HTTP
+listener; changing published ports alone is insufficient. Keep `PUBLIC_URL` set
+to the external HTTPS origin, preserve Host, support WebSockets, and stream
+`/sync/` without buffering. A built-in external-TLS mode is not provided.
 
 ## Upgrade
 

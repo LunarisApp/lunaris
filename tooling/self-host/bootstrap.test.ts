@@ -8,6 +8,7 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -29,6 +30,7 @@ function fixture() {
   mkdirSync(bin);
   writeFileSync(join(source, "release.json"), '{"version":"1.2.3"}');
   writeFileSync(join(source, "compose.yaml"), "name: fixture\n");
+  writeFileSync(join(source, "powersync.yaml"), "port: 80\n", { mode: 0o644 });
   writeFileSync(
     join(source, "install.sh"),
     `#!/bin/bash
@@ -94,6 +96,8 @@ test("piped installer downloads pinned bundle, accepts spaces, preserves secrets
     "/self-hosted%401.2.3/lunaris-self-hosted-1.2.3.tar.gz"
   );
   expect(existsSync(join(directory, ".bootstrap.lock"))).toBe(false);
+  expect(statSync(join(directory, "powersync.yaml")).mode & 0o777).toBe(0o644);
+  expect(statSync(join(directory, ".env")).mode & 0o777).toBe(0o600);
   const other = join(root, "installation with spaces");
   expect(invoke(["https://notes.example.com", "--dir", other]).status).toBe(0);
   writeFileSync(join(directory, ".env"), "SECRET=keep-me\n");

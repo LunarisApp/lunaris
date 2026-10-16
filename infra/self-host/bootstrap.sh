@@ -50,7 +50,9 @@ main() {
   local actual
   actual=$(openssl dgst -sha256 "$bootstrap_work/bundle.tar.gz")
   [[ ${actual##* } == "$expected_sha256" ]] || fail 'Bundle checksum mismatch. Installation files were not changed.'
-  tar xzf "$bootstrap_work/bundle.tar.gz" -C "$directory"
+  # Preserve readable config modes for non-root container users despite umask 077.
+  # Ownership stays with the operator; generated secrets are not in the archive.
+  tar --no-same-owner -xzpf "$bootstrap_work/bundle.tar.gz" -C "$directory"
   echo "Installation directory: $directory"
   if [[ -n $origin ]]; then
     bash "$directory/install.sh" "$origin" </dev/null
