@@ -28,7 +28,8 @@ async function loadResource(opts: {
 }) {
   vi.resetModules();
   vi.doMock("@lunarisapp/plugin-sdk", async (importOriginal) => {
-    const actual = await importOriginal<typeof import("@lunarisapp/plugin-sdk")>();
+    const actual =
+      await importOriginal<typeof import("@lunarisapp/plugin-sdk")>();
     const React = await import("react");
     function useStoredFile() {
       const [index, setIndex] = React.useState(0);
@@ -74,14 +75,18 @@ async function loadResource(opts: {
               : opts.readReject
                 ? await Promise.reject(new Error("missing bytes"))
                 : new ArrayBuffer(1);
-            if (cancelled) return;
+            if (cancelled) {
+              return;
+            }
             const previousUrl = currentUrlRef.current;
             const nextUrl = URL.createObjectURL(
               new Blob([buffer], { type: row.mediaType })
             );
             currentUrlRef.current = nextUrl;
             setObjectUrl(nextUrl);
-            if (previousUrl) URL.revokeObjectURL(previousUrl);
+            if (previousUrl) {
+              URL.revokeObjectURL(previousUrl);
+            }
           } catch (error) {
             logErrorMock({
               attachmentId: "att_1",
@@ -111,10 +116,14 @@ async function loadResource(opts: {
       );
 
       React.useEffect(() => {
-        if (!opts.afterWatchYield || index >= rows.length - 1) return;
+        if (!opts.afterWatchYield || index >= rows.length - 1) {
+          return;
+        }
         let cancelled = false;
         void Promise.resolve(opts.afterWatchYield(index)).then(() => {
-          if (!cancelled) setIndex((value) => value + 1);
+          if (!cancelled) {
+            setIndex((value) => value + 1);
+          }
         });
         return () => {
           cancelled = true;
@@ -259,7 +268,9 @@ async function loadResource(opts: {
     ),
   }));
   vi.doMock("react-xml-viewer", () => ({
-    default: ({ xml }: { xml: string }) => <div data-testid="xml-view">{xml}</div>,
+    default: ({ xml }: { xml: string }) => (
+      <div data-testid="xml-view">{xml}</div>
+    ),
   }));
   vi.doMock("@powersync/web", () => ({
     AttachmentState: { QUEUED_DOWNLOAD: 1, SYNCED: 3 },
@@ -268,8 +279,12 @@ async function loadResource(opts: {
         return Promise.resolve();
       }
       readFile(fileUri: string) {
-        if (opts.readFile) return opts.readFile(fileUri);
-        if (opts.readReject) return Promise.reject(new Error("missing bytes"));
+        if (opts.readFile) {
+          return opts.readFile(fileUri);
+        }
+        if (opts.readReject) {
+          return Promise.reject(new Error("missing bytes"));
+        }
         return Promise.resolve(new ArrayBuffer(1));
       }
     },
@@ -311,7 +326,8 @@ async function loadResource(opts: {
 
   const { filePlugin } = await import("./index");
   const { preparePluginActivation } = await import("@lunarisapp/plugin-sdk");
-  type ResourceViewDefinition = import("@lunarisapp/plugin-sdk").ResourceViewDefinition;
+  type ResourceViewDefinition =
+    import("@lunarisapp/plugin-sdk").ResourceViewDefinition;
   const activation = await preparePluginActivation(filePlugin);
   const resource = activation.contributions.find(
     (contribution) => contribution.type === "resource-type"
@@ -323,17 +339,20 @@ async function loadResource(opts: {
     (contribution) => contribution.type === "resource-command"
   );
   const indexer = activation.contributions.find(
-    (contribution) => contribution.type === "search-indexer",
+    (contribution) => contribution.type === "search-indexer"
   );
   if (
     resource?.type !== "resource-type" ||
     view?.type !== "view" ||
     view.target.kind !== "resource"
-  ) return undefined;
+  ) {
+    return;
+  }
   return {
     ...resource,
     commands: command?.type === "resource-command" ? command.commands : [],
-    extractText: indexer?.type === "search-indexer" ? indexer.extractText : undefined,
+    extractText:
+      indexer?.type === "search-indexer" ? indexer.extractText : undefined,
     renderer: (props: { resourceId?: string; reportReady?: () => void }) =>
       (view as unknown as ResourceViewDefinition).renderer({
         params: {},
@@ -353,30 +372,38 @@ async function loadResource(opts: {
         reportReady: props.reportReady ?? (() => undefined),
       }),
   } as unknown as {
-        commands: readonly { id: string; onExecute: (context: Record<string, unknown>) => void }[];
-        createInWorkspace?: (context: {
-          createResource: (input?: { name?: string }) => Promise<{
-            name: string;
-            resourceId: string;
-            storage: { content: { kind: "file"; storageId: string } };
-          }>;
-          deleteResource: (resourceId: string) => Promise<void>;
-          parentId: string;
-          uploadFile: (input: {
-            file: File;
-            storage: { kind: "file"; storageId: string };
-          }) => Promise<unknown>;
-        }) => Promise<unknown>;
-        storage: { content: { kind: string } };
-        renderer: (props: {
-          resourceId?: string;
-          reportReady?: () => void;
-        }) => ReactNode;
-        extractText?: (
-          input: unknown,
-          context: { readFile: () => Promise<{ bytes: ArrayBuffer; mediaType: string | null } | null> },
-        ) => Promise<string | null> | string | null;
-      };
+    commands: readonly {
+      id: string;
+      onExecute: (context: Record<string, unknown>) => void;
+    }[];
+    createInWorkspace?: (context: {
+      createResource: (input?: { name?: string }) => Promise<{
+        name: string;
+        resourceId: string;
+        storage: { content: { kind: "file"; storageId: string } };
+      }>;
+      deleteResource: (resourceId: string) => Promise<void>;
+      parentId: string;
+      uploadFile: (input: {
+        file: File;
+        storage: { kind: "file"; storageId: string };
+      }) => Promise<unknown>;
+    }) => Promise<unknown>;
+    storage: { content: { kind: string } };
+    renderer: (props: {
+      resourceId?: string;
+      reportReady?: () => void;
+    }) => ReactNode;
+    extractText?: (
+      input: unknown,
+      context: {
+        readFile: () => Promise<{
+          bytes: ArrayBuffer;
+          mediaType: string | null;
+        } | null>;
+      }
+    ) => Promise<string | null> | string | null;
+  };
 }
 
 async function loadRenderer(opts: {
@@ -410,32 +437,28 @@ describe("file plugin", () => {
     await expect(
       resource?.extractText?.(input, {
         readFile: () => Promise.resolve({ bytes, mediaType: "text/plain" }),
-      }),
+      })
     ).resolves.toBe("searchable notes");
     await expect(
       resource?.extractText?.(input, {
         readFile: () => Promise.resolve({ bytes, mediaType: "image/png" }),
-      }),
+      })
     ).resolves.toBeNull();
   });
 
-  it(
-    "registers file upload resource",
-    async () => {
-      const definition = await loadResource({
-        localUri: "indexeddb://lunaris-files-workspace_1/files/att_1.png",
-        mediaType: "image/png",
-        state: 3,
-      });
+  it("registers file upload resource", async () => {
+    const definition = await loadResource({
+      localUri: "indexeddb://lunaris-files-workspace_1/files/att_1.png",
+      mediaType: "image/png",
+      state: 3,
+    });
 
-      expect(definition?.createInWorkspace).toBeTypeOf("function");
-      expect(definition?.storage.content?.kind).toBe("file");
-      expect(
-        definition?.commands.some((command) => command.id === "download-file")
-      ).toBe(true);
-    },
-    10_000
-  );
+    expect(definition?.createInWorkspace).toBeTypeOf("function");
+    expect(definition?.storage.content?.kind).toBe("file");
+    expect(
+      definition?.commands.some((command) => command.id === "download-file")
+    ).toBe(true);
+  }, 10_000);
 
   it("creates and uploads every selected file", async () => {
     const definition = await loadResource({
@@ -506,9 +529,11 @@ describe("file plugin", () => {
       state: 3,
     });
 
-    render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    render(renderer?.({ resourceId: "item_1" }));
 
-    expect(await screen.findByText("fileExtension.file.downloadPending")).toBeTruthy();
+    expect(
+      await screen.findByText("fileExtension.file.downloadPending")
+    ).toBeTruthy();
   });
 
   it("renders image metadata at panel level", async () => {
@@ -521,7 +546,7 @@ describe("file plugin", () => {
     });
 
     const reportReady = vi.fn();
-    render(<>{renderer?.({ resourceId: "item_1", reportReady })}</>);
+    render(renderer?.({ resourceId: "item_1", reportReady }));
 
     const image = await screen.findByRole("img", { name: "image.png" });
     const panel = screen.getByTestId("image-panel");
@@ -535,8 +560,14 @@ describe("file plugin", () => {
     await waitFor(() => expect(reportReady).toHaveBeenCalledOnce());
     expect(metadata.textContent).toContain("10 B");
 
-    Object.defineProperty(image, "naturalWidth", { configurable: true, value: 640 });
-    Object.defineProperty(image, "naturalHeight", { configurable: true, value: 480 });
+    Object.defineProperty(image, "naturalWidth", {
+      configurable: true,
+      value: 640,
+    });
+    Object.defineProperty(image, "naturalHeight", {
+      configurable: true,
+      value: 480,
+    });
     fireEvent.load(image);
 
     await waitFor(() => expect(metadata.textContent).toContain("640 x 480"));
@@ -569,7 +600,7 @@ describe("file plugin", () => {
       ],
     });
 
-    render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    render(renderer?.({ resourceId: "item_1" }));
 
     expect(await screen.findByRole("img", { name: "image.png" })).toBeTruthy();
     await waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(1));
@@ -610,14 +641,15 @@ describe("file plugin", () => {
           state: 3,
         },
         {
-          localUri: "indexeddb://lunaris-files-workspace_1/files/att_1-recovered.png",
+          localUri:
+            "indexeddb://lunaris-files-workspace_1/files/att_1-recovered.png",
           mediaType: "image/png",
           state: 3,
         },
       ],
     });
 
-    render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    render(renderer?.({ resourceId: "item_1" }));
 
     const image = await screen.findByRole("img", { name: "image.png" });
     await waitFor(() => expect(image.getAttribute("src")).toBe("blob:first"));
@@ -643,11 +675,17 @@ describe("file plugin", () => {
       state: 3,
     });
 
-    render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    render(renderer?.({ resourceId: "item_1" }));
 
     const image = await screen.findByRole("img", { name: "image.png" });
-    Object.defineProperty(image, "naturalWidth", { configurable: true, value: 640 });
-    Object.defineProperty(image, "naturalHeight", { configurable: true, value: 480 });
+    Object.defineProperty(image, "naturalWidth", {
+      configurable: true,
+      value: 640,
+    });
+    Object.defineProperty(image, "naturalHeight", {
+      configurable: true,
+      value: 480,
+    });
     fireEvent.load(image);
 
     const frame = screen.getByTestId("image-resize-frame");
@@ -677,7 +715,7 @@ describe("file plugin", () => {
       state: 3,
     });
 
-    render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    render(renderer?.({ resourceId: "item_1" }));
 
     const viewer = await screen.findByTestId("extend-pdf-viewer");
     expect(viewer.getAttribute("data-file-name")).toBe("doc.pdf");
@@ -691,7 +729,9 @@ describe("file plugin", () => {
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
     vi.stubGlobal(
       "fetch",
-      vi.fn(() => Promise.resolve({ text: () => Promise.resolve("hello\nworld") }))
+      vi.fn(() =>
+        Promise.resolve({ text: () => Promise.resolve("hello\nworld") })
+      )
     );
 
     const textRenderer = await loadRenderer({
@@ -701,7 +741,7 @@ describe("file plugin", () => {
       mediaType: "text/plain",
       state: 3,
     });
-    const { unmount } = render(<>{textRenderer?.({ resourceId: "item_1" })}</>);
+    const { unmount } = render(textRenderer?.({ resourceId: "item_1" }));
     expect((await screen.findByLabelText("notes.txt")).textContent).toContain(
       "hello\nworld"
     );
@@ -711,7 +751,8 @@ describe("file plugin", () => {
       "fetch",
       vi.fn(() =>
         Promise.resolve({
-          text: () => Promise.resolve("# Readme\n\n- first item\n\n**bold text**"),
+          text: () =>
+            Promise.resolve("# Readme\n\n- first item\n\n**bold text**"),
         })
       )
     );
@@ -722,7 +763,7 @@ describe("file plugin", () => {
       mediaType: "",
       state: 3,
     });
-    const markdownView = render(<>{markdownRenderer?.({ resourceId: "item_1" })}</>);
+    const markdownView = render(markdownRenderer?.({ resourceId: "item_1" }));
     expect(
       await screen.findByTestId("markdown-renderer", {}, { timeout: 5000 })
     ).toBeTruthy();
@@ -734,7 +775,9 @@ describe("file plugin", () => {
 
     vi.stubGlobal(
       "fetch",
-      vi.fn(() => Promise.resolve({ text: () => Promise.resolve("hello\nworld") }))
+      vi.fn(() =>
+        Promise.resolve({ text: () => Promise.resolve("hello\nworld") })
+      )
     );
     const xmlRenderer = await loadRenderer({
       fileExtension: "xml",
@@ -743,7 +786,7 @@ describe("file plugin", () => {
       mediaType: "application/xml",
       state: 3,
     });
-    render(<>{xmlRenderer?.({ resourceId: "item_1" })}</>);
+    render(xmlRenderer?.({ resourceId: "item_1" }));
     expect((await screen.findByTestId("xml-view")).textContent).toContain(
       "hello\nworld"
     );
@@ -754,7 +797,9 @@ describe("file plugin", () => {
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
     vi.stubGlobal(
       "fetch",
-      vi.fn(() => Promise.resolve({ text: () => Promise.resolve('{"title":"Lunaris"}') }))
+      vi.fn(() =>
+        Promise.resolve({ text: () => Promise.resolve('{"title":"Lunaris"}') })
+      )
     );
     const renderer = await loadRenderer({
       fileExtension: "json",
@@ -764,7 +809,7 @@ describe("file plugin", () => {
       state: 3,
     });
 
-    const { unmount } = render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    const { unmount } = render(renderer?.({ resourceId: "item_1" }));
 
     expect((await screen.findByTestId("json-view")).textContent).toContain(
       '{"title":"Lunaris"}'
@@ -782,7 +827,7 @@ describe("file plugin", () => {
       mediaType: "application/json",
       state: 3,
     });
-    render(<>{invalidRenderer?.({ resourceId: "item_1" })}</>);
+    render(invalidRenderer?.({ resourceId: "item_1" }));
     expect((await screen.findByLabelText("broken.json")).textContent).toContain(
       "{nope"
     );
@@ -808,7 +853,7 @@ describe("file plugin", () => {
       state: 3,
     });
 
-    render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    render(renderer?.({ resourceId: "item_1" }));
 
     const viewer = await screen.findByTestId("extend-csv-viewer");
     expect(viewer.getAttribute("data-content")).toBe(
@@ -835,7 +880,7 @@ describe("file plugin", () => {
       state: 3,
     });
 
-    render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    render(renderer?.({ resourceId: "item_1" }));
 
     expect(
       (await screen.findByTestId("extend-csv-viewer")).getAttribute(
@@ -859,7 +904,7 @@ describe("file plugin", () => {
       state: 3,
     });
 
-    render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    render(renderer?.({ resourceId: "item_1" }));
 
     expect(
       (await screen.findByTestId("extend-csv-viewer")).getAttribute(
@@ -878,9 +923,10 @@ describe("file plugin", () => {
         Promise.resolve({
           text: () =>
             Promise.resolve(
-              Array.from({ length: 500 }, (_, index) => `${index},value-${index}`).join(
-                "\n"
-              )
+              Array.from(
+                { length: 500 },
+                (_, index) => `${index},value-${index}`
+              ).join("\n")
             ),
         })
       )
@@ -893,7 +939,7 @@ describe("file plugin", () => {
       state: 3,
     });
 
-    render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    render(renderer?.({ resourceId: "item_1" }));
 
     expect(
       (await screen.findByTestId("extend-csv-viewer", {}, { timeout: 5000 }))
@@ -913,7 +959,7 @@ describe("file plugin", () => {
       state: 3,
     });
 
-    render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    render(renderer?.({ resourceId: "item_1" }));
 
     const viewer = await screen.findByTestId("extend-docx-viewer");
     expect(viewer.getAttribute("data-file-name")).toBe("brief.docx");
@@ -934,7 +980,7 @@ describe("file plugin", () => {
       state: 3,
     });
 
-    render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    render(renderer?.({ resourceId: "item_1" }));
 
     expect(await screen.findByText("Unsupported file")).toBeTruthy();
     expect(screen.queryByTestId("extend-docx-viewer")).toBeNull();
@@ -951,7 +997,7 @@ describe("file plugin", () => {
         "application/vnd.openxmlformats-officedocument.presentationml.presentation",
       state: 3,
     });
-    const { unmount } = render(<>{pptxRenderer?.({ resourceId: "item_1" })}</>);
+    const { unmount } = render(pptxRenderer?.({ resourceId: "item_1" }));
     const pptxViewer = await screen.findByTestId("extend-pptx-viewer");
     expect(pptxViewer.getAttribute("data-file-name")).toBe("deck.pptx");
     expect(pptxViewer.getAttribute("data-show-upload")).toBe("false");
@@ -962,10 +1008,11 @@ describe("file plugin", () => {
       fileExtension: "xlsx",
       filename: "sheet.xlsx",
       localUri: "indexeddb://lunaris-files-workspace_1/files/att_1.xlsx",
-      mediaType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      mediaType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       state: 3,
     });
-    render(<>{xlsxRenderer?.({ resourceId: "item_1" })}</>);
+    render(xlsxRenderer?.({ resourceId: "item_1" }));
     const xlsxViewer = await screen.findByTestId("extend-xlsx-viewer");
     expect(xlsxViewer.getAttribute("data-file-name")).toBe("sheet.xlsx");
     expect(xlsxViewer.getAttribute("data-show-upload")).toBe("false");
@@ -994,20 +1041,20 @@ describe("file plugin", () => {
       resourceId: "item_1",
       storage: { content: { kind: "file", storageId: "file:item_1" } },
       downloadFile: async () => {
-          const url = URL.createObjectURL(
-            new Blob([new ArrayBuffer(1)], {
-              type: "image/png",
-            })
-          );
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = "image.png";
-          link.rel = "noopener";
-          document.body.append(link);
-          link.click();
-          link.remove();
-          URL.revokeObjectURL(url);
-          return true;
+        const url = URL.createObjectURL(
+          new Blob([new ArrayBuffer(1)], {
+            type: "image/png",
+          })
+        );
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "image.png";
+        link.rel = "noopener";
+        document.body.append(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        return true;
       },
       openRightDockPanel: vi.fn(),
     });
@@ -1029,15 +1076,13 @@ describe("file plugin", () => {
       resourceId: "item_1",
       storage: { content: { kind: "file", storageId: "file:item_1" } },
       downloadFile: async () => {
-          throw new Error("missing bytes");
+        throw new Error("missing bytes");
       },
       openRightDockPanel: vi.fn(),
     });
 
     await waitFor(() =>
-      expect(toastErrorMock).toHaveBeenCalledWith(
-        "File download unavailable"
-      )
+      expect(toastErrorMock).toHaveBeenCalledWith("File download unavailable")
     );
     expect(logErrorMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1062,9 +1107,7 @@ describe("file plugin", () => {
     });
 
     await waitFor(() =>
-      expect(toastErrorMock).toHaveBeenCalledWith(
-        "File download unavailable"
-      )
+      expect(toastErrorMock).toHaveBeenCalledWith("File download unavailable")
     );
     expect(logErrorMock).not.toHaveBeenCalled();
   });
@@ -1077,7 +1120,7 @@ describe("file plugin", () => {
       state: 3,
     });
 
-    render(<>{renderer?.({ resourceId: "item_1" })}</>);
+    render(renderer?.({ resourceId: "item_1" }));
 
     await waitFor(() =>
       expect(logErrorMock).toHaveBeenCalledWith(
@@ -1090,7 +1133,9 @@ describe("file plugin", () => {
         })
       )
     );
-    expect(await screen.findByText("fileExtension.file.downloadFailed")).toBeTruthy();
+    expect(
+      await screen.findByText("fileExtension.file.downloadFailed")
+    ).toBeTruthy();
     expect(toastErrorMock).not.toHaveBeenCalled();
   });
 });

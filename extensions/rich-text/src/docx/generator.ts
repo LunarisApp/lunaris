@@ -44,17 +44,22 @@ const HEADINGS = [
 
 function color(
   value: unknown,
-  kind: "text" | "background",
+  kind: "text" | "background"
 ): string | undefined {
-  if (typeof value !== "string" || value === "default") return undefined;
+  if (typeof value !== "string" || value === "default") {
+    return undefined;
+  }
   const hex = COLORS_DEFAULT[value]?.[kind] ?? value;
-  if (/^#[0-9a-f]{6}$/i.test(hex)) return hex.slice(1);
-  if (/^#[0-9a-f]{3}$/i.test(hex))
+  if (/^#[0-9a-f]{6}$/i.test(hex)) {
+    return hex.slice(1);
+  }
+  if (/^#[0-9a-f]{3}$/i.test(hex)) {
     return hex
       .slice(1)
       .split("")
       .map((digit) => digit + digit)
       .join("");
+  }
   return undefined;
 }
 
@@ -78,20 +83,21 @@ function textRuns(text: string, props: Props): TextRun[] {
         ...runStyle(props),
         text: line,
         break: index ? 1 : undefined,
-      }),
+      })
   );
 }
 
 function inline(
   content: readonly RichTextInline[],
-  inherited: Props = {},
+  inherited: Props = {}
 ): InlineRun[] {
   return content.flatMap((item): InlineRun[] => {
-    if (item.type === "entityReference")
+    if (item.type === "entityReference") {
       return textRuns(`@${item.props.name}`, inherited);
+    }
     if (item.type === "link") {
       const children = item.content.flatMap((child) =>
-        textRuns(child.text, { ...inherited, ...child.styles }),
+        textRuns(child.text, { ...inherited, ...child.styles })
       );
       return [new ExternalHyperlink({ link: item.href, children })];
     }
@@ -115,8 +121,9 @@ function paragraphProps(props: Props): IParagraphOptions {
 }
 
 function table(content: RichTextTable): Table | Paragraph {
-  if (!content.rows.length || !content.rows.some((row) => row.cells.length))
+  if (!(content.rows.length && content.rows.some((row) => row.cells.length))) {
     return new Paragraph("");
+  }
   // End row (exclusive) for columns occupied by vertically merged cells.
   const occupiedUntil: number[] = [];
   return new Table({
@@ -130,7 +137,9 @@ function table(content: RichTextTable): Table | Paragraph {
             ? {}
             : cell.props;
           const values = Array.isArray(cell) ? cell : cell.content;
-          while ((occupiedUntil[column] ?? 0) > rowIndex) column += 1;
+          while ((occupiedUntil[column] ?? 0) > rowIndex) {
+            column += 1;
+          }
           const header =
             rowIndex < (content.headerRows ?? 0) ||
             column < (content.headerCols ?? 0);
@@ -160,14 +169,14 @@ function table(content: RichTextTable): Table | Paragraph {
 export async function generateDocx(
   blocks: readonly RichTextBlock[],
   title: string,
-  labels: DocxLabels,
+  labels: DocxLabels
 ): Promise<DocxResult> {
   const numbering: { reference: string; levels: ILevelsOptions[] }[] = [];
   let missingImages = 0;
 
   async function render(
     siblings: readonly RichTextBlock[],
-    depth = 0,
+    depth = 0
   ): Promise<(Paragraph | Table)[]> {
     const output: (Paragraph | Table)[] = [];
     let numberedReference: string | undefined;
@@ -176,17 +185,21 @@ export async function generateDocx(
       const content = Array.isArray(block.content) ? block.content : [];
       const options = paragraphProps(props);
       const level = Math.min(depth, 8);
-      if (block.type !== "numberedListItem") numberedReference = undefined;
+      if (block.type !== "numberedListItem") {
+        numberedReference = undefined;
+      }
       if (block.type === "table") {
         output.push(table(block.content));
       } else if (block.type === "image") {
         const name =
           block.props.name || block.props.caption || labels.missingImage;
         try {
-          if (!block.props.url) throw new Error("Image URL missing");
+          if (!block.props.url) {
+            throw new Error("Image URL missing");
+          }
           const image = await loadDocxImage(
             block.props.url,
-            block.props.previewWidth,
+            block.props.previewWidth
           );
           output.push(
             new Paragraph({
@@ -201,7 +214,7 @@ export async function generateDocx(
                   },
                 }),
               ],
-            }),
+            })
           );
         } catch {
           missingImages += 1;
@@ -209,15 +222,16 @@ export async function generateDocx(
             new Paragraph({
               ...options,
               children: textRuns(`${labels.missingImage}: ${name}`, {}),
-            }),
+            })
           );
         }
-        if (block.props.caption)
+        if (block.props.caption) {
           output.push(
             new Paragraph({
               children: textRuns(block.props.caption, { italic: true }),
-            }),
+            })
           );
+        }
       } else if (
         block.type === "numberedListItem" ||
         block.type === "bulletListItem" ||
@@ -266,7 +280,7 @@ export async function generateDocx(
                 : []),
               ...inline(content, props),
             ],
-          }),
+          })
         );
       } else if (block.type === "heading") {
         output.push(
@@ -274,14 +288,14 @@ export async function generateDocx(
             ...options,
             heading: HEADINGS[block.props.level - 1] ?? HeadingLevel.HEADING_1,
             children: inline(content, props),
-          }),
+          })
         );
       } else if (block.type === "codeBlock") {
         output.push(
           new Paragraph({
             ...options,
             children: inline(content, { ...props, code: true }),
-          }),
+          })
         );
       } else if (typeof props.url === "string" && props.url) {
         const name =
@@ -297,17 +311,18 @@ export async function generateDocx(
                 children: textRuns(name, {}),
               }),
             ],
-          }),
+          })
         );
-        if (typeof props.caption === "string" && props.caption)
+        if (typeof props.caption === "string" && props.caption) {
           output.push(new Paragraph(props.caption));
+        }
       } else {
         output.push(
           new Paragraph({
             ...options,
             indent: depth ? { left: depth * 360 } : undefined,
             children: inline(content, props),
-          }),
+          })
         );
       }
       output.push(...(await render(block.children, depth + 1)));
@@ -324,7 +339,7 @@ export async function generateDocx(
       {
         properties: {
           page: {
-            size: { width: 12240, height: 15840 },
+            size: { width: 12_240, height: 15_840 },
             margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 },
           },
         },

@@ -1,4 +1,8 @@
-import { buildMentionMessage, updateMentions, type ResourceMention } from "./mentions";
+import {
+  buildMentionMessage,
+  updateMentions,
+  type ResourceMention,
+} from "./mentions";
 import { useResourceMentionSearch } from "./use-resource-mentions";
 import { AgentComposer } from "./composer";
 import { AgentAuthForm } from "./auth-form";
@@ -28,7 +32,7 @@ export type AgentWorkPresentation =
     };
 
 export function AgentWorkView(
-  props: AgentWorkPresentation & { scope: AgentWorkScope },
+  props: AgentWorkPresentation & { scope: AgentWorkScope }
 ) {
   const { scope } = props;
   const embedded = props.variant === "panel";
@@ -37,18 +41,25 @@ export function AgentWorkView(
   const composerId = useId();
   const [pickerOpen, setPickerOpen] = useState(false);
   const { state } = agent;
-  const [draftState, setDraftState] = useState<{ text: string; mentions: ResourceMention[] }>({ text: "", mentions: [] });
+  const [draftState, setDraftState] = useState<{
+    text: string;
+    mentions: ResourceMention[];
+  }>({ text: "", mentions: [] });
   const draft = draftState.text;
-  const setDraft = (text: string, caret?: number) => setDraftState((current) => ({
-    text,
-    mentions: updateMentions(current.text, text, current.mentions, caret),
-  }));
+  const setDraft = (text: string, caret?: number) =>
+    setDraftState((current) => ({
+      text,
+      mentions: updateMentions(current.text, text, current.mentions, caret),
+    }));
   const searchMentions = useResourceMentionSearch(scope.organizationId);
   const [model, setModel] = useState("");
   const layout = useRef<AgentLayoutHandle>(null);
   const reveal = (id: "chat" | "conversations" | "activity") => {
-    if (embedded) setPickerOpen(false);
-    else layout.current?.reveal(id);
+    if (embedded) {
+      setPickerOpen(false);
+    } else {
+      layout.current?.reveal(id);
+    }
   };
   const [showLatest, setShowLatest] = useState(false);
   const composerInput = useRef<HTMLTextAreaElement>(null);
@@ -66,7 +77,7 @@ export function AgentWorkView(
     followOutput.current = true;
     setShowLatest(false);
     void agent.request(
-      id ? { type: "open_session", sessionId: id } : { type: "new_session" },
+      id ? { type: "open_session", sessionId: id } : { type: "new_session" }
     );
   };
   const sidebar = (
@@ -107,7 +118,7 @@ export function AgentWorkView(
       modelId: selectedModel,
     });
     if (!sent) {
-      setDraftState((current) => current.text ? current : draftState);
+      setDraftState((current) => (current.text ? current : draftState));
     }
     setSubmitting(false);
   };
@@ -116,7 +127,17 @@ export function AgentWorkView(
     <AgentComposer
       id={composerId}
       searchMentions={searchMentions}
-      onMention={(mention) => setDraftState((current) => ({ ...current, mentions: [...current.mentions.filter((item) => item.end <= mention.start || item.start >= mention.end), mention] }))}
+      onMention={(mention) =>
+        setDraftState((current) => ({
+          ...current,
+          mentions: [
+            ...current.mentions.filter(
+              (item) => item.end <= mention.start || item.start >= mention.end
+            ),
+            mention,
+          ],
+        }))
+      }
       inputRef={composerInput}
       centered={centered}
       draft={draft}
@@ -163,7 +184,7 @@ export function AgentWorkView(
               key={message.id}
               message={message}
               awaitingApproval={agent.approvals.some(
-                (approval) => approval.id === message.toolCallId,
+                (approval) => approval.id === message.toolCallId
               )}
             />
           ))}
@@ -174,6 +195,7 @@ export function AgentWorkView(
     <div className="relative flex h-full min-w-0 flex-col">
       <div
         className="min-h-0 flex-1 overflow-y-auto focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2"
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: Focusable transcript region supports keyboard scrolling.
         tabIndex={0}
         role="region"
         aria-label={t("agentWork.transcript")}
@@ -196,12 +218,12 @@ export function AgentWorkView(
               <h3 className="text-center font-medium text-lg">
                 {t("agentWork.heading")}
               </h3>
-              {(!agent.available || !state.authenticated) && (
+              {!(agent.available && state.authenticated) && (
                 <p className="mx-auto mt-3 max-w-md text-center text-muted-foreground text-sm leading-6">
                   {t(
                     agent.available
                       ? "agentWork.description"
-                      : "agentWork.desktopOnly",
+                      : "agentWork.desktopOnly"
                   )}
                 </p>
               )}
@@ -214,7 +236,7 @@ export function AgentWorkView(
                   {t("agentWork.connect")}
                 </Button>
               )}
-              {centered && composer}
+              {!!centered && composer}
             </div>
           )}
           <div
@@ -228,17 +250,17 @@ export function AgentWorkView(
                   key={message.id}
                   message={message}
                   awaitingApproval={agent.approvals.some(
-                    (approval) => approval.id === message.toolCallId,
+                    (approval) => approval.id === message.toolCallId
                   )}
                   onReview={embedded ? undefined : () => reveal("activity")}
                 />
               ) : (
                 <TranscriptMessage key={message.id} message={message} />
-              ),
+              )
             )}
           </div>
           {embedded && approvals}
-          {busy && (
+          {!!busy && (
             <p
               aria-live="polite"
               className="mt-5 flex items-center gap-2 text-muted-foreground text-xs"
@@ -247,14 +269,14 @@ export function AgentWorkView(
               {t(
                 agent.approvals.length
                   ? "agentWork.awaitingApproval"
-                  : "agentWork.working",
+                  : "agentWork.working"
               )}
             </p>
           )}
-          {agent.auth && (
+          {!!agent.auth && (
             <AgentAuthForm auth={agent.auth} onRequest={agent.request} />
           )}
-          {agent.error && (
+          {!!agent.error && (
             <div
               className="mt-4 space-y-2 rounded-lg border border-destructive/50 p-4"
               role="alert"

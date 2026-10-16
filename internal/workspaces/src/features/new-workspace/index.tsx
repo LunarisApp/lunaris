@@ -13,7 +13,11 @@ import {
   FieldLabel,
   FieldTitle,
 } from "@lunarisapp/ui/components/field";
-import { Controller, useForm, zodResolver } from "@lunarisapp/ui/components/form";
+import {
+  Controller,
+  useForm,
+  zodResolver,
+} from "@lunarisapp/ui/components/form";
 import { Input } from "@lunarisapp/ui/components/input";
 import {
   Select,
@@ -46,12 +50,7 @@ import {
 } from "@repo/data/features/workspaces";
 import { log, parseError } from "evlog";
 import posthog from "posthog-js";
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 import slugify from "slugify";
@@ -94,7 +93,9 @@ function WorkspaceVisibilityField({
 }: {
   canCreateCloudWorkspaces: boolean;
   control: ReturnType<typeof useForm<CreateWorkspaceDialogSchema>>["control"];
-  errors: ReturnType<typeof useForm<CreateWorkspaceDialogSchema>>["formState"]["errors"];
+  errors: ReturnType<
+    typeof useForm<CreateWorkspaceDialogSchema>
+  >["formState"]["errors"];
 }) {
   const { t } = useTranslation();
   const id = useId();
@@ -123,10 +124,12 @@ function WorkspaceVisibilityField({
             >
               <SelectValue>
                 {(value: string | null) => {
-                  if (!value) return null;
+                  if (!value) {
+                    return null;
+                  }
                   const icon =
                     WORKSPACE_VISIBILITY_OPTIONS.find(
-                      (option) => option.value === value,
+                      (option) => option.value === value
                     )?.icon ?? FolderLockedIcon;
                   return (
                     <div className="flex items-center gap-2">
@@ -135,7 +138,9 @@ function WorkspaceVisibilityField({
                         className="size-4"
                         icon={icon}
                       />
-                      <span>{t(`workspaces.workspaceVisibility.${value}`)}</span>
+                      <span>
+                        {t(`workspaces.workspaceVisibility.${value}`)}
+                      </span>
                     </div>
                   );
                 }}
@@ -151,7 +156,7 @@ function WorkspaceVisibilityField({
                   />
                   <span className="flex flex-col">
                     <span>{t(`workspaces.workspaceVisibility.${value}`)}</span>
-                    <span className="text-muted-foreground text-xs font-normal">
+                    <span className="font-normal text-muted-foreground text-xs">
                       {t(`workspaces.workspaceVisibility.${value}.description`)}
                     </span>
                   </span>
@@ -239,11 +244,17 @@ export function ImportObsidianWorkspaceDialog({
   }, [name, dirtyFields.slug, setValue]);
 
   const selectDirectory = async () => {
-    if (!folderInputRef.current) return;
+    if (!folderInputRef.current) {
+      return;
+    }
 
     try {
-      const selected = await pickObsidianImportDirectory(folderInputRef.current);
-      if (!selected) return;
+      const selected = await pickObsidianImportDirectory(
+        folderInputRef.current
+      );
+      if (!selected) {
+        return;
+      }
       setDirectory(selected);
 
       if (!dirtyFields.name) {
@@ -253,9 +264,13 @@ export function ImportObsidianWorkspaceDialog({
         });
       }
       if (!dirtyFields.slug) {
-        setValue("slug", slugify(selected.name, { lower: true, strict: true }), {
-          shouldValidate: true,
-        });
+        setValue(
+          "slug",
+          slugify(selected.name, { lower: true, strict: true }),
+          {
+            shouldValidate: true,
+          }
+        );
       }
     } catch (e) {
       log.error({
@@ -268,7 +283,9 @@ export function ImportObsidianWorkspaceDialog({
   };
 
   const onSubmit = async (data: CreateWorkspaceDialogSchema) => {
-    if (!canCreate || !directory || showSlugCollision) return;
+    if (!(canCreate && directory) || showSlugCollision) {
+      return;
+    }
 
     try {
       const resourceCapacityReservation = await reserveResourceCapacity(
@@ -351,13 +368,13 @@ export function ImportObsidianWorkspaceDialog({
                 {t("workspaces.chooseFolder")}
               </Button>
               <span
-                className="text-muted-foreground min-w-0 truncate text-sm"
+                className="min-w-0 truncate text-muted-foreground text-sm"
                 role="status"
               >
                 {directory?.name ?? t("workspaces.noFolderSelected")}
               </span>
             </div>
-            {stats && (
+            {!!stats && (
               <p aria-live="polite" className="text-muted-foreground text-xs">
                 {t("workspaces.importSummary", {
                   files: stats.originalFileCount,
@@ -384,9 +401,7 @@ export function ImportObsidianWorkspaceDialog({
               {...register("name")}
             />
             <FieldError
-              errors={[
-                showNameError ? errors.name : undefined,
-              ]}
+              errors={[showNameError ? errors.name : undefined]}
               id="workspace-import-name-error"
             />
           </Field>
@@ -432,7 +447,9 @@ export function ImportObsidianWorkspaceDialog({
               }
               type="submit"
             >
-              {isSubmitting ? t("workspaces.importing") : t("workspaces.importWorkspace")}
+              {isSubmitting
+                ? t("workspaces.importing")
+                : t("workspaces.importWorkspace")}
             </Button>
           </DialogFooter>
         </form>
@@ -497,7 +514,9 @@ export function CreateWorkspaceDialog({
   }, [name, dirtyFields.slug, setValue]);
 
   const onSubmit = async (data: CreateWorkspaceDialogSchema) => {
-    if (!canCreate || showSlugCollision) return;
+    if (!canCreate || showSlugCollision) {
+      return;
+    }
 
     try {
       const workspaceId = await createWorkspace({ db, ...data });
@@ -516,7 +535,7 @@ export function CreateWorkspaceDialog({
         {
           defaultExtensionIds: enabledExtensions,
           knownExtensionIds: allExtensionIds,
-        },
+        }
       );
 
       log.info({
@@ -567,7 +586,9 @@ export function CreateWorkspaceDialog({
               {t("workspaces.workspaceName")}
             </FieldLabel>
             <Input
-              aria-describedby={showNameError ? "workspace-name-error" : undefined}
+              aria-describedby={
+                showNameError ? "workspace-name-error" : undefined
+              }
               aria-invalid={showNameError}
               autoComplete="off"
               autoFocus
@@ -577,9 +598,7 @@ export function CreateWorkspaceDialog({
               {...register("name")}
             />
             <FieldError
-              errors={[
-                showNameError ? errors.name : undefined,
-              ]}
+              errors={[showNameError ? errors.name : undefined]}
               id="workspace-name-error"
             />
           </Field>

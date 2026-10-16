@@ -46,11 +46,11 @@ export function resourceToolDefinitions() {
       z.object(
         Object.fromEntries(
           Object.entries(tool.schema.shape).filter(
-            ([key]) => key !== "organizationId",
-          ),
-        ),
+            ([key]) => key !== "organizationId"
+          )
+        )
       ),
-      { target: "draft-7" },
+      { target: "draft-7" }
     ),
   }));
 }
@@ -58,10 +58,12 @@ export function resourceToolDefinitions() {
 export function resolveResourceTool(
   name: string,
   rawInput: Record<string, unknown>,
-  organizationId: string,
+  organizationId: string
 ) {
   const tool = resourceTools.find((candidate) => candidate.name === name);
-  if (!tool) throw new Error("Unknown resource tool");
+  if (!tool) {
+    throw new Error("Unknown resource tool");
+  }
   const input = tool.schema.parse({ ...rawInput, organizationId });
   return { mutation: tool.mutation, request: tool.serialize(input) };
 }

@@ -3,7 +3,10 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { useWorkspaceResourcesSuspenseQueryMock, useWorkspaceTrashSuspenseQueryMock } = vi.hoisted(() => ({
+const {
+  useWorkspaceResourcesSuspenseQueryMock,
+  useWorkspaceTrashSuspenseQueryMock,
+} = vi.hoisted(() => ({
   useWorkspaceResourcesSuspenseQueryMock: vi.fn(),
   useWorkspaceTrashSuspenseQueryMock: vi.fn(),
 }));
@@ -77,14 +80,17 @@ describe("WorkspaceExplorerProvider", () => {
     );
 
     expect(screen.getByText("ready")).toBeTruthy();
-    expect(useWorkspaceResourcesSuspenseQueryMock).toHaveBeenCalledWith("workspace_1", {
-      streams: [
-        {
-          name: "workspace_index",
-          waitForStream: true,
-        },
-      ],
-    });
+    expect(useWorkspaceResourcesSuspenseQueryMock).toHaveBeenCalledWith(
+      "workspace_1",
+      {
+        streams: [
+          {
+            name: "workspace_index",
+            waitForStream: true,
+          },
+        ],
+      }
+    );
   });
 
   it("does not wait for organization index when sync wait is disabled", () => {

@@ -1,5 +1,5 @@
 import { cn } from "@lunarisapp/ui/lib/utils";
-import { type ComponentProps, CSSProperties } from "react";
+import type { ComponentProps, CSSProperties } from "react";
 
 function AspectRatio({
   ratio,

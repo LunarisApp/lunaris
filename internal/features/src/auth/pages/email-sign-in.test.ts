@@ -7,13 +7,13 @@ describe("parseTwoFactorChallenge", () => {
       parseTwoFactorChallenge({
         twoFactorMethods: ["totp", "backup-code"],
         twoFactorRedirect: true,
-      }),
+      })
     ).toEqual({ methods: ["totp", "backup-code"] });
     expect(
       parseTwoFactorChallenge({
         twoFactorMethods: ["totp", null],
         twoFactorRedirect: true,
-      }),
+      })
     ).toEqual({ methods: [] });
   });
 

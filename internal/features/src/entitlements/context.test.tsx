@@ -26,12 +26,14 @@ import {
   writeEntitlementSnapshot,
 } from "./snapshot";
 
-const { api, auth, getOrganizationWorkspaceResourceUsage, region } = vi.hoisted(() => ({
-  api: { get: vi.fn() },
-  auth: { useActiveOrganization: vi.fn(), useSession: vi.fn() },
-  getOrganizationWorkspaceResourceUsage: vi.fn(),
-  region: { id: "eu" },
-}));
+const { api, auth, getOrganizationWorkspaceResourceUsage, region } = vi.hoisted(
+  () => ({
+    api: { get: vi.fn() },
+    auth: { useActiveOrganization: vi.fn(), useSession: vi.fn() },
+    getOrganizationWorkspaceResourceUsage: vi.fn(),
+    region: { id: "eu" },
+  })
+);
 
 vi.mock("@repo/data/core", () => ({ usePowerSync: () => ({ id: "db" }) }));
 vi.mock("@repo/data/features/workspace-resources", () => ({
@@ -44,7 +46,7 @@ vi.mock("../region", () => ({ useRegion: () => ({ region }) }));
 function makeSnapshot(
   plan: PlanSlug,
   organizationId = "organization-1",
-  overrides: Partial<EntitlementSnapshot> = {},
+  overrides: Partial<EntitlementSnapshot> = {}
 ): EntitlementSnapshot {
   const resolved = resolveEntitlements(plan);
   return {
@@ -88,7 +90,7 @@ function renderProbe() {
       <EntitlementsProvider>
         <Probe />
       </EntitlementsProvider>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
   return { ...view, queryClient };
 }
@@ -115,18 +117,26 @@ describe("organization entitlement snapshots", () => {
   });
 
   it("keeps verified usage limits with an expired plan snapshot", () => {
-    writeEntitlementSnapshot("eu", "user-1", "organization-1", makeSnapshot(PLAN.plus, "organization-1", {
-      resourceCount: 42,
-      memberCount: 4,
-      pendingInvitationCount: 2,
-      offlineAccessUntil: "2020-01-01T00:00:00.000Z",
-    }));
+    writeEntitlementSnapshot(
+      "eu",
+      "user-1",
+      "organization-1",
+      makeSnapshot(PLAN.plus, "organization-1", {
+        resourceCount: 42,
+        memberCount: 4,
+        pendingInvitationCount: 2,
+        offlineAccessUntil: "2020-01-01T00:00:00.000Z",
+      })
+    );
     onlineManager.setOnline(false);
     renderProbe();
     expect(screen.getByTestId("effective-plan").textContent).toBe(PLAN.free);
     expect(JSON.parse(screen.getByTestId("usage").textContent!)).toEqual({
-      resourceCount: 42, memberCount: 4, pendingInvitationCount: 2,
-      maxResources: Number.MAX_SAFE_INTEGER, maxMembers: 10,
+      resourceCount: 42,
+      memberCount: 4,
+      pendingInvitationCount: 2,
+      maxResources: Number.MAX_SAFE_INTEGER,
+      maxMembers: 10,
     });
   });
 
@@ -135,7 +145,7 @@ describe("organization entitlement snapshots", () => {
       "eu",
       "user-1",
       "organization-1",
-      makeSnapshot(PLAN.plus),
+      makeSnapshot(PLAN.plus)
     );
     onlineManager.setOnline(false);
     renderProbe();
@@ -152,7 +162,7 @@ describe("organization entitlement snapshots", () => {
       "organization-1",
       makeSnapshot(PLAN.plus, "organization-1", {
         features: { "agent-work": true },
-      }),
+      })
     );
     onlineManager.setOnline(false);
     const offline = renderProbe();
@@ -164,12 +174,12 @@ describe("organization entitlement snapshots", () => {
     api.get.mockResolvedValue(
       makeSnapshot(PLAN.plus, "organization-1", {
         features: { "agent-work": true },
-      }),
+      })
     );
     renderProbe();
 
     await waitFor(() =>
-      expect(screen.getByTestId("agentWork-access").textContent).toBe("true"),
+      expect(screen.getByTestId("agentWork-access").textContent).toBe("true")
     );
   });
 
@@ -177,12 +187,12 @@ describe("organization entitlement snapshots", () => {
     api.get.mockResolvedValue(
       makeSnapshot(PLAN.plus, "organization-1", {
         features: { "agent-work": true },
-      }),
+      })
     );
     const { queryClient } = renderProbe();
 
     await waitFor(() =>
-      expect(screen.getByTestId("agentWork-access").textContent).toBe("true"),
+      expect(screen.getByTestId("agentWork-access").textContent).toBe("true")
     );
 
     api.get.mockRejectedValue(new Error("entitlements unavailable"));
@@ -197,7 +207,7 @@ describe("organization entitlement snapshots", () => {
     });
 
     await waitFor(() =>
-      expect(screen.getByTestId("agentWork-access").textContent).toBe("false"),
+      expect(screen.getByTestId("agentWork-access").textContent).toBe("false")
     );
   });
 
@@ -206,12 +216,12 @@ describe("organization entitlement snapshots", () => {
       "eu",
       "user-1",
       "organization-1",
-      makeSnapshot(PLAN.plus),
+      makeSnapshot(PLAN.plus)
     );
     renderProbe();
 
     await waitFor(() =>
-      expect(screen.getByTestId("effective-plan").textContent).toBe(PLAN.free),
+      expect(screen.getByTestId("effective-plan").textContent).toBe(PLAN.free)
     );
   });
 
@@ -220,7 +230,7 @@ describe("organization entitlement snapshots", () => {
       "eu",
       "user-1",
       "organization-2",
-      makeSnapshot(PLAN.business, "organization-2"),
+      makeSnapshot(PLAN.business, "organization-2")
     );
     onlineManager.setOnline(false);
     renderProbe();
@@ -240,29 +250,41 @@ describe("organization entitlement snapshots", () => {
           "eu",
           "user-1",
           "organization-1",
-        ])?.status,
-      ).toBe("error"),
+        ])?.status
+      ).toBe("error")
     );
 
     expect(screen.getByTestId("effective-plan").textContent).toBe(PLAN.free);
     expect(
-      readEntitlementSnapshot("eu", "user-1", "organization-1"),
+      readEntitlementSnapshot("eu", "user-1", "organization-1")
     ).toBeNull();
   });
 
   it("reserves resource capacity using a current API snapshot", async () => {
     api.get.mockResolvedValue(
-      makeSnapshot(PLAN.free, "organization-1", { resourceCount: 24 }),
+      makeSnapshot(PLAN.free, "organization-1", { resourceCount: 24 })
     );
     const { queryClient } = renderProbe();
-    await waitFor(() => expect(queryClient.getQueryState([
-      "entitlements", "organization", "eu", "user-1", "organization-1",
-    ])?.status).toBe("success"));
+    await waitFor(() =>
+      expect(
+        queryClient.getQueryState([
+          "entitlements",
+          "organization",
+          "eu",
+          "user-1",
+          "organization-1",
+        ])?.status
+      ).toBe("success")
+    );
 
     const reservation = await reserveResourceCapacity();
-    await expect(reserveResourceCapacity()).rejects.toMatchObject({ limit: 25 });
+    await expect(reserveResourceCapacity()).rejects.toMatchObject({
+      limit: 25,
+    });
     reservation.rollback();
-    expect(readEntitlementSnapshot("eu", "user-1", "organization-1")).toMatchObject({
+    expect(
+      readEntitlementSnapshot("eu", "user-1", "organization-1")
+    ).toMatchObject({
       resourceCount: 24,
       limits: { max_resources: 25 },
     });
@@ -270,7 +292,7 @@ describe("organization entitlement snapshots", () => {
 
   it("blocks item 26 using the authoritative organization count", async () => {
     api.get.mockResolvedValue(
-      makeSnapshot(PLAN.free, "organization-1", { resourceCount: 25 }),
+      makeSnapshot(PLAN.free, "organization-1", { resourceCount: 25 })
     );
     getOrganizationWorkspaceResourceUsage.mockResolvedValue({
       localCount: 5,
@@ -286,8 +308,8 @@ describe("organization entitlement snapshots", () => {
           "eu",
           "user-1",
           "organization-1",
-        ])?.status,
-      ).toBe("success"),
+        ])?.status
+      ).toBe("success")
     );
 
     await expect(reserveResourceCapacity()).rejects.toMatchObject({
@@ -298,7 +320,7 @@ describe("organization entitlement snapshots", () => {
 
   it("counts committed and in-flight reservations without double booking", async () => {
     api.get.mockResolvedValue(
-      makeSnapshot(PLAN.free, "organization-1", { resourceCount: 24 }),
+      makeSnapshot(PLAN.free, "organization-1", { resourceCount: 24 })
     );
     getOrganizationWorkspaceResourceUsage.mockResolvedValue({
       localCount: 24,
@@ -314,22 +336,26 @@ describe("organization entitlement snapshots", () => {
           "eu",
           "user-1",
           "organization-1",
-        ])?.status,
-      ).toBe("success"),
+        ])?.status
+      ).toBe("success")
     );
 
     const first = await reserveResourceCapacity();
-    await expect(reserveResourceCapacity()).rejects.toMatchObject({ limit: 25 });
+    await expect(reserveResourceCapacity()).rejects.toMatchObject({
+      limit: 25,
+    });
 
     first.rollback();
     const replacement = await reserveResourceCapacity();
     replacement.commit();
-    await expect(reserveResourceCapacity()).rejects.toMatchObject({ limit: 25 });
+    await expect(reserveResourceCapacity()).rejects.toMatchObject({
+      limit: 25,
+    });
   });
 
   it("reconciles server refreshes and confirmed deletions", async () => {
     api.get.mockResolvedValue(
-      makeSnapshot(PLAN.free, "organization-1", { resourceCount: 24 }),
+      makeSnapshot(PLAN.free, "organization-1", { resourceCount: 24 })
     );
     getOrganizationWorkspaceResourceUsage.mockResolvedValue({
       localCount: 24,
@@ -345,24 +371,26 @@ describe("organization entitlement snapshots", () => {
           "eu",
           "user-1",
           "organization-1",
-        ])?.status,
-      ).toBe("success"),
+        ])?.status
+      ).toBe("success")
     );
 
     const created = await reserveResourceCapacity();
     created.commit();
 
     api.get.mockResolvedValue(
-      makeSnapshot(PLAN.free, "organization-1", { resourceCount: 25 }),
+      makeSnapshot(PLAN.free, "organization-1", { resourceCount: 25 })
     );
     getOrganizationWorkspaceResourceUsage.mockResolvedValue({
       localCount: 25,
       syncedCount: 25,
     });
-    await expect(reserveResourceCapacity()).rejects.toMatchObject({ limit: 25 });
+    await expect(reserveResourceCapacity()).rejects.toMatchObject({
+      limit: 25,
+    });
 
     api.get.mockResolvedValue(
-      makeSnapshot(PLAN.free, "organization-1", { resourceCount: 24 }),
+      makeSnapshot(PLAN.free, "organization-1", { resourceCount: 24 })
     );
     getOrganizationWorkspaceResourceUsage.mockResolvedValue({
       localCount: 24,
@@ -379,7 +407,9 @@ describe("organization entitlement snapshots", () => {
     });
     renderProbe();
 
-    await expect(reserveResourceCapacity()).rejects.toMatchObject({ limit: 25 });
+    await expect(reserveResourceCapacity()).rejects.toMatchObject({
+      limit: 25,
+    });
 
     getOrganizationWorkspaceResourceUsage.mockResolvedValue({
       localCount: 24,
@@ -391,7 +421,7 @@ describe("organization entitlement snapshots", () => {
 
   it("skips counting for an unlimited plan", async () => {
     api.get.mockResolvedValue(
-      makeSnapshot(PLAN.plus, "organization-1", { resourceCount: 100 }),
+      makeSnapshot(PLAN.plus, "organization-1", { resourceCount: 100 })
     );
     const { queryClient } = renderProbe();
 
@@ -403,8 +433,8 @@ describe("organization entitlement snapshots", () => {
           "eu",
           "user-1",
           "organization-1",
-        ])?.status,
-      ).toBe("success"),
+        ])?.status
+      ).toBe("success")
     );
 
     const reservation = await reserveResourceCapacity();
@@ -419,7 +449,7 @@ describe("organization entitlement snapshots", () => {
       "organization-1",
       makeSnapshot(PLAN.plus, "organization-1", {
         offlineAccessUntil: "2020-01-01T00:00:00.000Z",
-      }),
+      })
     );
     onlineManager.setOnline(false);
     renderProbe();

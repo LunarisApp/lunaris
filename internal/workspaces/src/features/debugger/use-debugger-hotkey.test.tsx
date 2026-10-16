@@ -19,11 +19,13 @@ const openTool = vi.fn();
 
 vi.mock("@tanstack/react-hotkeys", () => ({
   HotkeysProvider: ({ children }: { children: unknown }) => children,
-  useHotkey: vi.fn((key: string, callback: () => void, options?: Record<string, unknown>) => {
-    captured.key = key;
-    captured.callback = callback;
-    captured.options = options ?? null;
-  }),
+  useHotkey: vi.fn(
+    (key: string, callback: () => void, options?: Record<string, unknown>) => {
+      captured.key = key;
+      captured.callback = callback;
+      captured.options = options ?? null;
+    }
+  ),
 }));
 
 vi.mock("react-i18next", () => ({

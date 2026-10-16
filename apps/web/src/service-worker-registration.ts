@@ -14,7 +14,7 @@ interface ServiceWorkerRegistrationEnvironment {
     clearTimeout(handle: number): void;
     requestIdleCallback?(
       callback: IdleRequestCallback,
-      options?: IdleRequestOptions,
+      options?: IdleRequestOptions
     ): number;
     setTimeout(callback: () => void, timeout: number): number;
   };
@@ -22,7 +22,7 @@ interface ServiceWorkerRegistrationEnvironment {
 
 export function scheduleServiceWorkerRegistration(
   callback: () => void,
-  environment: ServiceWorkerRegistrationEnvironment = { document, window },
+  environment: ServiceWorkerRegistrationEnvironment = { document, window }
 ): () => void {
   let idleHandle: number | undefined;
   let timeoutHandle: number | undefined;
@@ -30,7 +30,9 @@ export function scheduleServiceWorkerRegistration(
   let registered = false;
 
   const register = () => {
-    if (disposed || registered) return;
+    if (disposed || registered) {
+      return;
+    }
     registered = true;
     callback();
   };
@@ -44,8 +46,11 @@ export function scheduleServiceWorkerRegistration(
     timeoutHandle = environment.window.setTimeout(register, 0);
   };
 
-  if (environment.document.readyState === "complete") scheduleWhenIdle();
-  else environment.window.addEventListener("load", scheduleWhenIdle);
+  if (environment.document.readyState === "complete") {
+    scheduleWhenIdle();
+  } else {
+    environment.window.addEventListener("load", scheduleWhenIdle);
+  }
 
   return () => {
     disposed = true;

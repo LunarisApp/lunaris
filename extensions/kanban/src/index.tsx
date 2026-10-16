@@ -11,7 +11,7 @@ import {
 import { KanbanIcon, Task01Icon } from "@lunarisapp/ui/icons";
 import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import { Map as YMap } from "yjs";
+import type { Map as YMap } from "yjs";
 import * as z from "zod";
 import {
   kanbanExporterRepresentation,
@@ -44,21 +44,21 @@ const KanbanEditor = kanbanEditorModule.Component;
 const taskEditorModule = createPreloadableLazy(() =>
   import("./components/task-content").then((module) => ({
     default: module.TaskEditor,
-  })),
+  }))
 );
 const TaskEditor = taskEditorModule.Component;
 
 function KanbanStatusBar({ resourceId }: { resourceId?: string }) {
   const { t } = useTranslation();
   const children = useWorkspaceChildrenMap();
-  if (!resourceId) return null;
+  if (!resourceId) {
+    return null;
+  }
   const count = (children.get(resourceId) ?? []).filter(
-    (item) => item.resourceTypeId === KANBAN_TASK_RESOURCE_TYPE_ID,
+    (item) => item.resourceTypeId === KANBAN_TASK_RESOURCE_TYPE_ID
   ).length;
   return (
-    <span>
-      {t("extensions.catalog.lunaris.kanban.taskCount", { count })}
-    </span>
+    <span>{t("extensions.catalog.lunaris.kanban.taskCount", { count })}</span>
   );
 }
 
@@ -79,7 +79,7 @@ const kanbanResourceType: ResourceTypeDefinition = {
       initialize: (doc) => {
         appendPropertyDefinition(
           doc.getArray<YMap<unknown>>("properties"),
-          DEFAULT_STATUS_PROPERTY,
+          DEFAULT_STATUS_PROPERTY
         );
         markPropertiesInitialized(doc);
       },
@@ -129,7 +129,7 @@ const kanbanTaskResourceType: ResourceTypeDefinition = {
         const description = context.initialPayload?.description;
         task.set(
           "description",
-          typeof description === "string" ? description : "",
+          typeof description === "string" ? description : ""
         );
         task.set("createdById", context.userId ?? "");
       },
@@ -163,7 +163,10 @@ export const kanbanPlugin = definePlugin({
     contributions.resourceType(kanbanTaskResourceType);
     contributions.view(kanbanView);
     contributions.view(kanbanTaskView);
-    slots.contribute(kanbanExporterRepresentations, kanbanExporterRepresentation);
+    slots.contribute(
+      kanbanExporterRepresentations,
+      kanbanExporterRepresentation
+    );
     contributions.locales({ de, en, es, fr, "pt-BR": ptBR });
   },
 });

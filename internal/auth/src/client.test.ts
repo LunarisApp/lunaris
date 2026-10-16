@@ -1,9 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import type { BetterAuthClientPlugin } from "better-auth/client";
-import {
-  createAuthClient,
-  LAST_LOGIN_METHOD_COOKIE_NAME,
-} from "./client";
+import { createAuthClient, LAST_LOGIN_METHOD_COOKIE_NAME } from "./client";
 
 describe("createAuthClient", () => {
   it("exposes a stable function name for development diagnostics", () => {
@@ -61,7 +58,7 @@ describe("createAuthClient", () => {
   it("reads the configured last login method cookie", () => {
     const originalDocument = Object.getOwnPropertyDescriptor(
       globalThis,
-      "document",
+      "document"
     );
     Object.defineProperty(globalThis, "document", {
       configurable: true,

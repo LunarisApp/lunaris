@@ -22,7 +22,9 @@ export function readLastLoginMethodCookie(cookieHeader: string) {
     .find((part) => part.startsWith(prefix))
     ?.slice(prefix.length);
 
-  if (!value) return null;
+  if (!value) {
+    return null;
+  }
   try {
     return asVisibleLoginMethod(decodeURIComponent(value));
   } catch {
@@ -49,21 +51,27 @@ export function useLastLoginMethod(): VisibleLoginMethod | null {
 
   useEffect(() => {
     const getCookie = auth.getCookie;
-    if (browserMethod || platformKind !== "desktop" || !getCookie) return;
+    if (browserMethod || platformKind !== "desktop" || !getCookie) {
+      return;
+    }
 
     let active = true;
     setDesktopMethod(null);
 
     getCookie()
       .then((cookieHeader) => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setDesktopMethod({
           auth,
           method: readLastLoginMethodCookie(cookieHeader),
         });
       })
       .catch(() => {
-        if (active) setDesktopMethod({ auth, method: null });
+        if (active) {
+          setDesktopMethod({ auth, method: null });
+        }
       });
 
     return () => {
@@ -71,7 +79,9 @@ export function useLastLoginMethod(): VisibleLoginMethod | null {
     };
   }, [auth, browserMethod, platformKind]);
 
-  if (browserMethod) return browserMethod;
+  if (browserMethod) {
+    return browserMethod;
+  }
   return platformKind === "desktop" && desktopMethod?.auth === auth
     ? desktopMethod.method
     : null;

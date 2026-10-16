@@ -25,58 +25,64 @@ vi.mock("@repo/data/features/yjs", () => ({
 
 vi.mock("@repo/data/features/workspace-storage-slots", () => ({
   useResourceStorageSlots: () => ({
-    data: [{
-      backing_id: "yjs_1",
-      id: "storage_1",
-      kind: "yjs",
-      name: "content",
-    }],
+    data: [
+      {
+        backing_id: "yjs_1",
+        id: "storage_1",
+        kind: "yjs",
+        name: "content",
+      },
+    ],
   }),
 }));
 
 vi.mock("@lunarisapp/plugin-sdk", () => ({
-  useResourceCommands: () => [{
-    definition: {
-      commands: [
-      {
-        children: [
+  useResourceCommands: () => [
+    {
+      definition: {
+        commands: [
           {
-            id: "export-pdf",
-            iconElement: <span data-testid="custom-action-icon" />,
-            labelKey: "extensions.catalog.lunaris.rich-text.exportPdf",
-            onExecute: testState.exportAction,
+            children: [
+              {
+                id: "export-pdf",
+                iconElement: <span data-testid="custom-action-icon" />,
+                labelKey: "extensions.catalog.lunaris.rich-text.exportPdf",
+                onExecute: testState.exportAction,
+              },
+              {
+                id: "export-markdown",
+                labelKey: "extensions.catalog.lunaris.rich-text.exportMarkdown",
+                onExecute: testState.exportAction,
+              },
+            ],
+            icon: {},
+            id: "export-as",
+            labelKey: "extensions.catalog.lunaris.rich-text.exportAs",
           },
           {
-            id: "export-markdown",
-            labelKey: "extensions.catalog.lunaris.rich-text.exportMarkdown",
-            onExecute: testState.exportAction,
+            icon: {},
+            id: "version-history",
+            labelKey: "common.versionHistory",
+            onExecute: ({ resourceId, openView }: ResourceCommandContext) =>
+              openView({
+                viewId: "lunaris.rich-text.version-history",
+                titleKey: "common.versionHistory",
+                params: { resourceId },
+              }),
           },
         ],
-        icon: {},
-        id: "export-as",
-        labelKey: "extensions.catalog.lunaris.rich-text.exportAs",
       },
-      {
-        icon: {},
-        id: "version-history",
-        labelKey: "common.versionHistory",
-        onExecute: ({ resourceId, openView }: ResourceCommandContext) =>
-          openView({
-            viewId: "lunaris.rich-text.version-history",
-            titleKey: "common.versionHistory",
-            params: { resourceId },
-          }),
+    },
+  ],
+  useViews: () => [
+    {
+      definition: {
+        target: { kind: "standalone" },
+        viewId: "lunaris.rich-text.version-history",
       },
-      ],
+      extensionId: "lunaris.rich-text",
     },
-  }],
-  useViews: () => [{
-    definition: {
-      target: { kind: "standalone" },
-      viewId: "lunaris.rich-text.version-history",
-    },
-    extensionId: "lunaris.rich-text",
-  }],
+  ],
   useFileStorage: () => {
     throw new Error("Scoped extension hook must not be used by host UI");
   },
@@ -117,9 +123,11 @@ vi.mock("@lunarisapp/ui/blocks/responsive-dropdown-menu", () => ({
       </button>
     </div>
   ),
-  ResponsiveDropdownMenuContent: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  ResponsiveDropdownMenuContent: ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) => <div>{children}</div>,
   ResponsiveDropdownMenuItem: ({
     children,
     onClick,
@@ -128,9 +136,11 @@ vi.mock("@lunarisapp/ui/blocks/responsive-dropdown-menu", () => ({
     onClick?: () => void;
   }) => <button onClick={onClick}>{children}</button>,
   ResponsiveDropdownMenuSeparator: () => <div />,
-  ResponsiveDropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
-    <button>{children}</button>
-  ),
+  ResponsiveDropdownMenuTrigger: ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) => <button>{children}</button>,
 }));
 
 vi.mock("@lunarisapp/ui/components/dropdown-menu", () => ({
@@ -182,8 +192,11 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("../grid-layout/context", () => ({
-  useGridLayoutStore: (selector: (state: { openRightDockPanel: typeof openRightDockPanelMock }) => unknown) =>
-    selector({ openRightDockPanel: openRightDockPanelMock }),
+  useGridLayoutStore: (
+    selector: (state: {
+      openRightDockPanel: typeof openRightDockPanelMock;
+    }) => unknown
+  ) => selector({ openRightDockPanel: openRightDockPanelMock }),
 }));
 
 vi.mock("@repo/features/hotkeys", () => ({
@@ -235,11 +248,11 @@ describe("EditorOptions", () => {
   it("passes plugin action context with host right-dock helper", async () => {
     const user = userEvent.setup();
 
-    render(
-      <EditorOptions resource={resource} />
-    );
+    render(<EditorOptions resource={resource} />);
 
-    await user.click(screen.getByRole("button", { name: /common.versionHistory/i }));
+    await user.click(
+      screen.getByRole("button", { name: /common.versionHistory/i })
+    );
 
     expect(openRightDockPanelMock).toHaveBeenCalledWith({
       extensionId: "lunaris.rich-text",
@@ -255,9 +268,7 @@ describe("EditorOptions", () => {
   it("renders grouped actions as desktop submenu commands", async () => {
     const user = userEvent.setup();
 
-    render(
-      <EditorOptions resource={resource} />
-    );
+    render(<EditorOptions resource={resource} />);
 
     expect(
       screen.getByRole("button", {
@@ -298,9 +309,7 @@ describe("EditorOptions", () => {
     testState.isMobile = true;
     const user = userEvent.setup();
 
-    render(
-      <EditorOptions resource={resource} />
-    );
+    render(<EditorOptions resource={resource} />);
 
     expect(
       screen.queryByRole("button", {

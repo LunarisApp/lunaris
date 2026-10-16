@@ -32,14 +32,14 @@ export function usePermission(permission: AppPermission): boolean {
 }
 
 export function useAllPermissions(
-  permissions: readonly AppPermission[],
+  permissions: readonly AppPermission[]
 ): boolean {
   const check = usePermissionCheck();
   return permissions.every(check);
 }
 
 export function useAnyPermission(
-  permissions: readonly AppPermission[],
+  permissions: readonly AppPermission[]
 ): boolean {
   const check = usePermissionCheck();
   return permissions.some(check);
@@ -47,11 +47,11 @@ export function useAnyPermission(
 
 export function requirePermission(
   check: PermissionCheck,
-  requiredPermission: AppPermission,
+  requiredPermission: AppPermission
 ): void {
   if (!check(requiredPermission)) {
     throw new Error(
-      `Permission denied: ${requiredPermission.resource}.${requiredPermission.action}`,
+      `Permission denied: ${requiredPermission.resource}.${requiredPermission.action}`
     );
   }
 }

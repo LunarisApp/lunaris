@@ -54,7 +54,7 @@ function IndexRedirect({ initialLocationKey }: { initialLocationKey: string }) {
       isPending: true,
     };
   const accountSwitchTargetUserId = getAccountSwitchTargetUserId(
-    location.state,
+    location.state
   );
   const accountMatches =
     !accountSwitchTargetUserId ||
@@ -92,7 +92,9 @@ function RootLayoutContent() {
   const { authClient } = useRegionClients();
   const { agentSessionBridge: AgentSessionBridge } = useAppRuntime();
 
-  if (!authClient) return <RootLoaderFallback />;
+  if (!authClient) {
+    return <RootLoaderFallback />;
+  }
 
   return (
     <AuthProvider client={authClient}>
@@ -168,11 +170,9 @@ const AUTH_PAGE_LOADERS = {
   "verify-email": () => import("@repo/features/auth/pages/verify-email"),
 } as const;
 
-const lazyAuthPage = (page: keyof typeof AUTH_PAGE_LOADERS) => {
-  return async () => ({
-    Component: (await AUTH_PAGE_LOADERS[page]()).default,
-  });
-};
+const lazyAuthPage = (page: keyof typeof AUTH_PAGE_LOADERS) => async () => ({
+  Component: (await AUTH_PAGE_LOADERS[page]()).default,
+});
 
 const createAppRouter = (shell: Shell, runtime?: RoutingRuntime) => {
   const initialLocationKey = window.history.state?.key ?? "default";
@@ -299,7 +299,7 @@ const createAppRouter = (shell: Shell, runtime?: RoutingRuntime) => {
                   },
                   children: createSettingsChildRoutes(
                     shell,
-                    runtime?.cookieSettingsLink,
+                    runtime?.cookieSettingsLink
                   ),
                 },
                 {
@@ -346,7 +346,7 @@ const AppRouter = ({ runtime, shell }: AppRouterProps) => {
         cookieSettingsLink,
         createRegionClients,
       }),
-    [authCallbackBaseUrl, cookieSettingsLink, createRegionClients, shell],
+    [authCallbackBaseUrl, cookieSettingsLink, createRegionClients, shell]
   );
   return <RouterProvider router={router} />;
 };

@@ -27,11 +27,11 @@ describe("Kanban plugin lazy views", () => {
   it("keeps editor code lazy during activation and preloads each view", async () => {
     const activation = await preparePluginActivation(plugin);
     const views = activation.contributions.filter(
-      (contribution) => contribution.type === "view",
+      (contribution) => contribution.type === "view"
     );
     const boardView = views.find((view) => view.viewId === KANBAN_PLUGIN_ID);
     const taskView = views.find(
-      (view) => view.viewId === KANBAN_TASK_RESOURCE_TYPE_ID,
+      (view) => view.viewId === KANBAN_TASK_RESOURCE_TYPE_ID
     );
 
     expect(boardModuleLoaded).not.toHaveBeenCalled();

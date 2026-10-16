@@ -17,7 +17,7 @@ export function useWorkspaceSearch(
     excludeCurrentWorkspace?: boolean;
     includeAllWhenEmpty?: boolean;
     limit?: number;
-  } = {},
+  } = {}
 ): WorkspaceSearchResult[] {
   const excludeCurrentWorkspace = options.excludeCurrentWorkspace ?? false;
   const includeAllWhenEmpty = options.includeAllWhenEmpty ?? false;
@@ -40,7 +40,7 @@ export function useWorkspaceSearch(
         query,
         workspaceId,
         t("common.untitled"),
-        { excludeCurrentWorkspace, includeAllWhenEmpty, limit },
+        { excludeCurrentWorkspace, includeAllWhenEmpty, limit }
       ),
     [
       excludeCurrentWorkspace,
@@ -50,6 +50,6 @@ export function useWorkspaceSearch(
       workspacesQuery.data,
       query,
       t,
-    ],
+    ]
   );
 }

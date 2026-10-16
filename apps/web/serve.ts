@@ -54,11 +54,15 @@ function isProduction(): boolean {
 
 function getRegionDirectoryOrigins(): string[] {
   const value = process.env.VITE_REGION_DIRECTORY_JSON;
-  if (!value) return [];
+  if (!value) {
+    return [];
+  }
 
   try {
     const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) return [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
 
     return Array.from(
       new Set(
@@ -79,7 +83,9 @@ function getRegionDirectoryOrigins(): string[] {
 }
 
 function getOriginFromValue(value: string | undefined): string | null {
-  if (!value) return null;
+  if (!value) {
+    return null;
+  }
 
   try {
     return new URL(value).origin;
@@ -96,28 +102,36 @@ function getForwardedProtocol(req: Request, url: URL): "http" | "https" {
   const xForwardedProto = req.headers.get("x-forwarded-proto");
   if (xForwardedProto) {
     const proto = xForwardedProto.split(",")[0]?.trim().toLowerCase();
-    if (proto === "http" || proto === "https") return proto;
+    if (proto === "http" || proto === "https") {
+      return proto;
+    }
   }
 
   const forwarded = req.headers.get("forwarded");
   if (forwarded) {
     const match = forwarded.match(/(?:^|[;,]\s*)proto=(https?|http)/i);
     const proto = match?.[1]?.toLowerCase();
-    if (proto === "http" || proto === "https") return proto;
+    if (proto === "http" || proto === "https") {
+      return proto;
+    }
   }
 
   const cfVisitor = req.headers.get("cf-visitor");
   if (cfVisitor) {
     const match = cfVisitor.match(/"scheme":"(https?|http)"/i);
     const proto = match?.[1]?.toLowerCase();
-    if (proto === "http" || proto === "https") return proto;
+    if (proto === "http" || proto === "https") {
+      return proto;
+    }
   }
 
   return url.protocol === "https:" ? "https" : "http";
 }
 
 function shouldRedirectToHttps(req: Request, url: URL): boolean {
-  if (LOCAL_HOSTS.has(url.hostname)) return false;
+  if (LOCAL_HOSTS.has(url.hostname)) {
+    return false;
+  }
   return getForwardedProtocol(req, url) === "http";
 }
 
@@ -223,7 +237,7 @@ export function applySecurityHeaders(headers: Headers, isHttps: boolean) {
 export function applyCacheHeaders(
   headers: Headers,
   pathname: string,
-  isSpaFallback = false,
+  isSpaFallback = false
 ) {
   if (isSpaFallback || UPDATE_CRITICAL_PATHS.has(pathname)) {
     headers.set("Cache-Control", UPDATE_CACHE_CONTROL);
@@ -234,7 +248,7 @@ export function applyCacheHeaders(
     "Cache-Control",
     HASHED_FILE_PATH.test(pathname)
       ? IMMUTABLE_CACHE_CONTROL
-      : REVALIDATE_CACHE_CONTROL,
+      : REVALIDATE_CACHE_CONTROL
   );
 }
 
@@ -265,8 +279,12 @@ export async function handleRequest(req: Request): Promise<Response> {
   }
 
   const resolved = resolve(distDir, `.${normalize(url.pathname)}`);
-  if (!resolved.startsWith(distDir))
-    return withSecurityHeaders(new Response("Forbidden", { status: 403 }), isHttps);
+  if (!resolved.startsWith(distDir)) {
+    return withSecurityHeaders(
+      new Response("Forbidden", { status: 403 }),
+      isHttps
+    );
+  }
 
   const file = Bun.file(resolved);
   if (await file.exists()) {
@@ -294,7 +312,9 @@ if (import.meta.main) {
 
   let shuttingDown = false;
   const shutdown = async () => {
-    if (shuttingDown) return;
+    if (shuttingDown) {
+      return;
+    }
     shuttingDown = true;
     server.stop();
     await webServerDrain?.flush();

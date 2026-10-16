@@ -9,14 +9,18 @@ export interface PowerSyncRuntimeMode {
 }
 
 function supportsPowerSyncMultiTabs() {
-  if (typeof SharedWorker === "undefined") return false;
-  if (typeof navigator === "undefined") return false;
-  if (typeof window === "undefined") return false;
+  if (typeof SharedWorker === "undefined") {
+    return false;
+  }
+  if (typeof navigator === "undefined") {
+    return false;
+  }
+  if (typeof window === "undefined") {
+    return false;
+  }
 
   const userAgent = navigator.userAgent;
-  return !(
-    /(Android|iPhone|iPod|iPad)/i.test(userAgent) || "safari" in window
-  );
+  return !(/(Android|iPhone|iPod|iPad)/i.test(userAgent) || "safari" in window);
 }
 
 export function resolveRuntimeFlags(): PowerSyncRuntimeMode {

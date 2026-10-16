@@ -24,12 +24,12 @@ export interface PluginRuntimeTarget {
 }
 
 export type PluginRuntimeReconciler = (
-  target: PluginRuntimeTarget,
+  target: PluginRuntimeTarget
 ) => Promise<Record<string, Error | undefined>>;
 
 interface OrganizationPluginRuntimeValue extends AvailablePluginRegistry {
   registerRuntimeReconciler: (
-    reconciler: PluginRuntimeReconciler,
+    reconciler: PluginRuntimeReconciler
   ) => () => void;
 }
 
@@ -45,7 +45,7 @@ interface RuntimeWaiter {
 class WorkspaceRuntimeController {
   private failedExtensionIds = new Set<string>();
   private readonly onFailuresChanged: (
-    extensionIds: ReadonlySet<string>,
+    extensionIds: ReadonlySet<string>
   ) => void;
   private reconciler: PluginRuntimeReconciler | null = null;
   private reconcilerEpoch = 0;
@@ -86,16 +86,20 @@ class WorkspaceRuntimeController {
 
   private matches(waiter: RuntimeWaiter, target: PluginRuntimeTarget) {
     const enabled = target.enabledExtensionIds.includes(
-      waiter.change.extensionId,
+      waiter.change.extensionId
     );
-    if (enabled !== waiter.change.enabled) return false;
+    if (enabled !== waiter.change.enabled) {
+      return false;
+    }
     if (
       waiter.change.enabled &&
       target.extensionAvailability[waiter.change.extensionId] !== "available"
     ) {
       return true;
     }
-    if (!waiter.change.revision) return true;
+    if (!waiter.change.revision) {
+      return true;
+    }
     return (
       target.runtimeRevisions[waiter.change.extensionId] ===
       waiter.change.revision
@@ -103,28 +107,33 @@ class WorkspaceRuntimeController {
   }
 
   private schedule() {
-    if (this.running || !this.reconciler || !this.target) return;
+    if (this.running || !this.reconciler || !this.target) {
+      return;
+    }
     this.running = true;
     void this.run();
   }
 
   private updateFailures(
     errors: Record<string, Error | undefined>,
-    target: PluginRuntimeTarget,
+    target: PluginRuntimeTarget
   ) {
     const next = new Set(this.failedExtensionIds);
     for (const extensionId of next) {
-      if (!(extensionId in target.runtimeRevisions)) next.delete(extensionId);
+      if (!(extensionId in target.runtimeRevisions)) {
+        next.delete(extensionId);
+      }
     }
     for (const extensionId of target.enabledExtensionIds) {
-      if (errors[extensionId] ?? errors["*"]) next.add(extensionId);
-      else next.delete(extensionId);
+      if (errors[extensionId] ?? errors["*"]) {
+        next.add(extensionId);
+      } else {
+        next.delete(extensionId);
+      }
     }
     if (
       next.size === this.failedExtensionIds.size &&
-      [...next].every((extensionId) =>
-        this.failedExtensionIds.has(extensionId),
-      )
+      [...next].every((extensionId) => this.failedExtensionIds.has(extensionId))
     ) {
       return;
     }
@@ -139,28 +148,39 @@ class WorkspaceRuntimeController {
         const reconcilerEpoch = this.reconcilerEpoch;
         const target = this.target;
         const errors: Record<string, Error | undefined> = await reconciler(
-          target,
+          target
         ).catch((error: unknown) => ({
           "*": error instanceof Error ? error : new Error(String(error)),
         }));
-        if (reconcilerEpoch !== this.reconcilerEpoch) continue;
+        if (reconcilerEpoch !== this.reconcilerEpoch) {
+          continue;
+        }
         this.updateFailures(errors, target);
         for (const waiter of [...this.waiters]) {
-          if (!this.matches(waiter, target)) continue;
+          if (!this.matches(waiter, target)) {
+            continue;
+          }
           this.waiters.delete(waiter);
           const error = errors[waiter.change.extensionId] ?? errors["*"];
-          if (error) waiter.reject(error);
-          else waiter.resolve();
+          if (error) {
+            waiter.reject(error);
+          } else {
+            waiter.resolve();
+          }
         }
-        if (target === this.target && reconciler === this.reconciler) break;
+        if (target === this.target && reconciler === this.reconciler) {
+          break;
+        }
       }
     } finally {
       this.running = false;
       if (this.reconciler && this.target) {
         const pending = [...this.waiters].some((waiter) =>
-          this.matches(waiter, this.target!),
+          this.matches(waiter, this.target!)
         );
-        if (pending) this.schedule();
+        if (pending) {
+          this.schedule();
+        }
       }
     }
   }
@@ -211,12 +231,16 @@ export function WorkspacePluginRuntimeProvider({
   const controllerRef = useRef<WorkspaceRuntimeController | null>(null);
   if (!controllerRef.current) {
     controllerRef.current = new WorkspaceRuntimeController((extensionIds) => {
-      if (mountedRef.current) setRuntimeFailureIds(extensionIds);
+      if (mountedRef.current) {
+        setRuntimeFailureIds(extensionIds);
+      }
     });
   }
   const controller = controllerRef.current;
   const readyRegistryRef = useRef<AvailablePluginRegistry | null>(null);
-  if (!registry.pending) readyRegistryRef.current = registry;
+  if (!registry.pending) {
+    readyRegistryRef.current = registry;
+  }
   const stableRegistry = readyRegistryRef.current ?? registry;
   const extensionAvailability = useMemo(() => {
     if (runtimeFailureIds.size === 0) {
@@ -239,13 +263,21 @@ export function WorkspacePluginRuntimeProvider({
   }, []);
 
   useEffect(() => {
-    if (registry.pending) return;
+    if (registry.pending) {
+      return;
+    }
     controller.setTarget({
       enabledExtensionIds: registry.enabledExtensionIds,
       extensionAvailability: registry.extensionAvailability,
       runtimeRevisions: registry.runtimeRevisions,
     });
-  }, [controller, registry.enabledExtensionIds, registry.extensionAvailability, registry.pending, registry.runtimeRevisions]);
+  }, [
+    controller,
+    registry.enabledExtensionIds,
+    registry.extensionAvailability,
+    registry.pending,
+    registry.runtimeRevisions,
+  ]);
 
   useEffect(
     () =>
@@ -253,7 +285,7 @@ export function WorkspacePluginRuntimeProvider({
         void registry.refreshWorkspaceExtensions();
         controller.refresh();
       }),
-    [controller, workspaceId, registry.refreshWorkspaceExtensions],
+    [controller, workspaceId, registry.refreshWorkspaceExtensions]
   );
 
   const value = useMemo<OrganizationPluginRuntimeValue>(
@@ -261,7 +293,7 @@ export function WorkspacePluginRuntimeProvider({
       ...stableRegistry,
       registerRuntimeReconciler: controller.register,
     }),
-    [controller.register, stableRegistry],
+    [controller.register, stableRegistry]
   );
 
   return (
@@ -286,7 +318,7 @@ export function useOrganizationPluginRuntime(): OrganizationPluginRuntimeValue {
   const value = useContext(OrganizationPluginRuntimeContext);
   if (!value) {
     throw new Error(
-      "useOrganizationPluginRuntime must be used within OrganizationPluginRuntimeProvider",
+      "useOrganizationPluginRuntime must be used within OrganizationPluginRuntimeProvider"
     );
   }
   return value;

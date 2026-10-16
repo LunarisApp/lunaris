@@ -23,7 +23,9 @@ export function getTaskAssignments(yDoc: Doc) {
 export function getOrCreateTaskAssignment(yDoc: Doc, taskId: string) {
   const assignments = getTaskAssignments(yDoc);
   const existing = assignments.get(taskId);
-  if (existing) return existing;
+  if (existing) {
+    return existing;
+  }
 
   const assignment = new YjsMap<unknown>();
   assignments.set(taskId, assignment);
@@ -36,27 +38,36 @@ export function clearTaskPropertyAssignments(
   optionId?: string,
   multiple = false
 ) {
-  if (!propertyId) return;
+  if (!propertyId) {
+    return;
+  }
   const assignments = getTaskAssignments(yDoc);
   const assignmentKey = getPropertyAssignmentKey(propertyId);
 
   for (const [taskId, assignment] of assignments) {
-    if (optionId !== undefined) {
+    if (optionId === undefined) {
+      assignment.delete(assignmentKey);
+    } else {
       const value = assignment.get(assignmentKey);
       if (multiple && Array.isArray(value)) {
         const next = value.filter((candidate) => candidate !== optionId);
-        if (next.length === value.length) continue;
-        if (next.length > 0) assignment.set(assignmentKey, next);
-        else assignment.delete(assignmentKey);
+        if (next.length === value.length) {
+          continue;
+        }
+        if (next.length > 0) {
+          assignment.set(assignmentKey, next);
+        } else {
+          assignment.delete(assignmentKey);
+        }
       } else if (value === optionId) {
         assignment.delete(assignmentKey);
       } else {
         continue;
       }
-    } else {
-      assignment.delete(assignmentKey);
     }
-    if (assignment.size === 0) assignments.delete(taskId);
+    if (assignment.size === 0) {
+      assignments.delete(taskId);
+    }
   }
 }
 
@@ -81,7 +92,9 @@ export function setTaskPropertyValue(
   if (value === null || !hasPropertyValue(value)) {
     const assignment = assignments.get(taskId);
     assignment?.delete(assignmentKey);
-    if (assignment?.size === 0) assignments.delete(taskId);
+    if (assignment?.size === 0) {
+      assignments.delete(taskId);
+    }
     return;
   }
   getOrCreateTaskAssignment(yDoc, taskId).set(assignmentKey, value);

@@ -208,7 +208,9 @@ function Kanban<T>({
 
   const findContainer = useCallback(
     (id: UniqueIdentifier) => {
-      if (isColumn(id)) return id as string;
+      if (isColumn(id)) {
+        return id as string;
+      }
       return columnIds.find((key) =>
         columns[key]?.some((item) => getItemValue(item) === id)
       );
@@ -223,13 +225,17 @@ function Kanban<T>({
       kind: "item" | "column"
     ) => {
       const origin = dragOriginRef.current;
-      if (!onValueCommit || !origin) return;
+      if (!(onValueCommit && origin)) {
+        return;
+      }
 
       const id = event.active.id;
       if (kind === "column") {
         const keys = Object.keys(finalValue);
         const overIndex = keys.indexOf(id as string);
-        if (overIndex === -1 || overIndex === origin.index) return;
+        if (overIndex === -1 || overIndex === origin.index) {
+          return;
+        }
 
         onValueCommit(finalValue, {
           activeContainer: id as string,
@@ -254,7 +260,9 @@ function Kanban<T>({
           break;
         }
       }
-      if (overContainer === undefined) return;
+      if (overContainer === undefined) {
+        return;
+      }
       if (overContainer === origin.container && overIndex === origin.index) {
         return;
       }
@@ -277,7 +285,9 @@ function Kanban<T>({
       setActiveId(event.active.id);
       onDragStart?.(event);
 
-      if (!(onValueCommit || restoreOnCancel)) return;
+      if (!(onValueCommit || restoreOnCancel)) {
+        return;
+      }
 
       const snapshot = valueRef.current;
       const id = event.active.id;
@@ -314,18 +324,39 @@ function Kanban<T>({
       }
 
       const { active, over } = event;
-      if (!over) return;
+      if (!over) {
+        return;
+      }
 
-      if (isColumn(active.id)) return;
+      if (isColumn(active.id)) {
+        return;
+      }
 
       const activeContainer = findContainer(active.id);
       const overContainer = findContainer(over.id);
 
-      if (!activeContainer || !overContainer) {
+      if (!(activeContainer && overContainer)) {
         return;
       }
 
-      if (activeContainer !== overContainer) {
+      if (activeContainer === overContainer) {
+        const container = activeContainer;
+        const activeIndex = columns[container]!.findIndex(
+          (item: T) => getItemValue(item) === active.id
+        );
+        const overIndex = isColumn(over.id)
+          ? columns[container]!.length - 1
+          : columns[container]!.findIndex(
+              (item: T) => getItemValue(item) === over.id
+            );
+
+        if (activeIndex !== overIndex) {
+          setColumns({
+            ...columns,
+            [container]: arrayMove(columns[container]!, activeIndex, overIndex),
+          });
+        }
+      } else {
         const activeItems = columns[activeContainer]!;
         const overItems = columns[overContainer]!;
 
@@ -351,23 +382,6 @@ function Kanban<T>({
           [activeContainer]: newActiveItems,
           [overContainer]: newOverItems,
         });
-      } else {
-        const container = activeContainer;
-        const activeIndex = columns[container]!.findIndex(
-          (item: T) => getItemValue(item) === active.id
-        );
-        const overIndex = isColumn(over.id)
-          ? columns[container]!.length - 1
-          : columns[container]!.findIndex(
-              (item: T) => getItemValue(item) === over.id
-            );
-
-        if (activeIndex !== overIndex) {
-          setColumns({
-            ...columns,
-            [container]: arrayMove(columns[container]!, activeIndex, overIndex),
-          });
-        }
       }
     },
     [findContainer, getItemValue, isColumn, setColumns, columns, onMove]
@@ -384,12 +398,7 @@ function Kanban<T>({
       setActiveId(null);
       onDragCancel?.(event);
     },
-    [
-      onDragCancel,
-      onMove,
-      restoreOnCancel,
-      setColumns,
-    ]
+    [onDragCancel, onMove, restoreOnCancel, setColumns]
   );
 
   const handleDragEnd = useCallback(
@@ -481,15 +490,15 @@ function Kanban<T>({
               (item: T) => getItemValue(item) === over.id
             );
 
-        if (activeIndex !== overIndex) {
+        if (activeIndex === overIndex) {
+          commitChange(columns, event, "item");
+        } else {
           const newColumns = {
             ...columns,
             [container]: arrayMove(columns[container]!, activeIndex, overIndex),
           };
           setColumns(newColumns);
           commitChange(newColumns, event, "item");
-        } else {
-          commitChange(columns, event, "item");
         }
       } else {
         commitChange(columns, event, "item");
@@ -660,7 +669,7 @@ function KanbanColumn({
     style,
     className: cn(
       "group/kanban-column flex flex-col",
-      isSortableDragging && "opacity-50 z-50",
+      isSortableDragging && "z-50 opacity-50",
       disabled && "opacity-50",
       className
     ),
@@ -781,7 +790,7 @@ function KanbanItem({
     style,
     ...attributes,
     className: cn(
-      isSortableDragging && "opacity-50 z-50",
+      isSortableDragging && "z-50 opacity-50",
       disabled && "opacity-50",
       className
     ),
@@ -893,7 +902,9 @@ function KanbanOverlay({ children, className, ...props }: KanbanOverlayProps) {
         : children
       : null;
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return null;
+  }
 
   return createPortal(
     <DragOverlay

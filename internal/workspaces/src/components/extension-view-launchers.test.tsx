@@ -40,7 +40,9 @@ vi.mock("@repo/workspaces/organization-navigation", () => ({
 describe("ExtensionViewLaunchers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useOrganizationViewStateMock.mockReturnValue({ activeViewInstanceId: null });
+    useOrganizationViewStateMock.mockReturnValue({
+      activeViewInstanceId: null,
+    });
     useViewsMock.mockReturnValue([
       {
         definition: {

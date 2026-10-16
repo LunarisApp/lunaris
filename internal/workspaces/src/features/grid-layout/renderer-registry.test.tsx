@@ -15,11 +15,9 @@ describe("createRegisteredRenderer", () => {
     const Renderer = createRegisteredRenderer(builder);
 
     render(
-      <>
-        {Renderer({
-          params: { [GRID_LAYOUT_UNLOADED_PARAM]: false, viewId: "doc-1" },
-        } as never)}
-      </>
+      Renderer({
+        params: { [GRID_LAYOUT_UNLOADED_PARAM]: false, viewId: "doc-1" },
+      } as never)
     );
 
     expect(builder).toHaveBeenCalledOnce();
@@ -32,11 +30,9 @@ describe("createRegisteredRenderer", () => {
     const Renderer = createRegisteredRenderer(builder);
 
     render(
-      <>
-        {Renderer({
-          params: { [GRID_LAYOUT_UNLOADED_PARAM]: true },
-        } as never)}
-      </>
+      Renderer({
+        params: { [GRID_LAYOUT_UNLOADED_PARAM]: true },
+      } as never)
     );
 
     expect(builder).not.toHaveBeenCalled();

@@ -42,7 +42,9 @@ function HelpButton({
 }
 
 function onOpen(open: boolean) {
-  if (open) posthog.capture("help_center_opened");
+  if (open) {
+    posthog.capture("help_center_opened");
+  }
 }
 
 export function HelpCenterPopover({
@@ -92,11 +94,7 @@ export function HelpCenterPopover({
           <HelpButton className={className} size={size} variant={variant} />
         }
       />
-      <PopoverContent
-        align={align}
-        className="grid w-96 gap-4 p-3"
-        side={side}
-      >
+      <PopoverContent align={align} className="grid w-96 gap-4 p-3" side={side}>
         <HelpCenterDocsSection />
         <Separator />
         <HelpCenterSupportSection />

@@ -22,55 +22,55 @@
     <meta name="theme-color" content="#fbfaf7">
     <title>Lunaris</title>
     <style>
-      html,
-      body,
-      #root {
-        min-height: 100%;
-        margin: 0;
-      }
+    html,
+    body,
+    #root {
+      min-height: 100%;
+      margin: 0;
+    }
 
+    .lunaris-initial-loader {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      color: #25231f;
+      background: #fbfaf7;
+    }
+
+    .lunaris-initial-spinner {
+      box-sizing: border-box;
+      width: 2rem;
+      height: 2rem;
+      border: 3px solid rgb(37 35 31 / 20%);
+      border-top-color: currentColor;
+      border-radius: 9999px;
+      animation: lunaris-initial-spin 0.8s linear infinite;
+    }
+
+    @media (prefers-color-scheme: dark) {
       .lunaris-initial-loader {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100dvh;
-        color: #25231f;
-        background: #fbfaf7;
+        color: #eeece7;
+        background: #191817;
       }
 
       .lunaris-initial-spinner {
-        box-sizing: border-box;
-        width: 2rem;
-        height: 2rem;
-        border: 3px solid rgb(37 35 31 / 20%);
+        border-color: rgb(238 236 231 / 20%);
         border-top-color: currentColor;
-        border-radius: 9999px;
-        animation: lunaris-initial-spin 0.8s linear infinite;
       }
+    }
 
-      @media (prefers-color-scheme: dark) {
-        .lunaris-initial-loader {
-          color: #eeece7;
-          background: #191817;
-        }
-
-        .lunaris-initial-spinner {
-          border-color: rgb(238 236 231 / 20%);
-          border-top-color: currentColor;
-        }
+    @media (prefers-reduced-motion: reduce) {
+      .lunaris-initial-spinner {
+        animation: none;
       }
+    }
 
-      @media (prefers-reduced-motion: reduce) {
-        .lunaris-initial-spinner {
-          animation: none;
-        }
+    @keyframes lunaris-initial-spin {
+      to {
+        transform: rotate(360deg);
       }
-
-      @keyframes lunaris-initial-spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
+    }
     </style>
   </head>
   <body>

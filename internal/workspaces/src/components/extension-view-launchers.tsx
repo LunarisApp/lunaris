@@ -29,10 +29,14 @@ function ExtensionViewLauncher({
   const viewInstanceId = createViewInstanceId(definition.viewId);
   const preloadStarted = useRef<RegisteredView["definition"] | null>(null);
   const preload = useCallback(() => {
-    if (!definition.preload || preloadStarted.current === definition) return;
+    if (!definition.preload || preloadStarted.current === definition) {
+      return;
+    }
     preloadStarted.current = definition;
     void definition.preload().catch((error) => {
-      if (preloadStarted.current === definition) preloadStarted.current = null;
+      if (preloadStarted.current === definition) {
+        preloadStarted.current = null;
+      }
       log.debug({
         action: "extension_view.preload",
         outcome: "failure",

@@ -14,11 +14,13 @@ export interface RegionSessionSource {
 type FetchImplementation = typeof globalThis.fetch;
 type NativeFetchImplementation = (
   input: RequestInfo | URL,
-  init?: RequestInit & ClientOptions,
+  init?: RequestInit & ClientOptions
 ) => Promise<Response>;
 
 function requestUrl(input: RequestInfo | URL) {
-  if (input instanceof Request) return new URL(input.url);
+  if (input instanceof Request) {
+    return new URL(input.url);
+  }
   return new URL(input.toString(), window.location.href);
 }
 
@@ -34,19 +36,29 @@ export function createDesktopFetchBridge({
   return async (input, init) => {
     const url = requestUrl(input);
     const session = sessions.get(url.origin);
-    if (!session) return browserFetch(input, init);
+    if (!session) {
+      return browserFetch(input, init);
+    }
     const credentials =
-      init?.credentials ?? (input instanceof Request ? input.credentials : undefined);
+      init?.credentials ??
+      (input instanceof Request ? input.credentials : undefined);
 
-    const headers = new Headers(input instanceof Request ? input.headers : undefined);
-    new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
+    const headers = new Headers(
+      input instanceof Request ? input.headers : undefined
+    );
+    new Headers(init?.headers).forEach((value, key) => {
+      headers.set(key, value);
+    });
     headers.delete("cookie");
     headers.delete("x-tauri-cookie");
 
-    const authCookie = credentials === "omit" ? "" : await session.getAuthCookie();
+    const authCookie =
+      credentials === "omit" ? "" : await session.getAuthCookie();
 
     headers.set("tauri-origin", DESKTOP_ORIGIN);
-    if (authCookie) headers.set("x-tauri-cookie", authCookie);
+    if (authCookie) {
+      headers.set("x-tauri-cookie", authCookie);
+    }
 
     const response = await nativeFetch(input, {
       ...init,

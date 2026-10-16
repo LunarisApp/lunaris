@@ -12,7 +12,10 @@ import { validateDesktopProductionEnv } from "./production-env";
 const notices = distributionNotices();
 
 export default defineConfig(({ mode }) => {
-  const buildEnv = { ...loadEnv(mode, __dirname, ""), ...process.env };
+  const buildEnv = {
+    ...loadEnv(mode, import.meta.dirname, ""),
+    ...process.env,
+  };
   if (mode === "production" && buildEnv.TAURI_ENV_DEBUG !== "true") {
     validateDesktopProductionEnv(buildEnv);
   }
@@ -54,26 +57,38 @@ export default defineConfig(({ mode }) => {
         },
         {
           find: "@repo/app-shell",
-          replacement: path.resolve(__dirname, "../../internal/app-shell/src"),
+          replacement: path.resolve(
+            import.meta.dirname,
+            "../../internal/app-shell/src"
+          ),
         },
         {
           find: "@repo/data/schema",
           replacement: path.resolve(
-            __dirname,
-            "../../internal/data/src/features/index.ts",
+            import.meta.dirname,
+            "../../internal/data/src/features/index.ts"
           ),
         },
         {
           find: "@repo/data",
-          replacement: path.resolve(__dirname, "../../internal/data/src"),
+          replacement: path.resolve(
+            import.meta.dirname,
+            "../../internal/data/src"
+          ),
         },
         {
           find: "@lunarisapp/ui",
-          replacement: path.resolve(__dirname, "../../packages/ui/src"),
+          replacement: path.resolve(
+            import.meta.dirname,
+            "../../packages/ui/src"
+          ),
         },
         {
           find: "@repo/features",
-          replacement: path.resolve(__dirname, "../../internal/features/src"),
+          replacement: path.resolve(
+            import.meta.dirname,
+            "../../internal/features/src"
+          ),
         },
       ],
     },

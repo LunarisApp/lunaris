@@ -29,12 +29,11 @@ export function NameField({ name, originalName }: NameFieldProps) {
 
   const handleBlur = async () => {
     if (
-      !canUpdate ||
-      !activeOrg ||
-      !value.trim() ||
+      !(canUpdate && activeOrg && value.trim()) ||
       value.trim() === originalName
-    )
+    ) {
       return;
+    }
     const { error } = await auth.organization.update({
       data: { name: value.trim() },
       organizationId: activeOrg.id,

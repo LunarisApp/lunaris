@@ -6,7 +6,7 @@ import posthog from "posthog-js";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
-import { object, string, z } from "zod";
+import { object, string, type z } from "zod";
 import { useRegion } from "../../region";
 import { AuthLayout } from "../components/auth-layout";
 import { useAuth } from "../context";
@@ -52,13 +52,19 @@ export default function ResetPasswordPage() {
           <p className="text-destructive text-sm">
             {t("auth.invalidResetToken")}
           </p>
-          {manifest?.capabilities?.passwordResetEmail !== false ? <Link
-            className="text-primary text-sm underline underline-offset-4"
-            data-testid="auth-reset-forgot-link"
-            to={pathWithRegion("/auth/forgot-password")}
-          >
-            {t("auth.forgotPassword")}
-          </Link> : <p className="text-muted-foreground text-sm">{t("auth.emailRecoveryUnavailable")}</p>}
+          {manifest?.capabilities?.passwordResetEmail === false ? (
+            <p className="text-muted-foreground text-sm">
+              {t("auth.emailRecoveryUnavailable")}
+            </p>
+          ) : (
+            <Link
+              className="text-primary text-sm underline underline-offset-4"
+              data-testid="auth-reset-forgot-link"
+              to={pathWithRegion("/auth/forgot-password")}
+            >
+              {t("auth.forgotPassword")}
+            </Link>
+          )}
         </div>
       </AuthLayout>
     );
@@ -87,7 +93,9 @@ export default function ResetPasswordPage() {
         <Field>
           <FieldLabel htmlFor="password">{t("auth.newPassword")}</FieldLabel>
           <Input
-            aria-describedby={errors.password ? "reset-password-error" : undefined}
+            aria-describedby={
+              errors.password ? "reset-password-error" : undefined
+            }
             aria-invalid={!!errors.password}
             autoComplete="new-password"
             autoFocus
@@ -127,7 +135,7 @@ export default function ResetPasswordPage() {
           {t("auth.resetPassword")}
         </Button>
       </form>
-      <p className="text-muted-foreground mt-4 text-center text-sm">
+      <p className="mt-4 text-center text-muted-foreground text-sm">
         <Link
           className="text-primary underline underline-offset-4"
           to={pathWithRegion("/auth")}

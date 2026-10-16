@@ -1,4 +1,7 @@
-import type { ResourcePresenceResult, ResourceAwarenessResult } from "./resource-presence";
+import type {
+  ResourcePresenceResult,
+  ResourceAwarenessResult,
+} from "./resource-presence";
 import type { JsonValue } from "./json";
 import type {
   PluginAwarenessOptions,
@@ -48,17 +51,21 @@ export interface PluginDataCapabilities {
     workspaceId: string,
     options?: { enabled?: boolean; userId?: string | null }
   ) => PluginReadyYjsDocument;
-  useResourceAwareness?: (extensionId: string, channel: string, options?: PluginAwarenessOptions) => ResourceAwarenessResult<JsonValue>;
+  useResourceAwareness?: (
+    extensionId: string,
+    channel: string,
+    options?: PluginAwarenessOptions
+  ) => ResourceAwarenessResult<JsonValue>;
   useResourcePresence?: () => ResourcePresenceResult;
   useWorkspaceKeyValue: <T>(
     pluginId: string,
     storageId: string,
-    key: string,
+    key: string
   ) => PluginStorageValue<T>;
   useYjsAwareness?: (
     storage: ResourceStorageHandle | undefined,
     workspaceId: string,
-    options?: PluginAwarenessOptions,
+    options?: PluginAwarenessOptions
   ) => PluginAwarenessResult;
 }
 

@@ -15,8 +15,9 @@ export function PlainTextRenderer({ filename, text }: LoadedTextRendererProps) {
   return (
     <div className="h-full overflow-auto bg-background p-4">
       <pre
+        role="region"
         aria-label={filename}
-        className="whitespace-pre-wrap break-words font-mono text-sm leading-6 text-foreground"
+        className="whitespace-pre-wrap break-words font-mono text-foreground text-sm leading-6"
       >
         {text}
       </pre>

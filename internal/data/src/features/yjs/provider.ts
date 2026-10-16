@@ -94,7 +94,9 @@ export class YjsPowersyncProvider extends ObservableV2<YjsPowerSyncEvents> {
       }
     };
     void watchLoop().catch((error: unknown) => {
-      if (this.abortController.signal.aborted) return;
+      if (this.abortController.signal.aborted) {
+        return;
+      }
       const normalized =
         error instanceof Error ? error : new Error(String(error));
       this.emit("error", [normalized]);

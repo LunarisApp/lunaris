@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Doc } from "yjs";
-import {
-  RICH_TEXT_MAX_DOCUMENT_BLOCKS,
-} from "./constants";
+import { RICH_TEXT_MAX_DOCUMENT_BLOCKS } from "./constants";
 import type { RichTextBlockInput } from "./mcp-contract";
 import { richTextDocumentOutputSchema } from "./mcp-contract";
 import {
@@ -64,7 +62,7 @@ describe("Rich Text MCP runtime", () => {
         documentResourceId: "item-1",
         ...result,
         revision: "revision-1",
-      }).success,
+      }).success
     ).toBe(true);
     await expect(getRichTextDocument(doc)).resolves.toEqual(result);
     doc.destroy();
@@ -104,7 +102,7 @@ describe("Rich Text MCP runtime", () => {
           type: "paragraph",
           children: [{ id: "same", type: "paragraph" }],
         },
-      ]),
+      ])
     ).rejects.toThrow("Duplicate Rich Text block ID: same");
     expect((await getRichTextDocument(doc)).markdown).toContain("Keep me");
     doc.destroy();
@@ -119,7 +117,7 @@ describe("Rich Text MCP runtime", () => {
     await expect(
       replaceRichTextDocument(doc, [
         { id: "custom", type: "custom" },
-      ] as unknown as RichTextBlockInput[]),
+      ] as unknown as RichTextBlockInput[])
     ).rejects.toThrow(RichTextMcpInputError);
     expect((await getRichTextDocument(doc)).markdown).toContain("Keep me");
     doc.destroy();
@@ -129,11 +127,11 @@ describe("Rich Text MCP runtime", () => {
     const doc = new Doc();
     const blocks = Array.from(
       { length: RICH_TEXT_MAX_DOCUMENT_BLOCKS + 1 },
-      (_, index) => ({ id: `block-${index}`, type: "paragraph" as const }),
+      (_, index) => ({ id: `block-${index}`, type: "paragraph" as const })
     );
 
     await expect(replaceRichTextDocument(doc, blocks)).rejects.toThrow(
-      `Rich Text document exceeds ${RICH_TEXT_MAX_DOCUMENT_BLOCKS} block limit`,
+      `Rich Text document exceeds ${RICH_TEXT_MAX_DOCUMENT_BLOCKS} block limit`
     );
     expect((await getRichTextDocument(doc)).blocks).toEqual([]);
     doc.destroy();
@@ -149,7 +147,7 @@ describe("Rich Text MCP runtime", () => {
           type: "paragraph",
           content: "x".repeat(5 * 1024 * 1024),
         },
-      ]),
+      ])
     ).rejects.toThrow("Rich Text document exceeds 5 MiB size limit");
     expect((await getRichTextDocument(doc)).blocks).toEqual([]);
     doc.destroy();

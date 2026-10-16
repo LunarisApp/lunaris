@@ -9,7 +9,7 @@ interface WorkspaceRoleRow {
 
 export function useWorkspaceMemberRole(
   workspaceId: string | undefined,
-  userId: string | undefined,
+  userId: string | undefined
 ) {
   const query = useQuery<WorkspaceRoleRow>(
     `SELECT workspace_members.role
@@ -18,7 +18,7 @@ export function useWorkspaceMemberRole(
        ON member.id = workspace_members.organization_member_id
      WHERE workspace_members.workspace_id = ? AND member.user_id = ?
      LIMIT 1`,
-    [workspaceId ?? "", userId ?? ""],
+    [workspaceId ?? "", userId ?? ""]
   );
   const role = query.data?.[0]?.role;
   return {

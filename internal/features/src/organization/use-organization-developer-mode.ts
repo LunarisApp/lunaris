@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export function useOrganizationDeveloperMode(
   organizationId: string | undefined,
-  enabled = true,
+  enabled = true
 ) {
   const api = useApi();
   return useQuery({
@@ -13,7 +13,7 @@ export function useOrganizationDeveloperMode(
     queryFn: ({ signal }) =>
       api.get<{ enabled: boolean }>(
         `/v1/organizations/${encodeURIComponent(organizationId ?? "")}/extension-registries/developer-mode`,
-        { signal },
+        { signal }
       ),
     enabled: Boolean(organizationId) && enabled,
   });

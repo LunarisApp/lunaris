@@ -41,7 +41,7 @@ interface WorkspaceRouteContext {
 
 export async function routeLocalContentRequest(
   client: LunarisControlClient,
-  request: LocalContentRequest,
+  request: LocalContentRequest
 ): Promise<LocalContentResponse> {
   try {
     const segments = request.path
@@ -58,8 +58,8 @@ export async function routeLocalContentRequest(
       return success(
         await client.listOrganizations(
           parseQuery(paginationInputSchema, query),
-          read,
-        ),
+          read
+        )
       );
     }
     const organizationId = required(segments[2], "organization ID");
@@ -75,8 +75,8 @@ export async function routeLocalContentRequest(
               ...objectBody(request.body),
               expectedRevision: revision(request),
             }),
-            writeOptions(request),
-          ),
+            writeOptions(request)
+          )
         );
       }
     }
@@ -86,8 +86,8 @@ export async function routeLocalContentRequest(
           await client.listOrganizationMembers(
             organizationId,
             parseQuery(paginationInputSchema, query),
-            read,
-          ),
+            read
+          )
         );
       }
       if (
@@ -99,8 +99,8 @@ export async function routeLocalContentRequest(
           await client.inviteOrganizationMember(
             organizationId,
             parseBody(inviteOrganizationMemberInputSchema, request.body),
-            writeOptions(request),
-          ),
+            writeOptions(request)
+          )
         );
       }
       const memberId = required(segments[4], "member ID");
@@ -113,8 +113,8 @@ export async function routeLocalContentRequest(
           await client.previewRemoveOrganizationMember(
             organizationId,
             memberId,
-            read,
-          ),
+            read
+          )
         );
       }
       if (segments.length === 5 && method === "DELETE") {
@@ -123,8 +123,8 @@ export async function routeLocalContentRequest(
             organizationId,
             memberId,
             previewToken(request),
-            writeOptions(request),
-          ),
+            writeOptions(request)
+          )
         );
       }
       return failure(404, "NOT_FOUND", "Agent endpoint not found");
@@ -135,8 +135,8 @@ export async function routeLocalContentRequest(
           await client.listWorkspaces(
             organizationId,
             parseQuery(paginationInputSchema, query),
-            read,
-          ),
+            read
+          )
         );
       }
       if (method === "POST") {
@@ -144,8 +144,8 @@ export async function routeLocalContentRequest(
           await client.createWorkspace(
             organizationId,
             parseBody(createWorkspaceInputSchema, request.body),
-            writeOptions(request),
-          ),
+            writeOptions(request)
+          )
         );
       }
     }
@@ -154,8 +154,8 @@ export async function routeLocalContentRequest(
         await client.searchResources(
           organizationId,
           parseQuery(workspaceResourceSearchInputSchema, query),
-          read,
-        ),
+          read
+        )
       );
     }
     if (segments[3] !== "workspaces") {
@@ -164,7 +164,9 @@ export async function routeLocalContentRequest(
     const workspaceId = required(segments[4], "workspace ID");
     if (segments.length === 5) {
       if (method === "GET") {
-        return success(await client.getWorkspace(organizationId, workspaceId, read));
+        return success(
+          await client.getWorkspace(organizationId, workspaceId, read)
+        );
       }
       if (method === "PATCH") {
         return success(
@@ -175,8 +177,8 @@ export async function routeLocalContentRequest(
               ...objectBody(request.body),
               expectedRevision: revision(request),
             }),
-            writeOptions(request),
-          ),
+            writeOptions(request)
+          )
         );
       }
       if (method === "DELETE") {
@@ -185,8 +187,8 @@ export async function routeLocalContentRequest(
             organizationId,
             workspaceId,
             previewToken(request),
-            writeOptions(request),
-          ),
+            writeOptions(request)
+          )
         );
       }
     }
@@ -196,7 +198,7 @@ export async function routeLocalContentRequest(
       method === "POST"
     ) {
       return success(
-        await client.previewDeleteWorkspace(organizationId, workspaceId, read),
+        await client.previewDeleteWorkspace(organizationId, workspaceId, read)
       );
     }
     const context = {
@@ -213,7 +215,9 @@ export async function routeLocalContentRequest(
       (await routeWorkspaceResources(context)) ??
       (await routeWorkspacePlugin(context)) ??
       (await routeStorage(context));
-    if (nestedResponse) return nestedResponse;
+    if (nestedResponse) {
+      return nestedResponse;
+    }
     return failure(404, "NOT_FOUND", "Agent endpoint not found");
   } catch (error) {
     if (error instanceof URIError) {
@@ -236,7 +240,7 @@ export async function routeLocalContentRequest(
         candidate.status,
         candidate.code,
         candidate.message,
-        candidate.details,
+        candidate.details
       );
     }
     log.error({
@@ -248,11 +252,7 @@ export async function routeLocalContentRequest(
       error: serializeErrorForLog(error),
       outcome: "failure",
     });
-    return failure(
-      500,
-      "INTERNAL_ERROR",
-      "Desktop agent request failed",
-    );
+    return failure(500, "INTERNAL_ERROR", "Desktop agent request failed");
   }
 }
 
@@ -281,11 +281,13 @@ async function routeWorkspacePlugin({
         required(segments[6], "extension ID"),
         required(segments[8], "extension operation"),
         query,
-        read,
-      ),
+        read
+      )
     );
   }
-  if (method !== "POST") return undefined;
+  if (method !== "POST") {
+    return undefined;
+  }
   const expectedRevision = optionalRevision(request);
   return success(
     await client.executePluginOperation(
@@ -297,8 +299,8 @@ async function routeWorkspacePlugin({
         ...objectBody(request.body),
         ...(expectedRevision ? { expectedRevision } : {}),
       },
-      writeOptions(request),
-    ),
+      writeOptions(request)
+    )
   );
 }
 
@@ -312,7 +314,9 @@ async function routeWorkspaceResources({
   segments,
   organizationId,
 }: WorkspaceRouteContext): Promise<LocalContentResponse | undefined> {
-  if (segments[5] !== "resources") return undefined;
+  if (segments[5] !== "resources") {
+    return undefined;
+  }
   if (segments.length === 6) {
     if (method === "GET") {
       return success(
@@ -320,8 +324,8 @@ async function routeWorkspaceResources({
           organizationId,
           workspaceId,
           parseQuery(workspaceResourceFiltersSchema, query),
-          read,
-        ),
+          read
+        )
       );
     }
     if (method === "POST") {
@@ -333,8 +337,8 @@ async function routeWorkspaceResources({
           {
             ...writeOptions(request),
             expectedParentResourceTypeId: query.expectedParentResourceTypeId,
-          },
-        ),
+          }
+        )
       );
     }
   }
@@ -342,7 +346,12 @@ async function routeWorkspaceResources({
   if (segments.length === 7) {
     if (method === "GET") {
       return success(
-        await client.getWorkspaceResource(organizationId, workspaceId, resourceId, read),
+        await client.getWorkspaceResource(
+          organizationId,
+          workspaceId,
+          resourceId,
+          read
+        )
       );
     }
     if (method === "PATCH") {
@@ -355,8 +364,8 @@ async function routeWorkspaceResources({
             ...objectBody(request.body),
             expectedRevision: revision(request),
           }),
-          writeOptions(request),
-        ),
+          writeOptions(request)
+        )
       );
     }
     if (method === "DELETE") {
@@ -371,8 +380,8 @@ async function routeWorkspaceResources({
             ...(query.expectedResourceTypeId
               ? { expectedResourceTypeId: query.expectedResourceTypeId }
               : {}),
-          },
-        ),
+          }
+        )
       );
     }
   }
@@ -391,8 +400,8 @@ async function routeWorkspaceResources({
           ...(query.expectedResourceTypeId
             ? { expectedResourceTypeId: query.expectedResourceTypeId }
             : {}),
-        },
-      ),
+        }
+      )
     );
   }
   return undefined;
@@ -407,27 +416,37 @@ async function routeStorage({
   segments,
   organizationId,
 }: WorkspaceRouteContext): Promise<LocalContentResponse | undefined> {
-  if (segments[5] !== "storage" || method !== "GET") return undefined;
+  if (segments[5] !== "storage" || method !== "GET") {
+    return undefined;
+  }
   const storageId = required(segments[6], "storage ID");
-  if (segments.length === 9 && segments[7] === "yjs" && segments[8] === "json") {
+  if (
+    segments.length === 9 &&
+    segments[7] === "yjs" &&
+    segments[8] === "json"
+  ) {
     return success(
       await client.getYjsStorageJson(
         organizationId,
         workspaceId,
         storageId,
-        read,
-      ),
+        read
+      )
     );
   }
-  if (segments.length === 9 && segments[7] === "yjs" && segments[8] === "state") {
+  if (
+    segments.length === 9 &&
+    segments[7] === "yjs" &&
+    segments[8] === "state"
+  ) {
     return success(
       await client.getYjsStorageState(
         organizationId,
         workspaceId,
         storageId,
         query.stateVectorB64,
-        read,
-      ),
+        read
+      )
     );
   }
   if (segments.length === 8 && segments[7] === "values") {
@@ -436,18 +455,22 @@ async function routeStorage({
         organizationId,
         workspaceId,
         storageId,
-        read,
-      ),
+        read
+      )
     );
   }
-  if (segments.length === 9 && segments[7] === "file" && segments[8] === "download-url") {
+  if (
+    segments.length === 9 &&
+    segments[7] === "file" &&
+    segments[8] === "download-url"
+  ) {
     return success(
       await client.getFileDownloadUrl(
         organizationId,
         workspaceId,
         storageId,
-        read,
-      ),
+        read
+      )
     );
   }
   return undefined;
@@ -455,7 +478,7 @@ async function routeStorage({
 
 function parseQuery<Output>(
   schema: { parse: (value: unknown) => Output },
-  query: Record<string, string>,
+  query: Record<string, string>
 ): Output {
   return parseBody(schema, {
     ...query,
@@ -465,7 +488,7 @@ function parseQuery<Output>(
 
 function parseBody<Output>(
   schema: { parse: (value: unknown) => Output },
-  body: unknown,
+  body: unknown
 ): Output {
   try {
     return schema.parse(body);
@@ -485,7 +508,7 @@ function writeOptions(request: LocalContentRequest) {
   return {
     idempotencyKey: required(
       request.headers?.["idempotency-key"],
-      "Idempotency-Key",
+      "Idempotency-Key"
     ),
   };
 }
@@ -503,12 +526,16 @@ function readOptions(request: LocalContentRequest): ContentRequestOptions {
 
 function revision(request: LocalContentRequest) {
   const value = required(request.headers?.["if-match"], "If-Match");
-  return value.startsWith('"') && value.endsWith('"') ? value.slice(1, -1) : value;
+  return value.startsWith('"') && value.endsWith('"')
+    ? value.slice(1, -1)
+    : value;
 }
 
 function optionalRevision(request: LocalContentRequest) {
   const value = request.headers?.["if-match"];
-  if (!value) return undefined;
+  if (!value) {
+    return;
+  }
   return value.startsWith('"') && value.endsWith('"')
     ? value.slice(1, -1)
     : value;
@@ -519,13 +546,17 @@ function previewToken(request: LocalContentRequest) {
 }
 
 function integer(value?: string) {
-  if (value === undefined) return undefined;
+  if (value === undefined) {
+    return;
+  }
   const parsed = Number(value);
   return Number.isInteger(parsed) ? parsed : value;
 }
 
 function required(value: string | undefined, name: string) {
-  if (!value) throw requestError(`${name} is required`);
+  if (!value) {
+    throw requestError(`${name} is required`);
+  }
   return value;
 }
 
@@ -545,7 +576,7 @@ function failure(
   status: number,
   code: string,
   message: string,
-  details?: unknown,
+  details?: unknown
 ): LocalContentResponse {
   return {
     body: {

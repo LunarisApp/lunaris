@@ -46,7 +46,9 @@ function getTotpSecret(totpURI: string): string {
 }
 
 function ErrorMessage({ error }: { error: string | null }) {
-  if (!error) return null;
+  if (!error) {
+    return null;
+  }
   return (
     <p className="text-destructive text-sm" role="alert">
       {error}
@@ -143,7 +145,7 @@ function SetupProgress({ step }: { step: SetupStep }) {
             />
             <span
               className={`block truncate text-xs ${
-                active ? "text-foreground font-medium" : "text-muted-foreground"
+                active ? "font-medium text-foreground" : "text-muted-foreground"
               }`}
             >
               {index + 1}. {labels[item]}
@@ -173,7 +175,7 @@ export function TwoFactorSetupDialog({
   const [code, setCode] = useState("");
   const [acknowledged, setAcknowledged] = useState(false);
   const [busy, setBusy] = useState<"enable" | "verify" | "cleanup" | null>(
-    null,
+    null
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -195,7 +197,7 @@ export function TwoFactorSetupDialog({
     try {
       const result = await auth.twoFactor.disable(
         { password },
-        { disableSignal: true },
+        { disableSignal: true }
       );
       if (result.error) {
         log.warn({
@@ -218,7 +220,9 @@ export function TwoFactorSetupDialog({
   };
 
   const completeEnrollment = () => {
-    if (!acknowledged) return;
+    if (!acknowledged) {
+      return;
+    }
     toast.success(t("settings.security.twoFactorEnabledToast"));
     reset();
     onOpenChange(false);
@@ -230,7 +234,9 @@ export function TwoFactorSetupDialog({
       onOpenChange(true);
       return;
     }
-    if (busy || (step === "recovery" && !acknowledged)) return;
+    if (busy || (step === "recovery" && !acknowledged)) {
+      return;
+    }
     if (step === "recovery") {
       completeEnrollment();
       return;
@@ -245,13 +251,15 @@ export function TwoFactorSetupDialog({
 
   const handleEnable = async (event: FormEvent) => {
     event.preventDefault();
-    if (!password || busy) return;
+    if (!password || busy) {
+      return;
+    }
     setBusy("enable");
     setError(null);
     try {
       const result = await auth.twoFactor.enable(
         { password },
-        { disableSignal: true },
+        { disableSignal: true }
       );
       if (result.error) {
         posthog.capture("two_factor_setup_failed", { step: "enable" });
@@ -259,8 +267,7 @@ export function TwoFactorSetupDialog({
         return;
       }
       if (
-        !result.data ||
-        !("totpURI" in result.data) ||
+        !(result.data && "totpURI" in result.data) ||
         typeof result.data.totpURI !== "string" ||
         !("backupCodes" in result.data) ||
         !Array.isArray(result.data.backupCodes)
@@ -288,13 +295,15 @@ export function TwoFactorSetupDialog({
 
   const handleVerify = async (event: FormEvent) => {
     event.preventDefault();
-    if (code.length !== 6 || busy || !setup) return;
+    if (code.length !== 6 || busy || !setup) {
+      return;
+    }
     setBusy("verify");
     setError(null);
     try {
       const result = await auth.twoFactor.verifyTotp(
         { code },
-        { disableSignal: true },
+        { disableSignal: true }
       );
       if (result.error) {
         posthog.capture("two_factor_setup_failed", { step: "verify" });
@@ -351,17 +360,15 @@ export function TwoFactorSetupDialog({
           step === "authenticator" ? "sm:max-w-2xl" : "sm:max-w-xl"
         }`}
         data-testid="two-factor-setup-dialog"
-        showCloseButton={
-          busy === null && (step !== "recovery" || acknowledged)
-        }
+        showCloseButton={busy === null && (step !== "recovery" || acknowledged)}
       >
-        <DialogHeader className="shrink-0 border-b px-4 pt-4 pb-3 pr-12">
+        <DialogHeader className="shrink-0 border-b px-4 pt-4 pr-12 pb-3">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
           <SetupProgress step={step} />
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-1">
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-1">
           {step === "password" ? (
             <form
               className="space-y-3 py-3"
@@ -399,7 +406,7 @@ export function TwoFactorSetupDialog({
               >
                 <div className="space-y-1">
                   <h3
-                    className="text-sm font-medium"
+                    className="font-medium text-sm"
                     id="two-factor-scan-heading"
                   >
                     {t("settings.security.twoFactorScanQrTitle")}
@@ -409,7 +416,7 @@ export function TwoFactorSetupDialog({
                   </p>
                 </div>
 
-                <div className="bg-muted/50 grid min-w-0 max-w-full gap-4 overflow-hidden rounded-xl p-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
+                <div className="grid min-w-0 max-w-full gap-4 overflow-hidden rounded-xl bg-muted/50 p-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
                   <div
                     aria-label={t("settings.security.twoFactorQrLabel")}
                     className="mx-auto w-fit rounded-lg bg-white p-3 sm:mx-0"
@@ -427,7 +434,7 @@ export function TwoFactorSetupDialog({
                   {secret ? (
                     <div className="min-w-0 max-w-full space-y-3 overflow-hidden">
                       <div className="space-y-1">
-                        <p className="text-sm font-medium">
+                        <p className="font-medium text-sm">
                           {t("settings.security.twoFactorManualSetupTitle")}
                         </p>
                         <p className="text-muted-foreground text-sm">
@@ -435,11 +442,11 @@ export function TwoFactorSetupDialog({
                         </p>
                       </div>
                       <pre
-                        aria-label={t(
-                          "settings.security.twoFactorSecretLabel",
-                        )}
-                        className="w-full min-w-0 overflow-x-auto whitespace-pre rounded-md border bg-background px-3 py-2 font-mono text-xs select-all"
+                        role="region"
+                        aria-label={t("settings.security.twoFactorSecretLabel")}
+                        className="w-full min-w-0 select-all overflow-x-auto whitespace-pre rounded-md border bg-background px-3 py-2 font-mono text-xs"
                         data-testid="two-factor-secret"
+                        // biome-ignore lint/a11y/noNoninteractiveTabindex: Focusable secret supports keyboard scrolling and selection.
                         tabIndex={0}
                       >
                         {secret}
@@ -464,7 +471,7 @@ export function TwoFactorSetupDialog({
               >
                 <div className="space-y-1">
                   <h3
-                    className="text-sm font-medium"
+                    className="font-medium text-sm"
                     id="two-factor-verification-heading"
                   >
                     {t("settings.security.twoFactorVerificationTitle")}
@@ -478,7 +485,9 @@ export function TwoFactorSetupDialog({
                     {t("settings.security.authenticatorCode")}
                   </Label>
                   <InputOTP
-                    aria-describedby={error ? "two-factor-setup-error" : undefined}
+                    aria-describedby={
+                      error ? "two-factor-setup-error" : undefined
+                    }
                     aria-invalid={Boolean(error)}
                     autoComplete="one-time-code"
                     autoFocus
@@ -498,6 +507,7 @@ export function TwoFactorSetupDialog({
                         <InputOTPSlot
                           className="size-9 sm:size-10"
                           index={index}
+                          // biome-ignore lint/suspicious/noArrayIndexKey: Fixed placeholders or stateless rows; position is the intended identity.
                           key={index}
                         />
                       ))}
@@ -529,7 +539,7 @@ export function TwoFactorSetupDialog({
         </div>
 
         <DialogFooter className="m-0 shrink-0 rounded-none px-4">
-          {step !== "recovery" ? (
+          {step === "recovery" ? null : (
             <Button
               disabled={busy !== null}
               onClick={() => requestOpenChange(false)}
@@ -538,7 +548,7 @@ export function TwoFactorSetupDialog({
             >
               {t("common.cancel")}
             </Button>
-          ) : null}
+          )}
           {step === "password" ? (
             <Button
               disabled={!password || busy !== null}
@@ -605,14 +615,18 @@ export function RegenerateBackupCodesDialog({
       onOpenChange(true);
       return;
     }
-    if (busy || (codes && !acknowledged)) return;
+    if (busy || (codes && !acknowledged)) {
+      return;
+    }
     reset();
     onOpenChange(false);
   };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!password || busy) return;
+    if (!password || busy) {
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -643,7 +657,9 @@ export function RegenerateBackupCodesDialog({
   };
 
   const finish = () => {
-    if (!acknowledged) return;
+    if (!acknowledged) {
+      return;
+    }
     toast.success(t("settings.security.backupCodesRegenerated"));
     reset();
     onRegenerated();
@@ -654,9 +670,9 @@ export function RegenerateBackupCodesDialog({
       <DialogContent
         className="flex max-h-[85dvh] flex-col overflow-hidden p-0 sm:max-w-xl"
         data-testid="two-factor-regenerate-dialog"
-        showCloseButton={!busy && !codes}
+        showCloseButton={!(busy || codes)}
       >
-        <DialogHeader className="shrink-0 border-b px-4 pt-4 pb-3 pr-12">
+        <DialogHeader className="shrink-0 border-b px-4 pt-4 pr-12 pb-3">
           <DialogTitle>
             {codes
               ? t("settings.security.backupCodesTitle")
@@ -703,7 +719,7 @@ export function RegenerateBackupCodesDialog({
           )}
         </div>
         <DialogFooter className="m-0 shrink-0 rounded-none px-4">
-          {!codes ? (
+          {codes ? null : (
             <Button
               disabled={busy}
               onClick={() => requestOpenChange(false)}
@@ -712,7 +728,7 @@ export function RegenerateBackupCodesDialog({
             >
               {t("common.cancel")}
             </Button>
-          ) : null}
+          )}
           {codes ? (
             <Button disabled={!acknowledged} onClick={finish} type="button">
               {t("common.done")}
@@ -755,14 +771,20 @@ export function DisableTwoFactorDialog({
   };
 
   const requestOpenChange = (nextOpen: boolean) => {
-    if (busy) return;
-    if (!nextOpen) reset();
+    if (busy) {
+      return;
+    }
+    if (!nextOpen) {
+      reset();
+    }
     onOpenChange(nextOpen);
   };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!password || busy) return;
+    if (!password || busy) {
+      return;
+    }
     setBusy(true);
     setError(null);
     try {

@@ -1,4 +1,11 @@
-import { type PointerEvent, type RefObject, useCallback, useRef } from "react";
+import {
+  type PointerEvent,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   FOCUS_MODE_WIDTH_MIN,
   useGridLayoutStore,
@@ -26,10 +33,26 @@ export function FocusModeWidthHandle({
     maxWidth: number;
   } | null>(null);
 
+  const [containerWidth, setContainerWidth] = useState(width);
+  useEffect(() => {
+    const container = outerRef.current;
+    if (!container) {
+      return;
+    }
+    const update = () =>
+      setContainerWidth(container.getBoundingClientRect().width);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [outerRef]);
+
   const handlePointerDown = useCallback(
     (e: PointerEvent<HTMLDivElement>) => {
       const container = outerRef.current;
-      if (!container) return;
+      if (!container) {
+        return;
+      }
       e.preventDefault();
       e.currentTarget.setPointerCapture(e.pointerId);
       dragRef.current = {
@@ -44,7 +67,9 @@ export function FocusModeWidthHandle({
   const handlePointerMove = useCallback(
     (e: PointerEvent<HTMLDivElement>) => {
       const drag = dragRef.current;
-      if (!drag) return;
+      if (!drag) {
+        return;
+      }
       const delta = e.clientX - drag.startX;
       const factor = side === "right" ? 1 : -1;
       const raw = drag.startWidth + 2 * delta * factor;
@@ -58,7 +83,9 @@ export function FocusModeWidthHandle({
   );
 
   const handlePointerUp = useCallback((e: PointerEvent<HTMLDivElement>) => {
-    if (!dragRef.current) return;
+    if (!dragRef.current) {
+      return;
+    }
     dragRef.current = null;
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
@@ -69,7 +96,36 @@ export function FocusModeWidthHandle({
     <div
       aria-label="Resize content width"
       aria-orientation="vertical"
-      className={`group absolute inset-y-0 z-10 w-4 cursor-ew-resize touch-none select-none ${
+      aria-valuemin={FOCUS_MODE_WIDTH_MIN}
+      aria-valuemax={Math.max(containerWidth, width, FOCUS_MODE_WIDTH_MIN)}
+      aria-valuenow={width}
+      aria-valuetext={`${width} pixels`}
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (
+          event.key !== "ArrowLeft" &&
+          event.key !== "ArrowRight" &&
+          event.key !== "Home" &&
+          event.key !== "End"
+        ) {
+          return;
+        }
+        const maxWidth = outerRef.current?.getBoundingClientRect().width;
+        if (!maxWidth) {
+          return;
+        }
+        event.preventDefault();
+        const direction =
+          (event.key === "ArrowRight" ? 1 : -1) * (side === "right" ? 1 : -1);
+        const next =
+          event.key === "Home"
+            ? FOCUS_MODE_WIDTH_MIN
+            : event.key === "End"
+              ? maxWidth
+              : width + direction * (event.shiftKey ? 100 : 20);
+        setWidth(Math.max(FOCUS_MODE_WIDTH_MIN, Math.min(next, maxWidth)));
+      }}
+      className={`group absolute inset-y-0 z-10 w-4 cursor-ew-resize touch-none select-none focus-visible:outline-2 focus-visible:outline-ring ${
         side === "left" ? "-left-2" : "-right-2"
       }`}
       onPointerCancel={handlePointerUp}

@@ -58,17 +58,22 @@ export function usePluginRuntimeHost({
       gridLayoutUnregister: unregisterRenderer,
       i18n,
     }),
-    [resourceViewLayoutWrapper, i18n, registerRenderers, unregisterRenderer],
+    [resourceViewLayoutWrapper, i18n, registerRenderers, unregisterRenderer]
   );
 
   const load = useCallback(
     (pluginId: string, revision = "current"): Promise<PluginDefinition> => {
       const key = `${pluginId}@${revision}`;
       const existing = loadingRef.current.get(key);
-      if (existing) return existing;
-      const request = loadPluginRef.current(pluginId)
+      if (existing) {
+        return existing;
+      }
+      const request = loadPluginRef
+        .current(pluginId)
         .then((result) => {
-          if (result.plugin) return result.plugin;
+          if (result.plugin) {
+            return result.plugin;
+          }
           throw (
             result.error ?? new Error(`Failed to load extension "${pluginId}"`)
           );
@@ -81,7 +86,7 @@ export function usePluginRuntimeHost({
       loadingRef.current.set(key, request);
       return request;
     },
-    [],
+    []
   );
 
   const initialize = useCallback(
@@ -97,7 +102,7 @@ export function usePluginRuntimeHost({
               pluginId,
             };
           }
-        }),
+        })
       );
       const plugins = loaded.flatMap(({ plugin }) => (plugin ? [plugin] : []));
       if (epoch !== epochRef.current) {
@@ -123,28 +128,28 @@ export function usePluginRuntimeHost({
         }));
       }
       const initializedById = new Map(
-        initialized.map((result) => [result.pluginId, result]),
+        initialized.map((result) => [result.pluginId, result])
       );
       const results = loaded.map(({ error, pluginId }) =>
         error
           ? { error, pluginId, success: false }
-          : initializedById.get(pluginId) ?? {
+          : (initializedById.get(pluginId) ?? {
               error: new Error(`Extension "${pluginId}" was not initialized`),
               pluginId,
               success: false,
-            },
+            })
       );
       pluginsRef.current = new Map(
         plugins
           .filter(
             (plugin) =>
               results.find(({ pluginId }) => pluginId === plugin.manifest.id)
-                ?.success,
+                ?.success
           )
           .map((plugin) => [
             plugin.manifest.id,
             { plugin, revision: plugin.manifest.version },
-          ]),
+          ])
       );
       for (const plugin of plugins) {
         if (!pluginsRef.current.has(plugin.manifest.id)) {
@@ -153,7 +158,7 @@ export function usePluginRuntimeHost({
       }
       return results;
     },
-    [cleanupPlugins, deps, initializePlugins, load],
+    [cleanupPlugins, deps, initializePlugins, load]
   );
 
   const enable = useCallback(
@@ -173,7 +178,8 @@ export function usePluginRuntimeHost({
       if (!result?.success) {
         unloadPluginRef.current?.(pluginId);
         throw (
-          result?.error ?? new Error(`Failed to initialize extension "${pluginId}"`)
+          result?.error ??
+          new Error(`Failed to initialize extension "${pluginId}"`)
         );
       }
       pluginsRef.current.set(pluginId, {
@@ -181,7 +187,7 @@ export function usePluginRuntimeHost({
         revision: plugin.manifest.version,
       });
     },
-    [deps, disablePlugin, initializePlugins, load],
+    [deps, disablePlugin, initializePlugins, load]
   );
 
   const disable = useCallback(
@@ -194,12 +200,12 @@ export function usePluginRuntimeHost({
         unloadPluginRef.current?.(pluginId, current?.revision);
       }
     },
-    [disablePlugin],
+    [disablePlugin]
   );
 
   const reconcile = useCallback(
     async (
-      target: PluginRuntimeReconcileTarget,
+      target: PluginRuntimeReconcileTarget
     ): Promise<Record<string, Error | undefined>> => {
       const epoch = epochRef.current;
       const desired = new Set(target.enabledExtensionIds);
@@ -230,19 +236,21 @@ export function usePluginRuntimeHost({
         const availability = target.extensionAvailability?.[pluginId];
         if (availability && availability !== "available") {
           errors[pluginId] = new Error(
-            `Extension "${pluginId}" is unavailable (${availability})`,
+            `Extension "${pluginId}" is unavailable (${availability})`
           );
           continue;
         }
         const revision = target.runtimeRevisions[pluginId];
         if (!revision) {
           errors[pluginId] = new Error(
-            `Extension "${pluginId}" has no loadable runtime revision`,
+            `Extension "${pluginId}" has no loadable runtime revision`
           );
           continue;
         }
         const active = pluginsRef.current.get(pluginId);
-        if (active?.revision === revision) continue;
+        if (active?.revision === revision) {
+          continue;
+        }
         let plugin: PluginDefinition;
         try {
           plugin = await load(pluginId, revision);
@@ -254,7 +262,7 @@ export function usePluginRuntimeHost({
         if (epoch !== epochRef.current) {
           unloadPluginRef.current?.(pluginId, revision);
           errors[pluginId] = new Error(
-            `Extension "${pluginId}" load was cancelled`,
+            `Extension "${pluginId}" load was cancelled`
           );
           continue;
         }
@@ -267,7 +275,7 @@ export function usePluginRuntimeHost({
           result = await reloadPlugin(
             plugin,
             deps,
-            unregisterPluginRef.current,
+            unregisterPluginRef.current
           );
         } catch (error) {
           unloadPluginRef.current?.(pluginId, revision);
@@ -289,10 +297,10 @@ export function usePluginRuntimeHost({
       if (additions.length > 0) {
         const initialized = await initializePlugins(
           additions.map(({ plugin }) => plugin),
-          deps,
+          deps
         );
         const initializedById = new Map(
-          initialized.map((result) => [result.pluginId, result]),
+          initialized.map((result) => [result.pluginId, result])
         );
         for (const addition of additions) {
           const result = initializedById.get(addition.pluginId);
@@ -312,7 +320,7 @@ export function usePluginRuntimeHost({
 
       return errors;
     },
-    [deps, disable, initializePlugins, load, reloadPlugin],
+    [deps, disable, initializePlugins, load, reloadPlugin]
   );
 
   const dispose = useCallback(() => {

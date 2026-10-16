@@ -294,9 +294,7 @@ describe("ListView", () => {
   it("offers section quick-add actions on an empty board", () => {
     const { doc, onAddTask } = renderList(false, []);
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Add item to Todo" })
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Add item to Todo" }));
 
     expect(onAddTask).toHaveBeenCalledWith("todo");
     expect(screen.queryByText("No items")).toBeNull();
@@ -323,11 +321,7 @@ describe("ListView", () => {
       });
     });
 
-    expect(onPropertyChange).toHaveBeenCalledWith(
-      "task-1",
-      "status",
-      "done"
-    );
+    expect(onPropertyChange).toHaveBeenCalledWith("task-1", "status", "done");
     expect(onReorderTasks).toHaveBeenCalledWith([
       "task-3",
       "task-4",
@@ -409,7 +403,9 @@ describe("ListView", () => {
     expect(onPropertyChange).not.toHaveBeenCalled();
     expect(onReorderTasks).not.toHaveBeenCalled();
     expect(screen.queryByLabelText("Reorder Write docs")).toBeNull();
-    expect(screen.queryByRole("button", { name: "Add item to Todo" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Add item to Todo" })
+    ).toBeNull();
     expect(
       screen
         .getByRole("button", { name: "Write docs" })

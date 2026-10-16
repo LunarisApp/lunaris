@@ -66,7 +66,7 @@ export function ToolCall({
   const label = t(
     awaitingApproval
       ? "agentWork.awaitingApproval"
-      : `agentWork.${status === "running" ? "working" : status}`,
+      : `agentWork.${status === "running" ? "working" : status}`
   );
   return (
     <details className="agent-tool group min-w-0 rounded-md border border-border/70 text-xs">
@@ -105,7 +105,7 @@ export function ToolCall({
         />
       </summary>
       <div className="space-y-3 border-t px-3 py-2.5">
-        {message.toolInput && (
+        {!!message.toolInput && (
           <div>
             <p className="mb-1 font-medium text-muted-foreground">
               {t("agentWork.toolInput")}
@@ -113,7 +113,7 @@ export function ToolCall({
             <ToolOutput text={JSON.stringify(message.toolInput)} />
           </div>
         )}
-        {message.text && (
+        {!!message.text && (
           <div>
             <p className="mb-1 font-medium text-muted-foreground">
               {t("agentWork.toolOutput")}
@@ -121,12 +121,12 @@ export function ToolCall({
             <ToolOutput text={message.text} />
           </div>
         )}
-        {awaitingApproval && onReview && (
+        {!!(awaitingApproval && onReview) && (
           <Button size="sm" variant="outline" onClick={onReview}>
             {t("agentWork.reviewChange")}
           </Button>
         )}
-        {!message.text && !awaitingApproval && (
+        {!(message.text || awaitingApproval) && (
           <p className="text-muted-foreground">{label}</p>
         )}
       </div>
@@ -138,10 +138,12 @@ function MessageActions({ message }: { message: AgentWorkMessage }) {
   const { t, i18n } = useTranslation();
   const { clipboard } = usePlatform();
   const [status, setStatus] = useState<"idle" | "copied" | "copyFailed">(
-    "idle",
+    "idle"
   );
   useEffect(() => {
-    if (status === "idle") return;
+    if (status === "idle") {
+      return;
+    }
     const timeout = setTimeout(() => setStatus("idle"), 2500);
     return () => clearTimeout(timeout);
   }, [status]);
@@ -150,8 +152,8 @@ function MessageActions({ message }: { message: AgentWorkMessage }) {
   const validDate = date && Number.isFinite(date.getTime()) ? date : null;
   const label = t(`agentWork.${status === "idle" ? "copyMessage" : status}`);
   return (
-    <footer className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-      {validDate && (
+    <footer className="mt-1 flex items-center gap-1.5 text-muted-foreground text-xs">
+      {!!validDate && (
         <time
           dateTime={validDate.toISOString()}
           title={validDate.toLocaleString(i18n?.language)}
@@ -169,7 +171,11 @@ function MessageActions({ message }: { message: AgentWorkMessage }) {
         title={label}
         onClick={async () => {
           try {
-            await clipboard.writeText(message.role === "user" ? stripMentionContext(message.text) : message.text);
+            await clipboard.writeText(
+              message.role === "user"
+                ? stripMentionContext(message.text)
+                : message.text
+            );
             setStatus("copied");
           } catch {
             setStatus("copyFailed");
@@ -185,6 +191,7 @@ function MessageActions({ message }: { message: AgentWorkMessage }) {
         role="status"
         className={status === "copyFailed" ? "text-destructive" : "sr-only"}
       >
+        {/* biome-ignore lint/suspicious/noLeakedRender: Both ternary branches intentionally render valid ReactNode/text values. */}
         {status === "idle" ? "" : label}
       </span>
     </footer>
@@ -197,11 +204,13 @@ export function TranscriptMessage({
   message: AgentWorkTextMessage;
 }) {
   const { t } = useTranslation();
-  if (!message.text.trim()) return null;
+  if (!message.text.trim()) {
+    return null;
+  }
   return (
     <article
       aria-label={t(
-        message.role === "user" ? "agentWork.you" : "agentWork.assistant",
+        message.role === "user" ? "agentWork.you" : "agentWork.assistant"
       )}
       className={
         message.role === "user"
@@ -209,7 +218,14 @@ export function TranscriptMessage({
           : `min-w-0 text-sm leading-6 ${message.role === "assistant" && message.isError ? "text-destructive" : ""}`
       }
     >
-      <Markdown text={message.role === "user" ? stripMentionContext(message.text) : message.text} streaming={message.id === "streaming"} />
+      <Markdown
+        text={
+          message.role === "user"
+            ? stripMentionContext(message.text)
+            : message.text
+        }
+        streaming={message.id === "streaming"}
+      />
       <MessageActions message={message} />
     </article>
   );

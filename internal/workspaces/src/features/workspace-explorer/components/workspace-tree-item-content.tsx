@@ -1,6 +1,4 @@
-import {
-  type PluginIconSource,
-} from "@lunarisapp/plugin-sdk";
+import type { PluginIconSource } from "@lunarisapp/plugin-sdk";
 import { Icon } from "@lunarisapp/ui/components/icon";
 import { Input } from "@lunarisapp/ui/components/input";
 import { Spinner } from "@lunarisapp/ui/components/spinner";

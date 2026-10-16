@@ -114,7 +114,7 @@ export async function seedDefaultTemplateWorkspace(params: {
           ...DEFAULT_TEMPLATE_BUNDLED_PLUGIN_IDS,
           EXCALIDRAW_PLUGIN_ID,
         ],
-      },
+      }
     );
 
     await createSeededYjsItem({
@@ -160,9 +160,7 @@ export async function seedDefaultTemplateWorkspace(params: {
         properties: kanbanTemplate.properties,
       }),
     });
-    const seededKanbanTasks: Array<
-      (typeof kanbanTemplate.items)[number]
-    > = [];
+    const seededKanbanTasks: (typeof kanbanTemplate.items)[number][] = [];
     for (const [position, taskTemplate] of kanbanTemplate.items.entries()) {
       const task = await createSeededYjsItem({
         db,
@@ -179,10 +177,13 @@ export async function seedDefaultTemplateWorkspace(params: {
       seededKanbanTasks.push({ ...taskTemplate, id: task.id });
     }
     const kanbanContentHandle = kanbanItem.storage.content;
-    if (!kanbanContentHandle || kanbanContentHandle.kind !== "yjs") {
+    if (kanbanContentHandle?.kind !== "yjs") {
       throw new Error("Seeded Kanban content handle is missing");
     }
-    const kanbanContent = await getStorageSlot(db, kanbanContentHandle.storageId);
+    const kanbanContent = await getStorageSlot(
+      db,
+      kanbanContentHandle.storageId
+    );
     if (!kanbanContent?.backing_id || kanbanContent.kind !== "yjs") {
       throw new Error("Seeded Kanban content slot is missing");
     }

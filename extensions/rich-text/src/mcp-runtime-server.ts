@@ -19,8 +19,7 @@ function createAdapter(): RichTextRuntimeAdapter {
     schema: richTextHeadlessSchema,
   });
   return {
-    blocksToMarkdown: (blocks) =>
-      editor.blocksToMarkdownLossy(blocks as never),
+    blocksToMarkdown: (blocks) => editor.blocksToMarkdownLossy(blocks as never),
     blocksToYXmlFragment: (blocks, fragment) =>
       editor.blocksToYXmlFragment(blocks as never, fragment),
     destroy: () => editor.editor._tiptapEditor?.destroy(),
@@ -28,7 +27,7 @@ function createAdapter(): RichTextRuntimeAdapter {
       const doc = editor.blocksToYDoc(blocks as never, "");
       try {
         return editor.yXmlFragmentToBlocks(
-          doc.getXmlFragment(),
+          doc.getXmlFragment()
         ) as RichTextBlockData[];
       } finally {
         doc.destroy();

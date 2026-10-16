@@ -13,18 +13,17 @@ const {
   resolveWorkspaceScopedTables,
   resolveWorkspaceVisibility,
   uint8ArrayToB64,
-} =
-  vi.hoisted(() => ({
-    compareAndSetWorkspaceResourceVersion: vi.fn(),
-    disposeHydration: vi.fn(),
-    disposeStagedHydration: vi.fn(),
-    getWorkspaceResource: vi.fn(),
-    hydrateResourceStorage: vi.fn(),
-    insertYjsDocumentUpdate: vi.fn(),
-    resolveWorkspaceScopedTables: vi.fn(),
-    resolveWorkspaceVisibility: vi.fn(),
-    uint8ArrayToB64: vi.fn(),
-  }));
+} = vi.hoisted(() => ({
+  compareAndSetWorkspaceResourceVersion: vi.fn(),
+  disposeHydration: vi.fn(),
+  disposeStagedHydration: vi.fn(),
+  getWorkspaceResource: vi.fn(),
+  hydrateResourceStorage: vi.fn(),
+  insertYjsDocumentUpdate: vi.fn(),
+  resolveWorkspaceScopedTables: vi.fn(),
+  resolveWorkspaceVisibility: vi.fn(),
+  uint8ArrayToB64: vi.fn(),
+}));
 
 vi.mock("@repo/data/features/workspace-storage-slots", () => ({
   hydrateResourceStorage,
@@ -165,7 +164,7 @@ describe("resolveHostResource", () => {
           schemaVersion: 1,
         },
         workspaceId: "workspace-1",
-      }),
+      })
     ).resolves.toMatchObject({
       diagnostic: "Storage load failed",
       retryable: true,
@@ -303,10 +302,14 @@ describe("resolveHostResource", () => {
         storage: {},
       });
     compareAndSetWorkspaceResourceVersion.mockImplementation(
-      async ({ mutatePayload }: { mutatePayload: (tx: unknown) => Promise<void> }) => {
+      async ({
+        mutatePayload,
+      }: {
+        mutatePayload: (tx: unknown) => Promise<void>;
+      }) => {
         await mutatePayload({ execute });
         return true;
-      },
+      }
     );
     const definition = {
       icon: [],
@@ -363,7 +366,7 @@ describe("resolveHostResource", () => {
         expect.stringContaining("INSERT INTO workspace_storage_slots"),
         expect.stringContaining("INSERT INTO workspace_storage_values"),
         expect.stringContaining("INSERT INTO yjs_document_updates"),
-      ]),
+      ])
     );
     expect(disposeHydration).toHaveBeenCalledOnce();
     expect(disposeStagedHydration).toHaveBeenCalledOnce();
@@ -375,7 +378,12 @@ describe("resolveHostResource", () => {
     const execute = vi.fn().mockResolvedValue(undefined);
     const slots = [
       { backing_id: "yjs-1", id: "storage-yjs", kind: "yjs", name: "content" },
-      { backing_id: null, id: "storage-meta", kind: "key-value", name: "metadata" },
+      {
+        backing_id: null,
+        id: "storage-meta",
+        kind: "key-value",
+        name: "metadata",
+      },
     ];
     hydrateResourceStorage
       .mockResolvedValueOnce({
@@ -395,10 +403,14 @@ describe("resolveHostResource", () => {
         },
       });
     compareAndSetWorkspaceResourceVersion.mockImplementation(
-      async ({ mutatePayload }: { mutatePayload: (tx: unknown) => Promise<void> }) => {
+      async ({
+        mutatePayload,
+      }: {
+        mutatePayload: (tx: unknown) => Promise<void>;
+      }) => {
         await mutatePayload({ execute });
         return true;
-      },
+      }
     );
     const definition = {
       icon: [],
@@ -416,7 +428,9 @@ describe("resolveHostResource", () => {
         write: vi.fn((_payload, context) => {
           const metadata = context.storage.metadata;
           const content = context.storage.content;
-          if (metadata?.kind === "key-value") metadata.values.theme = "dark";
+          if (metadata?.kind === "key-value") {
+            metadata.values.theme = "dark";
+          }
           if (content?.kind === "yjs") {
             content.document.getText("content").insert(0, "updated");
           }
@@ -446,14 +460,14 @@ describe("resolveHostResource", () => {
       expect.arrayContaining([
         expect.stringContaining("DELETE FROM workspace_storage_values"),
         expect.stringContaining("INSERT INTO workspace_storage_values"),
-      ]),
+      ])
     );
     expect(insertYjsDocumentUpdate).toHaveBeenCalledWith(
       expect.anything(),
       "yjs-1",
       "workspace-1",
       "encoded-update",
-      null,
+      null
     );
     before.destroy();
     staged.destroy();

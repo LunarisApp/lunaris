@@ -84,7 +84,9 @@ vi.mock("../../organization-navigation", () => ({
 
 vi.mock("../context", () => ({
   useGridLayoutStore: (
-    selector: (state: { requestRenameResource: typeof mocks.requestRenameResource }) => unknown
+    selector: (state: {
+      requestRenameResource: typeof mocks.requestRenameResource;
+    }) => unknown
   ) => selector({ requestRenameResource: mocks.requestRenameResource }),
 }));
 
@@ -93,7 +95,8 @@ vi.mock("react-i18next", () => ({
     t: (key: string) =>
       ({
         "common.untitled": "Untitled",
-        "errors.reason.entitlements.resourceLimit.desc": "Upgrade to add more items",
+        "errors.reason.entitlements.resourceLimit.desc":
+          "Upgrade to add more items",
         "gridLayout.emptyPanel.heading": "Start something new",
         "gridLayout.emptyPanel.description": "Create workspace content.",
         "gridLayout.emptyPanel.createFile": "Create new file",
@@ -147,7 +150,10 @@ describe("GridLayoutEmptyPanel", () => {
     await user.click(screen.getByRole("button", { name: "Document" }));
 
     await waitFor(() => {
-      expect(mocks.createResource).toHaveBeenCalledWith("virtual-root", documentType);
+      expect(mocks.createResource).toHaveBeenCalledWith(
+        "virtual-root",
+        documentType
+      );
     });
     expect(mocks.openResource).toHaveBeenCalledWith({
       resourceId: "item-new",
@@ -218,16 +224,16 @@ describe("GridLayoutEmptyPanel", () => {
 
     await user.click(screen.getByRole("button", { name: "Document" }));
     await waitFor(() =>
-      expect(mocks.toastError).toHaveBeenCalledWith(
-        "Failed to create file"
-      )
+      expect(mocks.toastError).toHaveBeenCalledWith("Failed to create file")
     );
 
     expect(mocks.close).not.toHaveBeenCalled();
   });
 
   it("explains when item capacity blocks creation", async () => {
-    mocks.createResource.mockRejectedValue(new ResourceCapacityExceededError(25));
+    mocks.createResource.mockRejectedValue(
+      new ResourceCapacityExceededError(25)
+    );
     const user = userEvent.setup();
     renderEmptyPanel();
 

@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  KANBAN_PLUGIN_ID,
-  KANBAN_TASK_RESOURCE_TYPE_ID,
-} from "./constants";
+import { KANBAN_PLUGIN_ID, KANBAN_TASK_RESOURCE_TYPE_ID } from "./constants";
 import { kanbanMcpCapabilities } from "./mcp";
 
 describe("Kanban MCP capabilities", () => {
@@ -22,7 +19,7 @@ describe("Kanban MCP capabilities", () => {
 
   it("declares a read-only board property getter", () => {
     const getter = kanbanMcpCapabilities.tools.find(
-      ({ name }) => name === "kanban_get_board_properties",
+      ({ name }) => name === "kanban_get_board_properties"
     );
 
     expect(getter?.execution).toMatchObject({
@@ -51,10 +48,10 @@ describe("Kanban MCP capabilities", () => {
 
   it("declares extension-owned task creation and updates", () => {
     const create = kanbanMcpCapabilities.tools.find(
-      ({ name }) => name === "kanban_create_task",
+      ({ name }) => name === "kanban_create_task"
     );
     const update = kanbanMcpCapabilities.tools.find(
-      ({ name }) => name === "kanban_update_task",
+      ({ name }) => name === "kanban_update_task"
     );
     expect(create?.execution).toMatchObject({
       kind: "plugin",
@@ -78,7 +75,7 @@ describe("Kanban MCP capabilities", () => {
         workspaceId: "workspace-1",
         properties: { Priority: "High" },
         organizationId: "organization-1",
-      }).success,
+      }).success
     ).toBe(true);
     expect(
       create?.inputSchema.safeParse({
@@ -157,13 +154,10 @@ describe("Kanban MCP capabilities", () => {
     expect(
       kanbanMcpCapabilities.tools
         .filter(({ name }) => name.includes("delete_task"))
-        .map(({ name }) => name),
-    ).toEqual([
-      "kanban_preview_delete_task",
-      "kanban_delete_task",
-    ]);
-    for (const tool of kanbanMcpCapabilities.tools.filter(
-      ({ name }) => name.includes("delete_task"),
+        .map(({ name }) => name)
+    ).toEqual(["kanban_preview_delete_task", "kanban_delete_task"]);
+    for (const tool of kanbanMcpCapabilities.tools.filter(({ name }) =>
+      name.includes("delete_task")
     )) {
       if (tool.execution.kind !== "operation") {
         throw new Error("Expected delegated deletion tool");

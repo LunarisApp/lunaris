@@ -1,5 +1,10 @@
 import type { ResourceMention } from "./mentions";
-import { findMentionTrigger, insertMention, type PluginEntityReferenceOption, type PluginMentionTrigger } from "@lunarisapp/plugin-sdk";
+import {
+  findMentionTrigger,
+  insertMention,
+  type PluginEntityReferenceOption,
+  type PluginMentionTrigger,
+} from "@lunarisapp/plugin-sdk";
 import { Button } from "@lunarisapp/ui/components/button";
 import { Textarea } from "@lunarisapp/ui/components/textarea";
 import { ArrowUp01Icon, HugeiconsIcon, StopIcon } from "@lunarisapp/ui/icons";
@@ -25,7 +30,10 @@ export function AgentComposer({
   onStop,
 }: {
   id: string;
-  searchMentions: (query: string, signal: AbortSignal) => Promise<PluginEntityReferenceOption[]>;
+  searchMentions: (
+    query: string,
+    signal: AbortSignal
+  ) => Promise<PluginEntityReferenceOption[]>;
   onMention: (mention: ResourceMention) => void;
   inputRef: RefObject<HTMLTextAreaElement | null>;
   centered: boolean;
@@ -44,39 +52,62 @@ export function AgentComposer({
   const [trigger, setTrigger] = useState<PluginMentionTrigger | null>(null);
   const [items, setItems] = useState<PluginEntityReferenceOption[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading"
+  );
   const query = trigger?.query;
   const open = !!trigger && !!draft;
   const listId = `${id}-mentions`;
   useEffect(() => {
     setItems([]);
     setActiveIndex(0);
-    if (query === undefined || !open) return;
+    if (query === undefined || !open) {
+      return;
+    }
     setStatus("loading");
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      void searchMentions(query, controller.signal).then((results) => {
-        if (controller.signal.aborted) return;
-        setItems(results);
-        setStatus("ready");
-      }).catch(() => {
-        if (!controller.signal.aborted) setStatus("error");
-      });
+      void searchMentions(query, controller.signal)
+        .then((results) => {
+          if (controller.signal.aborted) {
+            return;
+          }
+          setItems(results);
+          setStatus("ready");
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) {
+            setStatus("error");
+          }
+        });
     }, 150);
-    return () => { window.clearTimeout(timer); controller.abort(); };
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
   }, [query, open, searchMentions]);
   const updateTrigger = (input: HTMLTextAreaElement) => {
-    const next = input.selectionStart === input.selectionEnd
-      ? findMentionTrigger(input.value, input.selectionStart) : null;
-    if (next?.query !== trigger?.query) setItems([]);
+    const next =
+      input.selectionStart === input.selectionEnd
+        ? findMentionTrigger(input.value, input.selectionStart)
+        : null;
+    if (next?.query !== trigger?.query) {
+      setItems([]);
+    }
     setTrigger(next);
     setActiveIndex(0);
   };
   const selectMention = (item: PluginEntityReferenceOption) => {
-    if (!trigger) return;
+    if (!trigger) {
+      return;
+    }
     const next = insertMention(draft, trigger, item.name);
     onDraftChange(next.text, next.caret);
-    onMention({ ...item, start: trigger.start, end: trigger.start + item.name.length + 1 });
+    onMention({
+      ...item,
+      start: trigger.start,
+      end: trigger.start + item.name.length + 1,
+    });
     setTrigger(null);
     requestAnimationFrame(() => {
       inputRef.current?.focus();
@@ -84,7 +115,9 @@ export function AgentComposer({
     });
   };
   useEffect(() => {
-    document.getElementById(`${listId}-${activeIndex}`)?.scrollIntoView?.({ block: "nearest" });
+    document
+      .getElementById(`${listId}-${activeIndex}`)
+      ?.scrollIntoView?.({ block: "nearest" });
   }, [activeIndex, items, listId]);
   useEffect(() => {
     const input = inputRef.current;
@@ -93,7 +126,7 @@ export function AgentComposer({
     }
     input.style.height = "auto";
     input.style.height = `${Math.min(input.scrollHeight, 192)}px`;
-  }, [draft, centered]);
+  }, [draft, centered, inputRef]);
   return (
     <form
       className={`mx-auto w-full max-w-4xl shrink-0 ${centered ? "pt-6" : "px-3 pt-2 pb-3 md:px-4"}`}
@@ -103,12 +136,28 @@ export function AgentComposer({
       }}
     >
       <div className="overflow-hidden rounded-lg border border-border bg-background transition-colors focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
-        {open && (
+        {!!open && (
           <div className="border-b">
-            <div className="px-3 py-2 text-xs text-muted-foreground" role="status">
-              {t(status === "error" ? "agentWork.mentionError" : status === "loading" ? "agentWork.mentionLoading" : items.length ? "agentWork.mentionResources" : "agentWork.mentionEmpty")}
+            <div
+              className="px-3 py-2 text-muted-foreground text-xs"
+              role="status"
+            >
+              {t(
+                status === "error"
+                  ? "agentWork.mentionError"
+                  : status === "loading"
+                    ? "agentWork.mentionLoading"
+                    : items.length
+                      ? "agentWork.mentionResources"
+                      : "agentWork.mentionEmpty"
+              )}
             </div>
-            <div id={listId} role="listbox" aria-label={t("agentWork.mentionResources")} className="max-h-48 overflow-y-auto p-1">
+            <div
+              id={listId}
+              role="listbox"
+              aria-label={t("agentWork.mentionResources")}
+              className="max-h-48 overflow-y-auto p-1"
+            >
               {items.map((item, index) => (
                 <button
                   type="button"
@@ -122,7 +171,9 @@ export function AgentComposer({
                   onClick={() => selectMention(item)}
                 >
                   <span className="w-full truncate">{item.name}</span>
-                  <span className="w-full truncate text-xs text-muted-foreground">{item.workspaceName}</span>
+                  <span className="w-full truncate text-muted-foreground text-xs">
+                    {item.workspaceName}
+                  </span>
                 </button>
               ))}
             </div>
@@ -131,7 +182,9 @@ export function AgentComposer({
         <Textarea
           aria-autocomplete="list"
           aria-controls={open ? listId : undefined}
-          aria-activedescendant={open && items[activeIndex] ? `${listId}-${activeIndex}` : undefined}
+          aria-activedescendant={
+            open && items[activeIndex] ? `${listId}-${activeIndex}` : undefined
+          }
           onBlur={() => setTrigger(null)}
           onSelect={(event) => updateTrigger(event.currentTarget)}
           aria-label={t("agentWork.message")}
@@ -147,9 +200,14 @@ export function AgentComposer({
           disabled={!(runtimeReady && authenticated)}
           id={id}
           maxLength={100_000}
-          onChange={(event) => { onDraftChange(event.target.value, event.target.selectionStart); updateTrigger(event.currentTarget); }}
+          onChange={(event) => {
+            onDraftChange(event.target.value, event.target.selectionStart);
+            updateTrigger(event.currentTarget);
+          }}
           onKeyDown={(event) => {
-            if (event.nativeEvent.isComposing) return;
+            if (event.nativeEvent.isComposing) {
+              return;
+            }
             if (open) {
               if (event.key === "Escape") {
                 event.preventDefault();
@@ -159,10 +217,22 @@ export function AgentComposer({
               }
               if (event.key === "ArrowDown" || event.key === "ArrowUp") {
                 event.preventDefault();
-                if (items.length) setActiveIndex((current) => (current + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length);
+                if (items.length) {
+                  setActiveIndex(
+                    (current) =>
+                      (current +
+                        (event.key === "ArrowDown" ? 1 : -1) +
+                        items.length) %
+                      items.length
+                  );
+                }
                 return;
               }
-              if (!event.shiftKey && (event.key === "Enter" || event.key === "Tab") && items[activeIndex]) {
+              if (
+                !event.shiftKey &&
+                (event.key === "Enter" || event.key === "Tab") &&
+                items[activeIndex]
+              ) {
                 event.preventDefault();
                 selectMention(items[activeIndex]);
                 return;

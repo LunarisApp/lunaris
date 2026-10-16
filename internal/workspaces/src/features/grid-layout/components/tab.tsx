@@ -24,9 +24,7 @@ export function GridLayoutTab(props: IDockviewPanelHeaderProps) {
   const isMoving = useGridLayoutStore((state) =>
     state.movingPanelIds.has(api.id)
   );
-  const moveToNewWindowShortcut = useHotkeyDisplay(
-    "move-panel-to-new-window"
-  );
+  const moveToNewWindowShortcut = useHotkeyDisplay("move-panel-to-new-window");
   const closeShortcut = useHotkeyDisplay("close-tab");
   const [siblingCount, setSiblingCount] = useState(api.group.panels.length);
 
@@ -39,7 +37,9 @@ export function GridLayoutTab(props: IDockviewPanelHeaderProps) {
       api.onDidGroupChange(update),
     ];
     return () => {
-      for (const d of disposables) d.dispose();
+      for (const d of disposables) {
+        d.dispose();
+      }
     };
   }, [api, containerApi]);
 
@@ -49,11 +49,15 @@ export function GridLayoutTab(props: IDockviewPanelHeaderProps) {
   const closeOthers = () => {
     api.setActive();
     for (const p of [...api.group.panels]) {
-      if (p.id !== api.id) p.api.close();
+      if (p.id !== api.id) {
+        p.api.close();
+      }
     }
   };
   const closeAll = () => {
-    for (const p of [...api.group.panels]) p.api.close();
+    for (const p of [...api.group.panels]) {
+      p.api.close();
+    }
   };
 
   return (

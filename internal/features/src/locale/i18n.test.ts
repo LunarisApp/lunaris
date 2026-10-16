@@ -36,26 +36,21 @@ const expectedAuthContinuationCopy = {
 >;
 
 describe("feature locales", () => {
-  it.each(SUPPORTED_LOCALES)(
-    "resolves common.back in $code",
-    ({ code }) => {
-      expect(i18n.getFixedT(code)("common.back")).toBe(
-        expectedBackLabels[code]
-      );
-    }
-  );
+  it.each(SUPPORTED_LOCALES)("resolves common.back in $code", ({ code }) => {
+    expect(i18n.getFixedT(code)("common.back")).toBe(expectedBackLabels[code]);
+  });
 
   it.each(SUPPORTED_LOCALES)(
     "resolves auth continuation copy in $code",
     ({ code }) => {
       const t = i18n.getFixedT(code);
       expect(t("auth.changeEmail")).toBe(
-        expectedAuthContinuationCopy[code].changeEmail,
+        expectedAuthContinuationCopy[code].changeEmail
       );
       expect(t("auth.googleAccountDescription")).toBe(
-        expectedAuthContinuationCopy[code].googleAccountDescription,
+        expectedAuthContinuationCopy[code].googleAccountDescription
       );
-    },
+    }
   );
 
   it.each(SUPPORTED_LOCALES)(
@@ -68,6 +63,6 @@ describe("feature locales", () => {
       ]) {
         expect(i18n.getResource(code, "translation", key)).toBeTypeOf("string");
       }
-    },
+    }
   );
 });

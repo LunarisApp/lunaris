@@ -55,7 +55,7 @@ function ResponsiveDropdownMenuTrigger(
   const isMobile = useContext(IsMobileContext);
 
   if (isMobile) {
-    const { render, children, ...rest } = props as any;
+    const { render, children, handle: _menuHandle, ...rest } = props;
     if (render && isValidElement(render)) {
       return (
         <DrawerTrigger
@@ -84,7 +84,7 @@ function ResponsiveDropdownMenuContent({
         <div className="py-4">
           <DrawerTitle
             className={cn(
-              "px-4 pb-2 text-center text-sm font-medium text-muted-foreground",
+              "px-4 pb-2 text-center font-medium text-muted-foreground text-sm",
               !title && "sr-only"
             )}
           >
@@ -112,7 +112,16 @@ function ResponsiveDropdownMenuItem({
   const isMobile = useContext(IsMobileContext);
 
   if (isMobile) {
-    const { onClick, disabled, ...rest } = props as any;
+    // Menu items render a div; mobile drawers render a native button.
+    // Consumers use shared DOM props; menu-only handle/render props stay on desktop.
+    const {
+      render: _render,
+      nativeButton: _nativeButton,
+      closeOnClick: _closeOnClick,
+      ...buttonProps
+    } = props;
+    const { onClick, disabled, ...rest } =
+      buttonProps as unknown as ComponentProps<"button">;
     return (
       <DrawerClose
         render={
@@ -161,7 +170,9 @@ function ResponsiveDropdownMenuShortcut(
   const isMobile = useContext(IsMobileContext);
 
   // Hide keyboard shortcuts on mobile
-  if (isMobile) return null;
+  if (isMobile) {
+    return null;
+  }
 
   return <DropdownMenuShortcut {...props} />;
 }

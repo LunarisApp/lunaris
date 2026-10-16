@@ -37,14 +37,14 @@ export interface PluginRuntimeDiagnostic {
 }
 
 export type PluginRuntimeDiagnosticsListener = (
-  diagnostics: readonly PluginRuntimeDiagnostic[],
+  diagnostics: readonly PluginRuntimeDiagnostic[]
 ) => void;
 
 export interface PluginContributionCommitter<TDependencies> {
   commit(
     plugin: PluginDefinition,
     activation: PreparedPluginActivation,
-    dependencies: TDependencies,
+    dependencies: TDependencies
   ): Promise<PluginDisposable> | PluginDisposable;
 }
 
@@ -110,7 +110,8 @@ function runtimeState(state: FiberState): PluginRuntimeState {
 export class PluginRuntime<TDependencies> {
   private readonly context = new Context();
   private readonly committer: PluginContributionCommitter<TDependencies>;
-  private readonly diagnosticListeners = new Set<PluginRuntimeDiagnosticsListener>();
+  private readonly diagnosticListeners =
+    new Set<PluginRuntimeDiagnosticsListener>();
   private readonly plugins = new Map<string, RegisteredPlugin<TDependencies>>();
   private readonly terminalDiagnostics = new Map<
     string,
@@ -121,11 +122,9 @@ export class PluginRuntime<TDependencies> {
 
   constructor(committer: PluginContributionCommitter<TDependencies>) {
     this.committer = committer;
-    this.context.on(
-      "internal/status",
-      () => this.notifyDiagnostics(),
-      { global: true },
-    );
+    this.context.on("internal/status", () => this.notifyDiagnostics(), {
+      global: true,
+    });
   }
 
   get(pluginId: string): PluginDefinition | undefined {
@@ -144,7 +143,9 @@ export class PluginRuntime<TDependencies> {
 
   getDiagnostic(pluginId: string): PluginRuntimeDiagnostic | undefined {
     const plugin = this.plugins.get(pluginId);
-    if (!plugin) return this.terminalDiagnostics.get(pluginId);
+    if (!plugin) {
+      return this.terminalDiagnostics.get(pluginId);
+    }
     return {
       activationCount: plugin.activationCount,
       dependencyIssues: this.dependencyIssues(plugin.definition),
@@ -167,7 +168,9 @@ export class PluginRuntime<TDependencies> {
     });
   }
 
-  subscribeDiagnostics(listener: PluginRuntimeDiagnosticsListener): PluginDisposable {
+  subscribeDiagnostics(
+    listener: PluginRuntimeDiagnosticsListener
+  ): PluginDisposable {
     this.diagnosticListeners.add(listener);
     try {
       listener(this.getDiagnostics());
@@ -191,14 +194,16 @@ export class PluginRuntime<TDependencies> {
   }
 
   private dependencyIssues(
-    definition: PluginDefinition,
+    definition: PluginDefinition
   ): PluginDependencyIssue[] {
     return Object.entries(definition.manifest.dependencies).flatMap(
       ([pluginId, range]) => {
         const dependency = this.get(pluginId);
-        if (dependency && satisfies(dependency.manifest.version, range)) return [];
+        if (dependency && satisfies(dependency.manifest.version, range)) {
+          return [];
+        }
         return [{ pluginId, range, version: dependency?.manifest.version }];
-      },
+      }
     );
   }
 
@@ -206,25 +211,28 @@ export class PluginRuntime<TDependencies> {
     const result = this.operation.then(operation, operation);
     this.operation = result.then(
       () => undefined,
-      () => undefined,
+      () => undefined
     );
     return result;
   }
 
   private assertConflicts(plugin: PluginDefinition): void {
-    for (const [conflictId, range] of Object.entries(plugin.manifest.conflicts)) {
+    for (const [conflictId, range] of Object.entries(
+      plugin.manifest.conflicts
+    )) {
       const conflict = this.plugins.get(conflictId)?.definition;
       if (conflict && satisfies(conflict.manifest.version, range)) {
         throw new Error(
-          `Extension "${plugin.manifest.id}" conflicts with "${conflictId}" ${range}`,
+          `Extension "${plugin.manifest.id}" conflicts with "${conflictId}" ${range}`
         );
       }
     }
     for (const registered of this.plugins.values()) {
-      const range = registered.definition.manifest.conflicts[plugin.manifest.id];
+      const range =
+        registered.definition.manifest.conflicts[plugin.manifest.id];
       if (range && satisfies(plugin.manifest.version, range)) {
         throw new Error(
-          `Extension "${registered.definition.manifest.id}" conflicts with "${plugin.manifest.id}" ${range}`,
+          `Extension "${registered.definition.manifest.id}" conflicts with "${plugin.manifest.id}" ${range}`
         );
       }
     }
@@ -237,13 +245,13 @@ export class PluginRuntime<TDependencies> {
     }
     const found = issue.version ? `, found ${issue.version}` : "";
     return new Error(
-      `Extension "${definition.manifest.id}" requires "${issue.pluginId}" ${issue.range}${found}`,
+      `Extension "${definition.manifest.id}" requires "${issue.pluginId}" ${issue.range}${found}`
     );
   }
 
   private async registerNow(
     definition: PluginDefinition,
-    dependencies: TDependencies,
+    dependencies: TDependencies
   ): Promise<void> {
     const pluginId = definition.manifest.id;
     const existing = this.plugins.get(pluginId);
@@ -268,8 +276,8 @@ export class PluginRuntime<TDependencies> {
           ([dependencyId, range]) => [
             serviceName(dependencyId),
             { range } satisfies PluginDependencyServiceConfig,
-          ],
-        ),
+          ]
+        )
       ),
       name: pluginId,
       apply: async (context: Context) => {
@@ -296,30 +304,30 @@ export class PluginRuntime<TDependencies> {
                     ? errors[0]
                     : new AggregateError(
                         errors,
-                        `Extension "${pluginId}" contribution cleanup failed`,
+                        `Extension "${pluginId}" contribution cleanup failed`
                       );
                 registered.error = failure;
                 this.notifyDiagnostics();
                 throw failure;
               }
             },
-            `plugin(${JSON.stringify(pluginId)}).contributions`,
+            `plugin(${JSON.stringify(pluginId)}).contributions`
           );
           registered.disposeContributions = disposeContributions;
           release = await this.committer.commit(
             definition,
             activation,
-            registered.dependencies,
+            registered.dependencies
           );
           await activation.start();
           // A child fiber lets teardown withdraw the service before contributions.
           const serviceFiber = context.plugin({
             name: `${pluginId}:service`,
             apply(serviceContext: Context) {
-              new PluginDependencyService(
+              void new PluginDependencyService(
                 serviceContext,
                 serviceName(pluginId),
-                definition.manifest.version,
+                definition.manifest.version
               );
             },
           });
@@ -354,7 +362,7 @@ export class PluginRuntime<TDependencies> {
   private async removeFailedRegistration(
     pluginId: string,
     registered: RegisteredPlugin<TDependencies>,
-    activationError: unknown,
+    activationError: unknown
   ): Promise<void> {
     const cleanupErrors: unknown[] = [];
     try {
@@ -370,7 +378,7 @@ export class PluginRuntime<TDependencies> {
     const failure = cleanupErrors.length
       ? new AggregateError(
           [activationError, ...cleanupErrors],
-          `Extension "${pluginId}" activation and rollback failed`,
+          `Extension "${pluginId}" activation and rollback failed`
         )
       : activationError;
     this.plugins.delete(pluginId);
@@ -385,19 +393,23 @@ export class PluginRuntime<TDependencies> {
       version: registered.definition.manifest.version,
     });
     this.notifyDiagnostics();
-    if (cleanupErrors.length) throw failure;
+    if (cleanupErrors.length) {
+      throw failure;
+    }
   }
 
   async register(
     definition: PluginDefinition,
-    dependencies: TDependencies,
+    dependencies: TDependencies
   ): Promise<void> {
     return this.enqueue(() => this.registerNow(definition, dependencies));
   }
 
   private async awaitActivationNow(pluginId: string): Promise<void> {
     const registered = this.plugins.get(pluginId);
-    if (!registered) throw new Error(`Extension "${pluginId}" is not registered`);
+    if (!registered) {
+      throw new Error(`Extension "${pluginId}" is not registered`);
+    }
     try {
       await registered.fiber.await();
     } catch (error) {
@@ -410,7 +422,9 @@ export class PluginRuntime<TDependencies> {
       throw this.requirementsError(registered.definition);
     }
     if (registered.fiber.state !== CORDIS_FIBER_STATE.ACTIVE) {
-      throw registered.error ?? new Error(`Extension "${pluginId}" is not active`);
+      throw (
+        registered.error ?? new Error(`Extension "${pluginId}" is not active`)
+      );
     }
   }
 
@@ -420,7 +434,7 @@ export class PluginRuntime<TDependencies> {
 
   async activate(
     definition: PluginDefinition,
-    dependencies: TDependencies,
+    dependencies: TDependencies
   ): Promise<void> {
     return this.enqueue(async () => {
       await this.registerNow(definition, dependencies);
@@ -456,9 +470,14 @@ export class PluginRuntime<TDependencies> {
       this.terminalDiagnostics.delete(pluginId);
       this.notifyDiagnostics();
     }
-    if (errors.length === 1) throw errors[0];
+    if (errors.length === 1) {
+      throw errors[0];
+    }
     if (errors.length > 1) {
-      throw new AggregateError(errors, `Extension "${pluginId}" cleanup failed`);
+      throw new AggregateError(
+        errors,
+        `Extension "${pluginId}" cleanup failed`
+      );
     }
   }
 
@@ -468,7 +487,7 @@ export class PluginRuntime<TDependencies> {
 
   private async replaceNow(
     definition: PluginDefinition,
-    dependencies: TDependencies,
+    dependencies: TDependencies
   ): Promise<void> {
     const pluginId = definition.manifest.id;
     const previous = this.plugins.get(pluginId);
@@ -487,7 +506,7 @@ export class PluginRuntime<TDependencies> {
       } catch (rollbackError) {
         throw new AggregateError(
           [error, rollbackError],
-          `Extension "${pluginId}" replacement and rollback failed`,
+          `Extension "${pluginId}" replacement and rollback failed`
         );
       }
       throw error;
@@ -496,7 +515,7 @@ export class PluginRuntime<TDependencies> {
 
   async replace(
     definition: PluginDefinition,
-    dependencies: TDependencies,
+    dependencies: TDependencies
   ): Promise<void> {
     return this.enqueue(() => this.replaceNow(definition, dependencies));
   }
@@ -516,7 +535,9 @@ export class PluginRuntime<TDependencies> {
       } catch (error) {
         errors.push(error);
       }
-      if (errors.length) throw new AggregateError(errors, "Extension cleanup failed");
+      if (errors.length) {
+        throw new AggregateError(errors, "Extension cleanup failed");
+      }
     });
   }
 }

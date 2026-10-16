@@ -1,8 +1,15 @@
 /** @vitest-environment happy-dom */
 
 import { useOrganizationNavigation } from "@repo/workspaces/organization-navigation";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import React, { useMemo, useState } from "react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import type React from "react";
+import { useMemo, useState } from "react";
 import {
   MemoryRouter,
   Route,
@@ -19,19 +26,18 @@ const {
   posthogCaptureMock,
   toastErrorMock,
   pluginViewState,
-} =
-  vi.hoisted(() => ({
-    cleanupPluginsMock: vi.fn(),
-    explorerSuspense: {
-      enabled: false,
-      promise: Promise.resolve() as Promise<void>,
-      resolve: () => {},
-    },
-    initializePluginsMock: vi.fn(),
-    posthogCaptureMock: vi.fn(),
-    toastErrorMock: vi.fn(),
-    pluginViewState: { views: [] as Array<Record<string, unknown>> },
-  }));
+} = vi.hoisted(() => ({
+  cleanupPluginsMock: vi.fn(),
+  explorerSuspense: {
+    enabled: false,
+    promise: Promise.resolve() as Promise<void>,
+    resolve: () => {},
+  },
+  initializePluginsMock: vi.fn(),
+  posthogCaptureMock: vi.fn(),
+  toastErrorMock: vi.fn(),
+  pluginViewState: { views: [] as Record<string, unknown>[] },
+}));
 
 vi.mock("posthog-js", () => ({
   default: { capture: posthogCaptureMock },
@@ -44,8 +50,9 @@ vi.mock("sonner", () => ({
 vi.mock("@repo/workspaces/grid-layout", () => ({
   GridLayoutProvider: ({ children }: { children?: React.ReactNode }) =>
     children ?? null,
-  useGridLayoutStore: (selector: (state: { isFocusMode: boolean }) => unknown) =>
-    selector({ isFocusMode: false }),
+  useGridLayoutStore: (
+    selector: (state: { isFocusMode: boolean }) => unknown
+  ) => selector({ isFocusMode: false }),
 }));
 
 vi.mock("@repo/workspaces/editor", async () => {
@@ -81,7 +88,11 @@ vi.mock("@repo/features/mobile", () => ({
 
 vi.mock("@repo/workspaces/workspace", () => ({
   useCurrentWorkspace: () => ({
-    workspace: { id: "workspace_1", name: "Workspace One", slug: "workspace-one" },
+    workspace: {
+      id: "workspace_1",
+      name: "Workspace One",
+      slug: "workspace-one",
+    },
   }),
 }));
 
@@ -94,7 +105,9 @@ vi.mock("@repo/workspaces/workspace-explorer", () => ({
   }: {
     children?: React.ReactNode;
   }) => {
-    if (explorerSuspense.enabled) throw explorerSuspense.promise;
+    if (explorerSuspense.enabled) {
+      throw explorerSuspense.promise;
+    }
     return children ?? null;
   },
   WorkspaceTreeSkeleton: () => <div data-testid="workspace-tree-skeleton" />,
@@ -134,7 +147,10 @@ vi.mock("@repo/workspaces/search", () => ({
     children?: React.ReactNode;
     indexingReady?: boolean;
   }) => (
-    <div data-indexing-ready={String(indexingReady)} data-testid="search-provider">
+    <div
+      data-indexing-ready={String(indexingReady)}
+      data-testid="search-provider"
+    >
       {children}
     </div>
   ),
@@ -172,9 +188,8 @@ vi.mock("../extensions/host/provider", () => ({
 }));
 
 vi.mock("../extensions/host", async () => ({
-  usePluginRuntimeHost: (
-    await import("../extensions/host/plugin-runtime-host")
-  ).usePluginRuntimeHost,
+  usePluginRuntimeHost: (await import("../extensions/host/plugin-runtime-host"))
+    .usePluginRuntimeHost,
 }));
 
 vi.mock("../extensions/organization-runtime", () => ({
@@ -240,7 +255,7 @@ function createController(overrides = {}) {
     contributions: [],
     name: "Rich text",
     api: "^0.9.0",
-      permissions: [],
+    permissions: [],
     version: "1.0.0",
   };
   return {
@@ -762,17 +777,13 @@ describe("MobileWorkspaceShell", () => {
       </MemoryRouter>
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Open unknown panel" })
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Open unknown panel" }));
     expect(screen.getByTestId("panel-supported").textContent).toBe("false");
     expect(screen.getByTestId("panel-location").textContent).toBe(
       "/organization-a/workspace-one"
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Open view" })
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Open view" }));
     expect(screen.getByTestId("panel-supported").textContent).toBe("true");
     expect(screen.getByTestId("panel-location").textContent).toBe(
       "/organization-a/workspace-one/view:acme.assistant"

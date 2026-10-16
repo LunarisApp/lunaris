@@ -1,8 +1,4 @@
-import {
-  createContext,
-  type PropsWithChildren,
-  useContext,
-} from "react";
+import { createContext, type PropsWithChildren, useContext } from "react";
 import { createBrowserPlatform } from "./browser";
 import type { Platform } from "./platform";
 

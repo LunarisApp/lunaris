@@ -66,11 +66,11 @@ function createControllerChangeTarget() {
 }
 
 function mockServiceWorkerContainer(
-  serviceWorkers: ReturnType<typeof createControllerChangeTarget>["target"],
+  serviceWorkers: ReturnType<typeof createControllerChangeTarget>["target"]
 ) {
   const descriptor = Object.getOwnPropertyDescriptor(
     navigator,
-    "serviceWorker",
+    "serviceWorker"
   );
   Object.defineProperty(navigator, "serviceWorker", {
     configurable: true,
@@ -110,8 +110,7 @@ function createRegistration({
     },
   };
   updateMock.mockImplementation(
-    update ??
-      (async () => registration as unknown as ServiceWorkerRegistration),
+    update ?? (async () => registration as unknown as ServiceWorkerRegistration)
   );
 
   return {
@@ -197,7 +196,7 @@ function mockPwaRegister({
       onRegisterError?: (error: unknown) => void;
       onRegisteredSW?: (
         url: string,
-        registration?: ServiceWorkerRegistration,
+        registration?: ServiceWorkerRegistration
       ) => void;
     }) => {
       registerErrorCallback = options.onRegisterError;
@@ -207,7 +206,7 @@ function mockPwaRegister({
         offlineReady: [false, vi.fn()],
         updateServiceWorker,
       };
-    },
+    }
   );
   return {
     getRegisterErrorCallback: () => registerErrorCallback,
@@ -343,7 +342,7 @@ describe("service-worker activation", () => {
     activateWaitingServiceWorker(
       waitingWorker.worker,
       serviceWorkers.target,
-      onControllerChange,
+      onControllerChange
     );
 
     expect(waitingWorker.postMessage).toHaveBeenCalledOnce();
@@ -366,7 +365,7 @@ describe("service-worker activation", () => {
     activateWaitingServiceWorker(
       waitingWorker.worker,
       serviceWorkers.target,
-      reloadOnce,
+      reloadOnce
     );
     reloadOnce();
     serviceWorkers.dispatch();
@@ -386,8 +385,8 @@ describe("service-worker activation", () => {
       activateWaitingServiceWorker(
         waitingWorker.worker,
         serviceWorkers.target,
-        onControllerChange,
-      ),
+        onControllerChange
+      )
     ).toThrow("worker stopped");
 
     serviceWorkers.dispatch();
@@ -401,7 +400,7 @@ describe("service-worker activation", () => {
     const cleanup = activateWaitingServiceWorker(
       waitingWorker.worker,
       serviceWorkers.target,
-      onControllerChange,
+      onControllerChange
     );
 
     cleanup();
@@ -418,11 +417,7 @@ describe("service-worker update checks", () => {
     const { environment } = createEnvironment();
     const onWaiting = vi.fn();
 
-    const stop = startWebAppUpdateChecks(
-      registration,
-      onWaiting,
-      environment,
-    );
+    const stop = startWebAppUpdateChecks(registration, onWaiting, environment);
 
     expect(onWaiting).toHaveBeenCalledOnce();
     expect(registration.update).not.toHaveBeenCalled();
@@ -437,10 +432,10 @@ describe("service-worker update checks", () => {
     const stop = startWebAppUpdateChecks(
       registrationState.registration,
       onWaiting,
-      environment,
+      environment
     );
     await vi.waitFor(() =>
-      expect(registrationState.registration.update).toHaveBeenCalledOnce(),
+      expect(registrationState.registration.update).toHaveBeenCalledOnce()
     );
 
     registrationState.setInstalling(installing.worker);
@@ -461,17 +456,23 @@ describe("service-worker update checks", () => {
     const stop = startWebAppUpdateChecks(
       registration,
       vi.fn(),
-      environmentState.environment,
+      environmentState.environment
     );
-    await vi.waitFor(() => expect(registration.update).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() =>
+      expect(registration.update).toHaveBeenCalledTimes(1)
+    );
     await settleUpdateCheck();
 
     environmentState.runInterval();
-    await vi.waitFor(() => expect(registration.update).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() =>
+      expect(registration.update).toHaveBeenCalledTimes(2)
+    );
     await settleUpdateCheck();
 
     environmentState.dispatchWindow("pageshow");
-    await vi.waitFor(() => expect(registration.update).toHaveBeenCalledTimes(3));
+    await vi.waitFor(() =>
+      expect(registration.update).toHaveBeenCalledTimes(3)
+    );
     await settleUpdateCheck();
 
     environmentState.setVisibility("hidden");
@@ -480,11 +481,15 @@ describe("service-worker update checks", () => {
 
     environmentState.setVisibility("visible");
     environmentState.dispatchDocument("visibilitychange");
-    await vi.waitFor(() => expect(registration.update).toHaveBeenCalledTimes(4));
+    await vi.waitFor(() =>
+      expect(registration.update).toHaveBeenCalledTimes(4)
+    );
     await settleUpdateCheck();
 
     environmentState.dispatchWindow("online");
-    await vi.waitFor(() => expect(registration.update).toHaveBeenCalledTimes(5));
+    await vi.waitFor(() =>
+      expect(registration.update).toHaveBeenCalledTimes(5)
+    );
     stop();
   });
 
@@ -499,7 +504,7 @@ describe("service-worker update checks", () => {
     const stop = startWebAppUpdateChecks(
       registration,
       vi.fn(),
-      environmentState.environment,
+      environmentState.environment
     );
 
     expect(registration.update).not.toHaveBeenCalled();
@@ -512,7 +517,9 @@ describe("service-worker update checks", () => {
     resolveUpdate?.(registration as unknown as ServiceWorkerRegistration);
     await settleUpdateCheck();
     environmentState.dispatchWindow("pageshow");
-    await vi.waitFor(() => expect(registration.update).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() =>
+      expect(registration.update).toHaveBeenCalledTimes(2)
+    );
     stop();
   });
 
@@ -528,7 +535,7 @@ describe("service-worker update checks", () => {
     const stop = startWebAppUpdateChecks(
       registration,
       vi.fn(),
-      environmentState.environment,
+      environmentState.environment
     );
     await vi.waitFor(() => expect(registration.update).toHaveBeenCalledOnce());
     await settleUpdateCheck();
@@ -536,11 +543,13 @@ describe("service-worker update checks", () => {
       expect.objectContaining({
         action: "web.service_worker.check",
         outcome: "failure",
-      }),
+      })
     );
 
     environmentState.dispatchWindow("pageshow");
-    await vi.waitFor(() => expect(registration.update).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() =>
+      expect(registration.update).toHaveBeenCalledTimes(2)
+    );
     stop();
     environmentState.dispatchWindow("pageshow");
     environmentState.runInterval();
@@ -565,7 +574,7 @@ describe("useWebAppUpdate", () => {
     act(() => {
       pwa.getRegisteredCallback()?.(
         "/sw.js",
-        registration as unknown as ServiceWorkerRegistration,
+        registration as unknown as ServiceWorkerRegistration
       );
     });
     await act(async () => {
@@ -589,7 +598,7 @@ describe("useWebAppUpdate", () => {
       expect.objectContaining({
         action: "web.service_worker.register",
         outcome: "failure",
-      }),
+      })
     );
     hook.unmount();
   });
@@ -600,7 +609,7 @@ describe("useWebAppUpdate", () => {
     ]);
     const serviceWorkers = createControllerChangeTarget();
     const restoreServiceWorkers = mockServiceWorkerContainer(
-      serviceWorkers.target,
+      serviceWorkers.target
     );
     const waitingWorker = createWorker("installed");
     const { registration } = createRegistration({
@@ -612,7 +621,7 @@ describe("useWebAppUpdate", () => {
     act(() => {
       pwa.getRegisteredCallback()?.(
         "/sw.js",
-        registration as unknown as ServiceWorkerRegistration,
+        registration as unknown as ServiceWorkerRegistration
       );
     });
     await act(async () => {
@@ -628,7 +637,7 @@ describe("useWebAppUpdate", () => {
     hook.unmount();
     expect(serviceWorkers.removeEventListener).toHaveBeenCalledWith(
       "controllerchange",
-      expect.any(Function),
+      expect.any(Function)
     );
     restoreServiceWorkers();
   });
@@ -639,7 +648,7 @@ describe("useWebAppUpdate", () => {
     ]);
     const serviceWorkers = createControllerChangeTarget();
     const restoreServiceWorkers = mockServiceWorkerContainer(
-      serviceWorkers.target,
+      serviceWorkers.target
     );
     const waitingWorker = createWorker("installed");
     waitingWorker.postMessage.mockImplementationOnce(() => {
@@ -654,7 +663,7 @@ describe("useWebAppUpdate", () => {
     act(() => {
       pwa.getRegisteredCallback()?.(
         "/sw.js",
-        registration as unknown as ServiceWorkerRegistration,
+        registration as unknown as ServiceWorkerRegistration
       );
     });
     await act(async () => {
@@ -720,7 +729,7 @@ describe("useWebAppUpdate", () => {
     act(() => {
       pwa.getRegisteredCallback()?.(
         "/sw.js",
-        registration as unknown as ServiceWorkerRegistration,
+        registration as unknown as ServiceWorkerRegistration
       );
     });
 

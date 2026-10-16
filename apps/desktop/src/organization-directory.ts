@@ -23,30 +23,33 @@ export interface OrganizationDirectoryEntry {
 }
 
 function timestamp(value?: Date | string | null) {
-  if (value instanceof Date) return value.toISOString();
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
   return value ?? new Date(0).toISOString();
 }
 
 export function resolveOrganizationDirectory(
   syncedOrganizations: SyncedOrganization[],
   activeOrganization?: ActiveOrganization | null,
-  includeActiveFallback = false,
+  includeActiveFallback = false
 ): OrganizationDirectoryEntry[] {
   const synced = syncedOrganizations.flatMap((organization) =>
     organization.name && organization.slug
-      ? [{
-          createdAt: timestamp(organization.created_at),
-          id: organization.id,
-          logo: organization.logo ?? null,
-          name: organization.name,
-          slug: organization.slug,
-        }]
-      : [],
+      ? [
+          {
+            createdAt: timestamp(organization.created_at),
+            id: organization.id,
+            logo: organization.logo ?? null,
+            name: organization.name,
+            slug: organization.slug,
+          },
+        ]
+      : []
   );
 
   if (
-    !includeActiveFallback ||
-    !activeOrganization ||
+    !(includeActiveFallback && activeOrganization) ||
     synced.some((organization) => organization.id === activeOrganization.id)
   ) {
     return synced;
@@ -69,5 +72,5 @@ export function isOrganizationDirectoryCurrent(status: {
   isFetching: boolean;
   isLoading: boolean;
 }) {
-  return !status.error && !status.isFetching && !status.isLoading;
+  return !(status.error || status.isFetching || status.isLoading);
 }

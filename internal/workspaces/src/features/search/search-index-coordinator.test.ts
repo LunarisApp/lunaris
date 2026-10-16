@@ -81,13 +81,15 @@ describe("search index update planning", () => {
       [row],
       definitions,
       [indexer],
-      new Map(),
+      new Map()
     );
 
     expect(initial.activeEntryKeys).toEqual(
-      new Set(["acme.note.indexer\u001fresource-1"]),
+      new Set(["acme.note.indexer\u001fresource-1"])
     );
-    expect(initial.entryStates.get("acme.note.indexer\u001fresource-1")).toEqual({
+    expect(
+      initial.entryStates.get("acme.note.indexer\u001fresource-1")
+    ).toEqual({
       available: true,
       revision: initial.jobs[0]?.revision,
     });
@@ -101,7 +103,9 @@ describe("search index update planning", () => {
       [row],
       definitions,
       [indexer],
-      new Map([[initial.jobs[0]?.entryKey ?? "", initial.jobs[0]?.revision ?? ""]]),
+      new Map([
+        [initial.jobs[0]?.entryKey ?? "", initial.jobs[0]?.revision ?? ""],
+      ])
     );
     expect(unchanged.jobs).toEqual([]);
   });
@@ -111,12 +115,13 @@ describe("search index update planning", () => {
       [{ ...row, yjs_count: 0, yjs_latest: null }],
       new Map([[definition.resourceTypeId, definition]]),
       [indexer],
-      new Map(),
+      new Map()
     );
 
     expect(unavailable.activeEntryKeys.size).toBe(1);
     expect(
-      unavailable.entryStates.get("acme.note.indexer\u001fresource-1")?.available,
+      unavailable.entryStates.get("acme.note.indexer\u001fresource-1")
+        ?.available
     ).toBe(false);
     expect(unavailable.jobs).toEqual([]);
   });

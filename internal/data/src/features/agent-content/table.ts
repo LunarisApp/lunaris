@@ -15,7 +15,7 @@ export const createAgentIdempotencyTable = () =>
       response: column.text,
       status: column.text,
     },
-    { localOnly: true, viewName: AGENT_IDEMPOTENCY_TABLE },
+    { localOnly: true, viewName: AGENT_IDEMPOTENCY_TABLE }
   );
 
 export const createAgentActionPreviewsTable = () =>
@@ -32,5 +32,5 @@ export const createAgentActionPreviewsTable = () =>
       used_at: column.text,
       organization_id: column.text,
     },
-    { localOnly: true, viewName: AGENT_ACTION_PREVIEWS_TABLE },
+    { localOnly: true, viewName: AGENT_ACTION_PREVIEWS_TABLE }
   );

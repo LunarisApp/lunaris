@@ -5,7 +5,7 @@ import BackendConnector from "./backend";
 
 const BACKEND_URL = "http://localhost:3000";
 
-function jsonResponse(data: unknown, status = 200) {
+function _jsonResponse(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: { "Content-Type": "application/json" },
@@ -34,19 +34,17 @@ function makeBatch(
 function makeDatabase(batches: (CrudBatch | null)[]) {
   let callIndex = 0;
   return {
-    getCrudBatch: vi.fn().mockImplementation(() => {
-      return Promise.resolve(batches[callIndex++] ?? null);
-    }),
+    getCrudBatch: vi
+      .fn()
+      .mockImplementation(() => Promise.resolve(batches[callIndex++] ?? null)),
   } as unknown as AbstractPowerSyncDatabase;
 }
 
 function mockFetchOk() {
-  return vi
-    .spyOn(globalThis, "fetch")
-    .mockImplementation((input) => {
-      const url = input.toString();
-      return Promise.resolve(new Response(null, { status: 200 }));
-    });
+  return vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+    const _url = input.toString();
+    return Promise.resolve(new Response(null, { status: 200 }));
+  });
 }
 
 function uploadCalls(fetchSpy: ReturnType<typeof mockFetchOk>) {
@@ -150,7 +148,7 @@ describe("BackendConnector.uploadData", () => {
   it("throws on 5xx and does not call complete", async () => {
     const batch = makeBatch([makeCrudEntry("1", "PUT", "documents", 1)]);
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = input.toString();
+      const _url = input.toString();
       return Promise.resolve(new Response(null, { status: 500 }));
     });
     const db = makeDatabase([batch, null]);
@@ -176,7 +174,7 @@ describe("BackendConnector.uploadData", () => {
   it("throws on 4xx and does not call complete", async () => {
     const batch = makeBatch([makeCrudEntry("1", "PUT", "documents", 1)]);
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = input.toString();
+      const _url = input.toString();
       return Promise.resolve(new Response(null, { status: 409 }));
     });
     const db = makeDatabase([batch, null]);
@@ -193,7 +191,7 @@ describe("BackendConnector.uploadData", () => {
 
   it("blocks after three consecutive 4xx responses", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = input.toString();
+      const _url = input.toString();
       return Promise.resolve(new Response(null, { status: 409 }));
     });
     const syncBlocker = createSyncBlocker();
@@ -203,13 +201,28 @@ describe("BackendConnector.uploadData", () => {
     });
 
     await expect(
-      connector.uploadData(makeDatabase([makeBatch([makeCrudEntry("1", "PUT", "documents", 1)]), null]))
+      connector.uploadData(
+        makeDatabase([
+          makeBatch([makeCrudEntry("1", "PUT", "documents", 1)]),
+          null,
+        ])
+      )
     ).rejects.toThrow("Sync upload rejected");
     await expect(
-      connector.uploadData(makeDatabase([makeBatch([makeCrudEntry("2", "PUT", "documents", 2)]), null]))
+      connector.uploadData(
+        makeDatabase([
+          makeBatch([makeCrudEntry("2", "PUT", "documents", 2)]),
+          null,
+        ])
+      )
     ).rejects.toThrow("Sync upload rejected");
     await expect(
-      connector.uploadData(makeDatabase([makeBatch([makeCrudEntry("3", "PUT", "documents", 3)]), null]))
+      connector.uploadData(
+        makeDatabase([
+          makeBatch([makeCrudEntry("3", "PUT", "documents", 3)]),
+          null,
+        ])
+      )
     ).rejects.toThrow("Sync upload rejected");
 
     expect(syncBlocker.getSnapshot()).toEqual({
@@ -227,17 +240,25 @@ describe("BackendConnector.uploadData", () => {
     });
 
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = input.toString();
+      const _url = input.toString();
       return Promise.resolve(new Response(null, { status: 409 }));
     });
     await expect(
-      connector.uploadData(makeDatabase([makeBatch([makeCrudEntry("1", "PUT", "documents", 1)]), null]))
+      connector.uploadData(
+        makeDatabase([
+          makeBatch([makeCrudEntry("1", "PUT", "documents", 1)]),
+          null,
+        ])
+      )
     ).rejects.toThrow("Sync upload rejected");
 
     vi.restoreAllMocks();
     mockFetchOk();
     await connector.uploadData(
-      makeDatabase([makeBatch([makeCrudEntry("2", "PUT", "documents", 2)]), null])
+      makeDatabase([
+        makeBatch([makeCrudEntry("2", "PUT", "documents", 2)]),
+        null,
+      ])
     );
 
     expect(syncBlocker.getSnapshot()).toEqual({
@@ -279,7 +300,7 @@ describe("BackendConnector.uploadData", () => {
     await connector.uploadData(makeDatabase([batch, null]));
 
     expect(
-      new Headers(uploadCalls(fetchSpy)[0]?.[1]?.headers).get("x-csrf-token"),
+      new Headers(uploadCalls(fetchSpy)[0]?.[1]?.headers).get("x-csrf-token")
     ).toBeNull();
     expect(fetchSpy).toHaveBeenCalledOnce();
     expect(uploadCalls(fetchSpy)[0]?.[1]?.credentials).toBe("include");

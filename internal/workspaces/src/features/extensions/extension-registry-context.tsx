@@ -26,7 +26,7 @@ export interface ExtensionRuntimeChange {
 }
 
 export type ApplyExtensionRuntimeChange = (
-  change: ExtensionRuntimeChange,
+  change: ExtensionRuntimeChange
 ) => Promise<void>;
 
 interface ExtensionRegistryContextValue {
@@ -40,9 +40,8 @@ interface ExtensionRegistryContextValue {
   runtimeRevisions?: Record<string, string>;
 }
 
-const ExtensionRegistryContext = createContext<ExtensionRegistryContextValue | null>(
-  null,
-);
+const ExtensionRegistryContext =
+  createContext<ExtensionRegistryContextValue | null>(null);
 
 export function ExtensionRegistryProvider({
   applyRuntimeChange,
@@ -52,7 +51,7 @@ export function ExtensionRegistryProvider({
   defaultExtensionIds = allExtensionIds,
   enabledExtensionIds = defaultExtensionIds,
   extensionAvailability = Object.fromEntries(
-    allExtensionIds.map((id) => [id, "available" as const]),
+    allExtensionIds.map((id) => [id, "available" as const])
   ),
   extensionMetadata,
   runtimeRevisions,
@@ -92,7 +91,7 @@ export function useExtensionRegistry(): ExtensionRegistryContextValue {
   const ctx = useContext(ExtensionRegistryContext);
   if (!ctx) {
     throw new Error(
-      "useExtensionRegistry must be used within ExtensionRegistryProvider",
+      "useExtensionRegistry must be used within ExtensionRegistryProvider"
     );
   }
   return ctx;

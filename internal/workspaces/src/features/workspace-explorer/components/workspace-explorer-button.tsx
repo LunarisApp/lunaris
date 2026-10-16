@@ -29,7 +29,9 @@ export function WorkspaceExplorerButton() {
     openExplorer();
   }, [openExplorer]);
 
-  if (isOpen) return null;
+  if (isOpen) {
+    return null;
+  }
 
   return (
     <Tooltip>

@@ -24,13 +24,14 @@ export const UNAVAILABLE_AWARENESS: PluginAwarenessResult = {
 /** Ephemeral presence lease. Only call from a visible resource view, never a data reader. */
 export function useYjsAwareness(
   storage: ResourceStorageHandle | undefined,
-  options?: PluginAwarenessOptions,
+  options?: PluginAwarenessOptions
 ): PluginAwarenessResult {
   usePluginPermission("content.read");
   const capabilities = usePluginDataCapabilities();
   const { workspaceId } = useCurrentWorkspace();
-  if (storage && storage.kind !== "yjs")
+  if (storage && storage.kind !== "yjs") {
     throw new Error("useYjsAwareness requires Yjs storage");
+  }
   return (
     capabilities.useYjsAwareness?.(storage, workspaceId, options) ??
     UNAVAILABLE_AWARENESS

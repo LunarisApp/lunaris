@@ -14,14 +14,16 @@ export function useWorkspacePluginPreload(
   {
     defaultExtensionIds = allExtensionIds,
     loadPlugin = loadBundledPlugin,
-  }: WorkspacePluginPreloadOptions = {},
+  }: WorkspacePluginPreloadOptions = {}
 ) {
   const db = usePowerSync();
   const inFlight = useRef(new Map<string, Promise<void>>());
 
   return useCallback(
     (workspaceId: string) => {
-      if (inFlight.current.has(workspaceId)) return;
+      if (inFlight.current.has(workspaceId)) {
+        return;
+      }
 
       const preload = loadWorkspacePluginIds({
         allExtensionIds,
@@ -48,6 +50,6 @@ export function useWorkspacePluginPreload(
 
       inFlight.current.set(workspaceId, preload);
     },
-    [allExtensionIds, db, defaultExtensionIds, loadPlugin],
+    [allExtensionIds, db, defaultExtensionIds, loadPlugin]
   );
 }

@@ -34,8 +34,12 @@ export function createPreloadableLazy<T extends ComponentType<any>>(
   let inFlight: Promise<{ default: T }> | undefined;
 
   const load = () => {
-    if (loaded) return Promise.resolve(loaded);
-    if (inFlight) return inFlight;
+    if (loaded) {
+      return Promise.resolve(loaded);
+    }
+    if (inFlight) {
+      return inFlight;
+    }
     inFlight = loader()
       .then((module) => {
         loaded = module;

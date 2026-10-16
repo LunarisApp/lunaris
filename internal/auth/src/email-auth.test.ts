@@ -19,7 +19,7 @@ describe("emailAuthResolutionSchema", () => {
       emailAuthResolutionSchema.safeParse({
         kind: "social",
         provider: "github",
-      }).success,
+      }).success
     ).toBe(false);
   });
 });
@@ -33,10 +33,9 @@ describe("resolveEmailAuthMethod", () => {
 
   it("uses password for a credential account", () => {
     expect(
-      resolveEmailAuthMethod(
-        { accounts: [{ providerId: "credential" }] },
-        ["google"],
-      ),
+      resolveEmailAuthMethod({ accounts: [{ providerId: "credential" }] }, [
+        "google",
+      ])
     ).toEqual({ kind: "password" });
   });
 
@@ -44,31 +43,26 @@ describe("resolveEmailAuthMethod", () => {
     expect(
       resolveEmailAuthMethod(
         {
-          accounts: [
-            { providerId: "google" },
-            { providerId: "credential" },
-          ],
+          accounts: [{ providerId: "google" }, { providerId: "credential" }],
         },
-        ["google"],
-      ),
+        ["google"]
+      )
     ).toEqual({ kind: "password" });
   });
 
   it("uses Google for a Google-only account", () => {
     expect(
-      resolveEmailAuthMethod(
-        { accounts: [{ providerId: "google" }] },
-        ["google"],
-      ),
+      resolveEmailAuthMethod({ accounts: [{ providerId: "google" }] }, [
+        "google",
+      ])
     ).toEqual({ kind: "social", provider: "google" });
   });
 
   it("rejects an account without a configured method", () => {
     expect(
-      resolveEmailAuthMethod(
-        { accounts: [{ providerId: "github" }] },
-        ["google"],
-      ),
+      resolveEmailAuthMethod({ accounts: [{ providerId: "github" }] }, [
+        "google",
+      ])
     ).toBeNull();
   });
 });
@@ -91,13 +85,26 @@ describe("emailAuthDiscovery", () => {
   });
 });
 
-
 describe("closed registration email discovery", () => {
   it("does not offer registration for unknown users", () => {
-    expect(resolveEmailAuthMethod(null, ["google"], false)).toEqual({ kind: "password" });
+    expect(resolveEmailAuthMethod(null, ["google"], false)).toEqual({
+      kind: "password",
+    });
   });
   it("retains existing password and Google login", () => {
-    expect(resolveEmailAuthMethod({ accounts: [{ providerId: "credential" }] }, ["google"], false)).toEqual({ kind: "password" });
-    expect(resolveEmailAuthMethod({ accounts: [{ providerId: "google" }] }, ["google"], false)).toEqual({ kind: "social", provider: "google" });
+    expect(
+      resolveEmailAuthMethod(
+        { accounts: [{ providerId: "credential" }] },
+        ["google"],
+        false
+      )
+    ).toEqual({ kind: "password" });
+    expect(
+      resolveEmailAuthMethod(
+        { accounts: [{ providerId: "google" }] },
+        ["google"],
+        false
+      )
+    ).toEqual({ kind: "social", provider: "google" });
   });
 });

@@ -6,7 +6,9 @@ import {
   ORGANIZATION_EXTENSION_REGISTRIES_TABLE,
 } from "./table";
 
-const OPTIONS: AdditionalOptions = { streams: ORGANIZATION_DIRECTORY_SYNC_STREAMS };
+const OPTIONS: AdditionalOptions = {
+  streams: ORGANIZATION_DIRECTORY_SYNC_STREAMS,
+};
 
 export interface OrganizationExtensionRegistry {
   addedAt: string;
@@ -21,7 +23,7 @@ export interface OrganizationExtensionRegistry {
 }
 
 function mapRegistry(
-  row: OrganizationExtensionRegistryEntity,
+  row: OrganizationExtensionRegistryEntity
 ): OrganizationExtensionRegistry {
   return {
     addedAt: row.added_at ?? "",
@@ -38,14 +40,14 @@ function mapRegistry(
 
 export function useOrganizationExtensionRegistriesQuery(
   organizationId: string | undefined,
-  options: AdditionalOptions = OPTIONS,
+  options: AdditionalOptions = OPTIONS
 ) {
   const query = useQuery<OrganizationExtensionRegistryEntity>(
     `SELECT * FROM ${ORGANIZATION_EXTENSION_REGISTRIES_TABLE}
      WHERE organization_id = ?
      ORDER BY official DESC, added_at ASC`,
     [organizationId ?? ""],
-    options,
+    options
   );
   const data = useMemo(() => query.data?.map(mapRegistry), [query.data]);
   return { ...query, data };

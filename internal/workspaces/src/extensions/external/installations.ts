@@ -24,7 +24,7 @@ export type LoadableExternalInstallation = ExternalInstallation & {
 };
 
 export function isLoadableExternalInstallation(
-  value: ExternalInstallation,
+  value: ExternalInstallation
 ): value is LoadableExternalInstallation {
   return (
     value.availability === "available" &&
@@ -45,14 +45,16 @@ export function resolveExternalInstallations({
   online: boolean;
 }): ExternalInstallation[] {
   const catalogById = new Map(
-    catalog?.extensions.map((entry) => [entry.id, entry]),
+    catalog?.extensions.map((entry) => [entry.id, entry])
   );
 
   return installations.flatMap((installation) => {
-    if (bundledPluginIds.includes(installation.extensionId)) return [];
+    if (bundledPluginIds.includes(installation.extensionId)) {
+      return [];
+    }
     const listedEntry = catalogById.get(installation.extensionId);
     const listedVersion = listedEntry?.versions.find(
-      (candidate) => candidate.version === installation.version,
+      (candidate) => candidate.version === installation.version
     );
     const pinned =
       installation.descriptorUrl &&
@@ -74,25 +76,27 @@ export function resolveExternalInstallations({
       ? listedVersion && pinned
         ? pinned
         : listedVersion
-      : pinned ?? listedVersion;
-    const entry = listedEntry ?? (!online && pinned
-      ? {
-          description: installation.extensionId,
-          developer: "Unknown publisher",
-          id: installation.extensionId,
-          latestVersion: installation.version,
-          name: installation.extensionId,
-          repository: "https://example.invalid",
-          versions: [pinned],
-        }
-      : undefined);
+      : (pinned ?? listedVersion);
+    const entry =
+      listedEntry ??
+      (!online && pinned
+        ? {
+            description: installation.extensionId,
+            developer: "Unknown publisher",
+            id: installation.extensionId,
+            latestVersion: installation.version,
+            name: installation.extensionId,
+            repository: "https://example.invalid",
+            versions: [pinned],
+          }
+        : undefined);
 
     let availability: ExtensionAvailability = "available";
-    if (!catalog && !pinned) {
+    if (!(catalog || pinned)) {
       availability = online ? "unknown-release" : "missing-offline-cache";
     } else if (catalog && !catalog.enabled) {
       availability = "catalog-disabled";
-    } else if (!entry || !version) {
+    } else if (!(entry && version)) {
       availability = "unknown-release";
     } else if (
       !isMarketplaceVersionCompatible(PLUGIN_API_SUPPORTED_VERSIONS, version)

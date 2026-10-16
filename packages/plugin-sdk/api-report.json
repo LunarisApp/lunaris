@@ -385,10 +385,7 @@
     {
       "entrypoint": "./vite",
       "runtime": "./dist/vite.js",
-      "symbols": [
-        "LunarisPluginBuildOptions",
-        "defineLunarisPluginConfig"
-      ],
+      "symbols": ["LunarisPluginBuildOptions", "defineLunarisPluginConfig"],
       "types": "./dist/vite.d.ts"
     }
   ]

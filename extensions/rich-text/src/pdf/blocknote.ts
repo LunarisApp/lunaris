@@ -36,12 +36,9 @@ function listIndent(depth: number, theme: PdfTheme) {
  */
 type BlockRenderer = (ctx: BlockCtx) => ReactNode;
 
-function renderListBlock(
-  symbol: (ctx: BlockCtx) => string
-): BlockRenderer {
+function renderListBlock(symbol: (ctx: BlockCtx) => string): BlockRenderer {
   return (ctx) => {
-    const { content, children, depth, key, styles, theme, numbering } =
-      ctx;
+    const { content, children, depth, key, styles, theme, numbering } = ctx;
     return createElement(
       View,
       {
@@ -54,7 +51,14 @@ function renderListBlock(
         { style: styles.listContent },
         createElement(Text, null, ...renderInlineContent(content, theme)),
         ...children.map((child, idx) =>
-          renderBlock(child, styles, theme, numbering, depth + 1, `${key}.${idx}`)
+          renderBlock(
+            child,
+            styles,
+            theme,
+            numbering,
+            depth + 1,
+            `${key}.${idx}`
+          )
         )
       )
     );
@@ -91,7 +95,7 @@ const BLOCK_RENDERERS: Record<string, BlockRenderer> = {
   bulletListItem: renderListBlock(() => "\u2022"),
 
   numberedListItem: renderListBlock(({ block, depth, numbering }) => {
-    const counterKey = `${depth}-${block.props?.["_parentId"] ?? "root"}`;
+    const counterKey = `${depth}-${block.props?._parentId ?? "root"}`;
     const current = (numbering.counters.get(counterKey) ?? 0) + 1;
     numbering.counters.set(counterKey, current);
     return `${current}.`;
@@ -108,7 +112,9 @@ const BLOCK_RENDERERS: Record<string, BlockRenderer> = {
 
   image: ({ block, key, styles, theme }) => {
     const url = block.props?.url as string | undefined;
-    if (!url) return null;
+    if (!url) {
+      return null;
+    }
     const caption = block.props?.caption as string | undefined;
     return createElement(
       View,
@@ -138,7 +144,9 @@ const BLOCK_RENDERERS: Record<string, BlockRenderer> = {
           }>;
         }
       | undefined;
-    if (!Array.isArray(tableContent?.rows)) return null;
+    if (!Array.isArray(tableContent?.rows)) {
+      return null;
+    }
     const richRows = tableContent.rows.map((row) =>
       row.cells.map((cell) =>
         Array.isArray(cell) ? cell : (cell.content ?? [])
@@ -148,7 +156,12 @@ const BLOCK_RENDERERS: Record<string, BlockRenderer> = {
   },
 };
 
-const fallbackBlockRenderer: BlockRenderer = ({ content, key, styles, theme }) => {
+const fallbackBlockRenderer: BlockRenderer = ({
+  content,
+  key,
+  styles,
+  theme,
+}) => {
   if (content.length > 0) {
     return createElement(
       Text,

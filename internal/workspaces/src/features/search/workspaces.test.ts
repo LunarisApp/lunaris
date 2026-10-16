@@ -9,7 +9,9 @@ describe("searchWorkspaces", () => {
   ];
 
   it("searches names and slugs and marks the current workspace", () => {
-    expect(searchWorkspaces(workspaces, "alpha", "workspace_1", "Untitled")).toEqual([
+    expect(
+      searchWorkspaces(workspaces, "alpha", "workspace_1", "Untitled")
+    ).toEqual([
       {
         id: "workspace-workspace_1",
         isCurrent: true,
@@ -49,21 +51,26 @@ describe("searchWorkspaces", () => {
 
   it("supports standalone workspace filters", () => {
     expect(
-      searchWorkspaces(workspaces, 'workspace:"Alpha Notes"', "workspace_1", "Untitled"),
+      searchWorkspaces(
+        workspaces,
+        'workspace:"Alpha Notes"',
+        "workspace_1",
+        "Untitled"
+      )
     ).toHaveLength(1);
     expect(
       searchWorkspaces(
         workspaces,
         'workspace:"Alpha Notes" roadmap',
         "workspace_1",
-        "Untitled",
-      ),
+        "Untitled"
+      )
     ).toEqual([]);
   });
 
   it("suppresses workspaces for item-scoped filters", () => {
     expect(
-      searchWorkspaces(workspaces, "title:notes", "workspace_1", "Untitled"),
+      searchWorkspaces(workspaces, "title:notes", "workspace_1", "Untitled")
     ).toEqual([]);
   });
 
@@ -71,7 +78,7 @@ describe("searchWorkspaces", () => {
     expect(
       searchWorkspaces(workspaces, "", "workspace_1", "Untitled", {
         includeAllWhenEmpty: true,
-      }).map((workspace) => workspace.workspaceId),
+      }).map((workspace) => workspace.workspaceId)
     ).toEqual(["workspace_1", "workspace_2", "workspace_3"]);
   });
 
@@ -90,7 +97,7 @@ describe("searchWorkspaces", () => {
         excludeCurrentWorkspace: true,
         includeAllWhenEmpty: true,
         limit: 3,
-      },
+      }
     );
 
     expect(results.map((workspace) => workspace.workspaceId)).toEqual([

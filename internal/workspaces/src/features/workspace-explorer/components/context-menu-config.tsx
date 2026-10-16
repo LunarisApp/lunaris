@@ -1,6 +1,4 @@
-import {
-  type ResourceTypeDefinition,
-} from "@lunarisapp/plugin-sdk";
+import type { ResourceTypeDefinition } from "@lunarisapp/plugin-sdk";
 import { Icon } from "@lunarisapp/ui/components/icon";
 import {
   ContextMenuItem,
@@ -28,10 +26,7 @@ export interface AddItemSubmenuProps {
   resources: ResourceTypeDefinition[];
 }
 
-export function AddItemSubmenu({
-  resources,
-  onAddItem,
-}: AddItemSubmenuProps) {
+export function AddItemSubmenu({ resources, onAddItem }: AddItemSubmenuProps) {
   const { t } = useTranslation();
   return (
     <ContextMenuSub>

@@ -26,21 +26,23 @@ const DIRECTORY_STORAGE_KEY = "lunaris.regionDirectory";
 export const DEFAULT_REGION_DIRECTORY_URL =
   "https://lunaris.app/.well-known/lunaris-regions";
 
-const regionDirectoryEntrySchema = z.object({
-  id: z.string().min(1),
-  label: z.string().min(1),
-  apiUrl: z.string().url().optional(),
-  manifestUrl: z.string().url().optional(),
-  status: z.enum(["active", "coming-soon"]),
-  default: z.boolean().optional(),
-}).superRefine((entry, ctx) => {
-  if (entry.status === "active" && !entry.apiUrl && !entry.manifestUrl) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: `Active region ${entry.id} requires a manifest URL`,
-    });
-  }
-});
+const regionDirectoryEntrySchema = z
+  .object({
+    id: z.string().min(1),
+    label: z.string().min(1),
+    apiUrl: z.string().url().optional(),
+    manifestUrl: z.string().url().optional(),
+    status: z.enum(["active", "coming-soon"]),
+    default: z.boolean().optional(),
+  })
+  .superRefine((entry, ctx) => {
+    if (entry.status === "active" && !entry.apiUrl && !entry.manifestUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Active region ${entry.id} requires a manifest URL`,
+      });
+    }
+  });
 
 const discoveredRegionSchema = z.discriminatedUnion("status", [
   z.object({
@@ -63,7 +65,9 @@ const regionDiscoverySchema = z.object({
 
 const regionManifestSchema = z.object({
   signupsAllowed: z.boolean().optional(),
-  capabilities: z.object({ passwordResetEmail: z.boolean().optional() }).optional(),
+  capabilities: z
+    .object({ passwordResetEmail: z.boolean().optional() })
+    .optional(),
   socialProviders: z.array(z.string()).optional(),
   apiUrl: z.string().url(),
   syncUrl: z.string().url(),
@@ -144,11 +148,15 @@ function resolveDefaultRegion(directory: RegionDirectoryEntry[]) {
 
 function resolveRegion(
   directory: RegionDirectoryEntry[],
-  regionId: string | null | undefined,
+  regionId: string | null | undefined
 ) {
-  if (!regionId) return null;
+  if (!regionId) {
+    return null;
+  }
   const region = directory.find((entry) => entry.id === regionId) ?? null;
-  if (!region || region.status !== "active") return null;
+  if (region?.status !== "active") {
+    return null;
+  }
   return region;
 }
 
@@ -157,21 +165,27 @@ function createRegionUrl(input: string) {
 }
 
 export function createRegionSearch(regionId?: string) {
-  if (!regionId) return "";
+  if (!regionId) {
+    return "";
+  }
   const params = new URLSearchParams();
   params.set(REGION_QUERY_PARAM, regionId);
   return `?${params.toString()}`;
 }
 
 export function appendRegionToPath(path: string, regionId?: string) {
-  if (!regionId) return path;
+  if (!regionId) {
+    return path;
+  }
   const url = createRegionUrl(path);
   url.searchParams.set(REGION_QUERY_PARAM, regionId);
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
 export function appendRegionToUrl(url: string, regionId?: string) {
-  if (!regionId) return url;
+  if (!regionId) {
+    return url;
+  }
   const resolvedUrl = new URL(url);
   resolvedUrl.searchParams.set(REGION_QUERY_PARAM, regionId);
   return resolvedUrl.toString();
@@ -182,35 +196,39 @@ export function createAuthCallbackUrl(path: string, baseUrl: string) {
 }
 
 export function parseRegionDirectory(value: unknown) {
-  const schema = z.array(regionDirectoryEntrySchema).superRefine((entries, ctx) => {
-    const ids = new Set<string>();
-    let defaults = 0;
+  const schema = z
+    .array(regionDirectoryEntrySchema)
+    .superRefine((entries, ctx) => {
+      const ids = new Set<string>();
+      let defaults = 0;
 
-    for (const entry of entries) {
-      if (ids.has(entry.id)) {
+      for (const entry of entries) {
+        if (ids.has(entry.id)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Duplicate region id: ${entry.id}`,
+          });
+        }
+        ids.add(entry.id);
+        if (entry.default) {
+          defaults += 1;
+        }
+      }
+
+      if (defaults > 1) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Duplicate region id: ${entry.id}`,
+          message: "Only one region can be default",
         });
       }
-      ids.add(entry.id);
-      if (entry.default) defaults += 1;
-    }
 
-    if (defaults > 1) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Only one region can be default",
-      });
-    }
-
-    if (!entries.some((entry) => entry.status === "active")) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "At least one active region is required",
-      });
-    }
-  });
+      if (!entries.some((entry) => entry.status === "active")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "At least one active region is required",
+        });
+      }
+    });
 
   return schema.parse(value);
 }
@@ -225,7 +243,7 @@ export function parseRegionDiscovery(value: unknown) {
       ...(entry.status === "available"
         ? { manifestUrl: entry.manifestUrl }
         : {}),
-    })),
+    }))
   );
 }
 
@@ -246,7 +264,7 @@ async function fetchRegionDirectory(directoryUrl: string) {
 
 async function fetchManifest(
   expectedRegionId: string,
-  region: RegionDirectoryEntry,
+  region: RegionDirectoryEntry
 ) {
   // Public @AllowAnonymous endpoint — deliberately no credentials so
   // we never send Better Auth cookies cross-origin during region probing.
@@ -270,7 +288,7 @@ async function fetchManifest(
   // must not silently redirect user data to the wrong jurisdiction.
   if (manifest.regionId !== expectedRegionId) {
     throw new Error(
-      `Manifest region mismatch: expected ${expectedRegionId}, got ${manifest.regionId}`,
+      `Manifest region mismatch: expected ${expectedRegionId}, got ${manifest.regionId}`
     );
   }
 
@@ -278,11 +296,15 @@ async function fetchManifest(
 }
 
 function readStoredDirectory(directoryUrl: string) {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") {
+    return null;
+  }
 
   try {
     const raw = window.localStorage.getItem(DIRECTORY_STORAGE_KEY);
-    if (!raw) return null;
+    if (!raw) {
+      return null;
+    }
 
     const records = JSON.parse(raw) as unknown;
     if (!records || typeof records !== "object" || Array.isArray(records)) {
@@ -290,7 +312,7 @@ function readStoredDirectory(directoryUrl: string) {
     }
 
     return parseRegionDirectory(
-      (records as Record<string, unknown>)[directoryUrl],
+      (records as Record<string, unknown>)[directoryUrl]
     );
   } catch {
     return null;
@@ -299,9 +321,11 @@ function readStoredDirectory(directoryUrl: string) {
 
 function writeStoredDirectory(
   directoryUrl: string,
-  directory: RegionDirectoryEntry[],
+  directory: RegionDirectoryEntry[]
 ) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
 
   try {
     const raw = window.localStorage.getItem(DIRECTORY_STORAGE_KEY);
@@ -312,21 +336,22 @@ function writeStoredDirectory(
         : {};
 
     records[directoryUrl] = directory;
-    window.localStorage.setItem(
-      DIRECTORY_STORAGE_KEY,
-      JSON.stringify(records),
-    );
+    window.localStorage.setItem(DIRECTORY_STORAGE_KEY, JSON.stringify(records));
   } catch {
     // Best effort only. Network directory remains source of truth.
   }
 }
 
 function readStoredManifest(regionId: string) {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") {
+    return null;
+  }
 
   try {
     const raw = window.localStorage.getItem(MANIFEST_STORAGE_KEY);
-    if (!raw) return null;
+    if (!raw) {
+      return null;
+    }
 
     const records = JSON.parse(raw) as unknown;
     if (!records || typeof records !== "object" || Array.isArray(records)) {
@@ -334,9 +359,11 @@ function readStoredManifest(regionId: string) {
     }
 
     const parsed = regionManifestSchema.safeParse(
-      (records as Record<string, unknown>)[regionId],
+      (records as Record<string, unknown>)[regionId]
     );
-    if (!parsed.success || parsed.data.regionId !== regionId) return null;
+    if (!parsed.success || parsed.data.regionId !== regionId) {
+      return null;
+    }
     return parsed.data;
   } catch {
     return null;
@@ -344,7 +371,9 @@ function readStoredManifest(regionId: string) {
 }
 
 function writeStoredManifest(regionId: string, manifest: RegionManifest) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
 
   try {
     const raw = window.localStorage.getItem(MANIFEST_STORAGE_KEY);
@@ -377,39 +406,45 @@ function ResolvedRegionProvider({
   const navigate = useNavigate();
   const cacheRef = useRef(new Map<string, RegionManifest>());
   const [storedRegionId, setStoredRegionId] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
+    if (typeof window === "undefined") {
+      return null;
+    }
     return window.localStorage.getItem(STORAGE_KEY);
   });
   const regions = directory;
   const defaultRegion = useMemo(() => resolveDefaultRegion(regions), [regions]);
   const hasConfiguredDefault = useMemo(
     () => regions.some((entry) => entry.default === true),
-    [regions],
+    [regions]
   );
   const queryRegionId = useMemo(
     () => new URLSearchParams(location.search).get(REGION_QUERY_PARAM),
-    [location.search],
+    [location.search]
   );
   const queryRegion = useMemo(
     () => resolveRegion(regions, queryRegionId),
-    [regions, queryRegionId],
+    [regions, queryRegionId]
   );
   const storedRegion = useMemo(
     () => resolveRegion(regions, storedRegionId),
-    [regions, storedRegionId],
+    [regions, storedRegionId]
   );
   const region = queryRegion ?? storedRegion ?? defaultRegion;
   const hasExplicitRegionSelection = Boolean(queryRegion ?? storedRegion);
   const [manifest, setManifest] = useState<RegionManifest | null>(() =>
-    readStoredManifest(region.id),
+    readStoredManifest(region.id)
   );
   const [isLoading, setIsLoading] = useState(() => manifest === null);
   const [error, setError] = useState<Error | null>(null);
   const activeManifest = manifest?.regionId === region.id ? manifest : null;
 
   useEffect(() => {
-    if (!queryRegion) return;
-    if (storedRegionId === queryRegion.id) return;
+    if (!queryRegion) {
+      return;
+    }
+    if (storedRegionId === queryRegion.id) {
+      return;
+    }
     window.localStorage.setItem(STORAGE_KEY, queryRegion.id);
     setStoredRegionId(queryRegion.id);
   }, [queryRegion, storedRegionId]);
@@ -432,7 +467,9 @@ function ResolvedRegionProvider({
 
     fetchManifest(region.id, region)
       .then((nextManifest) => {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         writeStoredManifest(region.id, nextManifest);
         // A validated cached manifest owns this app session. Persist refreshes
         // for the next open instead of tearing down active auth/sync clients.
@@ -442,7 +479,9 @@ function ResolvedRegionProvider({
         }
       })
       .catch((nextError) => {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         if (cached) {
           log.warn({
             action: "region.manifest.refresh",
@@ -457,11 +496,13 @@ function ResolvedRegionProvider({
         setError(
           nextError instanceof Error
             ? nextError
-            : new Error("Failed to load region manifest"),
+            : new Error("Failed to load region manifest")
         );
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       });
 
     return () => {
@@ -472,7 +513,9 @@ function ResolvedRegionProvider({
   const setRegion = useCallback(
     (regionId: string) => {
       const nextRegion = resolveRegion(regions, regionId);
-      if (!nextRegion || nextRegion.status !== "active") return;
+      if (nextRegion?.status !== "active") {
+        return;
+      }
 
       window.localStorage.setItem(STORAGE_KEY, nextRegion.id);
       setStoredRegionId(nextRegion.id);
@@ -484,32 +527,29 @@ function ResolvedRegionProvider({
           pathname: location.pathname,
           search: params.toString() ? `?${params.toString()}` : "",
         },
-        { replace: true },
+        { replace: true }
       );
     },
-    [regions, location.pathname, location.search, navigate],
+    [regions, location.pathname, location.search, navigate]
   );
 
   const pathWithRegion = useCallback(
     (path: string) => appendRegionToPath(path, region.id),
-    [region.id],
+    [region.id]
   );
   const urlWithRegion = useCallback(
     (url: string) => appendRegionToUrl(url, region.id),
-    [region.id],
+    [region.id]
   );
 
   const authUrl = useCallback(
     (path: string) =>
-      createAuthCallbackUrl(
-        path,
-        authCallbackBaseUrl ?? navigation.origin(),
-      ),
-    [authCallbackBaseUrl, navigation],
+      createAuthCallbackUrl(path, authCallbackBaseUrl ?? navigation.origin()),
+    [authCallbackBaseUrl, navigation]
   );
   const clients = useMemo(
     () => (activeManifest ? createClients(activeManifest) : null),
-    [activeManifest, createClients],
+    [activeManifest, createClients]
   );
   const authClient = clients?.authClient ?? null;
   const apiClient = clients?.apiClient ?? null;
@@ -544,10 +584,12 @@ function ResolvedRegionProvider({
       regions,
       setRegion,
       urlWithRegion,
-    ],
+    ]
   );
 
-  return <RegionContext.Provider value={value}>{children}</RegionContext.Provider>;
+  return (
+    <RegionContext.Provider value={value}>{children}</RegionContext.Provider>
+  );
 }
 
 export function RegionProvider({
@@ -555,10 +597,9 @@ export function RegionProvider({
   directoryUrl = DEFAULT_REGION_DIRECTORY_URL,
   ...props
 }: RegionProviderProps) {
-  const [discoveredDirectory, setDiscoveredDirectory] =
-    useState<RegionDirectoryEntry[] | null>(() =>
-      directory ?? readStoredDirectory(directoryUrl),
-    );
+  const [discoveredDirectory, setDiscoveredDirectory] = useState<
+    RegionDirectoryEntry[] | null
+  >(() => directory ?? readStoredDirectory(directoryUrl));
   const [directoryError, setDirectoryError] = useState<Error | null>(null);
 
   useEffect(() => {
@@ -574,13 +615,19 @@ export function RegionProvider({
 
     fetchRegionDirectory(directoryUrl)
       .then((nextDirectory) => {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         writeStoredDirectory(directoryUrl, nextDirectory);
         // Keep boot clients stable. A refresh replaces cache for next open.
-        if (!cachedDirectory) setDiscoveredDirectory(nextDirectory);
+        if (!cachedDirectory) {
+          setDiscoveredDirectory(nextDirectory);
+        }
       })
       .catch((error) => {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         if (cachedDirectory) {
           log.warn({
             action: "region.directory.refresh",
@@ -594,7 +641,7 @@ export function RegionProvider({
         setDirectoryError(
           error instanceof Error
             ? error
-            : new Error("Failed to load region directory"),
+            : new Error("Failed to load region directory")
         );
       });
 
@@ -603,17 +650,25 @@ export function RegionProvider({
     };
   }, [directory, directoryUrl]);
 
-  if (directoryError) throw directoryError;
-  if (!discoveredDirectory) return <LoaderView />;
+  if (directoryError) {
+    throw directoryError;
+  }
+  if (!discoveredDirectory) {
+    return <LoaderView />;
+  }
 
   return <ResolvedRegionProvider {...props} directory={discoveredDirectory} />;
 }
 
 export function RegionReady({ children }: { children: ReactNode }) {
   const region = useRegion();
-  if (region.isLoading && !region.manifest) return <LoaderView />;
-  if (region.error) throw region.error;
-  if (!region.authClient || !region.apiClient || !region.manifest) {
+  if (region.isLoading && !region.manifest) {
+    return <LoaderView />;
+  }
+  if (region.error) {
+    throw region.error;
+  }
+  if (!(region.authClient && region.apiClient && region.manifest)) {
     return <LoaderView />;
   }
   return children;
@@ -646,14 +701,18 @@ export function useRegionClients(): RegionClients {
   };
 }
 
-export function RegionSummary({ variant = "card" }: { variant?: "card" | "plain" }) {
+export function RegionSummary({
+  variant = "card",
+}: {
+  variant?: "card" | "plain";
+}) {
   const { t } = useTranslation();
   const { region } = useRegion();
 
   if (variant === "plain") {
     return (
       <section className="grid gap-3 lg:grid-cols-[13rem_minmax(0,1fr)] lg:items-center lg:gap-10">
-        <h2 className="text-base font-semibold">
+        <h2 className="font-semibold text-base">
           {t("settings.account.region")}
         </h2>
         <div className="flex min-w-0 max-w-3xl items-center gap-3">
@@ -675,7 +734,7 @@ export function RegionSummary({ variant = "card" }: { variant?: "card" | "plain"
   }
 
   return (
-    <div className="bg-muted/50 flex items-center gap-3 rounded-xl px-4 py-3">
+    <div className="flex items-center gap-3 rounded-xl bg-muted/50 px-4 py-3">
       <span className="flex items-center gap-3">
         <HugeiconsIcon
           aria-hidden="true"
@@ -683,13 +742,15 @@ export function RegionSummary({ variant = "card" }: { variant?: "card" | "plain"
           icon={GlobalIcon}
           strokeWidth={2}
         />
-        <span className="text-sm font-medium">
+        <span className="font-medium text-sm">
           {t("settings.account.region")}
         </span>
       </span>
       <span className="ml-auto text-right text-sm">
         <span className="font-bold">{region.label}</span>{" "}
-        <span className="text-xs text-muted-foreground">({region.id.toUpperCase()})</span>
+        <span className="text-muted-foreground text-xs">
+          ({region.id.toUpperCase()})
+        </span>
       </span>
     </div>
   );

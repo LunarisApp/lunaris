@@ -5,12 +5,17 @@ import { UNLIMITED } from "@repo/auth/entitlements";
 import { useTranslation } from "react-i18next";
 import type { EntitlementStatus } from "../../entitlements";
 
-export function OrganizationPlanUsage({ status }: { status: EntitlementStatus }) {
+export function OrganizationPlanUsage({
+  status,
+}: {
+  status: EntitlementStatus;
+}) {
   const { t, i18n } = useTranslation();
   const format = new Intl.NumberFormat(i18n.language);
   const { usage } = status;
   const { memberCount, pendingInvitationCount } = usage ?? {};
-  const membersKnown = memberCount !== undefined && pendingInvitationCount !== undefined;
+  const membersKnown =
+    memberCount !== undefined && pendingInvitationCount !== undefined;
   const metrics = [
     {
       label: t("organization.billing.resourcesTitle"),
@@ -37,24 +42,30 @@ export function OrganizationPlanUsage({ status }: { status: EntitlementStatus })
       aria-label={t("organization.billing.planUsageTitle")}
     >
       <div className="flex items-center gap-1.5">
-        <h2 className="text-sm font-medium">{t("organization.billing.planUsageTitle")}</h2>
+        <h2 className="font-medium text-sm">
+          {t("organization.billing.planUsageTitle")}
+        </h2>
         {status.freshness !== "live" && (
           <BillingHint
             label={t("organization.billing.planUsageTitle")}
             hint={t(
-              usage ? "organization.billing.usageCached" : "organization.billing.usageUnavailable",
+              usage
+                ? "organization.billing.usageCached"
+                : "organization.billing.usageUnavailable"
             )}
           />
         )}
       </div>
-      <div className="grid divide-y rounded-xl border @2xl/billing:grid-cols-3 @2xl/billing:divide-x @2xl/billing:divide-y-0">
+      <div className="grid @2xl/billing:grid-cols-3 @2xl/billing:divide-x divide-y @2xl/billing:divide-y-0 rounded-xl border">
         {metrics.map(({ label, count, limit, description }) => {
           const known = count !== undefined && limit !== undefined;
           const unlimited = limit === UNLIMITED;
           const valueText = known
             ? t("organization.billing.storageUsage", {
                 used: format.format(count),
-                total: unlimited ? t("organization.billing.unlimited") : format.format(limit),
+                total: unlimited
+                  ? t("organization.billing.unlimited")
+                  : format.format(limit),
               })
             : t("organization.billing.usageUnavailable");
           return (
@@ -71,7 +82,7 @@ export function OrganizationPlanUsage({ status }: { status: EntitlementStatus })
                   {t(
                     count > limit
                       ? "organization.billing.usageOverLimit"
-                      : "organization.billing.usageAtLimit",
+                      : "organization.billing.usageAtLimit"
                   )}
                 </p>
               )}

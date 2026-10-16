@@ -28,7 +28,7 @@ describe("server discovery", () => {
         displayName: "Lunaris Desktop",
         schemaVersion: 1,
         serverId: "desktop",
-      }),
+      })
     ).toMatchObject({ serverId: "desktop" });
   });
 
@@ -44,12 +44,12 @@ describe("server discovery", () => {
         directoryUrl: "https://lunaris.app/.well-known/lunaris-servers",
         fetch: async () =>
           Response.json({ schemaVersion: 1, servers: [server] }),
-      }),
+      })
     ).resolves.toEqual({ schemaVersion: 1, servers: [server] });
     await expect(
       discoverServerManifest(server, {
         fetch: async () => Response.json(cloud),
-      }),
+      })
     ).resolves.toEqual(cloud);
   });
 
@@ -61,11 +61,9 @@ describe("server discovery", () => {
           urls.push(input.toString());
           return Response.json({}, { status: 404 });
         },
-      }),
+      })
     ).rejects.toMatchObject({ code: "SERVER_DISCOVERY_UNAVAILABLE" });
-    expect(urls).toEqual([
-      "https://lunaris.app/.well-known/lunaris-servers",
-    ]);
+    expect(urls).toEqual(["https://lunaris.app/.well-known/lunaris-servers"]);
   });
 
   it("deduplicates Desktop over a remote entry", () => {
@@ -87,8 +85,8 @@ describe("server discovery", () => {
           manifestUrl: "http://127.0.0.1:42000/v1/manifest",
           serverId: "desktop",
           status: "available",
-        },
-      ).servers,
+        }
+      ).servers
     ).toEqual([
       {
         displayName: "Lunaris Desktop",

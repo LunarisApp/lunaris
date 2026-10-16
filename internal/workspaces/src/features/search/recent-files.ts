@@ -8,7 +8,9 @@ export function getRecentFilesStorageKey(workspaceId: string): string {
 }
 
 function isRecentFile(value: unknown): value is RecentFile {
-  if (!value || typeof value !== "object") return false;
+  if (!value || typeof value !== "object") {
+    return false;
+  }
 
   const file = value as Partial<RecentFile>;
   return (
@@ -20,11 +22,15 @@ function isRecentFile(value: unknown): value is RecentFile {
 }
 
 export function parseRecentFiles(value: string | null): RecentFile[] {
-  if (!value) return [];
+  if (!value) {
+    return [];
+  }
 
   try {
     const parsed: unknown = JSON.parse(value);
-    if (!Array.isArray(parsed)) return [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
     return parsed.filter(isRecentFile);
   } catch {
     return [];
@@ -32,13 +38,18 @@ export function parseRecentFiles(value: string | null): RecentFile[] {
 }
 
 export function loadRecentFiles(workspaceId: string): RecentFile[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") {
+    return [];
+  }
   return parseRecentFiles(
     localStorage.getItem(getRecentFilesStorageKey(workspaceId))
   );
 }
 
-export function saveRecentFiles(workspaceId: string, files: RecentFile[]): void {
+export function saveRecentFiles(
+  workspaceId: string,
+  files: RecentFile[]
+): void {
   try {
     localStorage.setItem(
       getRecentFilesStorageKey(workspaceId),
@@ -58,10 +69,10 @@ export function addRecentFileToList(
 ): RecentFile[] {
   const filtered = files.filter((file) => file.resourceId !== resourceId);
 
-  return [
-    { resourceId, title, pluginId, openedAt },
-    ...filtered,
-  ].slice(0, MAX_RECENT_FILES);
+  return [{ resourceId, title, pluginId, openedAt }, ...filtered].slice(
+    0,
+    MAX_RECENT_FILES
+  );
 }
 
 export function removeRecentFilesFromList(
@@ -76,7 +87,9 @@ export function filterRecentFilesByValidResources(
   files: RecentFile[],
   validResourceIds?: Set<string>
 ): RecentFile[] {
-  if (!validResourceIds || validResourceIds.size === 0) return files;
+  if (!validResourceIds || validResourceIds.size === 0) {
+    return files;
+  }
   return files.filter((file) => validResourceIds.has(file.resourceId));
 }
 

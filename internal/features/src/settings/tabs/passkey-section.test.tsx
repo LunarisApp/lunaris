@@ -77,7 +77,7 @@ function renderPasskeys() {
   return render(
     <QueryClientProvider client={queryClient}>
       <PasskeySection />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
 
@@ -105,7 +105,7 @@ describe("PasskeySection", () => {
     renderPasskeys();
 
     expect(
-      await screen.findByText("settings.security.offlineToLoad"),
+      await screen.findByText("settings.security.offlineToLoad")
     ).toBeTruthy();
     expect(screen.queryByTestId("passkeys-loading")).toBeNull();
     expect(listUserPasskeys).not.toHaveBeenCalled();
@@ -121,14 +121,12 @@ describe("PasskeySection", () => {
 
     expect(await screen.findByText("MacBook Touch ID")).toBeTruthy();
     expect(
-      screen.getByText(
-        `settings.security.syncedPasskey · ${expectedDate}`,
-      ),
+      screen.getByText(`settings.security.syncedPasskey · ${expectedDate}`)
     ).toBeTruthy();
     expect(
       screen.getByRole("button", {
         name: "settings.security.removePasskey MacBook Touch ID",
-      }),
+      })
     ).toBeTruthy();
   });
 
@@ -147,26 +145,23 @@ describe("PasskeySection", () => {
     expect((submit as HTMLButtonElement).disabled).toBe(true);
 
     const nameInput = within(dialog).getByLabelText(
-      "settings.security.passkeyName",
+      "settings.security.passkeyName"
     );
     await user.type(nameInput, "x".repeat(65));
     expect((submit as HTMLButtonElement).disabled).toBe(true);
     await user.clear(nameInput);
-    await user.type(
-      nameInput,
-      "  MacBook Touch ID  ",
-    );
+    await user.type(nameInput, "  MacBook Touch ID  ");
     await user.click(submit);
 
-    await waitFor(() => expect(addPasskey).toHaveBeenCalledWith({
-      name: "MacBook Touch ID",
-    }));
+    await waitFor(() =>
+      expect(addPasskey).toHaveBeenCalledWith({
+        name: "MacBook Touch ID",
+      })
+    );
     expect(await screen.findByText("MacBook Touch ID")).toBeTruthy();
     expect(capture).toHaveBeenCalledWith("passkey_registration_started");
     expect(capture).toHaveBeenCalledWith("passkey_added");
-    expect(toastSuccess).toHaveBeenCalledWith(
-      "settings.security.passkeyAdded",
-    );
+    expect(toastSuccess).toHaveBeenCalledWith("settings.security.passkeyAdded");
   });
 
   it("treats a cancelled registration as a silent cancellation", async () => {
@@ -183,19 +178,19 @@ describe("PasskeySection", () => {
     const dialog = await screen.findByTestId("passkey-add-dialog");
     await user.type(
       within(dialog).getByLabelText("settings.security.passkeyName"),
-      "Security key",
+      "Security key"
     );
     await user.click(
       within(dialog).getByRole("button", {
         name: "settings.security.addPasskey",
-      }),
+      })
     );
 
     await waitFor(() => expect(addPasskey).toHaveBeenCalledOnce());
     expect(within(dialog).queryByRole("alert")).toBeNull();
     expect(capture).not.toHaveBeenCalledWith(
       "passkey_registration_failed",
-      expect.anything(),
+      expect.anything()
     );
     expect(toastError).not.toHaveBeenCalled();
   });
@@ -214,12 +209,12 @@ describe("PasskeySection", () => {
     const dialog = await screen.findByTestId("passkey-add-dialog");
     await user.type(
       within(dialog).getByLabelText("settings.security.passkeyName"),
-      "Security key",
+      "Security key"
     );
     await user.click(
       within(dialog).getByRole("button", {
         name: "settings.security.addPasskey",
-      }),
+      })
     );
 
     expect(await within(dialog).findByRole("alert")).toBeTruthy();
@@ -242,11 +237,11 @@ describe("PasskeySection", () => {
     await user.click(
       within(dialog).getByRole("button", {
         name: "settings.security.removePasskey",
-      }),
+      })
     );
 
     await waitFor(() =>
-      expect(deletePasskey).toHaveBeenCalledWith({ id: "passkey-1" }),
+      expect(deletePasskey).toHaveBeenCalledWith({ id: "passkey-1" })
     );
     expect(screen.queryByText("MacBook Touch ID")).toBeNull();
     expect(capture).toHaveBeenCalledWith("passkey_removed");
@@ -259,24 +254,30 @@ describe("PasskeySection", () => {
       () =>
         new Promise((_resolve, reject) => {
           rejectList = reject;
-        }),
+        })
     );
     renderPasskeys();
 
     expect(screen.getByTestId("passkeys-loading")).toBeTruthy();
-    expect(screen.getByText("settings.security.passkeysUnsupported")).toBeTruthy();
+    expect(
+      screen.getByText("settings.security.passkeysUnsupported")
+    ).toBeTruthy();
     expect(
       (
         screen.getByRole("button", {
           name: "settings.security.addPasskey",
         }) as HTMLButtonElement
-      ).disabled,
+      ).disabled
     ).toBe(true);
 
     rejectList?.(new Error("network"));
-    expect(await screen.findByText("settings.security.passkeysLoadFailed")).toBeTruthy();
+    expect(
+      await screen.findByText("settings.security.passkeysLoadFailed")
+    ).toBeTruthy();
     listUserPasskeys.mockResolvedValue({ data: [], error: null });
     await userEvent.click(screen.getByText("common.retry"));
-    expect(await screen.findByText("settings.security.noPasskeys")).toBeTruthy();
+    expect(
+      await screen.findByText("settings.security.noPasskeys")
+    ).toBeTruthy();
   });
 });

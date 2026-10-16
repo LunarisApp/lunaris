@@ -11,10 +11,12 @@ export interface EncryptionKeyVaultRecord {
 let databasePromise: Promise<IDBDatabase> | null = null;
 
 export async function readEncryptionKeyVaultRecord(
-  id: string,
+  id: string
 ): Promise<EncryptionKeyVaultRecord | null> {
   const database = await openKeyVault();
-  if (!database) return null;
+  if (!database) {
+    return null;
+  }
 
   const store = database.transaction(STORE_NAME).objectStore(STORE_NAME);
   return (
@@ -25,10 +27,12 @@ export async function readEncryptionKeyVaultRecord(
 }
 
 export async function writeEncryptionKeyVaultRecord(
-  record: EncryptionKeyVaultRecord,
+  record: EncryptionKeyVaultRecord
 ): Promise<void> {
   const database = await openKeyVault();
-  if (!database) return;
+  if (!database) {
+    return;
+  }
 
   const store = database
     .transaction(STORE_NAME, "readwrite")
@@ -37,10 +41,12 @@ export async function writeEncryptionKeyVaultRecord(
 }
 
 export async function deleteEncryptionKeyVaultRecord(
-  id: string,
+  id: string
 ): Promise<void> {
   const database = await openKeyVault();
-  if (!database) return;
+  if (!database) {
+    return;
+  }
 
   const store = database
     .transaction(STORE_NAME, "readwrite")
@@ -50,7 +56,9 @@ export async function deleteEncryptionKeyVaultRecord(
 
 export async function clearEncryptionKeyVault(): Promise<void> {
   const database = await openKeyVault();
-  if (!database) return;
+  if (!database) {
+    return;
+  }
 
   const store = database
     .transaction(STORE_NAME, "readwrite")
@@ -59,8 +67,12 @@ export async function clearEncryptionKeyVault(): Promise<void> {
 }
 
 async function openKeyVault(): Promise<IDBDatabase | null> {
-  if (typeof indexedDB === "undefined") return null;
-  if (databasePromise) return databasePromise;
+  if (typeof indexedDB === "undefined") {
+    return null;
+  }
+  if (databasePromise) {
+    return databasePromise;
+  }
 
   databasePromise = new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);

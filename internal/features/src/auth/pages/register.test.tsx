@@ -29,7 +29,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) =>
       (
-        {
+        ({
           "auth.backToSignIn": "Back",
           "auth.email": "Email",
           "auth.haveAccount": "Have an account?",
@@ -38,16 +38,18 @@ vi.mock("react-i18next", () => ({
           "auth.signIn": "Sign in",
           "auth.signUp": "Sign up",
           "auth.signUpDescription": "Create an account",
-        } as const
-      )[key as
-        | "auth.backToSignIn"
-        | "auth.email"
-        | "auth.haveAccount"
-        | "auth.name"
-        | "auth.password"
-        | "auth.signIn"
-        | "auth.signUp"
-        | "auth.signUpDescription"] ?? key,
+        }) as const
+      )[
+        key as
+          | "auth.backToSignIn"
+          | "auth.email"
+          | "auth.haveAccount"
+          | "auth.name"
+          | "auth.password"
+          | "auth.signIn"
+          | "auth.signUp"
+          | "auth.signUpDescription"
+      ] ?? key,
   }),
 }));
 
@@ -283,7 +285,7 @@ describe("RegisterPage", () => {
     await user.click(screen.getByRole("button", { name: "Sign up" }));
 
     await waitFor(() =>
-      expect(onRegistrationCompleted).toHaveBeenCalledWith("ada@example.com"),
+      expect(onRegistrationCompleted).toHaveBeenCalledWith("ada@example.com")
     );
   });
 
@@ -297,7 +299,7 @@ describe("RegisterPage", () => {
       () =>
         new Promise<void>((resolve) => {
           finishRefetch = resolve;
-        }),
+        })
     );
     const signUpEmail = vi.fn(async () => {
       session = {
@@ -324,17 +326,18 @@ describe("RegisterPage", () => {
     finishRefetch?.();
     await waitFor(() => {
       expect(screen.getByTestId("location").textContent).toBe(
-        "/auth/verify-email?region=us",
+        "/auth/verify-email?region=us"
       );
     });
   });
 });
 
-
 it("redirects direct registration to sign-in when signup is disabled", async () => {
   const signUpEmail = vi.fn();
   renderRegisterPage({ signupsAllowed: false, signUpEmail });
-  await waitFor(() => expect(screen.getByTestId("location").textContent).toContain("/auth?"));
+  await waitFor(() =>
+    expect(screen.getByTestId("location").textContent).toContain("/auth?")
+  );
   expect(screen.queryByRole("button", { name: "Sign up" })).toBeNull();
   expect(signUpEmail).not.toHaveBeenCalled();
 });

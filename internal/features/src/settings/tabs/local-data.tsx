@@ -46,7 +46,9 @@ import {
 import { AgentAccessSection } from "./agent-access-section";
 
 function formatBytes(bytes: number): string {
-  if (bytes === 0) return "0 B";
+  if (bytes === 0) {
+    return "0 B";
+  }
   const k = 1000;
   const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -98,7 +100,9 @@ export function LocalDataContent() {
       });
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : t("settings.local-data.failedToLoad")
+        err instanceof Error
+          ? err.message
+          : t("settings.local-data.failedToLoad")
       );
     } finally {
       setLoading(false);
@@ -191,7 +195,7 @@ export function LocalDataContent() {
           {t("common.loading")}
         </p>
       ) : null}
-      {error && (
+      {!!error && (
         <p className="text-destructive text-sm" role="alert">
           {error}
         </p>
@@ -219,24 +223,26 @@ export function LocalDataContent() {
                 void navigate(
                   activeOrganization
                     ? `/${activeOrganization.slug}/settings?tab=billing`
-                    : "/",
+                    : "/"
                 )
               }
             />
 
-            {showTransferHint && (
+            {!!showTransferHint && (
               <div
                 aria-live="polite"
-                className="text-muted-foreground flex items-center gap-1 text-xs"
+                className="flex items-center gap-1 text-muted-foreground text-xs"
                 data-testid="settings-local-data-transfer-hint"
                 role="status"
               >
-                {status.dataFlowStatus.uploading && (
+                {!!status.dataFlowStatus.uploading && (
                   <span>{t("syncStatus.uploading")}</span>
                 )}
-                {status.dataFlowStatus.uploading &&
-                  status.dataFlowStatus.downloading && <span>·</span>}
-                {status.dataFlowStatus.downloading && (
+                {!!(
+                  status.dataFlowStatus.uploading &&
+                  status.dataFlowStatus.downloading
+                ) && <span>·</span>}
+                {!!status.dataFlowStatus.downloading && (
                   <span>{t("syncStatus.downloading")}</span>
                 )}
               </div>
@@ -253,8 +259,7 @@ export function LocalDataContent() {
                 <ProgressValue>
                   {() =>
                     t("settings.local-data.syncHealthDownloadProgressValue", {
-                      downloaded:
-                        downloadProgress.downloadedOperations ?? 0,
+                      downloaded: downloadProgress.downloadedOperations ?? 0,
                       total: downloadProgress.totalOperations ?? 0,
                     })
                   }
@@ -279,7 +284,7 @@ export function LocalDataContent() {
               <>
                 <div className="flex items-center justify-between gap-3">
                   <h2
-                    className="text-sm font-medium"
+                    className="font-medium text-sm"
                     id="local-data-storage-heading"
                   >
                     {t("settings.local-data.storageUsed")}
@@ -296,6 +301,7 @@ export function LocalDataContent() {
                     )}
                   </p>
                 </div>
+                {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: ARIA meter attributes and role are enabled together only when quota is measurable. */}
                 <div
                   aria-hidden={measurableQuota === null ? true : undefined}
                   aria-label={
@@ -313,11 +319,11 @@ export function LocalDataContent() {
                   aria-valuetext={
                     measurableQuota === null ? undefined : storageUsageText
                   }
-                  className="bg-foreground/15 h-1.5 w-full overflow-hidden rounded-full"
+                  className="h-1.5 w-full overflow-hidden rounded-full bg-foreground/15"
                   role={measurableQuota === null ? undefined : "meter"}
                 >
                   <div
-                    className="bg-primary h-full rounded-full transition-all"
+                    className="h-full rounded-full bg-primary transition-all"
                     style={{ width: `${Math.max(usagePercent, 0)}%` }}
                   />
                 </div>
@@ -339,7 +345,7 @@ export function LocalDataContent() {
             ) : (
               <div className="min-w-0">
                 <h2
-                  className="text-sm font-medium"
+                  className="font-medium text-sm"
                   id="local-data-upload-queue-heading"
                 >
                   {t("settings.local-data.uploadQueue")}
@@ -370,11 +376,11 @@ export function LocalDataContent() {
 
       <section
         aria-labelledby="local-data-danger-zone-heading"
-        className="border-destructive/20 space-y-4 border-t pt-6"
+        className="space-y-4 border-destructive/20 border-t pt-6"
       >
         <div className="space-y-1">
           <h2
-            className="text-sm font-semibold text-destructive"
+            className="font-semibold text-destructive text-sm"
             id="local-data-danger-zone-heading"
           >
             {t("settings.local-data.dangerZone")}
@@ -384,10 +390,10 @@ export function LocalDataContent() {
           </p>
         </div>
 
-        <div className="divide-destructive/20 divide-y">
+        <div className="divide-y divide-destructive/20">
           <div className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-medium text-destructive">
+              <p className="font-medium text-destructive text-sm">
                 {t("settings.local-data.clearQueue")}
               </p>
               <p className="text-destructive/80 text-xs">
@@ -410,7 +416,7 @@ export function LocalDataContent() {
 
           <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-medium text-destructive">
+              <p className="font-medium text-destructive text-sm">
                 {t("settings.local-data.purgeStorage")}
               </p>
               <p className="text-destructive/80 text-xs">
@@ -513,15 +519,15 @@ function SyncHealthSection({
         role="status"
       >
         <h2
-          className="text-sm font-semibold"
+          className="font-semibold text-sm"
           id="local-data-sync-health-heading"
         >
           {labels.title}
         </h2>
-        {labels.message && (
+        {!!labels.message && (
           <p className="text-muted-foreground text-sm">{labels.message}</p>
         )}
-        {labels.reason && (
+        {!!labels.reason && (
           <p className="text-muted-foreground text-xs">
             {t("syncStatus.transientErrorReason", { reason: labels.reason })}
           </p>

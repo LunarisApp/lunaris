@@ -43,14 +43,18 @@ export class AwarenessConnection {
   private readonly api: ApiClient;
   private readonly workspaceId: string;
   private readonly storageId: string;
-  private readonly resource?: { resourceId: string; extensionId?: string; channel?: string };
+  private readonly resource?: {
+    resourceId: string;
+    extensionId?: string;
+    channel?: string;
+  };
 
   constructor(
     doc: Doc,
     api: ApiClient,
     workspaceId: string,
     storageId: string,
-    resource?: { resourceId: string; extensionId?: string; channel?: string },
+    resource?: { resourceId: string; extensionId?: string; channel?: string }
   ) {
     this.resource = resource;
     this.doc = doc;
@@ -70,30 +74,45 @@ export class AwarenessConnection {
     return () => this.listeners.delete(listener);
   };
   private setStatus(status: PluginAwarenessStatus) {
-    if (this.snapshot.status === status) return;
+    if (this.snapshot.status === status) {
+      return;
+    }
     this.snapshot = { awareness: this.awareness, status };
-    for (const listener of this.listeners) listener();
+    for (const listener of this.listeners) {
+      listener();
+    }
   }
 
   acquire() {
     this.leases++;
-    if (this.leases === 1) void this.connect();
+    if (this.leases === 1) {
+      void this.connect();
+    }
     let released = false;
     return () => {
-      if (released) return;
+      if (released) {
+        return;
+      }
       released = true;
-      if (--this.leases === 0) this.stop();
+      if (--this.leases === 0) {
+        this.stop();
+      }
     };
   }
 
   private updated = (_event: unknown, origin: unknown) => {
-    if (origin === REMOTE) return;
-    if (!this.leases) {
-      if (this.awareness.getLocalState() !== null)
-        this.awareness.setLocalState(null);
+    if (origin === REMOTE) {
       return;
     }
-    if (!this.ready || this.sendTimer) return;
+    if (!this.leases) {
+      if (this.awareness.getLocalState() !== null) {
+        this.awareness.setLocalState(null);
+      }
+      return;
+    }
+    if (!this.ready || this.sendTimer) {
+      return;
+    }
     // Coalesce selection movement while preserving heartbeat updates.
     this.sendTimer = setTimeout(() => {
       this.sendTimer = undefined;
@@ -102,15 +121,15 @@ export class AwarenessConnection {
   };
 
   private send() {
-    if (!this.ready || this.socket?.readyState !== WebSocket.OPEN) return;
+    if (!this.ready || this.socket?.readyState !== WebSocket.OPEN) {
+      return;
+    }
     if (this.socket.bufferedAmount > 64 * 1024) {
       this.socket.close();
       return;
     }
     this.socket.send(
-      new Uint8Array(
-        encodeAwarenessUpdate(this.awareness, [this.doc.clientID]),
-      ),
+      new Uint8Array(encodeAwarenessUpdate(this.awareness, [this.doc.clientID]))
     );
   }
 
@@ -118,14 +137,16 @@ export class AwarenessConnection {
     removeAwarenessStates(
       this.awareness,
       [...this.awareness.getStates().keys()].filter(
-        (id) => id !== this.doc.clientID,
+        (id) => id !== this.doc.clientID
       ),
-      REMOTE,
+      REMOTE
     );
     // A reconnect snapshot may have the same clock as the last received state.
     // Forget remote clocks too, otherwise Yjs ignores those snapshot entries.
     for (const clientId of this.awareness.meta.keys()) {
-      if (clientId !== this.doc.clientID) this.awareness.meta.delete(clientId);
+      if (clientId !== this.doc.clientID) {
+        this.awareness.meta.delete(clientId);
+      }
     }
   }
 
@@ -142,10 +163,23 @@ export class AwarenessConnection {
         this.resource
           ? `/v1/workspaces/${encodeURIComponent(this.workspaceId)}/resources/${encodeURIComponent(this.resource.resourceId)}/presence/ticket`
           : `/v1/workspaces/${encodeURIComponent(this.workspaceId)}/storage/${encodeURIComponent(this.storageId)}/presence/ticket`,
-        { signal: request.signal, timeout: 5000, ...(this.resource ? { body: { extensionId: this.resource.extensionId, channel: this.resource.channel } } : {}) },
+        {
+          signal: request.signal,
+          timeout: 5000,
+          ...(this.resource
+            ? {
+                body: {
+                  extensionId: this.resource.extensionId,
+                  channel: this.resource.channel,
+                },
+              }
+            : {}),
+        }
       );
       clearTimeout(ticketTimer);
-      if (!this.leases || generation !== this.generation) return;
+      if (!this.leases || generation !== this.generation) {
+        return;
+      }
       this.user = response.user;
       const url = new URL("/v1/presence", this.api.baseUrl);
       url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
@@ -162,25 +196,28 @@ export class AwarenessConnection {
           JSON.stringify({
             ticket: response.ticket,
             clientId: this.doc.clientID,
-          }),
+          })
         );
       };
       socket.onmessage = (event: MessageEvent<unknown>) => {
-        if (generation !== this.generation) return;
+        if (generation !== this.generation) {
+          return;
+        }
         try {
           if (event.data instanceof ArrayBuffer) {
             applyAwarenessUpdate(
               this.awareness,
               new Uint8Array(event.data),
-              REMOTE,
+              REMOTE
             );
           } else if (typeof event.data === "string") {
             const message = JSON.parse(event.data) as {
               type: string;
               user: PresenceIdentity;
             };
-            if (message.type !== "ready")
+            if (message.type !== "ready") {
               throw new Error("Unexpected presence message");
+            }
             clearTimeout(this.readyTimer);
             this.user = message.user;
             this.ready = true;
@@ -195,13 +232,17 @@ export class AwarenessConnection {
       };
       socket.onerror = () => socket.close();
       socket.onclose = () => {
-        if (generation !== this.generation) return;
+        if (generation !== this.generation) {
+          return;
+        }
         clearTimeout(this.readyTimer);
         this.socket = null;
         this.disconnected();
       };
     } catch {
-      if (generation === this.generation) this.disconnected();
+      if (generation === this.generation) {
+        this.disconnected();
+      }
     } finally {
       clearTimeout(ticketTimer);
     }
@@ -211,10 +252,12 @@ export class AwarenessConnection {
     this.ready = false;
     this.clearPeers();
     this.awareness.setLocalState(null);
-    if (!this.leases) return;
+    if (!this.leases) {
+      return;
+    }
     this.setStatus("error");
     const delay =
-      Math.min(30000, 1000 * 2 ** Math.min(this.attempts++, 5)) +
+      Math.min(30_000, 1000 * 2 ** Math.min(this.attempts++, 5)) +
       Math.random() * 250;
     this.retry = setTimeout(() => {
       void this.connect();

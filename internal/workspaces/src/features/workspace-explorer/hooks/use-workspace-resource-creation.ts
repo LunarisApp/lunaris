@@ -23,7 +23,9 @@ export function useWorkspaceResourceCreation() {
       parentId: string,
       resource: ResourceTypeDefinition
     ): Promise<ResourceCreateResult | null> => {
-      if (!canCreate) return null;
+      if (!canCreate) {
+        return null;
+      }
       try {
         return await createResourceAction(parentId, resource);
       } catch (error) {
@@ -43,7 +45,9 @@ export function useWorkspaceResourceCreation() {
 
   const createFolder = useCallback(
     async (parentId: string): Promise<string | null> => {
-      if (!canCreate) return null;
+      if (!canCreate) {
+        return null;
+      }
       try {
         return await createFolderAction(parentId);
       } catch (error) {

@@ -1,5 +1,8 @@
 import { type DatabaseOrTx, ensureTx } from "../../core/utils";
-import { CLOUD_WORKSPACE_TABLES, LOCAL_WORKSPACE_TABLES } from "../workspace-storage";
+import {
+  CLOUD_WORKSPACE_TABLES,
+  LOCAL_WORKSPACE_TABLES,
+} from "../workspace-storage";
 
 type ActivityScope =
   | { resourceId: string }
@@ -11,7 +14,7 @@ type ActivityScope =
 export async function recordActivity(
   db: DatabaseOrTx,
   scope: ActivityScope,
-  at = new Date().toISOString(),
+  at = new Date().toISOString()
 ) {
   await ensureTx(db, async (tx) => {
     for (const tables of [CLOUD_WORKSPACE_TABLES, LOCAL_WORKSPACE_TABLES]) {
@@ -29,7 +32,9 @@ export async function recordActivity(
       } else {
         const byDocument = "documentId" in scope;
         id = byDocument ? scope.documentId : scope.storageId;
-        const filter = byDocument ? "kind = 'yjs' AND backing_id = ?" : "id = ?";
+        const filter = byDocument
+          ? "kind = 'yjs' AND backing_id = ?"
+          : "id = ?";
         resources = `SELECT resource_id FROM ${tables.workspaceStorageSlots} WHERE ${filter}`;
         workspaces = byDocument
           ? `SELECT workspace_id FROM ${tables.yjsDocuments} WHERE id = ?`
@@ -46,14 +51,14 @@ export async function recordActivity(
            ) UPDATE ${tables.workspaceResources} SET last_activity_at = ?
              WHERE id IN (SELECT id FROM ancestors)
                AND julianday(?) > COALESCE(julianday(last_activity_at), 0)`,
-          [id, at, at],
+          [id, at, at]
         );
       }
       await tx.execute(
         `UPDATE ${tables.workspaces} SET last_activity_at = ?
          WHERE id IN (${workspaces})
            AND julianday(?) > COALESCE(julianday(last_activity_at), 0)`,
-        [at, id, at],
+        [at, id, at]
       );
     }
   });

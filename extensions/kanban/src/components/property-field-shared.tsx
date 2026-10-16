@@ -64,7 +64,7 @@ export function PropertyPlaceholder({
   className?: string;
 }) {
   return (
-    <span className={cn("truncate text-xs text-muted-foreground", className)}>
+    <span className={cn("truncate text-muted-foreground text-xs", className)}>
       {children}
     </span>
   );

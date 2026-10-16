@@ -17,7 +17,7 @@ import { describe, expect, it } from "vitest";
  * the regex.
  */
 
-const REPO_ROOT = resolve(__dirname, "../../../..");
+const REPO_ROOT = resolve(import.meta.dirname, "../../../..");
 const CLIENT_ROOTS = [
   "apps/desktop/src",
   "apps/web/src",
@@ -41,7 +41,9 @@ const SKIP_DIRS = new Set([
 
 function* walk(dir: string): Generator<string> {
   for (const entry of readdirSync(dir)) {
-    if (SKIP_DIRS.has(entry)) continue;
+    if (SKIP_DIRS.has(entry)) {
+      continue;
+    }
     const full = join(dir, entry);
     const stat = statSync(full);
     if (stat.isDirectory()) {

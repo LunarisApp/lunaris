@@ -13,7 +13,10 @@ import {
   useAllPermissions,
   usePermissionCheck,
 } from "@repo/features/permissions";
-import { WorkspaceProvider, useCurrentWorkspace } from "@repo/workspaces/workspace";
+import {
+  WorkspaceProvider,
+  useCurrentWorkspace,
+} from "@repo/workspaces/workspace";
 import { useRegionClients } from "@repo/features/region";
 import { lazy, Suspense, useEffect } from "react";
 import { Navigate, useLocation, useParams } from "react-router";
@@ -32,12 +35,12 @@ import type { WorkspacePageProps } from "./types";
 const DesktopWorkspaceShell = lazy(() =>
   import("./workspace-desktop-shell").then((module) => ({
     default: module.DesktopWorkspaceShell,
-  })),
+  }))
 );
 const MobileWorkspaceShell = lazy(() =>
   import("./workspace-mobile-shell").then((module) => ({
     default: module.MobileWorkspaceShell,
-  })),
+  }))
 );
 
 const EmptyAppBarSlot = () => null;
@@ -85,7 +88,9 @@ export default function WorkspacePage({
 
   if (!canReadWorkspace) {
     return (
-      <PermissionDenied backTo={organizationSlug ? `/${organizationSlug}` : "/"} />
+      <PermissionDenied
+        backTo={organizationSlug ? `/${organizationSlug}` : "/"}
+      />
     );
   }
 
@@ -122,18 +127,21 @@ function WorkspaceInner({
   const auth = useAuth();
   const { data: session } = auth.useSession();
   const organizationPermission = usePermissionCheck();
-  const workspaceRole = useWorkspaceMemberRole(workspace?.id, session?.user?.id);
+  const workspaceRole = useWorkspaceMemberRole(
+    workspace?.id,
+    session?.user?.id
+  );
   const preloadWorkspacePlugins = useWorkspacePluginPreload(
     bundledRegistry.allExtensionIds,
     {
       defaultExtensionIds: bundledRegistry.defaultExtensionIds,
       loadPlugin: bundledRegistry.loadPlugin,
-    },
+    }
   );
   const workspaceId = workspace?.id;
   const isPrivate = workspace?.visibility === WORKSPACE_VISIBILITY.private;
   const isOwner = Boolean(
-    workspace && workspace.owner_id === session?.user?.id,
+    workspace && workspace.owner_id === session?.user?.id
   );
   const canRead =
     !isPrivate ||
@@ -151,13 +159,25 @@ function WorkspaceInner({
     .join("");
   useEffect(() => {
     if (
-      !isLoading && !isUnavailableOffline && canRead &&
-      workspaceId && userId && organizationId &&
+      !(isLoading || isUnavailableOffline) &&
+      canRead &&
+      workspaceId &&
+      userId &&
+      organizationId &&
       !new URLSearchParams(location.search).has("panelWindow")
     ) {
       rememberWorkspace(userId, organizationId, { workspaceId, viewPath });
     }
-  }, [isLoading, isUnavailableOffline, canRead, workspaceId, userId, organizationId, viewPath, location.search]);
+  }, [
+    isLoading,
+    isUnavailableOffline,
+    canRead,
+    workspaceId,
+    userId,
+    organizationId,
+    viewPath,
+    location.search,
+  ]);
 
   const fallback =
     shell === "mobile" ? (
@@ -173,14 +193,21 @@ function WorkspaceInner({
     if (workspaceId && workspaceContentHasSynced && canRead) {
       preloadWorkspacePlugins(workspaceId);
     }
-  }, [canRead, preloadWorkspacePlugins, workspaceContentHasSynced, workspaceId]);
+  }, [
+    canRead,
+    preloadWorkspacePlugins,
+    workspaceContentHasSynced,
+    workspaceId,
+  ]);
 
   if (
     location.state?.restoredWorkspace &&
     (isUnavailableOffline ||
-      (!isLoading && (!workspace || (!workspaceRole.isLoading && !canRead))))
+      !(isLoading || (workspace && (workspaceRole.isLoading || canRead))))
   ) {
-    return <Navigate replace to={organizationSlug ? `/${organizationSlug}` : "/"} />;
+    return (
+      <Navigate replace to={organizationSlug ? `/${organizationSlug}` : "/"} />
+    );
   }
 
   if (isUnavailableOffline) {
@@ -209,10 +236,14 @@ function WorkspaceInner({
 
   if (isPrivate && !canRead) {
     return (
-      <PermissionDenied backTo={organizationSlug ? `/${organizationSlug}` : "/"} />
+      <PermissionDenied
+        backTo={organizationSlug ? `/${organizationSlug}` : "/"}
+      />
     );
   }
-  const workspacePermission = (required: Parameters<typeof organizationPermission>[0]) => {
+  const workspacePermission = (
+    required: Parameters<typeof organizationPermission>[0]
+  ) => {
     if (workspace.visibility !== WORKSPACE_VISIBILITY.private) {
       return organizationPermission(required);
     }
@@ -274,7 +305,7 @@ function ResolvedWorkspace({
       extensionMetadata: pluginRegistry.extensionMetadata,
       loadPlugin: pluginRegistry.loadPlugin,
       unloadPlugin: pluginRegistry.unloadPlugin,
-    },
+    }
   );
 
   if (shell === "mobile") {

@@ -19,7 +19,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) =>
       (
-        {
+        ({
           "auth.continueAsGuest": "Continue as Guest",
           "auth.continueWithEmail": "Continue with Email",
           "auth.continueWithGoogle": "Continue with Google",
@@ -30,7 +30,7 @@ vi.mock("react-i18next", () => ({
           "auth.or": "or",
           "auth.title": "Sign in",
           "common.error": "Something went wrong",
-        } as Record<string, string>
+        }) as Record<string, string>
       )[key] ?? key,
   }),
 }));
@@ -95,8 +95,8 @@ function renderSignInPage({
         socialProviders: ["google"],
         signupsAllowed,
       }),
-      { headers: { "Content-Type": "application/json" } },
-    ),
+      { headers: { "Content-Type": "application/json" } }
+    )
   );
 
   const rendered = render(
@@ -145,15 +145,12 @@ function renderSignInPage({
               }
               path="/auth"
             />
-            <Route
-              element={<ContinuationDisplay />}
-              path="/auth/continue"
-            />
+            <Route element={<ContinuationDisplay />} path="/auth/continue" />
             <Route element={<LocationDisplay />} path="*" />
           </Routes>
         </AuthProvider>
       </RegionProvider>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 
   return {
@@ -183,7 +180,7 @@ describe("SignInPage", () => {
     });
 
     expect(
-      await screen.findByRole("button", { name: "Continue as Guest" }),
+      await screen.findByRole("button", { name: "Continue as Guest" })
     ).toBeTruthy();
   });
 
@@ -204,7 +201,7 @@ describe("SignInPage", () => {
     await waitFor(() => {
       expect(screen.getByTestId("location").textContent).toBe("/");
       expect(screen.getByTestId("location-state").textContent).toBe(
-        JSON.stringify({ accountSwitchTargetUserId: "guest-user" }),
+        JSON.stringify({ accountSwitchTargetUserId: "guest-user" })
       );
     });
   });
@@ -220,7 +217,7 @@ describe("SignInPage", () => {
     });
 
     expect(
-      await screen.findByRole("button", { name: "Continue as Guest" }),
+      await screen.findByRole("button", { name: "Continue as Guest" })
     ).toBeTruthy();
     expect(screen.getByTestId("location").textContent).toBe("/auth");
   });
@@ -235,7 +232,7 @@ describe("SignInPage", () => {
     });
 
     await waitFor(() =>
-      expect(screen.getByTestId("location-state").textContent).toBe("null"),
+      expect(screen.getByTestId("location-state").textContent).toBe("null")
     );
   });
 
@@ -250,7 +247,7 @@ describe("SignInPage", () => {
     expect(badge.className).toContain("-translate-y-1/2");
     expect(screen.queryByTestId("auth-last-used-google")).toBeNull();
     await waitFor(() =>
-      expect(localStorage.getItem("lunaris.regionManifest")).not.toBeNull(),
+      expect(localStorage.getItem("lunaris.regionManifest")).not.toBeNull()
     );
   });
 
@@ -265,9 +262,9 @@ describe("SignInPage", () => {
       expect(screen.queryByTestId("auth-last-used-email")).toBeNull();
       expect(screen.queryByTestId("auth-last-used-google")).toBeNull();
       await waitFor(() =>
-        expect(localStorage.getItem("lunaris.regionManifest")).not.toBeNull(),
+        expect(localStorage.getItem("lunaris.regionManifest")).not.toBeNull()
       );
-    },
+    }
   );
 
   it("orders Google, email, divider, then Guest", async () => {
@@ -287,14 +284,14 @@ describe("SignInPage", () => {
 
     expect(
       providerGroup.nextElementSibling?.querySelector(
-        '[data-testid="auth-entry-email"]',
-      ),
+        '[data-testid="auth-entry-email"]'
+      )
     ).not.toBeNull();
     expect(methodGroup.nextElementSibling?.getAttribute("data-testid")).toBe(
-      "auth-entry-divider",
+      "auth-entry-divider"
     );
     expect(divider.nextElementSibling?.getAttribute("data-testid")).toBe(
-      "auth-entry-guest",
+      "auth-entry-guest"
     );
     expect(screen.getByText("or")).toBeTruthy();
     expect(email.getAttribute("autocomplete")).toBe("username webauthn");
@@ -305,13 +302,15 @@ describe("SignInPage", () => {
   it("resolves an email and navigates with continuation state", async () => {
     const user = userEvent.setup();
     const { resolveEmailMethod } = renderSignInPage({
-      initialEntry:
-        "/auth?region=us&redirectTo=%2Fsettings%2Faccount",
+      initialEntry: "/auth?region=us&redirectTo=%2Fsettings%2Faccount",
     });
 
-    await user.type(screen.getByRole("textbox", { name: "Email" }), "USER@EXAMPLE.COM");
+    await user.type(
+      screen.getByRole("textbox", { name: "Email" }),
+      "USER@EXAMPLE.COM"
+    );
     await user.click(
-      screen.getByRole("button", { name: "Continue with Email" }),
+      screen.getByRole("button", { name: "Continue with Email" })
     );
 
     expect(resolveEmailMethod).toHaveBeenCalledWith("user@example.com");
@@ -320,8 +319,8 @@ describe("SignInPage", () => {
         JSON.stringify({
           email: "user@example.com",
           resolution: { kind: "password" },
-        }),
-      ),
+        })
+      )
     ).toBeTruthy();
   });
 
@@ -331,7 +330,7 @@ describe("SignInPage", () => {
 
     await user.type(
       screen.getByRole("textbox", { name: "Email" }),
-      "USER@EXAMPLE.COM{Enter}",
+      "USER@EXAMPLE.COM{Enter}"
     );
 
     await waitFor(() => expect(resolveEmailMethod).toHaveBeenCalledOnce());
@@ -341,8 +340,8 @@ describe("SignInPage", () => {
         JSON.stringify({
           email: "user@example.com",
           resolution: { kind: "password" },
-        }),
-      ),
+        })
+      )
     ).toBeTruthy();
   });
 
@@ -362,20 +361,24 @@ describe("SignInPage", () => {
   it("disables competing actions while Google redirects", async () => {
     const user = userEvent.setup();
     const socialSignIn = vi.fn(
-      () => new Promise<{ error: null }>(() => undefined),
+      () => new Promise<{ error: null }>(() => undefined)
     );
     renderSignInPage({ socialSignIn });
 
-    await user.click(await screen.findByRole("button", { name: "Continue with Google" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Continue with Google" })
+    );
 
     expect(
-      (screen.getByRole("button", {
-        name: "Continue as Guest",
-      }) as HTMLButtonElement).disabled,
+      (
+        screen.getByRole("button", {
+          name: "Continue as Guest",
+        }) as HTMLButtonElement
+      ).disabled
     ).toBe(true);
     expect(
       (screen.getByRole("textbox", { name: "Email" }) as HTMLInputElement)
-        .disabled,
+        .disabled
     ).toBe(true);
   });
 
@@ -393,8 +396,7 @@ describe("SignInPage", () => {
     enableConditionalPasskeys();
     const passkeySignIn = vi.fn().mockResolvedValue({ error: null });
     renderSignInPage({
-      initialEntry:
-        "/auth?region=us&redirectTo=%2Fsettings%2Faccount",
+      initialEntry: "/auth?region=us&redirectTo=%2Fsettings%2Faccount",
       passkeySignIn,
       passkeysSupported: true,
     });
@@ -424,7 +426,7 @@ describe("SignInPage", () => {
     await waitFor(() => {
       expect(screen.getByTestId("location").textContent).toBe("/");
       expect(screen.getByTestId("location-state").textContent).toBe(
-        JSON.stringify({ accountSwitchTargetUserId: "passkey-user" }),
+        JSON.stringify({ accountSwitchTargetUserId: "passkey-user" })
       );
     });
   });
@@ -432,46 +434,54 @@ describe("SignInPage", () => {
   it("keeps explicit methods enabled while conditional passkey waits", async () => {
     enableConditionalPasskeys();
     const passkeySignIn = vi.fn(
-      () => new Promise<{ error: null }>(() => undefined),
+      () => new Promise<{ error: null }>(() => undefined)
     );
     renderSignInPage({ passkeySignIn, passkeysSupported: true });
 
     await waitFor(() => expect(passkeySignIn).toHaveBeenCalledOnce());
     expect(
-      (screen.getByRole("button", {
-        name: "Continue as Guest",
-      }) as HTMLButtonElement).disabled,
+      (
+        screen.getByRole("button", {
+          name: "Continue as Guest",
+        }) as HTMLButtonElement
+      ).disabled
     ).toBe(false);
     expect(
       (screen.getByRole("textbox", { name: "Email" }) as HTMLInputElement)
-        .disabled,
+        .disabled
     ).toBe(false);
   });
-
 });
-
 
 it("hides server guest creation when signup is disabled but keeps existing login methods", async () => {
   renderSignInPage({ signupsAllowed: false });
-  await screen.findByText("Registration is disabled on this server. Sign in with an existing account.");
+  await screen.findByText(
+    "Registration is disabled on this server. Sign in with an existing account."
+  );
   expect(screen.queryByTestId("auth-entry-guest")).toBeNull();
   expect(screen.queryByTestId("auth-entry-divider")).toBeNull();
   expect(screen.getByRole("textbox", { name: "Email" })).toBeTruthy();
-  expect(screen.getByRole("button", { name: "Continue with Google" })).toBeTruthy();
+  expect(
+    screen.getByRole("button", { name: "Continue with Google" })
+  ).toBeTruthy();
 });
 
-
 it("reports a guest network failure and lets the user retry", async () => {
-  const anonymousSignIn = vi.fn()
+  const anonymousSignIn = vi
+    .fn()
     .mockRejectedValueOnce(new TypeError("Failed to fetch"))
     .mockResolvedValueOnce({ error: null });
   const onAnonymousSessionCreated = vi.fn();
   renderSignInPage({ anonymousSignIn, onAnonymousSessionCreated });
-  const guestButton = await screen.findByRole("button", { name: "Continue as Guest" });
+  const guestButton = await screen.findByRole("button", {
+    name: "Continue as Guest",
+  });
   await waitFor(() => expect(guestButton.hasAttribute("disabled")).toBe(false));
   await userEvent.click(guestButton);
   await waitFor(() => expect(toast.error).toHaveBeenCalled());
-  expect(capture).toHaveBeenCalledWith("auth_sign_in_failed", { method: "anonymous" });
+  expect(capture).toHaveBeenCalledWith("auth_sign_in_failed", {
+    method: "anonymous",
+  });
   expect(onAnonymousSessionCreated).not.toHaveBeenCalled();
   expect(guestButton.hasAttribute("disabled")).toBe(false);
   await userEvent.click(guestButton);

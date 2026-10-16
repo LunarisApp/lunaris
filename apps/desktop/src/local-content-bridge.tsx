@@ -42,7 +42,7 @@ export function DesktopLocalContentBridge() {
         ? resolveOrganizationDirectory(
             organizationsQuery.data ?? [],
             activeOrganization,
-            isAnonymous || organizationsQuery.isLoading,
+            isAnonymous || organizationsQuery.isLoading
           )
         : [],
     [
@@ -51,7 +51,7 @@ export function DesktopLocalContentBridge() {
       userId,
       organizationsQuery.data,
       organizationsQuery.isLoading,
-    ],
+    ]
   );
   const liveOrganizationKey = useMemo(
     () =>
@@ -67,7 +67,7 @@ export function DesktopLocalContentBridge() {
             ]),
           ])
         : undefined,
-    [organizationDirectory, userId],
+    [organizationDirectory, userId]
   );
   const [liveOrganizationState, setLiveOrganizationState] = useState<{
     key: string;
@@ -99,7 +99,7 @@ export function DesktopLocalContentBridge() {
           }),
           slug: organization.slug,
         };
-      }),
+      })
     ).then((values) => {
       if (active) {
         setLiveOrganizationState({
@@ -116,7 +116,7 @@ export function DesktopLocalContentBridge() {
   const directoryCurrent = isOrganizationDirectoryCurrent(organizationsQuery);
   const readCoordinator = useMemo(
     () => createDeviceReadCoordinator(db),
-    [activeOrganizationId, db, userId],
+    [activeOrganizationId, db, userId]
   );
   useEffect(() => () => readCoordinator.dispose(), [readCoordinator]);
   const localClient = useMemo(
@@ -145,7 +145,7 @@ export function DesktopLocalContentBridge() {
       readCoordinator,
       userId,
       organizations,
-    ],
+    ]
   );
   const cloudClient = useMemo(
     () =>
@@ -155,7 +155,9 @@ export function DesktopLocalContentBridge() {
           try {
             return await api.fetch(input, init);
           } catch (error) {
-            if (httpStatus(error) > 0) throw error;
+            if (httpStatus(error) > 0) {
+              throw error;
+            }
             throw new TypeError("Desktop cloud request is unavailable", {
               cause: error,
             });
@@ -163,15 +165,17 @@ export function DesktopLocalContentBridge() {
         },
         timeoutMs: 25_000,
       }),
-    [api],
+    [api]
   );
   const client = useMemo(
     () => createHybridControlClient(localClient, cloudClient),
-    [cloudClient, localClient],
+    [cloudClient, localClient]
   );
 
   useEffect(() => {
-    if (!userId || !activeOrganizationId) return;
+    if (!(userId && activeOrganizationId)) {
+      return;
+    }
     return registerAgentWorkResources({
       client,
       scope: {
@@ -187,7 +191,9 @@ export function DesktopLocalContentBridge() {
     const unlisten = listen<LocalContentRequest>(REQUEST_EVENT, (event) => {
       void routeLocalContentRequest(client, event.payload)
         .then((response) => {
-          if (!active) return;
+          if (!active) {
+            return;
+          }
           return invoke("agent_content_respond", {
             body: response.body,
             requestId: event.payload.id,
@@ -220,7 +226,9 @@ export function DesktopLocalContentBridge() {
 }
 
 function httpStatus(error: unknown) {
-  if (!error || typeof error !== "object") return 0;
+  if (!error || typeof error !== "object") {
+    return 0;
+  }
   if ("status" in error && typeof error.status === "number") {
     return error.status;
   }

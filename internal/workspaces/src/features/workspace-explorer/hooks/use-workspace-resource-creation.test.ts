@@ -3,12 +3,14 @@ import type { ResourceTypeDefinition } from "@lunarisapp/plugin-sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceResourceCreation } from "./use-workspace-resource-creation";
 
-const { createFolder, createResource, getErrorKey, showError } = vi.hoisted(() => ({
-  createFolder: vi.fn(),
-  createResource: vi.fn(),
-  getErrorKey: vi.fn(),
-  showError: vi.fn(),
-}));
+const { createFolder, createResource, getErrorKey, showError } = vi.hoisted(
+  () => ({
+    createFolder: vi.fn(),
+    createResource: vi.fn(),
+    getErrorKey: vi.fn(),
+    showError: vi.fn(),
+  })
+);
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => `translated:${key}` }),

@@ -56,7 +56,7 @@ export default function AppProviders({
           </PermissionProvider>
         </LocaleProvider>
       </HotkeysProvider>
-      {import.meta.env.DEV && <ReactQueryDevtools />}
+      {!!import.meta.env.DEV && <ReactQueryDevtools />}
     </QueryClientProvider>
   );
 }

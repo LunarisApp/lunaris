@@ -81,7 +81,9 @@ function applyPanelUnloadLimit(
   const loadedPanels = panels.filter((panel) => !panel.isUnloaded);
   const unloadCount = loadedPanels.length - GRID_LAYOUT_LOADED_PANEL_LIMIT;
 
-  if (unloadCount <= 0) return panels;
+  if (unloadCount <= 0) {
+    return panels;
+  }
 
   const unloadIds = new Set(
     loadedPanels
@@ -91,7 +93,9 @@ function applyPanelUnloadLimit(
       .map((panel) => panel.id)
   );
 
-  if (unloadIds.size === 0) return panels;
+  if (unloadIds.size === 0) {
+    return panels;
+  }
 
   return panels.map((panel) =>
     unloadIds.has(panel.id)
@@ -105,7 +109,9 @@ function isReferenceGroupReady(
   panel: Panel
 ): boolean {
   const referenceGroupId = getReferenceGroupId(panel);
-  if (!referenceGroupId) return true;
+  if (!referenceGroupId) {
+    return true;
+  }
   const getGroup = dockviewApi.getGroup as
     | ((id: string) => unknown)
     | undefined;
@@ -224,13 +230,17 @@ export const createGridLayoutStore = (
     movePanelToWindow: async (id) => {
       const panel = get().panels.find((entry) => entry.id === id);
       const onMovePanelToWindow = getOnMovePanelToWindow();
-      if (!panel || !onMovePanelToWindow || get().movingPanelIds.has(id)) return;
+      if (!(panel && onMovePanelToWindow) || get().movingPanelIds.has(id)) {
+        return;
+      }
 
       set((state) => ({
         movingPanelIds: new Set([...state.movingPanelIds, id]),
       }));
       try {
-        if (await onMovePanelToWindow(panel)) get().removePanel(id);
+        if (await onMovePanelToWindow(panel)) {
+          get().removePanel(id);
+        }
       } finally {
         set((state) => {
           const movingPanelIds = new Set(state.movingPanelIds);
@@ -266,7 +276,9 @@ export const createGridLayoutStore = (
       );
       const resolvedComponent = getRendererComponent(pluginId, renderer);
       const resolvedRenderer = get().getOrCreateRenderer(pluginId, renderer);
-      if (!resolvedRenderer) return;
+      if (!resolvedRenderer) {
+        return;
+      }
 
       const currentSlot = rendererSlots.get(currentComponent);
 
@@ -307,7 +319,8 @@ export const createGridLayoutStore = (
       set({ focusModeWidth: clamped });
     },
     clearRenamingResource: () => set({ renamingResourceId: null }),
-    requestRenameResource: (resourceId) => set({ renamingResourceId: resourceId }),
+    requestRenameResource: (resourceId) =>
+      set({ renamingResourceId: resourceId }),
     closeActivePanel: () => {
       closeActiveDockviewPanel(get().dockviewApi);
     },
@@ -369,9 +382,6 @@ export const createGridLayoutStore = (
 
         return update.renderer;
       }
-
-      // Unknown extension - no renderer available
-      return undefined;
     },
     addPanel: (input) => {
       const panel = migrateAgentWorkPanel(input);
@@ -438,7 +448,9 @@ export const createGridLayoutStore = (
           idSet.has(p.params.resourceId as string)
       );
 
-      if (panelsToRemove.length === 0) return;
+      if (panelsToRemove.length === 0) {
+        return;
+      }
 
       if (dockviewApi) {
         for (const panel of panelsToRemove) {
@@ -468,7 +480,9 @@ export const createGridLayoutStore = (
         return typeof viewId === "string" && idSet.has(viewId);
       });
 
-      if (panelsToRemove.length === 0) return;
+      if (panelsToRemove.length === 0) {
+        return;
+      }
 
       if (dockviewApi) {
         for (const panel of panelsToRemove) {
@@ -487,7 +501,9 @@ export const createGridLayoutStore = (
       const { panels, dockviewApi } = get();
       const matchingPanels = findPanelsByResourceId(panels, resourceId);
 
-      if (matchingPanels.length === 0) return;
+      if (matchingPanels.length === 0) {
+        return;
+      }
 
       set((state) => ({
         panels: state.panels.map((p) =>
@@ -505,7 +521,9 @@ export const createGridLayoutStore = (
       const { panels, dockviewApi } = get();
       const matchingPanels = findPanelsByViewId(panels, viewId);
 
-      if (matchingPanels.length === 0) return;
+      if (matchingPanels.length === 0) {
+        return;
+      }
 
       set((state) => ({
         panels: state.panels.map((panel) =>
@@ -609,14 +627,12 @@ export const createGridLayoutStore = (
         });
       } else {
         removeRendererImplementation(rendererSlots, component);
-        set((state) => {
-          return {
-            componentRenderers: removeRendererEntry(
-              state.componentRenderers,
-              component
-            ),
-          };
-        });
+        set((state) => ({
+          componentRenderers: removeRendererEntry(
+            state.componentRenderers,
+            component
+          ),
+        }));
 
         log.debug({
           tag: "GridLayout",
@@ -628,9 +644,14 @@ export const createGridLayoutStore = (
     },
     unregisterByPlugin: (pluginId) => {
       const { componentRenderers, knownPluginIds, panels } = get();
-      const pluginRenderers = getPluginRendererKeys(componentRenderers, pluginId);
+      const pluginRenderers = getPluginRendererKeys(
+        componentRenderers,
+        pluginId
+      );
 
-      if (pluginRenderers.length === 0) return;
+      if (pluginRenderers.length === 0) {
+        return;
+      }
 
       const hasOpenPanel = panels.some((panel) => panel.pluginId === pluginId);
       if (knownPluginIds.has(pluginId) || hasOpenPanel) {
@@ -650,14 +671,12 @@ export const createGridLayoutStore = (
         for (const component of pluginRenderers) {
           removeRendererImplementation(rendererSlots, component);
         }
-        set((state) => {
-          return {
-            componentRenderers: removePluginRendererEntries(
-              state.componentRenderers,
-              pluginId
-            ),
-          };
-        });
+        set((state) => ({
+          componentRenderers: removePluginRendererEntries(
+            state.componentRenderers,
+            pluginId
+          ),
+        }));
 
         log.debug({
           tag: "GridLayout",

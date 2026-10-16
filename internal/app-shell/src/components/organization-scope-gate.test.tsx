@@ -35,7 +35,7 @@ vi.mock(
   "@repo/features/organization/components/organization-deletion-gate",
   () => ({
     OrganizationDeletionGate: deletionGate,
-  }),
+  })
 );
 
 vi.mock("posthog-js", () => ({
@@ -92,7 +92,7 @@ function renderGate(path: string) {
           <Route element={<OrganizationContent />} index />
         </Route>
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 }
 
@@ -134,16 +134,26 @@ describe("OrganizationScopeGate", () => {
 
   it("passes both synced deletion signals to the recovery gate", () => {
     useOrganizationsQuery.mockReturnValue({
-      data: [{ id: "organization-1", slug: "northstar", deletion_requested_at: "2026-09-09", deletion_purge_after: "2026-10-09" }],
+      data: [
+        {
+          id: "organization-1",
+          slug: "northstar",
+          deletion_requested_at: "2026-09-09",
+          deletion_purge_after: "2026-10-09",
+        },
+      ],
       isLoading: false,
       isFetching: false,
     });
     renderGate("/northstar");
-    expect(deletionGate).toHaveBeenCalledWith(expect.objectContaining({
-      requestedAt: "2026-09-09",
-      purgeAfter: "2026-10-09",
-      organizationId: "organization-1",
-    }), undefined);
+    expect(deletionGate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestedAt: "2026-09-09",
+        purgeAfter: "2026-10-09",
+        organizationId: "organization-1",
+      }),
+      undefined
+    );
   });
 
   it("applies the synced role to organization UX", () => {
@@ -175,7 +185,7 @@ describe("OrganizationScopeGate", () => {
       .mockReturnValueOnce(
         new Promise((resolve) => {
           resolveFirstSwitch = resolve;
-        }),
+        })
       )
       .mockResolvedValue({ data: null, error: null });
     renderGate("/paper-lantern");

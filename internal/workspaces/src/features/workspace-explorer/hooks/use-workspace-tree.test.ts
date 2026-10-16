@@ -249,7 +249,9 @@ describe("isWorkspaceTreeItemOpenable", () => {
   });
 
   it("does not open untyped resources", () => {
-    expect(isWorkspaceTreeItemOpenable(makeItem({ id: "untyped" }))).toBe(false);
+    expect(isWorkspaceTreeItemOpenable(makeItem({ id: "untyped" }))).toBe(
+      false
+    );
   });
 });
 

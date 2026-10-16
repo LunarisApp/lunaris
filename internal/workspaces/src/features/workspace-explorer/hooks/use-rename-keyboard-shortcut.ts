@@ -5,7 +5,11 @@ import type { UseHotkeyOptions } from "@tanstack/react-hotkeys";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { createHotkeyOptions, HOTKEYS, useResolvedHotkeyBinding } from "@repo/features/hotkeys";
+import {
+  createHotkeyOptions,
+  HOTKEYS,
+  useResolvedHotkeyBinding,
+} from "@repo/features/hotkeys";
 import { usePermission } from "@repo/features/permissions";
 
 interface UseRenameKeyboardShortcutOptions {
@@ -26,12 +30,18 @@ export function useRenameKeyboardShortcut({
   const canUpdate = usePermission(permission.content.write);
 
   const handleRename = useCallback(() => {
-    if (!canUpdate) return;
+    if (!canUpdate) {
+      return;
+    }
     const selectedItems = tree.getSelectedItems();
-    if (selectedItems.length !== 1) return;
+    if (selectedItems.length !== 1) {
+      return;
+    }
 
     const selectedItem = selectedItems[0];
-    if (!selectedItem) return;
+    if (!selectedItem) {
+      return;
+    }
 
     selectedItem.startRenaming();
   }, [canUpdate, tree]);

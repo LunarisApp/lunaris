@@ -8,7 +8,7 @@ describe("organizationRevision", () => {
         logo: null,
         name: "Organization",
         slug: "organization",
-      }),
+      })
     ).resolves.toBe("864OsaATBduXvtapjIBGJNY94y-VYuZzORibzG5gosA");
   });
 });

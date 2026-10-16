@@ -33,7 +33,7 @@ export function EditedTimestamp({
   const { t } = useTranslation();
   const { locale } = useLocale();
   const slot = useStorageSlot(storageId).data[0];
-  const documentId = slot?.kind === "yjs" ? slot.backing_id ?? "" : "";
+  const documentId = slot?.kind === "yjs" ? (slot.backing_id ?? "") : "";
   const { lastEditedAt, isLoading: isEditLoading } =
     useDocumentLastEdited(documentId);
   const { createdAt, isLoading: isCreateLoading } =

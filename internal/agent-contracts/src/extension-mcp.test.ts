@@ -63,7 +63,7 @@ describe("built-in extension MCP registry", () => {
         boardId: "board-1",
         workspaceId: "workspace-1",
         organizationId: "organization-1",
-      }),
+      })
     ).toEqual({
       body: undefined,
       headers: {},
@@ -86,7 +86,7 @@ describe("built-in extension MCP registry", () => {
         workspaceId: "workspace-1",
         properties: { Priority: "High" },
         organizationId: "organization-1",
-      }),
+      })
     ).toEqual({
       body: {
         boardId: "board-1",
@@ -113,7 +113,7 @@ describe("built-in extension MCP registry", () => {
         workspaceId: "workspace-1",
         taskId: "task-1",
         organizationId: "organization-1",
-      }),
+      })
     ).toMatchObject({
       expectedResourceTypeId: "lunaris.kanban.task",
       resourceId: "task-1",
@@ -152,7 +152,7 @@ describe("built-in extension MCP registry", () => {
         properties: { Priority: "High" },
         taskId: "task-1",
         organizationId: "organization-1",
-      }),
+      })
     ).toEqual({
       body: {
         boardId: "board-1",
@@ -162,7 +162,7 @@ describe("built-in extension MCP registry", () => {
       },
       headers: {
         "Idempotency-Key": "request-1",
-        "If-Match": "\"revision-1\"",
+        "If-Match": '"revision-1"',
       },
       method: "POST",
       path: "/v1/organizations/organization-1/workspaces/workspace-1/plugins/lunaris.kanban/operations/update_task",
@@ -180,7 +180,7 @@ describe("built-in extension MCP registry", () => {
         idempotencyKey: "request-1",
         workspaceId: "workspace-1",
         organizationId: "organization-1",
-      }),
+      })
     ).toEqual({
       body: {
         blocks: [{ id: "title", type: "heading", content: "Title" }],
@@ -188,7 +188,7 @@ describe("built-in extension MCP registry", () => {
       },
       headers: {
         "Idempotency-Key": "request-1",
-        "If-Match": "\"revision-1\"",
+        "If-Match": '"revision-1"',
       },
       method: "POST",
       path: "/v1/organizations/organization-1/workspaces/workspace-1/plugins/lunaris.rich-text/operations/update_document",
@@ -198,7 +198,11 @@ describe("built-in extension MCP registry", () => {
 });
 
 function requiredTool(name: string) {
-  const tool = builtInPluginMcpTools.find((candidate) => candidate.name === name);
-  if (!tool) throw new Error(`Missing test tool: ${name}`);
+  const tool = builtInPluginMcpTools.find(
+    (candidate) => candidate.name === name
+  );
+  if (!tool) {
+    throw new Error(`Missing test tool: ${name}`);
+  }
   return tool;
 }

@@ -2,7 +2,11 @@
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
+import type {
+  ButtonHTMLAttributes,
+  InputHTMLAttributes,
+  ReactNode,
+} from "react";
 import { MemoryRouter, useLocation } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider } from "../../auth";
@@ -36,16 +40,17 @@ vi.mock("@lunarisapp/ui/components/button", () => ({
 }));
 
 vi.mock("@lunarisapp/ui/components/dialog", () => ({
-  Dialog: ({
-    children,
-    open,
-  }: {
-    children: ReactNode;
-    open: boolean;
-  }) => (open ? <div>{children}</div> : null),
-  DialogContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  DialogFooter: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  DialogHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  Dialog: ({ children, open }: { children: ReactNode; open: boolean }) =>
+    open ? <div>{children}</div> : null,
+  DialogContent: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DialogFooter: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DialogHeader: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
   DialogTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
 }));
 
@@ -76,7 +81,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) =>
       (
-        {
+        ({
           "common.cancel": "Cancel",
           "common.error": "Something went wrong",
           "organization.createOrganization": "Create organization",
@@ -87,30 +92,37 @@ vi.mock("react-i18next", () => ({
           "organization.slugHint": "Lowercase letters, numbers, and hyphens",
           "organization.slugInvalid": "Invalid slug",
           "organization.slugRequired": "Slug is required",
-          "organization.slugTaken": "Slug already exists in another organization",
-        } as const
-      )[key as
-        | "common.cancel"
-        | "common.error"
-        | "organization.createOrganization"
-        | "organization.createOrganizationPlaceholder"
-        | "organization.created"
-        | "organization.name"
-        | "organization.slug"
-        | "organization.slugHint"
-        | "organization.slugInvalid"
-        | "organization.slugRequired"
-        | "organization.slugTaken"] ?? key,
+          "organization.slugTaken":
+            "Slug already exists in another organization",
+        }) as const
+      )[
+        key as
+          | "common.cancel"
+          | "common.error"
+          | "organization.createOrganization"
+          | "organization.createOrganizationPlaceholder"
+          | "organization.created"
+          | "organization.name"
+          | "organization.slug"
+          | "organization.slugHint"
+          | "organization.slugInvalid"
+          | "organization.slugRequired"
+          | "organization.slugTaken"
+      ] ?? key,
   }),
 }));
 
 function LocationDisplay() {
   const location = useLocation();
-  return <div data-testid="location">{`${location.pathname}${location.search}`}</div>;
+  return (
+    <div data-testid="location">{`${location.pathname}${location.search}`}</div>
+  );
 }
 
 function renderDialog({
-  checkSlug = vi.fn().mockResolvedValue({ data: { status: true }, error: null }),
+  checkSlug = vi
+    .fn()
+    .mockResolvedValue({ data: { status: true }, error: null }),
   create = vi.fn().mockResolvedValue({
     data: { id: "org_2", slug: "alpha-space" },
     error: null,
@@ -129,7 +141,7 @@ function renderDialog({
         <CreateOrganizationDialog onOpenChange={vi.fn()} open />
         <LocationDisplay />
       </AuthProvider>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 
   return { checkSlug, create, setActive };
@@ -147,7 +159,9 @@ describe("CreateOrganizationDialog", () => {
     const { checkSlug, create, setActive } = renderDialog();
 
     await user.type(screen.getByLabelText("Name"), "Alpha Space");
-    await user.click(screen.getByRole("button", { name: "Create organization" }));
+    await user.click(
+      screen.getByRole("button", { name: "Create organization" })
+    );
 
     await waitFor(() => {
       expect(checkSlug).toHaveBeenCalledWith({ slug: "alpha-space" });
@@ -178,7 +192,9 @@ describe("CreateOrganizationDialog", () => {
     });
 
     await user.type(screen.getByLabelText("Name"), "Taken Organization");
-    await user.click(screen.getByRole("button", { name: "Create organization" }));
+    await user.click(
+      screen.getByRole("button", { name: "Create organization" })
+    );
 
     await waitFor(() => {
       expect(

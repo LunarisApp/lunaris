@@ -32,10 +32,18 @@ export function XmlRenderer({ text }: { text: string }) {
       : XML_VIEWER_LIGHT_THEME;
 
   return (
-    <div className="h-full overflow-auto bg-background p-4" data-testid="xml-renderer">
+    <div
+      className="h-full overflow-auto bg-background p-4"
+      data-testid="xml-renderer"
+    >
       <XMLViewer
         indentSize={2}
-        invalidXml={<PanelError title={t("fileExtension.file.invalidXml")} variant="error" />}
+        invalidXml={
+          <PanelError
+            title={t("fileExtension.file.invalidXml")}
+            variant="error"
+          />
+        }
         theme={xmlTheme}
         xml={text}
       />

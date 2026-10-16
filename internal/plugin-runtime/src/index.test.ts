@@ -17,7 +17,7 @@ const manifest = {
 
 function plugin(
   overrides: Partial<PluginManifest> = {},
-  activate: Parameters<typeof definePlugin>[0]["activate"] = () => undefined,
+  activate: Parameters<typeof definePlugin>[0]["activate"] = () => undefined
 ) {
   return definePlugin({
     activate,
@@ -50,7 +50,10 @@ describe("PluginRuntime", () => {
     });
 
     await expect(
-      runtime.activate(plugin({}, () => cleanup), undefined),
+      runtime.activate(
+        plugin({}, () => cleanup),
+        undefined
+      )
     ).rejects.toThrow("commit failed");
     expect(cleanup).toHaveBeenCalledOnce();
     expect(runtime.getState(manifest.id)).toBe("failed");
@@ -59,7 +62,7 @@ describe("PluginRuntime", () => {
         error: expect.objectContaining({ message: "commit failed" }),
         pluginId: manifest.id,
         state: "failed",
-      }),
+      })
     );
   });
 
@@ -75,7 +78,7 @@ describe("PluginRuntime", () => {
     });
 
     await expect(runtime.activate(definition, undefined)).rejects.toThrow(
-      "effect failed",
+      "effect failed"
     );
     expect(release).toHaveBeenCalledOnce();
     expect(cleanup).toHaveBeenCalledOnce();
@@ -105,7 +108,7 @@ describe("PluginRuntime", () => {
         id: "acme.dependent",
         name: "Dependent",
       },
-      dependentActivate,
+      dependentActivate
     );
     await runtime.activate(dependency, undefined);
     await runtime.activate(dependent, undefined);
@@ -144,7 +147,7 @@ describe("PluginRuntime", () => {
           pluginId: "acme.dependent",
           state: "active",
         }),
-      ]),
+      ])
     );
   });
 
@@ -157,13 +160,13 @@ describe("PluginRuntime", () => {
         name: "Dependent",
         optionalDependencies: { "acme.dependency": "^2.0.0" },
       },
-      activate,
+      activate
     );
 
     await runtime.register(dependent, undefined);
     await runtime.register(
       plugin({ id: "acme.dependency", name: "Dependency", version: "1.0.0" }),
-      undefined,
+      undefined
     );
     await runtime.deactivate("acme.dependency");
 
@@ -202,16 +205,16 @@ describe("PluginRuntime", () => {
         id: "acme.dependent",
         name: "Dependent",
       },
-      dependentActivate,
+      dependentActivate
     );
 
     await runtime.register(dependent, undefined);
     await runtime.register(
       plugin({ id: "acme.dependency", name: "Dependency" }),
-      undefined,
+      undefined
     );
     await expect(runtime.awaitActivation("acme.dependent")).rejects.toThrow(
-      "found 1.0.0",
+      "found 1.0.0"
     );
     expect(runtime.getState("acme.dependent")).toBe("pending");
     expect(runtime.getDiagnostic("acme.dependent")?.dependencyIssues).toEqual([
@@ -228,7 +231,7 @@ describe("PluginRuntime", () => {
         name: "Dependency",
         version: "2.0.0",
       }),
-      undefined,
+      undefined
     );
     await runtime.awaitActivation("acme.dependent");
     expect(runtime.getState("acme.dependent")).toBe("active");
@@ -251,7 +254,7 @@ describe("PluginRuntime", () => {
         id: "acme.dependent",
         name: "Dependent",
       },
-      dependentActivate,
+      dependentActivate
     );
 
     await runtime.activate(provider("1.0.0"), undefined);
@@ -284,7 +287,9 @@ describe("PluginRuntime", () => {
     });
     await runtime.activate(plugin(), undefined);
 
-    await expect(runtime.deactivate(manifest.id)).rejects.toThrow("cleanup failed");
+    await expect(runtime.deactivate(manifest.id)).rejects.toThrow(
+      "cleanup failed"
+    );
     expect(runtime.getState(manifest.id)).toBe("inactive");
     expect(runtime.get(manifest.id)).toBeUndefined();
   });
@@ -299,7 +304,7 @@ describe("PluginRuntime", () => {
       plugin({}, () => () => {
         throw new Error("activation cleanup failed");
       }),
-      undefined,
+      undefined
     );
 
     const error = await runtime

@@ -63,7 +63,7 @@ export async function exportDocumentAsPdf(
 export async function exportResourceAsDocx(
   context: PluginResourceReadContext,
   resourceId: string,
-  resourceName: string,
+  resourceName: string
 ): Promise<{ missingImages: number }> {
   const blocks = await compileBlockNoteBlocks(context, resourceId);
   const { generateDocx } = await import("./docx/generator");
@@ -72,7 +72,7 @@ export async function exportResourceAsDocx(
       "extensions.catalog.lunaris.rich-text.exportDocxMissingImage",
       {
         defaultValue: "Image unavailable",
-      },
+      }
     ),
   });
   downloadBlob(result.blob, `${sanitizeDocumentName(resourceName)}.docx`);

@@ -46,37 +46,70 @@ export default defineConfig({
     alias: [
       {
         find: "virtual:pwa-register/react",
-        replacement: resolve(__dirname, "src/test-stubs/pwa-register.ts"),
+        replacement: resolve(
+          import.meta.dirname,
+          "src/test-stubs/pwa-register.ts"
+        ),
       },
       {
         find: /^@lunarisapp\/plugin-sdk$/,
-        replacement: resolve(__dirname, "../../packages/plugin-sdk/src/index.ts"),
+        replacement: resolve(
+          import.meta.dirname,
+          "../../packages/plugin-sdk/src/index.ts"
+        ),
       },
       {
         find: "@lunarisapp/plugin-sdk/data",
-        replacement: resolve(__dirname, "../../packages/plugin-sdk/src/data-index.ts"),
+        replacement: resolve(
+          import.meta.dirname,
+          "../../packages/plugin-sdk/src/data-index.ts"
+        ),
       },
       {
         find: "@lunarisapp/plugin-sdk/internal",
-        replacement: resolve(__dirname, "../../packages/plugin-sdk/src/internal-index.ts"),
+        replacement: resolve(
+          import.meta.dirname,
+          "../../packages/plugin-sdk/src/internal-index.ts"
+        ),
       },
-      { find: "@repo/auth", replacement: resolve(__dirname, "../auth/src") },
-      { find: "@repo/data", replacement: resolve(__dirname, "../data/src") },
-      { find: "@repo/features", replacement: resolve(__dirname, "../features/src") },
-      { find: "@repo/platform", replacement: resolve(__dirname, "../platform/src") },
+      {
+        find: "@repo/auth",
+        replacement: resolve(import.meta.dirname, "../auth/src"),
+      },
+      {
+        find: "@repo/data",
+        replacement: resolve(import.meta.dirname, "../data/src"),
+      },
+      {
+        find: "@repo/features",
+        replacement: resolve(import.meta.dirname, "../features/src"),
+      },
+      {
+        find: "@repo/platform",
+        replacement: resolve(import.meta.dirname, "../platform/src"),
+      },
       {
         find: "@repo/workspaces/routes",
-        replacement: resolve(__dirname, "../workspaces/src/routes/index.tsx"),
+        replacement: resolve(
+          import.meta.dirname,
+          "../workspaces/src/routes/index.tsx"
+        ),
       },
       {
         find: "@repo/workspaces/bootstrap",
         replacement: resolve(
-          __dirname,
-          "../workspaces/src/features/new-workspace/default-template/seed-marker.ts",
+          import.meta.dirname,
+          "../workspaces/src/features/new-workspace/default-template/seed-marker.ts"
         ),
       },
-      { find: "@lunarisapp/ui", replacement: resolve(__dirname, "../../packages/ui/src") },
-      { find: "@repo/utils", replacement: resolve(__dirname, "../utils/src") },
+      {
+        find: "@lunarisapp/ui",
+        replacement: resolve(import.meta.dirname, "../../packages/ui/src"),
+      },
+      {
+        find: "@repo/utils",
+        replacement: resolve(import.meta.dirname, "../utils/src"),
+      },
     ],
   },
 });

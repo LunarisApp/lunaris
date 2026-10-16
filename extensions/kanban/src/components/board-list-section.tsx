@@ -14,11 +14,7 @@ import {
 import { type CSSProperties, useId } from "react";
 import type { Map as YMap } from "yjs";
 import { getTaskPropertyValue } from "../task-assignments";
-import type {
-  KanbanTask,
-  PropertyDefinition,
-  PropertyValue,
-} from "../types";
+import type { KanbanTask, PropertyDefinition, PropertyValue } from "../types";
 import { getPropertyTagStyle } from "./property-tag";
 import { PropertyValueField } from "./property-value-field";
 
@@ -119,8 +115,9 @@ export function ListTaskGroupSection({
                 {group.label}
               </span>
               <span
+                role="img"
                 aria-label={taskCountLabel}
-                className="shrink-0 rounded-md border border-current/10 bg-background/45 px-1.5 py-0.5 text-[11px] leading-none tabular-nums opacity-70"
+                className="shrink-0 rounded-md border border-current/10 bg-background/45 px-1.5 py-0.5 text-[11px] tabular-nums leading-none opacity-70"
               >
                 {tasks.length}
               </span>
@@ -158,7 +155,7 @@ export function ListPropertyLabels({
 }) {
   return properties.map((property) => (
     <span
-      className="truncate px-2 py-1.5 text-[11px] font-medium text-muted-foreground"
+      className="truncate px-2 py-1.5 font-medium text-[11px] text-muted-foreground"
       key={property.id}
       title={property.name}
     >
@@ -193,7 +190,7 @@ export function ListTaskRows({
         const taskName = task.name || untitledLabel;
         return (
           <KanbanItem
-            className="group/task-row data-[disabled=true]:opacity-100! data-[dragging=true]:z-20 data-[dragging=true]:opacity-40"
+            className="group/task-row data-[dragging=true]:z-20 data-[disabled=true]:opacity-100! data-[dragging=true]:opacity-40"
             disabled={readOnly}
             key={task.id}
             render={<li />}
@@ -202,7 +199,7 @@ export function ListTaskRows({
             value={task.id}
           >
             <div
-              className="grid min-h-11 items-center rounded-lg border border-transparent transition-colors hover:border-border/60 hover:bg-muted/35 focus-within:border-ring/40 focus-within:bg-muted/35"
+              className="grid min-h-11 items-center rounded-lg border border-transparent transition-colors focus-within:border-ring/40 focus-within:bg-muted/35 hover:border-border/60 hover:bg-muted/35"
               style={gridStyle}
             >
               <div className="flex min-h-11 min-w-0 items-center">
@@ -211,7 +208,7 @@ export function ListTaskRows({
                 ) : (
                   <KanbanItemHandle
                     aria-label={reorderTaskLabel(taskName)}
-                    className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-100 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-ring/50 sm:opacity-0 sm:group-hover/task-row:opacity-100 sm:group-focus-within/task-row:opacity-100 data-[dragging=true]:opacity-100"
+                    className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-100 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-ring/50 data-[dragging=true]:opacity-100 sm:opacity-0 sm:group-hover/task-row:opacity-100 sm:group-focus-within/task-row:opacity-100"
                     render={<button type="button" />}
                   >
                     <HugeiconsIcon
@@ -222,7 +219,7 @@ export function ListTaskRows({
                   </KanbanItemHandle>
                 )}
                 <button
-                  className="flex min-h-11 min-w-0 flex-1 items-center rounded-md py-2 pr-3 pl-1 text-left text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset"
+                  className="flex min-h-11 min-w-0 flex-1 items-center rounded-md py-2 pr-3 pl-1 text-left font-medium text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset"
                   onClick={() => onSelectTask(task.id)}
                   type="button"
                 >
@@ -230,6 +227,8 @@ export function ListTaskRows({
                 </button>
               </div>
               {properties.map((property) => (
+                // biome-ignore lint/a11y/useKeyWithClickEvents: Stops bubbled clicks from keyboard-accessible property controls.
+                // biome-ignore lint/a11y/noNoninteractiveElementInteractions: Stops bubbled clicks from keyboard-accessible property controls.
                 <div
                   aria-label={property.name}
                   className="flex min-h-11 min-w-0 items-center px-2 py-1.5"
@@ -267,9 +266,7 @@ export function getListGridStyle(propertyWidths: number[]): CSSProperties {
   };
 }
 
-export function getPropertyColumnWidth(
-  property: PropertyDefinition
-): number {
+export function getPropertyColumnWidth(property: PropertyDefinition): number {
   switch (property.type) {
     case "multi-select":
     case "people":

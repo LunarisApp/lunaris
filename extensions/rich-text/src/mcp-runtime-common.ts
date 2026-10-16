@@ -2,19 +2,16 @@ import {
   RICH_TEXT_MAX_DOCUMENT_BLOCKS,
   RICH_TEXT_MAX_DOCUMENT_BYTES,
 } from "./constants";
-import type {
-  RichTextBlockData,
-  RichTextBlockInput,
-} from "./mcp-contract";
-import { Doc, type XmlFragment } from "yjs";
+import type { RichTextBlockData, RichTextBlockInput } from "./mcp-contract";
+import type { Doc, XmlFragment } from "yjs";
 
 export interface RichTextRuntimeAdapter {
   blocksToMarkdown(
-    blocks: readonly RichTextBlockData[],
+    blocks: readonly RichTextBlockData[]
   ): Promise<string> | string;
   blocksToYXmlFragment(
     blocks: readonly RichTextBlockData[],
-    fragment: XmlFragment,
+    fragment: XmlFragment
   ): XmlFragment;
   destroy(): void;
   normalizeBlocks(blocks: readonly RichTextBlockInput[]): RichTextBlockData[];
@@ -45,7 +42,7 @@ export class RichTextMcpInputError extends Error {
 }
 
 export function createRichTextRuntime(
-  createAdapter: () => RichTextRuntimeAdapter,
+  createAdapter: () => RichTextRuntimeAdapter
 ) {
   return {
     getRichTextDocument: (doc: Doc) =>
@@ -58,24 +55,24 @@ export function createRichTextRuntime(
       }),
     replaceRichTextDocument: async (
       doc: Doc,
-      requested: readonly RichTextBlockInput[],
+      requested: readonly RichTextBlockInput[]
     ) => {
       assertRichTextDocumentInput(requested);
       return withAdapter(createAdapter, async (adapter) => {
         try {
-          const blocks = adapter.normalizeBlocks(
-            structuredClone(requested),
-          );
+          const blocks = adapter.normalizeBlocks(structuredClone(requested));
           assertRichTextDocumentLimits(blocks);
           const markdown = await adapter.blocksToMarkdown(blocks);
           adapter.blocksToYXmlFragment(blocks, doc.getXmlFragment());
           return { blocks: cloneRichTextBlocks(blocks), markdown };
         } catch (error) {
-          if (error instanceof RichTextMcpInputError) throw error;
+          if (error instanceof RichTextMcpInputError) {
+            throw error;
+          }
           throw new RichTextMcpInputError(
             error instanceof Error
               ? error.message
-              : "Invalid BlockNote document",
+              : "Invalid BlockNote document"
           );
         }
       });
@@ -85,7 +82,7 @@ export function createRichTextRuntime(
 
 async function withAdapter<T>(
   createAdapter: () => RichTextRuntimeAdapter,
-  run: (adapter: RichTextRuntimeAdapter) => Promise<T>,
+  run: (adapter: RichTextRuntimeAdapter) => Promise<T>
 ): Promise<T> {
   const adapter = createAdapter();
   try {
@@ -96,13 +93,13 @@ async function withAdapter<T>(
 }
 
 function cloneRichTextBlocks(
-  blocks: readonly RichTextBlockData[],
+  blocks: readonly RichTextBlockData[]
 ): RichTextBlockData[] {
   return JSON.parse(JSON.stringify(blocks)) as RichTextBlockData[];
 }
 
 function assertRichTextDocumentInput(
-  blocks: readonly RichTextBlockInput[],
+  blocks: readonly RichTextBlockInput[]
 ): void {
   assertBlockCount(blocks);
   assertSerializedSize(blocks);
@@ -110,28 +107,32 @@ function assertRichTextDocumentInput(
 }
 
 function assertRichTextDocumentLimits(
-  blocks: readonly RichTextBlockData[],
+  blocks: readonly RichTextBlockData[]
 ): void {
   assertBlockCount(blocks);
   assertSerializedSize(blocks);
 }
 
 function assertBlockCount(
-  blocks: readonly { children?: readonly unknown[] }[],
+  blocks: readonly { children?: readonly unknown[] }[]
 ): void {
   let count = 0;
   const pending: unknown[] = [...blocks];
   while (pending.length > 0) {
     const block = pending.pop();
-    if (!block || typeof block !== "object") continue;
+    if (!block || typeof block !== "object") {
+      continue;
+    }
     count += 1;
     if (count > RICH_TEXT_MAX_DOCUMENT_BLOCKS) {
       throw new RichTextMcpInputError(
-        `Rich Text document exceeds ${RICH_TEXT_MAX_DOCUMENT_BLOCKS} block limit`,
+        `Rich Text document exceeds ${RICH_TEXT_MAX_DOCUMENT_BLOCKS} block limit`
       );
     }
     const children = (block as { children?: unknown }).children;
-    if (Array.isArray(children)) pending.push(...children);
+    if (Array.isArray(children)) {
+      pending.push(...children);
+    }
   }
 }
 
@@ -139,7 +140,7 @@ function assertSerializedSize(value: unknown): void {
   const bytes = new TextEncoder().encode(JSON.stringify(value)).byteLength;
   if (bytes > RICH_TEXT_MAX_DOCUMENT_BYTES) {
     throw new RichTextMcpInputError(
-      "Rich Text document exceeds 5 MiB size limit",
+      "Rich Text document exceeds 5 MiB size limit"
     );
   }
 }
@@ -151,7 +152,7 @@ function assertUniqueBlockIds(blocks: readonly RichTextBlockInput[]): void {
     const block = pending.pop()!;
     if (ids.has(block.id)) {
       throw new RichTextMcpInputError(
-        `Duplicate Rich Text block ID: ${block.id}`,
+        `Duplicate Rich Text block ID: ${block.id}`
       );
     }
     ids.add(block.id);

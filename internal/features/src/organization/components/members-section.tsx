@@ -1,5 +1,8 @@
 import type { ComponentType } from "react";
-import type { OrganizationTeamSummary, InvitationTeamPickerProps } from "../sections";
+import type {
+  OrganizationTeamSummary,
+  InvitationTeamPickerProps,
+} from "../sections";
 import {
   Alert,
   AlertAction,
@@ -76,30 +79,25 @@ export function MembersSection({
 
   const members = membersQuery.data ?? [];
   const currentMember = members.find(
-    (member) => member.user.id === session?.user?.id,
+    (member) => member.user.id === session?.user?.id
   );
   const pendingOrganization = readPendingOrganization();
   const roleCanManage =
     currentMember?.role === "owner" ||
     (!currentMember && pendingOrganization?.id === activeOrg?.id);
   const hasInvitationCreatePermission = usePermission(
-    permission.invitation.create,
+    permission.invitation.create
   );
-  const hasInvitationReadPermission = usePermission(
-    permission.invitation.read,
-  );
+  const hasInvitationReadPermission = usePermission(permission.invitation.read);
   const hasInvitationCancelPermission = usePermission(
-    permission.invitation.cancel,
+    permission.invitation.cancel
   );
   const hasMemberUpdatePermission = usePermission(permission.member.update);
   const hasMemberDeletePermission = usePermission(permission.member.delete);
   const hasTeamReadPermission = usePermission(permission.team.read);
-  const canCreateInvitation =
-    roleCanManage && hasInvitationCreatePermission;
-  const canReadInvitations =
-    roleCanManage && hasInvitationReadPermission;
-  const canCancelInvitation =
-    roleCanManage && hasInvitationCancelPermission;
+  const canCreateInvitation = roleCanManage && hasInvitationCreatePermission;
+  const canReadInvitations = roleCanManage && hasInvitationReadPermission;
+  const canCancelInvitation = roleCanManage && hasInvitationCancelPermission;
   const canUpdateMember = roleCanManage && hasMemberUpdatePermission;
   const canDeleteMember = roleCanManage && hasMemberDeletePermission;
   const canMutateMembers =
@@ -114,14 +112,12 @@ export function MembersSection({
   });
   const teams = hasTeamReadPermission ? availableTeams : [];
   const invitationsPaused = invitationsQuery.fetchStatus === "paused";
-  const invitationsUnavailable =
-    invitationsPaused || invitationsQuery.isError;
+  const invitationsUnavailable = invitationsPaused || invitationsQuery.isError;
   const invitationsLoading =
-    invitationsQuery.isPending &&
-    invitationsQuery.fetchStatus === "fetching";
+    invitationsQuery.isPending && invitationsQuery.fetchStatus === "fetching";
 
   const invitations = byNewest(
-    (invitationsQuery.data ?? []).filter(isPendingInvitation),
+    (invitationsQuery.data ?? []).filter(isPendingInvitation)
   );
   const memberLimit = useLimit(LIMIT.maxMembers);
   const occupiedCapacity = members.length + invitations.length;
@@ -130,9 +126,7 @@ export function MembersSection({
 
   const [inviteRole, setInviteRole] = useState<ManageableRole>("viewer");
   const [inviteTeamId, setInviteTeamId] = useState<string | null>(null);
-  const selectedInviteTeamId = teams.some(
-    (team) => team.id === inviteTeamId,
-  )
+  const selectedInviteTeamId = teams.some((team) => team.id === inviteTeamId)
     ? inviteTeamId
     : null;
   const [inviting, setInviting] = useState(false);
@@ -151,7 +145,9 @@ export function MembersSection({
   if (isPersonalOrganization(activeOrg)) {
     return (
       <Alert>
-        <AlertTitle>{t("organization.personalOrganizationNoMembersTitle")}</AlertTitle>
+        <AlertTitle>
+          {t("organization.personalOrganizationNoMembersTitle")}
+        </AlertTitle>
         <AlertDescription>
           {t("organization.personalOrganizationNoMembers")}
         </AlertDescription>
@@ -159,16 +155,14 @@ export function MembersSection({
     );
   }
 
-  if (membersQuery.error) throw membersQuery.error;
+  if (membersQuery.error) {
+    throw membersQuery.error;
+  }
 
   const handleInvite = async (inviteEmail: string) => {
-    if (
-      !canCreateInvitation ||
-      !activeOrg ||
-      !inviteEmail.trim() ||
-      inviting
-    )
+    if (!(canCreateInvitation && activeOrg && inviteEmail.trim()) || inviting) {
       return false;
+    }
 
     setInviting(true);
 
@@ -188,7 +182,7 @@ export function MembersSection({
       posthog.capture("organization_invite_sent", { role: inviteRole });
       queryClient.setQueryData<Invitation[]>(
         organizationQueryKeys.invitations(orgId),
-        (old) => [data as Invitation, ...(old ?? [])],
+        (old) => [data as Invitation, ...(old ?? [])]
       );
       toast.success(t("organization.inviteSent"));
       return true;
@@ -198,7 +192,9 @@ export function MembersSection({
   };
 
   const handleResend = async (invitation: Invitation) => {
-    if (!canCreateInvitation || !activeOrg || resendingId) return;
+    if (!(canCreateInvitation && activeOrg) || resendingId) {
+      return;
+    }
 
     setResendingId(invitation.id);
 
@@ -231,7 +227,7 @@ export function MembersSection({
         (old) => [
           data as Invitation,
           ...(old ?? []).filter((item) => item.id !== invitation.id),
-        ],
+        ]
       );
       toast.success(t("organization.inviteResent"));
     } finally {
@@ -240,7 +236,9 @@ export function MembersSection({
   };
 
   const handleCancelInvitation = async (invitationId: string) => {
-    if (!canCancelInvitation || cancelingId) return;
+    if (!canCancelInvitation || cancelingId) {
+      return;
+    }
 
     setCancelingId(invitationId);
 
@@ -257,7 +255,7 @@ export function MembersSection({
       posthog.capture("organization_invite_canceled");
       queryClient.setQueryData<Invitation[]>(
         organizationQueryKeys.invitations(orgId),
-        (old) => (old ?? []).filter((item) => item.id !== invitationId),
+        (old) => (old ?? []).filter((item) => item.id !== invitationId)
       );
       toast.success(t("organization.inviteCanceled"));
     } finally {
@@ -267,12 +265,12 @@ export function MembersSection({
 
   const handleRoleChange = async (member: Member, role: OrganizationRole) => {
     if (
-      !canUpdateMember ||
-      !activeOrg ||
+      !(canUpdateMember && activeOrg) ||
       member.role === role ||
       updatingRoleId
-    )
+    ) {
       return;
+    }
 
     setUpdatingRoleId(member.id);
 
@@ -296,7 +294,9 @@ export function MembersSection({
   };
 
   const handleRemove = async (member: Member) => {
-    if (!canDeleteMember || removingId) return;
+    if (!canDeleteMember || removingId) {
+      return;
+    }
 
     setRemovingId(member.id);
 
@@ -336,7 +336,7 @@ export function MembersSection({
           </AlertDescription>
         </Alert>
       )}
-      {canCreateInvitation && (
+      {!!canCreateInvitation && (
         <InviteMemberForm
           capacityReached={capacityReached}
           inviteRole={inviteRole}
@@ -345,24 +345,28 @@ export function MembersSection({
           occupiedCapacity={occupiedCapacity}
           onInvite={handleInvite}
           onRoleChange={setInviteRole}
-          teamPicker={TeamPicker ? (
-            <TeamPicker
-              onTeamChange={setInviteTeamId}
-              selectedTeamId={selectedInviteTeamId}
-              teams={teams}
-            />
-          ) : undefined}
+          teamPicker={
+            TeamPicker ? (
+              <TeamPicker
+                onTeamChange={setInviteTeamId}
+                selectedTeamId={selectedInviteTeamId}
+                teams={teams}
+              />
+            ) : undefined
+          }
         />
       )}
-      {canReadInvitations &&
+      {!!canReadInvitations &&
         (invitationsUnavailable ? (
           <Alert variant={invitationsQuery.isError ? "destructive" : "default"}>
-            <AlertTitle>{t("organization.invitationsUnavailableTitle")}</AlertTitle>
+            <AlertTitle>
+              {t("organization.invitationsUnavailableTitle")}
+            </AlertTitle>
             <AlertDescription>
               {t(
                 invitationsPaused
                   ? "organization.invitationsOfflineDescription"
-                  : "organization.invitationsUnavailableDescription",
+                  : "organization.invitationsUnavailableDescription"
               )}
             </AlertDescription>
             {invitationsQuery.isError ? (
@@ -378,10 +382,7 @@ export function MembersSection({
             ) : null}
           </Alert>
         ) : invitationsLoading ? (
-          <div
-            aria-live="polite"
-            role="status"
-          >
+          <div aria-live="polite" role="status">
             <p className="text-muted-foreground text-sm">
               {t("common.loading")}
             </p>

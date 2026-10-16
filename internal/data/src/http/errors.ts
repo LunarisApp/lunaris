@@ -22,7 +22,7 @@ export class ApiError extends Error {
       timestamp?: string;
       validationErrors?: ApiErrorResponse["errors"];
       isOffline?: boolean;
-    },
+    }
   ) {
     super(message);
     this.name = "ApiError";

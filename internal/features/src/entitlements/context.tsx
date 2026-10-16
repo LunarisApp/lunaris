@@ -37,19 +37,21 @@ import {
   writeEntitlementSnapshot,
 } from "./snapshot";
 
-export type EntitlementFreshness =
-  | "live"
-  | "cached"
-  | "expired"
-  | "unverified";
+export type EntitlementFreshness = "live" | "cached" | "expired" | "unverified";
 
 export interface EntitlementStatus {
   billingManagement: BillingManagement;
   displayPlan: PlanSlug;
   freshness: EntitlementFreshness;
   isOnline: boolean;
-  storage?: EntitlementSnapshot["storage"] & { maxStorageBytes: number; maxFileBytes: number };
-  usage?: Pick<EntitlementSnapshot, "resourceCount" | "memberCount" | "pendingInvitationCount"> & {
+  storage?: EntitlementSnapshot["storage"] & {
+    maxStorageBytes: number;
+    maxFileBytes: number;
+  };
+  usage?: Pick<
+    EntitlementSnapshot,
+    "resourceCount" | "memberCount" | "pendingInvitationCount"
+  > & {
     maxResources: number;
     maxMembers: number;
   };
@@ -71,7 +73,7 @@ export interface ResourceCapacityReservation {
 }
 
 export type ReserveResourceCapacity = (
-  count?: number,
+  count?: number
 ) => Promise<ResourceCapacityReservation>;
 
 export interface FeatureAccessResult {
@@ -90,14 +92,14 @@ export class ResourceCapacityExceededError extends Error {
 }
 
 export function isResourceCapacityExceededError(
-  error: unknown,
+  error: unknown
 ): error is ResourceCapacityExceededError {
   return error instanceof ResourceCapacityExceededError;
 }
 
 export function getResourceCapacityErrorMessageKey(
   error: unknown,
-  fallbackKey: string,
+  fallbackKey: string
 ): string {
   return isResourceCapacityExceededError(error)
     ? "errors.reason.entitlements.resourceLimit.desc"
@@ -116,7 +118,9 @@ const EMPTY_RESERVATION: ResourceCapacityReservation = {
   rollback: () => undefined,
 };
 
-const EntitlementsContext = createContext<EntitlementsContextValue | null>(null);
+const EntitlementsContext = createContext<EntitlementsContextValue | null>(
+  null
+);
 
 interface EntitlementSession {
   user?: {
@@ -129,7 +133,7 @@ function useOnlineStatus() {
   return useSyncExternalStore(
     (listener) => onlineManager.subscribe(listener),
     () => onlineManager.isOnline(),
-    () => true,
+    () => true
   );
 }
 
@@ -139,7 +143,9 @@ function useExpiryClock(deadline: string | null, enabled: boolean): number {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (!enabled || !deadline) return;
+    if (!(enabled && deadline)) {
+      return;
+    }
 
     let timer: number | undefined;
     const schedule = () => {
@@ -148,15 +154,14 @@ function useExpiryClock(deadline: string | null, enabled: boolean): number {
         setNow(Date.now());
         return;
       }
-      timer = window.setTimeout(
-        schedule,
-        Math.min(remaining, MAX_TIMEOUT_MS),
-      );
+      timer = window.setTimeout(schedule, Math.min(remaining, MAX_TIMEOUT_MS));
     };
 
     schedule();
     return () => {
-      if (timer !== undefined) window.clearTimeout(timer);
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+      }
     };
   }, [deadline, enabled]);
 
@@ -164,7 +169,7 @@ function useExpiryClock(deadline: string | null, enabled: boolean): number {
 }
 
 function hydrateEntitlements(
-  snapshot: EntitlementSnapshot,
+  snapshot: EntitlementSnapshot
 ): ResolvedEntitlements {
   const limits = { ...snapshot.limits };
   return {
@@ -188,14 +193,14 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   const isAnonymous = session?.user?.isAnonymous ?? true;
   const isOnline = useOnlineStatus();
   const resourceCapacityByOrganization = useRef(
-    new Map<string, ResourceCapacityState>(),
+    new Map<string, ResourceCapacityState>()
   );
   const cachedSnapshot = useMemo(
     () =>
       userId && organizationId
         ? readEntitlementSnapshot(region.id, userId, organizationId)
         : null,
-    [region.id, userId, organizationId],
+    [region.id, userId, organizationId]
   );
 
   const snapshotQuery = useQuery({
@@ -209,10 +214,12 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
       organizationId ?? "none",
     ],
     queryFn: async () => {
-      if (!organizationId) throw new Error("Active organization is required");
-      const snapshot = parseEntitlementSnapshot(await api.get<unknown>(
-        "/v1/entitlements/me",
-      ));
+      if (!organizationId) {
+        throw new Error("Active organization is required");
+      }
+      const snapshot = parseEntitlementSnapshot(
+        await api.get<unknown>("/v1/entitlements/me")
+      );
       if (snapshot.organizationId !== organizationId) {
         throw new Error("Entitlement snapshot organization mismatch");
       }
@@ -221,12 +228,14 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    if (!userId || !organizationId || isAnonymous || !snapshotQuery.data) return;
+    if (!(userId && organizationId) || isAnonymous || !snapshotQuery.data) {
+      return;
+    }
     writeEntitlementSnapshot(
       region.id,
       userId,
       organizationId,
-      snapshotQuery.data,
+      snapshotQuery.data
     );
   }, [isAnonymous, region.id, snapshotQuery.data, userId, organizationId]);
 
@@ -240,12 +249,12 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   const selectedSnapshot = snapshotQuery.data ?? cachedSnapshot;
   const now = useExpiryClock(
     selectedSnapshot?.offlineAccessUntil ?? null,
-    !liveSnapshot && Boolean(selectedSnapshot),
+    !liveSnapshot && Boolean(selectedSnapshot)
   );
   const expired = Boolean(
     !liveSnapshot &&
       selectedSnapshot?.offlineAccessUntil &&
-      Date.parse(selectedSnapshot.offlineAccessUntil) <= now,
+      Date.parse(selectedSnapshot.offlineAccessUntil) <= now
   );
 
   const entitlements = useMemo(() => {
@@ -255,34 +264,50 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
     return hydrateEntitlements(selectedSnapshot);
   }, [expired, isAnonymous, selectedSnapshot]);
 
-  const status = useMemo<EntitlementStatus>(() => ({
-    billingManagement:
-      selectedSnapshot?.billingManagement ?? "unavailable",
-    displayPlan: selectedSnapshot?.plan ?? PLAN.free,
-    freshness: liveSnapshot
-      ? "live"
-      : expired
-        ? "expired"
-        : selectedSnapshot
-          ? "cached"
-          : "unverified",
-    isOnline,
-    verifiedAt: selectedSnapshot?.verifiedAt ?? null,
-    usage: selectedSnapshot ? {
-      resourceCount: selectedSnapshot.resourceCount,
-      memberCount: selectedSnapshot.memberCount,
-      pendingInvitationCount: selectedSnapshot.pendingInvitationCount,
-      maxResources: selectedSnapshot.limits.max_resources,
-      maxMembers: selectedSnapshot.limits.max_members,
-    } : undefined,
-    storage: selectedSnapshot?.storage ? { ...selectedSnapshot.storage,
-      maxStorageBytes: selectedSnapshot.limits.max_storage_bytes, maxFileBytes: selectedSnapshot.limits.max_file_bytes } : undefined,
-  }), [expired, isOnline, liveSnapshot, selectedSnapshot]);
+  const status = useMemo<EntitlementStatus>(
+    () => ({
+      billingManagement: selectedSnapshot?.billingManagement ?? "unavailable",
+      displayPlan: selectedSnapshot?.plan ?? PLAN.free,
+      freshness: liveSnapshot
+        ? "live"
+        : expired
+          ? "expired"
+          : selectedSnapshot
+            ? "cached"
+            : "unverified",
+      isOnline,
+      verifiedAt: selectedSnapshot?.verifiedAt ?? null,
+      usage: selectedSnapshot
+        ? {
+            resourceCount: selectedSnapshot.resourceCount,
+            memberCount: selectedSnapshot.memberCount,
+            pendingInvitationCount: selectedSnapshot.pendingInvitationCount,
+            maxResources: selectedSnapshot.limits.max_resources,
+            maxMembers: selectedSnapshot.limits.max_members,
+          }
+        : undefined,
+      storage: selectedSnapshot?.storage
+        ? {
+            ...selectedSnapshot.storage,
+            maxStorageBytes: selectedSnapshot.limits.max_storage_bytes,
+            maxFileBytes: selectedSnapshot.limits.max_file_bytes,
+          }
+        : undefined,
+    }),
+    [expired, isOnline, liveSnapshot, selectedSnapshot]
+  );
   const lastCapacity = useRef<string | null>(null);
   useEffect(() => {
-    if (!liveSnapshot?.storage) return;
-    const fingerprint = [organizationId, liveSnapshot.limits.max_storage_bytes, liveSnapshot.limits.max_file_bytes,
-      liveSnapshot.storage.committedBytes, liveSnapshot.storage.reservedBytes].join(":");
+    if (!liveSnapshot?.storage) {
+      return;
+    }
+    const fingerprint = [
+      organizationId,
+      liveSnapshot.limits.max_storage_bytes,
+      liveSnapshot.limits.max_file_bytes,
+      liveSnapshot.storage.committedBytes,
+      liveSnapshot.storage.reservedBytes,
+    ].join(":");
     if (lastCapacity.current && lastCapacity.current !== fingerprint) {
       window.dispatchEvent(new Event("lunaris-storage-capacity-changed"));
     }
@@ -306,10 +331,16 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   const reserveResourceCapacity = useCallback<ReserveResourceCapacity>(
     async (count = 1) => {
       if (!Number.isSafeInteger(count) || count < 0) {
-        throw new RangeError("Resource reservation count must be a non-negative integer");
+        throw new RangeError(
+          "Resource reservation count must be a non-negative integer"
+        );
       }
-      if (count === 0 || maxResources === UNLIMITED) return EMPTY_RESERVATION;
-      if (!organizationId) throw new Error("Active organization is required");
+      if (count === 0 || maxResources === UNLIMITED) {
+        return EMPTY_RESERVATION;
+      }
+      if (!organizationId) {
+        throw new Error("Active organization is required");
+      }
 
       let authoritativeResourceCount = selectedSnapshot?.resourceCount ?? 0;
       if (!isAnonymous && isOnline) {
@@ -320,13 +351,14 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
 
       const { localCount, syncedCount } =
         await getOrganizationWorkspaceResourceUsage({
-        db,
-        organizationId: organizationId,
-      });
+          db,
+          organizationId,
+        });
       const localOnlyCount = Math.max(0, localCount - syncedCount);
       const observedUsage =
         Math.max(authoritativeResourceCount, syncedCount) + localOnlyCount;
-      const current = resourceCapacityByOrganization.current.get(organizationId);
+      const current =
+        resourceCapacityByOrganization.current.get(organizationId);
       const confirmedDeletions = current
         ? Math.max(0, current.lastServerCount - authoritativeResourceCount) +
           Math.max(0, current.lastLocalOnlyCount - localOnlyCount)
@@ -337,15 +369,15 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
         reservedCount: current?.reservedCount ?? 0,
         usageCount: Math.max(
           observedUsage,
-          Math.max(0, (current?.usageCount ?? observedUsage) - confirmedDeletions),
+          Math.max(
+            0,
+            (current?.usageCount ?? observedUsage) - confirmedDeletions
+          )
         ),
       };
       resourceCapacityByOrganization.current.set(organizationId, state);
 
-      if (
-        state.usageCount + state.reservedCount + count >
-        maxResources
-      ) {
+      if (state.usageCount + state.reservedCount + count > maxResources) {
         throw new ResourceCapacityExceededError(maxResources);
       }
 
@@ -359,12 +391,17 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
         ) {
           throw new RangeError("Committed resource count exceeds reservation");
         }
-        if (committedCount === 0) return;
-        const latest = resourceCapacityByOrganization.current.get(organizationId);
-        if (!latest) return;
+        if (committedCount === 0) {
+          return;
+        }
+        const latest =
+          resourceCapacityByOrganization.current.get(organizationId);
+        if (!latest) {
+          return;
+        }
         latest.reservedCount = Math.max(
           0,
-          latest.reservedCount - committedCount,
+          latest.reservedCount - committedCount
         );
         latest.usageCount += committedCount;
         remaining -= committedCount;
@@ -373,12 +410,15 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
       return {
         commit,
         rollback: () => {
-          if (remaining === 0) return;
-          const latest = resourceCapacityByOrganization.current.get(organizationId);
+          if (remaining === 0) {
+            return;
+          }
+          const latest =
+            resourceCapacityByOrganization.current.get(organizationId);
           if (latest) {
             latest.reservedCount = Math.max(
               0,
-              latest.reservedCount - remaining,
+              latest.reservedCount - remaining
             );
           }
           remaining = 0;
@@ -393,7 +433,7 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
       selectedSnapshot?.resourceCount,
       snapshotQuery.refetch,
       organizationId,
-    ],
+    ]
   );
 
   const value = useMemo<EntitlementsContextValue>(
@@ -412,7 +452,7 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
       refresh,
       reserveResourceCapacity,
       status,
-    ],
+    ]
   );
 
   return (

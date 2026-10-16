@@ -58,7 +58,9 @@ export function UserMenu({
     <DropdownMenu
       modal={false}
       onOpenChange={(open: boolean) => {
-        if (open) void refreshAccounts();
+        if (open) {
+          void refreshAccounts();
+        }
       }}
     >
       <DropdownMenuTrigger
@@ -72,9 +74,7 @@ export function UserMenu({
           {accounts.map((account) => (
             <DropdownMenuRadioItem
               className="py-1.5"
-              disabled={
-                account.user.id === currentUserId || isSwitching
-              }
+              disabled={account.user.id === currentUserId || isSwitching}
               key={account.user.id}
               onClick={() => void switchAccount(account)}
               value={account.user.id}
@@ -85,7 +85,7 @@ export function UserMenu({
                   {account.user.name || account.user.email}
                 </span>
                 {account.user.name ? (
-                  <span className="text-muted-foreground block truncate text-xs">
+                  <span className="block truncate text-muted-foreground text-xs">
                     {account.user.email}
                   </span>
                 ) : null}
@@ -93,16 +93,16 @@ export function UserMenu({
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
-        {accountListStatus !== "ready" ? (
+        {accountListStatus === "ready" ? null : (
           <div
             className="mx-2 my-1 flex items-center gap-2 rounded-md bg-muted px-2 py-1.5"
             role={accountListStatus === "error" ? "alert" : "status"}
           >
-            <span className="text-muted-foreground flex-1 text-xs">
+            <span className="flex-1 text-muted-foreground text-xs">
               {t(
                 accountListStatus === "offline"
                   ? "auth.accountListOffline"
-                  : "auth.accountListFailed",
+                  : "auth.accountListFailed"
               )}
             </span>
             {accountListStatus === "error" ? (
@@ -115,7 +115,7 @@ export function UserMenu({
               </Button>
             ) : null}
           </div>
-        ) : null}
+        )}
         <DropdownMenuItem onClick={addAccount}>
           <HugeiconsIcon icon={Add01Icon} />
           {t("auth.addAccount")}

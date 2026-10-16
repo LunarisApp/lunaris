@@ -16,22 +16,40 @@ export function updateMentions(
   previous: string,
   next: string,
   mentions: ResourceMention[],
-  caret = next.length,
+  caret = next.length
 ): ResourceMention[] {
-  if (previous === next) return mentions;
+  if (previous === next) {
+    return mentions;
+  }
   let start = 0;
-  while (start < Math.min(previous.length, next.length, caret) && previous[start] === next[start]) start++;
+  while (
+    start < Math.min(previous.length, next.length, caret) &&
+    previous[start] === next[start]
+  ) {
+    start++;
+  }
   let oldEnd = previous.length;
   let newEnd = next.length;
-  while (oldEnd > start && newEnd > Math.max(start, caret) && previous[oldEnd - 1] === next[newEnd - 1]) {
+  while (
+    oldEnd > start &&
+    newEnd > Math.max(start, caret) &&
+    previous[oldEnd - 1] === next[newEnd - 1]
+  ) {
     oldEnd--;
     newEnd--;
   }
   const offset = next.length - previous.length;
   return mentions.flatMap((mention) => {
-    const moved = mention.end <= start ? mention
-      : mention.start >= oldEnd ? { ...mention, start: mention.start + offset, end: mention.end + offset }
-      : null;
+    const moved =
+      mention.end <= start
+        ? mention
+        : mention.start >= oldEnd
+          ? {
+              ...mention,
+              start: mention.start + offset,
+              end: mention.end + offset,
+            }
+          : null;
     return moved && hasMention(next, moved) ? [moved] : [];
   });
 }
@@ -44,14 +62,13 @@ export function buildMentionMessage(
     ...new Map(
       mentions
         .filter((mention) => hasMention(text, mention))
-        .map((mention) => [
-          entityReferenceKey(mention.reference),
-          mention,
-        ])
+        .map((mention) => [entityReferenceKey(mention.reference), mention])
     ).values(),
   ];
   const visibleText = text.trim();
-  if (unique.length === 0) return visibleText;
+  if (unique.length === 0) {
+    return visibleText;
+  }
 
   const context = unique.map((mention) => ({
     resourceId:
@@ -69,9 +86,12 @@ export function buildMentionMessage(
 }
 
 function hasMention(text: string, mention: ResourceMention): boolean {
-  return text.slice(mention.start, mention.end) === `@${mention.name}`
-    && (mention.start === 0 || /[\s([{]/u.test(text[mention.start - 1] ?? ""))
-    && (mention.end === text.length || /[\s.,!?;:)\]}]/u.test(text[mention.end] ?? ""));
+  return (
+    text.slice(mention.start, mention.end) === `@${mention.name}` &&
+    (mention.start === 0 || /[\s([{]/u.test(text[mention.start - 1] ?? "")) &&
+    (mention.end === text.length ||
+      /[\s.,!?;:)\]}]/u.test(text[mention.end] ?? ""))
+  );
 }
 
 export function stripMentionContext(text: string): string {

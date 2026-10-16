@@ -17,6 +17,4 @@ export type IconSvgObject =
       },
     ])[];
 
-export type IconSource =
-  | IconSvgObject
-  | ReactElement<SVGProps<SVGSVGElement>>;
+export type IconSource = IconSvgObject | ReactElement<SVGProps<SVGSVGElement>>;

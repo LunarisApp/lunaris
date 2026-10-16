@@ -35,7 +35,7 @@ describe("Tauri shared conventions", () => {
     "accepts OAuth callback %s",
     (value) => {
       expect(isValidLunarisOAuthCallbackUrl(value)).toBe(true);
-    },
+    }
   );
 
   it.each([

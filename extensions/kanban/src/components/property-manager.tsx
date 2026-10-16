@@ -50,10 +50,7 @@ import type { Doc, Map as YMap } from "yjs";
 import { LABEL_COLORS } from "../constants";
 import { createId } from "../create-id";
 import { useYArray, useYMapJson } from "../hooks";
-import {
-  normalizePropertyType,
-  parsePropertyOptions,
-} from "../property-codec";
+import { normalizePropertyType, parsePropertyOptions } from "../property-codec";
 import {
   markPropertiesInitialized,
   movePropertyDefinition,
@@ -80,7 +77,9 @@ export function PropertyManager({ yDoc }: PropertyManagerProps) {
   const { items, add, remove } = useYArray(yDoc, "properties");
   const propertyMaps = orderPropertyMaps(items);
   const [isAdding, setIsAdding] = useState(false);
-  const [editingPropertyId, setEditingPropertyId] = useState<string | null>(null);
+  const [editingPropertyId, setEditingPropertyId] = useState<string | null>(
+    null
+  );
   const propertyItems = propertyMaps.map((map, index) => ({
     id: map.get("id") || `property:${index}`,
     map,
@@ -106,7 +105,9 @@ export function PropertyManager({ yDoc }: PropertyManagerProps) {
 
   const removeProperty = (propertyMap: YMap<string>) => {
     const index = items.indexOf(propertyMap);
-    if (index < 0) return;
+    if (index < 0) {
+      return;
+    }
     yDoc.transact(() => {
       markPropertiesInitialized(yDoc);
       clearTaskPropertyAssignments(yDoc, propertyMap.get("id") ?? "");
@@ -119,7 +120,9 @@ export function PropertyManager({ yDoc }: PropertyManagerProps) {
       _value: Record<string, PropertyManagerItem[]>,
       meta: KanbanCommitMeta<PropertyManagerItem>
     ) => {
-      if (meta.kind !== "item") return;
+      if (meta.kind !== "item") {
+        return;
+      }
       yDoc.transact(() => {
         markPropertiesInitialized(yDoc);
         movePropertyDefinition(
@@ -225,7 +228,7 @@ export function PropertyManager({ yDoc }: PropertyManagerProps) {
               </KanbanColumnContent>
             </Kanban>
           ) : isAdding ? null : (
-            <p className="rounded-lg border border-dashed px-4 py-6 text-center text-xs text-muted-foreground">
+            <p className="rounded-lg border border-dashed px-4 py-6 text-center text-muted-foreground text-xs">
               {b("noProperties")}
             </p>
           )}
@@ -286,7 +289,9 @@ function PropertyEditor({
   }, []);
 
   const addOption = () => {
-    if (!newOptionName.trim()) return;
+    if (!newOptionName.trim()) {
+      return;
+    }
     const option: PropertyOption = {
       id: createId("opt"),
       name: newOptionName.trim(),
@@ -317,7 +322,9 @@ function PropertyEditor({
     setOptions(options.map((o) => (o.id === id ? { ...o, color } : o)));
   };
 
-  if (!type) return null;
+  if (!type) {
+    return null;
+  }
 
   return (
     <>
@@ -360,15 +367,19 @@ function PropertyEditor({
               onBlur={commitName}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") commitName();
-                if (e.key === "Escape") cancelEditing();
+                if (e.key === "Enter") {
+                  commitName();
+                }
+                if (e.key === "Escape") {
+                  cancelEditing();
+                }
               }}
               value={name}
             />
           ) : (
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium">{name}</span>
-              <span className="block truncate text-xs text-muted-foreground">
+              <span className="block truncate font-medium text-sm">{name}</span>
+              <span className="block truncate text-muted-foreground text-xs">
                 {b(`propertyTypes.${type}`)}
               </span>
             </span>
@@ -416,7 +427,11 @@ function PropertyEditor({
                     />
                   }
                 >
-                  <HugeiconsIcon icon={Delete02Icon} size={14} strokeWidth={2} />
+                  <HugeiconsIcon
+                    icon={Delete02Icon}
+                    size={14}
+                    strokeWidth={2}
+                  />
                 </TooltipTrigger>
                 <TooltipContent>{b("deleteProperty")}</TooltipContent>
               </Tooltip>
@@ -424,10 +439,10 @@ function PropertyEditor({
           )}
         </div>
         {hasOptions ? (
-          <CollapsibleContent className="relative mb-2 ml-8 mr-2 space-y-2 pb-1 pl-2 pr-1 pt-0.5">
+          <CollapsibleContent className="relative mr-2 mb-2 ml-8 space-y-2 pt-0.5 pr-1 pb-1 pl-2">
             <div className="space-y-0.5">
               {options.length === 0 ? (
-                <p className="px-1 py-2 text-xs text-muted-foreground">
+                <p className="px-1 py-2 text-muted-foreground text-xs">
                   {b("noOptions")}
                 </p>
               ) : null}
@@ -441,13 +456,15 @@ function PropertyEditor({
                 />
               ))}
             </div>
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-1.5 border-t border-border/50 pt-2">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-1.5 border-border/50 border-t pt-2">
               <Input
                 aria-label={b("newOptionName")}
                 className="h-8 min-w-0 text-xs"
                 onChange={(e) => setNewOptionName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") addOption();
+                  if (e.key === "Enter") {
+                    addOption();
+                  }
                 }}
                 placeholder={b("newOption")}
                 value={newOptionName}
@@ -585,14 +602,20 @@ function OptionRow({
             onBlur={commitRename}
             onChange={(e) => setEditName(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") commitRename();
-              if (e.key === "Escape") cancelEditing();
+              if (e.key === "Enter") {
+                commitRename();
+              }
+              if (e.key === "Escape") {
+                cancelEditing();
+              }
             }}
             value={editName}
           />
         ) : (
           <>
-            <span className="min-w-0 flex-1 truncate text-xs">{option.name}</span>
+            <span className="min-w-0 flex-1 truncate text-xs">
+              {option.name}
+            </span>
             <Tooltip>
               <TooltipTrigger
                 render={

@@ -11,7 +11,10 @@ interface FakeIdbRequest {
   result: unknown;
 }
 
-const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+const originalNavigator = Object.getOwnPropertyDescriptor(
+  globalThis,
+  "navigator"
+);
 const originalIndexedDB = Object.getOwnPropertyDescriptor(
   globalThis,
   "indexedDB"
@@ -36,9 +39,9 @@ function setIndexedDb(deleteDatabase: (name: string) => FakeIdbRequest) {
 
 function notFound(name: string): DOMException {
   const err =
-    typeof DOMException !== "undefined"
-      ? new DOMException(`no ${name}`, "NotFoundError")
-      : Object.assign(new Error(`no ${name}`), { name: "NotFoundError" });
+    typeof DOMException === "undefined"
+      ? Object.assign(new Error(`no ${name}`), { name: "NotFoundError" })
+      : new DOMException(`no ${name}`, "NotFoundError");
   return err as DOMException;
 }
 
@@ -100,7 +103,9 @@ describe("wipeLocalDb", () => {
 
   it("swallows NotFoundError for missing OPFS entries", async () => {
     removeEntry.mockImplementation((name: string) => {
-      if (name === DB_FILENAME) return Promise.resolve();
+      if (name === DB_FILENAME) {
+        return Promise.resolve();
+      }
       return Promise.reject(notFound(name));
     });
     await expect(wipeLocalDb(DB_FILENAME)).resolves.toBeUndefined();

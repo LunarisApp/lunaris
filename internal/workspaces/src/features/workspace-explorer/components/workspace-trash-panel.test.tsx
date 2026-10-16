@@ -9,7 +9,7 @@ const { purgeResources, restoreResources, state } = vi.hoisted(() => ({
   restoreResources: vi.fn(() => Promise.resolve()),
   state: {
     canMutate: true,
-    roots: [] as Array<Record<string, unknown>>,
+    roots: [] as Record<string, unknown>[],
   },
 }));
 
@@ -36,8 +36,13 @@ vi.mock("sonner", () => ({
   toast: { error: vi.fn(), success: vi.fn() },
 }));
 vi.mock("@lunarisapp/ui/blocks/confirmation-dialog", () => ({
-  ConfirmationDialog: ({ onConfirm, open }: { onConfirm: () => void; open: boolean }) =>
-    open ? <button onClick={onConfirm}>confirm-purge</button> : null,
+  ConfirmationDialog: ({
+    onConfirm,
+    open,
+  }: {
+    onConfirm: () => void;
+    open: boolean;
+  }) => (open ? <button onClick={onConfirm}>confirm-purge</button> : null),
 }));
 
 const root = {
@@ -76,7 +81,9 @@ describe("WorkspaceTrashPanel", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: "trash.selectAll" }));
     fireEvent.click(screen.getByRole("button", { name: "trash.restore" }));
 
-    await waitFor(() => expect(restoreResources).toHaveBeenCalledWith(["folder_1"]));
+    await waitFor(() =>
+      expect(restoreResources).toHaveBeenCalledWith(["folder_1"])
+    );
   });
 
   it("requires confirmation before permanently deleting", async () => {
@@ -87,7 +94,9 @@ describe("WorkspaceTrashPanel", () => {
     expect(purgeResources).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "confirm-purge" }));
 
-    await waitFor(() => expect(purgeResources).toHaveBeenCalledWith(["folder_1"]));
+    await waitFor(() =>
+      expect(purgeResources).toHaveBeenCalledWith(["folder_1"])
+    );
   });
 
   it("shows its empty state", () => {
@@ -103,9 +112,11 @@ describe("WorkspaceTrashPanel", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: "trash.selectAll" }));
 
     expect(
-      (screen.getByRole("button", {
-        name: "trash.restore",
-      }) as HTMLButtonElement).disabled,
+      (
+        screen.getByRole("button", {
+          name: "trash.restore",
+        }) as HTMLButtonElement
+      ).disabled
     ).toBe(true);
   });
 });

@@ -20,14 +20,16 @@ describe("organization directory", () => {
           name: null,
           slug: "invalid",
         },
-      ]),
-    ).toEqual([{
-      createdAt: "2026-07-27T00:00:00.000Z",
-      id: "organization-1",
-      logo: "logo.png",
-      name: "Northstar",
-      slug: "northstar",
-    }]);
+      ])
+    ).toEqual([
+      {
+        createdAt: "2026-07-27T00:00:00.000Z",
+        id: "organization-1",
+        logo: "logo.png",
+        name: "Northstar",
+        slug: "northstar",
+      },
+    ]);
   });
 
   it("adds active Better Auth organization only when PowerSync lacks it", () => {
@@ -38,19 +40,27 @@ describe("organization directory", () => {
       slug: "northstar",
     };
 
-    expect(resolveOrganizationDirectory([], active, true)).toEqual([{
-      createdAt: "2026-07-27T00:00:00.000Z",
-      id: "organization-1",
-      logo: null,
-      name: "Northstar",
-      slug: "northstar",
-    }]);
-    expect(
-      resolveOrganizationDirectory([{
+    expect(resolveOrganizationDirectory([], active, true)).toEqual([
+      {
+        createdAt: "2026-07-27T00:00:00.000Z",
         id: "organization-1",
-        name: "Synced Northstar",
+        logo: null,
+        name: "Northstar",
         slug: "northstar",
-      }], active, true),
+      },
+    ]);
+    expect(
+      resolveOrganizationDirectory(
+        [
+          {
+            id: "organization-1",
+            name: "Synced Northstar",
+            slug: "northstar",
+          },
+        ],
+        active,
+        true
+      )
     ).toHaveLength(1);
   });
 
@@ -60,7 +70,7 @@ describe("organization directory", () => {
         id: "organization-1",
         name: "Northstar",
         slug: "northstar",
-      }),
+      })
     ).toEqual([]);
   });
 
@@ -70,21 +80,21 @@ describe("organization directory", () => {
         error: null,
         isFetching: false,
         isLoading: false,
-      }),
+      })
     ).toBe(true);
     expect(
       isOrganizationDirectoryCurrent({
         error: null,
         isFetching: true,
         isLoading: false,
-      }),
+      })
     ).toBe(false);
     expect(
       isOrganizationDirectoryCurrent({
         error: new Error("sync failed"),
         isFetching: false,
         isLoading: false,
-      }),
+      })
     ).toBe(false);
   });
 });

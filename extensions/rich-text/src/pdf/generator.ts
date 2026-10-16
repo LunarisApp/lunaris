@@ -24,7 +24,7 @@ export async function generatePdf(
   contents: PdfContent[],
   workspaceName: string,
   theme: PdfTheme = DEFAULT_PDF_THEME,
-  noContentLabel = "(No content)",
+  noContentLabel = "(No content)"
 ): Promise<PdfGenerationResult> {
   if (contents.length === 0) {
     return { success: false, error: "No content to compile" };
@@ -40,15 +40,18 @@ export async function generatePdf(
         workspaceName,
         theme,
       },
-      { timeoutMs: PDF_WORKER_TIMEOUT_MS },
+      { timeoutMs: PDF_WORKER_TIMEOUT_MS }
     );
-    if (!result.success || !result.data || !result.filename) {
+    if (!(result.success && result.data && result.filename)) {
       return {
         success: false,
         error: result.error ?? "PDF renderer did not return a file",
       };
     }
-    downloadBlob(new Blob([result.data], { type: "application/pdf" }), result.filename);
+    downloadBlob(
+      new Blob([result.data], { type: "application/pdf" }),
+      result.filename
+    );
     return { success: true };
   } catch (error) {
     return {

@@ -9,7 +9,11 @@ import {
   EmptyTitle,
 } from "@lunarisapp/ui/components/empty";
 import { Skeleton } from "@lunarisapp/ui/components/skeleton";
-import { FolderAddIcon, HugeiconsIcon, Search01Icon } from "@lunarisapp/ui/icons";
+import {
+  FolderAddIcon,
+  HugeiconsIcon,
+  Search01Icon,
+} from "@lunarisapp/ui/icons";
 import { cn } from "@lunarisapp/ui/lib/utils";
 import { SYNC_ACCESS, useSyncAccess } from "@repo/data/core";
 import {
@@ -31,7 +35,7 @@ import { useTranslation } from "react-i18next";
 import { WorkspaceResource } from "./components/workspace-resource";
 
 const WorkspacePreloader = lazy(
-  () => import("./components/workspace-preloader"),
+  () => import("./components/workspace-preloader")
 );
 
 interface WorkspacesListProps {
@@ -51,7 +55,9 @@ const SKELETON_CARD_COUNT = 6;
 const WORKSPACES_INTERACTIVE_MARK = "lunaris:workspaces-interactive";
 
 function markWorkspacesInteractive(marked: { current: boolean }) {
-  if (marked.current) return;
+  if (marked.current) {
+    return;
+  }
   marked.current = true;
   globalThis.performance?.mark(WORKSPACES_INTERACTIVE_MARK);
 }
@@ -72,9 +78,8 @@ export function WorkspacesList({
     const timer = setInterval(() => refreshTime((tick) => tick + 1), 60_000);
     return () => clearInterval(timer);
   }, []);
-  const [preloadWorkspace, setPreloadWorkspace] = useState<WorkspaceEntity | null>(
-    null,
-  );
+  const [preloadWorkspace, setPreloadWorkspace] =
+    useState<WorkspaceEntity | null>(null);
   const interactionMarked = useRef(false);
   const workspacesQuery = useWorkspacesQuery({
     options:
@@ -90,7 +95,7 @@ export function WorkspacesList({
       ? data.filter((workspace) => {
           const name = workspace.name ?? t("common.untitled");
           return [name, workspace.slug].some((value) =>
-            value?.toLocaleLowerCase().includes(normalizedQuery),
+            value?.toLocaleLowerCase().includes(normalizedQuery)
           );
         })
       : data;
@@ -105,8 +110,18 @@ export function WorkspacesList({
         });
       }
 
-      const leftActivity = latestTimestamp(left.last_activity_at, left.updated_at, left.created_at)?.getTime() ?? 0;
-      const rightActivity = latestTimestamp(right.last_activity_at, right.updated_at, right.created_at)?.getTime() ?? 0;
+      const leftActivity =
+        latestTimestamp(
+          left.last_activity_at,
+          left.updated_at,
+          left.created_at
+        )?.getTime() ?? 0;
+      const rightActivity =
+        latestTimestamp(
+          right.last_activity_at,
+          right.updated_at,
+          right.created_at
+        )?.getTime() ?? 0;
       return rightActivity - leftActivity || left.id.localeCompare(right.id);
     });
   }, [data, searchQuery, sortBy, t]);
@@ -114,10 +129,10 @@ export function WorkspacesList({
     (workspace: WorkspaceEntity) => {
       onWorkspaceIntent?.(workspace);
       setPreloadWorkspace((current) =>
-        current?.id === workspace.id ? current : workspace,
+        current?.id === workspace.id ? current : workspace
       );
     },
-    [onWorkspaceIntent],
+    [onWorkspaceIntent]
   );
 
   const showSkeleton =
@@ -127,7 +142,9 @@ export function WorkspacesList({
   const showEmpty = data.length === 0;
 
   useEffect(() => {
-    if (!showSkeleton) markWorkspacesInteractive(interactionMarked);
+    if (!showSkeleton) {
+      markWorkspacesInteractive(interactionMarked);
+    }
   }, [showSkeleton]);
 
   if (workspacesQuery.error) {
@@ -144,7 +161,7 @@ export function WorkspacesList({
           className={cn(
             view === "grid"
               ? "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
-              : "ring-foreground/10 overflow-hidden rounded-xl ring-1",
+              : "overflow-hidden rounded-xl ring-1 ring-foreground/10"
           )}
           data-testid="workspaces-list-skeleton"
           role="status"
@@ -153,8 +170,8 @@ export function WorkspacesList({
             <div
               className={cn(
                 view === "grid"
-                  ? "ring-foreground/10 flex flex-col rounded-xl p-4 ring-1"
-                  : "grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-3 py-2 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_7rem_9rem_auto] sm:gap-4 sm:px-4",
+                  ? "flex flex-col rounded-xl p-4 ring-1 ring-foreground/10"
+                  : "grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-3 py-2 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_7rem_9rem_auto] sm:gap-4 sm:px-4"
               )}
               // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder list
               key={index}
@@ -198,7 +215,7 @@ export function WorkspacesList({
               {t("workspaces.noWorkspacesDescription")}
             </EmptyDescription>
           </EmptyHeader>
-          {createWorkspaceAction && (
+          {!!createWorkspaceAction && (
             <EmptyContent>{createWorkspaceAction}</EmptyContent>
           )}
         </Empty>
@@ -221,7 +238,7 @@ export function WorkspacesList({
 
   return (
     <>
-      {preloadWorkspace && (
+      {!!preloadWorkspace && (
         <Suspense fallback={null}>
           <WorkspacePreloader
             enabled={syncAccess === SYNC_ACCESS.cloud}
@@ -237,7 +254,7 @@ export function WorkspacesList({
         className={
           view === "grid"
             ? "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
-            : "ring-foreground/10 overflow-hidden rounded-xl ring-1"
+            : "overflow-hidden rounded-xl ring-1 ring-foreground/10"
         }
         data-testid="workspaces-list"
         data-view={view}
@@ -246,7 +263,7 @@ export function WorkspacesList({
         {view === "list" && (
           <div
             aria-hidden="true"
-            className="bg-muted/40 text-muted-foreground hidden grid-cols-[minmax(0,1fr)_7rem_9rem_auto] items-center gap-4 border-b px-4 py-2 text-xs font-medium sm:grid"
+            className="hidden grid-cols-[minmax(0,1fr)_7rem_9rem_auto] items-center gap-4 border-b bg-muted/40 px-4 py-2 font-medium text-muted-foreground text-xs sm:grid"
           >
             <span>{t("workspaces.workspaceName")}</span>
             <span>{t("workspaces.workspaceVisibility")}</span>

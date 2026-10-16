@@ -59,8 +59,12 @@ vi.mock("@lunarisapp/ui/components/avatar", () => ({
     <span {...props}>{children}</span>
   ),
   AvatarFallback: ({ children }: { children: ReactNode }) => <>{children}</>,
-  AvatarGroup: ({ children }: { children: ReactNode }) => <span>{children}</span>,
-  AvatarGroupCount: ({ children }: { children: ReactNode }) => <span>{children}</span>,
+  AvatarGroup: ({ children }: { children: ReactNode }) => (
+    <span>{children}</span>
+  ),
+  AvatarGroupCount: ({ children }: { children: ReactNode }) => (
+    <span>{children}</span>
+  ),
   AvatarImage: ({ alt, src }: { alt: string; src: string }) => (
     <img alt={alt} src={src} />
   ),
@@ -78,19 +82,29 @@ vi.mock("react-i18next", () => ({
       ({
         "extensions.catalog.lunaris.kanban.clear": "Clear",
         "extensions.catalog.lunaris.kanban.noPeopleFound": "No people found",
-        "extensions.catalog.lunaris.kanban.noResourcesFound": "No resources found",
-        "extensions.catalog.lunaris.kanban.resourceSearchError": "Couldn’t search resources",
+        "extensions.catalog.lunaris.kanban.noResourcesFound":
+          "No resources found",
+        "extensions.catalog.lunaris.kanban.resourceSearchError":
+          "Couldn’t search resources",
         "extensions.catalog.lunaris.kanban.openResource": "Open resource",
-        "extensions.catalog.lunaris.kanban.propertyPlaceholders.date": "Pick a date",
-        "extensions.catalog.lunaris.kanban.propertyPlaceholders.resource": "Select a resource",
-        "extensions.catalog.lunaris.kanban.propertyPlaceholders.multi-select": "Select options",
-        "extensions.catalog.lunaris.kanban.propertyPlaceholders.number": "Enter a number",
-        "extensions.catalog.lunaris.kanban.propertyPlaceholders.people": "Select people",
-        "extensions.catalog.lunaris.kanban.propertyPlaceholders.select": "Select an option",
-        "extensions.catalog.lunaris.kanban.propertyPlaceholders.text": "Enter text",
+        "extensions.catalog.lunaris.kanban.propertyPlaceholders.date":
+          "Pick a date",
+        "extensions.catalog.lunaris.kanban.propertyPlaceholders.resource":
+          "Select a resource",
+        "extensions.catalog.lunaris.kanban.propertyPlaceholders.multi-select":
+          "Select options",
+        "extensions.catalog.lunaris.kanban.propertyPlaceholders.number":
+          "Enter a number",
+        "extensions.catalog.lunaris.kanban.propertyPlaceholders.people":
+          "Select people",
+        "extensions.catalog.lunaris.kanban.propertyPlaceholders.select":
+          "Select an option",
+        "extensions.catalog.lunaris.kanban.propertyPlaceholders.text":
+          "Enter text",
         "extensions.catalog.lunaris.kanban.searchPeople": "Search people",
         "extensions.catalog.lunaris.kanban.searchResources": "Search resources",
-        "extensions.catalog.lunaris.kanban.searchingResources": "Searching resources…",
+        "extensions.catalog.lunaris.kanban.searchingResources":
+          "Searching resources…",
         "extensions.catalog.lunaris.kanban.time": "Time",
         "extensions.catalog.lunaris.kanban.validation.finiteNumber":
           "Enter a finite decimal number.",
@@ -104,7 +118,12 @@ describe("PropertyValueField", () => {
       <PropertyValueField
         emptyLabel="Labels"
         onValueChange={vi.fn()}
-        property={{ id: "labels", name: "Labels", options: [], type: "multi-select" }}
+        property={{
+          id: "labels",
+          name: "Labels",
+          options: [],
+          type: "multi-select",
+        }}
         value={undefined}
       />
     );
@@ -362,7 +381,9 @@ describe("PropertyValueField", () => {
         value={undefined}
       />
     );
-    expect(screen.getByText("Due").className).toContain("text-muted-foreground");
+    expect(screen.getByText("Due").className).toContain(
+      "text-muted-foreground"
+    );
 
     view.rerender(
       <PropertyValueField
@@ -569,9 +590,7 @@ describe("PropertyValueField", () => {
     expect(status.querySelector('[data-slot="badge"]')).toBeNull();
 
     fireEvent.click(status);
-    const metadataMenu = document.querySelector(
-      '[data-slot="select-content"]'
-    );
+    const metadataMenu = document.querySelector('[data-slot="select-content"]');
     expect(metadataMenu?.getAttribute("data-align-trigger")).toBe("false");
     expect(metadataMenu?.className).toContain("p-2.5");
     expect(metadataMenu?.className).toContain("w-[min(16rem");

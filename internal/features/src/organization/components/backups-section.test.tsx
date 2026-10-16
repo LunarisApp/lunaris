@@ -30,7 +30,9 @@ vi.mock("sonner", () => ({
 
 import { BackupsSection, type OrganizationBackup } from "./backups-section";
 
-function makeBackup(overrides: Partial<OrganizationBackup> = {}): OrganizationBackup {
+function makeBackup(
+  overrides: Partial<OrganizationBackup> = {}
+): OrganizationBackup {
   return {
     archiveSizeBytes: null,
     completedAt: null,
@@ -60,7 +62,7 @@ function renderSection(entry = "/acme/settings?tab=backups") {
       <MemoryRouter initialEntries={[entry]}>
         <BackupsSection />
       </MemoryRouter>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
 
@@ -85,14 +87,14 @@ describe("BackupsSection", () => {
     await waitFor(() =>
       expect(apiPost).toHaveBeenCalledWith("/v1/organization/backups", {
         timeout: 30_000,
-      }),
+      })
     );
-    expect(await screen.findByText("organization.backups.phase.queued")).toBeTruthy();
     expect(
-      screen
-        .getByRole("progressbar")
-        .getAttribute("aria-label"),
-    ).toBe("organization.backups.phase.queued");
+      await screen.findByText("organization.backups.phase.queued")
+    ).toBeTruthy();
+    expect(screen.getByRole("progressbar").getAttribute("aria-label")).toBe(
+      "organization.backups.phase.queued"
+    );
     expect(capture).toHaveBeenCalledWith("backup_requested");
   });
 
@@ -106,7 +108,7 @@ describe("BackupsSection", () => {
           filename: "acme-backup.zip",
           phase: "ready",
           status: "ready",
-        }),
+        })
       )
       .mockResolvedValueOnce({
         downloadUrl: "https://storage.test/backup",
@@ -121,19 +123,21 @@ describe("BackupsSection", () => {
 
     await waitFor(() =>
       expect(apiGet).toHaveBeenLastCalledWith(
-        "/v1/organization/backups/backup_1/download-url",
-      ),
+        "/v1/organization/backups/backup_1/download-url"
+      )
     );
     expect(capture).toHaveBeenCalledWith("backup_downloaded");
   });
 
   it("offers a fresh export after expiry", async () => {
     apiGet.mockResolvedValueOnce(
-      makeBackup({ phase: "expired", status: "expired" }),
+      makeBackup({ phase: "expired", status: "expired" })
     );
     renderSection("/acme/settings?tab=backups&backup=backup_1");
 
-    expect(await screen.findByText("organization.backups.expired")).toBeTruthy();
+    expect(
+      await screen.findByText("organization.backups.expired")
+    ).toBeTruthy();
     expect(screen.getByText("organization.backups.tryAgain")).toBeTruthy();
   });
 });

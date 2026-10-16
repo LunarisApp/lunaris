@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Doc, Map as YMap } from "yjs";
 import { KanbanView } from "./components/board-kanban";
@@ -77,7 +83,9 @@ describe("Kanban touch controls", () => {
     );
 
     const task = screen.getByText("Task 1").closest("button");
-    if (!task) throw new Error("Task button not found");
+    if (!task) {
+      throw new Error("Task button not found");
+    }
 
     const actions = screen.getByRole("button", {
       name: "extensions.catalog.lunaris.kanban.taskActions",
@@ -158,7 +166,9 @@ describe("Kanban touch controls", () => {
     );
 
     await waitFor(() => {
-      expect(document.querySelector('[data-slot="drawer-content"]')).toBeTruthy();
+      expect(
+        document.querySelector('[data-slot="drawer-content"]')
+      ).toBeTruthy();
     });
   });
 });

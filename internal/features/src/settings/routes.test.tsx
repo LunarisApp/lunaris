@@ -1,8 +1,4 @@
-import {
-  type ComponentType,
-  isValidElement,
-  type ReactElement,
-} from "react";
+import { type ComponentType, isValidElement, type ReactElement } from "react";
 import { describe, expect, it } from "vitest";
 import { createSettingsChildRoutes } from "./routes";
 import type { CookieSettingsLinkProps } from "./types";
@@ -13,18 +9,16 @@ describe("createSettingsChildRoutes", () => {
     (shell) => {
       expect(
         createSettingsChildRoutes(shell).some(
-          (route) => route.path === "billing",
-        ),
+          (route) => route.path === "billing"
+        )
       ).toBe(false);
-    },
+    }
   );
 
   it("loads settings tabs lazily", () => {
     for (const shell of ["desktop", "mobile"] as const) {
       const routes = createSettingsChildRoutes(shell);
-      for (const route of routes.filter(
-        (candidate) => candidate.path,
-      )) {
+      for (const route of routes.filter((candidate) => candidate.path)) {
         expect(route.lazy).toBeTypeOf("function");
       }
     }
@@ -33,19 +27,20 @@ describe("createSettingsChildRoutes", () => {
   it.each(["desktop", "mobile"] as const)(
     "omits the retired %s security route",
     (shell) => {
-      expect(createSettingsChildRoutes(shell).some(
-        (route) => route.path === "security",
-      )).toBe(false);
-    },
+      expect(
+        createSettingsChildRoutes(shell).some(
+          (route) => route.path === "security"
+        )
+      ).toBe(false);
+    }
   );
 
   it("passes web cookie settings into preferences", async () => {
     const CookieSettingsLink: ComponentType<CookieSettingsLinkProps> = () =>
       null;
-    const route = createSettingsChildRoutes(
-      "desktop",
-      CookieSettingsLink,
-    ).find((candidate) => candidate.path === "preferences");
+    const route = createSettingsChildRoutes("desktop", CookieSettingsLink).find(
+      (candidate) => candidate.path === "preferences"
+    );
 
     const loadRoute = route?.lazy as
       | (() => Promise<{ Component?: ComponentType }>)

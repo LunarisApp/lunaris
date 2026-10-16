@@ -7,16 +7,21 @@ import { isResourceViewReady } from "./resource-view-readiness";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { registerResourceViewWithGridLayout } from "./grid-layout";
 
-const { dbMock, resolveHostResourceMock, storageSlotsState } = vi.hoisted(() => ({
-  dbMock: {},
-  resolveHostResourceMock: vi.fn(),
-  storageSlotsState: {
-    data: [] as Array<Record<string, unknown>>,
-    isLoading: false,
-  },
-}));
+const { dbMock, resolveHostResourceMock, storageSlotsState } = vi.hoisted(
+  () => ({
+    dbMock: {},
+    resolveHostResourceMock: vi.fn(),
+    storageSlotsState: {
+      data: [] as Record<string, unknown>[],
+      isLoading: false,
+    },
+  })
+);
 
-vi.mock("./resource-presence", () => ({ ResourcePresenceBoundary: ({ children }: { children: React.ReactNode }) => children }));
+vi.mock("./resource-presence", () => ({
+  ResourcePresenceBoundary: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
 
 vi.mock("@repo/data/core", () => ({
   usePowerSync: () => dbMock,
@@ -113,7 +118,9 @@ describe("registerResourceViewWithGridLayout", () => {
     );
 
     expect(await screen.findByText("Resource body")).toBeDefined();
-    expect(screen.getByRole("heading", { name: "Resource layout" })).toBeDefined();
+    expect(
+      screen.getByRole("heading", { name: "Resource layout" })
+    ).toBeDefined();
     expect(isResourceViewReady("resource-1")).toBe(true);
     rerender(
       <Renderer
@@ -136,7 +143,7 @@ describe("registerResourceViewWithGridLayout", () => {
       () =>
         new Promise((resolve) => {
           resolvers.push(resolve);
-        }),
+        })
     );
     let RegisteredRenderer:
       | ((props: { params: Record<string, unknown> }) => React.ReactNode)
@@ -163,7 +170,7 @@ describe("registerResourceViewWithGridLayout", () => {
         },
         viewId: "lunaris.rich-text",
       },
-      () => resourceType,
+      () => resourceType
     );
 
     const Renderer = RegisteredRenderer as NonNullable<
@@ -177,7 +184,7 @@ describe("registerResourceViewWithGridLayout", () => {
           resourceTypeId: "lunaris.rich-text",
           schemaVersion: 1,
         }}
-      />,
+      />
     );
     view.rerender(
       <Renderer
@@ -187,10 +194,12 @@ describe("registerResourceViewWithGridLayout", () => {
           resourceTypeId: "lunaris.rich-text",
           schemaVersion: 1,
         }}
-      />,
+      />
     );
 
-    expect(screen.getByRole("status", { name: "Loading resource" })).toBeTruthy();
+    expect(
+      screen.getByRole("status", { name: "Loading resource" })
+    ).toBeTruthy();
     expect(screen.queryByText("parent-a")).toBeNull();
 
     await act(async () => {
@@ -257,7 +266,7 @@ describe("registerResourceViewWithGridLayout", () => {
         },
         viewId: "lunaris.rich-text",
       },
-      () => resourceType,
+      () => resourceType
     );
 
     const Renderer = RegisteredRenderer as NonNullable<
@@ -281,7 +290,9 @@ describe("registerResourceViewWithGridLayout", () => {
     view.rerender(<Renderer params={params} />);
 
     expect(screen.getByText("Resource body")).toBeTruthy();
-    expect(screen.queryByRole("status", { name: "Loading resource" })).toBeNull();
+    expect(
+      screen.queryByRole("status", { name: "Loading resource" })
+    ).toBeNull();
     expect(resolveHostResourceMock).toHaveBeenCalledTimes(1);
   });
 });

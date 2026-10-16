@@ -12,11 +12,7 @@ describe("blockListToPlainText", () => {
     expect(
       blockListToPlainText([
         {
-          content: [
-            { text: "Hello" },
-            { text: ", " },
-            { text: "world" },
-          ],
+          content: [{ text: "Hello" }, { text: ", " }, { text: "world" }],
         },
       ])
     ).toBe("Hello, world");

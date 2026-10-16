@@ -1,12 +1,8 @@
-import { act, render, renderHook, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import type { DockviewApi } from "dockview";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  GridLayoutProvider,
-  useGridLayoutStore,
-  useGridLayoutStoreState,
-} from "../context";
+import { GridLayoutProvider, useGridLayoutStore } from "../context";
 import { FocusModeOverlay } from "./focus-mode-overlay";
 
 vi.mock("react-i18next", () => ({
@@ -69,7 +65,7 @@ describe("FocusModeOverlay", () => {
     const { container } = render(
       <Wrapper>
         <FocusModeOverlay />
-      </Wrapper>,
+      </Wrapper>
     );
     expect(container.firstChild).toBeNull();
   });
@@ -79,10 +75,14 @@ describe("FocusModeOverlay", () => {
 
     render(
       <Wrapper>
-        <FocusModeHarness onReady={(a) => { toggle = a.toggle; }}>
+        <FocusModeHarness
+          onReady={(a) => {
+            toggle = a.toggle;
+          }}
+        >
           <FocusModeOverlay />
         </FocusModeHarness>
-      </Wrapper>,
+      </Wrapper>
     );
 
     expect(screen.queryByText("focusMode.exitHint")).toBeNull();
@@ -97,10 +97,14 @@ describe("FocusModeOverlay", () => {
 
     render(
       <Wrapper>
-        <FocusModeHarness onReady={(a) => { toggle = a.toggle; }}>
+        <FocusModeHarness
+          onReady={(a) => {
+            toggle = a.toggle;
+          }}
+        >
           <FocusModeOverlay />
         </FocusModeHarness>
-      </Wrapper>,
+      </Wrapper>
     );
 
     act(() => toggle!());

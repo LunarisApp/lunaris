@@ -69,7 +69,7 @@ export function useWorkspaceRuntimeController(
     extensionMetadata = {},
     loadPlugin = loadBundledPlugin,
     unloadPlugin = () => undefined,
-  }: WorkspacePluginLoaders = {},
+  }: WorkspacePluginLoaders = {}
 ) {
   const db = usePowerSync();
   const api = useApi();
@@ -78,7 +78,9 @@ export function useWorkspaceRuntimeController(
   const [bootError, setBootError] = useState<string | null>(null);
   const [bootState, setBootState] =
     useState<WorkspaceRuntimeBootState>("loading");
-  const [enabledPluginIds, setEnabledPluginIds] = useState<string[] | null>(null);
+  const [enabledPluginIds, setEnabledPluginIds] = useState<string[] | null>(
+    null
+  );
   const [retryKey, setRetryKey] = useState(0);
   // Live registry changes reconcile through WorkspacePluginRuntimeProvider.
   // Keep boot inputs current without restarting and disposing the organization.
@@ -140,7 +142,9 @@ export function useWorkspaceRuntimeController(
     let cancelled = false;
     repairFileAttachmentPointers({ db, workspaceId })
       .then(() => {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         return startAttachmentQueue({
           api,
           db,

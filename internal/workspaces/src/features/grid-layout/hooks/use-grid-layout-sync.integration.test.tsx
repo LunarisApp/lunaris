@@ -40,7 +40,9 @@ function Harness({ empty }: { empty: boolean }) {
     removePanel: state.removePanel,
   });
   useEffect(() => {
-    if (!state.dockviewApi || initialized.current) return;
+    if (!state.dockviewApi || initialized.current) {
+      return;
+    }
     initialized.current = true;
     state.register("test", "explorer", () => <div>Explorer content</div>);
     state.register("test", "resource", () => (
@@ -77,9 +79,9 @@ function Harness({ empty }: { empty: boolean }) {
             title: "Notes",
             params: { viewId: "resource-notes" },
             position: { referenceGroup: MAIN_GROUP_ID },
-          },
+          }
     );
-  }, [state]);
+  }, [state, empty]);
   return (
     <>
       <button
@@ -98,12 +100,14 @@ function Harness({ empty }: { empty: boolean }) {
       </button>
       <button
         type="button"
-        onClick={() => state.openToolPanel({
-          pluginId: "system-agent-work",
-          renderer: "agent-work",
-          toolId: "agent-work",
-          title: "Agent Work",
-        })}
+        onClick={() =>
+          state.openToolPanel({
+            pluginId: "system-agent-work",
+            renderer: "agent-work",
+            toolId: "agent-work",
+            title: "Agent Work",
+          })
+        }
       >
         Focus agent
       </button>
@@ -134,26 +138,28 @@ it.each([true, false])(
     render(
       <GridLayoutProvider>
         <Harness empty={empty} />
-      </GridLayoutProvider>,
+      </GridLayoutProvider>
     );
     await waitFor(() =>
       expect(
         empty
           ? screen.getByText("Start content")
-          : screen.getByRole("textbox", { name: "Resource draft" }),
-      ).toBeTruthy(),
+          : screen.getByRole("textbox", { name: "Resource draft" })
+      ).toBeTruthy()
     );
     const draft = empty
       ? null
       : screen.getByRole("textbox", { name: "Resource draft" });
-    if (draft) fireEvent.change(draft, { target: { value: "Still editing" } });
+    if (draft) {
+      fireEvent.change(draft, { target: { value: "Still editing" } });
+    }
     fireEvent.click(screen.getByRole("button", { name: "Open agent" }));
     await act(async () => {});
     expect(screen.getByText("Agent content")).toBeTruthy();
     expect(
       empty
         ? screen.getByText("Start content")
-        : screen.getByRole("textbox", { name: "Resource draft" }),
+        : screen.getByRole("textbox", { name: "Resource draft" })
     ).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Add group" }));
     await act(async () => {});
@@ -169,13 +175,13 @@ it.each([true, false])(
     expect(
       empty
         ? screen.getByText("Start content")
-        : screen.getByRole("textbox", { name: "Resource draft" }),
+        : screen.getByRole("textbox", { name: "Resource draft" })
     ).toBeTruthy();
     if (draft) {
       expect(screen.getByRole("textbox", { name: "Resource draft" })).toBe(
-        draft,
+        draft
       );
       expect((draft as HTMLTextAreaElement).value).toBe("Still editing");
     }
-  },
+  }
 );

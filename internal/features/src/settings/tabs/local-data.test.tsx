@@ -114,9 +114,7 @@ const t = (key: string, vars?: TVars): string => {
   }
   if (key === "settings.local-data.pendingUploads") {
     const count = vars?.count ?? 0;
-    return count === 1
-      ? `${count} pending upload`
-      : `${count} pending uploads`;
+    return count === 1 ? `${count} pending upload` : `${count} pending uploads`;
   }
   return TRANSLATIONS[key] ?? key;
 };
@@ -173,13 +171,21 @@ vi.mock("@lunarisapp/ui/components/alert-dialog", () => ({
   AlertDialogCancel: ({ children }: { children: ReactNode }) => (
     <button>{children}</button>
   ),
-  AlertDialogContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  AlertDialogContent: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
   AlertDialogDescription: ({ children }: { children: ReactNode }) => (
     <div>{children}</div>
   ),
-  AlertDialogFooter: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  AlertDialogHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  AlertDialogTitle: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  AlertDialogFooter: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
+  AlertDialogHeader: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
+  AlertDialogTitle: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
   AlertDialogTrigger: ({
     children,
     render,
@@ -242,8 +248,12 @@ vi.mock("@lunarisapp/ui/components/button", () => ({
 
 vi.mock("@lunarisapp/ui/components/progress", () => ({
   Progress: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  ProgressLabel: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  ProgressValue: ({ children }: { children: () => string }) => <div>{children()}</div>,
+  ProgressLabel: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
+  ProgressValue: ({ children }: { children: () => string }) => (
+    <div>{children()}</div>
+  ),
 }));
 
 vi.mock("@lunarisapp/ui/components/skeleton", () => ({
@@ -297,7 +307,10 @@ describe("LocalDataContent", () => {
       consecutiveClientErrors: 0,
       lastClientErrorStatus: null,
     });
-    mockGetFileStorageWorkspaceIds.mockResolvedValue(["workspace_1", "workspace_2"]);
+    mockGetFileStorageWorkspaceIds.mockResolvedValue([
+      "workspace_1",
+      "workspace_2",
+    ]);
     mockDeleteFileStorageDatabases.mockResolvedValue(undefined);
     mockEstimateStorage.mockImplementation(async () => {
       const estimate = await navigator.storage.estimate();
@@ -376,7 +389,7 @@ describe("LocalDataContent", () => {
       screen.getByRole("meter", {
         name: "Data Used",
         value: { max: 1000, min: 0, now: 100, text: "100 B of 1 KB" },
-      }),
+      })
     ).toBeTruthy();
   });
 
@@ -452,9 +465,7 @@ describe("LocalDataContent", () => {
     render(<LocalDataContent />);
 
     await screen.findByText("Sign In to Resume Sync");
-    expect(
-      screen.getByText("3 consecutive upload rejections")
-    ).toBeTruthy();
+    expect(screen.getByText("3 consecutive upload rejections")).toBeTruthy();
     expect(screen.getByText("Last upload rejected: HTTP 401")).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Sign In" }));
@@ -489,7 +500,7 @@ describe("LocalDataContent", () => {
     await screen.findByText("Sync Needs Access");
     await user.click(screen.getByRole("button", { name: "Review Billing" }));
     expect(mockNavigate).toHaveBeenCalledWith(
-      "/northstar/settings?tab=billing",
+      "/northstar/settings?tab=billing"
     );
   });
 
@@ -610,7 +621,9 @@ describe("LocalDataContent", () => {
   it("deletes workspace file stores when purging local data", async () => {
     const user = userEvent.setup();
     const db = makeDb();
-    const reload = vi.spyOn(window.location, "reload").mockImplementation(() => {});
+    const reload = vi
+      .spyOn(window.location, "reload")
+      .mockImplementation(() => {});
     mockStorageApis();
     mockUsePowerSync.mockReturnValue(db);
     mockUseSyncBlocker.mockReturnValue({ resume: vi.fn() });

@@ -5,7 +5,9 @@ const readyViews = new Map<string, Set<symbol>>();
 const listeners = new Set<() => void>();
 
 function notify() {
-  for (const listener of listeners) listener();
+  for (const listener of listeners) {
+    listener();
+  }
 }
 
 function subscribe(listener: () => void) {
@@ -21,7 +23,9 @@ export function isResourceViewReady(resourceId: string): boolean {
 
 export function markResourceViewReady(resourceId: string, owner: symbol): void {
   const owners = readyViews.get(resourceId) ?? new Set<symbol>();
-  if (owners.has(owner)) return;
+  if (owners.has(owner)) {
+    return;
+  }
   owners.add(owner);
   readyViews.set(resourceId, owners);
   notify();
@@ -32,8 +36,12 @@ export function releaseResourceViewReady(
   owner: symbol
 ): void {
   const owners = readyViews.get(resourceId);
-  if (!owners?.delete(owner)) return;
-  if (owners.size === 0) readyViews.delete(resourceId);
+  if (!owners?.delete(owner)) {
+    return;
+  }
+  if (owners.size === 0) {
+    readyViews.delete(resourceId);
+  }
   notify();
 }
 

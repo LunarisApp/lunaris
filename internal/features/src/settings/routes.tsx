@@ -6,13 +6,15 @@ import type { CookieSettingsLinkProps, Shell } from "./types";
 
 export function createSettingsChildRoutes(
   shell: Shell,
-  CookieSettingsLink?: ComponentType<CookieSettingsLinkProps>,
+  CookieSettingsLink?: ComponentType<CookieSettingsLinkProps>
 ): RouteObject[] {
   const accountRoute: RouteObject = {
     path: "account",
     lazy: async () => {
       const { AccountContent } = await import("./tabs/account");
-      if (shell === "desktop") return { Component: AccountContent };
+      if (shell === "desktop") {
+        return { Component: AccountContent };
+      }
       const { MobileTabPage } = await import("./mobile-tab-page");
       return {
         Component: () => (
@@ -30,7 +32,9 @@ export function createSettingsChildRoutes(
       const Content = () => (
         <PreferencesContent CookieSettingsLink={CookieSettingsLink} />
       );
-      if (shell === "desktop") return { Component: Content };
+      if (shell === "desktop") {
+        return { Component: Content };
+      }
       const { MobileTabPage } = await import("./mobile-tab-page");
       return {
         Component: () => (
@@ -45,7 +49,9 @@ export function createSettingsChildRoutes(
     path: "local-data",
     lazy: async () => {
       const { LocalDataContent } = await import("./tabs/local-data");
-      if (shell === "desktop") return { Component: LocalDataContent };
+      if (shell === "desktop") {
+        return { Component: LocalDataContent };
+      }
       const { MobileTabPage } = await import("./mobile-tab-page");
       return {
         Component: () => (

@@ -43,7 +43,9 @@ describe("default template converters", () => {
 
   it("creates kanban properties and task assignments", () => {
     const update = createKanbanTemplateUpdate({
-      properties: [{ id: "status", name: "Status", type: "select", options: "[]" }],
+      properties: [
+        { id: "status", name: "Status", type: "select", options: "[]" },
+      ],
       items: [
         {
           id: "item_1",
@@ -59,9 +61,9 @@ describe("default template converters", () => {
 
     expect(decodeBase64(update).byteLength).toBeGreaterThan(0);
     expect(doc.getArray<YMap<string>>("properties")).toHaveLength(1);
-    expect(
-      doc.getMap<unknown>("kanbanMeta").get("propertiesInitialized")
-    ).toBe(true);
+    expect(doc.getMap<unknown>("kanbanMeta").get("propertiesInitialized")).toBe(
+      true
+    );
     expect(
       doc
         .getMap<YMap<string>>("taskAssignments")

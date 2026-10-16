@@ -19,7 +19,7 @@ export function ExtensionScopeProvider({
 }) {
   const scope = useMemo(
     () => ({ extensionId, permissions: new Set(permissions) }),
-    [extensionId, permissions],
+    [extensionId, permissions]
   );
   return (
     <ExtensionScopeContext.Provider value={scope}>
@@ -43,7 +43,7 @@ export function usePluginPermission(permission: PluginPermission): void {
   }
   if (!scope.permissions.has(permission)) {
     throw new Error(
-      `Extension "${scope.extensionId}" has not declared permission "${permission}"`,
+      `Extension "${scope.extensionId}" has not declared permission "${permission}"`
     );
   }
 }

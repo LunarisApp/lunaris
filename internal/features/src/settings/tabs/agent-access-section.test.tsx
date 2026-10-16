@@ -18,7 +18,7 @@ afterEach(() => {
 
 function renderSection(
   manager: AgentAccessManager,
-  writeText = vi.fn().mockResolvedValue(undefined),
+  writeText = vi.fn().mockResolvedValue(undefined)
 ) {
   const platform = createBrowserPlatform({
     agentAccess: manager,
@@ -28,7 +28,7 @@ function renderSection(
   render(
     <PlatformProvider platform={platform}>
       <AgentAccessSection />
-    </PlatformProvider>,
+    </PlatformProvider>
   );
   return { writeText };
 }
@@ -59,19 +59,19 @@ describe("AgentAccessSection ChatGPT setup", () => {
     await waitFor(() => expect(mcpSetup).toHaveBeenCalledWith("read"));
     expect(
       await screen.findByText(
-        "/Applications/Lunaris.app/Contents/MacOS/Lunaris",
-      ),
+        "/Applications/Lunaris.app/Contents/MacOS/Lunaris"
+      )
     ).toBeTruthy();
     expect(screen.getByText("mcp serve --access read")).toBeTruthy();
 
     await userEvent.click(
       screen.getByRole("button", {
         name: "settings.local-data.agentAccess.mcpCopy",
-      }),
+      })
     );
 
     expect(writeText).toHaveBeenCalledWith(
-      "/Applications/Lunaris.app/Contents/MacOS/Lunaris mcp serve --access read",
+      "/Applications/Lunaris.app/Contents/MacOS/Lunaris mcp serve --access read"
     );
   });
 
@@ -121,14 +121,14 @@ describe("AgentAccessSection ChatGPT setup", () => {
     await userEvent.click(
       screen.getByRole("button", {
         name: "settings.local-data.agentAccess.approve Pending ChatGPT",
-      }),
+      })
     );
     expect(approve).toHaveBeenCalledWith("request-1");
 
     await userEvent.click(
       screen.getByRole("button", {
         name: "settings.local-data.agentAccess.revoke Approved ChatGPT",
-      }),
+      })
     );
     expect(revoke).toHaveBeenCalledWith("client-1");
   });

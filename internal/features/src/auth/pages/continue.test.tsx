@@ -1,11 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import {
-  MemoryRouter,
-  Route,
-  Routes,
-  useLocation,
-} from "react-router";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { RegionProvider } from "../../region";
 import { AuthProvider } from "../context";
@@ -19,7 +14,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) =>
       (
-        {
+        ({
           "auth.backToSignIn": "Back",
           "auth.changeEmail": "Change",
           "auth.continueWithGoogle": "Continue with Google",
@@ -33,7 +28,7 @@ vi.mock("react-i18next", () => ({
           "auth.signUp": "Sign up",
           "auth.signUpDescription": "Create an account",
           "auth.title": "Welcome",
-        } as Record<string, string>
+        }) as Record<string, string>
       )[key] ?? key,
   }),
 }));
@@ -47,7 +42,7 @@ function renderContinuation(
   state: unknown,
   client: Record<string, unknown> = {},
   search = "?region=us",
-  signupsAllowed = true,
+  signupsAllowed = true
 ) {
   vi.spyOn(globalThis, "fetch").mockResolvedValue(
     new Response(
@@ -59,8 +54,8 @@ function renderContinuation(
         socialProviders: ["google"],
         signupsAllowed,
       }),
-      { headers: { "Content-Type": "application/json" } },
-    ),
+      { headers: { "Content-Type": "application/json" } }
+    )
   );
 
   render(
@@ -109,7 +104,7 @@ function renderContinuation(
           </Routes>
         </AuthProvider>
       </RegionProvider>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 }
 
@@ -134,7 +129,7 @@ describe("ContinuePage", () => {
         email: "writer@example.com",
         resolution: { kind: "password" },
       },
-      { signIn: { email: emailSignIn, social: vi.fn() } },
+      { signIn: { email: emailSignIn, social: vi.fn() } }
     );
 
     expect(screen.getByText("writer@example.com")).toBeTruthy();
@@ -162,7 +157,7 @@ describe("ContinuePage", () => {
         resolution: { kind: "password" },
       },
       { signIn: { email: emailSignIn, social: vi.fn() } },
-      "?region=us&addAccount=true&redirectTo=%2Fauth%2Faccept-invitation%3FinvitationId%3Dinvite-1",
+      "?region=us&addAccount=true&redirectTo=%2Fauth%2Faccept-invitation%3FinvitationId%3Dinvite-1"
     );
 
     await user.type(screen.getByLabelText("Password"), "password123");
@@ -172,7 +167,7 @@ describe("ContinuePage", () => {
       JSON.stringify({
         pathname: "/auth/accept-invitation",
         state: { accountSwitchTargetUserId: "email-user" },
-      }),
+      })
     );
   });
 
@@ -187,7 +182,7 @@ describe("ContinuePage", () => {
     const email = screen.getByText("new@example.com");
     const name = screen.getByRole("textbox", { name: "Name" });
     expect(email.compareDocumentPosition(name)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
+      Node.DOCUMENT_POSITION_FOLLOWING
     );
     expect(screen.getByLabelText("Password")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Sign up" })).toBeTruthy();
@@ -201,7 +196,7 @@ describe("ContinuePage", () => {
 
     expect(await screen.findByText("google@example.com")).toBeTruthy();
     expect(
-      await screen.findByRole("button", { name: "Continue with Google" }),
+      await screen.findByRole("button", { name: "Continue with Google" })
     ).toBeTruthy();
   });
 
@@ -212,9 +207,13 @@ describe("ContinuePage", () => {
   });
 });
 
-
 it("hides the signup link on password entry when registration is closed", async () => {
-  renderContinuation({ email: "writer@example.com", resolution: { kind: "password" } }, {}, "?region=us", false);
+  renderContinuation(
+    { email: "writer@example.com", resolution: { kind: "password" } },
+    {},
+    "?region=us",
+    false
+  );
   await screen.findByRole("button", { name: "Sign in" });
   expect(screen.queryByRole("link", { name: "Sign up" })).toBeNull();
 });

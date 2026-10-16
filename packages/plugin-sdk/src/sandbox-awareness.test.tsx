@@ -35,7 +35,9 @@ function bridgeSetup() {
         channels,
       },
     };
-    for (const fn of listeners) fn();
+    for (const fn of listeners) {
+      fn();
+    }
   };
   return { bridge, call, publish };
 }
@@ -44,7 +46,7 @@ describe("sandbox awareness", () => {
   it("does not subscribe on older hosts; cleans up on hidden views", async () => {
     const { bridge, call, publish } = bridgeSetup();
     const hook = renderHook(() =>
-      useRemoteResourceAwareness(bridge, "pointer"),
+      useRemoteResourceAwareness(bridge, "pointer")
     );
     expect(hook.result.current.status).toBe("unavailable");
     expect(call).not.toHaveBeenCalled();
@@ -56,7 +58,7 @@ describe("sandbox awareness", () => {
     const setState = hook.result.current.setState;
     await act(async () => publish([], false));
     await waitFor(() =>
-      expect(call).toHaveBeenCalledWith("presence.close", [expect.any(String)]),
+      expect(call).toHaveBeenCalledWith("presence.close", [expect.any(String)])
     );
     expect(hook.result.current.setState).toBe(setState);
     hook.unmount();
@@ -66,54 +68,54 @@ describe("sandbox awareness", () => {
     publish();
     const first = renderHook(
       () => useRemoteYjsAwareness(bridge, "storage", "workspace"),
-      { wrapper: StrictMode },
+      { wrapper: StrictMode }
     );
     const second = renderHook(() =>
-      useRemoteYjsAwareness(bridge, "storage", "workspace"),
+      useRemoteYjsAwareness(bridge, "storage", "workspace")
     );
     expect(first.result.current.awareness).toBe(
-      second.result.current.awareness,
+      second.result.current.awareness
     );
     expect(
-      call.mock.calls.filter(([method]) => method === "presence.open"),
+      call.mock.calls.filter(([method]) => method === "presence.open")
     ).toHaveLength(1);
     first.unmount();
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 5));
     });
     expect(
-      call.mock.calls.filter(([method]) => method === "presence.close"),
+      call.mock.calls.filter(([method]) => method === "presence.close")
     ).toHaveLength(0);
     second.unmount();
     await waitFor(() =>
       expect(
-        call.mock.calls.filter(([method]) => method === "presence.close"),
-      ).toHaveLength(1),
+        call.mock.calls.filter(([method]) => method === "presence.close")
+      ).toHaveLength(1)
     );
   });
   it("relays one local update across duplicate consumers and isolates disabled consumers", async () => {
     const { bridge, call, publish } = bridgeSetup();
     publish();
     const first = renderHook(() =>
-      useRemoteYjsAwareness(bridge, "storage", "workspace"),
+      useRemoteYjsAwareness(bridge, "storage", "workspace")
     );
     const second = renderHook(
       ({ enabled }) =>
         useRemoteYjsAwareness(bridge, "storage", "workspace", { enabled }),
-      { initialProps: { enabled: true } },
+      { initialProps: { enabled: true } }
     );
     const id = call.mock.calls.find(
-      ([method]) => method === "presence.open",
+      ([method]) => method === "presence.open"
     )![1][0];
     await act(async () =>
-      publish([{ id, status: "connected", peers: [], user }]),
+      publish([{ id, status: "connected", peers: [], user }])
     );
     call.mockClear();
     act(() =>
-      first.result.current.awareness!.setLocalStateField("cursor", null),
+      first.result.current.awareness!.setLocalStateField("cursor", null)
     );
     expect(
-      call.mock.calls.filter(([method]) => method === "presence.update"),
+      call.mock.calls.filter(([method]) => method === "presence.update")
     ).toHaveLength(1);
     second.rerender({ enabled: false });
     expect(second.result.current.status).toBe("unavailable");
@@ -122,10 +124,10 @@ describe("sandbox awareness", () => {
     act(() =>
       first.result.current.awareness!.setLocalStateField("cursor", {
         anchor: 1,
-      }),
+      })
     );
     expect(
-      call.mock.calls.filter(([method]) => method === "presence.update"),
+      call.mock.calls.filter(([method]) => method === "presence.update")
     ).toHaveLength(1);
     first.unmount();
     expect(second.result.current.awareness!.getStates().size).toBe(0);
@@ -135,13 +137,13 @@ describe("sandbox awareness", () => {
     const { bridge, call, publish } = bridgeSetup();
     publish();
     const first = renderHook(() =>
-      useRemoteResourceAwareness(bridge, "selection"),
+      useRemoteResourceAwareness(bridge, "selection")
     );
     const second = renderHook(() =>
-      useRemoteResourceAwareness(bridge, "selection"),
+      useRemoteResourceAwareness(bridge, "selection")
     );
     const id = call.mock.calls.find(
-      ([method]) => method === "presence.open",
+      ([method]) => method === "presence.open"
     )![1][0];
     await act(async () => publish([{ id, peers: [], status: "connected" }]));
     act(() => second.result.current.setState({ selected: "old" }));
@@ -150,7 +152,7 @@ describe("sandbox awareness", () => {
     call.mockClear();
     await act(async () => publish([{ id, peers: [], status: "connected" }]));
     const updates = call.mock.calls.filter(
-      ([method]) => method === "presence.update",
+      ([method]) => method === "presence.update"
     );
     expect(updates.length).toBeGreaterThan(0);
     expect(updates.every(([, args]) => args[1] === null)).toBe(true);
@@ -161,14 +163,14 @@ describe("sandbox awareness", () => {
     const { bridge, call, publish } = bridgeSetup();
     publish();
     const hook = renderHook(() =>
-      useRemoteResourceAwareness(bridge, "selection"),
+      useRemoteResourceAwareness(bridge, "selection")
     );
     const id = call.mock.calls.find(
-      ([method]) => method === "presence.open",
+      ([method]) => method === "presence.open"
     )![1][0];
     act(() => hook.result.current.setState({ selected: "card" }));
     expect(
-      call.mock.calls.filter(([method]) => method === "presence.update"),
+      call.mock.calls.filter(([method]) => method === "presence.update")
     ).toHaveLength(0);
     await act(async () => publish([{ id, peers: [], status: "connected" }]));
     expect(call).toHaveBeenCalledWith("presence.update", [
@@ -179,7 +181,7 @@ describe("sandbox awareness", () => {
     call.mockClear();
     act(() => hook.result.current.setState({ selected: "hidden" }));
     expect(
-      call.mock.calls.filter(([method]) => method === "presence.update"),
+      call.mock.calls.filter(([method]) => method === "presence.update")
     ).toHaveLength(0);
     hook.unmount();
   });
@@ -189,7 +191,7 @@ describe("sandbox awareness", () => {
     const hook = renderHook(() => {
       const doc = useRemotePresenceDocument(
         bridge,
-        JSON.stringify(["workspace", "storage"]),
+        JSON.stringify(["workspace", "storage"])
       );
       return { doc, ...useRemoteYjsAwareness(bridge, "storage", "workspace") };
     });
@@ -204,13 +206,13 @@ describe("sandbox awareness", () => {
     peer.setLocalState({ user: { ...user, id: "peer" }, cursor: null });
     const packet = encodeAwarenessUpdate(peer, [peerDoc.clientID]).buffer;
     await act(async () =>
-      publish([{ id, status: "connected", peers: [], user, update: packet }]),
+      publish([{ id, status: "connected", peers: [], user, update: packet }])
     );
     expect(
-      hook.result.current.awareness?.getStates().get(peerDoc.clientID)?.user.id,
+      hook.result.current.awareness?.getStates().get(peerDoc.clientID)?.user.id
     ).toBe("peer");
     const before = call.mock.calls.filter(
-      (args) => args[0] === "presence.update",
+      (args) => args[0] === "presence.update"
     ).length;
     peer.setLocalStateField("cursor", { test: "remote" });
     await act(async () =>
@@ -222,14 +224,14 @@ describe("sandbox awareness", () => {
           user,
           update: encodeAwarenessUpdate(peer, [peerDoc.clientID]).buffer,
         },
-      ]),
+      ])
     );
     expect(
-      call.mock.calls.filter((args) => args[0] === "presence.update"),
+      call.mock.calls.filter((args) => args[0] === "presence.update")
     ).toHaveLength(before);
     expect(contentChanged).not.toHaveBeenCalled();
     await act(async () =>
-      publish([{ id, status: "error", peers: [], update: new ArrayBuffer(0) }]),
+      publish([{ id, status: "error", peers: [], update: new ArrayBuffer(0) }])
     );
     expect(hook.result.current.awareness?.getStates().size).toBe(0);
     hook.unmount();

@@ -1,13 +1,15 @@
-import { Array as YArray, type Doc, Map as YMap, Map as YjsMap } from "yjs";
+import {
+  type Array as YArray,
+  type Doc,
+  type Map as YMap,
+  Map as YjsMap,
+} from "yjs";
 import {
   DEFAULT_STATUS_PROPERTY,
   KANBAN_META_MAP,
   PROPERTIES_INITIALIZED_KEY,
 } from "./constants";
-import {
-  isChoiceProperty,
-  parsePropertyDefinition,
-} from "./property-codec";
+import { isChoiceProperty, parsePropertyDefinition } from "./property-codec";
 import type { PropertyDefinition } from "./types";
 
 export function arePropertiesInitialized(doc: Doc): boolean {
@@ -19,7 +21,9 @@ export function arePropertiesInitialized(doc: Doc): boolean {
 
 export function markPropertiesInitialized(doc: Doc): void {
   const metadata = doc.getMap<unknown>(KANBAN_META_MAP);
-  if (metadata.get(PROPERTIES_INITIALIZED_KEY) === true) return;
+  if (metadata.get(PROPERTIES_INITIALIZED_KEY) === true) {
+    return;
+  }
   metadata.set(PROPERTIES_INITIALIZED_KEY, true);
 }
 
@@ -43,7 +47,10 @@ export function getEffectivePropertyDefinitions(
   const properties = getPropertyDefinitions(
     doc.getArray<YMap<unknown>>("properties").toArray()
   );
-  return effectivePropertyDefinitions(properties, arePropertiesInitialized(doc));
+  return effectivePropertyDefinitions(
+    properties,
+    arePropertiesInitialized(doc)
+  );
 }
 
 export function getPropertyDefinitions(
@@ -80,7 +87,9 @@ export function movePropertyDefinition(
   }
 
   const [source] = ordered.splice(fromIndex, 1);
-  if (!source) return;
+  if (!source) {
+    return;
+  }
   ordered.splice(toIndex, 0, source);
   for (const [index, property] of ordered.entries()) {
     property.set("order", String(index));
@@ -101,9 +110,8 @@ export function orderPropertyMaps<T extends ReadablePropertyMap>(
 }
 
 function propertyOrder(value: unknown, fallback: number): number {
-  const order = typeof value === "string" && /^\d+$/.test(value)
-    ? Number(value)
-    : value;
+  const order =
+    typeof value === "string" && /^\d+$/.test(value) ? Number(value) : value;
   return typeof order === "number" && Number.isSafeInteger(order) && order >= 0
     ? order
     : fallback;

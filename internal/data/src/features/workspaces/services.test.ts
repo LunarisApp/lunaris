@@ -38,21 +38,23 @@ describe("workspace services", () => {
     expect(useQueryMock).toHaveBeenLastCalledWith(
       expect.stringContaining("id = ? AND organization_id = ?"),
       ["workspace_1", "org_1"],
-      options,
+      options
     );
 
     useWorkspacesQuery();
     expect(useQueryMock).toHaveBeenLastCalledWith(
-      expect.stringContaining("WHERE 1 = 1 ORDER BY MAX(COALESCE(julianday(last_activity_at), 0), COALESCE(julianday(updated_at), 0)) DESC, id ASC"),
+      expect.stringContaining(
+        "WHERE 1 = 1 ORDER BY MAX(COALESCE(julianday(last_activity_at), 0), COALESCE(julianday(updated_at), 0)) DESC, id ASC"
+      ),
       undefined,
-      undefined,
+      undefined
     );
 
     useWorkspacesSuspenseQuery({ organizationId: "org_1" });
     expect(useSuspenseQueryMock).toHaveBeenLastCalledWith(
       expect.stringContaining("organization_id = ?"),
       ["org_1"],
-      undefined,
+      undefined
     );
   });
 
@@ -61,14 +63,14 @@ describe("workspace services", () => {
     expect(useQueryMock).toHaveBeenLastCalledWith(
       expect.stringContaining("slug = ? AND organization_id = ?"),
       ["atlas", "org_1"],
-      undefined,
+      undefined
     );
 
     useWorkspaceBySlugSuspenseQuery("atlas");
     expect(useSuspenseQueryMock).toHaveBeenLastCalledWith(
       expect.stringContaining("WHERE 0"),
       undefined,
-      undefined,
+      undefined
     );
   });
 
@@ -82,7 +84,7 @@ describe("workspace services", () => {
         excludeWorkspaceId: "workspace_1",
         organizationId: "org_1",
         slug: " atlas ",
-      }).hasCollision,
+      }).hasCollision
     ).toBe(true);
 
     useQueryMock.mockReturnValue({ data: undefined } as never);
@@ -151,18 +153,21 @@ describe("workspace services", () => {
 
     expect(db.execute).toHaveBeenCalledWith(
       expect.stringContaining("INSERT INTO workspaces"),
-      expect.arrayContaining(["Road Map 2026!", "road-map-2026", "shared"]),
+      expect.arrayContaining(["Road Map 2026!", "road-map-2026", "shared"])
     );
   });
 
   it("removes workspaces from local and shared tables", async () => {
     const sharedResult = { rowsAffected: 1 };
     const db = {
-      execute: vi.fn().mockResolvedValueOnce(sharedResult).mockResolvedValueOnce(undefined),
+      execute: vi
+        .fn()
+        .mockResolvedValueOnce(sharedResult)
+        .mockResolvedValueOnce(undefined),
     };
 
     await expect(
-      removeWorkspace({ db: db as never, id: "workspace_1" }),
+      removeWorkspace({ db: db as never, id: "workspace_1" })
     ).resolves.toBe(sharedResult);
     expect(db.execute).toHaveBeenCalledTimes(2);
   });
@@ -171,7 +176,7 @@ describe("workspace services", () => {
     const db = { getOptional: vi.fn().mockResolvedValue(undefined) };
 
     await expect(
-      resolveWorkspaceVisibility(db as never, "workspace_missing"),
+      resolveWorkspaceVisibility(db as never, "workspace_missing")
     ).resolves.toBe("shared");
   });
 
@@ -182,12 +187,23 @@ describe("workspace services", () => {
       getOptional: vi.fn().mockResolvedValue(workspace),
     };
 
-    await expect(getWorkspace({ db: db as never, id: "workspace_1" })).resolves.toBe(workspace);
-    await expect(getAllWorkspaces({ db: db as never })).resolves.toEqual([workspace]);
-    await expect(resolveWorkspaceVisibility(db as never, "workspace_1")).resolves.toBe("local");
-    expect(db.getOptional).toHaveBeenCalledWith(expect.stringContaining("id = ?"), ["workspace_1"]);
+    await expect(
+      getWorkspace({ db: db as never, id: "workspace_1" })
+    ).resolves.toBe(workspace);
+    await expect(getAllWorkspaces({ db: db as never })).resolves.toEqual([
+      workspace,
+    ]);
+    await expect(
+      resolveWorkspaceVisibility(db as never, "workspace_1")
+    ).resolves.toBe("local");
+    expect(db.getOptional).toHaveBeenCalledWith(
+      expect.stringContaining("id = ?"),
+      ["workspace_1"]
+    );
     expect(db.getAll).toHaveBeenCalledWith(
-      expect.stringContaining("MAX(COALESCE(julianday(last_activity_at), 0), COALESCE(julianday(updated_at), 0)) DESC, created_at DESC, id ASC"),
+      expect.stringContaining(
+        "MAX(COALESCE(julianday(last_activity_at), 0), COALESCE(julianday(updated_at), 0)) DESC, created_at DESC, id ASC"
+      )
     );
   });
 
@@ -198,7 +214,7 @@ describe("workspace services", () => {
     };
 
     await expect(
-      migrateLocalWorkspaceToShared({ db: db as never, id: "missing" }),
+      migrateLocalWorkspaceToShared({ db: db as never, id: "missing" })
     ).resolves.toBe(false);
     expect(db.writeTransaction).not.toHaveBeenCalled();
   });
@@ -209,23 +225,23 @@ describe("workspace services", () => {
     const db = {
       getOptional: vi.fn().mockResolvedValue({ id: "workspace_1" }),
       writeTransaction: vi.fn(
-        async (operation: (value: typeof tx) => unknown) => operation(tx),
+        async (operation: (value: typeof tx) => unknown) => operation(tx)
       ),
     };
 
     await migrateLocalWorkspaceToShared({ db: db as never, id: "workspace_1" });
 
     const extensionCopy = execute.mock.calls.find(([sql]) =>
-      String(sql).includes("INSERT INTO workspace_extensions"),
+      String(sql).includes("INSERT INTO workspace_extensions")
     );
+    expect(extensionCopy?.[0]).toContain("registry_id, version");
     expect(extensionCopy?.[0]).toContain(
-      "registry_id, version",
-    );
-    expect(extensionCopy?.[0]).toContain(
-      "descriptor_url, descriptor_bytes, descriptor_sha256",
+      "descriptor_url, descriptor_bytes, descriptor_sha256"
     );
     expect(execute).toHaveBeenCalledTimes(14);
-    expect(execute.mock.calls.at(-1)?.[0]).toContain("DELETE FROM local_workspaces");
+    expect(execute.mock.calls.at(-1)?.[0]).toContain(
+      "DELETE FROM local_workspaces"
+    );
   });
 
   it("binds every service method to its database", async () => {
@@ -245,8 +261,14 @@ describe("workspace services", () => {
     await service.get({ id: "workspace_1" });
     await service.getAll();
     await service.remove({ id: "workspace_1" });
-    await service.rename({ id: "workspace_1", name: "Atlas 2", slug: "atlas-2" });
-    await expect(service.migrateToShared({ id: "missing" })).resolves.toBe(false);
+    await service.rename({
+      id: "workspace_1",
+      name: "Atlas 2",
+      slug: "atlas-2",
+    });
+    await expect(service.migrateToShared({ id: "missing" })).resolves.toBe(
+      false
+    );
 
     expect(db.execute).toHaveBeenCalled();
     expect(db.getOptional).toHaveBeenCalled();

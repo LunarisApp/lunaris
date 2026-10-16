@@ -29,7 +29,9 @@ async function unpack(input: RichTextBlock[], title = "Résumé 世界") {
   const result = await generateDocx(input, title, labels);
   const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
   const file = zip.file("word/document.xml");
-  if (!file) throw new Error("Missing document.xml");
+  if (!file) {
+    throw new Error("Missing document.xml");
+  }
   const xml = await file.async("string");
   return { ...result, zip, xml };
 }
@@ -80,10 +82,10 @@ describe("DOCX content", () => {
         },
         { type: "paragraph", content: "" },
         { type: "codeBlock", content: "const x = 1;\nreturn x;" },
-      ]),
+      ])
     );
     expect(blob.type).toBe(
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     );
     for (const fragment of [
       "Heading2",
@@ -102,13 +104,14 @@ describe("DOCX content", () => {
       "Linked",
       "@Referenced resource",
       "const x = 1;",
-    ])
+    ]) {
       expect(xml).toContain(fragment);
+    }
     expect(
-      await zip.file("word/_rels/document.xml.rels")?.async("string"),
+      await zip.file("word/_rels/document.xml.rels")?.async("string")
     ).toContain("https://example.com/a?b=1&amp;c=2");
     expect(await zip.file("docProps/core.xml")?.async("string")).toContain(
-      "Résumé 世界",
+      "Résumé 世界"
     );
     expect(xml.match(/Résumé 世界/g)).toHaveLength(1);
   });
@@ -136,7 +139,7 @@ describe("DOCX content", () => {
             },
           ],
         },
-      ]),
+      ])
     );
     const parsed = new DOMParser().parseFromString(xml, "application/xml");
     const paragraphs = [...parsed.getElementsByTagName("w:p")];
@@ -151,7 +154,7 @@ describe("DOCX content", () => {
     expect(numId("Restart")).not.toBe(numId("First"));
     expect(xml).toContain("☑");
     expect(await zip.file("word/numbering.xml")?.async("string")).toContain(
-      'w:start w:val="3"',
+      'w:start w:val="3"'
     );
   });
 
@@ -177,7 +180,9 @@ describe("DOCX content", () => {
       },
     ]);
     const block = input[0];
-    if (block?.type !== "table") throw new Error("Table fixture missing");
+    if (block?.type !== "table") {
+      throw new Error("Table fixture missing");
+    }
     block.content.headerRows = 1;
     block.content.rows = [
       {
@@ -211,8 +216,9 @@ describe("DOCX content", () => {
       'w:val="right"',
       "ddebf1",
       "e03e3e",
-    ])
+    ]) {
       expect(xml).toContain(fragment);
+    }
   });
 
   it("keeps header-column styling aligned after rowspans", async () => {
@@ -226,7 +232,9 @@ describe("DOCX content", () => {
       },
     ]);
     const block = input[0];
-    if (block?.type !== "table") throw new Error("Table fixture missing");
+    if (block?.type !== "table") {
+      throw new Error("Table fixture missing");
+    }
     const cell = (text: string, colspan = 1, rowspan = 1) => ({
       type: "tableCell" as const,
       props: {
@@ -261,9 +269,9 @@ describe("DOCX content", () => {
     vi.mocked(loadDocxImage).mockResolvedValue({
       data: Uint8Array.from(
         atob(
-          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aN1cAAAAASUVORK5CYII=",
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aN1cAAAAASUVORK5CYII="
         ),
-        (c) => c.charCodeAt(0),
+        (c) => c.charCodeAt(0)
       ),
       type: "png",
       transformation: { width: 100, height: 50 },
@@ -280,13 +288,13 @@ describe("DOCX content", () => {
           },
           children: [{ type: "paragraph", content: "Image child" }],
         },
-      ]),
+      ])
     );
     expect(missingImages).toBe(0);
     expect(
       Object.keys(zip.files).some(
-        (path) => path.startsWith("word/media/") && path.endsWith(".png"),
-      ),
+        (path) => path.startsWith("word/media/") && path.endsWith(".png")
+      )
     ).toBe(true);
     for (const text of [
       "Diagram",
@@ -294,8 +302,9 @@ describe("DOCX content", () => {
       "Image child",
       'cx="952500"',
       'cy="476250"',
-    ])
+    ]) {
       expect(xml).toContain(text);
+    }
   });
 
   it("keeps remaining content when image loading fails", async () => {
@@ -311,7 +320,7 @@ describe("DOCX content", () => {
           type: "file",
           props: { url: "https://example.com/file", name: "Attachment" },
         },
-      ]),
+      ])
     );
     expect(missingImages).toBe(1);
     for (const text of [
@@ -319,8 +328,9 @@ describe("DOCX content", () => {
       "Still here",
       "Attachment",
       "w:hyperlink",
-    ])
+    ]) {
       expect(xml).toContain(text);
+    }
   });
 
   it("creates a valid blank DOCX", async () => {

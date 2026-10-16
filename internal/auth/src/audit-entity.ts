@@ -56,20 +56,20 @@ export const auditEventsDb = pgTable(
     index("audit_events_tenant_occurred_idx").on(
       table.tenantId,
       table.occurredAt.desc(),
-      table.id.desc(),
+      table.id.desc()
     ),
     index("audit_events_tenant_action_occurred_idx").on(
       table.tenantId,
       table.action,
-      table.occurredAt.desc(),
+      table.occurredAt.desc()
     ),
     index("audit_events_actor_occurred_idx").on(
       table.actorId,
-      table.occurredAt.desc(),
+      table.occurredAt.desc()
     ),
     index("audit_events_outcome_occurred_idx").on(
       table.outcome,
-      table.occurredAt.desc(),
+      table.occurredAt.desc()
     ),
-  ],
+  ]
 );

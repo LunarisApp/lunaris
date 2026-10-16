@@ -35,14 +35,14 @@ describe("sanitizeDeepLink", () => {
   it("accepts internal auth callbacks and removes secrets", () => {
     expect(
       sanitizeDeepLink(
-        "lunaris://auth/reset-password?token=reset-token&Cookie=session%3Dsecret&authSession=secret&region=eu",
-      ),
+        "lunaris://auth/reset-password?token=reset-token&Cookie=session%3Dsecret&authSession=secret&region=eu"
+      )
     ).toBe("/auth/reset-password?token=reset-token&region=eu");
   });
 
   it("accepts the post-OAuth root callback", () => {
     expect(sanitizeDeepLink("lunaris://?cookie=secret&region=us")).toBe(
-      "/?region=us",
+      "/?region=us"
     );
   });
 
@@ -63,7 +63,7 @@ describe("desktop deep-link processing", () => {
     onOpenUrl.mockReturnValue(
       new Promise((resolve) => {
         resolveListener = resolve;
-      }),
+      })
     );
     getCurrent.mockResolvedValue([]);
     const { storage } = memoryStorage();
@@ -95,10 +95,15 @@ describe("desktop deep-link processing", () => {
       storage,
     });
 
-    expect(events).toEqual(["listen", "current", "persist", "route:/?region=eu"]);
+    expect(events).toEqual([
+      "listen",
+      "current",
+      "persist",
+      "route:/?region=eu",
+    ]);
     expect(values.get("lunaris-auth-eu_cookie")).toContain("session_token");
     expect(values.get("lunaris-auth-eu_cookie")).toContain(
-      "last_used_login_method",
+      "last_used_login_method"
     );
   });
 
@@ -117,7 +122,7 @@ describe("desktop deep-link processing", () => {
     ]);
 
     await vi.waitFor(() =>
-      expect(values.get("lunaris-auth-us_cookie")).toContain("running"),
+      expect(values.get("lunaris-auth-us_cookie")).toContain("running")
     );
   });
 
@@ -127,7 +132,7 @@ describe("desktop deep-link processing", () => {
 
     await processDesktopDeepLinks(
       ["lunaris://?cookie=lunaris.session_token%3Dsecret&region=../bad"],
-      { route, storage },
+      { route, storage }
     );
 
     expect(values.size).toBe(0);
@@ -146,8 +151,8 @@ describe("desktop deep-link processing", () => {
     await expect(
       processDesktopDeepLinks(
         ["lunaris://auth?cookie=lunaris.session_token%3Dsecret&region=eu"],
-        { route, storage },
-      ),
+        { route, storage }
+      )
     ).rejects.toThrow("Failed to persist desktop auth callback");
     expect(route).toHaveBeenCalledWith("/auth?region=eu");
   });

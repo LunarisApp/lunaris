@@ -9,14 +9,13 @@ describe("enterprise teams", () => {
     });
 
     const organizationPlugin = auth.options.plugins?.find(
-      (plugin) => plugin.id === "organization",
+      (plugin) => plugin.id === "organization"
     );
 
     expect(organizationPlugin?.endpoints).toHaveProperty("createTeam");
     expect(organizationPlugin?.endpoints).toHaveProperty(
-      "listOrganizationTeams",
+      "listOrganizationTeams"
     );
     expect(organizationPlugin?.endpoints).toHaveProperty("addTeamMember");
   });
-
 });

@@ -13,16 +13,16 @@ export function WelcomeBanner() {
     returnObjects: true,
   }) as string[];
   const [subtitle] = useState(
-    () => subtitles[Math.floor(Math.random() * subtitles.length)],
+    () => subtitles[Math.floor(Math.random() * subtitles.length)]
   );
 
   return (
     <div
-      className="relative flex h-40 w-full flex-col justify-center overflow-hidden rounded-lg bg-cover bg-center px-8"
+      className="relative flex h-40 w-full flex-col justify-center overflow-hidden rounded-lg bg-center bg-cover px-8"
       style={{ backgroundImage: `url(${abstractBg})` }}
     >
       <div className="absolute inset-0 bg-black/50" />
-      <p className="relative text-xl font-semibold text-white">
+      <p className="relative font-semibold text-white text-xl">
         {hasName
           ? t("announcements.welcomeTitle", { name: user.name })
           : t("announcements.welcomeTitleGeneric")}

@@ -54,7 +54,9 @@ export default function AcceptInvitationPage() {
   );
 
   useEffect(() => {
-    if (!session || !invitationId) return;
+    if (!(session && invitationId)) {
+      return;
+    }
 
     let cancelled = false;
 
@@ -65,7 +67,9 @@ export default function AcceptInvitationPage() {
         query: { id: invitationId },
       });
 
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
 
       if (error || !data) {
         const errorCode = (error as { code?: string } | null)?.code;
@@ -90,7 +94,9 @@ export default function AcceptInvitationPage() {
   }, [auth, invitationId, session]);
 
   const handleAccept = async () => {
-    if (loadState.status !== "ready" || !invitationId || accepting) return;
+    if (loadState.status !== "ready" || !invitationId || accepting) {
+      return;
+    }
 
     setAccepting(true);
 
@@ -121,11 +127,13 @@ export default function AcceptInvitationPage() {
         pathname: location.pathname,
         search: location.search,
       }),
-      { replace: true },
+      { replace: true }
     );
   };
 
-  if (isPending) return null;
+  if (isPending) {
+    return null;
+  }
 
   if (selectionRequired) {
     return <Navigate replace to={authPath} />;

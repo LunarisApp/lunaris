@@ -15,17 +15,17 @@ describe("resolveOrganizationSettingsTab", () => {
     };
 
     expect(resolveOrganizationSettingsTab({ ...base, isPersonal: false })).toBe(
-      "teams",
+      "teams"
     );
     expect(resolveOrganizationSettingsTab({ ...base, isPersonal: true })).toBe(
-      "general",
+      "general"
     );
     expect(
       resolveOrganizationSettingsTab({
         ...base,
         canReadTeams: false,
         isPersonal: false,
-      }),
+      })
     ).toBe("general");
   });
 
@@ -41,7 +41,7 @@ describe("resolveOrganizationSettingsTab", () => {
         isOwner: true,
         isPersonal: true,
         requestedTab: "backups",
-      }),
+      })
     ).toBe("backups");
     expect(
       resolveOrganizationSettingsTab({
@@ -54,7 +54,7 @@ describe("resolveOrganizationSettingsTab", () => {
         isOwner: false,
         isPersonal: false,
         requestedTab: "backups",
-      }),
+      })
     ).toBe("general");
   });
 
@@ -70,7 +70,7 @@ describe("resolveOrganizationSettingsTab", () => {
         isOwner: true,
         isPersonal: true,
         requestedTab: "members",
-      }),
+      })
     ).toBe("general");
   });
 
@@ -86,7 +86,7 @@ describe("resolveOrganizationSettingsTab", () => {
         isOwner: false,
         isPersonal: false,
         requestedTab: "billing",
-      }),
+      })
     ).toBe("billing");
     expect(
       resolveOrganizationSettingsTab({
@@ -99,7 +99,7 @@ describe("resolveOrganizationSettingsTab", () => {
         isOwner: true,
         isPersonal: true,
         requestedTab: "billing",
-      }),
+      })
     ).toBe("general");
   });
 
@@ -116,13 +116,13 @@ describe("resolveOrganizationSettingsTab", () => {
     };
 
     expect(
-      resolveOrganizationSettingsTab({ ...base, requestedTab: "members" }),
+      resolveOrganizationSettingsTab({ ...base, requestedTab: "members" })
     ).toBe("general");
     expect(
-      resolveOrganizationSettingsTab({ ...base, requestedTab: "billing" }),
+      resolveOrganizationSettingsTab({ ...base, requestedTab: "billing" })
     ).toBe("general");
     expect(
-      resolveOrganizationSettingsTab({ ...base, requestedTab: "backups" }),
+      resolveOrganizationSettingsTab({ ...base, requestedTab: "backups" })
     ).toBe("general");
   });
 
@@ -138,7 +138,7 @@ describe("resolveOrganizationSettingsTab", () => {
         isOwner: false,
         isPersonal: false,
         requestedTab: "extensions",
-      }),
+      })
     ).toBe("general");
   });
 
@@ -155,24 +155,24 @@ describe("resolveOrganizationSettingsTab", () => {
     };
 
     expect(
-      resolveOrganizationSettingsTab({ ...base, isAnonymous: false }),
+      resolveOrganizationSettingsTab({ ...base, isAnonymous: false })
     ).toBe("audit");
     expect(resolveOrganizationSettingsTab({ ...base, isAnonymous: true })).toBe(
-      "general",
+      "general"
     );
     expect(
       resolveOrganizationSettingsTab({
         ...base,
         canReadAudit: false,
         isAnonymous: false,
-      }),
+      })
     ).toBe("general");
     expect(
       resolveOrganizationSettingsTab({
         ...base,
         isAnonymous: false,
         isOwner: false,
-      }),
+      })
     ).toBe("general");
   });
 });
@@ -192,12 +192,12 @@ it("gates marketplaces by developer mode and owner access", () => {
   };
   expect(resolveOrganizationSettingsTab(params)).toBe("marketplaces");
   expect(
-    resolveOrganizationSettingsTab({ ...params, marketplacesEnabled: false }),
+    resolveOrganizationSettingsTab({ ...params, marketplacesEnabled: false })
   ).toBe("general");
   expect(resolveOrganizationSettingsTab({ ...params, isOwner: false })).toBe(
-    "general",
+    "general"
   );
   expect(resolveOrganizationSettingsTab({ ...params, isAnonymous: true })).toBe(
-    "general",
+    "general"
   );
 });

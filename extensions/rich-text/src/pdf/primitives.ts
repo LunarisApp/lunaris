@@ -23,15 +23,13 @@ export function renderTableContent(
 ): React.ReactNode {
   const { headers, columnWidths, isRichText } = options ?? {};
 
-  const cellStyle = (colIndex: number, totalCols: number) => {
-    return {
-      ...styles.tableCell,
-      ...(columnWidths && columnWidths[colIndex] !== undefined
-        ? { flex: columnWidths[colIndex] }
-        : {}),
-      ...(colIndex === totalCols - 1 ? { borderRightWidth: 0 } : {}),
-    };
-  };
+  const cellStyle = (colIndex: number, totalCols: number) => ({
+    ...styles.tableCell,
+    ...(columnWidths && columnWidths[colIndex] !== undefined
+      ? { flex: columnWidths[colIndex] }
+      : {}),
+    ...(colIndex === totalCols - 1 ? { borderRightWidth: 0 } : {}),
+  });
 
   const headerRow = headers
     ? createElement(
@@ -47,11 +45,7 @@ export function renderTableContent(
           createElement(
             View,
             { key: ci, style: cellStyle(ci, headers.length) },
-            createElement(
-              Text,
-              { style: { fontFamily: "Helvetica-Bold" } },
-              h
-            )
+            createElement(Text, { style: { fontFamily: "Helvetica-Bold" } }, h)
           )
         )
       )
@@ -128,7 +122,10 @@ export function renderListItems(
   });
 }
 
-export function renderCodeContent(code: string, styles: Styles): React.ReactNode {
+export function renderCodeContent(
+  code: string,
+  styles: Styles
+): React.ReactNode {
   return createElement(
     View,
     { style: styles.codeBlock },

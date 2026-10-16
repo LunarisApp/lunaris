@@ -8,7 +8,7 @@ afterEach(cleanup);
 describe("resource header participants", () => {
   it("hides empty membership and shows accessible overflow", () => {
     const view = render(
-      <PresenceBadges participants={[]} self={null} status="connected" />,
+      <PresenceBadges participants={[]} self={null} status="connected" />
     );
     expect(screen.queryByRole("button")).toBeNull();
     view.rerender(
@@ -21,17 +21,17 @@ describe("resource header participants", () => {
         }))}
         self={null}
         status="connected"
-      />,
+      />
     );
     expect(
-      screen.getByRole("button", { name: "resourcePresence.viewParticipants" }),
+      screen.getByRole("button", { name: "resourcePresence.viewParticipants" })
     ).toBeTruthy();
     expect(screen.getByText("+2")).toBeTruthy();
   });
   it("announces an outage quietly", () => {
     render(<PresenceBadges participants={[]} self={null} status="error" />);
     expect(screen.getByRole("status").textContent).toContain(
-      "resourcePresence.unavailable",
+      "resourcePresence.unavailable"
     );
   });
 });

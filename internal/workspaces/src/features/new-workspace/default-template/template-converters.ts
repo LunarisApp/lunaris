@@ -8,7 +8,7 @@ type RichTextTemplate = {
 
 type KanbanTemplate = {
   items: Array<{ id: string; [key: string]: unknown }>;
-  properties: Array<Record<string, string>>;
+  properties: Record<string, string>[];
 };
 
 type KanbanTaskTemplate = {
@@ -60,7 +60,9 @@ function parseInlineContent(
     return text ? [{ type: "text", text, styles }] : [];
   }
 
-  if (node.nodeType !== Node.ELEMENT_NODE) return [];
+  if (node.nodeType !== Node.ELEMENT_NODE) {
+    return [];
+  }
 
   const element = node as Element;
   const nextStyles = { ...styles };
@@ -78,7 +80,11 @@ function parseInlineContent(
       nextStyles.strike = true;
       break;
     case "backgroundcolor":
-      nextStyles.backgroundColor = getAttribute(element, "stringValue", "default");
+      nextStyles.backgroundColor = getAttribute(
+        element,
+        "stringValue",
+        "default"
+      );
       break;
     case "textcolor":
       nextStyles.textColor = getAttribute(element, "stringValue", "default");
@@ -100,7 +106,9 @@ function parseBlockContainer(container: Element): PartialBlock | null {
   const contentElement = Array.from(container.children).find(
     (child) => child.tagName.toLowerCase() !== "blockgroup"
   );
-  if (!contentElement) return null;
+  if (!contentElement) {
+    return null;
+  }
 
   const children = Array.from(container.children)
     .filter((child) => child.tagName.toLowerCase() === "blockgroup")
@@ -113,7 +121,11 @@ function parseBlockContainer(container: Element): PartialBlock | null {
         id,
         type: "heading",
         props: {
-          backgroundColor: getAttribute(contentElement, "backgroundColor", "default"),
+          backgroundColor: getAttribute(
+            contentElement,
+            "backgroundColor",
+            "default"
+          ),
           isToggleable: contentElement.getAttribute("isToggleable") === "true",
           level: Number(contentElement.getAttribute("level") ?? 1),
           textAlignment: getTextAlignment(contentElement),
@@ -127,7 +139,11 @@ function parseBlockContainer(container: Element): PartialBlock | null {
         id,
         type: "numberedListItem",
         props: {
-          backgroundColor: getAttribute(contentElement, "backgroundColor", "default"),
+          backgroundColor: getAttribute(
+            contentElement,
+            "backgroundColor",
+            "default"
+          ),
           textAlignment: getTextAlignment(contentElement),
           textColor: getAttribute(contentElement, "textColor", "default"),
         },
@@ -144,13 +160,16 @@ function parseBlockContainer(container: Element): PartialBlock | null {
         content: parseTableContent(contentElement),
         children,
       } as PartialBlock;
-    case "paragraph":
     default:
       return {
         id,
         type: "paragraph",
         props: {
-          backgroundColor: getAttribute(contentElement, "backgroundColor", "default"),
+          backgroundColor: getAttribute(
+            contentElement,
+            "backgroundColor",
+            "default"
+          ),
           textAlignment: getTextAlignment(contentElement),
           textColor: getAttribute(contentElement, "textColor", "default"),
         },
@@ -235,7 +254,9 @@ export function createKanbanTemplateUpdate(template: KanbanTemplate) {
     for (const item of template.items) {
       const assignment = new YMap<unknown>();
       for (const [key, value] of Object.entries(item)) {
-        if (key.startsWith("prop_")) assignment.set(key, value);
+        if (key.startsWith("prop_")) {
+          assignment.set(key, value);
+        }
       }
       taskAssignments.set(item.id, assignment);
     }

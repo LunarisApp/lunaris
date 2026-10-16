@@ -33,12 +33,21 @@ export function parsePropertyDefinition(
 ): PropertyDefinition | null {
   const id = property.get("id");
   const name = property.get("name");
-  if (typeof id !== "string" || !id || typeof name !== "string") return null;
+  if (typeof id !== "string" || !id || typeof name !== "string") {
+    return null;
+  }
 
   const type = normalizePropertyType(property.get("type"));
-  if (!type) return null;
+  if (!type) {
+    return null;
+  }
   if (type === "select" || type === "multi-select") {
-    return { id, name, options: parsePropertyOptions(property.get("options")), type };
+    return {
+      id,
+      name,
+      options: parsePropertyOptions(property.get("options")),
+      type,
+    };
   }
   return { id, name, type };
 }
@@ -58,7 +67,9 @@ export function parsePropertyOptions(value: unknown): PropertyOption[] {
       return [];
     }
   }
-  if (!Array.isArray(parsed)) return [];
+  if (!Array.isArray(parsed)) {
+    return [];
+  }
   return parsed.filter(isPropertyOption).map(({ color, id, name }) => ({
     color,
     id,
@@ -77,7 +88,9 @@ export function normalizePropertyValue(
         ? value
         : undefined;
     case "multi-select":
-      if (!Array.isArray(value)) return undefined;
+      if (!Array.isArray(value)) {
+        return undefined;
+      }
       return uniqueStrings(value).filter((id) =>
         property.options.some((option) => option.id === id)
       );
@@ -101,7 +114,9 @@ export function normalizePropertyValue(
 }
 
 export function hasPropertyValue(value: PropertyValue | undefined): boolean {
-  if (value === undefined || value === "") return false;
+  if (value === undefined || value === "") {
+    return false;
+  }
   return !Array.isArray(value) || value.length > 0;
 }
 
@@ -129,14 +144,18 @@ export function formatPropertyValue(
     resolvePerson?: (id: string) => string;
   } = {}
 ): string {
-  if (value === undefined) return "";
+  if (value === undefined) {
+    return "";
+  }
   switch (property.type) {
     case "select":
       return property.options.find((option) => option.id === value)?.name ?? "";
     case "multi-select":
       return Array.isArray(value)
         ? value
-            .map((id) => property.options.find((option) => option.id === id)?.name)
+            .map(
+              (id) => property.options.find((option) => option.id === id)?.name
+            )
             .filter((name): name is string => Boolean(name))
             .join(", ")
         : "";
@@ -147,7 +166,9 @@ export function formatPropertyValue(
     case "resource":
       return isResourcePropertyValue(value) ? value.name : "";
     case "date":
-      if (typeof value !== "string") return "";
+      if (typeof value !== "string") {
+        return "";
+      }
       return options.canonicalDates
         ? canonicalPropertyDate(value)
         : formatPropertyDate(value, options.locale);
@@ -189,7 +210,9 @@ export function isResourcePropertyValue(
 function parseResourcePropertyValue(
   value: unknown
 ): ResourcePropertyValue | undefined {
-  if (!isResourcePropertyValue(value)) return undefined;
+  if (!isResourcePropertyValue(value)) {
+    return undefined;
+  }
   return {
     resourceId: value.resourceId,
     name: value.name,
@@ -202,9 +225,10 @@ function parseResourcePropertyValue(
 export function formatPropertyDate(value: string, locale?: string): string {
   if (DATE_ONLY_PATTERN.test(value)) {
     const [year, month, day] = value.split("-").map(Number);
-    return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeZone: "UTC" }).format(
-      new Date(Date.UTC(year!, month! - 1, day))
-    );
+    return new Intl.DateTimeFormat(locale, {
+      dateStyle: "medium",
+      timeZone: "UTC",
+    }).format(new Date(Date.UTC(year!, month! - 1, day)));
   }
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
@@ -217,7 +241,14 @@ export function canonicalPropertyDate(value: string): string {
 }
 
 function uniqueStrings(values: unknown[]): string[] {
-  return [...new Set(values.filter((value): value is string => typeof value === "string" && value.length > 0))];
+  return [
+    ...new Set(
+      values.filter(
+        (value): value is string =>
+          typeof value === "string" && value.length > 0
+      )
+    ),
+  ];
 }
 
 function isValidCalendarDate(year = 0, month = 0, day = 0): boolean {

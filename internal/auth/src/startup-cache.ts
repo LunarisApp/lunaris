@@ -59,14 +59,18 @@ export function startupCachePlugin({
 }): BetterAuthClientPlugin {
   const key = `lunaris:auth-startup:v1:${baseURL.replace(/\/$/, "")}`;
   const revisionKey = `${key}:revision`;
-  const authURL = new URL(BASE_PATH.replace(/\/$/, "") + "/", baseURL);
+  const authURL = new URL(`${BASE_PATH.replace(/\/$/, "")}/`, baseURL);
   let generation = 0;
   let mutationsInFlight = 0;
   let snapshot: Snapshot | null = null;
   let pendingSession: Snapshot["session"] | null = null;
   let pendingOrganization: Snapshot["organization"] | null = null;
-  let resetAtoms = () => {};
-  let clearView = (_session: boolean) => {};
+  let resetAtoms = () => {
+    /* No action while this capability is unavailable. */
+  };
+  let clearView = (_session: boolean) => {
+    /* No action while this capability is unavailable. */
+  };
 
   const storage = () =>
     providedStorage ??

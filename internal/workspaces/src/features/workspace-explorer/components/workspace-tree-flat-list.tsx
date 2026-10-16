@@ -43,7 +43,7 @@ export function WorkspaceTreeFlatList({
         resourceTypes.map((resourceType) => [
           resourceType.resourceTypeId,
           resourceType,
-        ]),
+        ])
       ),
     [resourceTypes]
   );
@@ -80,7 +80,9 @@ export function WorkspaceTreeFlatList({
   }, [estimateSize, virtualizer]);
 
   useEffect(() => {
-    if (activeIndex < 0 || activeIndex >= results.length) return;
+    if (activeIndex < 0 || activeIndex >= results.length) {
+      return;
+    }
     virtualizer.scrollToIndex(activeIndex, { align: "auto" });
   }, [activeIndex, results.length, virtualizer]);
 
@@ -101,13 +103,14 @@ export function WorkspaceTreeFlatList({
   if (results.length === 0) {
     return (
       <div
-        className={cn("flex-1 min-h-0 overflow-y-auto", className)}
+        className={cn("min-h-0 flex-1 overflow-y-auto", className)}
         ref={scrollRef}
       >
         <ul
           aria-label={t("explorer.searchResults")}
-          className="h-full flex items-center justify-center px-4 py-6 text-center text-sm text-muted-foreground"
+          className="flex h-full items-center justify-center px-4 py-6 text-center text-muted-foreground text-sm"
           id={listId}
+          // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: Listbox and option roles implement the search combobox aria-activedescendant pattern.
           role="listbox"
         >
           <li aria-live="polite" className="list-none">
@@ -123,19 +126,22 @@ export function WorkspaceTreeFlatList({
 
   return (
     <div
-      className={cn("flex-1 min-h-0 overflow-y-auto", className)}
+      className={cn("min-h-0 flex-1 overflow-y-auto", className)}
       ref={scrollRef}
     >
       <ul
         aria-label={t("explorer.searchResults")}
         className="relative px-2 pt-2"
         id={listId}
+        // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: Listbox and option roles implement the search combobox aria-activedescendant pattern.
         role="listbox"
         style={{ height: `${totalSize}px` }}
       >
         {virtualItems.map((virtualRow) => {
           const item = results[virtualRow.index];
-          if (!item) return null;
+          if (!item) {
+            return null;
+          }
           const resource = item.resource_type_id
             ? resourceMap.get(item.resource_type_id)
             : undefined;
@@ -144,12 +150,14 @@ export function WorkspaceTreeFlatList({
           const isActive = virtualRow.index === activeIndex;
 
           return (
+            // biome-ignore lint/a11y/useFocusableInteractive: Search input owns focus and points to the active option with aria-activedescendant.
             <li
               aria-selected={isActive}
               className="absolute top-0 left-0 w-full px-2"
               data-active={isActive || undefined}
               id={listId ? `${listId}-option-${virtualRow.index}` : undefined}
               key={item.id}
+              // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: Listbox and option roles implement the search combobox aria-activedescendant pattern.
               role="option"
               style={{
                 transform: `translateY(${virtualRow.start}px)`,
@@ -165,7 +173,9 @@ export function WorkspaceTreeFlatList({
                     : "bg-background"
                 )}
                 onClick={() => {
-                  if (!item.resource_type_id) return;
+                  if (!item.resource_type_id) {
+                    return;
+                  }
                   onActiveIndexChange?.(virtualRow.index);
                   openResource({
                     resourceId: item.id,
@@ -191,9 +201,9 @@ export function WorkspaceTreeFlatList({
                   item={item}
                   resourceIcon={resource?.icon}
                 />
-                <span className="flex-1 min-w-0 flex flex-col">
+                <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate">{name}</span>
-                  <span className="truncate text-xs text-muted-foreground">
+                  <span className="truncate text-muted-foreground text-xs">
                     {path}
                   </span>
                 </span>

@@ -11,7 +11,11 @@ import { useSearchDialog } from "../hooks/useSearchDialog";
  * Search button for the app bar - shows the workspace name and shortcut hint.
  * Clicking opens the search dialog via SearchProvider context.
  */
-export function SearchButton({ workspaceName, className, "data-testid": testId }: {
+export function SearchButton({
+  workspaceName,
+  className,
+  "data-testid": testId,
+}: {
   workspaceName?: string;
   className?: string;
   "data-testid"?: string;
@@ -31,7 +35,9 @@ export function SearchButton({ workspaceName, className, "data-testid": testId }
       variant="outline"
     >
       <HugeiconsIcon icon={Search01Icon} strokeWidth={2} />
-      <span className="min-w-0 truncate">{workspaceName ?? t("search.placeholder")}</span>
+      <span className="min-w-0 truncate">
+        {workspaceName ?? t("search.placeholder")}
+      </span>
       <Kbd className="ml-auto">{shortcutHint}</Kbd>
     </Button>
   );

@@ -7,10 +7,7 @@ import {
 
 describe("resource search helpers", () => {
   const resourceTypes = new Map([
-    [
-      "plugin-text",
-      { extensionId: "acme.writer", name: "Text Document" },
-    ],
+    ["plugin-text", { extensionId: "acme.writer", name: "Text Document" }],
     ["lunaris.file", { extensionId: "lunaris.file", name: "File" }],
     [
       "lunaris.kanban.task",
@@ -115,11 +112,16 @@ describe("resource search helpers", () => {
       workspaceVisibility: "local",
     });
 
-    expect(getCloudContentWorkspaceIds(resources, "workspace-1")).toEqual(["workspace-2"]);
+    expect(getCloudContentWorkspaceIds(resources, "workspace-1")).toEqual([
+      "workspace-2",
+    ]);
   });
 
   it("searches titles case-insensitively", () => {
-    const results = searchResourcesByTitle(getSearchableResources(items), "plan");
+    const results = searchResourcesByTitle(
+      getSearchableResources(items),
+      "plan"
+    );
 
     expect(results).toEqual([
       {
@@ -136,7 +138,10 @@ describe("resource search helpers", () => {
   });
 
   it("finds file items by filename", () => {
-    const results = searchResourcesByTitle(getSearchableResources(items), "notes");
+    const results = searchResourcesByTitle(
+      getSearchableResources(items),
+      "notes"
+    );
 
     expect(results).toEqual([
       {
@@ -169,18 +174,21 @@ describe("resource search helpers", () => {
     expect(
       searchResourcesByTitle(
         getSearchableResources(items, "Untitled", resourceTypes),
-        "workspace:Alpha",
-      ),
+        "workspace:Alpha"
+      )
     ).toEqual([]);
   });
 
   it("combines workspace and title terms with AND", () => {
     const resources = getSearchableResources(items, "Untitled", resourceTypes);
     expect(
-      searchResourcesByTitle(resources, 'workspace:Alpha title:"Workspace Plan"'),
+      searchResourcesByTitle(
+        resources,
+        'workspace:Alpha title:"Workspace Plan"'
+      )
     ).toHaveLength(1);
     expect(
-      searchResourcesByTitle(resources, 'workspace:Beta title:"Workspace Plan"'),
+      searchResourcesByTitle(resources, 'workspace:Beta title:"Workspace Plan"')
     ).toEqual([]);
   });
 
@@ -188,8 +196,8 @@ describe("resource search helpers", () => {
     const resources = getSearchableResources(items, "Untitled", resourceTypes);
     expect(
       searchResourcesByTitle(resources, "extension:lunaris.kanban").map(
-        (result) => result.resourceId,
-      ),
+        (result) => result.resourceId
+      )
     ).toEqual(["task-hidden"]);
   });
 
@@ -197,13 +205,13 @@ describe("resource search helpers", () => {
     const resources = getSearchableResources(items, "Untitled", resourceTypes);
     expect(
       searchResourcesByTitle(resources, "resource-type:plugin-text").map(
-        (result) => result.resourceId,
-      ),
+        (result) => result.resourceId
+      )
     ).toEqual(["item-1", "item-2"]);
     expect(
       searchResourcesByTitle(resources, 'resource-type:"Kanban Task"').map(
-        (result) => result.resourceId,
-      ),
+        (result) => result.resourceId
+      )
     ).toEqual(["task-hidden"]);
   });
 
@@ -211,7 +219,7 @@ describe("resource search helpers", () => {
     expect(
       searchResourcesByTitle(getSearchableResources(items), "", {
         includeAllWhenEmpty: true,
-      }),
+      })
     ).toHaveLength(4);
   });
 });

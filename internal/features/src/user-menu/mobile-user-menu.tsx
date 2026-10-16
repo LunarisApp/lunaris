@@ -83,7 +83,9 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
   return (
     <Drawer
       onOpenChange={(open: boolean) => {
-        if (open) void refreshAccounts();
+        if (open) {
+          void refreshAccounts();
+        }
       }}
     >
       <DrawerTrigger
@@ -96,15 +98,15 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
             <DrawerTitle className="truncate text-left">
               {user?.name || user?.email || t("common.user")}
             </DrawerTitle>
-            {user?.name && user?.email && (
-              <p className="truncate text-left text-sm text-muted-foreground">
+            {!!(user?.name && user?.email) && (
+              <p className="truncate text-left text-muted-foreground text-sm">
                 {user.email}
               </p>
             )}
           </div>
         </DrawerHeader>
         <nav className="flex flex-col gap-0.5 px-2 pb-4">
-          <p className="text-muted-foreground px-3 py-1 text-xs font-medium">
+          <p className="px-3 py-1 font-medium text-muted-foreground text-xs">
             {t("auth.accounts")}
           </p>
           {accounts.map((account) => {
@@ -125,7 +127,7 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
                         {account.user.name || account.user.email}
                       </span>
                       {account.user.name ? (
-                        <span className="text-muted-foreground block truncate text-xs">
+                        <span className="block truncate text-muted-foreground text-xs">
                           {account.user.email}
                         </span>
                       ) : null}
@@ -138,12 +140,12 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
               />
             );
           })}
-          {accountListStatus !== "ready" ? (
+          {accountListStatus === "ready" ? null : (
             <div
               className="mx-2 flex items-center gap-2 rounded-lg bg-muted px-3 py-2"
               role={accountListStatus === "error" ? "alert" : "status"}
             >
-              <span className="text-muted-foreground flex-1 text-xs">
+              <span className="flex-1 text-muted-foreground text-xs">
                 {t(
                   accountListStatus === "offline"
                     ? "auth.accountListOffline"
@@ -160,7 +162,7 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
                 </Button>
               ) : null}
             </div>
-          ) : null}
+          )}
           <MenuItem icon={Add01Icon} onClick={addAccount}>
             {t("auth.addAccount")}
           </MenuItem>

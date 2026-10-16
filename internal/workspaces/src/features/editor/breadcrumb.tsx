@@ -43,7 +43,7 @@ export function EditorBreadcrumb({
         resourceTypes.map((resourceType) => [
           resourceType.resourceTypeId,
           resourceType,
-        ]),
+        ])
       ),
     [resourceTypes]
   );
@@ -67,12 +67,7 @@ export function EditorBreadcrumb({
 
       navigateToResource(item.id);
     },
-    [
-      navigateToResource,
-      onNavigate,
-      openResource,
-      untitledLabel,
-    ]
+    [navigateToResource, onNavigate, openResource, untitledLabel]
   );
 
   if (breadcrumbItems.length === 0) {
@@ -83,7 +78,9 @@ export function EditorBreadcrumb({
     const resourceType = resourceTypeId
       ? resourceTypeMap.get(resourceTypeId)
       : undefined;
-    if (!resourceType) return null;
+    if (!resourceType) {
+      return null;
+    }
 
     return (
       <Tooltip>
@@ -110,25 +107,25 @@ export function EditorBreadcrumb({
           const title = item.name.trim() || untitledLabel;
           return (
             <Fragment key={item.id}>
-            {item.isLast && !hasCurrentPage ? (
-              <BreadcrumbItem>
-                {getResourceIcon(item.resourceTypeId)}
-                <BreadcrumbPage>{title}</BreadcrumbPage>
-              </BreadcrumbItem>
-            ) : (
-              <>
+              {item.isLast && !hasCurrentPage ? (
                 <BreadcrumbItem>
                   {getResourceIcon(item.resourceTypeId)}
-                  <BreadcrumbLink
-                    onClick={() => handleClick(item)}
-                    render={<button type="button" />}
-                  >
-                    {title}
-                  </BreadcrumbLink>
+                  <BreadcrumbPage>{title}</BreadcrumbPage>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator />
-              </>
-            )}
+              ) : (
+                <>
+                  <BreadcrumbItem>
+                    {getResourceIcon(item.resourceTypeId)}
+                    <BreadcrumbLink
+                      onClick={() => handleClick(item)}
+                      render={<button type="button" />}
+                    >
+                      {title}
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                </>
+              )}
             </Fragment>
           );
         })}

@@ -38,7 +38,13 @@ describe("organizationSlugSchema", () => {
   );
 
   it("exports reserved set for router sync", () => {
-    for (const slug of ["auth", "settings", "workspaces", "organizations", "api"]) {
+    for (const slug of [
+      "auth",
+      "settings",
+      "workspaces",
+      "organizations",
+      "api",
+    ]) {
       expect(RESERVED_ORGANIZATION_SLUGS.has(slug)).toBe(true);
     }
   });

@@ -26,12 +26,16 @@ const DIRECTORY = {
 describe("discoverRegions", () => {
   it("loads and validates the public region directory without credentials", async () => {
     let request: Request | undefined;
-    const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      request = new Request(input, init);
-      return Response.json(DIRECTORY);
-    });
+    const fetcher = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        request = new Request(input, init);
+        return Response.json(DIRECTORY);
+      }
+    );
 
-    await expect(discoverRegions({ fetch: fetcher })).resolves.toEqual(DIRECTORY);
+    await expect(discoverRegions({ fetch: fetcher })).resolves.toEqual(
+      DIRECTORY
+    );
     expect(request?.url).toBe(DEFAULT_REGION_DIRECTORY_URL);
     expect(request?.headers.get("accept")).toBe("application/json");
     expect(request?.headers.has("authorization")).toBe(false);
@@ -68,7 +72,7 @@ describe("discoverRegions", () => {
 
   it("loads a selected region manifest and verifies its identity", async () => {
     const region = DIRECTORY.regions[0];
-    if (!region || region.status !== "available") {
+    if (region?.status !== "available") {
       throw new Error("Expected available region");
     }
 
@@ -80,7 +84,7 @@ describe("discoverRegions", () => {
             regionId: "us",
             syncUrl: "https://sync-us.lunaris.app",
           }),
-      }),
+      })
     ).resolves.toEqual({
       apiUrl: "https://api-us.lunaris.app",
       regionId: "us",
@@ -89,7 +93,7 @@ describe("discoverRegions", () => {
 
   it("rejects a manifest served for another region", async () => {
     const region = DIRECTORY.regions[0];
-    if (!region || region.status !== "available") {
+    if (region?.status !== "available") {
       throw new Error("Expected available region");
     }
 
@@ -100,7 +104,7 @@ describe("discoverRegions", () => {
             apiUrl: "https://api-eu.lunaris.app",
             regionId: "eu",
           }),
-      }),
+      })
     ).rejects.toMatchObject({ code: "REGION_MANIFEST_MISMATCH", status: 502 });
   });
 });

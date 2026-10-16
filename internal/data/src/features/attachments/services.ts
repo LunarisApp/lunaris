@@ -19,11 +19,7 @@ import type {
 } from "./types";
 
 export { ATTACHMENTS_TABLE, getFileStorageDatabaseName } from "./constants";
-export type {
-  AttachmentRow,
-  AttachmentRowWithValue,
-  StoredAttachmentMetadata,
-};
+export type { AttachmentRow, AttachmentRowWithValue, StoredAttachmentMetadata };
 export { AttachmentState };
 
 export type WatchAttachments = ConstructorParameters<
@@ -43,7 +39,9 @@ interface AttachmentQueryDb {
 const queues = new WeakMap<Database, Map<string, ChunkedAttachmentQueue>>();
 
 function getErrorStatus(error: unknown) {
-  if (!error || typeof error !== "object") return;
+  if (!error || typeof error !== "object") {
+    return;
+  }
   if ("status" in error && typeof error.status === "number") {
     return error.status;
   }
@@ -79,10 +77,10 @@ function getQueueKey(workspaceId: string, queueId?: string) {
   return queueId ? `${workspaceId}:${queueId}` : workspaceId;
 }
 
-export function parseAttachmentMetadata<T>(
-  value: string | null | undefined
-) {
-  if (!value) return null;
+export function parseAttachmentMetadata<T>(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
   try {
     return JSON.parse(value) as T;
   } catch {
@@ -96,11 +94,15 @@ export async function getFileStorageWorkspaceIds(db: DatabaseOrTx) {
 }
 
 export async function deleteFileStorageDatabases(workspaceIds: string[]) {
-  if (typeof indexedDB === "undefined" || workspaceIds.length === 0) return;
+  if (typeof indexedDB === "undefined" || workspaceIds.length === 0) {
+    return;
+  }
 
   await Promise.all(
     [...new Set(workspaceIds)].map((workspaceId) =>
-      clearAndDeleteFileStorageDatabase(getAttachmentStorageDatabaseName(workspaceId))
+      clearAndDeleteFileStorageDatabase(
+        getAttachmentStorageDatabaseName(workspaceId)
+      )
     )
   );
 }
@@ -144,7 +146,9 @@ function clearFileStorageDatabase(databaseName: string): Promise<void> {
       try {
         const stores = Array.from(db.objectStoreNames);
         const tx = db.transaction(stores, "readwrite");
-        for (const store of stores) tx.objectStore(store).clear();
+        for (const store of stores) {
+          tx.objectStore(store).clear();
+        }
         tx.oncomplete = () => {
           db.close();
           resolve();
@@ -154,7 +158,9 @@ function clearFileStorageDatabase(databaseName: string): Promise<void> {
             tag: "AttachmentStorage",
             msg: "attachment storage clear failed",
             databaseName,
-            error: parseError(tx.error ?? new Error("attachment storage clear failed")),
+            error: parseError(
+              tx.error ?? new Error("attachment storage clear failed")
+            ),
           });
           db.close();
           resolve();
@@ -229,8 +235,15 @@ export function getAttachmentQueue(params: {
   const map = getQueueMap(db);
   const key = getQueueKey(workspaceId, queueId);
   const existing = map.get(key);
-  if (existing) return existing;
-  const queue = createAttachmentQueue({ api, db, workspaceId, watchAttachments });
+  if (existing) {
+    return existing;
+  }
+  const queue = createAttachmentQueue({
+    api,
+    db,
+    workspaceId,
+    watchAttachments,
+  });
   map.set(key, queue);
   return queue;
 }
@@ -247,7 +260,9 @@ export async function stopAttachmentQueue(params: QueueKey) {
   const map = queues.get(params.db);
   const key = getQueueKey(params.workspaceId, params.queueId);
   const queue = map?.get(key);
-  if (!queue) return;
+  if (!queue) {
+    return;
+  }
   await queue.stopSync();
   map?.delete(key);
 }
@@ -269,7 +284,9 @@ export async function createAttachmentObjectUrl(params: {
   mediaType?: string | null;
   workspaceId: string;
 }) {
-  const storage = new IndexedDbFileStorageAdapter(getAttachmentStorageDatabaseName(params.workspaceId));
+  const storage = new IndexedDbFileStorageAdapter(
+    getAttachmentStorageDatabaseName(params.workspaceId)
+  );
   const buffer = await storage.readBlob(params.localUri);
   return URL.createObjectURL(
     new Blob([buffer], {
@@ -295,15 +312,15 @@ export async function downloadAttachmentFile(params: {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-export async function downloadAttachmentFromQuery<T extends StoredAttachmentMetadata>(
-  params: {
-    db: AttachmentQueryDb;
-    metadataFromRow?: (row: AttachmentRowWithValue | undefined) => T | null;
-    workspaceId: string;
-    query: string;
-    queryParams: unknown[];
-  }
-): Promise<boolean> {
+export async function downloadAttachmentFromQuery<
+  T extends StoredAttachmentMetadata,
+>(params: {
+  db: AttachmentQueryDb;
+  metadataFromRow?: (row: AttachmentRowWithValue | undefined) => T | null;
+  workspaceId: string;
+  query: string;
+  queryParams: unknown[];
+}): Promise<boolean> {
   const row =
     (await params.db.getOptional<AttachmentRowWithValue>(
       params.query,
@@ -311,7 +328,9 @@ export async function downloadAttachmentFromQuery<T extends StoredAttachmentMeta
     )) ?? undefined;
   const metadata =
     params.metadataFromRow?.(row) ?? parseAttachmentMetadata<T>(row?.value);
-  if (!metadata || !row?.local_uri) return false;
+  if (!(metadata && row?.local_uri)) {
+    return false;
+  }
   await downloadAttachmentFile({
     filename: metadata.filename,
     localUri: row.local_uri,
@@ -327,7 +346,9 @@ interface AttachmentQueryState<TMetadata> {
 }
 
 export function useAttachmentQueryState<TMetadata>(params: {
-  metadataFromRow?: (row: AttachmentRowWithValue | undefined) => TMetadata | null;
+  metadataFromRow?: (
+    row: AttachmentRowWithValue | undefined
+  ) => TMetadata | null;
   query: string;
   queryParams: unknown[];
 }) {
@@ -345,8 +366,12 @@ export function useAttachmentQueryState<TMetadata>(params: {
     let cancelled = false;
     void (async () => {
       for await (const result of db.watch(params.query, memoizedParams)) {
-        if (cancelled) return;
-        const row = result.rows?._array[0] as AttachmentRowWithValue | undefined;
+        if (cancelled) {
+          return;
+        }
+        const row = result.rows?._array[0] as
+          | AttachmentRowWithValue
+          | undefined;
         setState({
           attachment: row?.id ? row : null,
           metadata:
@@ -376,7 +401,9 @@ export function useAttachmentObjectUrl(params: {
 
   useEffect(
     () => () => {
-      if (currentUrlRef.current) URL.revokeObjectURL(currentUrlRef.current);
+      if (currentUrlRef.current) {
+        URL.revokeObjectURL(currentUrlRef.current);
+      }
       currentUrlRef.current = null;
       loadedFileKeyRef.current = null;
     },
@@ -387,7 +414,9 @@ export function useAttachmentObjectUrl(params: {
     let cancelled = false;
 
     if (!attachment?.local_uri) {
-      if (currentUrlRef.current) URL.revokeObjectURL(currentUrlRef.current);
+      if (currentUrlRef.current) {
+        URL.revokeObjectURL(currentUrlRef.current);
+      }
       currentUrlRef.current = null;
       loadedFileKeyRef.current = null;
       setUrl(null);
@@ -418,7 +447,9 @@ export function useAttachmentObjectUrl(params: {
         currentUrlRef.current = createdUrl;
         loadedFileKeyRef.current = fileKey;
         setUrl(createdUrl);
-        if (previousObjectUrl) URL.revokeObjectURL(previousObjectUrl);
+        if (previousObjectUrl) {
+          URL.revokeObjectURL(previousObjectUrl);
+        }
       })
       .catch((error) => {
         log.error({
@@ -429,14 +460,20 @@ export function useAttachmentObjectUrl(params: {
           workspaceId,
           attachmentId: attachment.id,
         });
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         if (loadedFileKeyRef.current === fileKey && currentUrlRef.current) {
           return;
         }
-        if (currentUrlRef.current) URL.revokeObjectURL(currentUrlRef.current);
+        if (currentUrlRef.current) {
+          URL.revokeObjectURL(currentUrlRef.current);
+        }
         currentUrlRef.current = null;
         loadedFileKeyRef.current = null;
-        if (!cancelled) setUrl(null);
+        if (!cancelled) {
+          setUrl(null);
+        }
       });
 
     return () => {
@@ -454,27 +491,62 @@ export function useAttachmentObjectUrl(params: {
 }
 
 export async function getFileTransferStates(db: Database, workspaceId: string) {
-  const storage = new IndexedDbFileStorageAdapter(getAttachmentStorageDatabaseName(workspaceId));
+  const storage = new IndexedDbFileStorageAdapter(
+    getAttachmentStorageDatabaseName(workspaceId)
+  );
   try {
-  const rows = await db.getAll<{ id: string; filename: string; meta_data: string }>("SELECT id, filename, meta_data FROM attachments WHERE state = ? AND json_extract(meta_data, '$.workspaceId') = ?",
-    [AttachmentState.QUEUED_UPLOAD, workspaceId]);
-  const states = await Promise.all(rows.map(async (row) => {
-    const state = await storage.readTransfer<FileTransferState>(row.id);
-    const metadata = parseAttachmentMetadata<{ filename?: string }>(row.meta_data);
-    return state ? { ...state, fileId: row.id, filename: metadata?.filename ?? row.filename } : undefined;
-  }));
-  return states.filter((state): state is FileTransferState & { fileId: string; filename: string } => !!state && state.state !== "completed");
-  } finally { await storage.close(); }
+    const rows = await db.getAll<{
+      id: string;
+      filename: string;
+      meta_data: string;
+    }>(
+      "SELECT id, filename, meta_data FROM attachments WHERE state = ? AND json_extract(meta_data, '$.workspaceId') = ?",
+      [AttachmentState.QUEUED_UPLOAD, workspaceId]
+    );
+    const states = await Promise.all(
+      rows.map(async (row) => {
+        const state = await storage.readTransfer<FileTransferState>(row.id);
+        const metadata = parseAttachmentMetadata<{ filename?: string }>(
+          row.meta_data
+        );
+        return state
+          ? {
+              ...state,
+              fileId: row.id,
+              filename: metadata?.filename ?? row.filename,
+            }
+          : undefined;
+      })
+    );
+    return states.filter(
+      (
+        state
+      ): state is FileTransferState & { fileId: string; filename: string } =>
+        !!state && state.state !== "completed"
+    );
+  } finally {
+    await storage.close();
+  }
 }
-export function subscribeFileTransfers(workspaceId: string, listener: () => void) {
+export function subscribeFileTransfers(
+  workspaceId: string,
+  listener: () => void
+) {
   const handler = (event: Event) => {
-    if ((event as CustomEvent<{ workspaceId: string }>).detail.workspaceId === workspaceId) listener();
+    if (
+      (event as CustomEvent<{ workspaceId: string }>).detail.workspaceId ===
+      workspaceId
+    ) {
+      listener();
+    }
   };
   window.addEventListener(TRANSFER_EVENT, handler);
   return () => window.removeEventListener(TRANSFER_EVENT, handler);
 }
 export async function retryFileTransfers(db: Database, workspaceId: string) {
   for (const [key, queue] of queues.get(db) ?? []) {
-    if (key === workspaceId || key.startsWith(`${workspaceId}:`)) await queue.retryBlocked();
+    if (key === workspaceId || key.startsWith(`${workspaceId}:`)) {
+      await queue.retryBlocked();
+    }
   }
 }

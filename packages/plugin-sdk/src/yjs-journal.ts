@@ -1,4 +1,9 @@
-import { encodeStateAsUpdateV2, encodeStateVector, mergeUpdatesV2, type Doc } from "yjs";
+import {
+  encodeStateAsUpdateV2,
+  encodeStateVector,
+  mergeUpdatesV2,
+  type Doc,
+} from "yjs";
 
 export interface YjsSyncCursor {
   epoch: string;
@@ -16,7 +21,7 @@ export class YjsUpdateJournal {
   constructor(
     private readonly doc: Doc,
     private readonly maxBytes = 4 * 1024 * 1024,
-    private readonly maxUpdates = 256,
+    private readonly maxUpdates = 256
   ) {}
 
   record(update: Uint8Array): void {
@@ -28,7 +33,10 @@ export class YjsUpdateJournal {
     }
     this.updates.push({ revision: this.revision, update: update.slice() });
     this.bytes += update.byteLength;
-    while (this.bytes > this.maxBytes || this.updates.length > this.maxUpdates) {
+    while (
+      this.bytes > this.maxBytes ||
+      this.updates.length > this.maxUpdates
+    ) {
       this.bytes -= this.updates.shift()!.update.byteLength;
     }
   }
@@ -43,8 +51,8 @@ export class YjsUpdateJournal {
       cursor.revision <= this.revision
     ) {
       const updates = this.updates
-        .filter(entry => entry.revision > cursor.revision)
-        .map(entry => entry.update);
+        .filter((entry) => entry.revision > cursor.revision)
+        .map((entry) => entry.update);
       return {
         cursor: next,
         update: Uint8Array.from(mergeUpdatesV2(updates)).buffer,
@@ -52,7 +60,9 @@ export class YjsUpdateJournal {
     }
     return {
       cursor: next,
-      update: Uint8Array.from(encodeStateAsUpdateV2(this.doc, new Uint8Array(vector))).buffer,
+      update: Uint8Array.from(
+        encodeStateAsUpdateV2(this.doc, new Uint8Array(vector))
+      ).buffer,
       stateVector: Uint8Array.from(encodeStateVector(this.doc)).buffer,
     };
   }

@@ -7,16 +7,20 @@ export interface PendingOrganization {
   slug: string;
 }
 
-export function markPendingOrganization(organization: PendingOrganization): void {
+export function markPendingOrganization(
+  organization: PendingOrganization
+): void {
   sessionStorage.setItem(
     PENDING_ORGANIZATION_KEY,
-    JSON.stringify({ ...organization, createdAt: Date.now() }),
+    JSON.stringify({ ...organization, createdAt: Date.now() })
   );
 }
 
 export function readPendingOrganization(): PendingOrganization | null {
   const stored = sessionStorage.getItem(PENDING_ORGANIZATION_KEY);
-  if (!stored) return null;
+  if (!stored) {
+    return null;
+  }
 
   try {
     const parsed = JSON.parse(stored) as Partial<PendingOrganization> & {

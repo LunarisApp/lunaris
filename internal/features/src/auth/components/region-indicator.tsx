@@ -15,11 +15,15 @@ export function RegionIndicator() {
         variant: "ghost",
         size: "sm",
         className:
-          "absolute top-3 right-3 z-10 h-7 gap-1.5 px-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground",
+          "absolute top-3 right-3 z-10 h-7 gap-1.5 px-2 font-medium text-[11px] text-muted-foreground uppercase tracking-wide",
       })}
       to={pathWithRegion("/auth")}
     >
-      <HugeiconsIcon aria-hidden="true" className="size-3.5" icon={GlobalIcon} />
+      <HugeiconsIcon
+        aria-hidden="true"
+        className="size-3.5"
+        icon={GlobalIcon}
+      />
       <span>{region.id}</span>
     </Link>
   );

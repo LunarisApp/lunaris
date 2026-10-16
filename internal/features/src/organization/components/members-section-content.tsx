@@ -104,7 +104,7 @@ export function InviteMemberForm({
       }}
     >
       <div className="space-y-1">
-        <h2 className="text-base font-semibold" id={headingId}>
+        <h2 className="font-semibold text-base" id={headingId}>
           {t("organization.invite")}
         </h2>
         <p className="text-muted-foreground text-sm" id={capacityId}>
@@ -145,7 +145,9 @@ export function InviteMemberForm({
           </Label>
           <Select
             onValueChange={(value) => {
-              if (isManageableRole(value)) onRoleChange(value);
+              if (isManageableRole(value)) {
+                onRoleChange(value);
+              }
             }}
             value={inviteRole}
           >
@@ -169,7 +171,7 @@ export function InviteMemberForm({
         <div className="space-y-2">
           <div
             aria-hidden="true"
-            className="text-sm leading-none hidden xl:block"
+            className="hidden text-sm leading-none xl:block"
           >
             &nbsp;
           </div>
@@ -216,7 +218,7 @@ export function PendingInvitations({
       aria-labelledby={headingId}
       className="grid gap-5 border-b pb-10 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
     >
-      <h2 className="text-base font-semibold" id={headingId}>
+      <h2 className="font-semibold text-base" id={headingId}>
         {t("organization.pendingInvitations")}
       </h2>
 
@@ -227,69 +229,76 @@ export function PendingInvitations({
           </p>
         ) : (
           <div className="divide-y border-y" role="list">
-          {invitations.map((invitation) => (
-            <div
-              className="flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between"
-              data-testid={`organization-invitation-${invitation.id}`}
-              key={invitation.id}
-              role="listitem"
-            >
-              <div className="min-w-0 space-y-1">
-                <p className="truncate text-sm font-medium">
-                  {invitation.email}
-                </p>
-                <div className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                  <span>
-                    {t("organization.invitationRole")}:{" "}
-                    {t(ROLE_KEYS[invitation.role])}
-                  </span>
-                  {invitation.teamId && (
+            {invitations.map((invitation) => (
+              <div
+                className="flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between"
+                data-testid={`organization-invitation-${invitation.id}`}
+                key={invitation.id}
+                role="listitem"
+              >
+                <div className="min-w-0 space-y-1">
+                  <p className="truncate font-medium text-sm">
+                    {invitation.email}
+                  </p>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-muted-foreground text-xs">
                     <span>
-                      {t("organization.invitationTeam")}: {invitation.teamId
-                        .split(",")
-                        .map(
-                          (teamId) =>
-                            teams.find((team) => team.id === teamId)?.name ??
-                            teamId,
-                        )
-                        .join(", ")}
+                      {t("organization.invitationRole")}:{" "}
+                      {t(ROLE_KEYS[invitation.role])}
                     </span>
-                  )}
-                  <span>
-                    {t("organization.invitedOn")}:{" "}
-                    {DATE_FORMATTER.format(new Date(invitation.createdAt))}
-                  </span>
-                  <span>
-                    {t("organization.expiresOn")}:{" "}
-                    {DATE_FORMATTER.format(new Date(invitation.expiresAt))}
-                  </span>
+                    {!!invitation.teamId && (
+                      <span>
+                        {t("organization.invitationTeam")}:{" "}
+                        {invitation.teamId
+                          .split(",")
+                          .map(
+                            (teamId) =>
+                              teams.find((team) => team.id === teamId)?.name ??
+                              teamId
+                          )
+                          .join(", ")}
+                      </span>
+                    )}
+                    <span>
+                      {t("organization.invitedOn")}:{" "}
+                      {DATE_FORMATTER.format(new Date(invitation.createdAt))}
+                    </span>
+                    <span>
+                      {t("organization.expiresOn")}:{" "}
+                      {DATE_FORMATTER.format(new Date(invitation.expiresAt))}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {(canCancel || canResend) && <div className="flex flex-wrap gap-2">
-                {canResend && <Button
-                  aria-label={`${t("organization.resendInvitation")}: ${invitation.email}`}
-                  disabled={resendingId === invitation.id}
-                  onClick={() => onResend(invitation)}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  {t("organization.resendInvitation")}
-                </Button>}
-                {canCancel && <Button
-                  aria-label={`${t("organization.cancelInvitation")}: ${invitation.email}`}
-                  disabled={cancelingId === invitation.id}
-                  onClick={() => onCancel(invitation.id)}
-                  size="sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  {t("organization.cancelInvitation")}
-                </Button>}
-              </div>}
-            </div>
-          ))}
+                {!!(canCancel || canResend) && (
+                  <div className="flex flex-wrap gap-2">
+                    {!!canResend && (
+                      <Button
+                        aria-label={`${t("organization.resendInvitation")}: ${invitation.email}`}
+                        disabled={resendingId === invitation.id}
+                        onClick={() => onResend(invitation)}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        {t("organization.resendInvitation")}
+                      </Button>
+                    )}
+                    {!!canCancel && (
+                      <Button
+                        aria-label={`${t("organization.cancelInvitation")}: ${invitation.email}`}
+                        disabled={cancelingId === invitation.id}
+                        onClick={() => onCancel(invitation.id)}
+                        size="sm"
+                        type="button"
+                        variant="ghost"
+                      >
+                        {t("organization.cancelInvitation")}
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -324,7 +333,7 @@ export function MembersTable({
       aria-labelledby={headingId}
       className="grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
     >
-      <h2 className="text-base font-semibold" id={headingId}>
+      <h2 className="font-semibold text-base" id={headingId}>
         {t("organization.members")}
       </h2>
       <div className="min-w-0 max-w-3xl">
@@ -334,118 +343,126 @@ export function MembersTable({
           </p>
         ) : (
           <Table aria-labelledby={headingId}>
-          <TableHeader>
-            <TableRow>
-              <TableHead scope="col">{t("organization.memberName")}</TableHead>
-              <TableHead scope="col">{t("organization.memberRole")}</TableHead>
-              {canRemove && (
-                <TableHead className="w-24" scope="col">
-                  {t("organization.memberActions")}
+            <TableHeader>
+              <TableRow>
+                <TableHead scope="col">
+                  {t("organization.memberName")}
                 </TableHead>
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {members.map((member) => {
-              const canEdit =
-                member.role !== "owner" &&
-                member.user.id !== currentUserId;
-              const canEditRole = canUpdate && canEdit;
-              const canRemoveMember = canRemove && canEdit;
+                <TableHead scope="col">
+                  {t("organization.memberRole")}
+                </TableHead>
+                {!!canRemove && (
+                  <TableHead className="w-24" scope="col">
+                    {t("organization.memberActions")}
+                  </TableHead>
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {members.map((member) => {
+                const canEdit =
+                  member.role !== "owner" && member.user.id !== currentUserId;
+                const canEditRole = canUpdate && canEdit;
+                const canRemoveMember = canRemove && canEdit;
 
-              return (
-                <TableRow
-                  data-member-email={member.user.email}
-                  data-testid="organization-member-row"
-                  key={member.id}
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <UserAvatar size="sm" user={member.user} />
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">
-                          {member.user.name}
-                        </p>
-                        <p className="text-muted-foreground truncate text-xs">
-                          {member.user.email}
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {canEditRole ? (
-                      <Select
-                        onValueChange={(value) => {
-                          if (isManageableRole(value)) {
-                            onRoleChange(member, value);
-                          }
-                        }}
-                        value={member.role}
-                      >
-                        <SelectTrigger
-                          aria-label={`${t("organization.memberRole")}: ${member.user.name}, ${t(ROLE_KEYS[member.role])}`}
-                          className="w-32"
-                        >
-                          <SelectValue>
-                            {t(ROLE_KEYS[member.role])}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent align="end">
-                          {MANAGEABLE_ROLES.map((role) => (
-                            <SelectItem key={role} value={role}>
-                              {t(ROLE_KEYS[role])}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Badge variant="secondary">
-                        {t(ROLE_KEYS[member.role])}
-                      </Badge>
-                    )}
-                  </TableCell>
-                  {canRemove && (
+                return (
+                  <TableRow
+                    data-member-email={member.user.email}
+                    data-testid="organization-member-row"
+                    key={member.id}
+                  >
                     <TableCell>
-                      {canRemoveMember && (
-                        <AlertDialog>
-                          <AlertDialogTrigger
-                            aria-label={`${t("organization.removeMember")}: ${member.user.name}`}
-                            render={<Button size="sm" variant="destructive" />}
+                      <div className="flex items-center gap-3">
+                        <UserAvatar size="sm" user={member.user} />
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-sm">
+                            {member.user.name}
+                          </p>
+                          <p className="truncate text-muted-foreground text-xs">
+                            {member.user.email}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {canEditRole ? (
+                        <Select
+                          onValueChange={(value) => {
+                            if (isManageableRole(value)) {
+                              onRoleChange(member, value);
+                            }
+                          }}
+                          value={member.role}
+                        >
+                          <SelectTrigger
+                            aria-label={`${t("organization.memberRole")}: ${member.user.name}, ${t(ROLE_KEYS[member.role])}`}
+                            className="w-32"
                           >
-                            {t("organization.removeMember")}
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                {t("organization.removeMemberConfirmTitle")}
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t("organization.removeMemberConfirmDescription", {
-                                  name: member.user.name,
-                                })}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>
-                                {t("common.cancel")}
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                disabled={removingId === member.id}
-                                onClick={() => onRemove(member)}
-                                variant="destructive"
-                              >
-                                {t("organization.removeMember")}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                            <SelectValue>
+                              {t(ROLE_KEYS[member.role])}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent align="end">
+                            {MANAGEABLE_ROLES.map((role) => (
+                              <SelectItem key={role} value={role}>
+                                {t(ROLE_KEYS[role])}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge variant="secondary">
+                          {t(ROLE_KEYS[member.role])}
+                        </Badge>
                       )}
                     </TableCell>
-                  )}
-                </TableRow>
-              );
-            })}
-          </TableBody>
+                    {!!canRemove && (
+                      <TableCell>
+                        {!!canRemoveMember && (
+                          <AlertDialog>
+                            <AlertDialogTrigger
+                              aria-label={`${t("organization.removeMember")}: ${member.user.name}`}
+                              render={
+                                <Button size="sm" variant="destructive" />
+                              }
+                            >
+                              {t("organization.removeMember")}
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  {t("organization.removeMemberConfirmTitle")}
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {t(
+                                    "organization.removeMemberConfirmDescription",
+                                    {
+                                      name: member.user.name,
+                                    }
+                                  )}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>
+                                  {t("common.cancel")}
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  disabled={removingId === member.id}
+                                  onClick={() => onRemove(member)}
+                                  variant="destructive"
+                                >
+                                  {t("organization.removeMember")}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
           </Table>
         )}
       </div>

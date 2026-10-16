@@ -79,7 +79,7 @@ describe("external extension artifact verification", () => {
           url: "./main.js",
         },
         status: "active",
-      }),
+      })
     );
     const plugins = {
       artifacts: store(),
@@ -96,11 +96,11 @@ describe("external extension artifact verification", () => {
         id: "example.calendar",
         version: "1.0.0",
       },
-      plugins,
+      plugins
     );
 
     expect(parsed.script.url).toBe(
-      "https://raw.githubusercontent.com/example/extensions/abc123/artifacts/example.calendar/1.0.0/main.js",
+      "https://raw.githubusercontent.com/example/extensions/abc123/artifacts/example.calendar/1.0.0/main.js"
     );
   });
 
@@ -121,8 +121,8 @@ describe("external extension artifact verification", () => {
         },
         1024,
         plugins,
-        { allowNetwork: false },
-      ),
+        { allowNetwork: false }
+      )
     ).resolves.toEqual(expected);
     expect(plugins.fetch).not.toHaveBeenCalled();
   });
@@ -143,8 +143,8 @@ describe("external extension artifact verification", () => {
         },
         1024,
         plugins,
-        { allowNetwork: false },
-      ),
+        { allowNetwork: false }
+      )
     ).rejects.toThrow("not cached");
     expect(plugins.fetch).not.toHaveBeenCalled();
   });
@@ -164,7 +164,7 @@ describe("external extension artifact verification", () => {
         url: pluginScriptUrl,
       },
       1024,
-      plugins,
+      plugins
     );
     expect(value).toEqual(expected);
     expect(artifacts.delete).toHaveBeenCalledOnce();
@@ -186,8 +186,8 @@ describe("external extension artifact verification", () => {
           url: pluginScriptUrl,
         },
         1024,
-        plugins,
-      ),
+        plugins
+      )
     ).rejects.toThrow("checksum");
   });
 
@@ -207,8 +207,8 @@ describe("external extension artifact verification", () => {
           url: pluginScriptUrl,
         },
         1024,
-        plugins,
-      ),
+        plugins
+      )
     ).rejects.toThrow("size does not match catalog");
     expect(artifacts.put).not.toHaveBeenCalled();
   });
@@ -229,8 +229,8 @@ describe("external extension artifact verification", () => {
           url: pluginScriptUrl,
         },
         1024,
-        plugins,
-      ),
+        plugins
+      )
     ).rejects.toThrow("cache is corrupt");
   });
 });
@@ -243,17 +243,17 @@ describe("external extension command capabilities", () => {
     } as const;
 
     expect(() =>
-      assertCommandStorageScope(storage, storage.cover, "file"),
+      assertCommandStorageScope(storage, storage.cover, "file")
     ).not.toThrow();
     expect(() =>
       assertCommandStorageScope(
         storage,
         { kind: "file", storageId: "storage_other" },
-        "file",
-      ),
+        "file"
+      )
     ).toThrow("Command file storage scope mismatch");
     expect(() =>
-      assertCommandStorageScope(storage, storage.content, "file"),
+      assertCommandStorageScope(storage, storage.content, "file")
     ).toThrow("Command file storage scope mismatch");
   });
 });
@@ -289,11 +289,16 @@ describe("external extension loading", () => {
       status: "active",
       ...overrides,
     };
-    const encodedDescriptor = new TextEncoder().encode(JSON.stringify(descriptor));
+    const encodedDescriptor = new TextEncoder().encode(
+      JSON.stringify(descriptor)
+    );
     const plugins = {
       artifacts: store(),
-      fetch: vi.fn(async (url: string | URL | Request) =>
-        new Response(String(url) === descriptorUrl ? encodedDescriptor : script),
+      fetch: vi.fn(
+        async (url: string | URL | Request) =>
+          new Response(
+            String(url) === descriptorUrl ? encodedDescriptor : script
+          )
       ),
     } as unknown as PlatformPlugins;
     return {
@@ -313,9 +318,9 @@ describe("external extension loading", () => {
 
   it("rejects blocked, incompatible, and unsupported releases before startup", async () => {
     const blocked = await createLoadingFixture({ status: "blocked" });
-    await expect(loadExternalPlugin(blocked.reference, blocked.plugins)).rejects.toThrow(
-      "version is blocked",
-    );
+    await expect(
+      loadExternalPlugin(blocked.reference, blocked.plugins)
+    ).rejects.toThrow("version is blocked");
 
     const incompatible = await createLoadingFixture({
       api: "^99.0.0",
@@ -325,26 +330,31 @@ describe("external extension loading", () => {
       },
     });
     await expect(
-      loadExternalPlugin(incompatible.reference, incompatible.plugins),
+      loadExternalPlugin(incompatible.reference, incompatible.plugins)
     ).rejects.toThrow("requires API");
 
     const unsupported = await createLoadingFixture({
       runtime: { kind: "iframe", protocol: 99 },
     });
     await expect(
-      loadExternalPlugin(unsupported.reference, unsupported.plugins),
+      loadExternalPlugin(unsupported.reference, unsupported.plugins)
     ).rejects.toThrow("expected 6 or 7");
     expect(sandboxSession.start).not.toHaveBeenCalled();
   });
 
   it("aggregates sandbox startup and cleanup failures", async () => {
-    sandboxSession.start.mockReset().mockRejectedValue(new Error("startup failed"));
-    sandboxSession.deactivate.mockReset().mockRejectedValue(new Error("cleanup failed"));
+    sandboxSession.start
+      .mockReset()
+      .mockRejectedValue(new Error("startup failed"));
+    sandboxSession.deactivate
+      .mockReset()
+      .mockRejectedValue(new Error("cleanup failed"));
     const fixture = await createLoadingFixture();
 
-    const error = await loadExternalPlugin(fixture.reference, fixture.plugins).catch(
-      (caught) => caught,
-    );
+    const error = await loadExternalPlugin(
+      fixture.reference,
+      fixture.plugins
+    ).catch((caught) => caught);
 
     expect(error).toBeInstanceOf(AggregateError);
     expect(error.errors).toEqual([
@@ -356,9 +366,11 @@ describe("external extension loading", () => {
   it("skips missing icons and does not cache assets for blocked releases", async () => {
     const fixture = await createLoadingFixture({ status: "blocked" });
     await expect(
-      loadExternalPluginIcon(fixture.descriptor as never, fixture.plugins),
+      loadExternalPluginIcon(fixture.descriptor as never, fixture.plugins)
     ).resolves.toBeNull();
-    await expect(cachePluginRelease(fixture.reference, fixture.plugins)).resolves.toMatchObject({
+    await expect(
+      cachePluginRelease(fixture.reference, fixture.plugins)
+    ).resolves.toMatchObject({
       status: "blocked",
     });
     expect(fixture.plugins.fetch).toHaveBeenCalledOnce();
@@ -396,13 +408,16 @@ describe("external extension loading", () => {
       },
       status: "active",
     };
-    const encodedDescriptor = new TextEncoder().encode(JSON.stringify(descriptor));
+    const encodedDescriptor = new TextEncoder().encode(
+      JSON.stringify(descriptor)
+    );
     const plugins = {
       artifacts: store(),
-      fetch: vi.fn(async (url: string | URL | Request) =>
-        new Response(
-          String(url) === descriptorUrl ? encodedDescriptor : script,
-        ),
+      fetch: vi.fn(
+        async (url: string | URL | Request) =>
+          new Response(
+            String(url) === descriptorUrl ? encodedDescriptor : script
+          )
       ),
     } as unknown as PlatformPlugins;
     sandboxSession.start.mockResolvedValue({
@@ -452,7 +467,9 @@ describe("external extension loading", () => {
         if (handler === "payload-write:example.calendar:default") {
           const documentUpdate = (
             input as {
-              context: { storage: { content: { documentUpdate: ArrayBuffer } } };
+              context: {
+                storage: { content: { documentUpdate: ArrayBuffer } };
+              };
             }
           ).context.storage.content.documentUpdate;
           const sandboxDoc = new Doc();
@@ -462,7 +479,8 @@ describe("external extension loading", () => {
             sandboxDoc.getMap("metadata").set("title", "migrated");
             return {
               content: {
-                documentUpdate: encodeStateAsUpdateV2(sandboxDoc, stateVector).buffer,
+                documentUpdate: encodeStateAsUpdateV2(sandboxDoc, stateVector)
+                  .buffer,
                 kind: "yjs",
               },
             };
@@ -471,7 +489,7 @@ describe("external extension loading", () => {
           }
         }
         return { value: {} };
-      },
+      }
     );
 
     const loaded = await loadExternalPlugin(
@@ -484,12 +502,14 @@ describe("external extension loading", () => {
         id: manifest.id,
         version: manifest.version,
       },
-      plugins,
+      plugins
     );
     const activation = await preparePluginActivation(loaded.plugin);
     const resourceType = getResourceTypeContributions(activation)[0];
     const view = getViewContributions(activation)[0];
-    if (!resourceType || !view) throw new Error("Fixture contribution missing");
+    if (!(resourceType && view)) {
+      throw new Error("Fixture contribution missing");
+    }
     const document = new Doc();
     document.getMap("metadata").set("title", "stored");
     const context = {
@@ -514,7 +534,7 @@ describe("external extension loading", () => {
     expect(writeInput).not.toHaveProperty("context.document");
     expect(writeInput).toHaveProperty(
       "context.storage.content.documentUpdate",
-      expect.any(ArrayBuffer),
+      expect.any(ArrayBuffer)
     );
 
     const reportReady = vi.fn();
@@ -539,19 +559,20 @@ describe("external extension loading", () => {
     rendered.props.surfaceCapabilities?.["renderer.reportReady"]?.();
     expect(reportReady).toHaveBeenCalledOnce();
 
-    const status = view.target.kind === "resource"
-      ? view.statusBar?.({
-          params: { mode: "month" },
-          resource: {
-            parentId: null,
-            resourceId: "resource-1",
-            resourceTypeId: "example.calendar",
-            schemaId: "example.calendar.schema",
-            schemaVersion: 1,
-          },
-          storage: { content: { kind: "yjs", storageId: "storage-1" } },
-        })
-      : undefined;
+    const status =
+      view.target.kind === "resource"
+        ? view.statusBar?.({
+            params: { mode: "month" },
+            resource: {
+              parentId: null,
+              resourceId: "resource-1",
+              resourceTypeId: "example.calendar",
+              schemaId: "example.calendar.schema",
+              schemaVersion: 1,
+            },
+            storage: { content: { kind: "yjs", storageId: "storage-1" } },
+          })
+        : undefined;
     expect(status).toMatchObject({
       props: {
         params: expect.objectContaining({ params: { mode: "month" } }),
@@ -593,14 +614,17 @@ describe("external extension loading", () => {
       },
       status: "active",
     };
-    const encodedDescriptor = new TextEncoder().encode(JSON.stringify(descriptor));
+    const encodedDescriptor = new TextEncoder().encode(
+      JSON.stringify(descriptor)
+    );
     const artifacts = store();
     const plugins = {
       artifacts,
-      fetch: vi.fn(async (url: string | URL | Request) =>
-        new Response(
-          String(url) === descriptorUrl ? encodedDescriptor : script,
-        ),
+      fetch: vi.fn(
+        async (url: string | URL | Request) =>
+          new Response(
+            String(url) === descriptorUrl ? encodedDescriptor : script
+          )
       ),
     } as unknown as PlatformPlugins;
     sandboxSession.start.mockResolvedValue({
@@ -610,9 +634,10 @@ describe("external extension loading", () => {
     });
     let finishCleanup: (() => void) | undefined;
     sandboxSession.deactivate.mockImplementation(
-      () => new Promise<void>((resolve) => {
-        finishCleanup = resolve;
-      }),
+      () =>
+        new Promise<void>((resolve) => {
+          finishCleanup = resolve;
+        })
     );
 
     const loading = loadExternalPlugin(
@@ -625,14 +650,18 @@ describe("external extension loading", () => {
         id: manifest.id,
         version: manifest.version,
       },
-      plugins,
+      plugins
     );
     const rejected = vi.fn();
     void loading.catch(rejected);
-    await vi.waitFor(() => expect(sandboxSession.deactivate).toHaveBeenCalledOnce());
+    await vi.waitFor(() =>
+      expect(sandboxSession.deactivate).toHaveBeenCalledOnce()
+    );
 
     expect(rejected).not.toHaveBeenCalled();
     finishCleanup?.();
-    await expect(loading).rejects.toThrow("module id does not match descriptor");
+    await expect(loading).rejects.toThrow(
+      "module id does not match descriptor"
+    );
   });
 });

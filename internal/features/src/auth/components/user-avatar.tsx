@@ -31,7 +31,8 @@ interface UserAvatarProps extends Omit<ComponentProps<typeof Avatar>, "ref"> {
 export function UserAvatar({ user, size, ...avatarProps }: UserAvatarProps) {
   const gravatarSize = GRAVATAR_SIZE[size ?? "default"];
   const avatarUrl = useAvatarUrl(user?.image ? user.id : undefined);
-  const src = avatarUrl ?? useGravatarUrl(user?.email, gravatarSize);
+  const gravatarUrl = useGravatarUrl(user?.email, gravatarSize);
+  const src = avatarUrl ?? gravatarUrl;
   return (
     <Avatar size={size} {...avatarProps}>
       <AvatarImage alt={user?.name ?? ""} src={src ?? undefined} />

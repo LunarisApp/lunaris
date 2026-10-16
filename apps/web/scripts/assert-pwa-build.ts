@@ -19,9 +19,11 @@ const serviceWorker = readFileSync(path.join(distDirectory, "sw.js"), "utf8");
 
 const initialJsUrls = [
   ...new Set(
-    [...html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="([^"]+\.js)"[^>]*>/g)].map(
-      ([, url]) => url,
-    ),
+    [
+      ...html.matchAll(
+        /<(?:script|link)\b[^>]*(?:src|href)="([^"]+\.js)"[^>]*>/g
+      ),
+    ].map(([, url]) => url)
   ),
 ];
 if (initialJsUrls.length === 0) {
@@ -29,10 +31,12 @@ if (initialJsUrls.length === 0) {
 }
 
 const forbiddenInitialUrl = initialJsUrls.find((url) =>
-  FORBIDDEN_INITIAL_CHUNK.test(url),
+  FORBIDDEN_INITIAL_CHUNK.test(url)
 );
 if (forbiddenInitialUrl) {
-  throw new Error(`Editor-only chunk loaded at startup: ${forbiddenInitialUrl}`);
+  throw new Error(
+    `Editor-only chunk loaded at startup: ${forbiddenInitialUrl}`
+  );
 }
 
 const initialJsGzipBytes = initialJsUrls.reduce((total, url) => {
@@ -41,7 +45,7 @@ const initialJsGzipBytes = initialJsUrls.reduce((total, url) => {
 }, 0);
 if (initialJsGzipBytes > MAX_INITIAL_JS_GZIP_BYTES) {
   throw new Error(
-    `Initial JS is ${(initialJsGzipBytes / 1024).toFixed(1)} KiB gzip; limit is 650 KiB`,
+    `Initial JS is ${(initialJsGzipBytes / 1024).toFixed(1)} KiB gzip; limit is 650 KiB`
   );
 }
 
@@ -51,33 +55,30 @@ if (precacheUrls.size === 0) {
 }
 
 const distFileUrls = collectDistFileUrls(distDirectory);
-const missingPrecacheUrls = findMissingPrecacheUrls(
-  distFileUrls,
-  precacheUrls,
-);
+const missingPrecacheUrls = findMissingPrecacheUrls(distFileUrls, precacheUrls);
 if (missingPrecacheUrls.length > 0) {
   throw new Error(
-    `PWA precache is missing ${missingPrecacheUrls.length} build assets: ${missingPrecacheUrls.slice(0, 10).join(", ")}`,
+    `PWA precache is missing ${missingPrecacheUrls.length} build assets: ${missingPrecacheUrls.slice(0, 10).join(", ")}`
   );
 }
 
 const precacheBytes = [...precacheUrls].reduce(
   (total, url) =>
     total + statSync(path.join(distDirectory, url.replace(/^\//, ""))).size,
-  0,
+  0
 );
 
 if (precacheUrls.size > MAX_PRECACHE_ENTRIES) {
   throw new Error(
-    `PWA precache has ${precacheUrls.size} entries; limit is ${MAX_PRECACHE_ENTRIES}`,
+    `PWA precache has ${precacheUrls.size} entries; limit is ${MAX_PRECACHE_ENTRIES}`
   );
 }
 if (precacheBytes > MAX_PRECACHE_BYTES) {
   throw new Error(
-    `PWA precache is ${(precacheBytes / 1024 / 1024).toFixed(2)} MiB; limit is 60 MiB`,
+    `PWA precache is ${(precacheBytes / 1024 / 1024).toFixed(2)} MiB; limit is 60 MiB`
   );
 }
 
 console.info(
-  `PWA budgets: ${initialJsUrls.length} startup JS files, ${(initialJsGzipBytes / 1024).toFixed(1)} KiB gzip; ${precacheUrls.size} precache entries, ${(precacheBytes / 1024 / 1024).toFixed(2)} MiB`,
+  `PWA budgets: ${initialJsUrls.length} startup JS files, ${(initialJsGzipBytes / 1024).toFixed(1)} KiB gzip; ${precacheUrls.size} precache entries, ${(precacheBytes / 1024 / 1024).toFixed(2)} MiB`
 );

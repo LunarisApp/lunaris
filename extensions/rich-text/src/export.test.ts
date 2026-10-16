@@ -20,7 +20,12 @@ vi.mock("./pdf/generator", () => ({
 }));
 
 vi.mock("./docx/generator", () => ({ generateDocx: mocks.generateDocx }));
-vi.mock("react-i18next", () => ({ getI18n: () => ({ t: (_key: string, options: { defaultValue: string }) => options.defaultValue }) }));
+vi.mock("react-i18next", () => ({
+  getI18n: () => ({
+    t: (_key: string, options: { defaultValue: string }) =>
+      options.defaultValue,
+  }),
+}));
 
 import {
   exportResourceAsDocx,
@@ -107,7 +112,7 @@ describe("rich-text export", () => {
     mocks.generateDocx.mockResolvedValue({ blob, missingImages: 2 });
     try {
       await expect(
-        exportResourceAsDocx(db, "doc-1", "Résumé Notes"),
+        exportResourceAsDocx(db, "doc-1", "Résumé Notes")
       ).resolves.toEqual({ missingImages: 2 });
       expect(mocks.compileBlocks).toHaveBeenCalledWith(db, "doc-1");
       expect(mocks.generateDocx).toHaveBeenCalledWith([], "Résumé Notes", {
@@ -128,9 +133,8 @@ describe("rich-text export", () => {
     mocks.compileBlocks.mockResolvedValue([]);
     mocks.generateDocx.mockRejectedValueOnce(new Error("Packing failed"));
     await expect(exportResourceAsDocx(db, "doc-1", "Notes")).rejects.toThrow(
-      "Packing failed",
+      "Packing failed"
     );
     expect(click).not.toHaveBeenCalled();
   });
-
 });

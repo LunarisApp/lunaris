@@ -83,13 +83,7 @@ describe("getWorkspacePath", () => {
 
   it("builds a canonical plugin subview path", () => {
     expect(
-      getWorkspaceSubviewPath(
-        "ws-abc",
-        "novel",
-        "item_board",
-        "task",
-        "task_1"
-      )
+      getWorkspaceSubviewPath("ws-abc", "novel", "item_board", "task", "task_1")
     ).toBe("/ws-abc/novel/item_board/task/task_1");
   });
 });

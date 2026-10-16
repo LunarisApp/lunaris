@@ -74,7 +74,9 @@ afterEach(() => {
 
 describe("useDefaultTemplateWorkspaceSeeder", () => {
   it("skips when marker is absent", () => {
-    render(<Seeder currentUserEmail="user@example.com" organizationId="org_1" />);
+    render(
+      <Seeder currentUserEmail="user@example.com" organizationId="org_1" />
+    );
 
     expect(seedDefaultTemplateWorkspaceMock).not.toHaveBeenCalled();
   });
@@ -90,7 +92,9 @@ describe("useDefaultTemplateWorkspaceSeeder", () => {
     render(<Seeder currentUserEmail={null} organizationId="org_1" />);
 
     expect(seedDefaultTemplateWorkspaceMock).not.toHaveBeenCalled();
-    expect(localStorage.getItem("lunaris_pending_default_workspace_seed")).toBeNull();
+    expect(
+      localStorage.getItem("lunaris_pending_default_workspace_seed")
+    ).toBeNull();
   });
 
   it("clears registered marker on email mismatch", () => {
@@ -99,10 +103,14 @@ describe("useDefaultTemplateWorkspaceSeeder", () => {
       email: "first@example.com",
     });
 
-    render(<Seeder currentUserEmail="second@example.com" organizationId="org_1" />);
+    render(
+      <Seeder currentUserEmail="second@example.com" organizationId="org_1" />
+    );
 
     expect(seedDefaultTemplateWorkspaceMock).not.toHaveBeenCalled();
-    expect(localStorage.getItem("lunaris_pending_default_workspace_seed")).toBeNull();
+    expect(
+      localStorage.getItem("lunaris_pending_default_workspace_seed")
+    ).toBeNull();
   });
 
   it("waits for session email before resolving registered marker", () => {
@@ -135,7 +143,9 @@ describe("useDefaultTemplateWorkspaceSeeder", () => {
       });
     });
     await waitFor(() => {
-      expect(localStorage.getItem("lunaris_pending_default_workspace_seed")).toBeNull();
+      expect(
+        localStorage.getItem("lunaris_pending_default_workspace_seed")
+      ).toBeNull();
     });
   });
 
@@ -145,9 +155,13 @@ describe("useDefaultTemplateWorkspaceSeeder", () => {
 
     render(<Seeder currentUserEmail={null} organizationId="org_1" />);
 
-    await waitFor(() => expect(reserveResourceCapacityMock).toHaveBeenCalledWith(15));
+    await waitFor(() =>
+      expect(reserveResourceCapacityMock).toHaveBeenCalledWith(15)
+    );
     expect(seedDefaultTemplateWorkspaceMock).not.toHaveBeenCalled();
-    expect(localStorage.getItem("lunaris_pending_default_workspace_seed")).not.toBeNull();
+    expect(
+      localStorage.getItem("lunaris_pending_default_workspace_seed")
+    ).not.toBeNull();
   });
 
   it("waits while workspaces query is loading", () => {

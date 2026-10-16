@@ -79,5 +79,9 @@ export type {
   WorkspaceResourcesMap,
   WorkspaceResourceTrashMap,
 } from "./types";
-export { isFolder, parseResourceIcon, resolveWorkspaceResourceIcon } from "./types";
+export {
+  isFolder,
+  parseResourceIcon,
+  resolveWorkspaceResourceIcon,
+} from "./types";
 export { getAncestorPath } from "./utils";

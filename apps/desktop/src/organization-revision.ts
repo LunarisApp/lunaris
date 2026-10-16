@@ -5,7 +5,7 @@ export interface OrganizationRevisionFields {
 }
 
 export async function organizationRevision(
-  organization: OrganizationRevisionFields,
+  organization: OrganizationRevisionFields
 ): Promise<string> {
   const canonical = JSON.stringify({
     logo: organization.logo,
@@ -14,16 +14,18 @@ export async function organizationRevision(
   });
   const digest = await crypto.subtle.digest(
     "SHA-256",
-    new TextEncoder().encode(canonical),
+    new TextEncoder().encode(canonical)
   );
   return encodeBase64Url(new Uint8Array(digest));
 }
 
 function encodeBase64Url(value: Uint8Array) {
   let binary = "";
-  for (const byte of value) binary += String.fromCharCode(byte);
+  for (const byte of value) {
+    binary += String.fromCharCode(byte);
+  }
   return btoa(binary)
     .replaceAll("+", "-")
     .replaceAll("/", "_")
-    .replace(/=+$/u, "");
+    .replace(/[=]+$/u, "");
 }

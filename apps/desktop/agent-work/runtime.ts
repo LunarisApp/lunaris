@@ -45,7 +45,7 @@ export class AgentWorkRuntime {
 
   constructor(
     private readonly directory: string,
-    private readonly emit: (output: RuntimeEvent) => void,
+    private readonly emit: (output: RuntimeEvent) => void
   ) {
     mkdirSync(directory, { recursive: true, mode: 0o700 });
     this.sessionsDirectory = join(directory, "sessions");
@@ -53,14 +53,14 @@ export class AgentWorkRuntime {
     this.auth = AuthStorage.create(join(directory, "auth.json"));
     this.registry = ModelRegistry.create(
       this.auth,
-      join(directory, "models.json"),
+      join(directory, "models.json")
     );
   }
 
   private messages(): AgentWorkMessage[] {
     const messages = projectMessages(
       this.session?.messages ?? [],
-      new Set(this.pendingTools.keys()),
+      new Set(this.pendingTools.keys())
     );
     return this.streamingMessage
       ? [...messages, this.streamingMessage]
@@ -81,7 +81,9 @@ export class AgentWorkRuntime {
   }
 
   private schedulePublish() {
-    if (this.publishTimer) return;
+    if (this.publishTimer) {
+      return;
+    }
     this.publishTimer = setTimeout(() => {
       this.publishTimer = undefined;
       this.publish();
@@ -101,7 +103,7 @@ export class AgentWorkRuntime {
   }
 
   private async createSession(
-    manager = SessionManager.create(this.directory, this.sessionsDirectory),
+    manager = SessionManager.create(this.directory, this.sessionsDirectory)
   ) {
     this.session?.dispose();
     this.streamingMessage = undefined;
@@ -124,7 +126,7 @@ export class AgentWorkRuntime {
     const restored = manager.buildSessionContext().model;
     const model = this.registry.find(
       provider,
-      restored?.provider === provider ? restored.modelId : this.selectedModel,
+      restored?.provider === provider ? restored.modelId : this.selectedModel
     );
     const { session } = await createAgentSession({
       cwd: this.directory,
@@ -197,7 +199,9 @@ export class AgentWorkRuntime {
           timestamp: event.message.timestamp,
         };
       }
-      if (event.type === "message_end") this.streamingMessage = undefined;
+      if (event.type === "message_end") {
+        this.streamingMessage = undefined;
+      }
       this.schedulePublish();
     });
   }
@@ -220,7 +224,7 @@ export class AgentWorkRuntime {
               id: envelope.data.id,
               error: "Invalid Agent Work command",
             }
-          : { type: "error", message: "Invalid Agent Work command" },
+          : { type: "error", message: "Invalid Agent Work command" }
       );
       return;
     }
@@ -232,8 +236,11 @@ export class AgentWorkRuntime {
           const result = command;
           const pending = this.pendingTools.get(result.toolCallId);
           this.pendingTools.delete(result.toolCallId);
-          if (result.error) pending?.reject(new Error(String(result.result)));
-          else pending?.resolve(result.result);
+          if (result.error) {
+            pending?.reject(new Error(String(result.result)));
+          } else {
+            pending?.resolve(result.result);
+          }
           break;
         }
         case "auth_input": {
@@ -255,8 +262,9 @@ export class AgentWorkRuntime {
           await this.refreshSessions();
           break;
         default:
-          if (this.busy)
+          if (this.busy) {
             throw new Error("Wait for the current operation or stop it first");
+          }
           this.busy = true;
           this.publish();
           try {
@@ -285,7 +293,7 @@ export class AgentWorkRuntime {
         const timeout = setTimeout(
           () =>
             this.authInput?.reject(new Error("Login timed out. Try again.")),
-          5 * 60_000,
+          5 * 60_000
         );
         try {
           await this.auth.login(provider, {
@@ -294,7 +302,7 @@ export class AgentWorkRuntime {
             onPrompt: ({ message }) => this.waitForAuthInput(message),
             onManualCodeInput: () =>
               this.waitForAuthInput(
-                "Paste the redirect URL if the browser does not finish signing in.",
+                "Paste the redirect URL if the browser does not finish signing in."
               ),
           });
         } finally {
@@ -313,33 +321,44 @@ export class AgentWorkRuntime {
       case "open_session": {
         const sessions = await SessionManager.list(
           this.directory,
-          this.sessionsDirectory,
+          this.sessionsDirectory
         );
         const existing = sessions.find(
-          (entry) => entry.id === command.sessionId,
+          (entry) => entry.id === command.sessionId
         );
-        if (!existing) throw new Error("Conversation not found");
+        if (!existing) {
+          throw new Error("Conversation not found");
+        }
         await this.createSession(
           SessionManager.open(
             existing.path,
             this.sessionsDirectory,
-            this.directory,
-          ),
+            this.directory
+          )
         );
         break;
       }
       case "prompt": {
         const { text, modelId } = command;
-        if (!this.auth.has(provider))
+        if (!this.auth.has(provider)) {
           throw new Error("Connect your ChatGPT account first");
+        }
         const model = this.registry.find(provider, modelId);
-        if (!model) throw new Error("Choose an available ChatGPT model");
+        if (!model) {
+          throw new Error("Choose an available ChatGPT model");
+        }
         this.selectedModel = modelId;
-        if (!this.session) await this.createSession();
+        if (!this.session) {
+          await this.createSession();
+        }
         const session = this.session;
-        if (!session) throw new Error("Conversation could not be created");
+        if (!session) {
+          throw new Error("Conversation could not be created");
+        }
         await session.setModel(model);
-        if (!session.messages.length) session.setSessionName(text.slice(0, 80));
+        if (!session.messages.length) {
+          session.setSessionName(text.slice(0, 80));
+        }
         await session.prompt(text, { expandPromptTemplates: false });
         break;
       }

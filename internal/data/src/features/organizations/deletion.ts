@@ -16,17 +16,19 @@ const CONTENT_TABLES = [
 export async function discardOrganizationUploads(
   db: Database,
   organizationId: string,
-  serverWorkspaceIds: readonly string[],
+  serverWorkspaceIds: readonly string[]
 ) {
   await db.writeTransaction(async (tx) => {
     const local = await tx.getAll<{ id: string }>(
       "SELECT id FROM workspaces WHERE organization_id = ?",
-      [organizationId],
+      [organizationId]
     );
     const ids = [
       ...new Set([...serverWorkspaceIds, ...local.map((row) => row.id)]),
     ];
-    if (!ids.length) return;
+    if (!ids.length) {
+      return;
+    }
     // JSON table avoids SQLite's bind-parameter limit for large organizations.
     const workspaces = "SELECT value FROM json_each(?)";
     const workspaceIds = JSON.stringify(ids);
@@ -36,12 +38,12 @@ export async function discardOrganizationUploads(
         json_extract(data, '$.id') IN (SELECT id FROM ${table} WHERE workspace_id IN (${workspaces}))
         OR json_extract(data, '$.data.workspace_id') IN (${workspaces})
       )`,
-        [table, workspaceIds, workspaceIds],
+        [table, workspaceIds, workspaceIds]
       );
     }
     await tx.execute(
       `DELETE FROM ps_crud WHERE json_extract(data, '$.type') = 'workspaces' AND json_extract(data, '$.id') IN (${workspaces})`,
-      [workspaceIds],
+      [workspaceIds]
     );
   });
 }

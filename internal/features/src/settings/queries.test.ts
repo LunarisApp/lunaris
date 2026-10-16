@@ -31,7 +31,9 @@ describe("preloadSettingsData", () => {
       queryClient,
     });
 
-    expect(prefetchQuery.mock.calls.map(([options]) => options.queryKey)).toEqual([
+    expect(
+      prefetchQuery.mock.calls.map(([options]) => options.queryKey)
+    ).toEqual([
       settingsQueryKeys.securityAccounts(),
       settingsQueryKeys.securitySessions(),
     ]);
@@ -52,9 +54,9 @@ describe("preloadSettingsData", () => {
       error: { message: "Session service unavailable" },
     });
 
-    await expect(
-      securitySessionsQueryOptions(auth).queryFn(),
-    ).rejects.toThrow("Session service unavailable");
+    await expect(securitySessionsQueryOptions(auth).queryFn()).rejects.toThrow(
+      "Session service unavailable"
+    );
   });
 
   it("preserves stale-session errors for reauthentication", async () => {

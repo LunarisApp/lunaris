@@ -17,7 +17,7 @@ describe("auth redirect helpers", () => {
     expect(getAccountSwitchTargetUserId(state)).toBe("user-2");
     expect(getAccountSwitchTargetUserId(null)).toBeNull();
     expect(
-      getAccountSwitchTargetUserId({ accountSwitchTargetUserId: 2 }),
+      getAccountSwitchTargetUserId({ accountSwitchTargetUserId: 2 })
     ).toBeNull();
   });
 
@@ -40,7 +40,7 @@ describe("auth redirect helpers", () => {
     expect(url.pathname).toBe("/auth");
     expect(url.searchParams.get("region")).toBe("us");
     expect(url.searchParams.get("redirectTo")).toBe(
-      "/workspaces/novel?region=us&view=board#outline",
+      "/workspaces/novel?region=us&view=board#outline"
     );
   });
 
@@ -55,7 +55,7 @@ describe("auth redirect helpers", () => {
     expect(url.pathname).toBe("/auth");
     expect(url.searchParams.get("addAccount")).toBe("true");
     expect(url.searchParams.get("redirectTo")).toBe(
-      "/organization/workspace?region=us#outline",
+      "/organization/workspace?region=us#outline"
     );
   });
 
@@ -73,7 +73,7 @@ describe("auth redirect helpers", () => {
         fallbackPath: "/?region=us",
         redirectTo: "https://evil.example/steal",
         regionId: "us",
-      }),
+      })
     ).toBe("/?region=us");
   });
 
@@ -83,7 +83,7 @@ describe("auth redirect helpers", () => {
         fallbackPath: "/?region=us",
         redirectTo: "/auth/email?region=us",
         regionId: "us",
-      }),
+      })
     ).toBe("/?region=us");
   });
 
@@ -93,10 +93,8 @@ describe("auth redirect helpers", () => {
         fallbackPath: "/?region=us",
         redirectTo: "/auth/accept-invitation?invitationId=invite-1",
         regionId: "us",
-      }),
-    ).toBe(
-      "/auth/accept-invitation?invitationId=invite-1&region=us",
-    );
+      })
+    ).toBe("/auth/accept-invitation?invitationId=invite-1&region=us");
   });
 
   it("adds current region when redirect target omits it", () => {
@@ -105,7 +103,7 @@ describe("auth redirect helpers", () => {
         fallbackPath: "/?region=us",
         redirectTo: "/workspaces#team",
         regionId: "us",
-      }),
+      })
     ).toBe("/workspaces?region=us#team");
   });
 
@@ -115,7 +113,7 @@ describe("auth redirect helpers", () => {
         fallbackPath: "/?region=us",
         redirectTo: "/workspaces?region=eu#team",
         regionId: "us",
-      }),
+      })
     ).toBe("/workspaces?region=eu#team");
   });
 
@@ -123,10 +121,10 @@ describe("auth redirect helpers", () => {
     expect(
       appendRedirectToUrl(
         "https://lunaris.app/auth/verify-email?region=us",
-        "/workspaces?region=us#team",
-      ),
+        "/workspaces?region=us#team"
+      )
     ).toBe(
-      "https://lunaris.app/auth/verify-email?region=us&redirectTo=%2Fworkspaces%3Fregion%3Dus%23team",
+      "https://lunaris.app/auth/verify-email?region=us&redirectTo=%2Fworkspaces%3Fregion%3Dus%23team"
     );
   });
 });

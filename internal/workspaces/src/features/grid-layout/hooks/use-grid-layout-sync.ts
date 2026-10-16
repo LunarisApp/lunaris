@@ -38,10 +38,14 @@ function toAddGroupOptions(group: Group): AddGroupOptions {
 }
 
 function haveSameValues(left: ReadonlySet<string>, right: ReadonlySet<string>) {
-  if (left.size !== right.size) return false;
+  if (left.size !== right.size) {
+    return false;
+  }
 
   for (const value of left) {
-    if (!right.has(value)) return false;
+    if (!right.has(value)) {
+      return false;
+    }
   }
 
   return true;
@@ -52,10 +56,10 @@ function getAddedValue(
   next: ReadonlySet<string>
 ): string | undefined {
   for (const value of next) {
-    if (!previous.has(value)) return value;
+    if (!previous.has(value)) {
+      return value;
+    }
   }
-
-  return;
 }
 
 function haveSameRecordValues(
@@ -65,10 +69,14 @@ function haveSameRecordValues(
   const leftEntries = Object.entries(left ?? {});
   const rightEntries = Object.entries(right ?? {});
 
-  if (leftEntries.length !== rightEntries.length) return false;
+  if (leftEntries.length !== rightEntries.length) {
+    return false;
+  }
 
   for (const [key, value] of leftEntries) {
-    if (right?.[key] !== value) return false;
+    if (right?.[key] !== value) {
+      return false;
+    }
   }
 
   return true;
@@ -114,8 +122,10 @@ export function useGridLayoutSync({
     const updateGroupSizeSnapshot = (acceptGroupChange = false) => {
       const groupIds = new Set(dockview.groups.map((group) => group.id));
       if (
-        !acceptGroupChange &&
-        !haveSameValues(groupIdsSnapshotRef.current, groupIds)
+        !(
+          acceptGroupChange ||
+          haveSameValues(groupIdsSnapshotRef.current, groupIds)
+        )
       ) {
         return;
       }
@@ -149,7 +159,8 @@ export function useGridLayoutSync({
       const groupIds = new Set(dockview.groups.map((entry) => entry.id));
       restoreAddedDockviewGroupSizes({
         groups: dockview.groups,
-        addedGroupId: getAddedValue(groupIdsSnapshotRef.current, groupIds) ?? group.id,
+        addedGroupId:
+          getAddedValue(groupIdsSnapshotRef.current, groupIds) ?? group.id,
         snapshot: groupSizeSnapshotRef.current,
       });
       updateGroupSizeSnapshot(true);

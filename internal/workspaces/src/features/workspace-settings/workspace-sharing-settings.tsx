@@ -47,21 +47,22 @@ export function WorkspaceSharingSettings({
   const members = query.data?.items ?? [];
   const grantedUserIds = useMemo(
     () => new Set(members.map((item) => item.user.id)),
-    [members],
+    [members]
   );
   const candidates = (organizationMembers.data ?? []).filter(
-    (item) =>
-      item.user.id !== ownerId && !grantedUserIds.has(item.user.id),
+    (item) => item.user.id !== ownerId && !grantedUserIds.has(item.user.id)
   );
 
   const mutate = async (
     operation: () => Promise<unknown>,
-    options: { refetch?: boolean } = {},
+    options: { refetch?: boolean } = {}
   ) => {
     setBusy(true);
     try {
       await operation();
-      if (options.refetch !== false) await query.refetch();
+      if (options.refetch !== false) {
+        await query.refetch();
+      }
       return true;
     } catch (error) {
       showError(error);
@@ -72,11 +73,13 @@ export function WorkspaceSharingSettings({
   };
 
   const addMember = async () => {
-    if (!selectedUserId) return;
+    if (!selectedUserId) {
+      return;
+    }
     const added = await mutate(() =>
       api.post(`${workspacePath}/members`, {
         body: { role, userId: selectedUserId },
-      }),
+      })
     );
     if (added) {
       setSelectedUserId("");
@@ -89,7 +92,7 @@ export function WorkspaceSharingSettings({
     void mutate(async () => {
       await api.patch(
         `${workspacePath}/members/${encodeURIComponent(memberId)}`,
-        { body: { role: nextRole } },
+        { body: { role: nextRole } }
       );
       posthog.capture("workspace_member_role_updated", { role: nextRole });
     });
@@ -98,7 +101,7 @@ export function WorkspaceSharingSettings({
   const removeMember = (memberId: string) => {
     void mutate(async () => {
       await api.delete(
-        `${workspacePath}/members/${encodeURIComponent(memberId)}`,
+        `${workspacePath}/members/${encodeURIComponent(memberId)}`
       );
       posthog.capture("workspace_member_revoked");
     });
@@ -112,7 +115,7 @@ export function WorkspaceSharingSettings({
         });
         posthog.capture("workspace_ownership_transferred");
       },
-      { refetch: false },
+      { refetch: false }
     );
   };
 

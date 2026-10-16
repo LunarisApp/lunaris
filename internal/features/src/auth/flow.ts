@@ -11,14 +11,16 @@ export type EmailAuthContinuationState = z.infer<
 >;
 
 export function parseEmailAuthContinuationState(
-  state: unknown,
+  state: unknown
 ): EmailAuthContinuationState | null {
   const result = continuationStateSchema.safeParse(state);
   return result.success ? result.data : null;
 }
 
 export function getEmailPrefill(state: unknown) {
-  if (!state || typeof state !== "object" || !("email" in state)) return "";
+  if (!state || typeof state !== "object" || !("email" in state)) {
+    return "";
+  }
   const result = z.string().email().safeParse(state.email);
   return result.success ? result.data : "";
 }

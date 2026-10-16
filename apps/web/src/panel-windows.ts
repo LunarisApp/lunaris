@@ -16,8 +16,12 @@ interface PendingWindow {
 const pending = new Map<string, PendingWindow>();
 
 window.addEventListener("message", (event: MessageEvent<unknown>) => {
-  if (event.origin !== window.location.origin) return;
-  if (!event.data || typeof event.data !== "object") return;
+  if (event.origin !== window.location.origin) {
+    return;
+  }
+  if (!event.data || typeof event.data !== "object") {
+    return;
+  }
   const data = event.data as Record<string, unknown>;
   if (
     data.type !== READY_MESSAGE ||
@@ -28,13 +32,17 @@ window.addEventListener("message", (event: MessageEvent<unknown>) => {
   }
 
   const entry = pending.get(data.transferId);
-  if (!entry || event.source !== entry.child || data.token !== entry.token) return;
+  if (!entry || event.source !== entry.child || data.token !== entry.token) {
+    return;
+  }
   pending.delete(data.transferId);
   entry.resolve();
 });
 
 function currentWindowId() {
-  const fromUrl = new URLSearchParams(window.location.search).get("panelWindow");
+  const fromUrl = new URLSearchParams(window.location.search).get(
+    "panelWindow"
+  );
   return fromUrl ?? `web-${crypto.randomUUID()}`;
 }
 
@@ -75,7 +83,10 @@ function open(request: PanelWindowOpenRequest) {
 
 async function acknowledge(acknowledgement: PanelWindowAcknowledgement) {
   if (!window.opener) {
-    throw new PanelWindowError("open_failed", "Panel window opener is unavailable");
+    throw new PanelWindowError(
+      "open_failed",
+      "Panel window opener is unavailable"
+    );
   }
   window.opener.postMessage(
     {

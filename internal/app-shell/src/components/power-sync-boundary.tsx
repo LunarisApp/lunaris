@@ -12,10 +12,7 @@ import { ApiProvider } from "@repo/features/api";
 import { DebugLoggingSync } from "@repo/features/debug-logging";
 import { EntitlementsProvider } from "@repo/features/entitlements";
 import { LoaderView } from "@repo/features/loading";
-import {
-  type RegionManifest,
-  useRegionClients,
-} from "@repo/features/region";
+import { type RegionManifest, useRegionClients } from "@repo/features/region";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppRuntime } from "../runtime";
@@ -30,7 +27,7 @@ interface ReadyPowerSyncBoundaryProps {
 
 export function PowerSyncBoundary({ children }: { children: ReactNode }) {
   const { apiClient, authClient, manifest } = useRegionClients();
-  if (!authClient || !apiClient || !manifest) {
+  if (!(authClient && apiClient && manifest)) {
     return <LoaderView />;
   }
 
@@ -53,10 +50,7 @@ function ReadyPowerSyncBoundary({
 }: ReadyPowerSyncBoundaryProps) {
   return (
     <ApiProvider client={apiClient}>
-      <EntitledPowerSyncBoundary
-        authClient={authClient}
-        manifest={manifest}
-      >
+      <EntitledPowerSyncBoundary authClient={authClient} manifest={manifest}>
         {children}
       </EntitledPowerSyncBoundary>
     </ApiProvider>
@@ -82,7 +76,11 @@ function EntitledPowerSyncBoundary({
     isAnonymous,
   });
 
-  const { boot, error: bootError, retry } = usePowerSyncBoot({
+  const {
+    boot,
+    error: bootError,
+    retry,
+  } = usePowerSyncBoot({
     apiUrl,
     createPowerSyncSession,
     organizationId: activeOrganization?.id,
@@ -94,17 +92,19 @@ function EntitledPowerSyncBoundary({
   if (isOfflineEncryptionKeyError(bootError)) {
     return (
       <PanelError
-        actions={
-          <Button onClick={retry}>{t("common.retry")}</Button>
-        }
+        actions={<Button onClick={retry}>{t("common.retry")}</Button>}
         description={t("errors.offlineUnlock.desc")}
         icon={CloudOffIcon}
         title={t("errors.offlineUnlock.title")}
       />
     );
   }
-  if (bootError) throw bootError;
-  if (!boot) return <LoaderView />;
+  if (bootError) {
+    throw bootError;
+  }
+  if (!boot) {
+    return <LoaderView />;
+  }
 
   return (
     <PowerSyncProvider

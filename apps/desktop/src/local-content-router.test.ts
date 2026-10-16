@@ -28,7 +28,7 @@ describe("routeLocalContentRequest", () => {
       "ws",
       "workspace",
       "storage",
-      expect.not.objectContaining({ consistency: expect.anything() }),
+      expect.not.objectContaining({ consistency: expect.anything() })
     );
   });
 
@@ -46,7 +46,7 @@ describe("routeLocalContentRequest", () => {
       body: { name: "Renamed" },
       headers: {
         "idempotency-key": "request-key",
-        "if-match": "\"revision-1\"",
+        "if-match": '"revision-1"',
       },
       id: "request-2",
       method: "PATCH",
@@ -58,7 +58,7 @@ describe("routeLocalContentRequest", () => {
     expect(content.updateOrganization).toHaveBeenCalledWith(
       "ws",
       { expectedRevision: "revision-1", name: "Renamed" },
-      { idempotencyKey: "request-key" },
+      { idempotencyKey: "request-key" }
     );
   });
 
@@ -86,7 +86,7 @@ describe("routeLocalContentRequest", () => {
     expect(control.createWorkspace).toHaveBeenCalledWith(
       "ws",
       { name: "Workspace", slug: "workspace", visibility: "local" },
-      { idempotencyKey: "request-key" },
+      { idempotencyKey: "request-key" }
     );
   });
 
@@ -107,7 +107,7 @@ describe("routeLocalContentRequest", () => {
       },
       headers: {
         "idempotency-key": "request-key",
-        "if-match": "\"revision-1\"",
+        "if-match": '"revision-1"',
       },
       id: "plugin-write",
       method: "POST",
@@ -127,7 +127,7 @@ describe("routeLocalContentRequest", () => {
         properties: { Status: "Done" },
         taskId: "task-1",
       },
-      { idempotencyKey: "request-key" },
+      { idempotencyKey: "request-key" }
     );
   });
 
@@ -152,7 +152,7 @@ describe("routeLocalContentRequest", () => {
       "lunaris.kanban",
       "get_board_properties",
       { boardId: "board-1" },
-      expect.objectContaining({ consistency: "cached" }),
+      expect.objectContaining({ consistency: "cached" })
     );
   });
 
@@ -193,7 +193,7 @@ describe("routeLocalContentRequest", () => {
     expect(content.listWorkspaces).toHaveBeenCalledWith(
       "ws",
       { limit: 50 },
-      expect.objectContaining({ consistency: "cached" }),
+      expect.objectContaining({ consistency: "cached" })
     );
   });
 

@@ -29,7 +29,7 @@ describe("openDatabaseWithKeyRecovery", () => {
         open: vi.fn().mockRejectedValue(MISMATCH),
         refreshKey: vi.fn().mockRejectedValue(new TypeError("offline")),
         wipe,
-      }),
+      })
     ).rejects.toBeInstanceOf(OfflineEncryptionKeyError);
     expect(wipe).not.toHaveBeenCalled();
   });
@@ -49,7 +49,7 @@ describe("openDatabaseWithKeyRecovery", () => {
         open,
         refreshKey: vi.fn().mockResolvedValue(NETWORK_KEY),
         wipe,
-      }),
+      })
     ).resolves.toEqual({ database, key: NETWORK_KEY });
     expect(open).toHaveBeenNthCalledWith(1, CACHED_KEY.key);
     expect(open).toHaveBeenNthCalledWith(2, NETWORK_KEY.key);
@@ -72,7 +72,7 @@ describe("openDatabaseWithKeyRecovery", () => {
         open,
         refreshKey: vi.fn().mockResolvedValue(NETWORK_KEY),
         wipe,
-      }),
+      })
     ).resolves.toEqual({ database, key: NETWORK_KEY });
     expect(wipe).toHaveBeenCalledTimes(1);
   });
@@ -88,7 +88,7 @@ describe("openDatabaseWithKeyRecovery", () => {
         open: vi.fn().mockRejectedValue(error),
         refreshKey: vi.fn(),
         wipe,
-      }),
+      })
     ).rejects.toBe(error);
     expect(wipe).not.toHaveBeenCalled();
   });

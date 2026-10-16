@@ -30,7 +30,7 @@ afterEach(() => {
   restoreEnv("VITE_POSTHOG_API_HOST", ORIGINAL_ENV.VITE_POSTHOG_API_HOST);
   restoreEnv(
     "VITE_REGION_DIRECTORY_JSON",
-    ORIGINAL_ENV.VITE_REGION_DIRECTORY_JSON,
+    ORIGINAL_ENV.VITE_REGION_DIRECTORY_JSON
   );
 });
 
@@ -65,18 +65,18 @@ describe("buildContentSecurityPolicy", () => {
     const policy = buildContentSecurityPolicy(true);
 
     expect(policy).toContain(
-      "connect-src 'self' blob: https: https://staging-api.example.com https://api-eu.example.com wss://staging-api.example.com wss://api-eu.example.com https://metrics.example.com https://gravatar.com https://t3.storageapi.dev https://lunaris.app https://*.lunaris.app wss://*.lunaris.app",
+      "connect-src 'self' blob: https: https://staging-api.example.com https://api-eu.example.com wss://staging-api.example.com wss://api-eu.example.com https://metrics.example.com https://gravatar.com https://t3.storageapi.dev https://lunaris.app https://*.lunaris.app wss://*.lunaris.app"
     );
     expect(policy).toContain(
-      "script-src 'self' blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg=' 'wasm-unsafe-eval' https://metrics.example.com",
+      "script-src 'self' blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg=' 'wasm-unsafe-eval' https://metrics.example.com"
     );
     expect(policy).toContain(
-      "script-src-elem 'self' blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg=' 'wasm-unsafe-eval' https://metrics.example.com",
+      "script-src-elem 'self' blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg=' 'wasm-unsafe-eval' https://metrics.example.com"
     );
     expect(policy).toContain("frame-src 'self' blob:");
     expect(policy).toContain("font-src 'self' data: blob:");
     expect(policy).toContain(
-      "img-src 'self' data: blob: https: https://gravatar.com https://t3.storageapi.dev https://staging-api.example.com https://api-eu.example.com https://*.lunaris.app http://localhost:* http://127.0.0.1:*",
+      "img-src 'self' data: blob: https: https://gravatar.com https://t3.storageapi.dev https://staging-api.example.com https://api-eu.example.com https://*.lunaris.app http://localhost:* http://127.0.0.1:*"
     );
   });
 
@@ -95,10 +95,10 @@ describe("buildContentSecurityPolicy", () => {
 
     expect(policy).not.toContain("upgrade-insecure-requests");
     expect(policy).toContain(
-      "connect-src 'self' blob: https: http://localhost:3000 ws://localhost:3000 https://gravatar.com https://t3.storageapi.dev https://lunaris.app https://*.lunaris.app wss://*.lunaris.app http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*",
+      "connect-src 'self' blob: https: http://localhost:3000 ws://localhost:3000 https://gravatar.com https://t3.storageapi.dev https://lunaris.app https://*.lunaris.app wss://*.lunaris.app http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*"
     );
     expect(policy).toContain(
-      "img-src 'self' data: blob: https: https://gravatar.com https://t3.storageapi.dev http://localhost:3000 https://*.lunaris.app http://localhost:* http://127.0.0.1:*",
+      "img-src 'self' data: blob: https: https://gravatar.com https://t3.storageapi.dev http://localhost:3000 https://*.lunaris.app http://localhost:* http://127.0.0.1:*"
     );
   });
 
@@ -127,10 +127,10 @@ describe("buildContentSecurityPolicy", () => {
     expect(policy).not.toContain("http://127.0.0.1:*");
     expect(policy).not.toContain("ws://127.0.0.1:*");
     expect(policy).toContain(
-      "connect-src 'self' blob: https: https://api.example.com wss://api.example.com https://gravatar.com https://t3.storageapi.dev https://lunaris.app https://*.lunaris.app wss://*.lunaris.app",
+      "connect-src 'self' blob: https: https://api.example.com wss://api.example.com https://gravatar.com https://t3.storageapi.dev https://lunaris.app https://*.lunaris.app wss://*.lunaris.app"
     );
     expect(policy).toContain(
-      "img-src 'self' data: blob: https: https://gravatar.com https://t3.storageapi.dev https://api.example.com https://*.lunaris.app",
+      "img-src 'self' data: blob: https: https://gravatar.com https://t3.storageapi.dev https://api.example.com https://*.lunaris.app"
     );
   });
 
@@ -143,16 +143,16 @@ describe("buildContentSecurityPolicy", () => {
     expect(policy).not.toContain("not a url");
     expect(policy).not.toContain("null");
     expect(policy).toContain(
-      "connect-src 'self' blob: https: https://gravatar.com https://t3.storageapi.dev https://lunaris.app https://*.lunaris.app wss://*.lunaris.app http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*",
+      "connect-src 'self' blob: https: https://gravatar.com https://t3.storageapi.dev https://lunaris.app https://*.lunaris.app wss://*.lunaris.app http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*"
     );
     expect(policy).toContain(
-      "script-src 'self' blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg=' 'wasm-unsafe-eval'",
+      "script-src 'self' blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg=' 'wasm-unsafe-eval'"
     );
     expect(policy).toContain(
-      "script-src-elem 'self' blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg=' 'wasm-unsafe-eval'",
+      "script-src-elem 'self' blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg=' 'wasm-unsafe-eval'"
     );
     expect(policy).toContain(
-      "img-src 'self' data: blob: https: https://gravatar.com https://t3.storageapi.dev https://*.lunaris.app http://localhost:* http://127.0.0.1:*",
+      "img-src 'self' data: blob: https: https://gravatar.com https://t3.storageapi.dev https://*.lunaris.app http://localhost:* http://127.0.0.1:*"
     );
   });
 });
@@ -176,10 +176,10 @@ describe("applySecurityHeaders", () => {
     applySecurityHeaders(httpHeaders, false);
 
     expect(httpsHeaders.get("Content-Security-Policy")).toContain(
-      "upgrade-insecure-requests",
+      "upgrade-insecure-requests"
     );
     expect(httpHeaders.get("Content-Security-Policy")).not.toContain(
-      "upgrade-insecure-requests",
+      "upgrade-insecure-requests"
     );
   });
 });
@@ -193,9 +193,9 @@ describe("applyCacheHeaders", () => {
       applyCacheHeaders(headers, pathname);
 
       expect(headers.get("Cache-Control")).toBe(
-        "no-cache, no-store, must-revalidate",
+        "no-cache, no-store, must-revalidate"
       );
-    },
+    }
   );
 
   test("prevents caching an SPA fallback under its route URL", () => {
@@ -204,7 +204,7 @@ describe("applyCacheHeaders", () => {
     applyCacheHeaders(headers, "/workspace/project", true);
 
     expect(headers.get("Cache-Control")).toBe(
-      "no-cache, no-store, must-revalidate",
+      "no-cache, no-store, must-revalidate"
     );
   });
 
@@ -218,7 +218,7 @@ describe("applyCacheHeaders", () => {
     applyCacheHeaders(headers, pathname);
 
     expect(headers.get("Cache-Control")).toBe(
-      "public, max-age=31536000, immutable",
+      "public, max-age=31536000, immutable"
     );
   });
 
@@ -230,7 +230,7 @@ describe("applyCacheHeaders", () => {
       applyCacheHeaders(headers, pathname);
 
       expect(headers.get("Cache-Control")).toBe("no-cache");
-    },
+    }
   );
 });
 
@@ -248,7 +248,7 @@ describe("createHealthResponse", () => {
 describe("handleRequest", () => {
   test("serves Railway health checks without redirecting HTTP", async () => {
     const response = await handleRequest(
-      new Request("http://railway.internal/health"),
+      new Request("http://railway.internal/health")
     );
 
     expect(response.status).toBe(200);

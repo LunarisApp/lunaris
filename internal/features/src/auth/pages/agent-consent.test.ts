@@ -9,7 +9,9 @@ import {
 } from "./agent-consent";
 
 const { regionClients } = vi.hoisted(() => ({
-  regionClients: { authClient: null as { $fetch: ReturnType<typeof vi.fn> } | null },
+  regionClients: {
+    authClient: null as { $fetch: ReturnType<typeof vi.fn> } | null,
+  },
 }));
 
 vi.mock("../../region", () => ({
@@ -27,14 +29,16 @@ vi.mock("react-i18next", () => ({
         return `${values?.client} wants permission`;
       }
       return (
-        {
-          "auth.agentConsentAllow": "Allow",
-          "auth.agentConsentDeny": "Deny",
-          "auth.agentConsentTitle": "Authorize agent",
-          "auth.agentConsentUnknownClient": "An AI client",
-          "auth.changeRegion": `Change region from ${values?.region}`,
-        } as Record<string, string>
-      )[key] ?? key;
+        (
+          {
+            "auth.agentConsentAllow": "Allow",
+            "auth.agentConsentDeny": "Deny",
+            "auth.agentConsentTitle": "Authorize agent",
+            "auth.agentConsentUnknownClient": "An AI client",
+            "auth.changeRegion": `Change region from ${values?.region}`,
+          } as Record<string, string>
+        )[key] ?? key
+      );
     },
   }),
 }));
@@ -47,7 +51,7 @@ describe("loadAgentClientName", () => {
     });
 
     await expect(
-      loadAgentClientName({ $fetch: fetch } as never, "random-client-id"),
+      loadAgentClientName({ $fetch: fetch } as never, "random-client-id")
     ).resolves.toBe("Lunaris CLI");
     expect(fetch).toHaveBeenCalledWith("/oauth2/public-client", {
       query: { client_id: "random-client-id" },
@@ -57,19 +61,22 @@ describe("loadAgentClientName", () => {
   it.each([
     { data: {}, error: null },
     { data: null, error: { message: "Client not found" } },
-  ])("uses the generic fallback when metadata is unavailable", async (result) => {
-    const fetch = vi.fn().mockResolvedValue(result);
+  ])(
+    "uses the generic fallback when metadata is unavailable",
+    async (result) => {
+      const fetch = vi.fn().mockResolvedValue(result);
 
-    await expect(
-      loadAgentClientName({ $fetch: fetch } as never, "random-client-id"),
-    ).resolves.toBeUndefined();
-  });
+      await expect(
+        loadAgentClientName({ $fetch: fetch } as never, "random-client-id")
+      ).resolves.toBeUndefined();
+    }
+  );
 
   it("uses the generic fallback when metadata loading fails", async () => {
     const fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
     await expect(
-      loadAgentClientName({ $fetch: fetch } as never, "random-client-id"),
+      loadAgentClientName({ $fetch: fetch } as never, "random-client-id")
     ).resolves.toBeUndefined();
   });
 });
@@ -95,17 +102,19 @@ describe("AgentConsentPage", () => {
         initialEntries: [
           "/auth/agent-consent?client_id=random-client-id&scope=workspace:read",
         ],
-      },
+      }
     );
 
     render(createElement(RouterProvider, { router }));
 
-    expect(await screen.findByText("Lunaris CLI wants permission")).toBeTruthy();
+    expect(
+      await screen.findByText("Lunaris CLI wants permission")
+    ).toBeTruthy();
     expect(screen.queryByText(/random-client-id/)).toBeNull();
 
     await act(async () => {
       await router.navigate(
-        "/auth/agent-consent?client_id=other-client-id&scope=workspace:read",
+        "/auth/agent-consent?client_id=other-client-id&scope=workspace:read"
       );
     });
 
@@ -124,7 +133,7 @@ describe("submitAgentConsent", () => {
     await submitAgentConsent(
       { $fetch: fetch } as never,
       true,
-      "client_id=cli&sig=signed",
+      "client_id=cli&sig=signed"
     );
 
     expect(fetch).toHaveBeenCalledWith("/oauth2/consent", {

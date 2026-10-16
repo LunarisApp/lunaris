@@ -27,7 +27,7 @@ export function AgentAuthForm({
       }}
     >
       <p className="text-sm">{t("agentWork.finishLogin")}</p>
-      {auth.url && (
+      {!!auth.url && (
         <a
           className="text-sm underline"
           href={auth.url}
@@ -37,7 +37,7 @@ export function AgentAuthForm({
           {t("agentWork.openLogin")}
         </a>
       )}
-      {auth.prompt && (
+      {!!auth.prompt && (
         <>
           <label className="block text-sm" htmlFor={authInputId}>
             {t("agentWork.pasteRedirect")}

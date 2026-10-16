@@ -1,7 +1,4 @@
-import type {
-  ImportDirectory,
-  ImportEntry,
-} from "./obsidian-import-service";
+import type { ImportDirectory, ImportEntry } from "./obsidian-import-service";
 
 interface NativeFileHandle {
   getFile: () => Promise<File>;
@@ -17,9 +14,10 @@ interface NativeDirectoryHandle {
 
 type NativeHandle = NativeDirectoryHandle | NativeFileHandle;
 
-type DirectoryPickerWindow = Window & typeof globalThis & {
-  showDirectoryPicker?: () => Promise<NativeDirectoryHandle>;
-};
+type DirectoryPickerWindow = Window &
+  typeof globalThis & {
+    showDirectoryPicker?: () => Promise<NativeDirectoryHandle>;
+  };
 
 type WebkitDirectoryFile = File & {
   webkitRelativePath?: string;
@@ -27,7 +25,9 @@ type WebkitDirectoryFile = File & {
 
 function sortEntries(entries: ImportEntry[]) {
   return entries.sort((a, b) => {
-    if (a.kind !== b.kind) return a.kind === "folder" ? -1 : 1;
+    if (a.kind !== b.kind) {
+      return a.kind === "folder" ? -1 : 1;
+    }
     return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
   });
 }
@@ -67,8 +67,12 @@ async function readDirectoryEntries(
 }
 
 function addFileToTree(root: ImportDirectory, file: WebkitDirectoryFile) {
-  const parts = (file.webkitRelativePath || file.name).split("/").filter(Boolean);
-  if (parts.length === 0) return;
+  const parts = (file.webkitRelativePath || file.name)
+    .split("/")
+    .filter(Boolean);
+  if (parts.length === 0) {
+    return;
+  }
 
   root.name = root.name || parts[0] || "Imported Workspace";
   let children = root.children;
@@ -99,7 +103,9 @@ function fileListToImportDirectory(files: FileList): ImportDirectory | null {
     addFileToTree(root, file);
   }
 
-  if (root.children.length === 0) return null;
+  if (root.children.length === 0) {
+    return null;
+  }
   root.children = sortEntries(root.children);
   return {
     name: root.name || "Imported Workspace",

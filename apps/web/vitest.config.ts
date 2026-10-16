@@ -9,8 +9,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "virtual:pwa-register/react": resolve(
-        __dirname,
-        "src/test-stubs/pwa-register.ts",
+        import.meta.dirname,
+        "src/test-stubs/pwa-register.ts"
       ),
     },
   },

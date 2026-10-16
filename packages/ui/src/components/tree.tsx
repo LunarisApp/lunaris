@@ -95,10 +95,7 @@ function TreeItem<T = any>({
   const { indent } = parentContext;
 
   const itemProps = typeof item.getProps === "function" ? item.getProps() : {};
-  const mergedProps = mergeProps<"button">(
-    { ...props, children },
-    itemProps
-  );
+  const mergedProps = mergeProps<"button">({ ...props, children }, itemProps);
 
   // Extract style from mergedProps to merge with our custom styles
   const { style: propStyle, ...otherProps } = mergedProps;
@@ -113,28 +110,20 @@ function TreeItem<T = any>({
     "data-slot": "tree-item",
     style: mergedStyle,
     className: cn(
-      "z-10 ps-(--tree-padding) outline-hidden select-none not-last:pb-0.5 focus:z-20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "z-10 select-none ps-(--tree-padding) not-last:pb-0.5 outline-hidden focus:z-20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     ),
     "data-focus":
-      typeof item.isFocused === "function"
-        ? item.isFocused() || false
-        : undefined,
+      typeof item.isFocused === "function" ? item.isFocused() : undefined,
     "data-folder":
-      typeof item.isFolder === "function"
-        ? item.isFolder() || false
-        : undefined,
+      typeof item.isFolder === "function" ? item.isFolder() : undefined,
     "data-selected":
-      typeof item.isSelected === "function"
-        ? item.isSelected() || false
-        : undefined,
+      typeof item.isSelected === "function" ? item.isSelected() : undefined,
     "data-drag-target":
-      typeof item.isDragTarget === "function"
-        ? item.isDragTarget() || false
-        : undefined,
+      typeof item.isDragTarget === "function" ? item.isDragTarget() : undefined,
     "data-search-match":
       typeof item.isMatchingSearch === "function"
-        ? item.isMatchingSearch() || false
+        ? item.isMatchingSearch()
         : undefined,
     "aria-expanded": item.isExpanded(),
   };
@@ -181,20 +170,20 @@ function TreeItemLabel<T = any>({
         (toggleIconType === "plus-minus" ? (
           item.isExpanded() ? (
             <HugeiconsIcon
-              className="text-muted-foreground size-3.5"
+              className="size-3.5 text-muted-foreground"
               icon={MinusSignIcon}
               strokeWidth={1}
             />
           ) : (
             <HugeiconsIcon
-              className="text-muted-foreground size-3.5"
+              className="size-3.5 text-muted-foreground"
               icon={PlusSignIcon}
               strokeWidth={1}
             />
           )
         ) : (
           <HugeiconsIcon
-            className="text-muted-foreground size-4 in-aria-[expanded=false]:-rotate-90"
+            className="size-4 in-aria-[expanded=false]:-rotate-90 text-muted-foreground"
             icon={ArrowDown01Icon}
           />
         ))}
@@ -218,7 +207,7 @@ function TreeDragLine({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "-mt-px before:-top-[3px] absolute z-30 h-0.5 w-[unset] bg-primary before:absolute before:left-0 before:size-2 before:rounded-full before:border-2 before:border-primary before:bg-background",
+        "absolute z-30 -mt-px h-0.5 w-[unset] bg-primary before:absolute before:-top-[3px] before:left-0 before:size-2 before:rounded-full before:border-2 before:border-primary before:bg-background",
         className
       )}
       style={dragLine}

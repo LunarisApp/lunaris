@@ -11,7 +11,9 @@ const EnvSchema = z.object({
     .string()
     .optional()
     .transform((value, ctx) => {
-      if (!value) return undefined;
+      if (!value) {
+        return;
+      }
       try {
         return parseRegionDirectory(JSON.parse(value));
       } catch (error) {
@@ -23,10 +25,7 @@ const EnvSchema = z.object({
         return z.NEVER;
       }
     }),
-  REGION_DIRECTORY_URL: z
-    .string()
-    .url()
-    .default(DEFAULT_REGION_DIRECTORY_URL),
+  REGION_DIRECTORY_URL: z.string().url().default(DEFAULT_REGION_DIRECTORY_URL),
 
   POSTHOG_URL: z.string().url().optional(),
   POSTHOG_KEY: z.string().optional(),
@@ -34,7 +33,7 @@ const EnvSchema = z.object({
   POSTHOG_WORKSPACE_ID: z
     .string()
     .regex(/^\d+$/)
-    .transform((val) => parseInt(val, 10))
+    .transform((val) => Number.parseInt(val, 10))
     .optional(),
 
   SENTRY_DSN: z.string().optional(),
@@ -48,8 +47,13 @@ const env = createEnv(EnvSchema, {
     import.meta.env.VITE_ALLOW_INLINE_REGION_DIRECTORY === "true"
       ? import.meta.env.VITE_REGION_DIRECTORY_JSON
       : undefined,
-  REGION_DIRECTORY_URL: import.meta.env.VITE_REGION_DIRECTORY_URL?.startsWith("/")
-    ? new URL(import.meta.env.VITE_REGION_DIRECTORY_URL, createBrowserPlatform({ kind: "web" }).navigation.origin()).href
+  REGION_DIRECTORY_URL: import.meta.env.VITE_REGION_DIRECTORY_URL?.startsWith(
+    "/"
+  )
+    ? new URL(
+        import.meta.env.VITE_REGION_DIRECTORY_URL,
+        createBrowserPlatform({ kind: "web" }).navigation.origin()
+      ).href
     : import.meta.env.VITE_REGION_DIRECTORY_URL,
   POSTHOG_KEY: import.meta.env.VITE_POSTHOG_KEY,
   POSTHOG_ORG: import.meta.env.VITE_POSTHOG_ORG,

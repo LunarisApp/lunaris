@@ -8,7 +8,7 @@ export function EmailSummary({ email }: { email: string }) {
   const { pathWithRedirect } = useAuthRedirect();
 
   return (
-    <div className="bg-muted/50 flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
+    <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/50 px-3 py-2">
       <span className="min-w-0 truncate text-sm">{email}</span>
       <Button
         className="h-auto shrink-0 p-0"

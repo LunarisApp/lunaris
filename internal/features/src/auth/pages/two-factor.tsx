@@ -24,11 +24,8 @@ export default function TwoFactorPage() {
   const auth = useAuth();
   const navigate = useNavigate();
   const { data: session } = auth.useSession();
-  const {
-    isAddingAccount,
-    pathWithRedirect,
-    resolvedRedirectTo,
-  } = useAuthRedirect();
+  const { isAddingAccount, pathWithRedirect, resolvedRedirectTo } =
+    useAuthRedirect();
   const [method, setMethod] = useState<VerificationMethod>("totp");
   const [code, setCode] = useState("");
   const [trustDevice, setTrustDevice] = useState(false);
@@ -47,7 +44,9 @@ export default function TwoFactorPage() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!code || submitting) return;
+    if (!code || submitting) {
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -73,7 +72,7 @@ export default function TwoFactorPage() {
         replace: true,
         state: createAccountSwitchNavigationState(
           result.data?.user?.id,
-          isAddingAccount,
+          isAddingAccount
         ),
       });
     } catch (err) {
@@ -125,7 +124,7 @@ export default function TwoFactorPage() {
               setCode(
                 isTotp
                   ? event.target.value.replace(/\D/g, "").slice(0, 6)
-                  : event.target.value.trim(),
+                  : event.target.value.trim()
               )
             }
             pattern={isTotp ? "[0-9]*" : undefined}

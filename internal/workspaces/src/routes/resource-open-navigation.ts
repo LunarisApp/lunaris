@@ -24,8 +24,12 @@ export function resolveResourceOpenKind(
   requestedOpenKind: "deep_link" | undefined,
   existingPanel: ExistingResourceView | undefined
 ): ResourceOpenKind {
-  if (requestedOpenKind) return requestedOpenKind;
-  if (!existingPanel) return "new";
+  if (requestedOpenKind) {
+    return requestedOpenKind;
+  }
+  if (!existingPanel) {
+    return "new";
+  }
   return existingPanel.isUnloaded ? "unloaded" : "loaded";
 }
 
@@ -65,7 +69,9 @@ export function trackResourceViewActivation({
   "resourceId" | "resourceTypeId" | "preloadRenderer"
 >): void {
   // Tree/search navigation starts before Dockview emits activation.
-  if (hasPendingResourceOpen(resourceId)) return;
+  if (hasPendingResourceOpen(resourceId)) {
+    return;
+  }
   const ready = isResourceViewReady(resourceId);
   prepareResourceOpen({
     resourceId,
@@ -73,5 +79,7 @@ export function trackResourceViewActivation({
     preloadRenderer,
     existingPanel: { isUnloaded: !ready },
   });
-  if (ready) reportResourceOpenReady(resourceId);
+  if (ready) {
+    reportResourceOpenReady(resourceId);
+  }
 }

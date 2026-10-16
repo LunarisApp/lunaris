@@ -35,7 +35,9 @@ export function ExtensionIdeaDialog() {
   const [status, setStatus] = useState<SubmissionStatus>("idle");
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (status === "submitting") return;
+    if (status === "submitting") {
+      return;
+    }
 
     setOpen(nextOpen);
     if (!nextOpen) {
@@ -46,7 +48,9 @@ export function ExtensionIdeaDialog() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!idea.trim() || status === "submitting") return;
+    if (!idea.trim() || status === "submitting") {
+      return;
+    }
 
     setStatus("submitting");
     try {
@@ -69,7 +73,7 @@ export function ExtensionIdeaDialog() {
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
       <DialogTrigger
-        render={<Button className="w-full @xl:w-auto" variant="outline" />}
+        render={<Button className="@xl:w-auto w-full" variant="outline" />}
       >
         <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} />
         {t("extensions.interestTrigger")}
@@ -86,7 +90,11 @@ export function ExtensionIdeaDialog() {
                 aria-hidden="true"
                 className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
               >
-                <HugeiconsIcon className="size-5" icon={Tick02Icon} strokeWidth={2} />
+                <HugeiconsIcon
+                  className="size-5"
+                  icon={Tick02Icon}
+                  strokeWidth={2}
+                />
               </span>
               <DialogTitle className="min-w-0 break-words text-lg leading-tight">
                 {t("extensions.interestSuccessTitle")}
@@ -154,7 +162,9 @@ export function ExtensionIdeaDialog() {
                 maxLength={2000}
                 onChange={(event) => {
                   setIdea(event.target.value);
-                  if (status === "error") setStatus("idle");
+                  if (status === "error") {
+                    setStatus("idle");
+                  }
                 }}
                 placeholder={t("extensions.interestIdeaPlaceholder")}
                 required
@@ -163,7 +173,7 @@ export function ExtensionIdeaDialog() {
               {status === "error" && (
                 <p
                   aria-live="polite"
-                  className="text-sm text-destructive"
+                  className="text-destructive text-sm"
                   id="extension-request-error"
                   role="alert"
                 >

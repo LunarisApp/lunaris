@@ -13,10 +13,7 @@ export const workspaceSlugSchema = string()
     /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
     "Slug must be lowercase with hyphens only"
   )
-  .refine(
-    (slug) => !RESERVED_WORKSPACE_SLUGS.has(slug),
-    "Slug is reserved"
-  );
+  .refine((slug) => !RESERVED_WORKSPACE_SLUGS.has(slug), "Slug is reserved");
 
 export const createWorkspaceSchema = object({
   name: string().min(3, "Name must be at least 3 characters"),

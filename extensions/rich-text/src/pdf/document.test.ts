@@ -33,16 +33,15 @@ vi.mock("@react-pdf/renderer", () => {
   };
 });
 
-function flattenChildren(node: unknown): Array<ReactElement<PdfNodeProps>> {
-  if (!node || typeof node !== "object") return [];
+function flattenChildren(node: unknown): ReactElement<PdfNodeProps>[] {
+  if (!node || typeof node !== "object") {
+    return [];
+  }
   const element = node as ReactElement<PdfNodeProps>;
   const children = element.props?.children;
   const childList = Array.isArray(children) ? children : [children];
 
-  return [
-    element,
-    ...childList.flatMap((child) => flattenChildren(child)),
-  ];
+  return [element, ...childList.flatMap((child) => flattenChildren(child))];
 }
 
 describe("renderDocument", () => {

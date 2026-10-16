@@ -20,10 +20,14 @@ function emptyStore(): EntitlementSnapshotStore {
 }
 
 function readStore(): EntitlementSnapshotStore {
-  if (typeof localStorage === "undefined") return emptyStore();
+  if (typeof localStorage === "undefined") {
+    return emptyStore();
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return emptyStore();
+    if (!raw) {
+      return emptyStore();
+    }
     const parsed = JSON.parse(raw) as unknown;
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       return emptyStore();
@@ -46,11 +50,10 @@ function readStore(): EntitlementSnapshotStore {
 export function readEntitlementSnapshot(
   regionId: string,
   userId: string,
-  organizationId: string,
+  organizationId: string
 ): EntitlementSnapshot | null {
-  const record = readStore().records[
-    snapshotId(regionId, userId, organizationId)
-  ];
+  const record =
+    readStore().records[snapshotId(regionId, userId, organizationId)];
   const parsed = entitlementSnapshotSchema.safeParse(record);
   return parsed.success && parsed.data.organizationId === organizationId
     ? parsed.data
@@ -66,17 +69,23 @@ export function writeEntitlementSnapshot(
   regionId: string,
   userId: string,
   organizationId: string,
-  snapshot: EntitlementSnapshot,
+  snapshot: EntitlementSnapshot
 ): void {
-  if (typeof localStorage === "undefined") return;
+  if (typeof localStorage === "undefined") {
+    return;
+  }
   const parsed = entitlementSnapshotSchema.safeParse(snapshot);
-  if (!parsed.success || parsed.data.organizationId !== organizationId) return;
+  if (!parsed.success || parsed.data.organizationId !== organizationId) {
+    return;
+  }
   const store = readStore();
   store.records[snapshotId(regionId, userId, organizationId)] = parsed.data;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
 }
 
 export function clearEntitlementSnapshots(): void {
-  if (typeof localStorage === "undefined") return;
+  if (typeof localStorage === "undefined") {
+    return;
+  }
   localStorage.removeItem(STORAGE_KEY);
 }

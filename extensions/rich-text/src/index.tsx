@@ -90,52 +90,52 @@ function toggleVersionHistorySidebar({
   );
 }
 
-function translateAction(
-  key: string,
-  fallback: string
-): string {
+function translateAction(key: string, fallback: string): string {
   return getI18n().t(key, { defaultValue: fallback });
 }
 
 function exportDocument(
   context: ResourceCommandContext,
-  format: "markdown" | "pdf" | "docx",
+  format: "markdown" | "pdf" | "docx"
 ): void {
   const resourceReadContext = context.resourceReadContext;
   const resourceId = context.resourceId;
   const content = context.storage.content;
-  if (!content || content.kind !== "yjs") return;
+  if (content?.kind !== "yjs") {
+    return;
+  }
   const documentName = context.resourceName.trim() || "Untitled";
   const toastId =
-    format !== "markdown"
-      ? toast.loading(
+    format === "markdown"
+      ? undefined
+      : toast.loading(
           translateAction(
             format === "docx"
               ? "extensions.catalog.lunaris.rich-text.exportDocxGenerating"
               : "extensions.catalog.lunaris.rich-text.exportPdfGenerating",
-            format === "docx" ? "Generating DOCX…" : "Generating PDF…",
-          ),
-        )
-      : undefined;
+            format === "docx" ? "Generating DOCX…" : "Generating PDF…"
+          )
+        );
   const exportPromise = (async () => {
     await context.waitForYjsPersistence(content);
     const module = await import("./export");
-    if (format === "docx")
+    if (format === "docx") {
       return module.exportResourceAsDocx(
         resourceReadContext,
         resourceId,
-        documentName,
+        documentName
       );
+    }
     return format === "pdf"
       ? module.exportDocumentAsPdf(
           resourceReadContext,
           resourceId,
-          documentName,
+          documentName
         )
       : module.exportDocumentAsMarkdown(
           resourceReadContext,
           resourceId,
-          documentName,
+          documentName
         );
   })();
 
@@ -146,9 +146,9 @@ function exportDocument(
         toast.warning(
           translateAction(
             "extensions.catalog.lunaris.rich-text.exportDocxMissingImages",
-            "DOCX downloaded; some images were unavailable",
+            "DOCX downloaded; some images were unavailable"
           ),
-          { id: toastId },
+          { id: toastId }
         );
       } else if (toastId !== undefined) {
         toast.success(
@@ -156,9 +156,9 @@ function exportDocument(
             format === "docx"
               ? "extensions.catalog.lunaris.rich-text.exportDocxSuccess"
               : "extensions.catalog.lunaris.rich-text.exportPdfSuccess",
-            format === "docx" ? "DOCX downloaded" : "PDF downloaded",
+            format === "docx" ? "DOCX downloaded" : "PDF downloaded"
           ),
-          { id: toastId },
+          { id: toastId }
         );
       }
     })
@@ -173,10 +173,13 @@ function exportDocument(
       });
       const message = translateAction(
         "extensions.catalog.lunaris.rich-text.exportFailed",
-        "Unable to export document",
+        "Unable to export document"
       );
-      if (toastId === undefined) toast.error(message);
-      else toast.error(message, { id: toastId });
+      if (toastId === undefined) {
+        toast.error(message);
+      } else {
+        toast.error(message, { id: toastId });
+      }
     });
 }
 
@@ -184,7 +187,9 @@ function copyPage(context: ResourceCommandContext): void {
   const resourceReadContext = context.resourceReadContext;
   const resourceId = context.resourceId;
   const content = context.storage.content;
-  if (!content || content.kind !== "yjs") return;
+  if (content?.kind !== "yjs") {
+    return;
+  }
   const copyPromise = (async () => {
     await context.waitForYjsPersistence(content);
     const module = await import("./markdown-actions");
@@ -225,7 +230,9 @@ function openPageInChat(
   const resourceReadContext = context.resourceReadContext;
   const resourceId = context.resourceId;
   const content = context.storage.content;
-  if (!content || content.kind !== "yjs") return;
+  if (content?.kind !== "yjs") {
+    return;
+  }
   const targetWindow = window.open("about:blank", "_blank");
   if (targetWindow) {
     targetWindow.opener = null;
@@ -293,7 +300,10 @@ function useYjsPersistenceState(
 ): PluginYjsPersistenceState {
   const subscribe = useCallback(
     (listener: () => void) =>
-      provider?.subscribePersistenceState(listener) ?? (() => {}),
+      provider?.subscribePersistenceState(listener) ??
+      (() => {
+        /* No action while this capability is unavailable. */
+      }),
     [provider]
   );
   const getSnapshot = useCallback(
@@ -372,17 +382,17 @@ export function RichTextEditor({
     >
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="min-h-0 flex-1 overflow-y-auto">
-        <Suspense fallback={<RichTextSkeleton />}>
-          <ViewReady reportReady={reportReady}>
-            <RichTextEditorInner
+          <Suspense fallback={<RichTextSkeleton />}>
+            <ViewReady reportReady={reportReady}>
+              <RichTextEditorInner
                 awareness={presence.awareness}
-              editable={canWriteContent}
-              resourceId={resourceId ?? ""}
-              theme={theme}
-              yDoc={yDoc}
-            />
-          </ViewReady>
-        </Suspense>
+                editable={canWriteContent}
+                resourceId={resourceId ?? ""}
+                theme={theme}
+                yDoc={yDoc}
+              />
+            </ViewReady>
+          </Suspense>
         </div>
       </div>
       {isVersionHistoryOpen ? (
@@ -401,7 +411,9 @@ export function RichTextEditor({
 function RichTextStatsCount({ yDoc }: { yDoc: Doc }) {
   const counts = useRichTextStats(yDoc);
 
-  if (!counts) return null;
+  if (!counts) {
+    return null;
+  }
 
   return (
     <>
@@ -502,7 +514,7 @@ const richTextCommands: ResourceCommandContribution = {
       id: "version-history",
       labelKey: "common.versionHistory",
       onExecute: ({ resourceId }) => {
-        toggleVersionHistorySidebar({ resourceId: resourceId });
+        toggleVersionHistorySidebar({ resourceId });
       },
     },
   ],
@@ -557,15 +569,24 @@ function extractRichTextPayload(payload: unknown): string {
   const values: string[] = [];
   const visit = (value: unknown): void => {
     if (typeof value === "string") {
-      const text = value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-      if (text) values.push(text);
+      const text = value
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (text) {
+        values.push(text);
+      }
       return;
     }
     if (Array.isArray(value)) {
-      for (const item of value) visit(item);
+      for (const item of value) {
+        visit(item);
+      }
       return;
     }
-    if (!value || typeof value !== "object") return;
+    if (!value || typeof value !== "object") {
+      return;
+    }
     for (const [key, child] of Object.entries(value)) {
       if (
         key === "" ||
@@ -591,11 +612,15 @@ const richTextSearchIndexer: SearchIndexerContribution = {
 export const richTextPlugin = definePlugin({
   manifest,
   async activate({ contributions, slots }) {
-    const { richTextExporterRepresentation, richTextExporterRepresentations } = await import("./exporter-integration");
+    const { richTextExporterRepresentation, richTextExporterRepresentations } =
+      await import("./exporter-integration");
     contributions.resourceType(richTextResourceType);
     contributions.view(richTextView);
     contributions.command(richTextCommands);
-    slots.contribute(richTextExporterRepresentations, richTextExporterRepresentation);
+    slots.contribute(
+      richTextExporterRepresentations,
+      richTextExporterRepresentation
+    );
     contributions.searchIndexer(richTextSearchIndexer);
     contributions.locales({ en, es, fr, de, "pt-BR": ptBR });
   },

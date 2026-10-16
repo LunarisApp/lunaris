@@ -144,7 +144,7 @@ function ComposerCheckboxField({
   return (
     <span
       className={cn(
-        "inline-flex h-8 min-w-0 cursor-pointer items-center gap-2 overflow-hidden rounded-lg border border-border/70 bg-background/70 px-2.5 text-left text-xs text-muted-foreground shadow-none transition-colors hover:bg-muted/50 has-disabled:cursor-not-allowed has-disabled:opacity-50 dark:bg-input/30 dark:hover:bg-input/50",
+        "inline-flex h-8 min-w-0 cursor-pointer items-center gap-2 overflow-hidden rounded-lg border border-border/70 bg-background/70 px-2.5 text-left text-muted-foreground text-xs shadow-none transition-colors hover:bg-muted/50 has-disabled:cursor-not-allowed has-disabled:opacity-50 dark:bg-input/30 dark:hover:bg-input/50",
         className
       )}
     >

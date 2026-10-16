@@ -30,7 +30,11 @@ export interface WorkspaceExplorerActions {
       untitledLabel: string;
     }
   ) => Promise<void>;
-  moveResource: (resourceId: string, newParentId: string, newPosition: number) => Promise<void>;
+  moveResource: (
+    resourceId: string,
+    newParentId: string,
+    newPosition: number
+  ) => Promise<void>;
   purgeResources: (resourceIds: string[]) => Promise<void>;
   renameResource: (resourceId: string, newName: string) => Promise<void>;
   reorderChildren: (parentId: string, orderedIds: string[]) => Promise<void>;

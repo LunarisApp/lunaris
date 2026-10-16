@@ -16,7 +16,11 @@ export function WorkspaceUnavailableOffline({
   return (
     <PanelError
       actions={
-        <Button nativeButton={false} render={<Link to={backTo} />} variant="outline">
+        <Button
+          nativeButton={false}
+          render={<Link to={backTo} />}
+          variant="outline"
+        >
           {t("editor.backToWorkspaces")}
         </Button>
       }

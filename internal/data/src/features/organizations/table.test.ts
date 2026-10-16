@@ -5,7 +5,9 @@ describe("organization directory tables", () => {
   it("registers only the published directory columns", () => {
     const tables = createAppSchema().tables;
     const columns = (name: string) =>
-      tables.find((table) => table.name === name)?.columns.map((column) => column.name);
+      tables
+        .find((table) => table.name === name)
+        ?.columns.map((column) => column.name);
 
     expect(columns("organization")).toEqual([
       "name",
@@ -39,7 +41,7 @@ describe("organization directory tables", () => {
 
   it("registers membership lookup indexes", () => {
     const member = createAppSchema().tables.find(
-      (table) => table.name === "member",
+      (table) => table.name === "member"
     );
 
     expect(member?.indexes.map((index) => index.name)).toEqual([

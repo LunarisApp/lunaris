@@ -14,7 +14,7 @@ vi.mock("./awareness-connection", () => ({
     awareness: Awareness;
     status = "unavailable";
     callbacks = new Set<() => void>();
-    constructor(doc: Doc, ...args: unknown[]) {
+    constructor(doc: Doc, ..._args: unknown[]) {
       this.awareness = new Awareness(doc);
       this.awareness.setLocalState(null);
       connections.push(this);
@@ -27,11 +27,15 @@ vi.mock("./awareness-connection", () => ({
     acquire = () => {
       this.status = "connected";
       this.awareness.setLocalState({ user: { id: "self", name: "Self" } });
-      for (const fn of this.callbacks) fn();
+      for (const fn of this.callbacks) {
+        fn();
+      }
       return () => {
         this.status = "unavailable";
         this.awareness.setLocalState(null);
-        for (const fn of this.callbacks) fn();
+        for (const fn of this.callbacks) {
+          fn();
+        }
       };
     };
   },
@@ -42,15 +46,19 @@ function setup() {
     {} as ApiClient,
     "workspace",
     "resource",
-    { content: { kind: "yjs", storageId: "slot" } },
+    { content: { kind: "yjs", storageId: "slot" } }
   );
   managers.push(manager);
   manager.setActive(true);
   return manager;
 }
 afterEach(() => {
-  managers.splice(0).forEach((m) => m.destroy());
-  connections.splice(0).forEach((c) => c.awareness.destroy());
+  managers.splice(0).forEach((m) => {
+    m.destroy();
+  });
+  connections.splice(0).forEach((c) => {
+    c.awareness.destroy();
+  });
 });
 describe("view awareness broker", () => {
   it("keeps independent channel state and clears it without leaving the view", () => {
@@ -88,7 +96,7 @@ describe("view awareness broker", () => {
       applyAwarenessUpdate(
         connections[0].awareness,
         encodeAwarenessUpdate(peer, [peer.clientID]),
-        "remote",
+        "remote"
       );
     relay();
     const before = manager.getSnapshot();
@@ -96,7 +104,7 @@ describe("view awareness broker", () => {
     peer.setLocalState(peer.getLocalState());
     relay();
     expect(connections[0].awareness.meta.get(peer.clientID)!.clock).toBe(
-      clock + 1,
+      clock + 1
     );
     expect(manager.getSnapshot()).toBeGreaterThan(before);
     peer.destroy();
@@ -105,32 +113,35 @@ describe("view awareness broker", () => {
   it("rejects invalid scope, payloads, and excessive subscriptions", () => {
     const manager = setup();
     expect(() =>
-      manager.open("bad", "ext", { storageId: "other", clientId: 3 }),
+      manager.open("bad", "ext", { storageId: "other", clientId: 3 })
     ).toThrow("scope");
     expect(() =>
-      manager.open("bad", "ext", { channel: "../private" }),
+      manager.open("bad", "ext", { channel: "../private" })
     ).toThrow();
     expect(() => manager.open("missing", "ext", { storageId: "slot" })).toThrow(
-      "Missing awareness client",
+      "Missing awareness client"
     );
     expect(() =>
-      manager.open("generic", "ext", { channel: "pointer", clientId: 3 }),
+      manager.open("generic", "ext", { channel: "pointer", clientId: 3 })
     ).toThrow("host-owned");
     manager.open("json", "ext", { channel: "pointer" });
     expect(() => manager.update("json", "x".repeat(4097))).toThrow("large");
     expect(() => manager.update("json", Number.NaN)).toThrow("JSON");
     let deep: import("@lunarisapp/plugin-sdk").JsonValue = null;
-    for (let i = 0; i < 10; i++) deep = { deep };
+    for (let i = 0; i < 10; i++) {
+      deep = { deep };
+    }
     expect(() => manager.update("json", deep)).toThrow("deep");
-    for (let i = 1; i < 16; i++)
+    for (let i = 1; i < 16; i++) {
       manager.open(String(i), "ext", { channel: "pointer" });
+    }
     expect(() =>
-      manager.open("overflow", "ext", { channel: "pointer" }),
+      manager.open("overflow", "ext", { channel: "pointer" })
     ).toThrow("Too many");
     manager.setActive(false);
     expect(manager.result("json").status).toBe("unavailable");
     expect(() => manager.open("hidden", "ext", { channel: "pointer" })).toThrow(
-      "unavailable",
+      "unavailable"
     );
   });
   it("uses the iframe client ID, rejects forged batches, and preserves server identity", () => {
@@ -144,7 +155,7 @@ describe("view awareness broker", () => {
     source.setLocalState({ user: { id: "forged" }, cursor: null });
     manager.update(
       "editor",
-      encodeAwarenessUpdate(source, [doc.clientID]).buffer as ArrayBuffer,
+      encodeAwarenessUpdate(source, [doc.clientID]).buffer as ArrayBuffer
     );
     expect(connections[0].awareness.clientID).toBe(doc.clientID);
     expect(connections[0].awareness.getLocalState()!.user.id).toBe("self");
@@ -152,16 +163,16 @@ describe("view awareness broker", () => {
       manager.update(
         "editor",
         encodeAwarenessUpdate(source, [doc.clientID, doc.clientID])
-          .buffer as ArrayBuffer,
-      ),
+          .buffer as ArrayBuffer
+      )
     ).toThrow("owner");
     const other = new Doc();
     const forged = new Awareness(other);
     expect(() =>
       manager.update(
         "editor",
-        encodeAwarenessUpdate(forged, [other.clientID]).buffer as ArrayBuffer,
-      ),
+        encodeAwarenessUpdate(forged, [other.clientID]).buffer as ArrayBuffer
+      )
     ).toThrow("owner");
     source.destroy();
     doc.destroy();

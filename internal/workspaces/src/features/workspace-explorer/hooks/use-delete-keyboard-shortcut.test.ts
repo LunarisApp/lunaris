@@ -1,6 +1,9 @@
 /** @vitest-environment happy-dom */
 
-import type { ItemInstance, TreeInstance } from "@lunarisapp/ui/components/tree";
+import type {
+  ItemInstance,
+  TreeInstance,
+} from "@lunarisapp/ui/components/tree";
 import type { WorkspaceResourceEntity } from "@repo/data/features/workspace-resources";
 import { act, renderHook } from "@testing-library/react";
 import { createElement, type ReactNode, type RefObject } from "react";
@@ -13,13 +16,11 @@ const wrapper = ({ children }: { children: ReactNode }) =>
 
 const deleteResourcesMock = vi.fn();
 const capturedHotkey = {
-  current: null as
-    | null
-    | {
-        handler: () => void;
-        key: string;
-        options?: Record<string, unknown>;
-      },
+  current: null as null | {
+    handler: () => void;
+    key: string;
+    options?: Record<string, unknown>;
+  },
 };
 
 vi.mock("../store", () => ({
@@ -36,12 +37,19 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("@tanstack/react-hotkeys", () => ({
   HotkeysProvider: ({ children }: { children: unknown }) => children,
-  useHotkey: (key: string, handler: () => void, options?: Record<string, unknown>) => {
+  useHotkey: (
+    key: string,
+    handler: () => void,
+    options?: Record<string, unknown>
+  ) => {
     capturedHotkey.current = { key, handler, options };
   },
 }));
 
-function makeItem(id: string, name: string | null): ItemInstance<WorkspaceResourceEntity> {
+function makeItem(
+  id: string,
+  name: string | null
+): ItemInstance<WorkspaceResourceEntity> {
   return {
     getId: () => id,
     getItemName: () => name ?? "",
@@ -79,9 +87,14 @@ describe("useDeleteKeyboardShortcut", () => {
     const body = document.createElement("div");
     const treeRoot = document.createElement("div");
     const target = makeTargetRef(body);
-    const { useDeleteKeyboardShortcut } = await import("./use-delete-keyboard-shortcut");
+    const { useDeleteKeyboardShortcut } = await import(
+      "./use-delete-keyboard-shortcut"
+    );
 
-    renderHook(() => useDeleteKeyboardShortcut({ target, tree: makeTree([], treeRoot) }), { wrapper });
+    renderHook(
+      () => useDeleteKeyboardShortcut({ target, tree: makeTree([], treeRoot) }),
+      { wrapper }
+    );
 
     expect(capturedHotkey.current).toEqual({
       key: "Delete",
@@ -101,9 +114,14 @@ describe("useDeleteKeyboardShortcut", () => {
     const body = document.createElement("div");
     const treeRoot = document.createElement("div");
     const target = makeTargetRef(body);
-    const { useDeleteKeyboardShortcut } = await import("./use-delete-keyboard-shortcut");
+    const { useDeleteKeyboardShortcut } = await import(
+      "./use-delete-keyboard-shortcut"
+    );
 
-    renderHook(() => useDeleteKeyboardShortcut({ target, tree: makeTree([], treeRoot) }), { wrapper });
+    renderHook(
+      () => useDeleteKeyboardShortcut({ target, tree: makeTree([], treeRoot) }),
+      { wrapper }
+    );
 
     expect(capturedHotkey.current?.options).toEqual(
       expect.objectContaining({ target, ignoreInputs: true })
@@ -127,7 +145,9 @@ describe("useDeleteKeyboardShortcut", () => {
       getElement: () => treeRoot,
       getSelectedItems: () => selected,
     } as unknown as TreeInstance<WorkspaceResourceEntity>;
-    const { useDeleteKeyboardShortcut } = await import("./use-delete-keyboard-shortcut");
+    const { useDeleteKeyboardShortcut } = await import(
+      "./use-delete-keyboard-shortcut"
+    );
     const { result } = renderHook(
       () => useDeleteKeyboardShortcut({ target: makeTargetRef(body), tree }),
       { wrapper }
@@ -157,7 +177,9 @@ describe("useDeleteKeyboardShortcut", () => {
     treeButton.focus();
 
     const tree = makeTree([], treeRoot);
-    const { useDeleteKeyboardShortcut } = await import("./use-delete-keyboard-shortcut");
+    const { useDeleteKeyboardShortcut } = await import(
+      "./use-delete-keyboard-shortcut"
+    );
     const { result } = renderHook(
       () => useDeleteKeyboardShortcut({ target: makeTargetRef(body), tree }),
       { wrapper }
@@ -182,8 +204,13 @@ describe("useDeleteKeyboardShortcut", () => {
 
     const tree = makeTree([makeItem("a", "Alpha")], treeRoot);
     const target = makeTargetRef(body);
-    const { useDeleteKeyboardShortcut } = await import("./use-delete-keyboard-shortcut");
-    const { result } = renderHook(() => useDeleteKeyboardShortcut({ tree, target }), { wrapper });
+    const { useDeleteKeyboardShortcut } = await import(
+      "./use-delete-keyboard-shortcut"
+    );
+    const { result } = renderHook(
+      () => useDeleteKeyboardShortcut({ tree, target }),
+      { wrapper }
+    );
 
     act(() => {
       capturedHotkey.current?.handler();
@@ -203,16 +230,17 @@ describe("useDeleteKeyboardShortcut", () => {
     treeButton.focus();
 
     const tree = makeTree(
-      [
-        makeItem("a", "Alpha"),
-        makeItem("b", "Beta"),
-        makeItem("c", ""),
-      ],
+      [makeItem("a", "Alpha"), makeItem("b", "Beta"), makeItem("c", "")],
       treeRoot
     );
     const target = makeTargetRef(body);
-    const { useDeleteKeyboardShortcut } = await import("./use-delete-keyboard-shortcut");
-    const { result } = renderHook(() => useDeleteKeyboardShortcut({ tree, target }), { wrapper });
+    const { useDeleteKeyboardShortcut } = await import(
+      "./use-delete-keyboard-shortcut"
+    );
+    const { result } = renderHook(
+      () => useDeleteKeyboardShortcut({ tree, target }),
+      { wrapper }
+    );
 
     act(() => {
       capturedHotkey.current?.handler();
@@ -237,8 +265,13 @@ describe("useDeleteKeyboardShortcut", () => {
 
     const tree = makeTree([makeItem("a", "A"), makeItem("b", "B")], treeRoot);
     const target = makeTargetRef(body);
-    const { useDeleteKeyboardShortcut } = await import("./use-delete-keyboard-shortcut");
-    const { result } = renderHook(() => useDeleteKeyboardShortcut({ tree, target }), { wrapper });
+    const { useDeleteKeyboardShortcut } = await import(
+      "./use-delete-keyboard-shortcut"
+    );
+    const { result } = renderHook(
+      () => useDeleteKeyboardShortcut({ tree, target }),
+      { wrapper }
+    );
 
     act(() => {
       capturedHotkey.current?.handler();
@@ -264,8 +297,13 @@ describe("useDeleteKeyboardShortcut", () => {
 
     const tree = makeTree([], treeRoot);
     const target = makeTargetRef(body);
-    const { useDeleteKeyboardShortcut } = await import("./use-delete-keyboard-shortcut");
-    const { result } = renderHook(() => useDeleteKeyboardShortcut({ tree, target }), { wrapper });
+    const { useDeleteKeyboardShortcut } = await import(
+      "./use-delete-keyboard-shortcut"
+    );
+    const { result } = renderHook(
+      () => useDeleteKeyboardShortcut({ tree, target }),
+      { wrapper }
+    );
 
     await act(async () => {
       await result.current.handleConfirmDelete();
@@ -280,7 +318,9 @@ describe("useDeleteKeyboardShortcut", () => {
     document.body.append(body, outsideButton);
     outsideButton.focus();
 
-    const { useDeleteKeyboardShortcut } = await import("./use-delete-keyboard-shortcut");
+    const { useDeleteKeyboardShortcut } = await import(
+      "./use-delete-keyboard-shortcut"
+    );
     const { result } = renderHook(
       () =>
         useDeleteKeyboardShortcut({
@@ -306,7 +346,9 @@ describe("useDeleteKeyboardShortcut", () => {
     document.body.append(body, outsideButton);
     outsideButton.focus();
 
-    const { useDeleteKeyboardShortcut } = await import("./use-delete-keyboard-shortcut");
+    const { useDeleteKeyboardShortcut } = await import(
+      "./use-delete-keyboard-shortcut"
+    );
     const { result } = renderHook(
       () =>
         useDeleteKeyboardShortcut({
@@ -340,7 +382,9 @@ describe("useDeleteKeyboardShortcut", () => {
       getElement: () => currentTreeElement,
       getSelectedItems: () => [makeItem("a", "Alpha")],
     } as unknown as TreeInstance<WorkspaceResourceEntity>;
-    const { useDeleteKeyboardShortcut } = await import("./use-delete-keyboard-shortcut");
+    const { useDeleteKeyboardShortcut } = await import(
+      "./use-delete-keyboard-shortcut"
+    );
     const { result } = renderHook(
       () => useDeleteKeyboardShortcut({ target: makeTargetRef(body), tree }),
       { wrapper }
@@ -363,7 +407,9 @@ describe("useDeleteKeyboardShortcut", () => {
     const treeRoot = document.createElement("div");
     const tree = makeTree([makeItem("a", "Alpha")], treeRoot);
     const target = makeTargetRef(treeRoot);
-    const { useDeleteKeyboardShortcut } = await import("./use-delete-keyboard-shortcut");
+    const { useDeleteKeyboardShortcut } = await import(
+      "./use-delete-keyboard-shortcut"
+    );
 
     renderHook(() => useDeleteKeyboardShortcut({ tree, target }), { wrapper });
 

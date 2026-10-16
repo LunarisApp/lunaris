@@ -71,9 +71,18 @@ beforeEach(() => {
   createWorkspaceMock.mockResolvedValue("workspace_1");
   createWorkspaceFolderMock.mockResolvedValue("folder_examples");
   createWorkspaceResourceMock
-    .mockResolvedValueOnce({ id: "item_welcome", storage: { content: { kind: "yjs", storageId: "storage_welcome" } } })
-    .mockResolvedValueOnce({ id: "item_document", storage: { content: { kind: "yjs", storageId: "storage_document" } } })
-    .mockResolvedValueOnce({ id: "item_kanban", storage: { content: { kind: "yjs", storageId: "storage_kanban" } } });
+    .mockResolvedValueOnce({
+      id: "item_welcome",
+      storage: { content: { kind: "yjs", storageId: "storage_welcome" } },
+    })
+    .mockResolvedValueOnce({
+      id: "item_document",
+      storage: { content: { kind: "yjs", storageId: "storage_document" } },
+    })
+    .mockResolvedValueOnce({
+      id: "item_kanban",
+      storage: { content: { kind: "yjs", storageId: "storage_kanban" } },
+    });
   for (const [index] of kanbanTemplate.items.entries()) {
     createWorkspaceResourceMock.mockResolvedValueOnce({
       id: `item_task_${index}`,
@@ -114,10 +123,7 @@ describe("seedDefaultTemplateWorkspace", () => {
     });
     expect(replaceWorkspaceExtensionsMock).toHaveBeenCalledWith({
       db: {},
-      enabledExtensionIds: [
-        "lunaris.rich-text",
-        "lunaris.kanban",
-      ],
+      enabledExtensionIds: ["lunaris.rich-text", "lunaris.kanban"],
       workspaceId: "workspace_1",
     });
     expect(installWorkspaceExtensionMock).toHaveBeenCalledWith(
@@ -128,7 +134,7 @@ describe("seedDefaultTemplateWorkspace", () => {
       }),
       expect.objectContaining({
         defaultExtensionIds: ["lunaris.rich-text", "lunaris.kanban"],
-      }),
+      })
     );
     expect(DEFAULT_TEMPLATE_ITEM_COUNT).toBe(5 + kanbanTemplate.items.length);
     expect(createWorkspaceFolderMock).toHaveBeenCalledTimes(1);
@@ -211,8 +217,9 @@ describe("seedDefaultTemplateWorkspace", () => {
     ).toBe("done");
 
     for (const [index, task] of kanbanTemplate.items.entries()) {
-      const initializeTask = createWorkspaceResourceMock.mock.calls[index + 3]?.[0]
-        ?.storage?.content?.initialize as ((doc: Doc) => void) | undefined;
+      const initializeTask = createWorkspaceResourceMock.mock.calls[
+        index + 3
+      ]?.[0]?.storage?.content?.initialize as ((doc: Doc) => void) | undefined;
       expect(initializeTask).toBeTypeOf("function");
       const taskDoc = new Doc();
       initializeTask?.(taskDoc);

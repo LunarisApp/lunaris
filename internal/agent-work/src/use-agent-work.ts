@@ -65,14 +65,14 @@ export function useAgentWork(scope: AgentWorkScope) {
                 break;
               case "approval_done":
                 setApprovals((pending) =>
-                  pending.filter((item) => item.id !== event.id),
+                  pending.filter((item) => item.id !== event.id)
                 );
                 break;
               case "auth":
                 setAuth((current) =>
                   event.url || event.prompt || event.message
                     ? { ...current, ...event }
-                    : undefined,
+                    : undefined
                 );
                 break;
               case "error":
@@ -80,7 +80,7 @@ export function useAgentWork(scope: AgentWorkScope) {
                 break;
             }
           })
-        : undefined,
+        : undefined
     );
     void start
       .then(async (value) => {

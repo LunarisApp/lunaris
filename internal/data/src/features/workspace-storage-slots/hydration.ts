@@ -36,14 +36,16 @@ interface SharedYjsHydration {
 }
 
 function parseValue(value: string | null): JsonValue {
-  if (value == null) return null;
+  if (value == null) {
+    return null;
+  }
   return JSON.parse(value) as JsonValue;
 }
 
 async function hydrateSlot(
   db: DatabaseOrTx,
   slot: WorkspaceStorageSlotEntity,
-  sharedYjs: SharedYjsHydration | undefined,
+  sharedYjs: SharedYjsHydration | undefined
 ): Promise<HydratedSlot> {
   if (slot.kind === "file") {
     return {
@@ -63,13 +65,17 @@ async function hydrateSlot(
           (await getStorageValues(db, slot.id)).map((row) => [
             row.key ?? "",
             parseValue(row.value),
-          ]),
+          ])
         ),
       },
     };
   }
-  if (slot.kind !== "yjs") throw new Error("Storage slot has an invalid kind");
-  if (!slot.backing_id) throw new Error(`Yjs storage ${slot.name} has no backing document`);
+  if (slot.kind !== "yjs") {
+    throw new Error("Storage slot has an invalid kind");
+  }
+  if (!slot.backing_id) {
+    throw new Error(`Yjs storage ${slot.name} has no backing document`);
+  }
   if (sharedYjs) {
     const handle = preloadYjsDocument({
       db: sharedYjs.database,
@@ -82,7 +88,7 @@ async function hydrateSlot(
       const resource = yjsDocumentResourceStore.get(
         sharedYjs.database,
         slot.backing_id,
-        sharedYjs.workspaceId,
+        sharedYjs.workspaceId
       );
       if (resource?.status !== "ready") {
         throw new Error(`Yjs storage ${slot.name} did not become ready`);
@@ -100,7 +106,7 @@ async function hydrateSlot(
   try {
     applyYjsDocumentUpdates(
       document,
-      await getYjsDocumentUpdates(db, slot.backing_id),
+      await getYjsDocumentUpdates(db, slot.backing_id)
     );
     return {
       dispose: () => document.destroy(),
@@ -114,9 +120,11 @@ async function hydrateSlot(
 
 function resolveSharedYjsHydration(
   db: DatabaseOrTx,
-  workspaceId: string | undefined,
+  workspaceId: string | undefined
 ): SharedYjsHydration | undefined {
-  if (!workspaceId) return undefined;
+  if (!workspaceId) {
+    return undefined;
+  }
   if (!("writeTransaction" in db)) {
     throw new Error("Shared Yjs hydration requires a database");
   }
@@ -126,37 +134,44 @@ function resolveSharedYjsHydration(
 export async function hydrateResourceStorage(
   db: DatabaseOrTx,
   resourceId: string,
-  options: HydrateResourceStorageOptions = {},
+  options: HydrateResourceStorageOptions = {}
 ): Promise<HydratedResourceStorage> {
   const handles: Record<string, ResourceStorageHandles[string]> = {};
   const storage: Record<string, ResourcePayloadStorage> = {};
   const disposers: Array<() => void> = [];
-  const sharedYjs = resolveSharedYjsHydration(
-    db,
-    options.sharedYjsWorkspaceId,
-  );
+  const sharedYjs = resolveSharedYjsHydration(db, options.sharedYjsWorkspaceId);
   const slots = await getResourceStorageSlots(db, resourceId);
   try {
     for (const slot of slots) {
-      if (!slot.name) throw new Error("Storage slot has no name");
+      if (!slot.name) {
+        throw new Error("Storage slot has no name");
+      }
       const entry = await hydrateSlot(db, slot, sharedYjs);
-      if (entry.dispose) disposers.push(entry.dispose);
+      if (entry.dispose) {
+        disposers.push(entry.dispose);
+      }
       handles[slot.name] = { kind: entry.storage.kind, storageId: slot.id };
       storage[slot.name] = entry.storage;
     }
     let disposed = false;
     return {
       dispose: () => {
-        if (disposed) return;
+        if (disposed) {
+          return;
+        }
         disposed = true;
-        for (const dispose of disposers.reverse()) dispose();
+        for (const dispose of disposers.reverse()) {
+          dispose();
+        }
       },
       handles,
       slots,
       storage,
     };
   } catch (error) {
-    for (const dispose of disposers.reverse()) dispose();
+    for (const dispose of disposers.reverse()) {
+      dispose();
+    }
     throw error;
   }
 }

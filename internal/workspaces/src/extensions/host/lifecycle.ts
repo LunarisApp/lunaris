@@ -41,11 +41,11 @@ interface I18nInstance {
     namespace: string,
     resources: Record<string, unknown>,
     deep?: boolean,
-    overwrite?: boolean,
+    overwrite?: boolean
   ): void;
   getResourceBundle(
     language: string,
-    namespace: string,
+    namespace: string
   ): Record<string, unknown> | undefined;
   removeResourceBundle(language: string, namespace: string): void;
 }
@@ -70,67 +70,74 @@ export interface PluginInitResult {
 
 export type GridLayoutUnregisterCallback = (
   extensionId: string,
-  viewId: string,
+  viewId: string
 ) => void;
 
 export interface PluginLifecycle {
   cleanupPlugins(plugins: readonly PluginDefinition[]): Promise<void>;
   disablePlugin(
     pluginId: string,
-    gridLayoutUnregisterByPlugin?: (pluginId: string) => void,
+    gridLayoutUnregisterByPlugin?: (pluginId: string) => void
   ): Promise<void>;
   getPluginDiagnostics(): PluginRuntimeDiagnostic[];
   initializePlugins(
     plugins: readonly PluginDefinition[],
-    deps: InitializePluginsDeps,
+    deps: InitializePluginsDeps
   ): Promise<PluginInitResult[]>;
   reloadPlugin(
     plugin: PluginDefinition,
     deps: InitializePluginsDeps,
-    gridLayoutUnregisterByPlugin?: (pluginId: string) => void,
+    gridLayoutUnregisterByPlugin?: (pluginId: string) => void
   ): Promise<PluginInitResult>;
   subscribePluginDiagnostics(
-    listener: PluginRuntimeDiagnosticsListener,
+    listener: PluginRuntimeDiagnosticsListener
   ): () => void | Promise<void>;
 }
 
 function scopedElement<Props extends object>(
   plugin: PluginDefinition,
   renderer: ComponentType<Props>,
-  props: Props,
+  props: Props
 ) {
   return createElement(
     ExtensionScopeProvider,
-    { extensionId: plugin.manifest.id, permissions: plugin.manifest.permissions },
-    createElement(renderer as ComponentType<typeof props>, props),
+    {
+      extensionId: plugin.manifest.id,
+      permissions: plugin.manifest.permissions,
+    },
+    createElement(renderer as ComponentType<typeof props>, props)
   );
 }
 
 function isResourceView(
-  view: ViewContribution,
+  view: ViewContribution
 ): view is ViewContribution & ResourceViewDefinition {
   return view.target.kind === "resource";
 }
 
 function requirePermission(
   plugin: PluginDefinition,
-  permission: PluginPermission,
+  permission: PluginPermission
 ): void {
   if (!plugin.manifest.permissions.includes(permission)) {
     throw new Error(
-      `Extension "${plugin.manifest.id}" has not declared permission "${permission}"`,
+      `Extension "${plugin.manifest.id}" has not declared permission "${permission}"`
     );
   }
 }
 
 function throwCollectedErrors(errors: unknown[], message: string): void {
-  if (errors.length === 1) throw errors[0];
-  if (errors.length > 1) throw new AggregateError(errors, message);
+  if (errors.length === 1) {
+    throw errors[0];
+  }
+  if (errors.length > 1) {
+    throw new AggregateError(errors, message);
+  }
 }
 
 function scopeCommand(
   plugin: PluginDefinition,
-  command: ResourceCommand,
+  command: ResourceCommand
 ): ResourceCommand {
   return {
     ...command,
@@ -143,7 +150,7 @@ function scopeCommand(
 
 function scopeCommands(
   plugin: PluginDefinition,
-  commands: readonly ResourceCommandItem[],
+  commands: readonly ResourceCommandItem[]
 ): ResourceCommandItem[] {
   return commands.map((command) => {
     if ("children" in command && command.children) {
@@ -158,7 +165,7 @@ function scopeCommands(
 
 function scopeContribution(
   plugin: PluginDefinition,
-  contribution: PluginContribution,
+  contribution: PluginContribution
 ): PluginContribution {
   switch (contribution.type) {
     case "resource-type":
@@ -184,11 +191,13 @@ function scopeContribution(
                   ...slot,
                   initialize: (...args: never[]) => {
                     requirePermission(plugin, "content.write");
-                    return (slot.initialize as (...values: never[]) => unknown)(...args);
+                    return (slot.initialize as (...values: never[]) => unknown)(
+                      ...args
+                    );
                   },
                 }
               : slot,
-          ]),
+          ])
         ) as ResourceTypeContribution["storage"],
       };
     case "workspace-storage":
@@ -208,15 +217,17 @@ function scopeContribution(
         ...contribution,
         renderer: (props: ResourceViewProps) =>
           scopedElement(plugin, renderer, props),
-        statusBar:
-          statusBar
-            ? (props: ResourceViewStatusProps) =>
-                scopedElement(plugin, statusBar, props)
-            : undefined,
+        statusBar: statusBar
+          ? (props: ResourceViewStatusProps) =>
+              scopedElement(plugin, statusBar, props)
+          : undefined,
       };
     }
     case "resource-command":
-      return { ...contribution, commands: scopeCommands(plugin, contribution.commands) };
+      return {
+        ...contribution,
+        commands: scopeCommands(plugin, contribution.commands),
+      };
     case "search-indexer":
       return {
         ...contribution,
@@ -259,31 +270,49 @@ export function createPluginLifecycle({
 
   function rebuildLanguage(language: string, i18n: I18nInstance): void {
     const state = localeStates.get(language);
-    if (!state) return;
+    if (!state) {
+      return;
+    }
     i18n.removeResourceBundle(language, "translation");
-    i18n.addResourceBundle(language, "translation", cloneBundle(state.base), true, true);
+    i18n.addResourceBundle(
+      language,
+      "translation",
+      cloneBundle(state.base),
+      true,
+      true
+    );
     for (const resources of state.plugins.values()) {
-      i18n.addResourceBundle(language, "translation", cloneBundle(resources), true, true);
+      i18n.addResourceBundle(
+        language,
+        "translation",
+        cloneBundle(resources),
+        true,
+        true
+      );
     }
   }
 
   function registerLocales(
     pluginId: string,
     locales: PreparedPluginActivation["locales"],
-    i18n: I18nInstance,
+    i18n: I18nInstance
   ): () => void {
     const removeLocales = (languages: readonly string[]): unknown[] => {
       const errors: unknown[] = [];
       for (const language of languages) {
         const state = localeStates.get(language);
-        if (!state) continue;
+        if (!state) {
+          continue;
+        }
         state.plugins.delete(pluginId);
         try {
           rebuildLanguage(language, i18n);
         } catch (error) {
           errors.push(error);
         }
-        if (!state.plugins.size) localeStates.delete(language);
+        if (!state.plugins.size) {
+          localeStates.delete(language);
+        }
       }
       return errors;
     };
@@ -306,7 +335,7 @@ export function createPluginLifecycle({
       if (rollbackErrors.length) {
         throw new AggregateError(
           [error, ...rollbackErrors],
-          `Extension "${pluginId}" locale registration and rollback failed`,
+          `Extension "${pluginId}" locale registration and rollback failed`
         );
       }
       throw error;
@@ -314,7 +343,7 @@ export function createPluginLifecycle({
     return () => {
       throwCollectedErrors(
         removeLocales(languages),
-        `Extension "${pluginId}" locale cleanup failed`,
+        `Extension "${pluginId}" locale cleanup failed`
       );
     };
   }
@@ -322,13 +351,13 @@ export function createPluginLifecycle({
   async function commitPlugin(
     plugin: PluginDefinition,
     activation: PreparedPluginActivation,
-    deps: InitializePluginsDeps,
+    deps: InitializePluginsDeps
   ): Promise<() => Promise<void>> {
     const pluginId = plugin.manifest.id;
     const scopedActivation = {
       ...activation,
       contributions: activation.contributions.map((contribution) =>
-        scopeContribution(plugin, contribution),
+        scopeContribution(plugin, contribution)
       ),
     };
     const cleanups: Array<() => Promise<void> | void> = [];
@@ -350,10 +379,14 @@ export function createPluginLifecycle({
         for (const contribution of scopedActivation.contributions) {
           switch (contribution.type) {
             case "workspace-storage":
-              cleanups.push(plugins.registerWorkspaceStorage(pluginId, contribution));
+              cleanups.push(
+                plugins.registerWorkspaceStorage(pluginId, contribution)
+              );
               break;
             case "resource-type":
-              cleanups.push(plugins.registerResourceType(pluginId, contribution));
+              cleanups.push(
+                plugins.registerResourceType(pluginId, contribution)
+              );
               break;
             case "view":
               cleanups.push(plugins.registerView(pluginId, contribution));
@@ -363,12 +396,12 @@ export function createPluginLifecycle({
               break;
             case "search-indexer":
               cleanups.push(
-                plugins.registerSearchIndexer(pluginId, contribution),
+                plugins.registerSearchIndexer(pluginId, contribution)
               );
               break;
             case "search-query":
               cleanups.push(
-                plugins.registerSearchQuery(pluginId, contribution),
+                plugins.registerSearchQuery(pluginId, contribution)
               );
               break;
           }
@@ -387,37 +420,44 @@ export function createPluginLifecycle({
               view,
               (resourceTypeId) =>
                 plugins.getResourceType(resourceTypeId)?.definition,
-              { layoutWrapper: deps.resourceViewLayoutWrapper },
+              { layoutWrapper: deps.resourceViewLayoutWrapper }
             );
             cleanups.push(() =>
-              deps.gridLayoutUnregister?.(pluginId, view.viewId),
+              deps.gridLayoutUnregister?.(pluginId, view.viewId)
             );
             continue;
           }
           const renderer = (view as StandaloneViewDefinition).renderer;
           deps.gridLayoutRegister(pluginId, view.viewId, (props) =>
-            createElement(renderer, { params: props.params }),
+            createElement(renderer, { params: props.params })
           );
           cleanups.push(() =>
-            deps.gridLayoutUnregister?.(pluginId, view.viewId),
+            deps.gridLayoutUnregister?.(pluginId, view.viewId)
           );
         }
       });
-      if (deps.i18n) cleanups.push(registerLocales(pluginId, activation.locales, deps.i18n));
+      if (deps.i18n) {
+        cleanups.push(registerLocales(pluginId, activation.locales, deps.i18n));
+      }
       return release;
     } catch (error) {
       await release().catch((cleanupError) => {
-        throw new AggregateError([error, cleanupError], "Extension registration failed");
+        throw new AggregateError(
+          [error, cleanupError],
+          "Extension registration failed"
+        );
       });
       throw error;
     }
   }
 
-  const runtime = new PluginRuntime<InitializePluginsDeps>({ commit: commitPlugin });
+  const runtime = new PluginRuntime<InitializePluginsDeps>({
+    commit: commitPlugin,
+  });
 
   async function initializePlugins(
     definitions: readonly PluginDefinition[],
-    deps: InitializePluginsDeps,
+    deps: InitializePluginsDeps
   ): Promise<PluginInitResult[]> {
     const results = new Map<string, PluginInitResult>();
     const failure = (pluginId: string, error: unknown): PluginInitResult =>
@@ -436,10 +476,15 @@ export function createPluginLifecycle({
       }
     }
     for (const plugin of definitions) {
-      if (results.has(plugin.manifest.id)) continue;
+      if (results.has(plugin.manifest.id)) {
+        continue;
+      }
       try {
         await runtime.awaitActivation(plugin.manifest.id);
-        results.set(plugin.manifest.id, { pluginId: plugin.manifest.id, success: true });
+        results.set(plugin.manifest.id, {
+          pluginId: plugin.manifest.id,
+          success: true,
+        });
       } catch (error) {
         results.set(plugin.manifest.id, failure(plugin.manifest.id, error));
       }
@@ -447,10 +492,12 @@ export function createPluginLifecycle({
     return definitions.map(
       (plugin) =>
         results.get(plugin.manifest.id) ?? {
-          error: new Error(`Extension "${plugin.manifest.id}" was not initialized`),
+          error: new Error(
+            `Extension "${plugin.manifest.id}" was not initialized`
+          ),
           pluginId: plugin.manifest.id,
           success: false,
-        },
+        }
     );
   }
 
@@ -490,6 +537,7 @@ export function createPluginLifecycle({
         };
       }
     },
-    subscribePluginDiagnostics: (listener) => runtime.subscribeDiagnostics(listener),
+    subscribePluginDiagnostics: (listener) =>
+      runtime.subscribeDiagnostics(listener),
   };
 }

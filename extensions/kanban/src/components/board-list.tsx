@@ -1,7 +1,4 @@
-import {
-  useCurrentUser,
-  useOrgMembersMap,
-} from "@lunarisapp/plugin-sdk";
+import { useCurrentUser, useOrgMembersMap } from "@lunarisapp/plugin-sdk";
 import {
   Kanban,
   KanbanBoard,
@@ -79,7 +76,9 @@ export function ListView({
   const { map: members } = useOrgMembersMap();
   const people = useMemo(() => {
     const result = new Map(members);
-    if (currentUser?.id) result.set(currentUser.id, currentUser);
+    if (currentUser?.id) {
+      result.set(currentUser.id, currentUser);
+    }
     return result;
   }, [currentUser, members]);
 
@@ -95,12 +94,7 @@ export function ListView({
   const groups = useMemo(
     () =>
       groupProperty
-        ? createTaskGroups(
-            tasks,
-            assignments,
-            groupProperty,
-            unassignedLabel
-          )
+        ? createTaskGroups(tasks, assignments, groupProperty, unassignedLabel)
         : undefined,
     [
       assignments,
@@ -160,7 +154,9 @@ export function ListView({
   );
   const handleValueChange = useCallback(
     (value: Record<string, KanbanTask[]>) => {
-      if (readOnly) return;
+      if (readOnly) {
+        return;
+      }
       setPreview({ base: grouped, committed: false, value });
     },
     [grouped, readOnly]
@@ -170,16 +166,19 @@ export function ListView({
       value: Record<string, KanbanTask[]>,
       meta: KanbanCommitMeta<KanbanTask>
     ) => {
-      if (readOnly || meta.kind === "column") return;
+      if (readOnly || meta.kind === "column") {
+        return;
+      }
       setPreview((current) => ({
         base: current?.value === value ? current.base : grouped,
         committed: true,
         value,
       }));
 
-      const task =
-        meta.previousValue[meta.activeContainer]?.[meta.activeIndex];
-      if (!task) return;
+      const task = meta.previousValue[meta.activeContainer]?.[meta.activeIndex];
+      if (!task) {
+        return;
+      }
       if (groupProperty && meta.activeContainer !== meta.overContainer) {
         onPropertyChange(
           task.id,
@@ -199,13 +198,7 @@ export function ListView({
         setPreview((current) => (current?.value === value ? null : current));
       });
     },
-    [
-      grouped,
-      groupProperty,
-      onPropertyChange,
-      persistTaskOrder,
-      readOnly,
-    ]
+    [grouped, groupProperty, onPropertyChange, persistTaskOrder, readOnly]
   );
   const listProperties = properties.filter(
     (property) => property.id !== groupProperty?.id
@@ -276,8 +269,11 @@ export function ListView({
                   onToggle={() => {
                     setCollapsedGroupKeys((current) => {
                       const next = new Set(current);
-                      if (next.has(collapseKey)) next.delete(collapseKey);
-                      else next.add(collapseKey);
+                      if (next.has(collapseKey)) {
+                        next.delete(collapseKey);
+                      } else {
+                        next.add(collapseKey);
+                      }
                       return next;
                     });
                   }}
@@ -297,7 +293,7 @@ export function ListView({
               />
             </KanbanColumn>
           ) : (
-            <div className="flex h-40 items-center justify-center px-6 text-center text-sm text-muted-foreground">
+            <div className="flex h-40 items-center justify-center px-6 text-center text-muted-foreground text-sm">
               {b(readOnly ? "noTasksReadOnly" : "noTasks")}
             </div>
           )}
@@ -307,7 +303,7 @@ export function ListView({
         {({ value }) => {
           const task = tasks.find((candidate) => candidate.id === value);
           return task ? (
-            <div className="w-[min(18rem,calc(100vw-2rem))] rounded-lg border border-border/70 bg-background px-3 py-2 text-sm font-medium shadow-md">
+            <div className="w-[min(18rem,calc(100vw-2rem))] rounded-lg border border-border/70 bg-background px-3 py-2 font-medium text-sm shadow-md">
               <span className="block truncate">
                 {task.name || b("untitled")}
               </span>
@@ -327,7 +323,9 @@ function createTaskGroups(
 ): ListTaskGroup[] {
   const tasksByGroup = new Map<string, KanbanTask[]>();
   tasksByGroup.set(UNASSIGNED_COLUMN_ID, []);
-  for (const option of property.options) tasksByGroup.set(option.id, []);
+  for (const option of property.options) {
+    tasksByGroup.set(option.id, []);
+  }
 
   for (const task of tasks) {
     const value = getTaskPropertyValue(assignments.get(task.id), property);

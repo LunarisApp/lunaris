@@ -105,25 +105,32 @@ export const organizationRolesWithLegacyAliases = {
   member: organizationRoles.editor,
 };
 
-export function resolveOrganizationRole(value: unknown): OrganizationRole | null {
+export function resolveOrganizationRole(
+  value: unknown
+): OrganizationRole | null {
   const roles =
     typeof value === "string"
       ? value.split(",").map((role) => role.trim())
       : [];
-  if (roles.includes(ORGANIZATION_ROLE.owner)) return ORGANIZATION_ROLE.owner;
+  if (roles.includes(ORGANIZATION_ROLE.owner)) {
+    return ORGANIZATION_ROLE.owner;
+  }
   if (
     roles.includes(ORGANIZATION_ROLE.editor) ||
     roles.includes("admin") ||
     roles.includes("member")
-  )
+  ) {
     return ORGANIZATION_ROLE.editor;
-  if (roles.includes(ORGANIZATION_ROLE.viewer)) return ORGANIZATION_ROLE.viewer;
+  }
+  if (roles.includes(ORGANIZATION_ROLE.viewer)) {
+    return ORGANIZATION_ROLE.viewer;
+  }
   return null;
 }
 
 export function hasOrganizationPermission(
   role: unknown,
-  required: AppPermission,
+  required: AppPermission
 ): boolean {
   const roles =
     typeof role === "string"
@@ -135,11 +142,18 @@ export function hasOrganizationPermission(
 
   return roles.some((value) => {
     const normalized = resolveOrganizationRole(value);
-    if (!normalized) return false;
+    if (!normalized) {
+      return false;
+    }
 
-    const permissions = organizationRolePermissions[normalized] as RolePermissions;
-    return (permissions[required.resource] as readonly string[] | undefined)
-      ?.includes(required.action) ?? false;
+    const permissions = organizationRolePermissions[
+      normalized
+    ] as RolePermissions;
+    return (
+      (
+        permissions[required.resource] as readonly string[] | undefined
+      )?.includes(required.action) ?? false
+    );
   });
 }
 
@@ -158,11 +172,11 @@ function createPermissionCatalog(): PermissionCatalog {
   > = {};
 
   for (const resource of Object.keys(
-    permissionStatement,
+    permissionStatement
   ) as PermissionResource[]) {
     const actions = permissionStatement[resource] as readonly string[];
     catalog[resource] = Object.fromEntries(
-      actions.map((action) => [action, { action, resource }]),
+      actions.map((action) => [action, { action, resource }])
     ) as Record<string, AppPermission>;
   }
 

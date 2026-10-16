@@ -28,7 +28,9 @@ export function analyticsRoutePath(pathname: string): string {
   const segments = pathname.split("/").filter(Boolean);
   const [first, second, third, fourth, fifth] = segments;
 
-  if (!first) return "/";
+  if (!first) {
+    return "/";
+  }
   if (first === "auth") {
     return second && AUTH_ROUTES.has(second) ? `/auth/${second}` : "/auth";
   }
@@ -38,11 +40,21 @@ export function analyticsRoutePath(pathname: string): string {
       : "/settings";
   }
 
-  if (!second) return "/:organization";
-  if (second === "settings") return "/:organization/settings";
-  if (!third) return "/:organization/:workspace";
-  if (!fourth) return "/:organization/:workspace/:view";
-  if (!fifth) return "/:organization/:workspace/:view/:subview";
+  if (!second) {
+    return "/:organization";
+  }
+  if (second === "settings") {
+    return "/:organization/settings";
+  }
+  if (!third) {
+    return "/:organization/:workspace";
+  }
+  if (!fourth) {
+    return "/:organization/:workspace/:view";
+  }
+  if (!fifth) {
+    return "/:organization/:workspace/:view/:subview";
+  }
   return "/:organization/:workspace/:view/:subview/:item";
 }
 
@@ -53,7 +65,9 @@ export function PostHogPageviewTracker() {
   const lastPathname = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    if (!manifest) return;
+    if (!manifest) {
+      return;
+    }
     posthog.set_config({
       addTracingHeaders: [new URL(manifest.apiUrl).hostname],
     });
@@ -61,7 +75,9 @@ export function PostHogPageviewTracker() {
 
   useEffect(() => {
     const route = analyticsRoutePath(location.pathname);
-    if (lastPathname.current === location.pathname) return;
+    if (lastPathname.current === location.pathname) {
+      return;
+    }
     lastPathname.current = location.pathname;
     posthog.capture("$pageview", {
       $current_url: new URL(route, navigation.origin()).toString(),

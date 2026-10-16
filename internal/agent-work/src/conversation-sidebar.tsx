@@ -33,7 +33,7 @@ export function ConversationSidebar({
   const { t, i18n } = useTranslation();
   const [search, setSearch] = useState("");
   const sessions = state.sessions.filter((item) =>
-    item.title.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()),
+    item.title.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())
   );
   const dateFormat = new Intl.DateTimeFormat(i18n?.language, {
     month: "short",
@@ -119,18 +119,32 @@ export function ConversationSidebar({
       </nav>
       <footer className="flex shrink-0 items-center gap-2 border-t p-2">
         <div className="flex min-w-0 flex-1 items-center gap-2 text-sm">
-          <HugeiconsIcon aria-hidden="true" className="size-4 shrink-0" icon={ChatGptIcon} />
+          <HugeiconsIcon
+            aria-hidden="true"
+            className="size-4 shrink-0"
+            icon={ChatGptIcon}
+          />
           <span className="font-medium">ChatGPT</span>
-          {state.authenticated && (
-            <span className="ms-auto flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs" role="status">
-              <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
+          {!!state.authenticated && (
+            <span
+              className="ms-auto flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs"
+              role="status"
+            >
+              <span
+                aria-hidden="true"
+                className="size-1.5 shrink-0 rounded-full bg-emerald-500"
+              />
               <span className="truncate">{t("agentWork.connected")}</span>
             </span>
           )}
         </div>
         <Button
-          aria-label={t(state.authenticated ? "agentWork.disconnect" : "agentWork.connect")}
-          title={t(state.authenticated ? "agentWork.disconnect" : "agentWork.connect")}
+          aria-label={t(
+            state.authenticated ? "agentWork.disconnect" : "agentWork.connect"
+          )}
+          title={t(
+            state.authenticated ? "agentWork.disconnect" : "agentWork.connect"
+          )}
           className="shrink-0 text-xs"
           disabled={!runtimeReady || busy}
           onClick={onConnect}
@@ -139,7 +153,9 @@ export function ConversationSidebar({
         >
           {state.authenticated ? (
             <HugeiconsIcon aria-hidden="true" icon={Logout03Icon} />
-          ) : t("agentWork.connect")}
+          ) : (
+            t("agentWork.connect")
+          )}
         </Button>
       </footer>
     </div>

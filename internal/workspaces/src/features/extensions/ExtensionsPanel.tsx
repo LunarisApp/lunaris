@@ -139,7 +139,7 @@ function formatBytes(bytes: number): string {
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(
-    new Date(value),
+    new Date(value)
   );
 }
 
@@ -151,12 +151,19 @@ function formatWebsite(value: string): string {
   }
 }
 
-function StoreIcon({ className, item }: { className: string; item: StoreItem }) {
+function StoreIcon({
+  className,
+  item,
+}: {
+  className: string;
+  item: StoreItem;
+}) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [item.iconUrl]);
 
   if (item.iconUrl && !failed) {
     return (
+      // biome-ignore lint/a11y/noNoninteractiveElementInteractions: Image error switches to the fallback icon.
       <img
         alt=""
         className={`${className} object-cover`}
@@ -169,7 +176,7 @@ function StoreIcon({ className, item }: { className: string; item: StoreItem }) 
   return (
     <span
       aria-hidden="true"
-      className={`${className} bg-muted text-muted-foreground flex items-center justify-center`}
+      className={`${className} flex items-center justify-center bg-muted text-muted-foreground`}
     >
       <HugeiconsIcon
         className="size-1/2"
@@ -183,13 +190,17 @@ function StoreIcon({ className, item }: { className: string; item: StoreItem }) 
 function ExternalLink({ href, label }: { href: string; label: string }) {
   return (
     <a
-      className="text-muted-foreground hover:text-foreground inline-flex max-w-full items-center gap-1 text-sm underline decoration-border underline-offset-4 transition-colors"
+      className="inline-flex max-w-full items-center gap-1 text-muted-foreground text-sm underline decoration-border underline-offset-4 transition-colors hover:text-foreground"
       href={href}
       rel="noreferrer"
       target="_blank"
     >
       <span className="truncate">{label}</span>
-      <HugeiconsIcon className="size-3.5 shrink-0" icon={ArrowUpRight01Icon} strokeWidth={2} />
+      <HugeiconsIcon
+        className="size-3.5 shrink-0"
+        icon={ArrowUpRight01Icon}
+        strokeWidth={2}
+      />
     </a>
   );
 }
@@ -219,11 +230,12 @@ function ExtensionCard({
 }) {
   const { t } = useTranslation();
   const compatible = item.entry?.versions.filter((version) =>
-    isMarketplaceVersionCompatible(PLUGIN_API_SUPPORTED_VERSIONS, version),
+    isMarketplaceVersionCompatible(PLUGIN_API_SUPPORTED_VERSIONS, version)
   );
   const latest =
-    compatible?.find((version) => version.version === item.entry?.latestVersion) ??
-    compatible?.[0];
+    compatible?.find(
+      (version) => version.version === item.entry?.latestVersion
+    ) ?? compatible?.[0];
 
   return (
     <Card className={busy ? "h-full opacity-60" : "h-full"} size="sm">
@@ -231,11 +243,13 @@ function ExtensionCard({
         <StoreIcon className="row-span-2 size-10 rounded-lg" item={item} />
         <CardTitle className="col-start-2 truncate">{item.name}</CardTitle>
         <CardDescription className="col-start-2 truncate">
-          {t("organization.extensions.byDeveloper", { developer: item.developer })}
+          {t("organization.extensions.byDeveloper", {
+            developer: item.developer,
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-3">
-        <p className="text-muted-foreground line-clamp-2 min-h-10 text-sm">
+        <p className="line-clamp-2 min-h-10 text-muted-foreground text-sm">
           {item.description}
         </p>
       </CardContent>
@@ -246,7 +260,7 @@ function ExtensionCard({
               version: installedVersion ?? latest?.version ?? item.version,
             })}
           </span>
-          {item.builtin && (
+          {!!item.builtin && (
             <Badge variant="outline">{t("extensions.builtIn")}</Badge>
           )}
         </div>
@@ -269,11 +283,15 @@ function ExtensionCard({
               size="sm"
               variant={enabled ? "destructive" : "default"}
             >
-              {t(enabled ? "extensions.disableExtension" : "extensions.enableExtension")}
+              {t(
+                enabled
+                  ? "extensions.disableExtension"
+                  : "extensions.enableExtension"
+              )}
             </Button>
           ) : latest && latest.version !== installedVersion ? (
             <Button
-              disabled={!canWrite || !online || !item.catalogOnline || busy}
+              disabled={!(canWrite && online && item.catalogOnline) || busy}
               onClick={() => onInstall(item, latest.version)}
               size="sm"
             >
@@ -307,7 +325,7 @@ function ExtensionScreenshot({
   return (
     <Dialog>
       <DialogTrigger
-        className="focus-visible:ring-ring/50 w-[min(32rem,88%)] shrink-0 snap-start cursor-zoom-in rounded-xl text-left outline-none focus-visible:ring-[3px]"
+        className="w-[min(32rem,88%)] shrink-0 cursor-zoom-in snap-start rounded-xl text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         render={<button type="button" />}
       >
         <img
@@ -318,12 +336,12 @@ function ExtensionScreenshot({
         />
       </DialogTrigger>
       <DialogContent
-        className="w-fit overflow-hidden p-2 ease-[cubic-bezier(0.22,1,0.36,1)] data-closed:zoom-out-85 data-closed:duration-300 data-open:zoom-in-85 data-open:duration-350 motion-reduce:animate-none sm:max-w-[calc(100%-2rem)]"
+        className="data-closed:zoom-out-85 data-open:zoom-in-85 w-fit overflow-hidden p-2 ease-[cubic-bezier(0.22,1,0.36,1)] data-closed:duration-300 data-open:duration-350 motion-reduce:animate-none sm:max-w-[calc(100%-2rem)]"
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">{screenshot.alt}</DialogTitle>
         <DialogClose
-          className="focus-visible:ring-ring/50 cursor-zoom-out rounded-lg outline-none focus-visible:ring-[3px]"
+          className="cursor-zoom-out rounded-lg outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
           type="button"
         >
           <img
@@ -364,15 +382,16 @@ function ExtensionDetailsDialog({
   const versions = useMemo(
     () =>
       item?.entry?.versions.filter((version) =>
-        isMarketplaceVersionCompatible(PLUGIN_API_SUPPORTED_VERSIONS, version),
+        isMarketplaceVersionCompatible(PLUGIN_API_SUPPORTED_VERSIONS, version)
       ) ?? [],
-    [item],
+    [item]
   );
   const latest =
-    versions.find((version) => version.version === item?.entry?.latestVersion) ??
-    versions[0];
+    versions.find(
+      (version) => version.version === item?.entry?.latestVersion
+    ) ?? versions[0];
   const installedIsCompatible = versions.some(
-    (version) => version.version === installedVersion,
+    (version) => version.version === installedVersion
   );
   const [selectedVersion, setSelectedVersion] = useState("");
 
@@ -380,23 +399,42 @@ function ExtensionDetailsDialog({
     setSelectedVersion(
       installedIsCompatible
         ? (installedVersion ?? "")
-        : (latest?.version ?? item?.version ?? ""),
+        : (latest?.version ?? item?.version ?? "")
     );
-  }, [installedIsCompatible, installedVersion, item?.id, item?.version, latest?.version]);
+  }, [
+    installedIsCompatible,
+    installedVersion,
+    item?.id,
+    item?.version,
+    latest?.version,
+  ]);
 
-  if (!item) return null;
+  if (!item) {
+    return null;
+  }
   const entry = item.entry;
   const storeDetails = item.storeDetails;
   const selectedRelease = versions.find(
-    (version) => version.version === selectedVersion,
+    (version) => version.version === selectedVersion
   );
   const links = entry
     ? [
         { href: entry.supportUrl, label: t("organization.extensions.support") },
-        { href: entry.repository, label: t("organization.extensions.sourceCode") },
-        { href: entry.privacyPolicyUrl, label: t("organization.extensions.privacyPolicy") },
-        { href: entry.termsOfServiceUrl, label: t("organization.extensions.termsOfService") },
-      ].filter((link): link is { href: string; label: string } => Boolean(link.href))
+        {
+          href: entry.repository,
+          label: t("organization.extensions.sourceCode"),
+        },
+        {
+          href: entry.privacyPolicyUrl,
+          label: t("organization.extensions.privacyPolicy"),
+        },
+        {
+          href: entry.termsOfServiceUrl,
+          label: t("organization.extensions.termsOfService"),
+        },
+      ].filter((link): link is { href: string; label: string } =>
+        Boolean(link.href)
+      )
     : [];
 
   return (
@@ -404,7 +442,10 @@ function ExtensionDetailsDialog({
       <DialogContent className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden p-0 sm:max-w-4xl">
         <DialogHeader className="p-5 pr-12 sm:p-6 sm:pr-14">
           <div className="flex min-w-0 items-center gap-4">
-            <StoreIcon className="size-14 shrink-0 rounded-2xl sm:size-16" item={item} />
+            <StoreIcon
+              className="size-14 shrink-0 rounded-2xl sm:size-16"
+              item={item}
+            />
             <div className="min-w-0 space-y-1">
               <DialogTitle className="min-w-0 break-words text-xl leading-tight sm:text-2xl">
                 {item.name}
@@ -420,11 +461,14 @@ function ExtensionDetailsDialog({
           <div className="space-y-7 p-5 sm:p-6">
             {storeDetails?.screenshots?.length ? (
               <section className="space-y-3">
-                <h3 className="font-medium">{t("organization.extensions.screenshots")}</h3>
+                <h3 className="font-medium">
+                  {t("organization.extensions.screenshots")}
+                </h3>
                 <div
                   aria-label={t("organization.extensions.screenshots")}
-                  className="focus-visible:ring-ring/50 flex snap-x snap-mandatory gap-3 overflow-x-auto rounded-xl pb-2 outline-none focus-visible:ring-[3px]"
+                  className="flex snap-x snap-mandatory gap-3 overflow-x-auto rounded-xl pb-2 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   role="region"
+                  // biome-ignore lint/a11y/noNoninteractiveTabindex: The scrollable screenshot region must be keyboard focusable.
                   tabIndex={0}
                 >
                   {storeDetails.screenshots.map((screenshot) => (
@@ -436,27 +480,39 @@ function ExtensionDetailsDialog({
                 </div>
               </section>
             ) : (
-              <div className="text-muted-foreground flex min-h-32 flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-muted/20 px-6 text-center">
-                <HugeiconsIcon className="size-6" icon={Image01Icon} strokeWidth={1.6} />
-                <p className="text-sm">{t("organization.extensions.noScreenshots")}</p>
+              <div className="flex min-h-32 flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-muted/20 px-6 text-center text-muted-foreground">
+                <HugeiconsIcon
+                  className="size-6"
+                  icon={Image01Icon}
+                  strokeWidth={1.6}
+                />
+                <p className="text-sm">
+                  {t("organization.extensions.noScreenshots")}
+                </p>
               </div>
             )}
             <section className="space-y-2">
-              <h3 className="font-medium">{t("organization.extensions.about")}</h3>
-              <p className="text-muted-foreground max-w-[70ch] whitespace-pre-line text-sm leading-relaxed">
+              <h3 className="font-medium">
+                {t("organization.extensions.about")}
+              </h3>
+              <p className="max-w-[70ch] whitespace-pre-line text-muted-foreground text-sm leading-relaxed">
                 {storeDetails?.longDescription ?? item.description}
               </p>
             </section>
           </div>
           <aside className="space-y-6 border-t bg-muted/20 p-5 sm:p-6 lg:border-t-0 lg:border-l">
             <section className="space-y-3">
-              <h3 className="font-medium">{t("organization.extensions.details")}</h3>
+              <h3 className="font-medium">
+                {t("organization.extensions.details")}
+              </h3>
               <dl className="space-y-3 text-sm">
                 <div className="flex justify-between gap-3">
-                  <dt className="text-muted-foreground">{t("organization.extensions.author")}</dt>
+                  <dt className="text-muted-foreground">
+                    {t("organization.extensions.author")}
+                  </dt>
                   <dd className="text-right font-medium">{item.developer}</dd>
                 </div>
-                {item.website && (
+                {!!item.website && (
                   <div className="flex justify-between gap-3">
                     <dt className="text-muted-foreground">
                       {t("organization.extensions.website")}
@@ -470,16 +526,24 @@ function ExtensionDetailsDialog({
                   </div>
                 )}
                 <div className="flex justify-between gap-3">
-                  <dt className="text-muted-foreground">{t("organization.extensions.latestVersion")}</dt>
-                  <dd className="text-right font-medium">{latest?.version ?? item.version}</dd>
+                  <dt className="text-muted-foreground">
+                    {t("organization.extensions.latestVersion")}
+                  </dt>
+                  <dd className="text-right font-medium">
+                    {latest?.version ?? item.version}
+                  </dd>
                 </div>
                 {selectedRelease?.packageSizeBytes !== undefined && (
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">{t("organization.extensions.size")}</dt>
-                    <dd className="text-right font-medium">{formatBytes(selectedRelease.packageSizeBytes)}</dd>
+                    <dt className="text-muted-foreground">
+                      {t("organization.extensions.size")}
+                    </dt>
+                    <dd className="text-right font-medium">
+                      {formatBytes(selectedRelease.packageSizeBytes)}
+                    </dd>
                   </div>
                 )}
-                {entry?.publishedAt && (
+                {!!entry?.publishedAt && (
                   <div className="flex justify-between gap-3">
                     <dt className="text-muted-foreground">
                       {t("organization.extensions.published")}
@@ -489,13 +553,17 @@ function ExtensionDetailsDialog({
                     </dd>
                   </div>
                 )}
-                {entry?.updatedAt && (
+                {!!entry?.updatedAt && (
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">{t("organization.extensions.updated")}</dt>
-                    <dd className="text-right font-medium">{formatDate(entry.updatedAt)}</dd>
+                    <dt className="text-muted-foreground">
+                      {t("organization.extensions.updated")}
+                    </dt>
+                    <dd className="text-right font-medium">
+                      {formatDate(entry.updatedAt)}
+                    </dd>
                   </div>
                 )}
-                {selectedRelease?.publishedAt && (
+                {!!selectedRelease?.publishedAt && (
                   <div className="flex justify-between gap-3">
                     <dt className="text-muted-foreground">
                       {t("organization.extensions.versionReleased")}
@@ -517,10 +585,16 @@ function ExtensionDetailsDialog({
             </section>
             {item.keywords?.length ? (
               <section className="space-y-2.5">
-                <h3 className="font-medium">{t("organization.extensions.keywords")}</h3>
+                <h3 className="font-medium">
+                  {t("organization.extensions.keywords")}
+                </h3>
                 <div className="flex flex-wrap gap-1.5">
                   {item.keywords.map((keyword) => (
-                    <Badge className="max-w-full truncate" key={keyword} variant="outline">
+                    <Badge
+                      className="max-w-full truncate"
+                      key={keyword}
+                      variant="outline"
+                    >
                       {keyword}
                     </Badge>
                   ))}
@@ -529,9 +603,13 @@ function ExtensionDetailsDialog({
             ) : null}
             {links.length > 0 && (
               <section className="space-y-2.5">
-                <h3 className="font-medium">{t("organization.extensions.links")}</h3>
+                <h3 className="font-medium">
+                  {t("organization.extensions.links")}
+                </h3>
                 <div className="flex flex-col items-start gap-2">
-                  {links.map((link) => <ExternalLink {...link} key={link.label} />)}
+                  {links.map((link) => (
+                    <ExternalLink {...link} key={link.label} />
+                  ))}
                 </div>
               </section>
             )}
@@ -548,7 +626,11 @@ function ExtensionDetailsDialog({
                 onClick={() => onToggle(item.id, !enabled)}
                 variant={enabled ? "destructive" : "default"}
               >
-                {t(enabled ? "extensions.disableExtension" : "extensions.enableExtension")}
+                {t(
+                  enabled
+                    ? "extensions.disableExtension"
+                    : "extensions.enableExtension"
+                )}
               </Button>
             </div>
           ) : (
@@ -557,7 +639,9 @@ function ExtensionDetailsDialog({
                 {versions.length > 0 && (
                   <Select
                     disabled={busy}
-                    onValueChange={(value) => value && setSelectedVersion(value)}
+                    onValueChange={(value) =>
+                      value && setSelectedVersion(value)
+                    }
                     value={selectedVersion}
                   >
                     <SelectTrigger
@@ -568,7 +652,10 @@ function ExtensionDetailsDialog({
                     </SelectTrigger>
                     <SelectContent>
                       {versions.map((version) => (
-                        <SelectItem key={version.version} value={version.version}>
+                        <SelectItem
+                          key={version.version}
+                          value={version.version}
+                        >
                           {version.version}
                         </SelectItem>
                       ))}
@@ -578,9 +665,7 @@ function ExtensionDetailsDialog({
                 {selectedVersion && selectedVersion !== installedVersion && (
                   <Button
                     disabled={
-                      !canWrite ||
-                      !online ||
-                      !item.catalogOnline ||
+                      !(canWrite && online && item.catalogOnline) ||
                       busy ||
                       !entry
                     }
@@ -592,7 +677,7 @@ function ExtensionDetailsDialog({
                   </Button>
                 )}
               </div>
-              {installedVersion && (
+              {!!installedVersion && (
                 <Button
                   className="dark:text-foreground"
                   disabled={!canWrite || busy}
@@ -627,7 +712,7 @@ export function ExtensionsPanel() {
   } = useExtensionRegistry();
   const rows = useWorkspaceExtensionsQuery(workspaceId);
   const registryQuery = useOrganizationExtensionRegistriesQuery(
-    workspace?.organization_id ?? undefined,
+    workspace?.organization_id ?? undefined
   );
   const registries = useMemo<OrganizationExtensionRegistry[]>(
     () =>
@@ -635,22 +720,24 @@ export function ExtensionsPanel() {
         ? registryQuery.data
         : registryQuery.isLoading
           ? []
-          : [{
-            addedAt: "",
-            addedBy: null,
-            id: OFFICIAL_MARKETPLACE_ID,
-            kind: "github",
-            location: OFFICIAL_MARKETPLACE_LOCATION,
-            manifestUrl: OFFICIAL_MARKETPLACE_MANIFEST_URL,
-            official: true,
-            organizationId: workspace?.organization_id ?? "",
-            updatedAt: "",
-          }],
-    [workspace?.organization_id, registryQuery.data, registryQuery.isLoading],
+          : [
+              {
+                addedAt: "",
+                addedBy: null,
+                id: OFFICIAL_MARKETPLACE_ID,
+                kind: "github",
+                location: OFFICIAL_MARKETPLACE_LOCATION,
+                manifestUrl: OFFICIAL_MARKETPLACE_MANIFEST_URL,
+                official: true,
+                organizationId: workspace?.organization_id ?? "",
+                updatedAt: "",
+              },
+            ],
+    [workspace?.organization_id, registryQuery.data, registryQuery.isLoading]
   );
   const marketplaceQueries = useQueries({
     queries: registries.map((registry) =>
-      extensionMarketplaceQueryOptions(platform.plugins, registry.manifestUrl),
+      extensionMarketplaceQueryOptions(platform.plugins, registry.manifestUrl)
     ),
   });
   const [search, setSearch] = useState("");
@@ -659,11 +746,13 @@ export function ExtensionsPanel() {
   const [pending, setPending] = useState<PendingInstall | null>(null);
 
   const enabledIds = useMemo(() => {
-    if (!rows.data?.length) return new Set(defaultExtensionIds);
+    if (!rows.data?.length) {
+      return new Set(defaultExtensionIds);
+    }
     return new Set(
       rows.data
         .filter((row) => Boolean(row.enabled))
-        .flatMap((row) => (row.extension_id ? [row.extension_id] : [])),
+        .flatMap((row) => (row.extension_id ? [row.extension_id] : []))
     );
   }, [defaultExtensionIds, rows.data]);
   const installations = useMemo(
@@ -672,41 +761,53 @@ export function ExtensionsPanel() {
         const installation = toWorkspaceExtensionInstallation(row);
         return installation ? [installation] : [];
       }),
-    [rows.data],
+    [rows.data]
   );
   const installedById = useMemo(
     () => new Map(installations.map((item) => [item.extensionId, item])),
-    [installations],
+    [installations]
   );
 
   const items = useMemo(() => {
     const bundledIds = new Set(
-      bundledExtensionIds.filter((id) => extensionMetadata[id]),
+      bundledExtensionIds.filter((id) => extensionMetadata[id])
     );
     const result: StoreItem[] = bundledExtensionIds.flatMap((id) => {
       const metadata = extensionMetadata[id];
-      if (!metadata) return [];
-      return [{
-        builtin: true,
-        description: t(`extensions.catalog.${id}.description`, { defaultValue: metadata.description }),
-        developer: metadata.developer,
-        iconUrl: BUILTIN_EXTENSION_ICON_URLS[id],
-        id,
-        keywords: metadata.keywords,
-        name: t(`extensions.catalog.${id}.name`, { defaultValue: metadata.name }),
-        storeDetails: {
-          ...BUILTIN_EXTENSION_STORE_DETAILS[id],
-          longDescription: metadata.longDescription,
+      if (!metadata) {
+        return [];
+      }
+      return [
+        {
+          builtin: true,
+          description: t(`extensions.catalog.${id}.description`, {
+            defaultValue: metadata.description,
+          }),
+          developer: metadata.developer,
+          iconUrl: BUILTIN_EXTENSION_ICON_URLS[id],
+          id,
+          keywords: metadata.keywords,
+          name: t(`extensions.catalog.${id}.name`, {
+            defaultValue: metadata.name,
+          }),
+          storeDetails: {
+            ...BUILTIN_EXTENSION_STORE_DETAILS[id],
+            longDescription: metadata.longDescription,
+          },
+          version: metadata.version,
+          website: metadata.website,
         },
-        version: metadata.version,
-        website: metadata.website,
-      }];
+      ];
     });
     const seen = new Set(bundledIds);
     marketplaceQueries.forEach((query, index) => {
-      if (!query.data?.catalog.enabled) return;
+      if (!query.data?.catalog.enabled) {
+        return;
+      }
       const registry = registries[index];
-      if (!registry) return;
+      if (!registry) {
+        return;
+      }
       for (const entry of query.data.catalog.extensions) {
         if (seen.has(entry.id)) {
           log.warn({
@@ -735,11 +836,15 @@ export function ExtensionsPanel() {
       }
     });
     for (const installation of installations) {
-      if (seen.has(installation.extensionId)) continue;
+      if (seen.has(installation.extensionId)) {
+        continue;
+      }
       seen.add(installation.extensionId);
       result.push({
         builtin: false,
-        description: t("extensions.placeholder.unknown-release", { name: installation.extensionId }),
+        description: t("extensions.placeholder.unknown-release", {
+          name: installation.extensionId,
+        }),
         developer: t("extensions.unknownDeveloper"),
         id: installation.extensionId,
         name: installation.extensionId,
@@ -752,7 +857,7 @@ export function ExtensionsPanel() {
       ? result.filter((item) =>
           `${item.name} ${item.description} ${item.developer} ${item.keywords?.join(" ") ?? ""}`
             .toLowerCase()
-            .includes(needle),
+            .includes(needle)
         )
       : result;
   }, [
@@ -766,10 +871,7 @@ export function ExtensionsPanel() {
   ]);
 
   const mutate = useCallback(
-    async (
-      pluginId: string,
-      request: () => Promise<"warning" | void>,
-    ) => {
+    async (pluginId: string, request: () => Promise<"warning" | void>) => {
       setBusyId(pluginId);
       try {
         const outcome = await request();
@@ -793,20 +895,25 @@ export function ExtensionsPanel() {
         setBusyId(null);
       }
     },
-    [workspaceId, t],
+    [workspaceId, t]
   );
 
   const handleToggle = useCallback(
     async (pluginId: string, enabled: boolean) => {
-      if (!canWrite) return;
+      if (!canWrite) {
+        return;
+      }
       const service = createWorkspaceExtensionsService(db, workspaceId);
-      const initialState = { defaultExtensionIds, knownExtensionIds: allExtensionIds };
+      const initialState = {
+        defaultExtensionIds,
+        knownExtensionIds: allExtensionIds,
+      };
       const saved = await mutate(pluginId, async () => {
         await service.setEnabled(pluginId, enabled, initialState);
         const change = {
           enabled,
           extensionId: pluginId,
-          operation: enabled ? "enable" as const : "disable" as const,
+          operation: enabled ? ("enable" as const) : ("disable" as const),
           workspaceId,
           revision: runtimeRevisions[pluginId],
         };
@@ -837,7 +944,9 @@ export function ExtensionsPanel() {
           throw error;
         }
       });
-      if (!saved) return;
+      if (!saved) {
+        return;
+      }
       posthog.capture("plugin_toggled", { plugin_id: pluginId, enabled });
     },
     [
@@ -849,16 +958,11 @@ export function ExtensionsPanel() {
       applyRuntimeChange,
       workspaceId,
       runtimeRevisions,
-    ],
+    ]
   );
 
   const requestInstall = (item: StoreItem, version: string) => {
-    if (
-      !online ||
-      !item.catalogOnline ||
-      !item.entry ||
-      !item.registryId
-    ) {
+    if (!(online && item.catalogOnline && item.entry && item.registryId)) {
       return;
     }
     setSelected(null);
@@ -868,39 +972,47 @@ export function ExtensionsPanel() {
   const install = async () => {
     const pendingInstall = pending;
     if (
-      !canWrite ||
-      !online ||
-      !pendingInstall?.item.entry ||
-      !pendingInstall.item.registryId
+      !(
+        canWrite &&
+        online &&
+        pendingInstall?.item.entry &&
+        pendingInstall.item.registryId
+      )
     ) {
       return;
     }
     const { item, version } = pendingInstall;
     const registryId = item.registryId;
-    if (!registryId) return;
+    if (!registryId) {
+      return;
+    }
     const registry = registries.find(
-      (candidate) => candidate.id === registryId,
+      (candidate) => candidate.id === registryId
     );
-    if (!registry) return;
+    if (!registry) {
+      return;
+    }
     const service = createWorkspaceExtensionsService(db, workspaceId);
     const previous = installedById.get(item.id);
     const saved = await mutate(item.id, async () => {
       const current = await extensionMarketplaceQueryOptions(
         platform.plugins,
-        registry.manifestUrl,
+        registry.manifestUrl
       ).queryFn();
       if (current.source !== "network" || !current.catalog.enabled) {
         throw new Error("Extension marketplace is unavailable");
       }
       const entry = current.catalog.extensions.find(
-        (candidate) => candidate.id === item.id,
+        (candidate) => candidate.id === item.id
       );
       const release = entry?.versions.find(
-        (candidate) => candidate.version === version,
+        (candidate) => candidate.version === version
       );
       if (
-        !release ||
-        !isMarketplaceVersionCompatible(PLUGIN_API_SUPPORTED_VERSIONS, release)
+        !(
+          release &&
+          isMarketplaceVersionCompatible(PLUGIN_API_SUPPORTED_VERSIONS, release)
+        )
       ) {
         throw new Error("Extension release is unavailable");
       }
@@ -911,12 +1023,12 @@ export function ExtensionsPanel() {
           registryId,
           version,
         },
-        { defaultExtensionIds, knownExtensionIds: allExtensionIds },
+        { defaultExtensionIds, knownExtensionIds: allExtensionIds }
       );
       const change = {
         enabled: true,
         extensionId: item.id,
-        operation: previous ? "upgrade" as const : "install" as const,
+        operation: previous ? ("upgrade" as const) : ("install" as const),
         workspaceId,
         revision: `${registryId}:${version}:${release.descriptor.sha256}`,
       };
@@ -929,7 +1041,9 @@ export function ExtensionsPanel() {
           const rollback = {
             enabled: previous.enabled,
             extensionId: item.id,
-            operation: previous.enabled ? "upgrade" as const : "disable" as const,
+            operation: previous.enabled
+              ? ("upgrade" as const)
+              : ("disable" as const),
             workspaceId,
             revision: `${previous.registryId}:${previous.version}:${previous.descriptorSha256 ?? "catalog"}`,
           };
@@ -961,7 +1075,9 @@ export function ExtensionsPanel() {
 
   const uninstall = async (pluginId: string) => {
     const saved = await mutate(pluginId, async () => {
-      await createWorkspaceExtensionsService(db, workspaceId).uninstall(pluginId);
+      await createWorkspaceExtensionsService(db, workspaceId).uninstall(
+        pluginId
+      );
       const change = {
         enabled: false,
         extensionId: pluginId,
@@ -989,30 +1105,34 @@ export function ExtensionsPanel() {
 
   return (
     <div className="@container flex h-full w-full flex-col gap-5 overflow-y-auto p-6">
-      <h1 className="text-xl font-semibold">{t("extensions.title")}</h1>
+      <h1 className="font-semibold text-xl">{t("extensions.title")}</h1>
       {!canWrite && (
         <Alert>
           <AlertTitle>{t("permissions.readOnlyTitle")}</AlertTitle>
-          <AlertDescription>{t("permissions.readOnlyDescription")}</AlertDescription>
+          <AlertDescription>
+            {t("permissions.readOnlyDescription")}
+          </AlertDescription>
         </Alert>
       )}
       {!online && (
         <Alert>
           <AlertTitle>{t("organization.extensions.offlineTitle")}</AlertTitle>
-          <AlertDescription>{t("extensions.offlineWorkspaceDescription")}</AlertDescription>
+          <AlertDescription>
+            {t("extensions.offlineWorkspaceDescription")}
+          </AlertDescription>
         </Alert>
       )}
-      <div className="flex flex-col gap-2 @xl:flex-row @xl:items-center">
+      <div className="flex @xl:flex-row flex-col @xl:items-center gap-2">
         <InputGroup className="w-full @xl:max-w-sm">
           <InputGroupInput
             aria-label={t("organization.extensions.search")}
-            className="[&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-cancel-button]:hidden"
+            className="[&::-webkit-search-cancel-button]:hidden [&::-webkit-search-cancel-button]:appearance-none"
             onChange={(event) => setSearch(event.target.value)}
             placeholder={t("extensions.searchPlaceholder")}
             type="search"
             value={search}
           />
-          {search && (
+          {!!search && (
             <InputGroupButton onClick={() => setSearch("")}>
               <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
             </InputGroupButton>
@@ -1023,13 +1143,18 @@ export function ExtensionsPanel() {
       <div
         aria-busy={marketplaceQueries.some((query) => query.isPending)}
         aria-label={t("organization.extensions.availableExtensions")}
-        className="grid gap-4 @xl:grid-cols-2 @4xl:grid-cols-3"
+        className="grid @4xl:grid-cols-3 @xl:grid-cols-2 gap-4"
         role="list"
       >
         {marketplaceQueries.some((query) => query.isPending) &&
           marketplaceQueries.every((query) => !query.data) &&
           Array.from({ length: 3 }, (_, index) => (
-            <div className="rounded-xl border p-4" key={index} role="listitem">
+            <div
+              className="rounded-xl border p-4"
+              // biome-ignore lint/suspicious/noArrayIndexKey: Fixed placeholders or stateless rows; position is the intended identity.
+              key={index}
+              role="listitem"
+            >
               <Skeleton className="h-28 w-full" />
             </div>
           ))}
@@ -1054,9 +1179,11 @@ export function ExtensionsPanel() {
           );
         })}
         {items.length === 0 && (
-          <Empty className="border @xl:col-span-2 @4xl:col-span-3">
+          <Empty className="@4xl:col-span-3 @xl:col-span-2 border">
             <EmptyHeader>
-              <EmptyMedia variant="icon"><HugeiconsIcon icon={Search01Icon} /></EmptyMedia>
+              <EmptyMedia variant="icon">
+                <HugeiconsIcon icon={Search01Icon} />
+              </EmptyMedia>
               <EmptyTitle>{t("organization.extensions.noResults")}</EmptyTitle>
               <EmptyDescription>
                 {t("organization.extensions.noResultsDescription", { search })}
@@ -1069,7 +1196,9 @@ export function ExtensionsPanel() {
         busy={busyId === selected?.id}
         canWrite={canWrite}
         enabled={selected ? enabledIds.has(selected.id) : false}
-        installedVersion={selected ? installedById.get(selected.id)?.version : undefined}
+        installedVersion={
+          selected ? installedById.get(selected.id)?.version : undefined
+        }
         item={selected}
         onInstall={requestInstall}
         onOpenChange={(open) => !open && setSelected(null)}
@@ -1077,17 +1206,27 @@ export function ExtensionsPanel() {
         onUninstall={(id) => void uninstall(id)}
         online={online}
       />
-      <AlertDialog onOpenChange={(open) => !open && setPending(null)} open={Boolean(pending)}>
+      <AlertDialog
+        onOpenChange={(open) => !open && setPending(null)}
+        open={Boolean(pending)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("organization.extensions.trustTitle")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("organization.extensions.trustTitle")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("organization.extensions.trustDescription", { name: pending?.item.name })}
+              {t("organization.extensions.trustDescription", {
+                name: pending?.item.name,
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction disabled={Boolean(busyId)} onClick={() => void install()}>
+            <AlertDialogAction
+              disabled={Boolean(busyId)}
+              onClick={() => void install()}
+            >
               {t("organization.extensions.confirmInstall")}
             </AlertDialogAction>
           </AlertDialogFooter>

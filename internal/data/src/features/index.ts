@@ -27,7 +27,10 @@ import {
   LOCAL_WORKSPACE_STORAGE_VALUES_TABLE,
 } from "./workspace-storage-slots/table";
 import { createWorkspaceMemberTable } from "./workspace-members/table";
-import { createWorkspaceTable, LOCAL_WORKSPACES_TABLE } from "./workspaces/table";
+import {
+  createWorkspaceTable,
+  LOCAL_WORKSPACES_TABLE,
+} from "./workspaces/table";
 import {
   createMemberTable,
   createOrganizationTable,

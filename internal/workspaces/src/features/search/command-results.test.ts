@@ -50,10 +50,7 @@ describe("buildCommandSearchResults", () => {
         },
         translate
       ).map((result) => result.id)
-    ).toEqual([
-      "cmd-open-workspace-settings",
-      "cmd-open-extensions",
-    ]);
+    ).toEqual(["cmd-open-workspace-settings", "cmd-open-extensions"]);
   });
 
   it("finds commands excluded from empty-query suggestions", () => {
@@ -73,8 +70,8 @@ describe("buildCommandSearchResults", () => {
       buildCommandSearchResults(
         "explorer",
         { "open-workspace-explorer": action },
-        translate,
-      ).map((result) => result.id),
+        translate
+      ).map((result) => result.id)
     ).toEqual(["cmd-open-workspace-explorer"]);
   });
 
@@ -95,15 +92,15 @@ describe("buildCommandSearchResults", () => {
       buildCommandSearchResults(
         '"focus mode"',
         { "toggle-focus-mode": action },
-        translate,
-      ),
+        translate
+      )
     ).toHaveLength(1);
     expect(
       buildCommandSearchResults(
         "workspace:demo",
         { "open-workspace-settings": action },
-        translate,
-      ),
+        translate
+      )
     ).toEqual([]);
   });
 });

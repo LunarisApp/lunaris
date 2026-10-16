@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  type ResourceTypeDefinition,
-} from "@lunarisapp/plugin-sdk";
+import type { ResourceTypeDefinition } from "@lunarisapp/plugin-sdk";
 import {
   ResponsiveDropdownMenu,
   ResponsiveDropdownMenuContent,
@@ -51,7 +49,7 @@ function LauncherCardContent({
       </span>
       <span className="space-y-1">
         <span className="block font-medium text-foreground">{title}</span>
-        <span className="block text-xs leading-relaxed text-muted-foreground">
+        <span className="block text-muted-foreground text-xs leading-relaxed">
           {description}
         </span>
       </span>
@@ -80,7 +78,9 @@ export function GridLayoutEmptyPanel({ api }: IDockviewPanelProps) {
     setIsPending(true);
     try {
       const result = await createResource(VIRTUAL_ROOT_ID, resource);
-      if (!result) return;
+      if (!result) {
+        return;
+      }
 
       openResource({
         resourceId: result.resourceId,
@@ -135,11 +135,11 @@ export function GridLayoutEmptyPanel({ api }: IDockviewPanelProps) {
 
   return (
     <div className="@container h-full overflow-y-auto bg-background">
-      <div className="mx-auto flex min-h-full w-full max-w-2xl items-center px-5 py-10 @min-[480px]:px-8">
+      <div className="mx-auto flex min-h-full w-full max-w-2xl items-center @min-[480px]:px-8 px-5 py-10">
         <div className="w-full">
           <div className="mb-6 max-w-md space-y-1.5">
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-semibold tracking-tight">
+              <h1 className="font-semibold text-xl tracking-tight">
                 {t("gridLayout.emptyPanel.heading")}
               </h1>
               {!canCreate && (
@@ -148,69 +148,70 @@ export function GridLayoutEmptyPanel({ api }: IDockviewPanelProps) {
                 </Badge>
               )}
             </div>
-            <p className="text-sm leading-relaxed text-muted-foreground">
+            <p className="text-muted-foreground text-sm leading-relaxed">
               {t("gridLayout.emptyPanel.description")}
             </p>
           </div>
 
           <div
             aria-busy={isPending}
-            className="grid grid-cols-1 gap-3 @min-[480px]:grid-cols-2"
+            className="grid @min-[480px]:grid-cols-2 grid-cols-1 gap-3"
           >
-            {canCreate && <ResponsiveDropdownMenu>
-              <ResponsiveDropdownMenuTrigger
-                disabled={isPending || resources.length === 0}
-                render={
-                  <Button
-                    className={`${launcherCardClassName} @min-[480px]:col-span-2`}
-                    variant="outline"
+            {canCreate && (
+              <ResponsiveDropdownMenu>
+                <ResponsiveDropdownMenuTrigger
+                  disabled={isPending || resources.length === 0}
+                  render={
+                    <Button
+                      className={`${launcherCardClassName} @min-[480px]:col-span-2`}
+                      variant="outline"
+                    />
+                  }
+                >
+                  <LauncherCardContent
+                    description={
+                      resources.length === 0
+                        ? t("gridLayout.emptyPanel.noFileTypes")
+                        : t("gridLayout.emptyPanel.createFileDescription")
+                    }
+                    icon={FileAddIcon}
+                    title={t("gridLayout.emptyPanel.createFile")}
                   />
-                }
+                </ResponsiveDropdownMenuTrigger>
+                <ResponsiveDropdownMenuContent
+                  align="start"
+                  title={t("gridLayout.emptyPanel.chooseFileType")}
+                >
+                  {resources.map((resource) => (
+                    <ResponsiveDropdownMenuItem
+                      disabled={isPending}
+                      key={resource.resourceTypeId}
+                      onClick={() => handleCreateFile(resource)}
+                    >
+                      <Icon className="size-4" icon={resource.icon} />
+                      {resource.name}
+                    </ResponsiveDropdownMenuItem>
+                  ))}
+                </ResponsiveDropdownMenuContent>
+              </ResponsiveDropdownMenu>
+            )}
+
+            {canCreate && (
+              <Button
+                className={launcherCardClassName}
+                disabled={isPending}
+                onClick={handleCreateFolder}
+                variant="outline"
               >
                 <LauncherCardContent
-                  description={
-                    resources.length === 0
-                      ? t("gridLayout.emptyPanel.noFileTypes")
-                      : t("gridLayout.emptyPanel.createFileDescription")
-                  }
-                  icon={FileAddIcon}
-                  title={t("gridLayout.emptyPanel.createFile")}
+                  description={t(
+                    "gridLayout.emptyPanel.createFolderDescription"
+                  )}
+                  icon={FolderAddIcon}
+                  title={t("gridLayout.emptyPanel.createFolder")}
                 />
-              </ResponsiveDropdownMenuTrigger>
-              <ResponsiveDropdownMenuContent
-                align="start"
-                title={t("gridLayout.emptyPanel.chooseFileType")}
-              >
-                {resources.map((resource) => (
-                  <ResponsiveDropdownMenuItem
-                    disabled={isPending}
-                    key={resource.resourceTypeId}
-                    onClick={() => handleCreateFile(resource)}
-                  >
-                    <Icon
-                      className="size-4"
-                      icon={resource.icon}
-                    />
-                    {resource.name}
-                  </ResponsiveDropdownMenuItem>
-                ))}
-              </ResponsiveDropdownMenuContent>
-            </ResponsiveDropdownMenu>}
-
-            {canCreate && <Button
-              className={launcherCardClassName}
-              disabled={isPending}
-              onClick={handleCreateFolder}
-              variant="outline"
-            >
-              <LauncherCardContent
-                description={t(
-                  "gridLayout.emptyPanel.createFolderDescription"
-                )}
-                icon={FolderAddIcon}
-                title={t("gridLayout.emptyPanel.createFolder")}
-              />
-            </Button>}
+              </Button>
+            )}
 
             <Button
               className={launcherCardClassName}

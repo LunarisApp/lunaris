@@ -46,9 +46,12 @@ export function OrganizationScopeGate() {
   };
   const { data: session } = authClient?.useSession() ?? { data: null };
   const organizations = useOrganizationsQuery();
-  if (!activeOrg || activeOrg.slug !== organizationSlug)
+  if (!activeOrg || activeOrg.slug !== organizationSlug) {
     return <OrganizationScopeContent />;
-  const syncedOrganization = organizations.data?.find((org) => org.id === activeOrg.id);
+  }
+  const syncedOrganization = organizations.data?.find(
+    (org) => org.id === activeOrg.id
+  );
   return (
     <OrganizationDeletionGate
       key={activeOrg.id}
@@ -87,7 +90,7 @@ function OrganizationScopeContent() {
   const organizationsQuery = useOrganizationsQuery();
   const roleQuery = useOrganizationMemberRoleQuery(
     activeOrg?.id,
-    session?.user?.id,
+    session?.user?.id
   );
   const pendingOrganization = readPendingOrganization();
   const pendingOrganizationId = pendingOrganization?.id;
@@ -104,7 +107,7 @@ function OrganizationScopeContent() {
     (required: Parameters<typeof parentPermissionCheck>[0]) =>
       parentPermissionCheck(required) &&
       hasOrganizationPermission(organizationRole, required),
-    [parentPermissionCheck, organizationRole],
+    [parentPermissionCheck, organizationRole]
   );
 
   const activeOrgId = activeOrg?.id;
@@ -118,7 +121,7 @@ function OrganizationScopeContent() {
     !!organizationSlug &&
     !slugMatches;
   const activeOrganizationIsSynced = organizationsQuery.data?.some(
-    (organization) => organization.id === activeOrgId,
+    (organization) => organization.id === activeOrgId
   );
   const useActiveFallback =
     session?.user?.isAnonymous === true ||
@@ -142,20 +145,22 @@ function OrganizationScopeContent() {
 
   useEffect(() => {
     if (
-      !authClient ||
-      !organizationSlug ||
-      !activeOrgSlug ||
+      !(authClient && organizationSlug && activeOrgSlug) ||
       organizationsQuery.isLoading
     ) {
       return;
     }
-    if (organizationMatches) return;
-    if (resolutionRef.current !== "idle") return;
+    if (organizationMatches) {
+      return;
+    }
+    if (resolutionRef.current !== "idle") {
+      return;
+    }
     resolutionRef.current = "resolving";
 
     const resolve = async () => {
       const match = organizationsQuery.data?.find(
-        (organization) => organization.slug === organizationSlug,
+        (organization) => organization.slug === organizationSlug
       );
       const targetOrganizationId =
         match?.id ?? (pendingRouteMatches ? pendingOrganizationId : undefined);
@@ -177,7 +182,9 @@ function OrganizationScopeContent() {
       const result = await authClient.organization.setActive({
         organizationId: targetOrganizationId,
       });
-      if (result.error) throw result.error;
+      if (result.error) {
+        throw result.error;
+      }
       log.info({
         action: "organization.switch",
         outcome: "success",
@@ -188,7 +195,9 @@ function OrganizationScopeContent() {
         refetchActiveOrganization?.(),
       ]);
       resolutionRef.current = "idle";
-      if (!mountedRef.current) return;
+      if (!mountedRef.current) {
+        return;
+      }
       if (organizationSlugRef.current !== organizationSlug) {
         setResolutionRevision((revision) => revision + 1);
         return;
@@ -197,7 +206,9 @@ function OrganizationScopeContent() {
     };
 
     resolve().catch((err) => {
-      if (!mountedRef.current) return;
+      if (!mountedRef.current) {
+        return;
+      }
       if (organizationSlugRef.current !== organizationSlug) {
         resolutionRef.current = "idle";
         setResolutionRevision((revision) => revision + 1);
@@ -229,9 +240,15 @@ function OrganizationScopeContent() {
     organizationSlug,
   ]);
 
-  if (!organizationSlug) return <OrganizationNotFound />;
-  if (anonymousSlugMismatch) return <OrganizationNotFound />;
-  if (error?.kind === "not-found") return <OrganizationNotFound />;
+  if (!organizationSlug) {
+    return <OrganizationNotFound />;
+  }
+  if (anonymousSlugMismatch) {
+    return <OrganizationNotFound />;
+  }
+  if (error?.kind === "not-found") {
+    return <OrganizationNotFound />;
+  }
   if (error?.kind === "switch-failed") {
     const userFacingError = getUserFacingError(error.cause);
     return (
@@ -252,9 +269,15 @@ function OrganizationScopeContent() {
       />
     );
   }
-  if (organizationsQuery.error && !scopeMatches) throw organizationsQuery.error;
-  if (!authClient || !activeOrgSlug) return <LoaderView />;
-  if (!scopeMatches) return <LoaderView />;
+  if (organizationsQuery.error && !scopeMatches) {
+    throw organizationsQuery.error;
+  }
+  if (!(authClient && activeOrgSlug)) {
+    return <LoaderView />;
+  }
+  if (!scopeMatches) {
+    return <LoaderView />;
+  }
 
   return (
     <PermissionProvider check={permissionCheck}>

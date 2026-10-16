@@ -1,6 +1,6 @@
 export function BuildVersion({ version }: { version: string }) {
   return (
-    <p className="text-muted-foreground whitespace-nowrap text-center text-xs">
+    <p className="whitespace-nowrap text-center text-muted-foreground text-xs">
       Build: {version}
     </p>
   );

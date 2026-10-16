@@ -35,7 +35,7 @@ export function useConditionalPasskeyAutofill({
       toast.error(translationRef.current(userFacingError.titleKey), {
         description: getUserFacingDescription(
           userFacingError,
-          translationRef.current,
+          translationRef.current
         ),
       });
       posthog.capture("auth_sign_in_failed", { method: "passkey" });
@@ -60,14 +60,20 @@ export function useConditionalPasskeyAutofill({
       } catch {
         return;
       }
-      if (!available || !active || attemptedAuth.current === auth) return;
+      if (!(available && active) || attemptedAuth.current === auth) {
+        return;
+      }
       attemptedAuth.current = auth;
 
       try {
         const { data, error } = await auth.signIn.passkey({ autoFill: true });
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         if (error) {
-          if (isPasskeyCancellation(error)) return;
+          if (isPasskeyCancellation(error)) {
+            return;
+          }
           reportFailure(error);
           return;
         }
@@ -77,11 +83,13 @@ export function useConditionalPasskeyAutofill({
           replace: true,
           state: createAccountSwitchNavigationState(
             data?.user?.id,
-            isAddingAccount,
+            isAddingAccount
           ),
         });
       } catch (error) {
-        if (!active || isPasskeyCancellation(error)) return;
+        if (!active || isPasskeyCancellation(error)) {
+          return;
+        }
         reportFailure(error);
       }
     };

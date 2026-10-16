@@ -96,7 +96,7 @@ describe("useAccountSwitcher account preloading", () => {
       () =>
         new Promise((resolve) => {
           resolveSessions = resolve;
-        }),
+        })
     );
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -149,17 +149,20 @@ describe("useAccountSwitcher account preloading", () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
-    queryClient.setQueryData(["auth", "device-sessions", "user-1"], [
-      currentSession,
-      {
-        session: { token: "token-2" },
-        user: {
-          email: "sol@example.com",
-          id: "user-2",
-          name: "Sol Arden",
+    queryClient.setQueryData(
+      ["auth", "device-sessions", "user-1"],
+      [
+        currentSession,
+        {
+          session: { token: "token-2" },
+          user: {
+            email: "sol@example.com",
+            id: "user-2",
+            name: "Sol Arden",
+          },
         },
-      },
-    ]);
+      ]
+    );
 
     const rendered = renderHook(() => useAccountSwitcher(), {
       wrapper: createWrapper(queryClient),
@@ -180,17 +183,20 @@ describe("useAccountSwitcher account preloading", () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
-    queryClient.setQueryData(["auth", "device-sessions", "user-1"], [
-      currentSession,
-      {
-        session: { token: "token-2" },
-        user: {
-          email: "sol@example.com",
-          id: "user-2",
-          name: "Sol Arden",
+    queryClient.setQueryData(
+      ["auth", "device-sessions", "user-1"],
+      [
+        currentSession,
+        {
+          session: { token: "token-2" },
+          user: {
+            email: "sol@example.com",
+            id: "user-2",
+            name: "Sol Arden",
+          },
         },
-      },
-    ]);
+      ]
+    );
 
     const rendered = renderHook(() => useAccountSwitcher(), {
       wrapper: createWrapper(queryClient),

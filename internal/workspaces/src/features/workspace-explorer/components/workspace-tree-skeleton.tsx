@@ -31,10 +31,7 @@ export function WorkspaceTreeSkeleton() {
           key={i}
         >
           <Skeleton className="size-4 shrink-0 rounded-sm" />
-          <Skeleton
-            className="h-3.5 rounded-sm"
-            style={{ width: WIDTHS[i] }}
-          />
+          <Skeleton className="h-3.5 rounded-sm" style={{ width: WIDTHS[i] }} />
         </li>
       ))}
     </ul>

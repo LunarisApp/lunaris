@@ -32,7 +32,9 @@ describe("browser plugin artifact store", () => {
     const cache = {
       delete: vi.fn(async () => true),
       match: vi.fn(async () => undefined),
-      put: vi.fn(async (_key: RequestInfo | URL, _response: Response) => undefined),
+      put: vi.fn(
+        async (_key: RequestInfo | URL, _response: Response) => undefined
+      ),
     };
     vi.stubGlobal("caches", { open: vi.fn(async () => cache) });
     const store = createBrowserPluginArtifactStore();
@@ -50,7 +52,9 @@ describe("browser plugin artifact store", () => {
     const url = "https://plugins.example/extension.js";
     const cache = {
       delete: vi.fn(async () => true),
-      match: vi.fn().mockResolvedValue(new Response(Uint8Array.from([7]).buffer)),
+      match: vi
+        .fn()
+        .mockResolvedValue(new Response(Uint8Array.from([7]).buffer)),
       put: vi.fn(),
     };
     vi.stubGlobal("caches", { open: vi.fn(async () => cache) });
@@ -61,12 +65,12 @@ describe("browser plugin artifact store", () => {
 
     expect(cache.match).toHaveBeenNthCalledWith(
       1,
-      `https://cache.lunaris.invalid/${encodeURIComponent(url)}`,
+      `https://cache.lunaris.invalid/${encodeURIComponent(url)}`
     );
     expect(cache.match).toHaveBeenCalledOnce();
     expect(cache.delete).toHaveBeenNthCalledWith(
       1,
-      `https://cache.lunaris.invalid/${encodeURIComponent(url)}`,
+      `https://cache.lunaris.invalid/${encodeURIComponent(url)}`
     );
     expect(cache.delete).toHaveBeenCalledOnce();
 
@@ -116,7 +120,10 @@ describe("createBrowserPlatform", () => {
     const platform = createBrowserPlatform({ kind: "web" });
 
     await platform.clipboard.writeText("copy");
-    platform.downloads.downloadUrl("https://files.example/export", "export.zip");
+    platform.downloads.downloadUrl(
+      "https://files.example/export",
+      "export.zip"
+    );
     platform.navigation.assign("/next");
     platform.navigation.open("mailto:hello@lunaris.app");
     platform.navigation.reload();
@@ -136,7 +143,7 @@ describe("createBrowserPlatform", () => {
     expect(open).toHaveBeenCalledWith("mailto:hello@lunaris.app");
     expect(reload).toHaveBeenCalledOnce();
     expect(platform.navigation.currentUrl()).toBe(
-      "https://app.example/workspace",
+      "https://app.example/workspace"
     );
     expect(platform.navigation.origin()).toBe("https://app.example");
     expect(platform.network.isOnline()).toBe(true);

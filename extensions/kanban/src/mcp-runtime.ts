@@ -1,9 +1,6 @@
-import { type Doc, Map as YMap } from "yjs";
+import type { Doc, Map as YMap } from "yjs";
 import { DEFAULT_STATUS_PROPERTY } from "./constants";
-import type {
-  KanbanPropertyValue,
-  KanbanTaskProperties,
-} from "./mcp-contract";
+import type { KanbanPropertyValue, KanbanTaskProperties } from "./mcp-contract";
 import {
   canonicalPropertyDate,
   hasPropertyValue,
@@ -46,7 +43,7 @@ export function updateKanbanTaskProperties(
   doc: Doc,
   taskId: string,
   requested: KanbanTaskProperties | undefined,
-  options: { allowedPersonIds?: ReadonlySet<string> } = {},
+  options: { allowedPersonIds?: ReadonlySet<string> } = {}
 ): Record<string, PropertyValue> {
   const properties = doc.getArray<YMap<unknown>>("properties");
   if (
@@ -62,11 +59,7 @@ export function updateKanbanTaskProperties(
   const definitions = getKanbanBoardProperties(doc);
   const assignments = getTaskAssignments(doc);
   for (const [propertyKey, requestedValue] of Object.entries(requested ?? {})) {
-    const property = resolveUnique(
-      definitions,
-      propertyKey,
-      "property",
-    );
+    const property = resolveUnique(definitions, propertyKey, "property");
     if (requestedValue === null) {
       setTaskPropertyValue(doc, taskId, property.id, null);
       continue;
@@ -95,20 +88,22 @@ export function updateKanbanTaskProperties(
       return hasPropertyValue(value)
         ? [[property.id, value as PropertyValue] as const]
         : [];
-    }),
+    })
   );
 }
 
 export function kanbanTaskPropertiesIncludePeople(
   doc: Doc,
-  requested: KanbanTaskProperties | undefined,
+  requested: KanbanTaskProperties | undefined
 ): boolean {
-  const keys = Object.keys(requested ?? {}).map((key) => key.toLocaleLowerCase());
+  const keys = Object.keys(requested ?? {}).map((key) =>
+    key.toLocaleLowerCase()
+  );
   return getKanbanBoardProperties(doc).some(
     (property) =>
       property.type === "people" &&
       (keys.includes(property.id.toLocaleLowerCase()) ||
-        keys.includes(property.name.toLocaleLowerCase())),
+        keys.includes(property.name.toLocaleLowerCase()))
   );
 }
 
@@ -120,13 +115,23 @@ function resolvePropertyValue(
 ): PropertyValue {
   switch (property.type) {
     case "select":
-      if (typeof value !== "string" || !value) invalidValue(property, "Select option");
+      if (typeof value !== "string" || !value) {
+        invalidValue(property, "Select option");
+      }
       return resolveUnique(property.options, value, "option").id;
     case "multi-select":
-      if (!Array.isArray(value)) invalidValue(property, "array of options");
-      return [...new Set(value.map((key) => resolveUnique(property.options, key, "option").id))];
+      if (!Array.isArray(value)) {
+        invalidValue(property, "array of options");
+      }
+      return [
+        ...new Set(
+          value.map((key) => resolveUnique(property.options, key, "option").id)
+        ),
+      ];
     case "people": {
-      if (!Array.isArray(value)) invalidValue(property, "array of organization member IDs");
+      if (!Array.isArray(value)) {
+        invalidValue(property, "array of organization member IDs");
+      }
       const ids = [...new Set(value)];
       const existingIds = new Set(
         Array.isArray(currentValue) ? currentValue : []
@@ -134,8 +139,7 @@ function resolvePropertyValue(
       if (
         options.allowedPersonIds &&
         ids.some(
-          (id) =>
-            !options.allowedPersonIds?.has(id) && !existingIds.has(id)
+          (id) => !(options.allowedPersonIds?.has(id) || existingIds.has(id))
         )
       ) {
         throw new KanbanMcpInputError(
@@ -158,13 +162,19 @@ function resolvePropertyValue(
       }
       return canonicalPropertyDate(value);
     case "text":
-      if (typeof value !== "string" || !value) invalidValue(property, "non-empty text");
+      if (typeof value !== "string" || !value) {
+        invalidValue(property, "non-empty text");
+      }
       return value;
     case "number":
-      if (typeof value !== "number" || !Number.isFinite(value)) invalidValue(property, "finite number");
+      if (typeof value !== "number" || !Number.isFinite(value)) {
+        invalidValue(property, "finite number");
+      }
       return value;
     case "checkbox":
-      if (typeof value !== "boolean") invalidValue(property, "boolean");
+      if (typeof value !== "boolean") {
+        invalidValue(property, "boolean");
+      }
       return value;
   }
 }
@@ -178,14 +188,18 @@ function invalidValue(property: PropertyDefinition, expected: string): never {
 function resolveUnique<T extends { id: string; name: string }>(
   values: readonly T[],
   key: string,
-  label: "option" | "property",
+  label: "option" | "property"
 ): T {
   const exactId = values.find(({ id }) => id === key);
-  if (exactId) return exactId;
+  if (exactId) {
+    return exactId;
+  }
   const matches = values.filter(
-    ({ name }) => name.toLocaleLowerCase() === key.toLocaleLowerCase(),
+    ({ name }) => name.toLocaleLowerCase() === key.toLocaleLowerCase()
   );
-  if (matches.length === 1) return matches[0]!;
+  if (matches.length === 1) {
+    return matches[0]!;
+  }
   if (matches.length > 1) {
     throw new KanbanMcpInputError(`Ambiguous Kanban ${label} name: ${key}`);
   }

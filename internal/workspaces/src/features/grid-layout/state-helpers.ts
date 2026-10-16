@@ -25,7 +25,9 @@ export function findDuplicatePanelForAdd(
   panels: Panel[],
   panel: AddPanel
 ): Panel | undefined {
-  if (panel.allowDuplicate) return;
+  if (panel.allowDuplicate) {
+    return;
+  }
 
   const nextViewId = panel.params?.viewId as string | undefined;
 
@@ -54,7 +56,10 @@ export function findViewPanel(
   return panels.find((panel) => panel.params?.viewId === viewId);
 }
 
-export function findPanelsByResourceId(panels: Panel[], resourceId: string): Panel[] {
+export function findPanelsByResourceId(
+  panels: Panel[],
+  resourceId: string
+): Panel[] {
   return panels.filter((panel) => panel.params?.resourceId === resourceId);
 }
 
@@ -67,7 +72,9 @@ export function activateDockviewPanel(
   panelId: string
 ): boolean {
   const dockviewPanel = dockviewApi?.getPanel(panelId);
-  if (!dockviewPanel) return false;
+  if (!dockviewPanel) {
+    return false;
+  }
   dockviewPanel.api.setActive();
   return true;
 }
@@ -90,13 +97,19 @@ function restoreSnapshotGroupSizes({
   groups: readonly DockviewGroupLike[];
   snapshot: ReadonlyMap<string, GroupSizeSnapshot>;
 }) {
-  if (!groups.some((group) => group.id === MAIN_GROUP_ID)) return;
+  if (!groups.some((group) => group.id === MAIN_GROUP_ID)) {
+    return;
+  }
 
   for (const group of groups) {
-    if (excludedGroupIds.has(group.id)) continue;
+    if (excludedGroupIds.has(group.id)) {
+      continue;
+    }
 
     const size = snapshot.get(group.id);
-    if (!size) continue;
+    if (!size) {
+      continue;
+    }
 
     group.api.setSize({ width: size.width, height: size.height });
   }
@@ -136,7 +149,9 @@ export function restoreNonMainDockviewGroupSizes({
   removedGroupId: string;
   snapshot: ReadonlyMap<string, GroupSizeSnapshot>;
 }) {
-  if (removedGroupId === MAIN_GROUP_ID) return;
+  if (removedGroupId === MAIN_GROUP_ID) {
+    return;
+  }
 
   restoreSnapshotGroupSizes({
     groups,

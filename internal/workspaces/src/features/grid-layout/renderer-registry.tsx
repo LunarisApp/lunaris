@@ -1,16 +1,10 @@
 import type { IDockviewPanelProps } from "dockview";
-import {
-  createElement,
-  type ReactNode,
-  useSyncExternalStore,
-} from "react";
+import { createElement, type ReactNode, useSyncExternalStore } from "react";
 import { ExtensionPlaceholder } from "../extensions/ExtensionPlaceholder";
 import { GridLayoutPanel } from "./panel";
 import { GRID_LAYOUT_UNLOADED_PARAM } from "./types";
 
-export type GridLayoutRenderer = (
-  props: IDockviewPanelProps
-) => ReactNode;
+export type GridLayoutRenderer = (props: IDockviewPanelProps) => ReactNode;
 
 export type GridLayoutRenderers = Record<string, GridLayoutRenderer>;
 
@@ -41,9 +35,13 @@ export function createRendererSlot(): GridLayoutRendererSlot {
   return {
     Renderer: RendererSlot,
     setRenderer: (renderer) => {
-      if (currentRenderer === renderer) return;
+      if (currentRenderer === renderer) {
+        return;
+      }
       currentRenderer = renderer;
-      for (const listener of listeners) listener();
+      for (const listener of listeners) {
+        listener();
+      }
     },
   };
 }
@@ -64,10 +62,8 @@ export function createRegisteredRenderer(
   builder: GridLayoutRenderer
 ): GridLayoutRenderer {
   return function RegisteredRenderer(props: IDockviewPanelProps) {
-    const {
-      [GRID_LAYOUT_UNLOADED_PARAM]: isUnloaded,
-      ...rendererParams
-    } = props.params ?? {};
+    const { [GRID_LAYOUT_UNLOADED_PARAM]: isUnloaded, ...rendererParams } =
+      props.params ?? {};
 
     if (isUnloaded === true) {
       return <GridLayoutPanel />;

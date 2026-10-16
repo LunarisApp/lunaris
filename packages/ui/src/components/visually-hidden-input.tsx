@@ -75,13 +75,19 @@ function VisuallyHiddenInput<T = InputValue>(
       height: control.offsetHeight,
     });
 
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      return;
+    }
 
     const resizeObserver = new ResizeObserver((entries) => {
-      if (!Array.isArray(entries) || !entries.length) return;
+      if (!(Array.isArray(entries) && entries.length)) {
+        return;
+      }
 
       const entry = entries[0];
-      if (!entry) return;
+      if (!entry) {
+        return;
+      }
 
       let width: number;
       let height: number;
@@ -109,7 +115,9 @@ function VisuallyHiddenInput<T = InputValue>(
 
   useEffect(() => {
     const input = inputRef.current;
-    if (!input) return;
+    if (!input) {
+      return;
+    }
 
     const inputProto = window.HTMLInputElement.prototype;
     const propertyKey = isCheckInput ? "checked" : "value";
@@ -133,8 +141,8 @@ function VisuallyHiddenInput<T = InputValue>(
     }
   }, [prevValue, value, checked, bubbles, isCheckInput]);
 
-  const composedStyle = useMemo<CSSProperties>(() => {
-    return {
+  const composedStyle = useMemo<CSSProperties>(
+    () => ({
       ...style,
       ...(controlSize.width !== undefined && controlSize.height !== undefined
         ? controlSize
@@ -149,8 +157,9 @@ function VisuallyHiddenInput<T = InputValue>(
       position: "absolute",
       whiteSpace: "nowrap",
       width: "1px",
-    };
-  }, [style, controlSize]);
+    }),
+    [style, controlSize]
+  );
 
   return (
     <input

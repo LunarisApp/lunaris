@@ -35,6 +35,8 @@ describe("mobile safe-area styling", () => {
   });
 
   it("adds safe-area padding to bottom sheet content", () => {
-    expect(sheetSource).toContain("data-[side=bottom]:pb-[var(--safe-area-bottom)]");
+    expect(sheetSource).toContain(
+      "data-[side=bottom]:pb-[var(--safe-area-bottom)]"
+    );
   });
 });

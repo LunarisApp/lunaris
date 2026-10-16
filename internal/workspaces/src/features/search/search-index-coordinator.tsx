@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  useResourceTypes,
-  useSearchIndexers,
-} from "@lunarisapp/plugin-sdk";
+import { useResourceTypes, useSearchIndexers } from "@lunarisapp/plugin-sdk";
 import { usePowerSync, useQuery } from "@repo/data/core";
 import {
   deleteStaleSearchIndexEntries,
@@ -25,7 +22,7 @@ const reconciliationQueues = new WeakMap<object, Promise<void>>();
 
 export function enqueueSearchIndexReconciliation(
   database: object,
-  task: () => Promise<void>,
+  task: () => Promise<void>
 ): Promise<void> {
   const previous = reconciliationQueues.get(database) ?? Promise.resolve();
   const next = previous.catch(() => undefined).then(task);
@@ -50,7 +47,9 @@ class IndexTaskPool {
   private drain(): void {
     while (this.active < INDEX_CONCURRENCY) {
       const task = this.queue.shift();
-      if (!task) return;
+      if (!task) {
+        return;
+      }
       this.active += 1;
       void task().finally(() => {
         this.active -= 1;
@@ -66,7 +65,11 @@ interface IndexWork {
   timer: ReturnType<typeof setTimeout> | null;
 }
 
-export function SearchIndexCoordinator({ enabled = true }: { enabled?: boolean }) {
+export function SearchIndexCoordinator({
+  enabled = true,
+}: {
+  enabled?: boolean;
+}) {
   const db = usePowerSync();
   const { organizationId } = useSearchScope();
   const resourceTypes = useResourceTypes();
@@ -75,15 +78,25 @@ export function SearchIndexCoordinator({ enabled = true }: { enabled?: boolean }
   const epochs = useRef(new Map<string, number>());
   const work = useRef(new Map<string, IndexWork>());
   const pool = useRef(new IndexTaskPool());
-  const query = useQuery<IndexableResourceRow>(INDEXABLE_RESOURCES_QUERY, [organizationId]);
+  const query = useQuery<IndexableResourceRow>(INDEXABLE_RESOURCES_QUERY, [
+    organizationId,
+  ]);
   const definitions = useMemo(
-    () => new Map(resourceTypes.map((definition) => [definition.resourceTypeId, definition])),
-    [resourceTypes],
+    () =>
+      new Map(
+        resourceTypes.map((definition) => [
+          definition.resourceTypeId,
+          definition,
+        ])
+      ),
+    [resourceTypes]
   );
 
   const invalidateAll = useCallback((): void => {
     for (const job of work.current.values()) {
-      if (job.timer !== null) clearTimeout(job.timer);
+      if (job.timer !== null) {
+        clearTimeout(job.timer);
+      }
     }
     work.current.clear();
     for (const [entryKey, epoch] of epochs.current) {
@@ -92,41 +105,55 @@ export function SearchIndexCoordinator({ enabled = true }: { enabled?: boolean }
   }, []);
 
   useEffect(() => {
-    if (activeOrganization.current === organizationId) return;
+    if (activeOrganization.current === organizationId) {
+      return;
+    }
     invalidateAll();
     activeOrganization.current = organizationId;
   }, [invalidateAll, organizationId]);
 
   useEffect(() => {
-    if (!enabled) invalidateAll();
+    if (!enabled) {
+      invalidateAll();
+    }
   }, [enabled, invalidateAll]);
 
   useEffect(
     () => () => {
       invalidateAll();
     },
-    [invalidateAll],
+    [invalidateAll]
   );
 
   useEffect(() => {
-    if (!enabled || !organizationId || query.isLoading) return;
+    if (!(enabled && organizationId) || query.isLoading) {
+      return;
+    }
     let cancelled = false;
     const rows = query.data ?? [];
     void enqueueSearchIndexReconciliation(db, async () => {
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
       const revisions = await getSearchIndexRevisions(db, organizationId);
       const { activeEntryKeys, entryStates, jobs } = planSearchIndexUpdates(
         rows,
         definitions,
         indexers,
-        revisions,
+        revisions
       );
 
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
       for (const [entryKey, scheduled] of work.current) {
         const state = entryStates.get(entryKey);
-        if (state?.available && state.revision === scheduled.revision) continue;
-        if (scheduled.timer !== null) clearTimeout(scheduled.timer);
+        if (state?.available && state.revision === scheduled.revision) {
+          continue;
+        }
+        if (scheduled.timer !== null) {
+          clearTimeout(scheduled.timer);
+        }
         work.current.delete(entryKey);
         epochs.current.set(entryKey, scheduled.epoch + 1);
       }
@@ -134,13 +161,17 @@ export function SearchIndexCoordinator({ enabled = true }: { enabled?: boolean }
         db,
         organizationId,
         activeEntryKeys,
-        revisions.keys(),
+        revisions.keys()
       );
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
 
       for (const job of jobs) {
         const scheduled = work.current.get(job.entryKey);
-        if (scheduled?.revision === job.revision) continue;
+        if (scheduled?.revision === job.revision) {
+          continue;
+        }
         if (scheduled && scheduled.timer !== null) {
           clearTimeout(scheduled.timer);
         }
@@ -148,7 +179,9 @@ export function SearchIndexCoordinator({ enabled = true }: { enabled?: boolean }
         epochs.current.set(job.entryKey, epoch);
         const timer = setTimeout(() => {
           const currentWork = work.current.get(job.entryKey);
-          if (currentWork?.epoch !== epoch) return;
+          if (currentWork?.epoch !== epoch) {
+            return;
+          }
           currentWork.timer = null;
           pool.current.enqueue(async () => {
             try {
@@ -173,10 +206,16 @@ export function SearchIndexCoordinator({ enabled = true }: { enabled?: boolean }
             }
           });
         }, INDEX_DEBOUNCE_MS);
-        work.current.set(job.entryKey, { epoch, revision: job.revision, timer });
+        work.current.set(job.entryKey, {
+          epoch,
+          revision: job.revision,
+          timer,
+        });
       }
     }).catch((error) => {
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
       log.error({
         tag: "Search",
         msg: "search index reconciliation failed",
@@ -187,7 +226,15 @@ export function SearchIndexCoordinator({ enabled = true }: { enabled?: boolean }
     return () => {
       cancelled = true;
     };
-  }, [db, definitions, enabled, indexers, query.data, query.isLoading, organizationId]);
+  }, [
+    db,
+    definitions,
+    enabled,
+    indexers,
+    query.data,
+    query.isLoading,
+    organizationId,
+  ]);
 
   return null;
 }

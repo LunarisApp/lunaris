@@ -102,7 +102,7 @@ function renderHomepage(createWorkspace = vi.fn()) {
           }
         />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
   fireEvent.click(screen.getByRole("button", { name: "common.search" }));
 }
@@ -116,8 +116,8 @@ describe("homepage command menu", () => {
     fireEvent.click(await screen.findByText("Project notes"));
     await waitFor(() =>
       expect(screen.getByTestId("location").textContent).toBe(
-        "/eu/acme/writing/resource-1",
-      ),
+        "/eu/acme/writing/resource-1"
+      )
     );
     expect(screen.queryByRole("dialog")).toBeNull();
   });

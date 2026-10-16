@@ -1,12 +1,7 @@
 import { IndexedDbFileStorageAdapter } from "../../storage/indexeddb-file-storage";
 import { getRichTextDocument } from "@extension/rich-text/mcp-runtime";
 import { describe, expect, it, vi } from "vitest";
-import {
-  applyUpdateV2,
-  Doc,
-  encodeStateAsUpdateV2,
-  Map as YMap,
-} from "yjs";
+import { applyUpdateV2, Doc, encodeStateAsUpdateV2, Map as YMap } from "yjs";
 import { b64ToUint8Array, Uint8ArrayTob64 } from "../yjs/utils";
 import {
   createDeviceContentClient,
@@ -72,9 +67,15 @@ function createLocalDocumentHarness(item: {
     }),
     getAll: vi.fn(async () => []),
     getOptional: vi.fn(async (query: string) => {
-      if (query.includes("agent_idempotency")) return null;
-      if (query.includes("local_workspaces")) return WORKSPACES[0];
-      if (query.includes("workspace_resources")) return item;
+      if (query.includes("agent_idempotency")) {
+        return null;
+      }
+      if (query.includes("local_workspaces")) {
+        return WORKSPACES[0];
+      }
+      if (query.includes("workspace_resources")) {
+        return item;
+      }
       if (query.includes("yjs_documents")) {
         return { id: item.yjs_backing_id, updated_at: item.updated_at };
       }
@@ -82,7 +83,9 @@ function createLocalDocumentHarness(item: {
     }),
   };
   const getUpdate = () => {
-    if (!updateB64) throw new Error("Expected a persisted Yjs update");
+    if (!updateB64) {
+      throw new Error("Expected a persisted Yjs update");
+    }
     return b64ToUint8Array(updateB64);
   };
   return { db, getUpdate };
@@ -167,7 +170,7 @@ describe("createDeviceContentClient", () => {
     });
 
     await expect(
-      client.getWorkspace("organization", "local-workspace"),
+      client.getWorkspace("organization", "local-workspace")
     ).resolves.toMatchObject({
       id: "local-workspace",
       provenance: {
@@ -189,7 +192,7 @@ describe("createDeviceContentClient", () => {
     });
 
     await expect(
-      client.listWorkspaces("other-organization"),
+      client.listWorkspaces("other-organization")
     ).rejects.toMatchObject({
       code: "INCOMPLETE_SYNC",
       status: 409,
@@ -211,7 +214,7 @@ describe("createDeviceContentClient", () => {
     const result = await client.listWorkspaces(
       "other-organization",
       {},
-      { consistency: "cached" },
+      { consistency: "cached" }
     );
 
     expect(result.snapshot).toEqual({
@@ -238,11 +241,9 @@ describe("createDeviceContentClient", () => {
     });
 
     await expect(
-      client.getWorkspace(
-        "organization",
-        "not-cached",
-        { consistency: "cached" },
-      ),
+      client.getWorkspace("organization", "not-cached", {
+        consistency: "cached",
+      })
     ).rejects.toMatchObject({
       code: "INCOMPLETE_SYNC",
       status: 409,
@@ -271,7 +272,7 @@ describe("createDeviceContentClient", () => {
     expect(resolve).toHaveBeenNthCalledWith(
       1,
       { kind: "organization-resources" },
-      undefined,
+      undefined
     );
     expect(resolve).toHaveBeenCalledTimes(1);
     expect(db.getAll).toHaveBeenCalledOnce();
@@ -285,7 +286,7 @@ describe("createDeviceContentClient", () => {
     }));
     const db = {
       getAll: vi.fn(async (_query: string, params: unknown[]) =>
-        params.length ? WORKSPACES : [],
+        params.length ? WORKSPACES : []
       ),
     };
     const client = createDeviceContentClient(db as never, {
@@ -297,7 +298,7 @@ describe("createDeviceContentClient", () => {
     expect(resolve).toHaveBeenNthCalledWith(
       1,
       { kind: "organization-resources" },
-      undefined,
+      undefined
     );
     expect(resolve).toHaveBeenCalledTimes(1);
   });
@@ -305,7 +306,7 @@ describe("createDeviceContentClient", () => {
   it("matches lowercase item searches across organization workspaces", async () => {
     const db = {
       getAll: vi.fn(async (_query: string, params: unknown[]) =>
-        params.length ? WORKSPACES : SEARCH_ITEMS,
+        params.length ? WORKSPACES : SEARCH_ITEMS
       ),
     };
     const client = createDeviceContentClient(db as never, {
@@ -332,10 +333,10 @@ describe("createDeviceContentClient", () => {
   it("limits item search when a workspace scope is supplied", async () => {
     const db = {
       getAll: vi.fn(async (_query: string, params: unknown[]) =>
-        params.length ? WORKSPACES : SEARCH_ITEMS,
+        params.length ? WORKSPACES : SEARCH_ITEMS
       ),
       getOptional: vi.fn(async (query: string) =>
-        query.includes("local_workspaces") ? null : WORKSPACES[1],
+        query.includes("local_workspaces") ? null : WORKSPACES[1]
       ),
     };
     const client = createDeviceContentClient(db as never, {
@@ -363,21 +364,40 @@ describe("createDeviceContentClient", () => {
 describe("createDeviceControlClient", () => {
   it("reports oversized cached downloads without allocating their bytes", async () => {
     const arrayBuffer = vi.fn();
-    const read = vi.spyOn(IndexedDbFileStorageAdapter.prototype, "readBlob")
+    const read = vi
+      .spyOn(IndexedDbFileStorageAdapter.prototype, "readBlob")
       .mockResolvedValue({ size: 25_000_001, arrayBuffer } as unknown as Blob);
-    const db = { getOptional: vi.fn(async (query: string) => {
-      if (query.includes("workspace_storage_slots")) return {
-        id: "slot", resource_id: "resource", workspace_id: "local-workspace", kind: "file", backing_id: "file", metadata: "{}",
-      };
-      if (query.includes("FROM attachments")) return { filename: "file.bin", local_uri: "cached", media_type: "application/octet-stream" };
-      return WORKSPACES[0];
-    }) };
+    const db = {
+      getOptional: vi.fn(async (query: string) => {
+        if (query.includes("workspace_storage_slots")) {
+          return {
+            id: "slot",
+            resource_id: "resource",
+            workspace_id: "local-workspace",
+            kind: "file",
+            backing_id: "file",
+            metadata: "{}",
+          };
+        }
+        if (query.includes("FROM attachments")) {
+          return {
+            filename: "file.bin",
+            local_uri: "cached",
+            media_type: "application/octet-stream",
+          };
+        }
+        return WORKSPACES[0];
+      }),
+    };
     try {
       const client = createDeviceControlClient(db as never);
-      await expect(client.getFileDownloadUrl("organization", "local-workspace", "slot"))
-        .rejects.toMatchObject({ code: "RESPONSE_TOO_LARGE", status: 413 });
+      await expect(
+        client.getFileDownloadUrl("organization", "local-workspace", "slot")
+      ).rejects.toMatchObject({ code: "RESPONSE_TOO_LARGE", status: 413 });
       expect(arrayBuffer).not.toHaveBeenCalled();
-    } finally { read.mockRestore(); }
+    } finally {
+      read.mockRestore();
+    }
   });
 
   it("does not expose device-local Excalidraw scene procedures", async () => {
@@ -389,8 +409,8 @@ describe("createDeviceControlClient", () => {
         "local-workspace",
         "lunaris.excalidraw",
         "get_scene",
-        { drawingId: "drawing-1" },
-      ),
+        { drawingId: "drawing-1" }
+      )
     ).rejects.toMatchObject({
       code: "PLUGIN_OPERATION_NOT_FOUND",
       status: 404,
@@ -419,7 +439,9 @@ describe("createDeviceControlClient", () => {
     });
     const db = {
       execute: vi.fn(async (query: string, params: unknown[]) => {
-        if (!query.includes("INSERT INTO local_workspaces")) return;
+        if (!query.includes("INSERT INTO local_workspaces")) {
+          return;
+        }
         releaseWrite?.();
         await writeBlocked;
         created = {
@@ -433,8 +455,12 @@ describe("createDeviceControlClient", () => {
         };
       }),
       getOptional: vi.fn(async (query: string) => {
-        if (query.includes("agent_idempotency")) return null;
-        if (query.includes("slug = ?")) return null;
+        if (query.includes("agent_idempotency")) {
+          return null;
+        }
+        if (query.includes("slug = ?")) {
+          return null;
+        }
         return created ?? null;
       }),
     };
@@ -454,8 +480,8 @@ describe("createDeviceControlClient", () => {
     });
     expect(
       db.execute.mock.calls.filter(([query]) =>
-        String(query).includes("INSERT INTO local_workspaces"),
-      ),
+        String(query).includes("INSERT INTO local_workspaces")
+      )
     ).toHaveLength(1);
     unblockWrite?.();
     const [first, second] = await Promise.all([firstRequest, secondRequest]);
@@ -464,20 +490,23 @@ describe("createDeviceControlClient", () => {
     expect(second).toEqual(first);
     expect(
       db.execute.mock.calls.filter(([query]) =>
-        String(query).includes("INSERT INTO local_workspaces"),
-      ),
+        String(query).includes("INSERT INTO local_workspaces")
+      )
     ).toHaveLength(1);
   });
 
   it("persists idempotency results across client recreation", async () => {
-    const ledger = new Map<string, {
-      id: string;
-      key: string;
-      operation: string;
-      request_hash: string;
-      response: string | null;
-      status: string;
-    }>();
+    const ledger = new Map<
+      string,
+      {
+        id: string;
+        key: string;
+        operation: string;
+        request_hash: string;
+        response: string | null;
+        status: string;
+      }
+    >();
     let created:
       | {
           created_at: string;
@@ -491,10 +520,7 @@ describe("createDeviceControlClient", () => {
       | undefined;
     const db = {
       execute: vi.fn(async (query: string, params: unknown[]) => {
-        if (
-          query.includes("agent_idempotency") &&
-          query.includes("INSERT")
-        ) {
+        if (query.includes("agent_idempotency") && query.includes("INSERT")) {
           ledger.set(String(params[4]), {
             id: String(params[0]),
             key: String(params[4]),
@@ -505,7 +531,7 @@ describe("createDeviceControlClient", () => {
           });
         } else if (query.includes("UPDATE agent_idempotency")) {
           const row = [...ledger.values()].find(
-            (candidate) => candidate.id === params[2],
+            (candidate) => candidate.id === params[2]
           );
           if (row) {
             row.response = String(params[0]);
@@ -527,7 +553,9 @@ describe("createDeviceControlClient", () => {
         if (query.includes("agent_idempotency")) {
           return ledger.get(String(params[1])) ?? null;
         }
-        if (query.includes("slug = ?")) return null;
+        if (query.includes("slug = ?")) {
+          return null;
+        }
         return created ?? null;
       }),
     };
@@ -537,11 +565,13 @@ describe("createDeviceControlClient", () => {
       visibility: "local" as const,
     };
 
-    const first = await createDeviceControlClient(
-      db as never,
-    ).createWorkspace("organization", input, {
-      idempotencyKey: "durable-request",
-    });
+    const first = await createDeviceControlClient(db as never).createWorkspace(
+      "organization",
+      input,
+      {
+        idempotencyKey: "durable-request",
+      }
+    );
     const secondClient = createDeviceControlClient(db as never);
     const second = await secondClient.createWorkspace("organization", input, {
       idempotencyKey: "durable-request",
@@ -550,15 +580,15 @@ describe("createDeviceControlClient", () => {
     expect(second).toEqual(first);
     expect(
       db.execute.mock.calls.filter(([query]) =>
-        String(query).includes("INSERT INTO local_workspaces"),
-      ),
+        String(query).includes("INSERT INTO local_workspaces")
+      )
     ).toHaveLength(1);
     await expect(
       secondClient.createWorkspace(
         "organization",
         { ...input, name: "Different workspace" },
-        { idempotencyKey: "durable-request" },
-      ),
+        { idempotencyKey: "durable-request" }
+      )
     ).rejects.toMatchObject({
       code: "IDEMPOTENCY_CONFLICT",
       status: 409,
@@ -584,7 +614,9 @@ describe("createDeviceControlClient", () => {
     }));
     const db = {
       execute: vi.fn(async (query: string, params: unknown[]) => {
-        if (!query.includes("INSERT INTO workspaces ")) return;
+        if (!query.includes("INSERT INTO workspaces ")) {
+          return;
+        }
         created = {
           created_at: String(params[5]),
           id: String(params[0]),
@@ -596,7 +628,9 @@ describe("createDeviceControlClient", () => {
         };
       }),
       getOptional: vi.fn(async (query: string) => {
-        if (query.includes("agent_idempotency")) return null;
+        if (query.includes("agent_idempotency")) {
+          return null;
+        }
         if (query.includes("slug = ?") || query.includes("local_workspaces")) {
           return null;
         }
@@ -616,8 +650,8 @@ describe("createDeviceControlClient", () => {
           slug: "offline-shared",
           visibility: "shared",
         },
-        { idempotencyKey: "offline-shared-create" },
-      ),
+        { idempotencyKey: "offline-shared-create" }
+      )
     ).resolves.toMatchObject({
       name: "Offline shared",
       visibility: "shared",
@@ -625,7 +659,7 @@ describe("createDeviceControlClient", () => {
     expect(resolve).toHaveBeenCalled();
     expect(resolve).toHaveBeenCalledWith(
       { kind: "workspaces" },
-      expect.objectContaining({ consistency: "cached" }),
+      expect.objectContaining({ consistency: "cached" })
     );
   });
 
@@ -657,10 +691,7 @@ describe("createDeviceControlClient", () => {
             used_at: null,
             organization_id: String(params[10]),
           };
-        } else if (
-          query.includes("UPDATE agent_action_previews") &&
-          preview
-        ) {
+        } else if (query.includes("UPDATE agent_action_previews") && preview) {
           preview.used_at = String(params[0]);
         }
       }),
@@ -673,18 +704,24 @@ describe("createDeviceControlClient", () => {
                 updated_at: "2026-01-03T00:00:00.000Z",
               },
             ]
-          : [],
+          : []
       ),
       getOptional: vi.fn(async (query: string) => {
-        if (query.includes("agent_idempotency")) return null;
-        if (query.includes("agent_action_previews")) return preview ?? null;
-        if (query.includes("local_workspaces")) return WORKSPACES[0];
+        if (query.includes("agent_idempotency")) {
+          return null;
+        }
+        if (query.includes("agent_action_previews")) {
+          return preview ?? null;
+        }
+        if (query.includes("local_workspaces")) {
+          return WORKSPACES[0];
+        }
         return null;
       }),
     };
 
     const issued = await createDeviceControlClient(
-      db as never,
+      db as never
     ).previewDeleteWorkspace("organization", "local-workspace");
     const recreated = createDeviceControlClient(db as never);
 
@@ -693,8 +730,8 @@ describe("createDeviceControlClient", () => {
         "organization",
         "local-workspace",
         issued.previewToken,
-        { idempotencyKey: "durable-delete" },
-      ),
+        { idempotencyKey: "durable-delete" }
+      )
     ).resolves.toEqual({ id: "local-workspace" });
     expect(preview?.used_at).not.toBeNull();
     await expect(
@@ -702,8 +739,8 @@ describe("createDeviceControlClient", () => {
         "organization",
         "local-workspace",
         issued.previewToken,
-        { idempotencyKey: "reused-preview" },
-      ),
+        { idempotencyKey: "reused-preview" }
+      )
     ).rejects.toMatchObject({
       code: "INVALID_PREVIEW",
       status: 409,
@@ -711,17 +748,19 @@ describe("createDeviceControlClient", () => {
 
     const expired = await recreated.previewDeleteWorkspace(
       "organization",
-      "local-workspace",
+      "local-workspace"
     );
-    if (!preview) throw new Error("Expected stored preview");
+    if (!preview) {
+      throw new Error("Expected stored preview");
+    }
     preview.expires_at = new Date(0).toISOString();
     await expect(
       recreated.deleteWorkspace(
         "organization",
         "local-workspace",
         expired.previewToken,
-        { idempotencyKey: "expired-preview" },
-      ),
+        { idempotencyKey: "expired-preview" }
+      )
     ).rejects.toMatchObject({
       code: "INVALID_PREVIEW",
       status: 409,
@@ -729,17 +768,19 @@ describe("createDeviceControlClient", () => {
 
     const changed = await recreated.previewDeleteWorkspace(
       "organization",
-      "local-workspace",
+      "local-workspace"
     );
-    if (!preview) throw new Error("Expected stored preview");
+    if (!preview) {
+      throw new Error("Expected stored preview");
+    }
     preview.fingerprint = "changed";
     await expect(
       recreated.deleteWorkspace(
         "organization",
         "local-workspace",
         changed.previewToken,
-        { idempotencyKey: "changed-preview" },
-      ),
+        { idempotencyKey: "changed-preview" }
+      )
     ).rejects.toMatchObject({
       code: "PREVIEW_CHANGED",
       status: 409,
@@ -755,7 +796,9 @@ describe("createDeviceControlClient", () => {
       organizations: () => [organization("organization")],
     });
 
-    await expect(client.listWorkspaces("other-organization")).rejects.toMatchObject({
+    await expect(
+      client.listWorkspaces("other-organization")
+    ).rejects.toMatchObject({
       code: "ORGANIZATION_NOT_FOUND",
       status: 404,
     });
@@ -767,8 +810,8 @@ describe("createDeviceControlClient", () => {
           slug: "unauthorized-workspace",
           visibility: "local",
         },
-        { idempotencyKey: "unauthorized-request" },
-      ),
+        { idempotencyKey: "unauthorized-request" }
+      )
     ).rejects.toMatchObject({
       code: "ORGANIZATION_NOT_FOUND",
       status: 404,
@@ -781,7 +824,9 @@ describe("createDeviceControlClient", () => {
     const db = {
       execute: vi.fn(),
       getOptional: vi.fn(async (query: string) => {
-        if (query.includes("agent_idempotency")) return null;
+        if (query.includes("agent_idempotency")) {
+          return null;
+        }
         return query.includes("id <> ?")
           ? { id: "other-workspace" }
           : WORKSPACES[0];
@@ -797,16 +842,16 @@ describe("createDeviceControlClient", () => {
           expectedRevision: WORKSPACES[0].updated_at,
           slug: "taken",
         },
-        { idempotencyKey: "update-workspace-slug" },
-      ),
+        { idempotencyKey: "update-workspace-slug" }
+      )
     ).rejects.toMatchObject({
       code: "WORKSPACE_SLUG_CONFLICT",
       status: 409,
     });
     expect(
       db.execute.mock.calls.some(([query]) =>
-        String(query).includes("UPDATE local_workspaces"),
-      ),
+        String(query).includes("UPDATE local_workspaces")
+      )
     ).toBe(false);
   });
 
@@ -827,7 +872,9 @@ describe("createDeviceControlClient", () => {
       | undefined;
     const db = {
       execute: vi.fn(async (query: string, params: unknown[]) => {
-        if (!query.includes("INSERT INTO local_workspace_resources")) return;
+        if (!query.includes("INSERT INTO local_workspace_resources")) {
+          return;
+        }
         item = {
           created_at: String(params[9]),
           icon: null,
@@ -842,16 +889,24 @@ describe("createDeviceControlClient", () => {
         };
       }),
       getOptional: vi.fn(async (query: string) => {
-        if (query.includes("agent_idempotency")) return null;
-        if (query.includes("MAX(position)")) return { value: null };
-        if (query.includes("local_workspaces")) return WORKSPACES[0];
-        if (query.includes("workspace_resources")) return item ?? null;
+        if (query.includes("agent_idempotency")) {
+          return null;
+        }
+        if (query.includes("MAX(position)")) {
+          return { value: null };
+        }
+        if (query.includes("local_workspaces")) {
+          return WORKSPACES[0];
+        }
+        if (query.includes("workspace_resources")) {
+          return item ?? null;
+        }
         return null;
       }),
     };
 
     const result = await createDeviceControlClient(
-      db as never,
+      db as never
     ).createWorkspaceResource(
       "organization",
       "local-workspace",
@@ -861,7 +916,7 @@ describe("createDeviceControlClient", () => {
         schemaVersion: 1,
         storage: {},
       },
-      { idempotencyKey: "plugin-only-item" },
+      { idempotencyKey: "plugin-only-item" }
     );
 
     expect(result).toMatchObject({
@@ -870,8 +925,8 @@ describe("createDeviceControlClient", () => {
     });
     expect(
       db.execute.mock.calls.some(([query]) =>
-        String(query).includes("local_yjs_documents"),
-      ),
+        String(query).includes("local_yjs_documents")
+      )
     ).toBe(false);
   });
 
@@ -891,8 +946,12 @@ describe("createDeviceControlClient", () => {
     const db = {
       getAll: vi.fn(async () => []),
       getOptional: vi.fn(async (query: string) => {
-        if (query.includes("local_workspaces")) return WORKSPACES[0];
-        if (query.includes("workspace_resources")) return board;
+        if (query.includes("local_workspaces")) {
+          return WORKSPACES[0];
+        }
+        if (query.includes("workspace_resources")) {
+          return board;
+        }
         if (query.includes("yjs_documents")) {
           return { id: board.yjs_backing_id };
         }
@@ -901,14 +960,14 @@ describe("createDeviceControlClient", () => {
     };
 
     const result = await createDeviceControlClient(
-      db as never,
+      db as never
     ).executePluginOperation(
       "organization",
       "local-workspace",
       "lunaris.kanban",
       "get_board_properties",
       { boardId: board.id },
-      { consistency: "cached" },
+      { consistency: "cached" }
     );
 
     expect(result).toMatchObject({
@@ -934,7 +993,7 @@ describe("createDeviceControlClient", () => {
     const { db, getUpdate } = createLocalDocumentHarness(item);
 
     const result = await createDeviceControlClient(
-      db as never,
+      db as never
     ).executePluginOperation(
       "organization",
       "local-workspace",
@@ -948,7 +1007,7 @@ describe("createDeviceControlClient", () => {
         documentResourceId: item.id,
         expectedRevision: revision,
       },
-      { idempotencyKey: "rich-text-document-update" },
+      { idempotencyKey: "rich-text-document-update" }
     );
 
     expect(result).toMatchObject({
@@ -961,10 +1020,9 @@ describe("createDeviceControlClient", () => {
     });
     const doc = new Doc();
     applyUpdateV2(doc, getUpdate());
-    expect((await getRichTextDocument(doc)).blocks.map(({ id }) => id)).toEqual([
-      "title",
-      "body",
-    ]);
+    expect((await getRichTextDocument(doc)).blocks.map(({ id }) => id)).toEqual(
+      ["title", "body"]
+    );
     doc.destroy();
   });
 
@@ -983,21 +1041,23 @@ describe("createDeviceControlClient", () => {
     };
     const db = {
       getOptional: vi.fn(async (query: string) => {
-        if (query.includes("local_workspaces")) return WORKSPACES[0];
-        if (query.includes("workspace_resources")) return board;
+        if (query.includes("local_workspaces")) {
+          return WORKSPACES[0];
+        }
+        if (query.includes("workspace_resources")) {
+          return board;
+        }
         return null;
       }),
     };
 
     await expect(
-      createDeviceControlClient(
-        db as never,
-      ).previewDeleteWorkspaceResource(
+      createDeviceControlClient(db as never).previewDeleteWorkspaceResource(
         "organization",
         "local-workspace",
         board.id,
-        { expectedResourceTypeId: "lunaris.kanban.task" },
-      ),
+        { expectedResourceTypeId: "lunaris.kanban.task" }
+      )
     ).rejects.toMatchObject({
       code: "RESOURCE_NOT_FOUND",
       status: 404,
@@ -1019,9 +1079,15 @@ describe("createDeviceControlClient", () => {
     const db = {
       execute: vi.fn(async () => undefined),
       getOptional: vi.fn(async (query: string) => {
-        if (query.includes("agent_idempotency")) return null;
-        if (query.includes("local_workspaces")) return WORKSPACES[0];
-        if (query.includes("workspace_resources")) return folder;
+        if (query.includes("agent_idempotency")) {
+          return null;
+        }
+        if (query.includes("local_workspaces")) {
+          return WORKSPACES[0];
+        }
+        if (query.includes("workspace_resources")) {
+          return folder;
+        }
         return null;
       }),
     };
@@ -1040,8 +1106,8 @@ describe("createDeviceControlClient", () => {
         {
           expectedParentResourceTypeId: "lunaris.kanban",
           idempotencyKey: "create-task",
-        },
-      ),
+        }
+      )
     ).rejects.toMatchObject({
       code: "RESOURCE_NOT_FOUND",
       status: 404,
@@ -1080,9 +1146,7 @@ describe("createDeviceControlClient", () => {
     assignees.set("name", "Assignees");
     assignees.set("type", "people");
     properties.push([status, assignees]);
-    const initialUpdateB64 = Uint8ArrayTob64(
-      encodeStateAsUpdateV2(initialDoc)
-    );
+    const initialUpdateB64 = Uint8ArrayTob64(encodeStateAsUpdateV2(initialDoc));
     initialDoc.destroy();
     const db = {
       execute: vi.fn(async (query: string, params: unknown[]) => {
@@ -1094,23 +1158,33 @@ describe("createDeviceControlClient", () => {
         }
       }),
       getAll: vi.fn(async (query: string) => {
-        if (query.includes("FROM member")) return [{ user_id: "user-1" }];
+        if (query.includes("FROM member")) {
+          return [{ user_id: "user-1" }];
+        }
         if (query.includes("yjs_document_updates")) {
           return [{ update_b64: initialUpdateB64 }];
         }
         return [];
       }),
       getOptional: vi.fn(async (query: string) => {
-        if (query.includes("agent_idempotency")) return null;
-        if (query.includes("local_workspaces")) return WORKSPACES[0];
-        if (query.includes("MAX(position)")) return { value: 2 };
-        if (query.includes("workspace_resources")) return board;
+        if (query.includes("agent_idempotency")) {
+          return null;
+        }
+        if (query.includes("local_workspaces")) {
+          return WORKSPACES[0];
+        }
+        if (query.includes("MAX(position)")) {
+          return { value: 2 };
+        }
+        if (query.includes("workspace_resources")) {
+          return board;
+        }
         return null;
       }),
     };
 
     const result = await createDeviceControlClient(
-      db as never,
+      db as never
     ).executePluginOperation(
       "organization",
       "local-workspace",
@@ -1124,7 +1198,7 @@ describe("createDeviceControlClient", () => {
           Status: "In Progress",
         },
       },
-      { idempotencyKey: "kanban-task-create" },
+      { idempotencyKey: "kanban-task-create" }
     );
 
     expect(result).toMatchObject({
@@ -1145,13 +1219,13 @@ describe("createDeviceControlClient", () => {
       doc
         .getMap<YMap<unknown>>("taskAssignments")
         .get((result as { taskId: string }).taskId)
-        ?.get("prop_status"),
+        ?.get("prop_status")
     ).toBe("in-progress");
     expect(
       doc
         .getMap<YMap<unknown>>("taskAssignments")
         .get((result as { taskId: string }).taskId)
-        ?.get("prop_assignees"),
+        ?.get("prop_assignees")
     ).toEqual(["user-1"]);
     doc.destroy();
   });
@@ -1180,18 +1254,20 @@ describe("createDeviceControlClient", () => {
     let updateB64: string | undefined;
     const db = {
       execute: vi.fn(async (query: string, params: unknown[]) => {
-        if (
-          query.includes("INSERT INTO local_yjs_document_updates")
-        ) {
+        if (query.includes("INSERT INTO local_yjs_document_updates")) {
           updateB64 = String(params[4]);
         }
       }),
       getAll: vi.fn(async (query: string) =>
-        query.includes("yjs_document_updates") ? [] : [],
+        query.includes("yjs_document_updates") ? [] : []
       ),
       getOptional: vi.fn(async (query: string, params: unknown[]) => {
-        if (query.includes("agent_idempotency")) return null;
-        if (query.includes("local_workspaces")) return WORKSPACES[0];
+        if (query.includes("agent_idempotency")) {
+          return null;
+        }
+        if (query.includes("local_workspaces")) {
+          return WORKSPACES[0];
+        }
         if (query.includes("workspace_resources")) {
           return params[0] === board.id ? board : task;
         }
@@ -1199,7 +1275,7 @@ describe("createDeviceControlClient", () => {
       }),
     };
     const result = await createDeviceControlClient(
-      db as never,
+      db as never
     ).executePluginOperation(
       "organization",
       "local-workspace",
@@ -1210,7 +1286,7 @@ describe("createDeviceControlClient", () => {
         properties: { Status: "Done" },
         taskId: task.id,
       },
-      { idempotencyKey: "kanban-property-update" },
+      { idempotencyKey: "kanban-property-update" }
     );
 
     expect(result).toMatchObject({
@@ -1224,7 +1300,7 @@ describe("createDeviceControlClient", () => {
       doc
         .getMap<YMap<string>>("taskAssignments")
         .get(task.id)
-        ?.get("prop_status"),
+        ?.get("prop_status")
     ).toBe("done");
     doc.destroy();
   });
@@ -1243,17 +1319,19 @@ describe("createDeviceControlClient", () => {
     });
 
     await expect(client.listOrganizations()).resolves.toMatchObject({
-      items: [{
-        ...organization,
-        provenance: {
-          source: "cloud-cache",
-          syncState: "unknown",
+      items: [
+        {
+          ...organization,
+          provenance: {
+            source: "cloud-cache",
+            syncState: "unknown",
+          },
         },
-      }],
+      ],
       nextCursor: null,
     });
     await expect(
-      client.listOrganizationMembers("organization"),
+      client.listOrganizationMembers("organization")
     ).rejects.toMatchObject({ code: "CLOUD_UNAVAILABLE", status: 503 });
   });
 });

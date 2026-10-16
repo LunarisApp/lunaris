@@ -31,10 +31,18 @@ function resolveFontFamily(
   italic: boolean,
   code: boolean
 ): string {
-  if (code) return "Courier";
-  if (bold && italic) return "Helvetica-BoldOblique";
-  if (bold) return "Helvetica-Bold";
-  if (italic) return "Helvetica-Oblique";
+  if (code) {
+    return "Courier";
+  }
+  if (bold && italic) {
+    return "Helvetica-BoldOblique";
+  }
+  if (bold) {
+    return "Helvetica-Bold";
+  }
+  if (italic) {
+    return "Helvetica-Oblique";
+  }
   return "Helvetica";
 }
 

@@ -29,7 +29,7 @@ describe("createManagedPowerSyncSession", () => {
     const hooks = createHooks();
     let finishConnect: (() => void) | undefined;
     hooks.onConnect.mockImplementation(
-      () => new Promise<void>((resolve) => (finishConnect = resolve)),
+      () => new Promise<void>((resolve) => (finishConnect = resolve))
     );
     const session = createManagedPowerSyncSession(hooks);
 

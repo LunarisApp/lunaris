@@ -43,7 +43,7 @@ interface DockviewPanelProps {
 type GridLayoutRegister = (
   extensionId: string,
   viewId: string,
-  builder: (props: DockviewPanelProps) => ReactNode,
+  builder: (props: DockviewPanelProps) => ReactNode
 ) => void;
 
 export interface ResourceLayoutWrapperProps {
@@ -53,7 +53,7 @@ export interface ResourceLayoutWrapperProps {
 }
 
 export type ResourceLayoutWrapper = (
-  props: ResourceLayoutWrapperProps,
+  props: ResourceLayoutWrapperProps
 ) => ReactNode;
 
 export interface RegisterResourceViewOptions {
@@ -100,8 +100,16 @@ function ResourceQuarantine({
     createElement(
       "div",
       { className: "max-w-md space-y-3 rounded-lg border bg-background p-5" },
-      createElement("h2", { className: "font-semibold" }, "Resource unavailable"),
-      createElement("p", { className: "text-sm text-muted-foreground" }, diagnostic),
+      createElement(
+        "h2",
+        { className: "font-semibold" },
+        "Resource unavailable"
+      ),
+      createElement(
+        "p",
+        { className: "text-sm text-muted-foreground" },
+        diagnostic
+      ),
       retryable
         ? createElement(
             "button",
@@ -110,10 +118,10 @@ function ResourceQuarantine({
               onClick: onRetry,
               type: "button",
             },
-            "Retry",
+            "Retry"
           )
-        : null,
-    ),
+        : null
+    )
   );
 }
 
@@ -131,7 +139,7 @@ function ResourceLoading() {
       className: "size-6",
       role: "presentation",
     }),
-    createElement("span", { className: "sr-only" }, "Loading resource"),
+    createElement("span", { className: "sr-only" }, "Loading resource")
   );
 }
 
@@ -161,17 +169,12 @@ function ResourceResolutionGate({
         slots.data.map((slot) => [
           slot.name,
           { kind: slot.kind, storageId: slot.id },
-        ]),
+        ])
       ) as ResourceStorageHandles,
-    [slots.data],
+    [slots.data]
   );
   const storageIdentity = JSON.stringify(
-    slots.data.map((slot) => [
-      slot.id,
-      slot.name,
-      slot.kind,
-      slot.backing_id,
-    ]),
+    slots.data.map((slot) => [slot.id, slot.name, slot.kind, slot.backing_id])
   );
   const storageRef = useRef(storage);
   storageRef.current = storage;
@@ -204,12 +207,18 @@ function ResourceResolutionGate({
     [resource.resourceId, readinessOwner, resolutionKey, definition]
   );
 
+  // The serialized key covers resource identity/schema and slots; equivalent envelope objects must not restart async resolution.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: definition/storageRequirements are immutable view registration data; resolutionKey captures resource fields.
   useEffect(() => {
-    if (slots.isLoading) return;
+    if (slots.isLoading) {
+      return;
+    }
     const currentStorage = storageRef.current;
     for (const [name, kind] of Object.entries(definition.storage)) {
       if (currentStorage[name]?.kind !== kind.kind) {
-        if (resource.schemaVersion < definition.schema.currentVersion) continue;
+        if (resource.schemaVersion < definition.schema.currentVersion) {
+          continue;
+        }
         setResolution({
           definition,
           key: resolutionKey,
@@ -268,7 +277,9 @@ function ResourceResolutionGate({
     slots.isLoading,
   ]);
 
-  if (!currentResolution) return createElement(ResourceLoading);
+  if (!currentResolution) {
+    return createElement(ResourceLoading);
+  }
   if (currentResolution.status === "quarantined") {
     return createElement(ResourceQuarantine, {
       diagnostic: currentResolution.diagnostic,
@@ -277,9 +288,13 @@ function ResourceResolutionGate({
     });
   }
 
-  if (Object.entries(storageRequirements).some(
-    ([name, kind]) => storage[name]?.kind !== kind,
-  )) return null;
+  if (
+    Object.entries(storageRequirements).some(
+      ([name, kind]) => storage[name]?.kind !== kind
+    )
+  ) {
+    return null;
+  }
 
   const resolvedResource = currentResolution.envelope;
   const rendered = createElement(renderer, {
@@ -289,13 +304,13 @@ function ResourceResolutionGate({
       markResourceViewReady(resource.resourceId, readinessOwner);
       markResourceOpenPanelMounted(
         resource.resourceId,
-        !Object.values(storage).some((slot) => slot.kind === "yjs"),
+        !Object.values(storage).some((slot) => slot.kind === "yjs")
       );
       reportResourceOpenReady(resource.resourceId);
     },
     resource: resolvedResource,
     storage: Object.fromEntries(
-      Object.keys(storageRequirements).map((name) => [name, storage[name]]),
+      Object.keys(storageRequirements).map((name) => [name, storage[name]])
     ) as ResourceStorageHandles,
   });
   const content = createElement(
@@ -304,7 +319,7 @@ function ResourceResolutionGate({
       dataReady: !Object.values(storage).some((slot) => slot.kind === "yjs"),
       resourceId: resource.resourceId,
     },
-    createElement(GridLayoutPanel, { children: rendered }),
+    createElement(GridLayoutPanel, { children: rendered })
   );
   const wrapped = layoutWrapper
     ? createElement(layoutWrapper, {
@@ -313,7 +328,12 @@ function ResourceResolutionGate({
         storage,
       })
     : content;
-  return createElement(ResourcePresenceBoundary, { resourceId: resource.resourceId, isVisible, storage, children: wrapped });
+  return createElement(ResourcePresenceBoundary, {
+    resourceId: resource.resourceId,
+    isVisible,
+    storage,
+    children: wrapped,
+  });
 }
 
 export function registerResourceViewWithGridLayout(
@@ -321,9 +341,9 @@ export function registerResourceViewWithGridLayout(
   extensionId: string,
   viewDefinition: ViewDefinition,
   getResourceTypeDefinition: (
-    resourceTypeId: string,
+    resourceTypeId: string
   ) => ResourceTypeDefinition | undefined,
-  options?: RegisterResourceViewOptions,
+  options?: RegisterResourceViewOptions
 ): void {
   if (viewDefinition.target.kind !== "resource") {
     throw new Error(`View "${viewDefinition.viewId}" is not resource-targeted`);
@@ -335,19 +355,28 @@ export function registerResourceViewWithGridLayout(
     useEffect(() => {
       setIsVisible(props.api?.isVisible ?? true);
       const subscription = props.api?.onDidVisibilityChange(() =>
-        setIsVisible(props.api?.isVisible ?? true),
+        setIsVisible(props.api?.isVisible ?? true)
       );
       return () => subscription?.dispose();
     }, [props.api]);
     const resourceId = stringParam(props.params.resourceId);
     const resourceTypeId = stringParam(props.params.resourceTypeId);
-    if (!resourceId || !resourceTypeId) return null;
+    if (!(resourceId && resourceTypeId)) {
+      return null;
+    }
     const resourceType = getResourceTypeDefinition(resourceTypeId);
-    if (!resourceType) return null;
-    const storageRequirements = (viewDefinition as ResourceViewDefinition).storageRequirements;
-    if (Object.entries(storageRequirements).some(
-      ([name, kind]) => resourceType.storage[name]?.kind !== kind,
-    )) return null;
+    if (!resourceType) {
+      return null;
+    }
+    const storageRequirements = (viewDefinition as ResourceViewDefinition)
+      .storageRequirements;
+    if (
+      Object.entries(storageRequirements).some(
+        ([name, kind]) => resourceType.storage[name]?.kind !== kind
+      )
+    ) {
+      return null;
+    }
     const resource: ResourceEnvelope = {
       parentId: stringParam(props.params.parentId) ?? null,
       resourceId,

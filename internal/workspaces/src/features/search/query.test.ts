@@ -13,8 +13,8 @@ describe("parseSearchQuery", () => {
   it("parses scoped, unscoped, and quoted terms", () => {
     expect(
       parseSearchQuery(
-        'WORKSPACE: "Demo Organization" title:Roadmap extension:lunaris.kanban resource-type:"Kanban Board" migration',
-      ),
+        'WORKSPACE: "Demo Organization" title:Roadmap extension:lunaris.kanban resource-type:"Kanban Board" migration'
+      )
     ).toEqual({
       terms: [
         { exact: true, field: "workspace", value: "Demo Organization" },
@@ -36,12 +36,14 @@ describe("parseSearchQuery", () => {
   });
 
   it("accepts Railway-style @ field prefixes", () => {
-    expect(parseSearchQuery('@WORKSPACE:"Demo" @resource-type:kanban')).toEqual({
-      terms: [
-        { exact: true, field: "workspace", value: "Demo" },
-        { exact: false, field: "resource-type", value: "kanban" },
-      ],
-    });
+    expect(parseSearchQuery('@WORKSPACE:"Demo" @resource-type:kanban')).toEqual(
+      {
+        terms: [
+          { exact: true, field: "workspace", value: "Demo" },
+          { exact: false, field: "resource-type", value: "kanban" },
+        ],
+      }
+    );
   });
 
   it("supports escaped quotes and backslashes", () => {
@@ -111,7 +113,7 @@ describe("search query field completion", () => {
 
   it("suggests after closed and escaped quoted phrases", () => {
     expect(
-      getSearchQueryFieldCompletion('title:"Road \\"map\\"" @EXT'),
+      getSearchQueryFieldCompletion('title:"Road \\"map\\"" @EXT')
     ).toEqual({
       fields: ["extension"],
       from: 21,
@@ -121,9 +123,11 @@ describe("search query field completion", () => {
   it("replaces the active trigger with valid syntax", () => {
     const completion = getSearchQueryFieldCompletion("roadmap @wor");
     expect(completion).not.toBeNull();
-    if (!completion) return;
+    if (!completion) {
+      return;
+    }
     expect(
-      completeSearchQueryField("roadmap @wor", completion, "workspace"),
+      completeSearchQueryField("roadmap @wor", completion, "workspace")
     ).toBe("roadmap @workspace:");
   });
 });
@@ -161,13 +165,15 @@ describe("search query value completion", () => {
   it("inserts a quoted value and preserves preceding terms", () => {
     const completion = getSearchQueryValueCompletion("roadmap @workspace:dem");
     expect(completion).not.toBeNull();
-    if (!completion) return;
+    if (!completion) {
+      return;
+    }
     expect(
       completeSearchQueryValue(
         "roadmap @workspace:dem",
         completion,
-        'Demo "North" \\ archive',
-      ),
+        'Demo "North" \\ archive'
+      )
     ).toBe('roadmap @workspace:"Demo \\"North\\" \\\\ archive" ');
   });
 });
@@ -179,7 +185,7 @@ describe("matchesSearchTerm", () => {
         exact: false,
         field: null,
         value: "ROAD",
-      }),
+      })
     ).toBe(true);
   });
 
@@ -197,8 +203,8 @@ describe("matchesSearchTerm", () => {
         [
           { exact: false, field: null, value: "quarter" },
           { exact: false, field: null, value: "map" },
-        ],
-      ),
+        ]
+      )
     ).toBe(true);
     expect(
       matchesSearchTerms(
@@ -206,8 +212,8 @@ describe("matchesSearchTerm", () => {
         [
           { exact: false, field: null, value: "quarter" },
           { exact: false, field: null, value: "budget" },
-        ],
-      ),
+        ]
+      )
     ).toBe(false);
   });
 });

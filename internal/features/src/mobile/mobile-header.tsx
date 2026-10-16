@@ -23,9 +23,9 @@ export function MobileHeader({
 }: MobileHeaderProps) {
   const { t } = useTranslation();
   return (
-    <header className="shrink-0 border-b pl-[calc(0.75rem+var(--safe-area-left))] pr-[calc(0.75rem+var(--safe-area-right))] pt-[var(--safe-area-top)]">
+    <header className="shrink-0 border-b pt-[var(--safe-area-top)] pr-[calc(0.75rem+var(--safe-area-right))] pl-[calc(0.75rem+var(--safe-area-left))]">
       <div className="flex min-h-14 items-center gap-2 py-2">
-        {backTo && (
+        {!!backTo && (
           <Button
             nativeButton={false}
             render={<Link to={backTo} />}
@@ -37,9 +37,9 @@ export function MobileHeader({
           </Button>
         )}
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-base font-medium">{title}</h1>
+          <h1 className="truncate font-medium text-base">{title}</h1>
           {subtitle ? (
-            <p className="text-muted-foreground line-clamp-2 text-xs leading-4">
+            <p className="line-clamp-2 text-muted-foreground text-xs leading-4">
               {subtitle}
             </p>
           ) : null}

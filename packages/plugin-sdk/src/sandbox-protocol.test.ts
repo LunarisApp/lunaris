@@ -11,7 +11,7 @@ describe("sandbox JSON values", () => {
     Number.NaN,
   ])("rejects non-JSON metadata", (value) => {
     expect(() => cloneSandboxJsonValue(value, "Extension metadata")).toThrow(
-      "must contain only JSON values",
+      "must contain only JSON values"
     );
   });
 
@@ -19,7 +19,7 @@ describe("sandbox JSON values", () => {
     const value: Record<string, unknown> = {};
     value.self = value;
     expect(() => cloneSandboxJsonValue(value, "Extension metadata")).toThrow(
-      "must not contain cycles",
+      "must not contain cycles"
     );
   });
 });
