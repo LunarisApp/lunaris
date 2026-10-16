@@ -25,7 +25,7 @@
     }
   ],
   "formatter": {
-    "includes": ["!apps/web/src/auto-imports.d.ts"]
+    "includes": ["**", "!apps/web/src/auto-imports.d.ts"]
   },
   "assist": {
     "actions": {
@@ -40,6 +40,7 @@
   },
   "linter": {
     "includes": [
+      "**",
       "!packages/ui/src/components",
       "!apps/web/src/auto-imports.d.ts"
     ],
