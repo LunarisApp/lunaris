@@ -126,11 +126,11 @@ export function renderHomebrewDefinition(
 }
 
 function readDefinitionVersion(content: string, path: string): string {
-  const match = content.match(/^\s*version "([^"]+)"$/m);
-  if (!(match && isDistributionVersion(match[1]))) {
+  const version = content.match(/^\s*version "([^"]+)"$/m)?.[1];
+  if (!(version && isDistributionVersion(version))) {
     throw new Error(`Cannot read existing Homebrew version from ${path}`);
   }
-  return match[1];
+  return version;
 }
 
 export function updateHomebrewTap({

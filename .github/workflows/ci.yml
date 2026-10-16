@@ -21,7 +21,6 @@ permissions:
   contents: read
 
 env:
-  BUN_VERSION: 1.4.0
   CYPRESS_INSTALL_BINARY: 0
 
 jobs:
@@ -41,15 +40,9 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.sha }}
           fetch-depth: 0
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - uses: ./.github/actions/setup-bun
         with:
-          bun-version: ${{ env.BUN_VERSION }}
-      - name: Cache Bun downloads
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+          cache: "true"
       - run: bun install --frozen-lockfile
       - id: select
         name: Select affected checks
@@ -67,15 +60,9 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ inputs.ref || github.sha }}
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - uses: ./.github/actions/setup-bun
         with:
-          bun-version: ${{ env.BUN_VERSION }}
-      - name: Cache Bun downloads
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+          cache: "true"
       - run: bun install --frozen-lockfile
       - name: Check formatting and lint
         run: bun run check
@@ -100,20 +87,14 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ inputs.ref || github.sha }}
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - uses: ./.github/actions/setup-bun
         with:
-          bun-version: ${{ env.BUN_VERSION }}
-      - name: Cache Bun downloads
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+          cache: "true"
       - run: bun install --frozen-lockfile
       - name: Typecheck workspaces
         run: bun run typecheck
       - name: Typecheck tooling
-        run: bun run brand:typecheck
+        run: bun run tooling:typecheck
 
   test:
     needs: changes
@@ -124,18 +105,12 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ inputs.ref || github.sha }}
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - uses: ./.github/actions/setup-bun
         with:
-          bun-version: ${{ env.BUN_VERSION }}
-      - name: Cache Bun downloads
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+          cache: "true"
       - run: bun install --frozen-lockfile
       - run: bun run test -- --concurrency=4
-      - run: bun test tooling/ci-selection.test.ts tooling/precommit.test.ts
+      - run: bun test tooling/ci tooling/ci-selection.test.ts tooling/precommit.test.ts
       - run: bun run release:test
         if: needs.changes.outputs.release == 'true'
 
@@ -153,15 +128,9 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ inputs.ref || github.sha }}
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - uses: ./.github/actions/setup-bun
         with:
-          bun-version: 1.4.0
-      - name: Cache Bun downloads
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+          cache: "true"
       - name: Cache Turbo builds
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
@@ -190,15 +159,9 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ inputs.ref || github.sha }}
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - uses: ./.github/actions/setup-bun
         with:
-          bun-version: ${{ env.BUN_VERSION }}
-      - name: Cache Bun downloads
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+          cache: "true"
       - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
         with:
           key: agent-rust
@@ -229,15 +192,9 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.sha }}
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - uses: ./.github/actions/setup-bun
         with:
-          bun-version: ${{ env.BUN_VERSION }}
-      - name: Cache Bun downloads
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+          cache: "true"
       - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
         with:
           key: desktop-mcp
@@ -260,15 +217,9 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - uses: ./.github/actions/setup-bun
         with:
-          bun-version: 1.4.0
-      - name: Cache Bun downloads
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+          cache: "true"
       - run: bun install --frozen-lockfile
       - run: bun tooling/release/automation/check-policy.ts
 
@@ -281,15 +232,9 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ inputs.ref || github.sha }}
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - uses: ./.github/actions/setup-bun
         with:
-          bun-version: 1.4.0
-      - name: Cache Bun downloads
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+          cache: "true"
       - run: bun install --frozen-lockfile
       - run: bun run build --filter=docs --filter=landing
 
@@ -306,28 +251,13 @@ jobs:
     needs: [changes, quality, typecheck, test, editions, agent-rust, desktop-mcp, sites, release-policy, e2e]
     runs-on: ubuntu-latest
     steps:
-      - env:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - uses: ./.github/actions/setup-bun
+      - name: Validate CI results
+        env:
           NEEDS_JSON: ${{ toJSON(needs) }}
-          RESULTS: ${{ join(needs.*.result, ' ') }}
-          POLICY: ${{ needs.release-policy.result }}
           EVENT: ${{ github.event_name }}
           E2E_REQUIRED: ${{ inputs.ref != '' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.base_ref == 'main' && !github.event.pull_request.draft) }}
-          E2E_RESULT: ${{ needs.e2e.result }}
-        run: |
-          python3 - <<'PYCODE'
-          import json, os
-          needs = json.loads(os.environ["NEEDS_JSON"])
-          assert needs["changes"]["result"] == "success", "Change selection failed"
-          for job in ["quality", "typecheck", "test"]:
-              assert needs[job]["result"] == "success", f"{job} did not succeed"
-          for job in ["editions", "agent-rust", "desktop-mcp", "sites"]:
-              selected = needs["changes"]["outputs"].get(job)
-              assert selected in ("true", "false"), f"Missing selection: {job}"
-              if selected == "true":
-                  assert needs[job]["result"] == "success", f"Required job {job} did not succeed"
-          PYCODE
-          for result in $RESULTS; do
-            case "$result" in success|skipped) ;; *) exit 1 ;; esac
-          done
-          if [ "$EVENT" = pull_request ] && [ "$POLICY" != success ]; then exit 1; fi
-          if [ "$E2E_REQUIRED" = true ] && [ "$E2E_RESULT" != success ]; then exit 1; fi
+        run: bun tooling/ci/gate.ts
