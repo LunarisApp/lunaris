@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
 import { parse } from "yaml";
 import { releaseRulesets } from "./rulesets";
 
@@ -30,4 +31,50 @@ test("rules preserve immutable history even for automation and scoped tags", () 
   expect(rules.find(({ name }) => name === "Release branches - immutable history")?.bypass_actors).toEqual([]);
   expect(JSON.stringify(rules)).toContain("refs/tags/@lunarisapp/plugin-sdk@*");
   expect(JSON.stringify(rules)).not.toContain("refs/tags/desktop");
+});
+
+test("E2E runs only for ready main PRs, manual CI, and explicit release refs", () => {
+  const { jobs, on } = workflow("ci");
+  const condition = jobs.e2e.if.trim();
+  expect(jobs.ci.steps[0].env.E2E_REQUIRED).toBe(`\u0024{{ ${condition} }}`);
+  expect(on.pull_request.types).toContain("ready_for_review");
+  expect(on.pull_request.types).toContain("converted_to_draft");
+  const cases = [
+    { event: "pull_request", base: "next", draft: false, ref: "", expected: false },
+    { event: "pull_request", base: "main", draft: true, ref: "", expected: false },
+    { event: "pull_request", base: "main", draft: false, ref: "", expected: true },
+    { event: "push", base: "", draft: false, ref: "", expected: false },
+    { event: "workflow_dispatch", base: "", draft: false, ref: "", expected: true },
+    // Reusable workflows inherit the caller's event, not "workflow_call".
+    { event: "push", base: "", draft: false, ref: "version-sha", expected: true },
+  ];
+  for (const entry of cases) {
+    // This workflow expression uses only boolean operators shared with JS.
+    const result = runInNewContext(condition, {
+      inputs: { ref: entry.ref },
+      github: { event_name: entry.event, base_ref: entry.base, event: { pull_request: { draft: entry.draft } } },
+    });
+    expect(result).toBe(entry.expected);
+  }
+});
+
+test("aggregate CI rejects missing E2E for releases while permitting deliberate skips", () => {
+  const script = workflow("ci").jobs.ci.steps[0].run;
+  for (const result of ["success", "skipped", "failure", "cancelled", ""]) {
+    for (const required of [true, false]) {
+      const run = Bun.spawnSync(["bash", "-e", "-c", script], {
+        env: { ...process.env, RESULTS: `success ${result}`, POLICY: "success", EVENT: "pull_request", E2E_REQUIRED: String(required), E2E_RESULT: result },
+      });
+      const shouldPass = result === "success" || (!required && (result === "skipped" || result === ""));
+      expect(run.exitCode === 0).toBe(shouldPass);
+    }
+  }
+});
+
+test("E2E avoids nightly duplicates and cancels superseded PR runs only", () => {
+  const e2e = workflow("e2e");
+  expect(Object.keys(e2e.on).sort()).toEqual(["workflow_call", "workflow_dispatch"]);
+  expect(e2e.concurrency.group).toContain("github.event.pull_request.number");
+  expect(e2e.concurrency["cancel-in-progress"]).toBe("${{ github.event_name == 'pull_request' }}");
+  expect(e2e.jobs.e2e.if).toBeUndefined();
 });
