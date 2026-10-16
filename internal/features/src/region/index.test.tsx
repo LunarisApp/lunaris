@@ -459,8 +459,8 @@ describe("RegionProvider", () => {
       </MemoryRouter>
     );
 
-    expect((await screen.findByTestId("loaded-manifest")).textContent).toBe(
-      "eu"
+    await waitFor(() =>
+      expect(screen.getByTestId("loaded-manifest").textContent).toBe("eu")
     );
     await user.click(screen.getByRole("button", { name: "Choose US" }));
     expect(screen.getByTestId("selected-region").textContent).toBe("us");
