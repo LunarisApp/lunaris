@@ -230,3 +230,57 @@ test("workflow exports every selection flag validated by the gate", () => {
     [...checks].sort()
   );
 });
+
+test("images publish tested native architectures only after exact-source CI", () => {
+  const images = workflow("images.publish");
+  expect(images.on.push.tags).toEqual(["aio-v*", "api@*", "web@*"]);
+  expect(images.concurrency["cancel-in-progress"]).toBe(false);
+  expect(images.jobs.validate.uses).toBe("./.github/workflows/ci.yml");
+  expect(images.jobs.build.needs).toEqual(["prepare", "validate"]);
+  expect(images.jobs.publish.needs).toEqual(["prepare", "build"]);
+  expect(
+    images.jobs.build.strategy.matrix.include.map(
+      (entry: { arch: string }) => entry.arch
+    )
+  ).toEqual(["amd64", "arm64"]);
+  const steps = images.jobs.build.steps;
+  const push = steps.findIndex((step: { run?: string }) =>
+    step.run?.includes("docker push")
+  );
+  for (const [script, condition] of [
+    ["network-smoke.sh", "needs.prepare.outputs.app == 'aio'"],
+    ["infra/images/smoke.sh", "needs.prepare.outputs.app != 'aio'"],
+  ]) {
+    const index = steps.findIndex((step: { run?: string }) =>
+      step.run?.includes(script!)
+    );
+    expect(index).toBeGreaterThan(0);
+    expect(push).toBeGreaterThan(index);
+    expect(steps[index].if).toBe(condition);
+  }
+  expect(
+    steps.find((step: { uses?: string }) =>
+      step.uses?.startsWith("docker/build-push-action@")
+    ).with["build-args"]
+  ).toBe("LUNARIS_EDITION=community");
+  expect(
+    workflow("ci").jobs.test.steps.some((step: { run?: string }) =>
+      step.run?.includes("tooling/images")
+    )
+  ).toBe(true);
+});
+
+test("reusable CI isolates app release tags pointing at the same commit", () => {
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub expression.
+  expect(workflow("ci").concurrency.group).toContain("${{ github.ref }}");
+  expect(workflow("ci").concurrency.group).toContain(
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub expression.
+    "${{ inputs.concurrency-scope }}"
+  );
+  expect(
+    workflow("images.publish").jobs.validate.with["concurrency-scope"]
+  ).toBe(
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub expression.
+    "${{ needs.prepare.outputs.app }}"
+  );
+});

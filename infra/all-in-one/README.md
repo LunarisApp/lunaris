@@ -214,3 +214,73 @@ secure the mailbox too if recovery follows a compromise.
 Administrative recovery outcomes are stored in `/data/admin-audit.jsonl`, readable
 only by root. Records contain user IDs on success, never passwords or reset tokens.
 Include this file in volume backups; rotate it according to your retention needs.
+
+## Publishing to Docker Hub
+
+`Images - Publish` publishes Community Edition to `lunarisapp/lunaris-aio` when a
+Git tag named `aio-v<version>` is pushed. AIO versions are independent of API/web
+Changesets versions. Choose a patch for compatible fixes, minor for compatible
+features, and major for breaking deployment changes. Review database and volume
+compatibility before any release.
+
+One-time setup: add repository Actions secrets `DOCKERHUB_USERNAME` and
+`DOCKERHUB_TOKEN`. Use a Docker Hub access token with Read & Write access to
+`lunarisapp/lunaris-aio`; browser/device login on a developer machine does not
+configure CI. Merge this workflow into `next`, then release it to `main` through
+the normal release process. Restrict creation/update/deletion of `aio-v*` Git tags
+to release maintainers in repository rulesets; existing package-tag rules do not
+cover AIO tags.
+
+For a stable release, tag a commit already on `main`:
+
+```sh
+git fetch origin main --tags
+git tag -a aio-v1.0.0 origin/main -m "AIO 1.0.0"
+git push origin aio-v1.0.0
+```
+
+For a prerelease, use a commit on `next` and a tag such as `aio-v1.1.0-rc.1`.
+Build metadata (`+build`) and leading zeros in numeric version components are
+not accepted. Do not move existing release tags.
+
+| Git tag | Docker tags |
+| --- | --- |
+| `aio-v1.2.3` | `1.2.3`, `1.2`, `1`, `latest`, `sha-<full commit SHA>` |
+| `aio-v1.3.0-rc.1` | `1.3.0-rc.1`, `sha-<full commit SHA>` |
+
+Rolling aliases advance only when no newer stable Git tag exists in that
+minor/major/global series. Publishing an older patch cannot roll `latest` back.
+A newer Git tag reserves its series even if its publication is still pending.
+Release versions are preserved on retries: existing images must contain both
+architectures and match the source SHA and version labels, or publication stops.
+Recovery updates aliases from the verified immutable digest without rewriting the
+exact version tag. First publication verifies each staged image's platform and
+source/version labels before creating the version. Deleted or moved Git tags on
+`origin` stop publication, even if the checkout still contains the old local tag.
+Rebuilding changed base images requires a new AIO version. For exact deployment
+reproducibility, pin the published image digest.
+
+The workflow runs full CI for the exact tagged commit, then builds on native
+AMD64 and ARM64 runners. Each image must pass first-boot health checks, auth and
+web routing, discovery, sync readiness, and internal network isolation before
+upload. The final multi-platform tags appear only after both builds pass.
+Temporary `build-<run>-<attempt>-<arch>` tags hold tested images during assembly;
+remove old temporary tags using your Docker Hub retention policy.
+
+To recover a failed run, rerun it or dispatch **Images - Publish** with the original
+existing Git tag. AIO publication is serialized; GitHub may replace a pending
+run when several tags arrive rapidly, so publish one release at a time and
+redispatch any skipped tag. Version and alias pushes are not atomic; rerunning
+repairs aliases using the existing verified version. Publication summaries list
+image tags and logs show the registry digest.
+
+Pull a released version without building locally:
+
+```sh
+docker pull lunarisapp/lunaris-aio:1.0.0
+```
+
+Use it in the direct `docker run` command above in place of
+`lunaris:all-in-one`. The checked-in Compose file continues to build local source.
+Docker's [multi-platform workflow guide](https://docs.docker.com/build/ci/github-actions/multi-platform/)
+describes native architecture builds and manifest assembly.

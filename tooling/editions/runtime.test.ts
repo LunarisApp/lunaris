@@ -117,3 +117,11 @@ test("edition selection defaults safely and rejects typos", () => {
   expect(() => readEdition("true")).toThrow("Invalid LUNARIS_EDITION");
   expect(() => readEdition("")).toThrow("Invalid LUNARIS_EDITION");
 });
+
+test("API-only runtime does not require or copy web output", () => {
+  const f = fixture("community");
+  rmSync(join(f.root, "apps/web"), { recursive: true });
+  assembleRuntime(f.root, f.destination, "community", false);
+  expect(existsSync(join(f.destination, "apps/api/drizzle"))).toBe(true);
+  expect(existsSync(join(f.destination, "apps/web"))).toBe(false);
+});

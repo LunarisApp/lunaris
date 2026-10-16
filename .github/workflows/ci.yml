@@ -11,10 +11,15 @@ on:
       ref:
         required: true
         type: string
+      concurrency-scope:
+        description: Isolate callers validating the same source concurrently
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ inputs.ref || github.event.pull_request.number || github.sha }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}-${{ inputs.concurrency-scope }}-${{ inputs.ref || github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 permissions:
@@ -110,7 +115,7 @@ jobs:
           cache: "true"
       - run: bun install --frozen-lockfile
       - run: bun run test -- --concurrency=4
-      - run: bun test tooling/ci tooling/ci-selection.test.ts tooling/precommit.test.ts
+      - run: bun test tooling/ci tooling/images tooling/ci-selection.test.ts tooling/precommit.test.ts
       - run: bun run release:test
         if: needs.changes.outputs.release == 'true'
 

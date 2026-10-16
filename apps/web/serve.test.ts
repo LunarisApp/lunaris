@@ -80,6 +80,32 @@ describe("buildContentSecurityPolicy", () => {
     );
   });
 
+  test("allows separate self-hosted sync and storage origins in production", () => {
+    process.env.NODE_ENV = "production";
+    process.env.VITE_REGION_DIRECTORY_JSON = JSON.stringify([
+      {
+        id: "selfhost",
+        label: "Self-hosted",
+        status: "active",
+        apiUrl: "http://localhost:3000",
+        syncUrl: "http://localhost:8080/sync",
+        storageUrl: "http://localhost:3900/bucket",
+      },
+    ]);
+    const policy = buildContentSecurityPolicy(false);
+    const connect = policy
+      .split("; ")
+      .find((value) => value.startsWith("connect-src "))!;
+    const images = policy
+      .split("; ")
+      .find((value) => value.startsWith("img-src "))!;
+    expect(connect).toContain("http://localhost:8080");
+    expect(connect).toContain("ws://localhost:8080");
+    expect(connect).toContain("http://localhost:3900");
+    expect(images).toContain("http://localhost:3900");
+    expect(connect).not.toContain("http://localhost:*");
+  });
+
   test("omits upgrade-insecure-requests for local http responses", () => {
     process.env.VITE_REGION_DIRECTORY_JSON = JSON.stringify([
       {

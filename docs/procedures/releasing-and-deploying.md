@@ -1,8 +1,9 @@
 # Releasing and deploying
 
 `next` is the development branch. `main` contains stable releases. Public packages
-and hosted apps version independently through Changesets. There are no preview
-environments or prereleases. Self-hosted container publication is deferred.
+and hosted apps version independently through Changesets. Hosted apps have no preview
+environments or prereleases. AIO containers use independent semantic versions;
+see [AIO publishing](../../infra/all-in-one/README.md#publishing-to-docker-hub).
 
 ## Feature and release flow
 
@@ -218,3 +219,8 @@ CLI/Desktop releases remain separate manual invocations of `Native - Publish`;
 their version edits and Cargo/Tauri synchronization remain an explicit native
 release task. This coordinator neither consumes their changesets nor publishes
 their artifacts.
+
+Separate Community Docker images follow the existing API/web release versions:
+`api@<version>` publishes `lunarisapp/lunaris-api`, and `web@<version>` publishes
+`lunarisapp/lunaris-web`. See [Docker images](../../infra/images/README.md) for
+runtime configuration, migration commands, tag policy and publication recovery.

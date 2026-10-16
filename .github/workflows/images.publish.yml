@@ -1,0 +1,149 @@
+name: Images - Publish
+on:
+  push:
+    tags: [aio-v*, api@*, web@*]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag (aio-v1.2.3, api@1.2.3, or web@1.2.3)
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: image-${{ startsWith(inputs.tag || github.ref_name, 'aio-v') && 'aio' || startsWith(inputs.tag || github.ref_name, 'api@') && 'api' || 'web' }}
+  cancel-in-progress: false
+env:
+  IMAGE_TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.release.outputs.app }}
+      sha: ${{ steps.release.outputs.sha }}
+      version: ${{ steps.release.outputs.version }}
+      dockerfile: ${{ steps.release.outputs.dockerfile }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun
+      - id: release
+        run: bun tooling/images/prepare.ts
+  validate:
+    needs: prepare
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ needs.prepare.outputs.sha }}
+      concurrency-scope: ${{ needs.prepare.outputs.app }}
+    secrets: inherit
+  build:
+    needs: [prepare, validate]
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    env:
+      IMAGE: lunarisapp/lunaris-${{ needs.prepare.outputs.app }}
+      SOURCE_SHA: ${{ needs.prepare.outputs.sha }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build Community image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: ${{ needs.prepare.outputs.dockerfile }}
+          build-args: LUNARIS_EDITION=community
+          platforms: linux/${{ matrix.arch }}
+          load: true
+          tags: lunaris:app-test
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ env.SOURCE_SHA }}
+            org.opencontainers.image.version=${{ env.VERSION }}
+          cache-from: type=gha,scope=${{ needs.prepare.outputs.app }}-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ needs.prepare.outputs.app }}-${{ matrix.arch }}
+      - name: Test startup, routing, sync, and isolation
+        if: needs.prepare.outputs.app == 'aio'
+        run: |
+          docker run -d --name aio-check --shm-size 256m --stop-timeout 300 \
+            -p 127.0.0.1:18080:8080 -e PUBLIC_URL=http://localhost:18080 lunaris:app-test
+          ready=false
+          for attempt in $(seq 1 60); do
+            echo "Readiness attempt $attempt/60"
+            if [ "$(docker inspect --format '{{.State.Health.Status}}' aio-check)" = healthy ]; then
+              ready=true
+              break
+            fi
+            sleep 5
+          done
+          [ "$ready" = true ]
+          bash infra/all-in-one/smoke.sh http://localhost:18080
+          bash infra/all-in-one/network-smoke.sh aio-check
+      - name: Container diagnostics
+        if: failure() && needs.prepare.outputs.app == 'aio'
+        run: docker logs --tail 200 aio-check
+      - name: Remove test container
+        if: always() && needs.prepare.outputs.app == 'aio'
+        run: docker rm -f -v aio-check || true
+      - name: Smoke test runtime
+        if: needs.prepare.outputs.app != 'aio'
+        env:
+          IMAGE_APP: ${{ needs.prepare.outputs.app }}
+        run: bash infra/images/smoke.sh "$IMAGE_APP" lunaris:app-test
+      - name: Push tested image
+        id: push
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          staging="$IMAGE:build-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$ARCH"
+          docker tag lunaris:app-test "$staging"
+          docker push "$staging"
+          digest=$(docker buildx imagetools inspect "$staging" --format '{{.Manifest.Digest}}')
+          mkdir -p .context/image-digests
+          printf '%s\n' "$digest" > ".context/image-digests/$ARCH"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: image-digest-${{ matrix.arch }}
+          path: .context/image-digests/*
+          retention-days: 7
+          include-hidden-files: true
+          overwrite: true
+  publish:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: image-digest-*
+          path: .context/image-digests
+          merge-multiple: true
+      - name: Publish version and channel tags
+        env:
+          IMAGE_APP: ${{ needs.prepare.outputs.app }}
+          IMAGE_SHA: ${{ needs.prepare.outputs.sha }}
+        run: bun tooling/images/publish.ts
