@@ -13,10 +13,13 @@ environments or prereleases. Self-hosted container publication is deferred.
    repository README/AGENTS/CHANGELOG edits alone need no Changeset; docs-site
    content does. Changes to PowerSync configuration require an API Changeset.
 2. Open a PR into `next` and squash merge after CI/code-owner review.
-3. `Release - Prepare` maintains one `next` to `main` PR. Its body previews
-   Changesets versions and changelogs without committing bumps to `next`.
-4. Manually merge that PR with a **merge commit**. This is the release approval:
-   npm publication and Railway production deployment follow automatically.
+3. `Release - Prepare` creates one draft `next` to `main` PR. Its body previews
+   Changesets versions and changelogs without committing bumps to `next`. Updates
+   preserve its draft/ready state. Keep it draft while accumulating changes.
+4. Mark the PR ready for review when preparing a release. Full E2E runs on that
+   revision and every subsequent update; superseded PR runs are cancelled. Wait
+   for CI on the latest revision, then merge with a **merge commit**. This is the
+   release approval: npm publication and Railway production deployment follow automatically.
 5. `Release - Publish` consumes only the six allowed targets' Changesets, commits
    versions, changelogs, lockfile updates, and `.release/manifest.json` to `main`.
    CLI/Desktop entries, including entries in mixed Changesets, remain pending.
@@ -26,6 +29,11 @@ environments or prereleases. Self-hosted container publication is deferred.
    after tagging, independently of downstream publication jobs. Releases become
    public only after both publication jobs succeed. The workflow result also
    reports back-merge failures.
+
+Feature PRs into `next`, draft release PRs, and ordinary branch pushes run CI
+without full E2E. Ready PRs into `main`, including hotfixes, require E2E success.
+Nightly E2E is disabled; dispatch `E2E` manually on a selected branch when needed.
+The final version commit still runs full E2E before publication.
 
 Npm packages publish to npmjs.org under `latest`, using OIDC and provenance.
 Already-published versions are accepted only when their tarball integrity matches.

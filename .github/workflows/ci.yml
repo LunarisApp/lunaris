@@ -5,7 +5,7 @@ on:
     branches: [main, next]
   pull_request:
     branches: [main, next]
-    types: [opened, synchronize, reopened, ready_for_review, edited]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited]
   workflow_call:
     inputs:
       ref:
@@ -179,6 +179,8 @@ jobs:
       - run: bun run build --filter=docs --filter=landing
 
   e2e:
+    if: >-
+      inputs.ref != '' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.base_ref == 'main' && !github.event.pull_request.draft)
     uses: ./.github/workflows/e2e.yml
     with:
       ref: ${{ inputs.ref || github.sha }}
@@ -193,8 +195,11 @@ jobs:
           RESULTS: ${{ join(needs.*.result, ' ') }}
           POLICY: ${{ needs.release-policy.result }}
           EVENT: ${{ github.event_name }}
+          E2E_REQUIRED: ${{ inputs.ref != '' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.base_ref == 'main' && !github.event.pull_request.draft) }}
+          E2E_RESULT: ${{ needs.e2e.result }}
         run: |
           for result in $RESULTS; do
             case "$result" in success|skipped) ;; *) exit 1 ;; esac
           done
           if [ "$EVENT" = pull_request ] && [ "$POLICY" != success ]; then exit 1; fi
+          if [ "$E2E_REQUIRED" = true ] && [ "$E2E_RESULT" != success ]; then exit 1; fi

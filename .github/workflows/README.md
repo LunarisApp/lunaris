@@ -3,11 +3,14 @@
 - `ci.yml` validates pull requests and pushes to `main`/`next`, and supports manual
   dispatch: code quality, types, unit tests, generated configs, Rust agents,
   and Desktop MCP smoke tests.
-- `e2e.yml` runs the full browser suite for aggregate CI, plus daily and manual runs.
+- `e2e.yml` runs the full browser suite for ready PRs into `main`, final release
+  commit validation, and manual runs. Feature PRs, draft release PRs, and ordinary
+  branch pushes skip E2E. Nightly runs are disabled to avoid duplicate costs.
 - `deploy-powersync.yml` deploys PowerSync config changes after they reach
   `main`.
 - `release.yml` manually builds/publishes CLI and Desktop; it owns no version PR.
-- `release.prepare.yml` maintains the `next` to `main` release PR.
+- `release.prepare.yml` creates a draft `next` to `main` release PR and preserves
+  its review state when updating release notes.
 - `release.publish.yml` versions, validates, tags, publishes, and back-merges.
 - `packages.publish.yml` publishes public npm packages through the coordinator.
 - `apps.publish.yml` deploys stable releases to Railway through the coordinator.
@@ -16,8 +19,13 @@ See [release setup and operation](../../docs/procedures/releasing-and-deploying.
 New release automation remains disabled until `RELEASE_AUTOMATION_ENABLED=true`.
 The old standalone PowerSync push job is disabled when this switch is enabled.
 
-CI calls the reusable E2E workflow. Publishing starts only after aggregate CI
-passes on the exact version commit.
+CI requires E2E success for ready PRs into `main` (including hotfixes), manual CI
+runs, and validation of the exact version commit. Other CI runs allow E2E to be
+skipped. New commits to a ready release PR rerun E2E and cancel superseded PR
+runs; keep the PR draft while accumulating changes. Publishing starts only after
+aggregate CI passes on the exact version commit.
+
+For optional feature-branch testing, dispatch `E2E` manually and select that branch.
 
 ## PowerSync deployment configuration
 
