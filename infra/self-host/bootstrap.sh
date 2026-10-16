@@ -20,6 +20,7 @@ main() {
         directory=$2; shift 2 ;;
       --help|-h)
         echo 'Usage: curl -fsSL https://lunaris.app/install.sh | bash -s -- [PUBLIC_URL] [--dir DIRECTORY]'
+        echo 'Omit PUBLIC_URL to prompt on first install; existing installations reuse .env.'
         return ;;
       http://*|https://*)
         [[ -z $origin ]] || fail 'Specify only one PUBLIC_URL.'

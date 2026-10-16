@@ -33,8 +33,14 @@ if [[ ! -f .env ]]; then
   volumes=$(docker volume ls --filter "label=com.docker.compose.project=$project" --format '{{.Name}}')
   [[ -z "$volumes" ]] || fail 'Existing installation volumes found without .env. Restore configuration/secrets from backup; do not generate replacements.'
   origin=${1:-}
-  if [[ -z "$origin" && -t 0 ]]; then
-    read -r -p 'Public URL (https://notes.example.com): ' origin
+  if [[ -z "$origin" ]]; then
+    # A piped bootstrap owns stdin. Read the operator's terminal explicitly.
+    { exec 3<>/dev/tty; } 2>/dev/null || fail 'No terminal available. Pass a public URL: ./install.sh https://notes.example.com'
+    printf 'Domain or public URL (notes.example.com): ' >&3
+    IFS= read -r origin <&3 || fail 'No public URL provided.'
+    exec 3>&-
+    [[ -n "$origin" ]] || fail 'No public URL provided.'
+    [[ "$origin" == *://* ]] || origin="https://$origin"
   fi
   [[ -n "$origin" ]] || fail 'First install requires ./install.sh https://notes.example.com'
 else

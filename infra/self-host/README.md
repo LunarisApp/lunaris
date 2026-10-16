@@ -14,15 +14,26 @@ Allow at least 4 GB RAM and enough disk for your resources and backups.
 Run from the directory where you want to keep your installation:
 
 ```sh
-curl -fsSL https://lunaris.app/install.sh | bash -s -- https://notes.example.com
+curl -fsSL https://lunaris.app/install.sh | bash
 cd lunaris
 ```
 
 The command downloads the latest stable self-hosted release, verifies its SHA256,
-and installs into `./lunaris`. Docker must already be installed; no repository
-clone or manual download is needed. To choose a different directory, append
-`--dir /path/to/lunaris` after the public URL. Run as a user with Docker access
-and write access to that directory.
+and installs into `./lunaris`. On first install, it asks for your domain or public
+URL. Enter `notes.example.com` for automatic HTTPS, or a full URL such as
+`https://notes.example.com` or `http://localhost:8080`. Existing installs reuse the
+URL from `.env` without prompting.
+
+For unattended installation, supply the URL as an optional argument:
+
+```sh
+curl -fsSL https://lunaris.app/install.sh | bash -s -- https://notes.example.com
+```
+
+To choose a different directory, append `--dir /path/to/lunaris` after `bash -s --`
+(with or without a URL). Without a terminal, first installs require a URL argument.
+Docker must already be installed; no repository clone or manual download is
+needed. Run as a user with Docker access and write access to that directory.
 
 To pin a release, use `https://lunaris.app/install.sh?version=<version>` (for
 example, `?version=1.2.3`) in the command. Available versions and release notes:

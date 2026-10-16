@@ -37,22 +37,80 @@ esac
 `
   );
   chmodSync(docker, 0o755);
+  const env = {
+    ...process.env,
+    PATH: `${root}:${process.env.PATH}`,
+    PUBLIC_URL: undefined,
+    COMPOSE_PROJECT_NAME: "fixture-installer",
+  };
   const invoke = (
     url?: string,
     environment: Record<string, string | undefined> = {}
   ) =>
     spawnSync(["bash", join(root, "install.sh"), ...(url ? [url] : [])], {
       cwd: root,
-      env: {
-        ...process.env,
-        PATH: `${root}:${process.env.PATH}`,
-        PUBLIC_URL: undefined,
-        COMPOSE_PROJECT_NAME: "fixture-installer",
-        ...environment,
-      },
+      detached: true,
+      timeout: 3000,
+      env: { ...env, ...environment },
     });
-  return { root, calls, invoke };
+  return { root, calls, invoke, env };
 }
+test("first install without a terminal requires a URL argument", () => {
+  const { root, invoke } = fixture();
+  const result = invoke();
+  expect(result.exitCode).not.toBe(0);
+  expect(result.stderr.toString()).toContain(
+    "No terminal available. Pass a public URL"
+  );
+  expect(existsSync(join(root, ".env"))).toBe(false);
+});
+
+test("first install reads domain or URL from terminal with stdin redirected", async () => {
+  for (const input of [
+    "notes.example.com",
+    "https://notes.example.com",
+    "http://localhost:8080",
+    "bad/path",
+    "",
+  ]) {
+    const { root, env } = fixture();
+    let output = "";
+    let answered = false;
+    const child = Bun.spawn(
+      ["bash", "-c", 'bash "$1" </dev/null', "_", join(root, "install.sh")],
+      {
+        cwd: root,
+        env,
+        timeout: 3000,
+        terminal: {
+          data(terminal, data) {
+            output += Buffer.from(data).toString();
+            if (!answered && output.includes("Domain or public URL")) {
+              answered = true;
+              terminal.write(`${input}\n`);
+            }
+          },
+        },
+      }
+    );
+    try {
+      await child.exited;
+      expect(answered, output).toBe(true);
+      const path = join(root, ".env");
+      if (input === "bad/path" || input === "") {
+        expect(existsSync(path)).toBe(false);
+      } else {
+        const origin = input.includes("://") ? input : `https://${input}`;
+        expect(readFileSync(path, "utf8")).toContain(`PUBLIC_URL=${origin}\n`);
+      }
+      expect(existsSync(join(root, ".install.lock"))).toBe(false);
+    } finally {
+      child.kill();
+      child.terminal?.close();
+    }
+  }
+}, 10_000);
+
 test("missing .env with existing volumes refuses secret generation", () => {
   const { root, invoke } = fixture(true);
   const result = invoke("https://notes.example.com");

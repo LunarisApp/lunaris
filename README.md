@@ -56,14 +56,20 @@ for storage and sync details.
 Run Lunaris on one Linux server using prebuilt Docker images:
 
 ```sh
-curl -fsSL https://lunaris.app/install.sh | bash -s -- https://notes.example.com
+curl -fsSL https://lunaris.app/install.sh | bash
 ```
 
 The installer downloads and verifies the latest stable release into `./lunaris`,
-generates secrets, sets up databases and file storage, runs
+asks for your domain, generates secrets, sets up databases and file storage, runs
 migrations, and starts the web app with automatic HTTPS. Requires Docker Compose,
 a domain pointing to your server, and open ports 80/443. AMD64 and ARM64 supported.
 Allow at least 4 GB RAM. Single server; no high availability.
+
+For unattended installation, pass the public URL:
+
+```sh
+curl -fsSL https://lunaris.app/install.sh | bash -s -- https://notes.example.com
+```
 
 See [self-hosting guide](infra/self-host/README.md) for installation, configuration,
 backups, upgrades, and local evaluation. Community Edition is the default;

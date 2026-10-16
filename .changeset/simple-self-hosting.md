@@ -8,7 +8,4 @@
 "@lunarisapp/ui": patch
 ---
 
-Add a versioned, six-service Docker Compose deployment with prebuilt Community
-Edition images, automatic HTTPS, repeatable installation and upgrades, persistent
-secrets, one-command installation at lunaris.app/install.sh, and backup/restore
-guidance. Remove the previous single-container deployment.
+Replace AIO with one-command Docker Compose self-hosting.
