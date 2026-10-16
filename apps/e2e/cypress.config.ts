@@ -132,11 +132,11 @@ function escapeRegex(str: string): string {
 
 function decodeHtmlEntities(url: string): string {
   return url
-    .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">");
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
 }
 
 function decodeBase32(value: string): Buffer {
