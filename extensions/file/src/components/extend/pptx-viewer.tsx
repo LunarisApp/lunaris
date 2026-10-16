@@ -113,7 +113,8 @@ function ensurePresentationExtension(fileName: string) {
 }
 
 function downloadBlob(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob)
+  // Download bytes without preserving a potentially executable content type.
+  const url = URL.createObjectURL(new Blob([blob], { type: "application/octet-stream" }))
   const anchor = document.createElement("a")
 
   anchor.href = url

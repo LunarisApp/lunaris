@@ -5,7 +5,7 @@ on:
     branches: [main, next]
   pull_request:
     branches: [main, next]
-    types: [opened, synchronize, reopened, ready_for_review, edited]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited]
   workflow_call:
     inputs:
       ref:
@@ -22,9 +22,44 @@ permissions:
 
 env:
   BUN_VERSION: 1.4.0
+  CYPRESS_INSTALL_BINARY: 0
 
 jobs:
+  changes:
+    name: Select checks
+    runs-on: ubuntu-latest
+    outputs:
+      editions: ${{ steps.select.outputs.editions }}
+      agent-rust: ${{ steps.select.outputs.agent-rust }}
+      desktop-mcp: ${{ steps.select.outputs.desktop-mcp }}
+      sites: ${{ steps.select.outputs.sites }}
+      brand: ${{ steps.select.outputs.brand }}
+      powersync: ${{ steps.select.outputs.powersync }}
+      release: ${{ steps.select.outputs.release }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Cache Bun downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+      - run: bun install --frozen-lockfile
+      - id: select
+        name: Select affected checks
+        env:
+          CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CI_FULL: ${{ github.event_name != 'pull_request' || inputs.ref != '' || github.base_ref == 'main' }}
+        run: bun tooling/ci-selection.ts
+
   quality:
+    needs: changes
     name: Quality
     runs-on: ubuntu-latest
 
@@ -35,19 +70,29 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
+      - name: Cache Bun downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
       - run: bun install --frozen-lockfile
       - name: Check formatting and lint
         run: bun run check
       - name: Check generated brand assets
+        if: needs.changes.outputs.brand == 'true'
         run: bun run brand:check
       - name: Validate public packages
         run: bun run public:validate
       - name: Validate PowerSync config
+        if: needs.changes.outputs.powersync == 'true'
         run: bun run powersync:config:check
       - name: Test PowerSync access rules
+        if: needs.changes.outputs.powersync == 'true'
         run: bun test tooling/powersync-rules.test.ts
 
   typecheck:
+    needs: changes
     name: Type safety
     runs-on: ubuntu-latest
 
@@ -58,6 +103,12 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
+      - name: Cache Bun downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
       - run: bun install --frozen-lockfile
       - name: Typecheck workspaces
         run: bun run typecheck
@@ -65,6 +116,7 @@ jobs:
         run: bun run brand:typecheck
 
   test:
+    needs: changes
     name: Tests
     runs-on: ubuntu-latest
 
@@ -75,11 +127,21 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
+      - name: Cache Bun downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
       - run: bun install --frozen-lockfile
       - run: bun run test -- --concurrency=4
+      - run: bun test tooling/ci-selection.test.ts
       - run: bun run release:test
+        if: needs.changes.outputs.release == 'true'
 
   editions:
+    needs: changes
+    if: needs.changes.outputs.editions == 'true'
     name: Edition (${{ matrix.edition }})
     runs-on: ubuntu-latest
     strategy:
@@ -87,7 +149,6 @@ jobs:
         edition: [community, enterprise]
     env:
       LUNARIS_EDITION: ${{ matrix.edition }}
-      CYPRESS_INSTALL_BINARY: 0
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -95,6 +156,18 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.4.0
+      - name: Cache Bun downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+      - name: Cache Turbo builds
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-editions-${{ matrix.edition }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}-${{ inputs.ref || github.sha }}
+          restore-keys: turbo-${{ runner.os }}-editions-${{ matrix.edition }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}-
       - run: bun install --frozen-lockfile
       - run: bun test tooling/editions tooling/licenses
       - run: bun run build --filter=api --filter=web --filter=desktop
@@ -108,6 +181,8 @@ jobs:
           bun -e 'import "reflect-metadata"; await import("./dist/src/app.module.js")'
 
   agent-rust:
+    needs: changes
+    if: needs.changes.outputs.agent-rust == 'true'
     name: Agent Rust (macos-14)
     runs-on: macos-14
 
@@ -118,6 +193,21 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
+      - name: Cache Bun downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
+        with:
+          key: agent-rust
+      - name: Cache Turbo builds
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-agent-rust-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}-${{ inputs.ref || github.sha }}
+          restore-keys: turbo-${{ runner.os }}-agent-rust-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}-
       - run: bun install --frozen-lockfile
       - name: Build plugin SDK dependencies
         run: bun run build --filter=@lunarisapp/plugin-sdk
@@ -129,6 +219,8 @@ jobs:
         run: cargo test -p lunaris-cli
 
   desktop-mcp:
+    needs: changes
+    if: needs.changes.outputs.desktop-mcp == 'true'
     name: Desktop MCP (macos-14)
     runs-on: macos-14
 
@@ -140,6 +232,15 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
+      - name: Cache Bun downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
+        with:
+          key: desktop-mcp
       - run: bun install --frozen-lockfile
       - name: Build public SDK
         run: bun run --cwd packages/plugin-sdk build
@@ -152,6 +253,7 @@ jobs:
 
   release-policy:
     name: Release policy
+    needs: changes
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -161,11 +263,18 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.4.0
+      - name: Cache Bun downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
       - run: bun install --frozen-lockfile
       - run: bun tooling/release/automation/check-policy.ts
-        if: vars.RELEASE_AUTOMATION_ENABLED == 'true'
 
   sites:
+    needs: changes
+    if: needs.changes.outputs.sites == 'true'
     name: Build hosted sites
     runs-on: ubuntu-latest
     steps:
@@ -175,10 +284,18 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.4.0
+      - name: Cache Bun downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
       - run: bun install --frozen-lockfile
       - run: bun run build --filter=docs --filter=landing
 
   e2e:
+    if: >-
+      inputs.ref != '' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.base_ref == 'main' && !github.event.pull_request.draft)
     uses: ./.github/workflows/e2e.yml
     with:
       ref: ${{ inputs.ref || github.sha }}
@@ -186,15 +303,31 @@ jobs:
   ci:
     name: CI
     if: always()
-    needs: [quality, typecheck, test, editions, agent-rust, desktop-mcp, sites, release-policy, e2e]
+    needs: [changes, quality, typecheck, test, editions, agent-rust, desktop-mcp, sites, release-policy, e2e]
     runs-on: ubuntu-latest
     steps:
       - env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
           RESULTS: ${{ join(needs.*.result, ' ') }}
           POLICY: ${{ needs.release-policy.result }}
           EVENT: ${{ github.event_name }}
+          E2E_REQUIRED: ${{ inputs.ref != '' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.base_ref == 'main' && !github.event.pull_request.draft) }}
+          E2E_RESULT: ${{ needs.e2e.result }}
         run: |
+          python3 - <<'PYCODE'
+          import json, os
+          needs = json.loads(os.environ["NEEDS_JSON"])
+          assert needs["changes"]["result"] == "success", "Change selection failed"
+          for job in ["quality", "typecheck", "test"]:
+              assert needs[job]["result"] == "success", f"{job} did not succeed"
+          for job in ["editions", "agent-rust", "desktop-mcp", "sites"]:
+              selected = needs["changes"]["outputs"].get(job)
+              assert selected in ("true", "false"), f"Missing selection: {job}"
+              if selected == "true":
+                  assert needs[job]["result"] == "success", f"Required job {job} did not succeed"
+          PYCODE
           for result in $RESULTS; do
             case "$result" in success|skipped) ;; *) exit 1 ;; esac
           done
           if [ "$EVENT" = pull_request ] && [ "$POLICY" != success ]; then exit 1; fi
+          if [ "$E2E_REQUIRED" = true ] && [ "$E2E_RESULT" != success ]; then exit 1; fi

@@ -1,8 +1,6 @@
 name: E2E
 
 on:
-  schedule:
-    - cron: "0 6 * * *" # Daily at 6:00 AM UTC
   workflow_call:
     inputs:
       ref:
@@ -11,48 +9,15 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: e2e-${{ github.workflow }}-${{ inputs.ref || github.sha }}
-  cancel-in-progress: false
+  group: e2e-${{ github.workflow }}-${{ github.event.pull_request.number || inputs.ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
-  check-changes:
-    name: Check for recent changes
-    runs-on: ubuntu-latest
-    outputs:
-      should_run: ${{ steps.check.outputs.should_run }}
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.ref || github.sha }}
-      - name: Check for recent changes
-        id: check
-        env:
-          RELEASE_REF: ${{ inputs.ref }}
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          if [ -n "$RELEASE_REF" ] || [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-            echo "Manual dispatch — always run."
-            exit 0
-          fi
-          CHANGES=$(git log --since="24 hours ago" --oneline)
-          if [ -n "$CHANGES" ]; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-            echo "Changes found in the last 24h:"
-            echo "$CHANGES"
-          else
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-            echo "No changes in the last 24h — skipping E2E."
-          fi
-
   e2e:
     name: Browser suite
-    needs: check-changes
-    if: needs.check-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     env:
       LUNARIS_EDITION: enterprise

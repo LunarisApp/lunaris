@@ -3,25 +3,32 @@
 - `ci.yml` validates pull requests and pushes to `main`/`next`, and supports manual
   dispatch: code quality, types, unit tests, generated configs, Rust agents,
   and Desktop MCP smoke tests.
-- `e2e.yml` runs the full browser suite for aggregate CI, plus daily and manual runs.
-- `deploy-powersync.yml` deploys PowerSync config changes after they reach
-  `main`.
+- `e2e.yml` runs the full browser suite for ready PRs into `main`, final release
+  commit validation, and manual runs. Feature PRs, draft release PRs, and ordinary
+  branch pushes skip E2E. Nightly runs are disabled to avoid duplicate costs.
 - `release.yml` manually builds/publishes CLI and Desktop; it owns no version PR.
-- `release.prepare.yml` maintains the `next` to `main` release PR.
+- `release.prepare.yml` creates a draft `next` to `main` release PR and preserves
+  its review state when updating release notes.
 - `release.publish.yml` versions, validates, tags, publishes, and back-merges.
 - `packages.publish.yml` publishes public npm packages through the coordinator.
 - `apps.publish.yml` deploys stable releases to Railway through the coordinator.
 
 See [release setup and operation](../../docs/procedures/releasing-and-deploying.md).
-New release automation remains disabled until `RELEASE_AUTOMATION_ENABLED=true`.
-The old standalone PowerSync push job is disabled when this switch is enabled.
+Release automation and PR release-policy checks are enabled by default.
+PowerSync deployment runs through the hosted-app release pipeline; the standalone
+PowerSync push workflow has been retired.
 
-CI calls the reusable E2E workflow. Publishing starts only after aggregate CI
-passes on the exact version commit.
+CI requires E2E success for ready PRs into `main` (including hotfixes), manual CI
+runs, and validation of the exact version commit. Other CI runs allow E2E to be
+skipped. New commits to a ready release PR rerun E2E and cancel superseded PR
+runs; keep the PR draft while accumulating changes. Publishing starts only after
+aggregate CI passes on the exact version commit.
+
+For optional feature-branch testing, dispatch `E2E` manually and select that branch.
 
 ## PowerSync deployment configuration
 
-The PowerSync workflow reads these GitHub Actions repository variables:
+The hosted-app release workflow reads these GitHub Actions repository variables:
 
 - `POWERSYNC_PROJECT_ID`
 - `POWERSYNC_ENVIRONMENT_ID`
@@ -30,8 +37,8 @@ The PowerSync workflow reads these GitHub Actions repository variables:
 - `POWERSYNC_REPLICATION_SERVICE_ID`
 
 These identify the Railway deployment target. Keep credentials in the separate
-`RAILWAY_TOKEN` repository secret. Populate all five variables before enabling
-the deployment workflow in a fork. Production check and deploy commands fail
+`RAILWAY_RELEASE_TOKEN` secret in the production environment. Populate all five
+variables and the token before releasing from a fork. Production check and deploy commands fail
 before contacting Railway when any target variable is missing or blank.
 
 For a local read-only production check, authenticate the Railway CLI, then load
@@ -88,3 +95,23 @@ with a requirement to upgrade the plan or make the repository public. The existi
 rules or deployment branch policies. Deployment and release jobs did not reference
 protected environments. Recheck these settings when changing repository visibility
 or the account plan; the files in this directory do not enable those protections.
+
+## CI cost controls
+
+Feature PRs use their base SHA and `turbo ls --affected` to select edition builds,
+Rust tests, desktop MCP smoke tests, and hosted-site builds. Shared package changes
+include dependents. Brand, PowerSync, and release-tool checks also use explicit
+input paths. Formatting, public-package validation, types, and workspace tests
+remain mandatory. Repository documentation alone skips optional builds; content
+under `apps/docs` still selects the hosted sites.
+
+Pushes, manual runs, release PRs into `main`, and explicit release refs run full
+validation. Unknown root/tooling inputs or failed detection also select everything.
+The aggregate `CI` gate requires every selected job to succeed and rejects missing
+selection outputs. PR edit triggers remain enabled, preserving base-change coverage.
+
+CI suppresses Cypress binary downloads; the separate E2E workflow installs its
+browser normally. Bun downloads and native Cargo builds persist across runs.
+Edition and SDK build jobs persist Turbo cache with separate OS/job/edition keys.
+Hosted sites remain uncached: docs postbuild writes `public/_pagefind`, outside
+current Turbo outputs. Revisit those outputs before enabling hosted-site reuse.

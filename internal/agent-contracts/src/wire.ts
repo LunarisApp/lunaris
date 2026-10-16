@@ -181,7 +181,7 @@ export function serializeAgentWire(
 ): SerializedAgentOperation {
   const input = applyAgentWireInputMapping(definition, rawInput);
   const path = definition.path.replaceAll(
-    /\{([^}]+)\}/gu,
+    /\{([^{}]+)\}/gu,
     (_match, name: string) => encodeURIComponent(requiredString(input[name], name)),
   );
   const query = pick(input, definition.query);

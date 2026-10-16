@@ -13,10 +13,13 @@ environments or prereleases. Self-hosted container publication is deferred.
    repository README/AGENTS/CHANGELOG edits alone need no Changeset; docs-site
    content does. Changes to PowerSync configuration require an API Changeset.
 2. Open a PR into `next` and squash merge after CI/code-owner review.
-3. `Release - Prepare` maintains one `next` to `main` PR. Its body previews
-   Changesets versions and changelogs without committing bumps to `next`.
-4. Manually merge that PR with a **merge commit**. This is the release approval:
-   npm publication and Railway production deployment follow automatically.
+3. `Release - Prepare` creates one draft `next` to `main` PR. Its body previews
+   Changesets versions and changelogs without committing bumps to `next`. Updates
+   preserve its draft/ready state. Keep it draft while accumulating changes.
+4. Mark the PR ready for review when preparing a release. Full E2E runs on that
+   revision and every subsequent update; superseded PR runs are cancelled. Wait
+   for CI on the latest revision, then merge with a **merge commit**. This is the
+   release approval: npm publication and Railway production deployment follow automatically.
 5. `Release - Publish` consumes only the six allowed targets' Changesets, commits
    versions, changelogs, lockfile updates, and `.release/manifest.json` to `main`.
    CLI/Desktop entries, including entries in mixed Changesets, remain pending.
@@ -26,6 +29,11 @@ environments or prereleases. Self-hosted container publication is deferred.
    after tagging, independently of downstream publication jobs. Releases become
    public only after both publication jobs succeed. The workflow result also
    reports back-merge failures.
+
+Feature PRs into `next`, draft release PRs, and ordinary branch pushes run CI
+without full E2E. Ready PRs into `main`, including hotfixes, require E2E success.
+Nightly E2E is disabled; dispatch `E2E` manually on a selected branch when needed.
+The final version commit still runs full E2E before publication.
 
 Npm packages publish to npmjs.org under `latest`, using OIDC and provenance.
 Already-published versions are accepted only when their tarball integrity matches.
@@ -53,13 +61,13 @@ Preserve pending changesets and released versions.
 Concurrent updates to `next` reject the push rather than overwriting changes;
 rerun the back-merge job after fetching current state.
 
-## One-time setup and activation
+## One-time setup
 
-Keep `RELEASE_AUTOMATION_ENABLED` unset until setup is complete. Release-source
-and Changeset PR enforcement also starts at activation, allowing this bootstrap
-change to merge under the existing branch policy. Do not disconnect
-existing production triggers before the replacement workflow is merged/configured.
-This change does not itself switch remote branches or disable production sources.
+Release preparation, publishing, and release-source/Changeset PR enforcement
+are enabled by default. Complete credentials and destinations before merging
+release changes into `main`. Workflows do not switch remote branches or disable
+Railway branch auto-deploy sources; configure those separately to avoid duplicate
+production deployments.
 
 ### GitHub release App (recommended)
 
@@ -134,8 +142,8 @@ paths when disconnecting GitHub sources. API migrations run through that config.
    squash methods; disable rebase. Make `next` default only after protections exist.
 5. Confirm App, npm trust, environments, credentials, destinations, and health
    URLs. Disable GitHub auto-deploy triggers for API/web/docs/landing in Railway,
-   preserving build/start/config settings. Set `RELEASE_AUTOMATION_ENABLED=true`.
-   This also disables the old independent PowerSync push workflow.
+   preserving build/start/config settings. PowerSync deploys through the hosted-app
+   release workflow; there is no independent PowerSync push workflow.
 6. Dispatch `Release - Prepare` on `next` if it already contains unreleased work.
    Review the first release PR carefully: setup does not publish existing package
    versions automatically; versions must be advanced with Changesets.
@@ -145,8 +153,7 @@ ID `171839628`, scoped only to `LunarisApp/lunaris`. Contents and Pull requests
 have read/write access; Metadata has mandatory read access. `RELEASE_APP_ID` and
 `RELEASE_APP_PRIVATE_KEY` are configured in repository Actions settings. Private
 key authentication and a temporary installation token were verified; that token
-was revoked after verification. Production activation remains gated on the other
-setup steps above.
+was revoked after verification. The remaining setup requirements are listed above.
 
 ### Applied protections (2026-10-15)
 
@@ -159,14 +166,15 @@ Required CI is bound to the GitHub Actions integration (`15368`). New commits
 dismiss stale approvals. The release App can bypass checks and PR rules for
 version commits and automatic back-merges; immutable-history rules have no bypass.
 
-Bootstrap PR #2 must pass aggregate CI before merge and creation of `next`.
-Release-source/Changeset policy enforcement remains activation-gated.
+Bootstrap PR #2 required aggregate CI before merge and creation of `next`.
+Release-source/Changeset policy enforcement now runs on every PR.
 
-### Publication held (2026-10-15)
+### Historical setup snapshot (2026-10-15)
 
-Production activation is intentionally deferred. `RELEASE_AUTOMATION_ENABLED`
-remains unset; no `RAILWAY_RELEASE_TOKEN` has been created. Existing Railway
-branch auto-deploys remain configured until the release workflow is activated.
+At this snapshot, publication was held, no `RAILWAY_RELEASE_TOKEN` had been
+created, and Railway branch auto-deploys remained configured. The workflow
+activation flag has since been removed; verify credentials and branch triggers
+before the first production release.
 The `release` and `production` GitHub environments accept only `main`, with no
 extra reviewer gate. `RAILWAY_RELEASE_TARGETS` contains verified production
 project/service IDs and health URLs for API, web, docs, and landing.
