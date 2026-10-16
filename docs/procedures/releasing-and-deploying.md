@@ -61,13 +61,13 @@ Preserve pending changesets and released versions.
 Concurrent updates to `next` reject the push rather than overwriting changes;
 rerun the back-merge job after fetching current state.
 
-## One-time setup and activation
+## One-time setup
 
-Keep `RELEASE_AUTOMATION_ENABLED` unset until setup is complete. Release-source
-and Changeset PR enforcement also starts at activation, allowing this bootstrap
-change to merge under the existing branch policy. Do not disconnect
-existing production triggers before the replacement workflow is merged/configured.
-This change does not itself switch remote branches or disable production sources.
+Release preparation, publishing, and release-source/Changeset PR enforcement
+are enabled by default. Complete credentials and destinations before merging
+release changes into `main`. Workflows do not switch remote branches or disable
+Railway branch auto-deploy sources; configure those separately to avoid duplicate
+production deployments.
 
 ### GitHub release App (recommended)
 
@@ -142,8 +142,8 @@ paths when disconnecting GitHub sources. API migrations run through that config.
    squash methods; disable rebase. Make `next` default only after protections exist.
 5. Confirm App, npm trust, environments, credentials, destinations, and health
    URLs. Disable GitHub auto-deploy triggers for API/web/docs/landing in Railway,
-   preserving build/start/config settings. Set `RELEASE_AUTOMATION_ENABLED=true`.
-   This also disables the old independent PowerSync push workflow.
+   preserving build/start/config settings. PowerSync deploys through the hosted-app
+   release workflow; there is no independent PowerSync push workflow.
 6. Dispatch `Release - Prepare` on `next` if it already contains unreleased work.
    Review the first release PR carefully: setup does not publish existing package
    versions automatically; versions must be advanced with Changesets.
@@ -153,8 +153,7 @@ ID `171839628`, scoped only to `LunarisApp/lunaris`. Contents and Pull requests
 have read/write access; Metadata has mandatory read access. `RELEASE_APP_ID` and
 `RELEASE_APP_PRIVATE_KEY` are configured in repository Actions settings. Private
 key authentication and a temporary installation token were verified; that token
-was revoked after verification. Production activation remains gated on the other
-setup steps above.
+was revoked after verification. The remaining setup requirements are listed above.
 
 ### Applied protections (2026-10-15)
 
@@ -167,14 +166,15 @@ Required CI is bound to the GitHub Actions integration (`15368`). New commits
 dismiss stale approvals. The release App can bypass checks and PR rules for
 version commits and automatic back-merges; immutable-history rules have no bypass.
 
-Bootstrap PR #2 must pass aggregate CI before merge and creation of `next`.
-Release-source/Changeset policy enforcement remains activation-gated.
+Bootstrap PR #2 required aggregate CI before merge and creation of `next`.
+Release-source/Changeset policy enforcement now runs on every PR.
 
-### Publication held (2026-10-15)
+### Historical setup snapshot (2026-10-15)
 
-Production activation is intentionally deferred. `RELEASE_AUTOMATION_ENABLED`
-remains unset; no `RAILWAY_RELEASE_TOKEN` has been created. Existing Railway
-branch auto-deploys remain configured until the release workflow is activated.
+At this snapshot, publication was held, no `RAILWAY_RELEASE_TOKEN` had been
+created, and Railway branch auto-deploys remained configured. The workflow
+activation flag has since been removed; verify credentials and branch triggers
+before the first production release.
 The `release` and `production` GitHub environments accept only `main`, with no
 extra reviewer gate. `RAILWAY_RELEASE_TARGETS` contains verified production
 project/service IDs and health URLs for API, web, docs, and landing.

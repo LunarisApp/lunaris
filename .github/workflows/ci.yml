@@ -271,7 +271,6 @@ jobs:
           restore-keys: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
       - run: bun install --frozen-lockfile
       - run: bun tooling/release/automation/check-policy.ts
-        if: vars.RELEASE_AUTOMATION_ENABLED == 'true'
 
   sites:
     needs: changes
