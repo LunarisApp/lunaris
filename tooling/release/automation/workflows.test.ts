@@ -63,7 +63,7 @@ test("aggregate CI rejects missing E2E for releases while permitting deliberate 
   for (const result of ["success", "skipped", "failure", "cancelled", ""]) {
     for (const required of [true, false]) {
       const run = Bun.spawnSync(["bash", "-e", "-c", script], {
-        env: { ...process.env, RESULTS: `success ${result}`, POLICY: "success", EVENT: "pull_request", E2E_REQUIRED: String(required), E2E_RESULT: result },
+        env: { ...process.env, NEEDS_JSON: JSON.stringify({ changes: { result: "success", outputs: { editions: "false", "agent-rust": "false", "desktop-mcp": "false", sites: "false" } }, quality: { result: "success" }, typecheck: { result: "success" }, test: { result: "success" } }), RESULTS: `success ${result}`, POLICY: "success", EVENT: "pull_request", E2E_REQUIRED: String(required), E2E_RESULT: result },
       });
       const shouldPass = result === "success" || (!required && (result === "skipped" || result === ""));
       expect(run.exitCode === 0).toBe(shouldPass);
@@ -77,4 +77,21 @@ test("E2E avoids nightly duplicates and cancels superseded PR runs only", () => 
   expect(e2e.concurrency.group).toContain("github.event.pull_request.number");
   expect(e2e.concurrency["cancel-in-progress"]).toBe("${{ github.event_name == 'pull_request' }}");
   expect(e2e.jobs.e2e.if).toBeUndefined();
+});
+
+
+test("aggregate CI rejects skipped or failed selected jobs", () => {
+  const script = workflow("ci").jobs.ci.steps[0].run;
+  for (const selected of ["true", "false", undefined]) {
+    for (const result of ["success", "skipped", "failure", "cancelled"]) {
+      const needs = {
+        changes: { result: "success", outputs: { editions: selected, "agent-rust": "false", "desktop-mcp": "false", sites: "false" } },
+        quality: { result: "success" }, typecheck: { result: "success" }, test: { result: "success" }, editions: { result },
+      };
+      const run = Bun.spawnSync(["bash", "-e", "-c", script], {
+        env: { ...process.env, NEEDS_JSON: JSON.stringify(needs), RESULTS: `success ${result}`, EVENT: "push", E2E_REQUIRED: "false" },
+      });
+      expect(run.exitCode === 0).toBe(selected !== undefined && (result === "success" || (selected === "false" && result === "skipped")));
+    }
+  }
 });

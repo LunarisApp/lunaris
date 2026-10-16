@@ -96,3 +96,23 @@ with a requirement to upgrade the plan or make the repository public. The existi
 rules or deployment branch policies. Deployment and release jobs did not reference
 protected environments. Recheck these settings when changing repository visibility
 or the account plan; the files in this directory do not enable those protections.
+
+## CI cost controls
+
+Feature PRs use their base SHA and `turbo ls --affected` to select edition builds,
+Rust tests, desktop MCP smoke tests, and hosted-site builds. Shared package changes
+include dependents. Brand, PowerSync, and release-tool checks also use explicit
+input paths. Formatting, public-package validation, types, and workspace tests
+remain mandatory. Repository documentation alone skips optional builds; content
+under `apps/docs` still selects the hosted sites.
+
+Pushes, manual runs, release PRs into `main`, and explicit release refs run full
+validation. Unknown root/tooling inputs or failed detection also select everything.
+The aggregate `CI` gate requires every selected job to succeed and rejects missing
+selection outputs. PR edit triggers remain enabled, preserving base-change coverage.
+
+CI suppresses Cypress binary downloads; the separate E2E workflow installs its
+browser normally. Bun downloads and native Cargo builds persist across runs.
+Edition and SDK build jobs persist Turbo cache with separate OS/job/edition keys.
+Hosted sites remain uncached: docs postbuild writes `public/_pagefind`, outside
+current Turbo outputs. Revisit those outputs before enabling hosted-site reuse.
