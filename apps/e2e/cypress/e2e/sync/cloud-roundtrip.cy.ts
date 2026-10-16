@@ -16,7 +16,12 @@ function createDocument(name: string, body: string) {
   }).should("be.visible");
   cy.contains('[data-testid="workspace-tree-item"]', name).click();
   cy.get(documentBodySelector, { timeout: 15_000 }).should("be.visible");
+  // Reproduce the initial heading selection: the helper must move the
+  // caret to the requested paragraph without changing the resource heading.
+  const headingSelector = '.bn-block-content[data-content-type="heading"] .bn-inline-content';
+  cy.get(headingSelector).click();
   typeYjsText(documentBodySelector, body);
+  cy.get(headingSelector).should("have.text", name);
 }
 
 describe("sync/cloud round trip", () => {
