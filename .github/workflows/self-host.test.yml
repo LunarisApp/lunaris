@@ -1,0 +1,35 @@
+name: Self-host - Test
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  stack:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: ./.github/actions/setup-bun
+      - run: bun install --frozen-lockfile
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Build and test isolated deployment
+        run: bash tooling/self-host/test-stack.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: self-host-logs-${{ matrix.runner }}
+          path: .context/self-host-test.*/containers.log
+          retention-days: 7
+          include-hidden-files: true

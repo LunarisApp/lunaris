@@ -53,26 +53,27 @@ for storage and sync details.
 
 ## Self-host Lunaris
 
-Run the web app, API, sync, database, and file storage in one persistent container.
-The all-in-one deployment is designed for personal use, demos, and homelabs.
-
-With Docker running, clone the repository and start it:
+Run Lunaris on one Linux server using prebuilt Docker images. Download a
+[self-hosted release](https://github.com/LunarisApp/lunaris/releases?q=self-hosted),
+extract its deployment bundle, then run:
 
 ```sh
-git clone https://github.com/LunarisApp/lunaris.git
-cd lunaris
-docker compose -f infra/all-in-one/compose.yaml up -d --build --wait
+./install.sh https://notes.example.com
 ```
 
-This builds Community Edition. For licensed enterprise builds, see the
+The installer generates secrets, sets up databases and file storage, runs
+migrations, and starts the web app with automatic HTTPS. Requires Docker Compose,
+a domain pointing to your server, and open ports 80/443. AMD64 and ARM64 supported.
+Allow at least 4 GB RAM. Single server; no high availability.
+
+See [self-hosting guide](infra/self-host/README.md) for installation, configuration,
+backups, upgrades, and local evaluation. Community Edition is the default;
+licensed enterprise builds remain available through the
 [edition guide](ee/README.md#build-selection).
 
-Open [localhost:8080](http://localhost:8080) and create an account.
-Allow at least 4 GB of RAM for runtime; builds need more.
-
-The default setup binds to localhost. Before exposing it, follow the
-[self-hosting guide](infra/all-in-one/README.md) for HTTPS, signups, backups,
-and upgrades. It is a single-node deployment without high availability.
+Existing [all-in-one installations](infra/all-in-one/README.md) remain available
+as a legacy option. Their data volumes cannot be reused directly with Compose;
+automated migration is deferred.
 
 ## Build on Lunaris
 

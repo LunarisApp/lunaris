@@ -102,8 +102,17 @@ jobs:
     with:
       ref: ${{ needs.version.outputs.sha }}
     secrets: inherit
+  self-hosted:
+    needs: [version, tag]
+    permissions:
+      contents: write
+      packages: write
+    uses: ./.github/workflows/self-host.publish.yml
+    with:
+      ref: ${{ needs.version.outputs.sha }}
+    secrets: inherit
   result:
-    needs: [version, validate, tag, back-merge, npm, hosted]
+    needs: [version, validate, tag, back-merge, npm, hosted, self-hosted]
     if: always() && needs.version.result != 'skipped'
     runs-on: ubuntu-latest
     steps:

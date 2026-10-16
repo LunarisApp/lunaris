@@ -34,8 +34,8 @@ COPY --from=build /opt/runtime /opt/lunaris
 COPY --from=garage /garage /usr/local/bin/garage
 COPY infra/all-in-one /opt/aio
 RUN node /opt/aio/bind-powersync-loopback.mjs
-COPY infra/all-in-one/admin.ts /opt/lunaris/apps/api/aio-admin.ts
-COPY infra/all-in-one/migrate.ts /opt/lunaris/apps/api/aio-migrate.ts
+COPY infra/runtime/admin.ts /opt/lunaris/apps/api/aio-admin.ts
+COPY infra/runtime/migrate.ts /opt/lunaris/apps/api/aio-migrate.ts
 COPY infra/local/config/sync_rules.yaml /app/sync_rules.yaml
 COPY infra/all-in-one/powersync.yaml /app/powersync.yaml
 RUN chmod +x /opt/aio/*.sh && rm -f /etc/nginx/sites-enabled/default \

@@ -1,4 +1,7 @@
-# Lunaris all-in-one
+# Lunaris all-in-one (legacy)
+
+New installations should use the [Compose deployment](../self-host/README.md).
+Keep existing AIO data and backups; automatic migration is not available yet.
 
 Community Edition is the default. Set `LUNARIS_EDITION=enterprise` when building
 or developing to include [enterprise features](../../ee/README.md), subject to

@@ -8,7 +8,8 @@
     "internal/*",
     "packages/*",
     "extensions/*",
-    "ee/*"
+    "ee/*",
+    "infra/self-host"
   ],
   "scripts": {
     "brand:check": "bun tooling/generate-brand-assets.ts --check",

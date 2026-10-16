@@ -56,7 +56,7 @@ describe("release policy", () => {
       { name: "api", path: "apps/api", dependencies: ["@repo/utils"] },
     ];
     expect(affectedTargets(["internal/utils/src/time.ts"], workspaces)).toEqual(
-      ["api", "web"]
+      ["api", "web", "self-hosted"]
     );
     expect(
       affectedTargets(["internal/utils/src/time.test.ts"], workspaces)
@@ -64,9 +64,27 @@ describe("release policy", () => {
     expect(affectedTargets(["internal/utils/README.md"], workspaces)).toEqual(
       []
     );
-    expect(affectedTargets(["bun.lock"], workspaces)).toHaveLength(6);
+    expect(affectedTargets(["bun.lock"], workspaces)).toHaveLength(7);
     expect(
       affectedTargets(["infra/local/config/sync_rules.yaml"], workspaces)
-    ).toEqual(["api"]);
+    ).toEqual(["api", "self-hosted"]);
   });
+});
+
+test("self-host deployment and app/sync changes require a bundle release", () => {
+  for (const file of [
+    "infra/self-host/compose.yaml",
+    "infra/runtime/admin.ts",
+    "tooling/self-host/bundle.ts",
+    "infra/all-in-one/smoke.sh",
+    "infra/local/config/sync_rules.yaml",
+  ]) {
+    expect(affectedTargets([file], [])).toContain("self-hosted");
+  }
+  expect(
+    affectedTargets(
+      ["apps/web/src/main.tsx"],
+      [{ name: "web", path: "apps/web", dependencies: [] }]
+    )
+  ).toEqual(["web", "self-hosted"]);
 });
