@@ -21282,13 +21282,20 @@
     {
       "entrypoint": "./components/alert",
       "runtime": "./dist/components/alert.js",
-      "symbols": ["Alert", "AlertAction", "AlertDescription", "AlertTitle"],
+      "symbols": [
+        "Alert",
+        "AlertAction",
+        "AlertDescription",
+        "AlertTitle"
+      ],
       "types": "./dist/components/alert.d.ts"
     },
     {
       "entrypoint": "./components/aspect-ratio",
       "runtime": "./dist/components/aspect-ratio.js",
-      "symbols": ["AspectRatio"],
+      "symbols": [
+        "AspectRatio"
+      ],
       "types": "./dist/components/aspect-ratio.d.ts"
     },
     {
@@ -21324,7 +21331,10 @@
     {
       "entrypoint": "./components/badge",
       "runtime": "./dist/components/badge.js",
-      "symbols": ["Badge", "badgeVariants"],
+      "symbols": [
+        "Badge",
+        "badgeVariants"
+      ],
       "types": "./dist/components/badge.d.ts"
     },
     {
@@ -21344,7 +21354,12 @@
     {
       "entrypoint": "./components/bubble",
       "runtime": "./dist/components/bubble.js",
-      "symbols": ["Bubble", "BubbleContent", "BubbleGroup", "BubbleReactions"],
+      "symbols": [
+        "Bubble",
+        "BubbleContent",
+        "BubbleGroup",
+        "BubbleReactions"
+      ],
       "types": "./dist/components/bubble.d.ts"
     },
     {
@@ -21361,13 +21376,19 @@
     {
       "entrypoint": "./components/button",
       "runtime": "./dist/components/button.js",
-      "symbols": ["Button", "buttonVariants"],
+      "symbols": [
+        "Button",
+        "buttonVariants"
+      ],
       "types": "./dist/components/button.d.ts"
     },
     {
       "entrypoint": "./components/calendar",
       "runtime": "./dist/components/calendar.js",
-      "symbols": ["Calendar", "CalendarDayButton"],
+      "symbols": [
+        "Calendar",
+        "CalendarDayButton"
+      ],
       "types": "./dist/components/calendar.d.ts"
     },
     {
@@ -21415,13 +21436,19 @@
     {
       "entrypoint": "./components/checkbox",
       "runtime": "./dist/components/checkbox.js",
-      "symbols": ["Checkbox"],
+      "symbols": [
+        "Checkbox"
+      ],
       "types": "./dist/components/checkbox.d.ts"
     },
     {
       "entrypoint": "./components/collapsible",
       "runtime": "./dist/components/collapsible.js",
-      "symbols": ["Collapsible", "CollapsibleContent", "CollapsibleTrigger"],
+      "symbols": [
+        "Collapsible",
+        "CollapsibleContent",
+        "CollapsibleTrigger"
+      ],
       "types": "./dist/components/collapsible.d.ts"
     },
     {
@@ -21524,7 +21551,10 @@
     {
       "entrypoint": "./components/direction",
       "runtime": "./dist/components/direction.js",
-      "symbols": ["DirectionProvider", "useDirection"],
+      "symbols": [
+        "DirectionProvider",
+        "useDirection"
+      ],
       "types": "./dist/components/direction.d.ts"
     },
     {
@@ -21775,13 +21805,19 @@
     {
       "entrypoint": "./components/hover-card",
       "runtime": "./dist/components/hover-card.js",
-      "symbols": ["HoverCard", "HoverCardContent", "HoverCardTrigger"],
+      "symbols": [
+        "HoverCard",
+        "HoverCardContent",
+        "HoverCardTrigger"
+      ],
       "types": "./dist/components/hover-card.d.ts"
     },
     {
       "entrypoint": "./components/icon",
       "runtime": "./dist/components/icon.js",
-      "symbols": ["Icon"],
+      "symbols": [
+        "Icon"
+      ],
       "types": "./dist/components/icon.d.ts"
     },
     {
@@ -21811,7 +21847,9 @@
     {
       "entrypoint": "./components/input",
       "runtime": "./dist/components/input.js",
-      "symbols": ["Input"],
+      "symbols": [
+        "Input"
+      ],
       "types": "./dist/components/input.d.ts"
     },
     {
@@ -21859,19 +21897,29 @@
     {
       "entrypoint": "./components/kbd",
       "runtime": "./dist/components/kbd.js",
-      "symbols": ["Kbd", "KbdGroup"],
+      "symbols": [
+        "Kbd",
+        "KbdGroup"
+      ],
       "types": "./dist/components/kbd.d.ts"
     },
     {
       "entrypoint": "./components/label",
       "runtime": "./dist/components/label.js",
-      "symbols": ["Label"],
+      "symbols": [
+        "Label"
+      ],
       "types": "./dist/components/label.d.ts"
     },
     {
       "entrypoint": "./components/marker",
       "runtime": "./dist/components/marker.js",
-      "symbols": ["Marker", "MarkerContent", "MarkerIcon", "markerVariants"],
+      "symbols": [
+        "Marker",
+        "MarkerContent",
+        "MarkerIcon",
+        "markerVariants"
+      ],
       "types": "./dist/components/marker.d.ts"
     },
     {
@@ -21929,7 +21977,11 @@
     {
       "entrypoint": "./components/native-select",
       "runtime": "./dist/components/native-select.js",
-      "symbols": ["NativeSelect", "NativeSelectOptGroup", "NativeSelectOption"],
+      "symbols": [
+        "NativeSelect",
+        "NativeSelectOptGroup",
+        "NativeSelectOption"
+      ],
       "types": "./dist/components/native-select.d.ts"
     },
     {
@@ -21965,7 +22017,11 @@
     {
       "entrypoint": "./components/panel-error",
       "runtime": "./dist/components/panel-error.js",
-      "symbols": ["PanelError", "PanelErrorProps", "PanelErrorVariant"],
+      "symbols": [
+        "PanelError",
+        "PanelErrorProps",
+        "PanelErrorVariant"
+      ],
       "types": "./dist/components/panel-error.d.ts"
     },
     {
@@ -22018,19 +22074,29 @@
     {
       "entrypoint": "./components/radio-group",
       "runtime": "./dist/components/radio-group.js",
-      "symbols": ["RadioGroup", "RadioGroupItem"],
+      "symbols": [
+        "RadioGroup",
+        "RadioGroupItem"
+      ],
       "types": "./dist/components/radio-group.d.ts"
     },
     {
       "entrypoint": "./components/resizable",
       "runtime": "./dist/components/resizable.js",
-      "symbols": ["ResizableHandle", "ResizablePanel", "ResizablePanelGroup"],
+      "symbols": [
+        "ResizableHandle",
+        "ResizablePanel",
+        "ResizablePanelGroup"
+      ],
       "types": "./dist/components/resizable.d.ts"
     },
     {
       "entrypoint": "./components/scroll-area",
       "runtime": "./dist/components/scroll-area.js",
-      "symbols": ["ScrollArea", "ScrollBar"],
+      "symbols": [
+        "ScrollArea",
+        "ScrollBar"
+      ],
       "types": "./dist/components/scroll-area.d.ts"
     },
     {
@@ -22053,7 +22119,9 @@
     {
       "entrypoint": "./components/separator",
       "runtime": "./dist/components/separator.js",
-      "symbols": ["Separator"],
+      "symbols": [
+        "Separator"
+      ],
       "types": "./dist/components/separator.d.ts"
     },
     {
@@ -22105,31 +22173,41 @@
     {
       "entrypoint": "./components/skeleton",
       "runtime": "./dist/components/skeleton.js",
-      "symbols": ["Skeleton"],
+      "symbols": [
+        "Skeleton"
+      ],
       "types": "./dist/components/skeleton.d.ts"
     },
     {
       "entrypoint": "./components/slider",
       "runtime": "./dist/components/slider.js",
-      "symbols": ["Slider"],
+      "symbols": [
+        "Slider"
+      ],
       "types": "./dist/components/slider.d.ts"
     },
     {
       "entrypoint": "./components/sonner",
       "runtime": "./dist/components/sonner.js",
-      "symbols": ["Toaster"],
+      "symbols": [
+        "Toaster"
+      ],
       "types": "./dist/components/sonner.d.ts"
     },
     {
       "entrypoint": "./components/spinner",
       "runtime": "./dist/components/spinner.js",
-      "symbols": ["Spinner"],
+      "symbols": [
+        "Spinner"
+      ],
       "types": "./dist/components/spinner.d.ts"
     },
     {
       "entrypoint": "./components/switch",
       "runtime": "./dist/components/switch.js",
-      "symbols": ["Switch"],
+      "symbols": [
+        "Switch"
+      ],
       "types": "./dist/components/switch.d.ts"
     },
     {
@@ -22162,7 +22240,9 @@
     {
       "entrypoint": "./components/textarea",
       "runtime": "./dist/components/textarea.js",
-      "symbols": ["Textarea"],
+      "symbols": [
+        "Textarea"
+      ],
       "types": "./dist/components/textarea.d.ts"
     },
     {
@@ -22188,13 +22268,19 @@
     {
       "entrypoint": "./components/toggle-group",
       "runtime": "./dist/components/toggle-group.js",
-      "symbols": ["ToggleGroup", "ToggleGroupItem"],
+      "symbols": [
+        "ToggleGroup",
+        "ToggleGroupItem"
+      ],
       "types": "./dist/components/toggle-group.d.ts"
     },
     {
       "entrypoint": "./components/toggle",
       "runtime": "./dist/components/toggle.js",
-      "symbols": ["Toggle", "toggleVariants"],
+      "symbols": [
+        "Toggle",
+        "toggleVariants"
+      ],
       "types": "./dist/components/toggle.d.ts"
     },
     {
@@ -22292,31 +22378,41 @@
     {
       "entrypoint": "./components/visually-hidden-input",
       "runtime": "./dist/components/visually-hidden-input.js",
-      "symbols": ["VisuallyHiddenInput"],
+      "symbols": [
+        "VisuallyHiddenInput"
+      ],
       "types": "./dist/components/visually-hidden-input.d.ts"
     },
     {
       "entrypoint": "./blocks/confirmation-dialog",
       "runtime": "./dist/blocks/confirmation-dialog/index.js",
-      "symbols": ["ConfirmationDialog"],
+      "symbols": [
+        "ConfirmationDialog"
+      ],
       "types": "./dist/blocks/confirmation-dialog/index.d.ts"
     },
     {
       "entrypoint": "./blocks/delayed-loading",
       "runtime": "./dist/blocks/delayed-loading/index.js",
-      "symbols": ["DelayedLoading"],
+      "symbols": [
+        "DelayedLoading"
+      ],
       "types": "./dist/blocks/delayed-loading/index.d.ts"
     },
     {
       "entrypoint": "./blocks/input-confirmation-dialog",
       "runtime": "./dist/blocks/input-confirmation-dialog/index.js",
-      "symbols": ["InputConfirmationDialog"],
+      "symbols": [
+        "InputConfirmationDialog"
+      ],
       "types": "./dist/blocks/input-confirmation-dialog/index.d.ts"
     },
     {
       "entrypoint": "./blocks/rename-dialog",
       "runtime": "./dist/blocks/rename-dialog/index.js",
-      "symbols": ["RenameDialog"],
+      "symbols": [
+        "RenameDialog"
+      ],
       "types": "./dist/blocks/rename-dialog/index.d.ts"
     },
     {
@@ -22335,49 +22431,66 @@
     {
       "entrypoint": "./blocks/theme-toggle",
       "runtime": "./dist/blocks/theme-toggle/index.js",
-      "symbols": ["ThemeToggle"],
+      "symbols": [
+        "ThemeToggle"
+      ],
       "types": "./dist/blocks/theme-toggle/index.d.ts"
     },
     {
       "entrypoint": "./hooks/use-as-ref",
       "runtime": "./dist/hooks/use-as-ref.js",
-      "symbols": ["useAsRef"],
+      "symbols": [
+        "useAsRef"
+      ],
       "types": "./dist/hooks/use-as-ref.d.ts"
     },
     {
       "entrypoint": "./hooks/use-isomorphic-layout-effect",
       "runtime": "./dist/hooks/use-isomorphic-layout-effect.js",
-      "symbols": ["useIsomorphicLayoutEffect"],
+      "symbols": [
+        "useIsomorphicLayoutEffect"
+      ],
       "types": "./dist/hooks/use-isomorphic-layout-effect.d.ts"
     },
     {
       "entrypoint": "./hooks/use-lazy-ref",
       "runtime": "./dist/hooks/use-lazy-ref.js",
-      "symbols": ["useLazyRef"],
+      "symbols": [
+        "useLazyRef"
+      ],
       "types": "./dist/hooks/use-lazy-ref.d.ts"
     },
     {
       "entrypoint": "./hooks/use-mobile",
       "runtime": "./dist/hooks/use-mobile.js",
-      "symbols": ["useIsMobile"],
+      "symbols": [
+        "useIsMobile"
+      ],
       "types": "./dist/hooks/use-mobile.d.ts"
     },
     {
       "entrypoint": "./hooks/use-gravatar-url",
       "runtime": "./dist/hooks/use-gravatar-url.js",
-      "symbols": ["useGravatarUrl"],
+      "symbols": [
+        "useGravatarUrl"
+      ],
       "types": "./dist/hooks/use-gravatar-url.d.ts"
     },
     {
       "entrypoint": "./lib/compose-refs",
       "runtime": "./dist/lib/compose-refs.js",
-      "symbols": ["composeRefs", "useComposedRefs"],
+      "symbols": [
+        "composeRefs",
+        "useComposedRefs"
+      ],
       "types": "./dist/lib/compose-refs.d.ts"
     },
     {
       "entrypoint": "./lib/utils",
       "runtime": "./dist/lib/utils.js",
-      "symbols": ["cn"],
+      "symbols": [
+        "cn"
+      ],
       "types": "./dist/lib/utils.d.ts"
     },
     {

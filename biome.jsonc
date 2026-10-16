@@ -6,7 +6,10 @@
       "!.claude",
       "!.agents",
       "!!apps/web/src/auto-imports.d.ts",
-      "!!apps/api/drizzle/meta"
+      "!!apps/api/drizzle/meta",
+      // Generated API snapshots are compared byte-for-byte with generator output.
+      "!!packages/ui/api-report.json",
+      "!!packages/plugin-sdk/api-report.json"
     ]
   },
   "overrides": [
