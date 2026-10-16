@@ -12,7 +12,12 @@ test("release ordering validates the version commit and isolates back-merge from
   expect(jobs.validate.with.ref).toBe("${{ needs.version.outputs.sha }}");
   expect(jobs.tag.needs).toEqual(["version", "validate"]);
   expect(jobs["back-merge"].needs).toEqual(["version", "validate", "tag"]);
-  expect(jobs.complete.needs).toEqual(["version", "npm", "hosted"]);
+  expect(jobs.complete).toBeUndefined();
+  expect(jobs.result.needs).toContain("npm");
+  expect(jobs.result.needs).toContain("hosted");
+  expect(jobs.npm.permissions.contents).toBe("write");
+  expect(workflow("packages.publish").permissions.contents).toBe("write");
+  expect(workflow("packages.publish").jobs.publish.env.GH_TOKEN).toBeDefined();
 });
 test("all workflow actions are pinned and npm recovery is explicit", () => {
   for (const name of [

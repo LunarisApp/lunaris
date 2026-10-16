@@ -41,4 +41,7 @@ for (const entry of manifest.releases.filter(
   summary(
     `Published/verified ${entry.tag}; source ${sha}; integrity ${integrity}`
   );
+  // Promote only this verified target; unrelated failures keep their drafts.
+  run("gh", ["release", "edit", entry.tag, "--draft=false", "--latest=false"]);
+  summary(`Released ${entry.tag}; source ${sha}`);
 }
