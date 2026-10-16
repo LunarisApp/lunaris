@@ -253,6 +253,10 @@ minor/major/global series. Publishing an older patch cannot roll `latest` back.
 A newer Git tag reserves its series even if its publication is still pending.
 Release versions are preserved on retries: existing images must contain both
 architectures and match the source SHA and version labels, or publication stops.
+Recovery updates aliases from the verified immutable digest without rewriting the
+exact version tag. First publication verifies each staged image's platform and
+source/version labels before creating the version. Deleted or moved Git tags on
+`origin` stop publication, even if the checkout still contains the old local tag.
 Rebuilding changed base images requires a new AIO version. For exact deployment
 reproducibility, pin the published image digest.
 
