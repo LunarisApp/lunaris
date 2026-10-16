@@ -14,7 +14,7 @@ test("release ordering validates the version commit and isolates back-merge from
   expect(jobs["back-merge"].needs).toEqual(["version", "validate", "tag"]);
   expect(jobs.complete.needs).toEqual(["version", "npm", "hosted"]);
 });
-test("all workflow actions are pinned and only stable coordinator publishes", () => {
+test("all workflow actions are pinned and npm recovery is explicit", () => {
   for (const name of [
     "ci",
     "e2e",
@@ -35,6 +35,7 @@ test("all workflow actions are pinned and only stable coordinator publishes", ()
     }
   }
   expect(Object.keys(workflow("packages.publish").on)).toEqual([
+    "workflow_dispatch",
     "workflow_call",
   ]);
   expect(Object.keys(workflow("apps.publish").on)).toEqual(["workflow_call"]);
@@ -239,4 +240,20 @@ test("release automation runs without configuration flags and preserves branch g
         step.run === "bun tooling/release/automation/deploy-hosted.ts"
     )
   ).toBe(true);
+});
+
+test("npm recovery separates tooling from release sources and never deploys hosted services", () => {
+  const recovery = workflow("packages.publish");
+  expect(recovery.on.workflow_dispatch.inputs.ref.required).toBe(true);
+  const steps = recovery.jobs.publish.steps;
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: Literal GitHub Actions expression.
+  expect(steps[0].with.ref).toBe("${{ inputs.ref }}");
+  const tooling = steps.find(
+    (step: { with?: { path?: string } }) => step.with?.path === ".release-tools"
+  );
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: Literal GitHub Actions expression.
+  expect(tooling.with.ref).toBe("${{ github.sha }}");
+  expect(tooling.if).toBe("github.event_name == 'workflow_dispatch'");
+  expect(JSON.stringify(recovery)).not.toContain("deploy-hosted");
+  expect(JSON.stringify(recovery)).not.toContain("powersync");
 });
