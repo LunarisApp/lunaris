@@ -115,3 +115,34 @@ browser normally. Bun downloads and native Cargo builds persist across runs.
 Edition and SDK build jobs persist Turbo cache with separate OS/job/edition keys.
 Hosted sites remain uncached: docs postbuild writes `public/_pagefind`, outside
 current Turbo outputs. Revisit those outputs before enabling hosted-site reuse.
+
+## Shared setup and validation
+
+All workflows use the local `setup-bun` composite action. It reads the exact Bun
+version from root `package.json` (`packageManager`) and exports `BUN_VERSION` for
+job-specific Turbo cache keys. Checkout and `bun install --frozen-lockfile` remain
+explicit in each job. Download caching is opt-in and enabled only for the existing
+CI jobs. E2E still installs Cypress and clears Bun's download cache afterward.
+Manual npm recovery loads the setup action from the recovery tooling checkout,
+so older release commits need not contain the action.
+
+The aggregate `CI` job runs the dependency-free `tooling/ci/gate.ts` evaluator.
+It checks selection outputs, mandatory and selected job results, PR release
+policy, and required E2E results. Failed, cancelled, or malformed results fail the
+gate. The gate installs no workspace dependencies.
+
+General workflow contracts, action SHA pins (including local composite action
+steps), setup, and gate tests run unconditionally in CI. Release-specific tests
+remain under `tooling/release/automation`.
+
+Run the same checks locally with the repository-pinned Bun:
+
+```sh
+bun test tooling/ci tooling/ci-selection.test.ts tooling/precommit.test.ts
+bun run release:test
+bun run tooling:typecheck
+bun run check
+```
+
+`tooling:typecheck` covers all TypeScript under `tooling/`; `brand:typecheck` remains
+an alias for existing callers.
