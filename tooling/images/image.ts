@@ -5,6 +5,10 @@ export function imageConfig(app = process.env.IMAGE_APP ?? "aio") {
   return {
     app,
     image: `lunarisapp/lunaris-${app}`,
+    dockerfile:
+      app === "aio"
+        ? "infra/all-in-one/Dockerfile"
+        : `infra/images/${app}.Dockerfile`,
     prefix: app === "aio" ? "aio-v" : `${app}@`,
   };
 }

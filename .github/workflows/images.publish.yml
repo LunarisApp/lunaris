@@ -1,17 +1,17 @@
-name: App images - Publish
+name: Images - Publish
 on:
   push:
-    tags: [api@*, web@*]
+    tags: [aio-v*, api@*, web@*]
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing app tag (api@1.2.3 or web@1.2.3)
+        description: Existing release tag (aio-v1.2.3, api@1.2.3, or web@1.2.3)
         required: true
         type: string
 permissions:
   contents: read
 concurrency:
-  group: app-image-${{ startsWith(inputs.tag || github.ref_name, 'api@') && 'api' || 'web' }}
+  group: image-${{ startsWith(inputs.tag || github.ref_name, 'aio-v') && 'aio' || startsWith(inputs.tag || github.ref_name, 'api@') && 'api' || 'web' }}
   cancel-in-progress: false
 env:
   IMAGE_TAG: ${{ inputs.tag || github.ref_name }}
@@ -23,15 +23,14 @@ jobs:
       app: ${{ steps.release.outputs.app }}
       sha: ${{ steps.release.outputs.sha }}
       version: ${{ steps.release.outputs.version }}
+      dockerfile: ${{ steps.release.outputs.dockerfile }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - id: release
-        run: |
-          export IMAGE_APP="${IMAGE_TAG%%@*}"
-          bun tooling/aio/prepare.ts
+        run: bun tooling/images/prepare.ts
   validate:
     needs: prepare
     uses: ./.github/workflows/ci.yml
@@ -68,7 +67,8 @@ jobs:
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
-          file: infra/images/${{ needs.prepare.outputs.app }}.Dockerfile
+          file: ${{ needs.prepare.outputs.dockerfile }}
+          build-args: LUNARIS_EDITION=community
           platforms: linux/${{ matrix.arch }}
           load: true
           tags: lunaris:app-test
@@ -78,7 +78,31 @@ jobs:
             org.opencontainers.image.version=${{ env.VERSION }}
           cache-from: type=gha,scope=${{ needs.prepare.outputs.app }}-${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=${{ needs.prepare.outputs.app }}-${{ matrix.arch }}
+      - name: Test startup, routing, sync, and isolation
+        if: needs.prepare.outputs.app == 'aio'
+        run: |
+          docker run -d --name aio-check --shm-size 256m --stop-timeout 300 \
+            -p 127.0.0.1:18080:8080 -e PUBLIC_URL=http://localhost:18080 lunaris:app-test
+          ready=false
+          for attempt in $(seq 1 60); do
+            echo "Readiness attempt $attempt/60"
+            if [ "$(docker inspect --format '{{.State.Health.Status}}' aio-check)" = healthy ]; then
+              ready=true
+              break
+            fi
+            sleep 5
+          done
+          [ "$ready" = true ]
+          bash infra/all-in-one/smoke.sh http://localhost:18080
+          bash infra/all-in-one/network-smoke.sh aio-check
+      - name: Container diagnostics
+        if: failure() && needs.prepare.outputs.app == 'aio'
+        run: docker logs --tail 200 aio-check
+      - name: Remove test container
+        if: always() && needs.prepare.outputs.app == 'aio'
+        run: docker rm -f -v aio-check || true
       - name: Smoke test runtime
+        if: needs.prepare.outputs.app != 'aio'
         env:
           IMAGE_APP: ${{ needs.prepare.outputs.app }}
         run: bash infra/images/smoke.sh "$IMAGE_APP" lunaris:app-test
@@ -95,7 +119,7 @@ jobs:
           printf '%s\n' "$digest" > ".context/image-digests/$ARCH"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: aio-digest-${{ matrix.arch }}
+          name: image-digest-${{ matrix.arch }}
           path: .context/image-digests/*
           retention-days: 7
           include-hidden-files: true
@@ -115,11 +139,11 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          pattern: aio-digest-*
+          pattern: image-digest-*
           path: .context/image-digests
           merge-multiple: true
       - name: Publish version and channel tags
         env:
           IMAGE_APP: ${{ needs.prepare.outputs.app }}
           IMAGE_SHA: ${{ needs.prepare.outputs.sha }}
-        run: bun tooling/aio/publish.ts
+        run: bun tooling/images/publish.ts

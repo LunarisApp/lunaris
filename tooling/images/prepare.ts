@@ -3,8 +3,10 @@ import { git, output } from "../release/automation/process";
 import { remoteTags } from "./remote";
 import { versionFromTag } from "./tags";
 
-const { app, prefix } = imageConfig();
 const tag = process.env.IMAGE_TAG ?? "";
+const { app, prefix, dockerfile } = imageConfig(
+  tag.startsWith("aio-v") ? "aio" : tag.split("@")[0]
+);
 const version = versionFromTag(tag, prefix);
 git("fetch", "origin", "main", "next", "--tags");
 const sha = git("rev-parse", `refs/tags/${tag}^{commit}`);
@@ -23,3 +25,4 @@ if (app !== "aio") {
   }
 }
 output("app", app);
+output("dockerfile", dockerfile);

@@ -217,7 +217,7 @@ Include this file in volume backups; rotate it according to your retention needs
 
 ## Publishing to Docker Hub
 
-`AIO - Publish` publishes Community Edition to `lunarisapp/lunaris-aio` when a
+`Images - Publish` publishes Community Edition to `lunarisapp/lunaris-aio` when a
 Git tag named `aio-v<version>` is pushed. AIO versions are independent of API/web
 Changesets versions. Choose a patch for compatible fixes, minor for compatible
 features, and major for breaking deployment changes. Review database and volume
@@ -267,7 +267,7 @@ upload. The final multi-platform tags appear only after both builds pass.
 Temporary `build-<run>-<attempt>-<arch>` tags hold tested images during assembly;
 remove old temporary tags using your Docker Hub retention policy.
 
-To recover a failed run, rerun it or dispatch **AIO - Publish** with the original
+To recover a failed run, rerun it or dispatch **Images - Publish** with the original
 existing Git tag. AIO publication is serialized; GitHub may replace a pending
 run when several tags arrive rapidly, so publish one release at a time and
 redispatch any skipped tag. Version and alias pushes are not atomic; rerunning

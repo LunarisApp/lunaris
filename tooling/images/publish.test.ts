@@ -12,7 +12,7 @@ import { parseRemoteTags } from "./remote";
 
 const sha = "a".repeat(40);
 const digest = (value: string) => `sha256:${value.repeat(64)}`;
-const script = resolve("tooling/aio/publish.ts");
+const script = resolve("tooling/images/publish.ts");
 
 function publish(state: Record<string, unknown> = {}) {
   const root = mkdtempSync(join(tmpdir(), "aio-publication-"));
