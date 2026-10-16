@@ -52,7 +52,9 @@ function isProduction(): boolean {
   return process.env.NODE_ENV === "production";
 }
 
-function getRegionDirectoryOrigins(): string[] {
+function getRegionDirectoryOrigins(
+  field: "apiUrl" | "syncUrl" | "storageUrl" = "apiUrl"
+): string[] {
   const value = process.env.VITE_REGION_DIRECTORY_JSON;
   if (!value) {
     return [];
@@ -70,8 +72,8 @@ function getRegionDirectoryOrigins(): string[] {
           .map((entry) =>
             entry &&
             typeof entry === "object" &&
-            typeof entry.apiUrl === "string"
-              ? getOriginFromValue(entry.apiUrl)
+            typeof entry[field] === "string"
+              ? getOriginFromValue(entry[field])
               : null
           )
           .filter((origin): origin is string => Boolean(origin))
@@ -147,6 +149,8 @@ function getAllowedOrigins(...envVars: string[]): string[] {
 
 export function buildContentSecurityPolicy(isHttps: boolean): string {
   const apiOrigins = getRegionDirectoryOrigins();
+  const syncOrigins = getRegionDirectoryOrigins("syncUrl");
+  const storageOrigins = getRegionDirectoryOrigins("storageUrl");
   const posthogOrigins = getAllowedOrigins("VITE_POSTHOG_API_HOST");
   const localConnectWildcards = isProduction()
     ? []
@@ -165,6 +169,9 @@ export function buildContentSecurityPolicy(isHttps: boolean): string {
     "https:",
     ...apiOrigins,
     ...apiOrigins.map((origin) => origin.replace(/^http/, "ws")),
+    ...syncOrigins,
+    ...syncOrigins.map((origin) => origin.replace(/^http/, "ws")),
+    ...storageOrigins,
     ...posthogOrigins,
     GRAVATAR_ORIGIN,
     STORAGE_ORIGIN,
@@ -188,6 +195,7 @@ export function buildContentSecurityPolicy(isHttps: boolean): string {
     GRAVATAR_ORIGIN,
     STORAGE_ORIGIN,
     ...apiOrigins,
+    ...storageOrigins,
     "https://*.lunaris.app",
     ...localImgWildcards,
   ]);

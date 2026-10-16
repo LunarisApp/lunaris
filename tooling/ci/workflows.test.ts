@@ -286,3 +286,18 @@ test("app images use release tags and smoke test both native builds before uploa
     )
   ).toBeGreaterThan(smoke);
 });
+
+test("reusable CI isolates app release tags pointing at the same commit", () => {
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub expression.
+  expect(workflow("ci").concurrency.group).toContain("${{ github.ref }}");
+  expect(workflow("ci").concurrency.group).toContain(
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub expression.
+    "${{ inputs.concurrency-scope }}"
+  );
+  expect(
+    workflow("images.publish").jobs.validate.with["concurrency-scope"]
+  ).toBe(
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub expression.
+    "${{ needs.prepare.outputs.app }}"
+  );
+});

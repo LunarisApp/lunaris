@@ -31,6 +31,17 @@ for (const entry of regions as unknown[]) {
       "Each region needs id, label, active status, and an HTTP(S) apiUrl"
     );
   }
+  for (const field of ["syncUrl", "storageUrl"] as const) {
+    if (field in entry) {
+      const url = (entry as Record<string, unknown>)[field];
+      if (
+        typeof url !== "string" ||
+        !["http:", "https:"].includes(new URL(url).protocol)
+      ) {
+        throw new Error(`${field} must be an HTTP(S) URL`);
+      }
+    }
+  }
 }
 Bun.serve({
   port: Number(process.env.PORT) || 3000,

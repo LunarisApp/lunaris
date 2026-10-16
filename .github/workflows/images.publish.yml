@@ -37,6 +37,7 @@ jobs:
     uses: ./.github/workflows/ci.yml
     with:
       ref: ${{ needs.prepare.outputs.sha }}
+      concurrency-scope: ${{ needs.prepare.outputs.app }}
     secrets: inherit
   build:
     needs: [prepare, validate]

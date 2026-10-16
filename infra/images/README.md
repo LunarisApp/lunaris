@@ -62,13 +62,16 @@ Supply `VITE_REGION_DIRECTORY_JSON` at **runtime**. No rebuild required:
 
 ```sh
 docker run -d -p 3001:3000 \
-  -e 'VITE_REGION_DIRECTORY_JSON=[{"id":"selfhost","label":"Self-hosted","status":"active","apiUrl":"https://api.example.com","default":true}]' \
+  -e 'VITE_REGION_DIRECTORY_JSON=[{"id":"selfhost","label":"Self-hosted","status":"active","apiUrl":"https://api.example.com","syncUrl":"https://sync.example.com","storageUrl":"https://storage.example.com","default":true}]' \
   lunarisapp/lunaris-web:1.2.3
 ```
 
 The public API URL must be browser-accessible and match API `URL`.
 The directory is served at `/regions.json` without caching; its API origins
-also configure WebSocket CSP permissions. Invalid/missing settings fail startup.
+also configure WebSocket CSP permissions. When sync or storage use separate
+origins, include optional `syncUrl` and `storageUrl` fields matching the URLs
+advertised by the API region manifest. These fields configure CSP; clients still
+obtain service endpoints from the API manifest. Invalid/missing settings fail startup.
 Use HTTPS behind a reverse proxy and forward `X-Forwarded-Proto`; localhost
 HTTP works for development. Health endpoint: `/health`.
 

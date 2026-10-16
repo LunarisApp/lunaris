@@ -12,7 +12,7 @@ trap cleanup EXIT
 docker network create "$name" >/dev/null
 if [ "$app" = web ]; then
   docker run -d --name "$name" --network "$name" \
-    -e 'VITE_REGION_DIRECTORY_JSON=[{"id":"selfhost","label":"Self-hosted","status":"active","apiUrl":"https://api.example.com","default":true}]' "$image" >/dev/null
+    -e 'VITE_REGION_DIRECTORY_JSON=[{"id":"selfhost","label":"Self-hosted","status":"active","apiUrl":"https://api.example.com","syncUrl":"https://sync.example.com","storageUrl":"http://storage.example.com","default":true}]' "$image" >/dev/null
   path=/health
 elif [ "$app" = api ]; then
   docker run -d --name "$name-db" --network "$name" \
@@ -57,5 +57,7 @@ if [ "$app" = web ]; then
     if(regions.headers.get("cache-control")!=="no-store" || (await regions.json())[0].apiUrl!=="https://api.example.com") throw Error("Region discovery failed");
     const page=await fetch(`${base}/workspace/example`);
     if(!page.ok || !(await page.text()).includes("<html") || !page.headers.get("content-security-policy")?.includes("wss://api.example.com")) throw Error("SPA or CSP failed");
+    const csp=page.headers.get("content-security-policy");
+    if(!csp?.includes("wss://sync.example.com") || !csp.includes("http://storage.example.com")) throw Error("Separate service origins missing");
   '
 fi
