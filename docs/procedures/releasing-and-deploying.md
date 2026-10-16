@@ -1,8 +1,9 @@
 # Releasing and deploying
 
 `next` is the development branch. `main` contains stable releases. Public packages
-and hosted apps version independently through Changesets. There are no preview
-environments or prereleases. Self-hosted container publication is deferred.
+and hosted apps version independently through Changesets. Hosted apps have no preview
+environments or prereleases. AIO containers use independent semantic versions;
+see [AIO publishing](../../infra/all-in-one/README.md#publishing-to-docker-hub).
 
 ## Feature and release flow
 

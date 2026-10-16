@@ -12,6 +12,9 @@
 - `release.publish.yml` versions, validates, tags, publishes, and back-merges.
 - `packages.publish.yml` publishes public npm packages through the coordinator.
 - `apps.publish.yml` deploys stable releases to Railway through the coordinator.
+- `aio.publish.yml` validates, builds, smoke-tests, and publishes Community AIO
+  images for AMD64 and ARM64 when an `aio-v*` tag is pushed. Manual dispatch
+  accepts an existing tag for recovery. See [AIO publishing](../../infra/all-in-one/README.md#publishing-to-docker-hub).
 
 See [release setup and operation](../../docs/procedures/releasing-and-deploying.md).
 Release automation and PR release-policy checks are enabled by default.

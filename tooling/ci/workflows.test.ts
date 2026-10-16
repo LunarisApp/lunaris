@@ -230,3 +230,36 @@ test("workflow exports every selection flag validated by the gate", () => {
     [...checks].sort()
   );
 });
+
+test("AIO publishes tested native architectures only after exact-source CI", () => {
+  const aio = workflow("aio.publish");
+  expect(aio.on.push.tags).toEqual(["aio-v*"]);
+  expect(aio.concurrency["cancel-in-progress"]).toBe(false);
+  expect(aio.jobs.validate.uses).toBe("./.github/workflows/ci.yml");
+  expect(aio.jobs.build.needs).toEqual(["prepare", "validate"]);
+  expect(aio.jobs.publish.needs).toEqual(["prepare", "build"]);
+  expect(
+    aio.jobs.build.strategy.matrix.include.map(
+      (entry: { arch: string }) => entry.arch
+    )
+  ).toEqual(["amd64", "arm64"]);
+  const steps = aio.jobs.build.steps;
+  const testIndex = steps.findIndex((step: { run?: string }) =>
+    step.run?.includes("network-smoke.sh")
+  );
+  const pushIndex = steps.findIndex((step: { run?: string }) =>
+    step.run?.includes("docker push")
+  );
+  expect(testIndex).toBeGreaterThan(0);
+  expect(pushIndex).toBeGreaterThan(testIndex);
+  expect(
+    steps.find((step: { uses?: string }) =>
+      step.uses?.startsWith("docker/build-push-action@")
+    ).with["build-args"]
+  ).toBe("LUNARIS_EDITION=community");
+  expect(
+    workflow("ci").jobs.test.steps.some((step: { run?: string }) =>
+      step.run?.includes("tooling/aio")
+    )
+  ).toBe(true);
+});
