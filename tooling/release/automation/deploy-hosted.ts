@@ -173,4 +173,7 @@ for (const name of ["api", "web", "docs", "landing"]) {
   if (name === "api") {
     run("bun", ["run", "powersync:config:deploy"]);
   }
+  // Promote only this verified target; unrelated failures keep their drafts.
+  run("gh", ["release", "edit", entry.tag, "--draft=false", "--latest=false"]);
+  summary(`Released ${entry.tag}; source ${sha}`);
 }
