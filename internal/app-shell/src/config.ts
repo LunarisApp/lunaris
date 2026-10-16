@@ -2,6 +2,7 @@ import {
   DEFAULT_REGION_DIRECTORY_URL,
   parseRegionDirectory,
 } from "@repo/features/region";
+import { createBrowserPlatform } from "@repo/platform";
 import { z } from "zod";
 import { createEnv } from "./lib/create-env";
 
@@ -48,7 +49,7 @@ const env = createEnv(EnvSchema, {
       ? import.meta.env.VITE_REGION_DIRECTORY_JSON
       : undefined,
   REGION_DIRECTORY_URL: import.meta.env.VITE_REGION_DIRECTORY_URL?.startsWith("/")
-    ? new URL(import.meta.env.VITE_REGION_DIRECTORY_URL, window.location.origin).href
+    ? new URL(import.meta.env.VITE_REGION_DIRECTORY_URL, createBrowserPlatform({ kind: "web" }).navigation.origin()).href
     : import.meta.env.VITE_REGION_DIRECTORY_URL,
   POSTHOG_KEY: import.meta.env.VITE_POSTHOG_KEY,
   POSTHOG_ORG: import.meta.env.VITE_POSTHOG_ORG,

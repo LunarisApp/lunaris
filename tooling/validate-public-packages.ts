@@ -236,7 +236,11 @@ function validateTooling(
     "internal-resolution-error",
   ];
   if (packageInfo.name === "@lunarisapp/ui") {
-    attwArgs.push("--exclude-entrypoints", "@lunarisapp/ui/globals.css");
+    attwArgs.push(
+      "--exclude-entrypoints",
+      "@lunarisapp/ui/globals.css",
+      "@lunarisapp/ui/workbench.css"
+    );
   }
   run("bunx", attwArgs);
 }
@@ -356,7 +360,7 @@ exposePluginWorkerTask((input: number) => input * 2);
       "vite.config.ts",
       `import { defineLunarisPluginConfig } from "@lunarisapp/plugin-sdk/vite";
 
-export default defineLunarisPluginConfig();
+export default defineLunarisPluginConfig({ tag: "1.0.0" });
 `,
     ],
   ]);

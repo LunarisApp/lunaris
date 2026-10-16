@@ -49,6 +49,12 @@
       "outputs": [
         "coverage/**"
       ]
+    },
+    "@lunarisapp/ui#test": {
+      "dependsOn": [
+        "build"
+      ],
+      "cache": true
     }
   },
   "globalEnv": [

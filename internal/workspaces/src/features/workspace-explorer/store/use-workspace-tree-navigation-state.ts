@@ -74,10 +74,10 @@ export function useWorkspaceTreeNavigationState({
   resourcesMapRef.current = resourcesMap;
   const [treeRegistration, setTreeRegistration] =
     useState<RegisteredTree | null>(null);
-  const pendingActionRef = useRef<PendingTreeAction | null>(null);
+  const pendingActionsRef = useRef<PendingTreeAction[]>([]);
 
   useEffect(() => {
-    pendingActionRef.current = null;
+    pendingActionsRef.current = [];
     setTreeRegistration(null);
   }, [workspaceId]);
 
@@ -93,9 +93,9 @@ export function useWorkspaceTreeNavigationState({
 
   const flushPendingAction = useCallback(
     (registration: RegisteredTree) => {
-      const pendingAction = pendingActionRef.current;
-      if (!pendingAction || !runAction(pendingAction, registration)) return;
-      pendingActionRef.current = null;
+      pendingActionsRef.current = pendingActionsRef.current.filter(
+        (action) => !runAction(action, registration)
+      );
     },
     [runAction]
   );
@@ -116,7 +116,7 @@ export function useWorkspaceTreeNavigationState({
     (resourceId: string) => {
       const action = { resourceId, kind: "navigate" } as const;
       if (treeRegistration && runAction(action, treeRegistration)) return;
-      pendingActionRef.current = action;
+      pendingActionsRef.current.push(action);
     },
     [runAction, treeRegistration]
   );
@@ -125,7 +125,7 @@ export function useWorkspaceTreeNavigationState({
     (resourceId: string) => {
       const action = { resourceId, kind: "rename" } as const;
       if (treeRegistration && runAction(action, treeRegistration)) return;
-      pendingActionRef.current = action;
+      pendingActionsRef.current.push(action);
     },
     [runAction, treeRegistration]
   );

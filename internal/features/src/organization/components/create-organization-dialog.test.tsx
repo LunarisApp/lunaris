@@ -152,7 +152,7 @@ describe("CreateOrganizationDialog", () => {
     await waitFor(() => {
       expect(checkSlug).toHaveBeenCalledWith({ slug: "alpha-space" });
       expect(create).toHaveBeenCalledWith({
-        keepCurrentActiveOrganization: false,
+        keepCurrentActiveOrganization: true,
         name: "Alpha Space",
         slug: "alpha-space",
       });

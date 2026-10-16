@@ -5,5 +5,10 @@
     "moduleResolution": "Bundler",
     "noEmit": true
   },
-  "include": ["./*.ts", "licenses/**/*.ts", "editions/**/*.ts"]
+  "include": [
+    "./*.ts",
+    "licenses/**/*.ts",
+    "editions/**/*.ts",
+    "release/automation/**/*.ts"
+  ]
 }

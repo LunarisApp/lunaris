@@ -25,11 +25,9 @@ describe("auth/sign-in", () => {
       cy.signOut();
 
       cy.signIn({ email, password });
-      cy.request({
-        method: "POST",
-        url: "http://localhost:3000/auth/sign-out",
-        headers: { Origin: "http://localhost:5173" },
-      });
+      // Unload active session requests before signing out, retaining the
+      // last-login cookie so the next page can display the real server value.
+      cy.signOut({ clearCookies: false });
       cy.visit("/auth");
 
       cy.get('[data-testid="auth-last-used-email"]')

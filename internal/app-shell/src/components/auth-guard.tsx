@@ -224,8 +224,38 @@ export default function AuthGuard() {
     !resolvedActiveOrg &&
     !activeOrgPending &&
     !isPending;
+  const mismatchKey =
+    sessionOrganizationId && activeOrg && !resolvedActiveOrg
+      ? JSON.stringify([userId, sessionOrganizationId, activeOrg.id])
+      : null;
+  const [reconciledMismatch, setReconciledMismatch] = useState<string | null>(null);
+
+  // Mutation listeners refresh these stores separately. A stale response can
+  // briefly pair one organization's session with another organization's data.
+  // Reconcile once before treating that pair as a permanent access failure.
+  useEffect(() => {
+    if (!mismatchKey) {
+      setReconciledMismatch(null);
+      return;
+    }
+    if (reconciledMismatch === mismatchKey) return;
+    let cancelled = false;
+    void Promise.allSettled([
+      refetchSession({ query: { disableCookieCache: true } }),
+      refetchActiveOrganization(),
+    ]).then(() => {
+      if (!cancelled) setReconciledMismatch(mismatchKey);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [mismatchKey, reconciledMismatch, refetchSession, refetchActiveOrganization]);
+
+  const reconcilingOrganization =
+    mismatchKey !== null && reconciledMismatch !== mismatchKey;
   const missingOrganizationError =
     missingResolvedOrganization &&
+    !reconcilingOrganization &&
     (!accountSwitchTargetUserId || activeOrgError)
       ? activeOrgError ?? new Error("Active organization is unavailable")
       : null;
@@ -243,6 +273,7 @@ export default function AuthGuard() {
             onClick={() => {
               resolvingOrganizationUserId.current = null;
               setOrgResolutionError(null);
+              setReconciledMismatch(null);
               void Promise.allSettled([
                 refetchSession({ query: { disableCookieCache: true } }),
                 refetchActiveOrganization(),
@@ -259,7 +290,7 @@ export default function AuthGuard() {
     );
   }
 
-  if (isPending || activeOrgPending || isLoggingOut) {
+  if (isPending || activeOrgPending || isLoggingOut || reconcilingOrganization) {
     return <LoaderView />;
   }
 

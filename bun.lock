@@ -569,6 +569,7 @@
       },
       "devDependencies": {
         "@repo/typescript-config": "workspace:*",
+        "nanostores": "1.3.0",
         "typescript": "^7.0.2",
       },
       "peerDependencies": {

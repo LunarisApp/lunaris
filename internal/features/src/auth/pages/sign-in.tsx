@@ -120,12 +120,9 @@ function AuthForm({
 
   const handleContinueAsGuest = async () => {
     setGuestLoading(true);
-    const { data, error } = await auth.signIn.anonymous();
-    if (error) {
-      showAuthErrorToast(error, t);
-      posthog.capture("auth_sign_in_failed", { method: "anonymous" });
-      setGuestLoading(false);
-    } else {
+    try {
+      const { data, error } = await auth.signIn.anonymous();
+      if (error) throw error;
       onAnonymousSessionCreated?.();
       posthog.capture("auth_sign_in", { method: "anonymous" });
       if (isAddingAccount && data?.user.id) {
@@ -134,6 +131,10 @@ function AuthForm({
           state: createAccountSwitchNavigationState(data.user.id),
         });
       }
+    } catch (error) {
+      showAuthErrorToast(error, t);
+      posthog.capture("auth_sign_in_failed", { method: "anonymous" });
+      setGuestLoading(false);
     }
   };
 

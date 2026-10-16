@@ -34,7 +34,7 @@ export class ManifestController {
       syncUrl: this.appConfig.powersyncUrl,
       storageUrl: this.storageConfig.publicEndpoint,
       signupsAllowed: this.authConfig.signupsAllowed,
-      passwordResetEmail: Boolean(this.resendConfig.values),
+      passwordResetEmail: this.resendConfig.authEmailDeliveryEnabled,
       socialProviders: this.authConfig.socialProviders,
     });
   }

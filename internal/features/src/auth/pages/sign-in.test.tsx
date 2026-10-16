@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
+import { toast } from "sonner";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import en from "../../locale/locales/en.json";
 import { RegionProvider } from "../../region";
@@ -457,4 +458,23 @@ it("hides server guest creation when signup is disabled but keeps existing login
   expect(screen.queryByTestId("auth-entry-divider")).toBeNull();
   expect(screen.getByRole("textbox", { name: "Email" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "Continue with Google" })).toBeTruthy();
+});
+
+
+it("reports a guest network failure and lets the user retry", async () => {
+  const anonymousSignIn = vi.fn()
+    .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+    .mockResolvedValueOnce({ error: null });
+  const onAnonymousSessionCreated = vi.fn();
+  renderSignInPage({ anonymousSignIn, onAnonymousSessionCreated });
+  const guestButton = await screen.findByRole("button", { name: "Continue as Guest" });
+  await waitFor(() => expect(guestButton.hasAttribute("disabled")).toBe(false));
+  await userEvent.click(guestButton);
+  await waitFor(() => expect(toast.error).toHaveBeenCalled());
+  expect(capture).toHaveBeenCalledWith("auth_sign_in_failed", { method: "anonymous" });
+  expect(onAnonymousSessionCreated).not.toHaveBeenCalled();
+  expect(guestButton.hasAttribute("disabled")).toBe(false);
+  await userEvent.click(guestButton);
+  await waitFor(() => expect(onAnonymousSessionCreated).toHaveBeenCalledOnce());
+  expect(anonymousSignIn).toHaveBeenCalledTimes(2);
 });

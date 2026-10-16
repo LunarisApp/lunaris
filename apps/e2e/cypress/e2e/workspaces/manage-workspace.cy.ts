@@ -14,7 +14,7 @@ describe("workspaces/manage-workspace", () => {
   }
 
   function returnToWorkspaces() {
-    cy.go("back");
+    cy.get('a[aria-label="Lunaris"]').click();
     cy.get('[data-testid="workspaces-page"]').should("be.visible");
   }
 

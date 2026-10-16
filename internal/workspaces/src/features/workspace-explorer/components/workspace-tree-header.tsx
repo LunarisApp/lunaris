@@ -31,6 +31,7 @@ import type { WorkspaceResourceEntity } from "@repo/data/features/workspace-reso
 import type { HTMLAttributes, KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useAnyPermission } from "@repo/features/permissions";
+import { useNavigateToResource, useStartRenamingItem } from "../store";
 import { VIRTUAL_ROOT_ID } from "../constants";
 import { useAvailableResources } from "../hooks/use-available-resources";
 import { useWorkspaceResourceCreation } from "../hooks/use-workspace-resource-creation";
@@ -38,11 +39,6 @@ import { WorkspaceTreeSearch } from "./workspace-tree-search";
 
 interface WorkspaceTreeHeaderProps extends HTMLAttributes<HTMLDivElement> {
   onCollapseAll?: () => void;
-  onOpenResource?: (
-    resourceId: string,
-    resourceTypeId: string,
-    title: string
-  ) => void;
   onSearchChange: (value: string) => void;
   onSearchKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
   searchActiveDescendantId?: string;
@@ -54,7 +50,6 @@ interface WorkspaceTreeHeaderProps extends HTMLAttributes<HTMLDivElement> {
 export function WorkspaceTreeHeader({
   onCollapseAll,
   tree,
-  onOpenResource,
   searchQuery,
   onSearchChange,
   onSearchKeyDown,
@@ -64,6 +59,8 @@ export function WorkspaceTreeHeader({
 }: WorkspaceTreeHeaderProps) {
   const { t } = useTranslation();
   const { canCreate, createFolder, createResource } = useWorkspaceResourceCreation();
+  const navigateToResource = useNavigateToResource();
+  const startRenamingResource = useStartRenamingItem();
   const canMutate = useAnyPermission([
     permission.content.write,
     permission.content.delete,
@@ -82,29 +79,13 @@ export function WorkspaceTreeHeader({
 
   const handleAddItem = async (resource: ResourceTypeDefinition) => {
     const parentId = getTargetParentId();
-    const { resourceTypeId } = resource;
     const result = await createResource(parentId, resource);
     if (!result) return;
 
-    if (tree) {
-      if (parentId !== VIRTUAL_ROOT_ID) {
-        tree.getItemInstance(parentId).expand();
-      }
-      if (!result.name) {
-        setTimeout(
-          () => tree.getItemInstance(result.resourceId).startRenaming(),
-          0,
-        );
-      }
-    }
-
-    if (resourceTypeId && onOpenResource) {
-      onOpenResource(
-        result.resourceId,
-        resourceTypeId,
-        result.name,
-      );
-    }
+    // PowerSync query results can lag the completed write. Queue both actions
+    // until the new resource is available to the tree and its renderer.
+    navigateToResource(result.resourceId);
+    if (!result.name) startRenamingResource(result.resourceId);
   };
 
   const resources = useAvailableResources();
@@ -114,16 +95,7 @@ export function WorkspaceTreeHeader({
     const newId = await createFolder(parentId);
     if (!newId) return;
 
-    if (tree) {
-      if (parentId !== VIRTUAL_ROOT_ID) {
-        tree.getItemInstance(parentId).expand();
-      }
-      setTimeout(() => {
-        tree.setSelectedItems([newId]);
-        tree.getItemInstance(newId).expand();
-        tree.getItemInstance(newId).startRenaming();
-      }, 0);
-    }
+    startRenamingResource(newId);
   };
 
   const isMobile = useIsMobile();

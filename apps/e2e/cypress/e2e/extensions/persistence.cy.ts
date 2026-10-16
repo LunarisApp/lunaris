@@ -3,11 +3,6 @@
 export {};
 
 function renameNewItem(name: string) {
-  cy.get("body").then(($body) => {
-    const input = $body.find('input[aria-label="Rename resource"]');
-    if (input.length > 0) cy.wrap(input).type("{esc}");
-  });
-  cy.contains('[data-testid="workspace-tree-item"]', "Untitled").dblclick();
   cy.get('input[aria-label="Rename resource"]')
     .clear()
     .type(`${name}{enter}`);
@@ -34,7 +29,7 @@ describe("extensions/persistence", () => {
           );
           renameNewItem("Release Board");
           cy.contains("button", "Add Task").click();
-          cy.get('input[placeholder="Item title"]').type("Ship manuscript");
+          cy.get('input[placeholder="Task title"]').type("Ship manuscript");
           cy.get('[role="dialog"]').contains("button", "Create").click();
           cy.contains("Ship manuscript", { timeout: 15_000 }).should("be.visible");
           cy.wait("@boardSync").its("response.statusCode").should("eq", 200);

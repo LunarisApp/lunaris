@@ -103,7 +103,7 @@ export function CreateOrganizationDialog({
       if (!slugOk) return;
 
       const { data, error } = await auth.organization.create({
-        keepCurrentActiveOrganization: false,
+        keepCurrentActiveOrganization: true,
         name: trimmedName,
         slug: trimmedSlug,
       });
@@ -131,6 +131,8 @@ export function CreateOrganizationDialog({
         name: trimmedName,
         slug: data.slug,
       });
+      // The destination route owns activation; changing auth here races the
+      // current route guard, which still points at the previous organization.
       navigate(pathWithRegion(`/${data.slug}`));
     } catch (error) {
       log.error({

@@ -1,17 +1,23 @@
 # GitHub workflows
 
-- `ci.yml` validates every pull request and `main` push, and supports manual
+- `ci.yml` validates pull requests and pushes to `main`/`next`, and supports manual
   dispatch: code quality, types, unit tests, generated configs, Rust agents,
   and Desktop MCP smoke tests.
-- `e2e.yml` runs the full browser suite daily when the repository changed, or
-  on manual dispatch.
+- `e2e.yml` runs the full browser suite for aggregate CI, plus daily and manual runs.
 - `deploy-powersync.yml` deploys PowerSync config changes after they reach
   `main`.
-- `release.yml` maintains the Changesets version PR, then builds and publishes
-  approved CLI and Desktop releases.
+- `release.yml` manually builds/publishes CLI and Desktop; it owns no version PR.
+- `release.prepare.yml` maintains the `next` to `main` release PR.
+- `release.publish.yml` versions, validates, tags, publishes, and back-merges.
+- `packages.publish.yml` publishes public npm packages through the coordinator.
+- `apps.publish.yml` deploys stable releases to Railway through the coordinator.
 
-CI stays separate from E2E, deployment, and release automation so each
-workflow has one trigger policy and one operational goal.
+See [release setup and operation](../../docs/procedures/releasing-and-deploying.md).
+New release automation remains disabled until `RELEASE_AUTOMATION_ENABLED=true`.
+The old standalone PowerSync push job is disabled when this switch is enabled.
+
+CI calls the reusable E2E workflow. Publishing starts only after aggregate CI
+passes on the exact version commit.
 
 ## PowerSync deployment configuration
 
@@ -69,7 +75,7 @@ Before public launch, review these settings in GitHub:
 - Enable private vulnerability reporting and link reporters to
   [`SECURITY.md`](../../SECURITY.md).
 - Protect production and release environments with allowed deployment branches
-  and required reviewers where the account plan supports them. Bind the relevant
+  without a second routine reviewer gate. Bind the relevant
   workflow jobs to those environments and move their credentials into environment
   secrets together; creating an environment alone does not protect a job.
 - Review external-contributor workflow approval settings. Keep production secrets

@@ -3,10 +3,15 @@ name: E2E
 on:
   schedule:
     - cron: "0 6 * * *" # Daily at 6:00 AM UTC
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
   workflow_dispatch:
 
 concurrency:
-  group: e2e
+  group: e2e-${{ github.workflow }}-${{ inputs.ref || github.sha }}
   cancel-in-progress: false
 
 permissions:
@@ -22,10 +27,14 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
+          ref: ${{ inputs.ref || github.sha }}
       - name: Check for recent changes
         id: check
+        env:
+          RELEASE_REF: ${{ inputs.ref }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ -n "$RELEASE_REF" ] || [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             echo "Manual dispatch — always run."
             exit 0
@@ -45,16 +54,20 @@ jobs:
     needs: check-changes
     if: needs.check-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
+    env:
+      LUNARIS_EDITION: enterprise
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: 1.3.10
+          bun-version: 1.4.0
       - run: bun install --frozen-lockfile
       - name: Free Bun install cache
         run: bun pm cache rm
-      - name: Build plugin SDK dependencies
-        run: bun run build --filter=@lunarisapp/plugin-sdk
+      - name: Build public package dependencies
+        run: bun run build --filter=@lunarisapp/plugin-sdk --filter=@lunarisapp/ui
 
       - name: Seed API CI overrides
         run: |
@@ -86,6 +99,13 @@ jobs:
           disown
         working-directory: apps/api
 
+      - name: Build production PWA
+        run: bun run build
+        env:
+          VITE_ALLOW_INLINE_REGION_DIRECTORY: "true"
+          VITE_REGION_DIRECTORY_JSON: '[{"id":"local","label":"Local","apiUrl":"http://localhost:3000","status":"active","default":true}]'
+        working-directory: apps/web
+
       - name: Run full Cypress E2E suite
         uses: cypress-io/github-action@fa4a118725a8f001170d49631ea89e5d66fee626 # v7.4.1
         env:
@@ -93,17 +113,12 @@ jobs:
         with:
           working-directory: apps/e2e
           install: false
-          start: bun run --cwd ../web dev
+          start: bun run --cwd ../web preview -- --host 0.0.0.0 --port 5173 --strictPort
           wait-on: "http://localhost:5173, http://localhost:3000/v1/health"
           wait-on-timeout: 120
-          browser: chrome
-
-      - name: Build production PWA
-        run: bun run build
-        env:
-          VITE_ALLOW_INLINE_REGION_DIRECTORY: "true"
-          VITE_REGION_DIRECTORY_JSON: '[{"id":"local","label":"Local","apiUrl":"http://localhost:3000","status":"active","default":true}]'
-        working-directory: apps/web
+          # Runner Chrome 155 crashes its network service during this suite.
+          # Use the Chromium runtime bundled with the locked Cypress version.
+          browser: electron
 
       - name: Run returning-user offline PWA test
         uses: cypress-io/github-action@fa4a118725a8f001170d49631ea89e5d66fee626 # v7.4.1
@@ -117,7 +132,9 @@ jobs:
           start: bun run --cwd ../web preview -- --host 0.0.0.0 --port 4173
           wait-on: "http://localhost:4173, http://localhost:3000/v1/health"
           wait-on-timeout: 120
-          browser: chrome
+          # Runner Chrome 155 crashes its network service during this suite.
+          # Use the Chromium runtime bundled with the locked Cypress version.
+          browser: electron
           spec: cypress/e2e/offline/**/*.cy.ts
 
       - name: Upload Cypress screenshots on failure

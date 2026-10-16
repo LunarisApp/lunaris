@@ -258,7 +258,7 @@ describe("AuthGuard routing", () => {
     expect(rendered.queryByTestId("power-sync")).toBeNull();
   });
 
-  it("reports an active organization mismatch outside account switching", () => {
+  it("reports an organization mismatch only after reconciliation fails", async () => {
     useActiveOrganization.mockReturnValue({
       data: createOrganization("org-1", "first"),
       error: null,
@@ -274,10 +274,30 @@ describe("AuthGuard routing", () => {
 
     const rendered = renderGuard();
 
-    expect(
-      rendered.getByRole("button", { name: "common.retry" }),
-    ).toBeTruthy();
+    expect(rendered.getByTestId("loader")).toBeTruthy();
+    expect(await rendered.findByRole("button", { name: "common.retry" })).toBeTruthy();
+    expect(refetchSession).toHaveBeenCalledWith({ query: { disableCookieCache: true } });
+    expect(refetchActiveOrganization).toHaveBeenCalled();
     expect(rendered.queryByTestId("loader")).toBeNull();
+  });
+
+  it("recovers when mutation refreshes leave organization stores out of sync", async () => {
+    useActiveOrganization.mockReturnValue({
+      data: createOrganization("org-2"),
+      isPending: false,
+      refetch: refetchActiveOrganization,
+    });
+    refetchSession.mockImplementation(async () => {
+      useSession.mockReturnValue({
+        data: createSession("user-1", "org-2"),
+        isPending: false,
+        refetch: refetchSession,
+      });
+    });
+    const rendered = renderGuard();
+    expect(rendered.queryByRole("button")).toBeNull();
+    expect(await rendered.findByTestId("outlet")).toBeTruthy();
+    expect(logout).not.toHaveBeenCalled();
   });
 
   it("renders a scoped retry without logging out on session transport failure", async () => {

@@ -53,7 +53,20 @@ export function typeYjsText(selector: string, text: string) {
       const view = editor.ownerDocument.defaultView;
       if (!view) throw new Error("Editor window is unavailable");
 
-      editor.focus();
+      // The inline content is not itself focusable. Focusing it leaves
+      // ProseMirror's selection in its previous block (often the heading).
+      // Place the caret in the requested paragraph before dispatching paste.
+      const editable = editor.closest<HTMLElement>('[contenteditable="true"]');
+      if (!editable) throw new Error("Editable content is unavailable");
+      editable.focus();
+      const selection = view.getSelection();
+      if (!selection) throw new Error("Editor selection is unavailable");
+      const range = editor.ownerDocument.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      editor.ownerDocument.dispatchEvent(new view.Event("selectionchange"));
       const clipboardData = new view.DataTransfer();
       clipboardData.setData("text/plain", text);
       editor.dispatchEvent(

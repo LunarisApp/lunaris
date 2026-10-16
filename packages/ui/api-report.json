@@ -22492,6 +22492,10 @@
         "cn"
       ],
       "types": "./dist/lib/utils.d.ts"
+    },
+    {
+      "entrypoint": "./workbench.css",
+      "runtime": "./dist/workbench.css"
     }
   ]
 }

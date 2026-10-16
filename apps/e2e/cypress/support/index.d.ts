@@ -66,7 +66,7 @@ declare global {
       signInAnonymous(): Chainable<void>;
 
       /** POST /auth/sign-out + clear cookies/storage. */
-      signOut(): Chainable<void>;
+      signOut(options?: { clearCookies?: boolean }): Chainable<void>;
       /** Generates a unique e2e-only email like `e2e-1712000000000-1@e2e.lunaris.app`. */
       uniqueEmail(prefix?: string): Chainable<string>;
 

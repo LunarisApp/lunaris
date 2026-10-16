@@ -72,7 +72,7 @@ describe("organization/lifecycle", () => {
           "have.value",
           renamedSlug,
         );
-        cy.contains("a", "Recent Workspaces").click();
+        cy.get('a[aria-label="Lunaris"]').click();
         cy.get('[data-testid="organization-selector-trigger"]').should(
           "contain.text",
           "Authors Room",
@@ -85,7 +85,7 @@ describe("organization/lifecycle", () => {
         cy.intercept("POST", "**/v1/organization/delete-request").as(
           "organizationDeleteRequest",
         );
-        cy.contains("button", "Request Organization Deletion").click();
+        cy.contains("button", "Delete organization").click();
         cy.get('[data-testid="input-confirm-input"]')
           .should("not.be.disabled")
           .type(renamedSlug);

@@ -9,6 +9,7 @@ export interface ResendValues {
 @Injectable()
 export class ResendConfig {
   constructor(config: ConfigService) {
+    this.authEmailDeliveryEnabled = Boolean(config.get<string>("RESEND_API_KEY")?.trim()) || config.get("E2E_AUTH_EMAIL_LOGS") === "true";
     const selfHosted = config.get("DEPLOYMENT_MODE") === "self-hosted";
     const from = config.get<string>("EMAIL_FROM")?.trim();
     const replyTo = config.get<string>("EMAIL_REPLY_TO")?.trim();
@@ -20,6 +21,7 @@ export class ResendConfig {
     }
   }
 
+  readonly authEmailDeliveryEnabled: boolean;
   readonly from: string;
   readonly replyTo: string | undefined;
 

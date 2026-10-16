@@ -1,7 +1,7 @@
 /** @vitest-environment happy-dom */
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceTrashPanel } from "./workspace-trash-panel";
 
 const { purgeResources, restoreResources, state } = vi.hoisted(() => ({
@@ -59,9 +59,15 @@ const root = {
 
 describe("WorkspaceTrashPanel", () => {
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-15T12:00:00Z"));
     vi.clearAllMocks();
     state.canMutate = true;
     state.roots = [root];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("selects and restores trash roots", async () => {

@@ -41,7 +41,7 @@
     "powersync:config:check-production": "bun tooling/powersync-config.ts --check-production",
     "powersync:config:deploy": "bun tooling/powersync-config.ts --deploy-production",
     "changeset": "changeset",
-    "release:version": "changeset version && bun tooling/release/sync-versions.ts",
+    "release:version": "bun tooling/release/automation/version.ts",
     "release:validate": "bun tooling/release/sync-versions.ts --check",
     "release:test": "bun test tooling/release",
     "release:plan": "bun tooling/release/plan.ts",

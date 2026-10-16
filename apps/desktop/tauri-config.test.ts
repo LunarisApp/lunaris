@@ -29,7 +29,7 @@ describe("desktop build", () => {
       "turbo run build --filter=desktop^...",
     );
     expect(config.build.beforeBuildCommand).toBe(
-      "bun run build:dependencies && bun run build:agent && bun run build",
+      "bun run build:dependencies && bun run build:agent && bun run build && bun run build:notices",
     );
   });
 });
