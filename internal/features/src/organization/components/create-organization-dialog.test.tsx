@@ -116,8 +116,6 @@ function renderDialog({
     error: null,
   }),
   setActive = vi.fn().mockResolvedValue({ data: null, error: null }),
-  refetchSession = vi.fn().mockResolvedValue(undefined),
-  refetchActiveOrganization = vi.fn().mockResolvedValue(undefined),
 } = {}) {
   render(
     <MemoryRouter initialEntries={["/workspaces?region=us"]}>
@@ -125,8 +123,6 @@ function renderDialog({
         client={
           {
             organization: { checkSlug, create, setActive },
-            useSession: () => ({ refetch: refetchSession }),
-            useActiveOrganization: () => ({ refetch: refetchActiveOrganization }),
           } as never
         }
       >
@@ -136,7 +132,7 @@ function renderDialog({
     </MemoryRouter>,
   );
 
-  return { checkSlug, create, setActive, refetchSession, refetchActiveOrganization };
+  return { checkSlug, create, setActive };
 }
 
 describe("CreateOrganizationDialog", () => {
@@ -148,7 +144,7 @@ describe("CreateOrganizationDialog", () => {
 
   it("creates an organization and opens its homepage", async () => {
     const user = userEvent.setup();
-    const { checkSlug, create, setActive, refetchSession, refetchActiveOrganization } = renderDialog();
+    const { checkSlug, create, setActive } = renderDialog();
 
     await user.type(screen.getByLabelText("Name"), "Alpha Space");
     await user.click(screen.getByRole("button", { name: "Create organization" }));
@@ -161,8 +157,6 @@ describe("CreateOrganizationDialog", () => {
         slug: "alpha-space",
       });
       expect(setActive).not.toHaveBeenCalled();
-      expect(refetchSession).not.toHaveBeenCalled();
-      expect(refetchActiveOrganization).not.toHaveBeenCalled();
       expect(screen.getByTestId("location").textContent).toBe(
         "/alpha-space?region=us"
       );

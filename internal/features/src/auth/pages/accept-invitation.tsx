@@ -41,8 +41,7 @@ export default function AcceptInvitationPage() {
   const navigate = useNavigate();
   const { selectionRequired, pathWithRegion } = useRegion();
   const [searchParams] = useSearchParams();
-  const { data: session, isPending, refetch: refetchSession } = auth.useSession();
-  const { refetch: refetchActiveOrganization } = auth.useActiveOrganization();
+  const { data: session, isPending } = auth.useSession();
   const [loadState, setLoadState] = useState<InvitationLoadState>({
     status: "loading",
   });
@@ -104,13 +103,6 @@ export default function AcceptInvitationPage() {
         showAuthErrorToast(error, t);
         return;
       }
-
-      // Acceptance changes the active organization on the server. Refresh both
-      // auth stores before the destination guard evaluates organization access.
-      await Promise.all([
-        refetchSession({ query: { disableCookieCache: true } }),
-        refetchActiveOrganization(),
-      ]);
 
       posthog.capture("organization_invite_accepted");
       toast.success(t("auth.acceptInvitationSuccess"));

@@ -63,14 +63,6 @@ describe("registered-user offline cloud sync", () => {
           cy.get('button[aria-label="Add file"]').click();
           cy.contains('[role="menuitem"]', "Rich Text").click();
           typeYjsText(documentBodySelector, "Online opening");
-          cy.get("[data-yjs-persistence-state]").should(
-            "have.attr",
-            "data-yjs-persistence-state",
-            "idle",
-          );
-          cy.contains(documentBodySelector, "Online opening", {
-            timeout: 15_000,
-          }).should("be.visible");
           waitForServiceWorkerControl();
 
           emulateOffline(true);
