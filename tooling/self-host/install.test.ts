@@ -41,6 +41,7 @@ esac
     ...process.env,
     PATH: `${root}:${process.env.PATH}`,
     PUBLIC_URL: undefined,
+    TLS_MODE: undefined,
     COMPOSE_PROJECT_NAME: "fixture-installer",
   };
   const invoke = (
@@ -139,6 +140,38 @@ test("configuration survives failed preflight and retry byte-for-byte", () => {
   expect(before).toMatch(/^DATABASE_PASSWORD=[a-f0-9]{64}$/m);
   expect(invoke().exitCode).not.toBe(0);
   expect(readFileSync(join(root, ".env"), "utf8")).toBe(before);
+});
+
+test("external TLS persists across retries and rejects HTTP or conflicting modes", () => {
+  const { root, invoke } = fixture();
+  invoke("https://notes.example.com", { TLS_MODE: "external" });
+  const path = join(root, ".env");
+  const before = readFileSync(path, "utf8");
+  expect(before).toContain("TLS_MODE=external\n");
+  expect(before).toContain("PUBLIC_URL=https://notes.example.com\n");
+  invoke();
+  expect(readFileSync(path, "utf8")).toBe(before);
+  expect(invoke(undefined, { TLS_MODE: "auto" }).stderr.toString()).toContain(
+    "TLS_MODE environment conflicts"
+  );
+  for (const [url, mode] of [
+    ["http://localhost:8080", "external"],
+    ["https://notes.example.com", "invalid"],
+  ]) {
+    const fresh = fixture();
+    expect(fresh.invoke(url, { TLS_MODE: mode }).exitCode).not.toBe(0);
+    expect(existsSync(join(fresh.root, ".env"))).toBe(false);
+  }
+});
+
+test("existing installations without TLS_MODE retain automatic mode", () => {
+  const { root, invoke } = fixture();
+  invoke("https://notes.example.com");
+  const path = join(root, ".env");
+  const before = readFileSync(path, "utf8").replace("TLS_MODE=auto\n", "");
+  writeFileSync(path, before);
+  invoke();
+  expect(readFileSync(path, "utf8")).toBe(before);
 });
 
 test("ambient AWS credentials cannot override stored Garage credentials", () => {

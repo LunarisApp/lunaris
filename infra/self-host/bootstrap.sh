@@ -18,8 +18,11 @@ main() {
       --dir)
         [[ $# -ge 2 && -n $2 ]] || fail '--dir requires an installation directory.'
         directory=$2; shift 2 ;;
+      --tls-mode)
+        [[ $# -ge 2 && ($2 == auto || $2 == external) ]] || fail '--tls-mode requires auto or external.'
+        export TLS_MODE=$2; shift 2 ;;
       --help|-h)
-        echo 'Usage: curl -fsSL https://lunaris.app/install.sh | bash -s -- [PUBLIC_URL] [--dir DIRECTORY]'
+        echo 'Usage: curl -fsSL https://lunaris.app/install.sh | bash -s -- [PUBLIC_URL] [--dir DIRECTORY] [--tls-mode auto|external]'
         echo 'Omit PUBLIC_URL to prompt on first install; existing installations reuse .env.'
         return ;;
       http://*|https://*)

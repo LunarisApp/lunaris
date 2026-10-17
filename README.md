@@ -71,6 +71,9 @@ For unattended installation, pass the public URL:
 curl -fsSL https://lunaris.app/install.sh | bash -s -- https://notes.example.com
 ```
 
+Already running an HTTPS reverse proxy? Add `--tls-mode external` after
+`bash -s --`; Lunaris serves HTTP on localhost port 8080 behind your proxy.
+
 See [self-hosting guide](infra/self-host/README.md) for installation, configuration,
 backups, upgrades, and local evaluation. Community Edition is the default;
 licensed enterprise builds remain available through the

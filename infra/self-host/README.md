@@ -7,7 +7,8 @@ Images support AMD64 and ARM64. No source build, Bun, or Git required on your se
 ## Install
 
 Prepare a domain (for example, `notes.example.com`) with DNS pointing to your
-server. Open TCP ports 80 and 443. Caddy obtains and renews HTTPS certificates.
+server. Open TCP ports 80 and 443. Caddy obtains and renews HTTPS certificates
+by default. If an existing proxy handles HTTPS, use external TLS mode below.
 Install Docker Engine with the Compose 2.24+ plugin, curl, and OpenSSL first.
 Allow at least 4 GB RAM and enough disk for your resources and backups.
 
@@ -81,7 +82,8 @@ no image rebuild; existing clients must connect to the new URL.
 | `EMAIL_REPLY_TO` | Optional administrator reply address |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional Google sign-in; callback is `<PUBLIC_URL>/auth/callback/google` |
 | `SELF_HOSTED_PLAN` | `enterprise` quotas; cannot enable features absent from Community Edition |
-| `BIND_ADDRESS`, `HTTP_PORT`, `HTTPS_PORT` | Published interface/ports; defaults `0.0.0.0`, `80`, `443` |
+| `TLS_MODE` | `auto`; use `external` when an existing proxy handles HTTPS |
+| `BIND_ADDRESS`, `HTTP_PORT`, `HTTPS_PORT` | Auto defaults: `0.0.0.0`, `80`, `443`. External defaults: `127.0.0.1`, `8080`, no HTTPS port |
 
 Mail is needed for password-reset links and invitation delivery. No SMTP server,
 Polar account, analytics account, or third-party agent service is provisioned.
@@ -94,11 +96,41 @@ clients can discover the server through `/.well-known/lunaris-servers`.
 
 Keep deployment files unchanged; use `compose.override.yaml` for local Docker
 customizations. Installer and documented commands load the same override file.
-The bundled web service handles TLS. Running behind a proxy that terminates TLS
-requires a custom Caddy configuration and entrypoint for an internal HTTP
-listener; changing published ports alone is insufficient. Keep `PUBLIC_URL` set
-to the external HTTPS origin, preserve Host, support WebSockets, and stream
-`/sync/` without buffering. A built-in external-TLS mode is not provided.
+
+### Existing HTTPS reverse proxy
+
+Choose external TLS mode during installation:
+
+```sh
+curl -fsSL https://lunaris.app/install.sh | bash -s -- --tls-mode external
+```
+
+The installer prompts for your public domain. For unattended installation, append
+`https://notes.example.com`. External mode saves `TLS_MODE=external` in `.env`,
+serves HTTP on `127.0.0.1:8080`, and leaves certificates to your proxy. Keep
+`PUBLIC_URL=https://notes.example.com`; HTTPS URLs and secure cookies remain
+enabled. Installer readiness checks use the internal listener, so you can
+configure your proxy afterward.
+
+For an existing installation, set `TLS_MODE=external` in `.env`, then rerun
+`./install.sh`. To change the local port, set `HTTP_PORT` in `.env`. Default
+automatic HTTPS resumes when `TLS_MODE=auto`.
+
+Example for an existing Caddy proxy on the same host:
+
+```caddyfile
+notes.example.com {
+    reverse_proxy 127.0.0.1:8080 {
+        flush_interval -1
+    }
+}
+```
+
+Your proxy must preserve the original Host (including its port), support
+WebSocket upgrades, and stream `/sync/` without buffering. Caddy does this with
+the configuration above. For a proxy running in Docker, connect it to the
+installation's Docker network and use `web:80` as the upstream. Set `BIND_ADDRESS`
+explicitly only if the HTTP listener must be reachable from another host.
 
 ## Upgrade
 
@@ -202,6 +234,8 @@ normally. Offline data cannot be remotely erased.
 ## Development
 
 From a source checkout, `tooling/self-host/test-stack.sh` builds both images and
-runs isolated deployment checks. Published bundles never build on the server.
+runs isolated deployment checks. Then run
+`bash tooling/self-host/test-external-tls.sh` to check an existing TLS proxy using
+those images. Published bundles never build on the server.
 Licensed enterprise builds may set `--build-arg LUNARIS_EDITION=enterprise` for
 **both** Docker targets, subject to `ee/LICENSE`; public release images are CE.

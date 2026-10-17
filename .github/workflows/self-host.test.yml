@@ -26,10 +26,14 @@ jobs:
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - name: Build and test isolated deployment
         run: bash tooling/self-host/test-stack.sh
+      - name: Test external TLS proxy
+        run: bash tooling/self-host/test-external-tls.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: self-host-logs-${{ matrix.runner }}
-          path: .context/self-host-test.*/containers.log
+          path: |
+            .context/self-host-test.*/containers.log
+            .context/self-host-external.*/containers.log
           retention-days: 7
           include-hidden-files: true

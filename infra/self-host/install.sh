@@ -29,6 +29,14 @@ cleanup() { rmdir .install.lock 2>/dev/null || true; }
 trap cleanup EXIT
 trap 'echo "Installation failed. Run: docker compose ps --all; docker compose logs --tail=100" >&2' ERR
 
+tls_mode=${TLS_MODE:-auto}
+if [[ -f .env ]]; then
+  tls_mode=$(sed -n 's/^TLS_MODE=//p' .env)
+  tls_mode=${tls_mode:-auto}
+  [[ ${TLS_MODE:-$tls_mode} == "$tls_mode" ]] || fail 'TLS_MODE environment conflicts with .env. Edit .env explicitly to change modes.'
+fi
+[[ $tls_mode == auto || $tls_mode == external ]] || fail 'TLS_MODE must be auto or external.'
+
 if [[ ! -f .env ]]; then
   volumes=$(docker volume ls --filter "label=com.docker.compose.project=$project" --format '{{.Name}}')
   [[ -z "$volumes" ]] || fail 'Existing installation volumes found without .env. Restore configuration/secrets from backup; do not generate replacements.'
@@ -59,10 +67,12 @@ else
   fail 'PUBLIC_URL must be https://domain (no path/trailing slash), or http://localhost:port.'
 fi
 [[ ${PUBLIC_URL:-$origin} == "$origin" ]] || fail 'PUBLIC_URL environment conflicts with .env. Unset it before running installer.'
+[[ $tls_mode != external || $origin == https://* ]] || fail 'TLS_MODE=external requires an HTTPS PUBLIC_URL.'
 if [[ ! -f .env ]]; then
   {
     printf 'PUBLIC_URL=%s\n' "$origin"
     printf 'COMPOSE_PROJECT_NAME=%s\n' "$project"
+    printf 'TLS_MODE=%s\n' "$tls_mode"
     printf 'SIGNUPS_ALLOWED=true\nEMAIL_VERIFICATION_DISABLED=true\n'
     if [[ $origin == http://* ]]; then
       printf 'BIND_ADDRESS=127.0.0.1\nHTTP_PORT=%s\n' "$port"
@@ -91,13 +101,7 @@ compose config --quiet
 # use a Compose override with pull_policy: never; release images are digest-pinned.
 echo 'Pulling release images...'
 compose pull --policy missing
-# shellcheck disable=SC2016 # These variables expand inside the container.
-compose run --rm --no-deps --entrypoint /bin/sh web -ec '
-  export CADDY_SITE_ADDRESS="${PUBLIC_URL%%://*}://${PUBLIC_URL#*://}"
-  export PUBLIC_AUTHORITY="${PUBLIC_URL#*://}" PUBLIC_SCHEME="${PUBLIC_URL%%://*}"
-  export PRESENCE_ORIGIN="$(printf %s "$PUBLIC_URL" | sed s/^http/ws/)"
-  caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
-'
+compose run --rm --no-deps web validate
 # Docker's bind is authoritative; check ports before entering upgrade downtime.
 # Exclude this project's running web container from the probe on upgrades.
 if [[ -z $(compose ps --status running -q web) ]]; then
@@ -141,8 +145,18 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public TO powersync;
 ALTER DEFAULT PRIVILEGES FOR ROLE lunaris IN SCHEMA public GRANT SELECT ON TABLES TO powersync;
 SQL
 compose up -d --wait --wait-timeout 300
-# Confirm public routing and TLS, not merely that Caddy's process is alive.
-curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors --max-time 15 "$origin/v1/health" >/dev/null
-curl --fail --silent --show-error --max-time 15 "$origin/sync/probes/readiness" >/dev/null
-printf '\nLunaris ready: %s\nLogs: docker compose logs --tail=100\n' "$origin"
+if [[ $tls_mode == external ]]; then
+  # The external proxy may be configured after installation. Verify our routes
+  # with the canonical Host while keeping public URLs and secure cookies HTTPS.
+  for path in /v1/health /sync/probes/readiness; do
+    compose exec -T web wget -q -O /dev/null --header "Host: ${origin#*://}" "http://127.0.0.1$path"
+  done
+  printf '\nLunaris backend ready. Public URL: %s\nHTTP proxy upstream: %s\n' "$origin" "$(compose port web 80)"
+else
+  # Confirm public routing and TLS, not merely that Caddy's process is alive.
+  curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors --max-time 15 "$origin/v1/health" >/dev/null
+  curl --fail --silent --show-error --max-time 15 "$origin/sync/probes/readiness" >/dev/null
+  printf '\nLunaris ready: %s\n' "$origin"
+fi
+printf 'Logs: docker compose logs --tail=100\n'
 printf 'Registration: set SIGNUPS_ALLOWED=false in .env and run docker compose up -d when all accounts are created.\n'

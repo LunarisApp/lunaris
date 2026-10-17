@@ -38,6 +38,7 @@ set -eu
 cd -- "$(dirname -- "\${BASH_SOURCE[0]}")"
 [[ -f .env ]] || printf 'SECRET=original\\n' > .env
 if [[ \${TEST_SETUP_FAILURE:-0} == 1 ]]; then exit 42; fi
+printf '%s' "\${TLS_MODE:-auto}" > tls-mode
 printf '%s\\n' "\${1:-upgrade}" >> calls
 `
   );
@@ -84,6 +85,7 @@ cp "$TEST_ARCHIVE" "$output"
         TEST_DOWNLOAD_URL: join(root, "download-url"),
         TEST_DOWNLOAD_FAILURE: options.downloadFailure ? "1" : "0",
         TEST_SETUP_FAILURE: options.setupFailure ? "1" : "0",
+        TLS_MODE: undefined,
       },
     });
   return { root, invoke, directory: join(root, "lunaris") };
@@ -157,4 +159,15 @@ test("setup failure propagates and retry preserves generated secrets", () => {
 test("renderer rejects invalid release metadata", () => {
   expect(() => renderBootstrap("latest", "a".repeat(64))).toThrow();
   expect(() => renderBootstrap("1.2.3", "invalid")).toThrow();
+});
+
+test("piped installer forwards optional TLS mode and rejects invalid values", () => {
+  const { root, directory, invoke } = fixture();
+  const invalid = invoke(["--tls-mode", "invalid"]);
+  expect(invalid.status).not.toBe(0);
+  expect(existsSync(join(root, "download-url"))).toBe(false);
+  expect(
+    invoke(["--tls-mode", "external", "https://notes.example.com"]).status
+  ).toBe(0);
+  expect(readFileSync(join(directory, "tls-mode"), "utf8")).toBe("external");
 });

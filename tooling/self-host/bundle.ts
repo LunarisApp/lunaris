@@ -42,6 +42,8 @@ export function createBundle(options: BundleOptions) {
   mkdirSync(options.directory, { recursive: false });
   for (const file of [
     "install.sh",
+    "ports.auto.yaml",
+    "ports.external.yaml",
     ".env.example",
     "garage.toml",
     "powersync.yaml",

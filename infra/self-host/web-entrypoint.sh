@@ -13,9 +13,18 @@ export PUBLIC_AUTHORITY="${PUBLIC_URL#*://}"
 export PUBLIC_SCHEME="${PUBLIC_URL%%://*}"
 PRESENCE_ORIGIN=$(printf '%s' "$PUBLIC_URL" | sed 's/^http/ws/')
 export PRESENCE_ORIGIN
-# Caddy listens on container port 80 even when localhost is published elsewhere.
-case "$PUBLIC_URL" in
-  http://localhost:*|http://127.0.0.1:*) export CADDY_SITE_ADDRESS="http://${PUBLIC_AUTHORITY%%:*}" ;;
-  *) export CADDY_SITE_ADDRESS="$PUBLIC_URL" ;;
+# Caddy's listener is separate from the public origin behind a TLS proxy.
+case "${TLS_MODE:-auto}" in
+  auto)
+    CADDY_SITE_ADDRESS="$PUBLIC_URL"
+    case "$PUBLIC_URL" in
+      http://*) CADDY_SITE_ADDRESS="http://${PUBLIC_AUTHORITY%%:*}" ;;
+    esac ;;
+  external)
+    [ "$PUBLIC_SCHEME" = https ] || { echo 'TLS_MODE=external requires an HTTPS PUBLIC_URL' >&2; exit 1; }
+    CADDY_SITE_ADDRESS="http://$PUBLIC_AUTHORITY" ;;
+  *) echo 'TLS_MODE must be auto or external' >&2; exit 1 ;;
 esac
-exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+export CADDY_SITE_ADDRESS
+if [ "$#" -eq 0 ]; then set -- run; fi
+exec caddy "$@" --config /etc/caddy/Caddyfile --adapter caddyfile
