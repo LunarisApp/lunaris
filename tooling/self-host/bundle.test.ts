@@ -32,6 +32,9 @@ test("release bundle pins images, ships canonical sync rules, excludes secrets/b
   expect(files).toContain("smoke.sh");
   expect(files).toContain("ports.auto.yaml");
   expect(files).toContain("ports.external.yaml");
+  expect(files).toContain("web.true.yaml");
+  expect(files).toContain("web.false.yaml");
+  expect(files).toContain("Caddyfile.backend");
   const compose = parse(
     readFileSync(join(input.directory, "compose.yaml"), "utf8")
   );

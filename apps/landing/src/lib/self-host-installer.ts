@@ -22,11 +22,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function isNewerVersion(version: string, previous: string) {
+	const previousParts = previous.split(".").map(BigInt);
+	for (const [index, part] of version.split(".").map(BigInt).entries()) {
+		if (part !== previousParts[index]) return part > previousParts[index];
+	}
+	return false;
+}
+
 export async function latestInstallerUrl(
 	readPage: (page: number) => Promise<unknown> = readReleases,
 ) {
-	// Other components publish to this repository too. Follow pagination instead
-	// of using GitHub's repository-wide /latest release.
+	// Release creation order is not version order (for example, an older-line
+	// patch may be published later). Compare eligible versions across pages.
+	let latest: string | undefined;
 	for (let page = 1; page <= 10; page++) {
 		const releases = await readPage(page);
 		if (!Array.isArray(releases))
@@ -45,9 +54,15 @@ export async function latestInstallerUrl(
 			)
 				continue;
 			const version = release.tag_name.slice("self-hosted@".length);
-			if (versionPattern.test(version)) return installerUrl(version);
+			if (
+				versionPattern.test(version) &&
+				(!latest || isNewerVersion(version, latest))
+			) {
+				latest = version;
+			}
 		}
 		if (releases.length < 100) break;
 	}
+	if (latest) return installerUrl(latest);
 	throw new Error("No published self-hosted installer found");
 }

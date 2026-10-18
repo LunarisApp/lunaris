@@ -21,9 +21,12 @@ main() {
       --tls-mode)
         [[ $# -ge 2 && ($2 == auto || $2 == external) ]] || fail '--tls-mode requires auto or external.'
         export TLS_MODE=$2; shift 2 ;;
+      --no-web)
+        export WEB_ENABLED=false; shift ;;
       --help|-h)
-        echo 'Usage: curl -fsSL https://lunaris.app/install.sh | bash -s -- [PUBLIC_URL] [--dir DIRECTORY] [--tls-mode auto|external]'
+        echo 'Usage: curl -fsSL https://lunaris.app/install.sh | bash -s -- [PUBLIC_URL] [--dir DIRECTORY] [--tls-mode auto|external] [--no-web]'
         echo 'Omit PUBLIC_URL to prompt on first install; existing installations reuse .env.'
+        echo '--no-web omits the frontend and requires your own HTTPS reverse proxy.'
         return ;;
       http://*|https://*)
         [[ -z $origin ]] || fail 'Specify only one PUBLIC_URL.'

@@ -3,6 +3,8 @@
 Run Community Edition on one Linux server with Docker Compose. Six services:
 web/Caddy, API, PostgreSQL, Redis, PowerSync, and Garage file storage.
 Images support AMD64 and ARM64. No source build, Bun, or Git required on your server.
+The web frontend is optional; backend-only installations run five services behind
+your own HTTPS proxy.
 
 ## Install
 
@@ -71,6 +73,8 @@ is supported; browsers require secure contexts for offline storage and passkeys.
 
 Edit `.env`, then run `docker compose up -d`. Restart alone does not apply new
 settings. `PUBLIC_URL` is the browser-visible origin, without path/trailing slash.
+When changing `WEB_ENABLED`, rerun `./install.sh` so the old web container stops
+before its ports are reassigned.
 Production URLs use `https://domain` and standard port 443. Changing origin needs
 no image rebuild; existing clients must connect to the new URL.
 
@@ -83,13 +87,16 @@ no image rebuild; existing clients must connect to the new URL.
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional Google sign-in; callback is `<PUBLIC_URL>/auth/callback/google` |
 | `SELF_HOSTED_PLAN` | `enterprise` quotas; cannot enable features absent from Community Edition |
 | `TLS_MODE` | `auto`; use `external` when an existing proxy handles HTTPS |
+| `WEB_ENABLED` | `true`; `false` omits web and requires `TLS_MODE=external` |
+| `FRONTEND_URL` | Defaults to `PUBLIC_URL`; optional compatible frontend origin for auth links and allowed browser origin |
+| `API_PORT`, `SYNC_PORT`, `STORAGE_PORT` | Backend-only localhost ports: `3000`, `8080`, `3900` |
 | `BIND_ADDRESS`, `HTTP_PORT`, `HTTPS_PORT` | Auto defaults: `0.0.0.0`, `80`, `443`. External defaults: `127.0.0.1`, `8080`, no HTTPS port |
 
 Mail is needed for password-reset links and invitation delivery. No SMTP server,
 Polar account, analytics account, or third-party agent service is provisioned.
 Hosted welcome emails are disabled. PowerSync telemetry sharing is disabled.
 
-Only web ports are published. Database, Redis, Garage RPC, and API ports remain
+By default, only web ports are published. Database, Redis, Garage RPC, and API ports remain
 inside Docker's network. Same-origin `/sync/` supports streaming; `/v1/` supports
 presence WebSockets; `/lunaris/` serves signed file requests. Desktop and CLI
 clients can discover the server through `/.well-known/lunaris-servers`.
@@ -132,6 +139,48 @@ the configuration above. For a proxy running in Docker, connect it to the
 installation's Docker network and use `web:80` as the upstream. Set `BIND_ADDRESS`
 explicitly only if the HTTP listener must be reachable from another host.
 
+### Backend without web
+
+To use a compatible client without hosting the bundled web frontend:
+
+```sh
+curl -fsSL https://lunaris.app/install.sh | bash -s -- --no-web
+```
+
+Append `https://notes.example.com` for unattended installation. This saves
+`WEB_ENABLED=false` and `TLS_MODE=external`; upgrades retain both settings.
+The web image is neither pulled nor started. API, PostgreSQL, Redis, PowerSync,
+and Garage still run. `PUBLIC_URL` remains the backend's public HTTPS origin.
+
+Configure your existing HTTPS proxy using the bundled `Caddyfile.backend`
+example. Set `PUBLIC_URL` in Caddy's service environment to the backend origin,
+then import that file into your Caddy configuration. It routes API/auth,
+WebSockets, sync streams, signed files, and server/region discovery. Caddy
+obtains certificates as usual. The default upstreams on the same host are:
+
+| Route | HTTP upstream | Handling |
+| --- | --- | --- |
+| `/v1/*`, `/auth/*`, `/api/*`, `/oauth2/*`, other `/.well-known/*` | `127.0.0.1:3000` | Preserve path and Host |
+| `/sync/*` | `127.0.0.1:8080` | Strip `/sync`; stream without buffering |
+| `/lunaris/*` | `127.0.0.1:3900` | Preserve path, query, and Host for S3 signatures |
+
+The sample also serves discovery JSON. Other proxy software needs equivalent
+routes. For a proxy in Docker, join the installation's network and set
+`API_UPSTREAM=api:3000`, `SYNC_UPSTREAM=powersync:80`, and
+`STORAGE_UPSTREAM=garage:3900` in its environment. Keep the backend ports on
+loopback unless a proxy on another host must reach them.
+
+For an existing install, edit `.env` to set `WEB_ENABLED=false` and
+`TLS_MODE=external`, then rerun `./install.sh`. The installer removes the old web
+container and preserves data/certificate volumes. To restore bundled web, set
+`WEB_ENABLED=true`, choose your TLS mode, and rerun the installer.
+
+This option prepares server deployment for independent clients. It does not add
+third-party server selection to current production clients. Browser login,
+invitations, and password-reset screens need a compatible frontend; set
+`FRONTEND_URL` to that frontend's origin when available. No web pages are served
+by a backend-only installation.
+
 ## Upgrade
 
 Read release notes and take a backup first. From the existing installation
@@ -164,8 +213,9 @@ Back up the **whole installation**: `.env`, release files/overrides, and named
 volumes `postgres`, `redis`, `garage`, `admin`, `caddy`, and `caddy_config`.
 Garage metadata and blocks must stay together. `admin` contains password-recovery
 audit records; Caddy volumes contain certificate state.
+If web has never run, omit `caddy` and `caddy_config` from the volume loops below.
 
-For a consistent backup, stop all six services before archiving volumes. Example
+For a consistent backup, stop all running services before archiving volumes. Example
 for the default project (use absolute backup path):
 
 ```sh
@@ -210,7 +260,7 @@ volume prefixes: use exact names from `docker volume ls`.
 ```sh
 docker compose ps --all
 docker compose logs --tail=150 api powersync garage postgres
-# Read-only routing/discovery checks; requires Python 3.
+# Bundled-web routing/discovery checks; requires Python 3.
 bash smoke.sh https://notes.example.com
 # Run only after diagnosing an unhealthy sync service:
 docker compose restart powersync
@@ -219,6 +269,8 @@ docker compose restart powersync
 Health checks expose readiness; Docker restarts exited containers, not unhealthy
 ones. A sync outage does not restart database/API. After prolonged outages,
 PostgreSQL's 2 GB replication WAL cap may require PowerSync slot reset/full resync.
+For backend-only installs, check `/v1/health` and `/sync/probes/readiness` through
+your public proxy; `smoke.sh` also expects bundled web pages.
 
 Without mail, recover an existing password account through an interactive terminal:
 
@@ -237,5 +289,6 @@ From a source checkout, `tooling/self-host/test-stack.sh` builds both images and
 runs isolated deployment checks. Then run
 `bash tooling/self-host/test-external-tls.sh` to check an existing TLS proxy using
 those images. Published bundles never build on the server.
+Add `--no-web` to that test command to verify a backend-only installation.
 Licensed enterprise builds may set `--build-arg LUNARIS_EDITION=enterprise` for
 **both** Docker targets, subject to `ee/LICENSE`; public release images are CE.

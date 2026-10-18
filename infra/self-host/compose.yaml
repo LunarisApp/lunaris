@@ -49,6 +49,9 @@ services:
     logging: *logging
 
   garage:
+    extends:
+      file: ./web.${WEB_ENABLED:-true}.yaml
+      service: garage
     image: dxflrs/garage:v1.3.1@sha256:58e68794286868230708803e50495bfe7d1d1c7b696e0c2dee99b03c524fc960
     restart: unless-stopped
     command: ["/garage", "server"]
@@ -66,13 +69,16 @@ services:
     logging: *logging
 
   api:
+    extends:
+      file: ./web.${WEB_ENABLED:-true}.yaml
+      service: api
     # Release packaging replaces these tags with verified multi-platform digests.
     image: ghcr.io/lunarisapp/lunaris-api:0.0.0
     restart: unless-stopped
     environment:
       PUBLIC_URL: ${PUBLIC_URL:?Run ./install.sh first}
       URL: ${PUBLIC_URL}
-      FRONTEND_URL: ${PUBLIC_URL}
+      FRONTEND_URL: ${FRONTEND_URL:-${PUBLIC_URL}}
       POWERSYNC_URL: ${PUBLIC_URL}/sync
       APP_REGION: selfhost
       DATABASE_HOST: postgres
@@ -114,6 +120,9 @@ services:
     logging: *logging
 
   powersync:
+    extends:
+      file: ./web.${WEB_ENABLED:-true}.yaml
+      service: powersync
     image: journeyapps/powersync-service:1.26.1@sha256:413a0c813e96935ebe7203b5759f8a594a7b7cd8aa42134713e63af637e0f079
     restart: unless-stopped
     command: ["start", "-r", "unified"]
@@ -140,7 +149,7 @@ services:
     image: ghcr.io/lunarisapp/lunaris-web:0.0.0
     restart: unless-stopped
     extends:
-      file: ./ports.${TLS_MODE:-auto}.yaml
+      file: ./web.${WEB_ENABLED:-true}.yaml
       service: web
     environment:
       PUBLIC_URL: ${PUBLIC_URL}

@@ -32,6 +32,8 @@ case "$*" in
   info) exit 0 ;;
   'compose version --short') echo 2.35.0 ;;
   'volume ls '*) ${volumes ? "echo existing-postgres-volume" : ":"} ;;
+  *' config --quiet') [ -n "\${TEST_COMPOSE_SERVICES:-}" ] ;;
+  *' config --services') printf '%s\\n' "$TEST_COMPOSE_SERVICES" ;;
   *) echo unexpected-docker-command >&2; exit 1 ;;
 esac
 `
@@ -42,6 +44,9 @@ esac
     PATH: `${root}:${process.env.PATH}`,
     PUBLIC_URL: undefined,
     TLS_MODE: undefined,
+    WEB_ENABLED: undefined,
+    COMPOSE_PROFILES: undefined,
+    TEST_COMPOSE_SERVICES: undefined,
     COMPOSE_PROJECT_NAME: "fixture-installer",
   };
   const invoke = (
@@ -168,9 +173,56 @@ test("existing installations without TLS_MODE retain automatic mode", () => {
   const { root, invoke } = fixture();
   invoke("https://notes.example.com");
   const path = join(root, ".env");
-  const before = readFileSync(path, "utf8").replace("TLS_MODE=auto\n", "");
+  const before = readFileSync(path, "utf8")
+    .replace("TLS_MODE=auto\n", "")
+    .replace("WEB_ENABLED=true\n", "");
   writeFileSync(path, before);
   invoke();
+  expect(readFileSync(path, "utf8")).toBe(before);
+});
+
+test("backend-only installs persist external TLS and reject conflicting settings", () => {
+  const { root, invoke } = fixture();
+  invoke("https://notes.example.com", { WEB_ENABLED: "false" });
+  const path = join(root, ".env");
+  const before = readFileSync(path, "utf8");
+  expect(before).toContain("WEB_ENABLED=false\n");
+  expect(before).toContain("TLS_MODE=external\n");
+  invoke();
+  expect(readFileSync(path, "utf8")).toBe(before);
+  expect(
+    invoke(undefined, { WEB_ENABLED: "true" }).stderr.toString()
+  ).toContain("WEB_ENABLED environment conflicts");
+  for (const environment of [
+    { WEB_ENABLED: "invalid" },
+    { WEB_ENABLED: "false", TLS_MODE: "auto" },
+    { WEB_ENABLED: "false", COMPOSE_PROFILES: "web" },
+  ]) {
+    const fresh = fixture();
+    expect(
+      fresh.invoke("https://notes.example.com", environment).exitCode
+    ).not.toBe(0);
+    expect(existsSync(join(fresh.root, ".env"))).toBe(false);
+  }
+});
+
+test("backend-only install rejects web enabled by .env profiles before pulling", () => {
+  const { root, calls, invoke } = fixture();
+  invoke("https://notes.example.com", { WEB_ENABLED: "false" });
+  const path = join(root, ".env");
+  const before = `${readFileSync(path, "utf8")}COMPOSE_PROFILES=web\n`;
+  writeFileSync(path, before);
+  writeFileSync(calls, "");
+  const result = invoke(undefined, {
+    TEST_COMPOSE_SERVICES: "api\npowersync\nweb",
+  });
+  expect(result.exitCode).not.toBe(0);
+  expect(result.stderr.toString()).toContain(
+    "Compose enables web despite WEB_ENABLED=false"
+  );
+  const commands = readFileSync(calls, "utf8");
+  expect(commands).not.toContain(" pull ");
+  expect(commands).not.toContain(" stop ");
   expect(readFileSync(path, "utf8")).toBe(before);
 });
 

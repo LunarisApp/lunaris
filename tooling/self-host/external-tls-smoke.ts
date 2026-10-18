@@ -47,9 +47,17 @@ for (let attempt = 0; ; attempt++) {
     await Bun.sleep(250);
   }
 }
-assert(
-  (await request("/auth")).headers.get("Content-Type")?.includes("text/html")
-);
+if (process.env.SELF_HOST_NO_WEB) {
+  for (const path of ["/", "/auth"]) {
+    const response = await fetch(new URL(path, origin), { tls });
+    assert.equal(response.status, 404);
+    assert(!response.headers.get("Content-Type")?.includes("text/html"));
+  }
+} else {
+  assert(
+    (await request("/auth")).headers.get("Content-Type")?.includes("text/html")
+  );
+}
 const directory = await api<{ servers: { manifestUrl: string }[] }>(
   "/.well-known/lunaris-servers"
 );

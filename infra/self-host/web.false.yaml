@@ -1,0 +1,13 @@
+services:
+  api:
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${API_PORT:-3000}:3000"
+  powersync:
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${SYNC_PORT:-8080}:80"
+  garage:
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${STORAGE_PORT:-3900}:3900"
+  web:
+    # Disabled unless explicitly requested with --profile web.
+    profiles: [web]

@@ -28,6 +28,8 @@ jobs:
         run: bash tooling/self-host/test-stack.sh
       - name: Test external TLS proxy
         run: bash tooling/self-host/test-external-tls.sh
+      - name: Test backend without web
+        run: bash tooling/self-host/test-external-tls.sh --no-web
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:

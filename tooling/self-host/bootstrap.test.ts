@@ -39,6 +39,7 @@ cd -- "$(dirname -- "\${BASH_SOURCE[0]}")"
 [[ -f .env ]] || printf 'SECRET=original\\n' > .env
 if [[ \${TEST_SETUP_FAILURE:-0} == 1 ]]; then exit 42; fi
 printf '%s' "\${TLS_MODE:-auto}" > tls-mode
+printf '%s' "\${WEB_ENABLED:-true}" > web-enabled
 printf '%s\\n' "\${1:-upgrade}" >> calls
 `
   );
@@ -86,6 +87,7 @@ cp "$TEST_ARCHIVE" "$output"
         TEST_DOWNLOAD_FAILURE: options.downloadFailure ? "1" : "0",
         TEST_SETUP_FAILURE: options.setupFailure ? "1" : "0",
         TLS_MODE: undefined,
+        WEB_ENABLED: undefined,
       },
     });
   return { root, invoke, directory: join(root, "lunaris") };
@@ -170,4 +172,10 @@ test("piped installer forwards optional TLS mode and rejects invalid values", ()
     invoke(["--tls-mode", "external", "https://notes.example.com"]).status
   ).toBe(0);
   expect(readFileSync(join(directory, "tls-mode"), "utf8")).toBe("external");
+});
+
+test("piped installer forwards no-web without requiring a TLS flag", () => {
+  const { directory, invoke } = fixture();
+  expect(invoke(["https://notes.example.com", "--no-web"]).status).toBe(0);
+  expect(readFileSync(join(directory, "web-enabled"), "utf8")).toBe("false");
 });

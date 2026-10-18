@@ -29,13 +29,25 @@ cleanup() { rmdir .install.lock 2>/dev/null || true; }
 trap cleanup EXIT
 trap 'echo "Installation failed. Run: docker compose ps --all; docker compose logs --tail=100" >&2' ERR
 
+web_enabled=${WEB_ENABLED:-true}
+if [[ -f .env ]]; then
+  web_enabled=$(sed -n 's/^WEB_ENABLED=//p' .env)
+  web_enabled=${web_enabled:-true}
+  [[ ${WEB_ENABLED:-$web_enabled} == "$web_enabled" ]] || fail 'WEB_ENABLED environment conflicts with .env. Edit .env explicitly to change modes.'
+fi
+[[ $web_enabled == true || $web_enabled == false ]] || fail 'WEB_ENABLED must be true or false.'
 tls_mode=${TLS_MODE:-auto}
+if [[ $web_enabled == false && -z ${TLS_MODE:-} ]]; then tls_mode=external; fi
 if [[ -f .env ]]; then
   tls_mode=$(sed -n 's/^TLS_MODE=//p' .env)
   tls_mode=${tls_mode:-auto}
   [[ ${TLS_MODE:-$tls_mode} == "$tls_mode" ]] || fail 'TLS_MODE environment conflicts with .env. Edit .env explicitly to change modes.'
 fi
 [[ $tls_mode == auto || $tls_mode == external ]] || fail 'TLS_MODE must be auto or external.'
+if [[ $web_enabled == false ]]; then
+  [[ $tls_mode == external ]] || fail 'WEB_ENABLED=false requires TLS_MODE=external and your own HTTPS proxy.'
+  [[ -z ${COMPOSE_PROFILES:-} ]] || fail 'Unset COMPOSE_PROFILES when WEB_ENABLED=false.'
+fi
 
 if [[ ! -f .env ]]; then
   volumes=$(docker volume ls --filter "label=com.docker.compose.project=$project" --format '{{.Name}}')
@@ -73,6 +85,7 @@ if [[ ! -f .env ]]; then
     printf 'PUBLIC_URL=%s\n' "$origin"
     printf 'COMPOSE_PROJECT_NAME=%s\n' "$project"
     printf 'TLS_MODE=%s\n' "$tls_mode"
+    printf 'WEB_ENABLED=%s\n' "$web_enabled"
     printf 'SIGNUPS_ALLOWED=true\nEMAIL_VERIFICATION_DISABLED=true\n'
     if [[ $origin == http://* ]]; then
       printf 'BIND_ADDRESS=127.0.0.1\nHTTP_PORT=%s\n' "$port"
@@ -96,20 +109,40 @@ value=$(sed -n 's/^AWS_ACCESS_KEY_ID=//p' .env)
 [[ ${AWS_ACCESS_KEY_ID:-$value} == "$value" ]] || fail 'AWS_ACCESS_KEY_ID environment conflicts with .env. Unset it before running installer.'
 [[ "$value" =~ ^GK[0-9a-fA-F]{24}$ ]] || fail 'AWS_ACCESS_KEY_ID missing or invalid. Restore it from backup.'
 compose config --quiet
+if [[ $web_enabled == false ]]; then
+  active_services=$(compose config --services)
+  if grep -Fxq web <<< "$active_services"; then
+    fail 'Compose enables web despite WEB_ENABLED=false. Remove the web profile from COMPOSE_PROFILES in your shell/.env or Compose overrides.'
+  fi
+fi
 
 # Pull and validate before touching a running installation. For local development,
 # use a Compose override with pull_policy: never; release images are digest-pinned.
 echo 'Pulling release images...'
 compose pull --policy missing
-compose run --rm --no-deps web validate
-# Docker's bind is authoritative; check ports before entering upgrade downtime.
-# Exclude this project's running web container from the probe on upgrades.
-if [[ -z $(compose ps --status running -q web) ]]; then
-  compose run --rm --no-deps --service-ports --entrypoint /bin/sh web -c true
+if [[ $web_enabled == true ]]; then
+  compose run --rm --no-deps web validate
+  # Docker's bind is authoritative; check ports before entering upgrade downtime.
+  # Existing app containers may own these ports while changing hosting modes.
+  if [[ -z $(compose ps --status running -q web api powersync) ]]; then
+    compose run --rm --no-deps --service-ports --entrypoint /bin/sh web -c true
+  fi
+else
+  # Bind each backend's published ports without starting its service process.
+  for service in api powersync garage; do
+    if [[ -z $(compose ps --status running -q "$service" web) ]]; then
+      case $service in
+        api) compose run --rm --no-deps --service-ports --entrypoint bun api -e '' ;;
+        powersync) compose run --rm --no-deps --service-ports --entrypoint node powersync -e '' ;;
+        garage) compose run --rm --no-deps --service-ports --entrypoint /garage garage --help >/dev/null ;;
+      esac
+    fi
+  done
 fi
 
 echo 'Stopping application services for setup/migrations...'
 compose stop web powersync api
+if [[ $web_enabled == false ]]; then compose rm --force web; fi
 compose up -d --wait --wait-timeout 180 postgres redis garage
 # Secrets stay on stdin, outside command arguments and installer output.
 {
@@ -145,7 +178,19 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public TO powersync;
 ALTER DEFAULT PRIVILEGES FOR ROLE lunaris IN SCHEMA public GRANT SELECT ON TABLES TO powersync;
 SQL
 compose up -d --wait --wait-timeout 300
-if [[ $tls_mode == external ]]; then
+if [[ $web_enabled == false ]]; then
+  compose exec -T api bun -e '
+    for (const url of ["http://127.0.0.1:3000/v1/health", "http://powersync:80/probes/readiness"]) {
+      const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      if (!response.ok) throw new Error(url + ": HTTP " + response.status);
+    }
+  '
+  printf '\nLunaris backend ready. Public URL: %s\n' "$origin"
+  for target in api:3000 powersync:80 garage:3900; do
+    printf 'HTTP proxy upstream (%s): %s\n' "${target%:*}" "$(compose port "${target%:*}" "${target#*:}")"
+  done
+  printf 'Configure your HTTPS proxy using Caddyfile.backend and a compatible client.\n'
+elif [[ $tls_mode == external ]]; then
   # The external proxy may be configured after installation. Verify our routes
   # with the canonical Host while keeping public URLs and secure cookies HTTPS.
   for path in /v1/health /sync/probes/readiness; do
