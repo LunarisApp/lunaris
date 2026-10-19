@@ -8,12 +8,14 @@
     "internal/*",
     "packages/*",
     "extensions/*",
-    "ee/*"
+    "ee/*",
+    "infra/self-host"
   ],
   "scripts": {
     "brand:check": "bun tooling/generate-brand-assets.ts --check",
     "brand:generate": "bun tooling/generate-brand-assets.ts",
-    "brand:typecheck": "node ./node_modules/@typescript/native/bin/tsc --noEmit -p tooling/tsconfig.json",
+    "brand:typecheck": "bun run tooling:typecheck",
+    "tooling:typecheck": "node ./node_modules/@typescript/native/bin/tsc --noEmit -p tooling/tsconfig.json",
     "public:reports": "bun tooling/validate-public-packages.ts --update-reports --skip-fixture",
     "public:validate": "bun tooling/validate-public-packages.ts",
     "build": "turbo build",

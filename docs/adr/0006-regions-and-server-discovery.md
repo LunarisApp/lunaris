@@ -46,8 +46,8 @@ see [ADR 0002](0002-offline-first.md).
 
 ### Support self-hosted discovery
 
-The all-in-one deployment publishes both directories and its manifest using
-`PUBLIC_URL`. Clients with custom-server support can resolve those endpoints
+The self-hosted Compose deployment publishes both directories and its manifest
+using `PUBLIC_URL`. Clients with custom-server support can resolve those endpoints
 without assuming an official Lunaris backend. Managed and self-hosted deployments
 can use the same discovery contracts while offering different capabilities.
 
@@ -100,4 +100,4 @@ security and browser integration work.
 - [CLI server discovery](../../apps/cli/src/discovery.rs)
 - [Desktop server discovery](../../apps/desktop/src/agent-client/server-discovery.ts)
 - [Desktop storage scope](../../apps/desktop/src/powersync-storage.ts)
-- [Self-hosted discovery and configuration](../../infra/all-in-one/README.md)
+- [Self-hosted discovery and configuration](../../infra/self-host/README.md)

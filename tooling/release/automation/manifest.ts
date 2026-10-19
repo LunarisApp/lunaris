@@ -4,7 +4,7 @@ import { git } from "./process";
 
 export const manifestPath = ".release/manifest.json";
 export interface ReleaseEntry {
-  kind: "npm" | "hosted";
+  kind: "npm" | "hosted" | "self-hosted";
   name: string;
   notes: string;
   path: string;

@@ -12,6 +12,14 @@
 - `release.publish.yml` versions, validates, tags, publishes, and back-merges.
 - `packages.publish.yml` publishes public npm packages through the coordinator.
 - `apps.publish.yml` deploys stable releases to Railway through the coordinator.
+- `self-host.test.yml` tests the isolated Compose deployment on native AMD64/ARM64.
+- `self-host.publish.yml` publishes digest-pinned CE images, a deployment bundle,
+  and a release-specific remote installer with an embedded bundle checksum
+  for `self-hosted@<version>`, after release validation. GHCR packages must be public
+  for anonymous installation; set their visibility after first image publication,
+  then rerun the bundle job. Anonymous access is checked before release promotion.
+  The landing site's `/install.sh` redirects to the latest stable self-hosted
+  installer asset; `?version=<version>` selects a specific release.
 
 See [release setup and operation](../../docs/procedures/releasing-and-deploying.md).
 Release automation and PR release-policy checks are enabled by default.
@@ -115,3 +123,34 @@ browser normally. Bun downloads and native Cargo builds persist across runs.
 Edition and SDK build jobs persist Turbo cache with separate OS/job/edition keys.
 Hosted sites remain uncached: docs postbuild writes `public/_pagefind`, outside
 current Turbo outputs. Revisit those outputs before enabling hosted-site reuse.
+
+## Shared setup and validation
+
+All workflows use the local `setup-bun` composite action. It reads the exact Bun
+version from root `package.json` (`packageManager`) and exports `BUN_VERSION` for
+job-specific Turbo cache keys. Checkout and `bun install --frozen-lockfile` remain
+explicit in each job. Download caching is opt-in and enabled only for the existing
+CI jobs. E2E still installs Cypress and clears Bun's download cache afterward.
+Manual npm recovery loads the setup action from the recovery tooling checkout,
+so older release commits need not contain the action.
+
+The aggregate `CI` job runs the dependency-free `tooling/ci/gate.ts` evaluator.
+It checks selection outputs, mandatory and selected job results, PR release
+policy, and required E2E results. Failed, cancelled, or malformed results fail the
+gate. The gate installs no workspace dependencies.
+
+General workflow contracts, action SHA pins (including local composite action
+steps), setup, and gate tests run unconditionally in CI. Release-specific tests
+remain under `tooling/release/automation`.
+
+Run the same checks locally with the repository-pinned Bun:
+
+```sh
+bun test tooling/ci tooling/ci-selection.test.ts tooling/precommit.test.ts
+bun run release:test
+bun run tooling:typecheck
+bun run check
+```
+
+`tooling:typecheck` covers all TypeScript under `tooling/`; `brand:typecheck` remains
+an alias for existing callers.

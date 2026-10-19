@@ -3,14 +3,17 @@
 Run `bun changeset` for releasable changes to:
 
 - `@lunarisapp/plugin-sdk` and `@lunarisapp/ui`;
-- hosted `api`, `web`, `docs`, and `landing` apps.
+- hosted `api`, `web`, `docs`, and `landing` apps;
+- the `self-hosted` deployment bundle.
 
 Select each affected target, including consumers of changed private libraries.
-Each target versions independently. Feature PRs target `next`; hotfix PRs target
+Each target versions independently. API, web, and sync changes also require a
+`self-hosted` entry; deployment changes can release that target alone.
+Feature PRs target `next`; hotfix PRs target
 `main` and use patch bumps only. Test/repository-documentation-only changes can
 omit a changeset; hosted docs content needs a `docs` changeset.
 
-`bun run release:version` consumes only these six targets. CLI/Desktop changesets
+`bun run release:version` consumes only these seven targets. CLI/Desktop changesets
 are preserved for their separate release process. Never run unscoped
 `changeset version` in release automation.
 

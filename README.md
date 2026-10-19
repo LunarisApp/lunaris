@@ -53,26 +53,33 @@ for storage and sync details.
 
 ## Self-host Lunaris
 
-Run the web app, API, sync, database, and file storage in one persistent container.
-The all-in-one deployment is designed for personal use, demos, and homelabs.
-
-With Docker running, clone the repository and start it:
+Run Lunaris on one Linux server using prebuilt Docker images:
 
 ```sh
-git clone https://github.com/LunarisApp/lunaris.git
-cd lunaris
-docker compose -f infra/all-in-one/compose.yaml up -d --build --wait
+curl -fsSL https://lunaris.app/install.sh | bash
 ```
 
-This builds Community Edition. For licensed enterprise builds, see the
+The installer downloads and verifies the latest stable release into `./lunaris`,
+asks for your domain, generates secrets, sets up databases and file storage, runs
+migrations, and starts the web app with automatic HTTPS. Requires Docker Compose,
+a domain pointing to your server, and open ports 80/443. AMD64 and ARM64 supported.
+Allow at least 4 GB RAM. Single server; no high availability.
+
+For unattended installation, pass the public URL:
+
+```sh
+curl -fsSL https://lunaris.app/install.sh | bash -s -- https://notes.example.com
+```
+
+Already running an HTTPS reverse proxy? Add `--tls-mode external` after
+`bash -s --`; Lunaris serves HTTP on localhost port 8080 behind your proxy.
+To omit the bundled web frontend, use `--no-web` and configure your own HTTPS
+proxy using the backend routing example in the self-hosting guide.
+
+See [self-hosting guide](infra/self-host/README.md) for installation, configuration,
+backups, upgrades, and local evaluation. Community Edition is the default;
+licensed enterprise builds remain available through the
 [edition guide](ee/README.md#build-selection).
-
-Open [localhost:8080](http://localhost:8080) and create an account.
-Allow at least 4 GB of RAM for runtime; builds need more.
-
-The default setup binds to localhost. Before exposing it, follow the
-[self-hosting guide](infra/all-in-one/README.md) for HTTPS, signups, backups,
-and upgrades. It is a single-node deployment without high availability.
 
 ## Build on Lunaris
 
@@ -107,8 +114,7 @@ bun run dev
 
 Open [localhost:5173](http://localhost:5173). The API runs on port `3000`;
 local services use `5432` (PostgreSQL), `8080` (PowerSync), and `3900`/`3903`
-(Garage). Stop the all-in-one deployment before starting this setup: both use
-port `8080`.
+(Garage).
 
 Development defaults are committed in `apps/api/.env.development` and
 `apps/web/.env.development`. Use gitignored `.env.local` files for personal

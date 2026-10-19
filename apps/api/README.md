@@ -17,7 +17,7 @@ API on port `3000` from the repository root:
 bun run --cwd apps/api dev
 ```
 
-For deployment, see the [self-hosting guide](../../infra/all-in-one/README.md).
+For deployment, see the [self-hosting guide](../../infra/self-host/README.md).
 
 `.env.development` supplies local defaults, including
 `EMAIL_VERIFICATION_DISABLED=true`, `POLAR_DISABLED=true`, and

@@ -45,8 +45,9 @@ LUNARIS_EDITION=enterprise bun run dev
 ```
 
 Community builds omit team endpoints, audit review/signing services, and their UI.
-The all-in-one community image excludes `ee/` and its workspace dependencies;
-building still uses the complete checkout. Enterprise builds include the EE license.
+The self-hosted Community Edition API image excludes `ee/` and its workspace
+dependencies; building still uses the complete checkout. Enterprise builds include
+the EE license.
 Changing a running container's environment cannot enable omitted code: rebuild.
 Commercial license validation is not implemented; the license still applies.
 Railway configurations explicitly select enterprise to preserve hosted features.

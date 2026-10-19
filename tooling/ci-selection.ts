@@ -6,8 +6,14 @@ export const optionalJobs = [
   "agent-rust",
   "desktop-mcp",
   "sites",
+  "self-hosted",
 ] as const;
-const checks = [...optionalJobs, "brand", "powersync", "release"] as const;
+export const checks = [
+  ...optionalJobs,
+  "brand",
+  "powersync",
+  "release",
+] as const;
 
 export function selectChecks(
   files: string[],
@@ -17,7 +23,7 @@ export function selectChecks(
   const all = () => Object.fromEntries(checks.map((name) => [name, true]));
   // Unknown root/tooling inputs must never silently lose coverage.
   const known =
-    /^(apps\/|internal\/|packages\/|extensions\/|ee\/|crates\/|assets\/brand\/|infra\/|tooling\/(powersync|generate-brand-assets|release\/)|docs\/|\.changeset\/)/;
+    /^(apps\/|internal\/|packages\/|extensions\/|ee\/|crates\/|assets\/brand\/|infra\/|tooling\/(powersync|generate-brand-assets|release\/|self-host\/)|docs\/|\.changeset\/)/;
   const repositoryDoc = (file: string) =>
     file.startsWith("docs/") || (!file.includes("/") && file.endsWith(".md"));
   if (
@@ -45,6 +51,9 @@ export function selectChecks(
       has("desktop", "@repo/agent-contracts", "@lunarisapp/plugin-sdk") ||
       changed(/^(crates\/|tooling\/mcp|assets\/brand\/)/),
     sites: has("docs", "landing"),
+    "self-hosted":
+      has("api", "web", "self-hosted") ||
+      changed(/^(infra\/|tooling\/(editions\/|self-host\/))/),
     brand: changed(
       /^(assets\/brand\/|tooling\/generate-brand-assets|apps\/(desktop|web|landing)\/public\/|apps\/desktop\/src-tauri\/icons\/)/
     ),

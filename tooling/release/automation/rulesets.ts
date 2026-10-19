@@ -25,7 +25,7 @@ export function releaseRulesets(appId: number, maintainerTeamId: number) {
       include: [
         "refs/tags/@lunarisapp/plugin-sdk@*",
         "refs/tags/@lunarisapp/ui@*",
-        ...["api", "web", "docs", "landing"].map(
+        ...["api", "web", "docs", "landing", "self-hosted"].map(
           (name) => `refs/tags/${name}@*`
         ),
       ],
@@ -106,7 +106,7 @@ export function releaseRulesets(appId: number, maintainerTeamId: number) {
             name: "Stable package versions",
             operator: "regex",
             pattern:
-              "^(@lunarisapp/(plugin-sdk|ui)|api|web|docs|landing)@[0-9]+\\.[0-9]+\\.[0-9]+$",
+              "^(@lunarisapp/(plugin-sdk|ui)|api|web|docs|landing|self-hosted)@[0-9]+\\.[0-9]+\\.[0-9]+$",
             negate: false,
           },
         },

@@ -61,6 +61,7 @@ if (mode === "version") {
       "internal",
       "extensions",
       "ee",
+      "infra",
       "bun.lock",
       manifestPath
     );

@@ -20,7 +20,7 @@ SDK capability do not connect.
   WebSocket handshake enforces these origins too.
 - The hosted web CSP derives `ws:` / `wss:` origins from its configured API URLs.
   Custom web/proxy CSPs must include the exact presence API WebSocket origin in
-  `connect-src`. The all-in-one proxy forwards upgrades on `/v1/`.
+  `connect-src`. The self-hosted Caddy proxy forwards upgrades on `/v1/`.
 - Restart the API after Redis configuration changes. Redis failure disables
   presence; editing and PowerSync content synchronization continue independently.
 

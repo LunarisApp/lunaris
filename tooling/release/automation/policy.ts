@@ -8,6 +8,7 @@ export const targets = [
   { name: "web", path: "apps/web", kind: "hosted" },
   { name: "docs", path: "apps/docs", kind: "hosted" },
   { name: "landing", path: "apps/landing", kind: "hosted" },
+  { name: "self-hosted", path: "infra/self-host", kind: "self-hosted" },
 ] as const;
 export type Target = (typeof targets)[number];
 export type Bump = "patch" | "minor" | "major";
@@ -73,7 +74,7 @@ export interface Workspace {
   path: string;
 }
 export function readWorkspaces(): Workspace[] {
-  return ["apps", "packages", "internal", "extensions", "ee"].flatMap(
+  return ["apps", "packages", "internal", "extensions", "ee", "infra"].flatMap(
     (directory) =>
       readdirSync(directory, { withFileTypes: true })
         .filter((entry) => entry.isDirectory())
@@ -132,6 +133,13 @@ export function affectedTargets(
     ) {
       changed.add("api");
     }
+    if (
+      file.startsWith("infra/self-host/") ||
+      file.startsWith("tooling/self-host/") ||
+      file === ".github/workflows/self-host.publish.yml"
+    ) {
+      changed.add("self-hosted");
+    }
     for (const workspace of workspaces) {
       if (file.startsWith(`${workspace.path}/`)) {
         changed.add(workspace.name);
@@ -146,6 +154,9 @@ export function affectedTargets(
         changed.add(workspace.name);
       }
     }
+  }
+  if (changed.has("api") || changed.has("web")) {
+    changed.add("self-hosted");
   }
   return targets
     .filter((target) => changed.has(target.name))
