@@ -1,0 +1,56 @@
+# Example for an existing Caddy proxy on the same host. Set PUBLIC_URL to the
+# backend's HTTPS origin in Caddy's environment, then import this file.
+# For a proxy in Docker, set upstreams to api:3000, powersync:80, garage:3900
+# and connect that proxy to the installation's Docker network.
+(backend_headers) {
+	header_up -Forwarded
+	header_up X-Forwarded-Proto https
+	flush_interval -1
+}
+
+{$PUBLIC_URL} {
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options SAMEORIGIN
+		Strict-Transport-Security "max-age=31536000"
+	}
+	@regions path /regions.json /.well-known/lunaris-regions
+	handle @regions {
+		header Content-Type application/json
+		header Cache-Control no-store
+		header Access-Control-Allow-Origin *
+		header Cross-Origin-Resource-Policy cross-origin
+		respond `{"schemaVersion":1,"regions":[{"regionId":"selfhost","displayName":"Self-hosted","manifestUrl":"{env.PUBLIC_URL}/v1/manifest","status":"available"}]}`
+	}
+	handle /.well-known/lunaris-servers {
+		header Content-Type application/json
+		header Cache-Control no-store
+		header Access-Control-Allow-Origin *
+		header Cross-Origin-Resource-Policy cross-origin
+		respond `{"schemaVersion":1,"servers":[{"serverId":"selfhost","displayName":"Self-hosted","manifestUrl":"{env.PUBLIC_URL}/v1/manifest","status":"available"}]}`
+	}
+	handle_path /sync/* {
+		reverse_proxy {$SYNC_UPSTREAM:127.0.0.1:8080} {
+			import backend_headers
+		}
+	}
+	# Preserve original Host and URI: both are covered by S3 signatures.
+	handle /lunaris/* {
+		reverse_proxy {$STORAGE_UPSTREAM:127.0.0.1:3900} {
+			import backend_headers
+		}
+	}
+	@api path /v1 /v1/* /auth /auth/* /api /api/* /oauth2 /oauth2/* /.well-known/*
+	handle @api {
+		request_body {
+			max_size 256MB
+		}
+		reverse_proxy {$API_UPSTREAM:127.0.0.1:3000} {
+			import backend_headers
+		}
+	}
+	handle {
+		respond "Lunaris server: connect using a compatible client." 404
+	}
+}

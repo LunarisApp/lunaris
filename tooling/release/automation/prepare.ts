@@ -14,7 +14,7 @@ if (
 }
 const releases = versionTargets();
 const body = [
-  "Mark this PR ready for review to run full E2E, then wait for CI on the latest revision. Merge with a **merge commit** when ready. This publishes npm packages and deploys affected hosted apps to Railway production automatically.",
+  "Mark this PR ready for review to run full E2E, then wait for CI on the latest revision. Merge with a **merge commit** when ready. This publishes npm packages and deploys affected hosted apps to Railway production, and publishes self-hosted deployment bundles automatically.",
   "No preview deployments or release candidates. Database/sync changes must remain compatible with existing clients.",
   ...releases.map((entry) => `## ${entry.tag}\n\n${entry.notes}`),
   ...(releases.length

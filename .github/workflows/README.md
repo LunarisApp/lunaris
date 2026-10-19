@@ -12,6 +12,14 @@
 - `release.publish.yml` versions, validates, tags, publishes, and back-merges.
 - `packages.publish.yml` publishes public npm packages through the coordinator.
 - `apps.publish.yml` deploys stable releases to Railway through the coordinator.
+- `self-host.test.yml` tests the isolated Compose deployment on native AMD64/ARM64.
+- `self-host.publish.yml` publishes digest-pinned CE images, a deployment bundle,
+  and a release-specific remote installer with an embedded bundle checksum
+  for `self-hosted@<version>`, after release validation. GHCR packages must be public
+  for anonymous installation; set their visibility after first image publication,
+  then rerun the bundle job. Anonymous access is checked before release promotion.
+  The landing site's `/install.sh` redirects to the latest stable self-hosted
+  installer asset; `?version=<version>` selects a specific release.
 
 See [release setup and operation](../../docs/procedures/releasing-and-deploying.md).
 Release automation and PR release-policy checks are enabled by default.

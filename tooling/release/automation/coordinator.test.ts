@@ -115,7 +115,7 @@ test("fresh changesets release formats JSON and pushes its version commit", () =
   put("package.json", {
     name: "fixture",
     private: true,
-    workspaces: ["apps/*", "packages/*"],
+    workspaces: ["apps/*", "packages/*", "infra/*"],
   });
   writeFileSync(join(cwd, "bun.lock"), "");
   writeFileSync(join(cwd, ".gitignore"), "node_modules/\n");

@@ -1,0 +1,8 @@
+services:
+  api: {}
+  powersync: {}
+  garage: {}
+  web:
+    extends:
+      file: ./ports.${TLS_MODE:-auto}.yaml
+      service: web

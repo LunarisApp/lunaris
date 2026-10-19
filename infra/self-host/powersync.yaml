@@ -7,9 +7,9 @@ storage:
   type: postgresql
   uri: !env PS_POSTGRES_BUCKET_URL
   sslmode: disable
-port: 8082
+port: 80
 client_auth:
-  jwks_uri: http://127.0.0.1:3000/auth/jwks
+  jwks_uri: http://api:3000/auth/jwks
   audience:
     - !env PS_AUTH_AUD
 sync_rules:

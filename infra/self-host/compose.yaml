@@ -1,0 +1,171 @@
+name: lunaris-self-host
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  postgres:
+    image: postgres:17@sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run ./install.sh first}
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_replication_slots=10
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_slot_wal_keep_size=2GB
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      # The entrypoint's temporary initialization server only accepts sockets.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    stop_grace_period: 1m
+    logging: *logging
+
+  redis:
+    image: redis:7-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Run ./install.sh first}
+    command: ["sh", "-ec", 'exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes']
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: *logging
+
+  garage:
+    extends:
+      file: ./web.${WEB_ENABLED:-true}.yaml
+      service: garage
+    image: dxflrs/garage:v1.3.1@sha256:58e68794286868230708803e50495bfe7d1d1c7b696e0c2dee99b03c524fc960
+    restart: unless-stopped
+    command: ["/garage", "server"]
+    environment:
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:?Run ./install.sh first}
+    volumes:
+      - garage:/var/lib/garage
+      - ./garage.toml:/etc/garage.toml:ro
+    healthcheck:
+      test: ["CMD", "/garage", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    stop_grace_period: 1m
+    logging: *logging
+
+  api:
+    extends:
+      file: ./web.${WEB_ENABLED:-true}.yaml
+      service: api
+    # Release packaging replaces these tags with verified multi-platform digests.
+    image: ghcr.io/lunarisapp/lunaris-api:0.0.0
+    restart: unless-stopped
+    environment:
+      PUBLIC_URL: ${PUBLIC_URL:?Run ./install.sh first}
+      URL: ${PUBLIC_URL}
+      FRONTEND_URL: ${FRONTEND_URL:-${PUBLIC_URL}}
+      POWERSYNC_URL: ${PUBLIC_URL}/sync
+      APP_REGION: selfhost
+      DATABASE_HOST: postgres
+      DATABASE_PORT: "5432"
+      DATABASE_USER: lunaris
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Run ./install.sh first}
+      DATABASE_NAME: lunaris
+      DATABASE_SSL: "false"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      AWS_ENDPOINT_URL: http://garage:3900
+      AWS_PUBLIC_ENDPOINT_URL: ${PUBLIC_URL}
+      AWS_DEFAULT_REGION: garage
+      AWS_S3_BUCKET: lunaris
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:?Run ./install.sh first}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?Run ./install.sh first}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Run ./install.sh first}
+      LOCAL_DB_ENCRYPTION_MASTER_KEY: ${LOCAL_DB_ENCRYPTION_MASTER_KEY:?Run ./install.sh first}
+      AUDIT_LOG_HMAC_SECRET: ${AUDIT_LOG_HMAC_SECRET:?Run ./install.sh first}
+      SIGNUPS_ALLOWED: ${SIGNUPS_ALLOWED:-true}
+      EMAIL_VERIFICATION_DISABLED: ${EMAIL_VERIFICATION_DISABLED:-true}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      SELF_HOSTED_PLAN: ${SELF_HOSTED_PLAN:-enterprise}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+    volumes:
+      - admin:/data
+    stop_grace_period: 30s
+    logging: *logging
+
+  powersync:
+    extends:
+      file: ./web.${WEB_ENABLED:-true}.yaml
+      service: powersync
+    image: journeyapps/powersync-service:1.26.1@sha256:413a0c813e96935ebe7203b5759f8a594a7b7cd8aa42134713e63af637e0f079
+    restart: unless-stopped
+    command: ["start", "-r", "unified"]
+    environment:
+      PS_POSTGRES_SOURCE_URL: postgresql://powersync:${POWERSYNC_PASSWORD:?Run ./install.sh first}@postgres:5432/lunaris
+      PS_POSTGRES_BUCKET_URL: postgresql://powersync:${POWERSYNC_PASSWORD}@postgres:5432/powersync_storage
+      PS_AUTH_AUD: ${PUBLIC_URL}/sync
+    volumes:
+      - ./powersync.yaml:/app/powersync.yaml:ro
+      - ./sync_rules.yaml:/app/sync_rules.yaml:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:80/probes/readiness').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 10s
+      start_period: 90s
+      retries: 12
+    stop_grace_period: 1m
+    logging: *logging
+
+  web:
+    image: ghcr.io/lunarisapp/lunaris-web:0.0.0
+    restart: unless-stopped
+    extends:
+      file: ./web.${WEB_ENABLED:-true}.yaml
+      service: web
+    environment:
+      PUBLIC_URL: ${PUBLIC_URL}
+      TLS_MODE: ${TLS_MODE:-auto}
+    volumes:
+      - caddy:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    logging: *logging
+
+volumes:
+  postgres:
+  redis:
+  garage:
+  caddy:
+  caddy_config:
+  admin:

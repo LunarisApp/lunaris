@@ -27,7 +27,7 @@ Railway environment.
 
 Keep application configuration and service contracts explicit without coupling
 product behavior to Railway. Local development and self-hosting remain repository
-concerns through `infra/local` and `infra/all-in-one`; they do not need to reproduce
+concerns through `infra/local` and `infra/self-host`; they do not need to reproduce
 the managed production topology. Regional discovery continues to follow
 [ADR 0006](0006-regions-and-server-discovery.md).
 
@@ -59,5 +59,5 @@ changes.
 - [Documentation site deployment configuration](../../apps/docs/railway.json)
 - [Landing page deployment configuration](../../apps/landing/railway.json)
 - [Local development services](../../infra/local/compose.yaml)
-- [Self-hosted deployment](../../infra/all-in-one/README.md)
+- [Self-hosted deployment](../../infra/self-host/README.md)
 - [Regions and server discovery](0006-regions-and-server-discovery.md)

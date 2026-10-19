@@ -112,3 +112,24 @@ test("publication entrypoints remain explicit", () => {
   expect(Object.keys(workflow("apps.publish").on)).toEqual(["workflow_call"]);
   expect(workflow("release").jobs["version-pr"]).toBeUndefined();
 });
+
+test("self-host publishing follows validation, with both native architectures and bundle promotion", () => {
+  const pipeline = workflow("release.publish").jobs;
+  expect(pipeline["self-hosted"].needs).toEqual(["version", "tag"]);
+  expect(pipeline.result.needs).toContain("self-hosted");
+  expect(pipeline["self-hosted"].permissions.packages).toBe("write");
+  const publish = workflow("self-host.publish");
+  expect(Object.keys(publish.on)).toEqual(["workflow_call"]);
+  expect(publish.jobs.bundle.needs).toEqual(["prepare", "images"]);
+  expect(
+    publish.jobs.images.strategy.matrix.include.map(
+      (entry: { architecture: string }) => entry.architecture
+    )
+  ).toEqual(["amd64", "arm64"]);
+  const tests = workflow("self-host.test");
+  expect(tests.jobs.stack.strategy.matrix.runner).toEqual([
+    "ubuntu-latest",
+    "ubuntu-24.04-arm",
+  ]);
+  expect(workflow("ci").jobs.ci.needs).toContain("self-hosted");
+});
