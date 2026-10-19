@@ -221,6 +221,12 @@ these validation windows.
   deployments may be retried. An upload intent without an ID means an uncertain
   upload: inspect Railway history and repair that receipt before retrying. Never
   blindly repeat an uncertain upload. Workflow summaries record smoke-check URLs.
+- Hosted CLI uploads exclude agent tooling and local collaboration files through
+  root `.railwayignore`. Keep these exclusions when adding development tools.
+  A confirmed local missing-path packaging error records `PACKAGING_FAILED`; after
+  fixing the source or exclusions, a rerun appends a new attempt. Missing credentials
+  fail before creating receipts. Other upload failures retain the unknown-outcome
+  guard above, including malformed output, authentication, and network failures.
 - A stale/missing deployment receipt or a deployment removed from history needs
   operator reconciliation. Do not delete receipts to force a retry.
 - Rollback: redeploy a recorded known-good Railway deployment only after verifying

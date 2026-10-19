@@ -20,7 +20,11 @@ export function run(
       `${command} ${args.join(" ")} failed:\n${result.stderr}${result.stdout}`
     );
   }
-  return { ok: result.status === 0, text: result.stdout?.trim() ?? "" };
+  return {
+    ok: result.status === 0,
+    text: result.stdout?.trim() ?? "",
+    stderr: result.stderr?.trim() ?? "",
+  };
 }
 export function git(...args: string[]) {
   return run("git", args).text;
