@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { verifyPublicationCommit } from "./manifest";
 import { run, summary } from "./process";
+import { parseRailwayUpload, RailwayPackagingError } from "./railway-upload";
 
 interface Destination {
   environment: string;
@@ -22,6 +23,11 @@ const destinations = JSON.parse(
   process.env.RAILWAY_RELEASE_TARGETS ?? "{}"
 ) as Record<string, Destination[]>;
 const hosted = manifest.releases.filter((entry) => entry.kind === "hosted");
+if (hosted.length && !process.env.RAILWAY_API_TOKEN?.trim()) {
+  throw new Error(
+    "Missing RAILWAY_API_TOKEN; configure RAILWAY_RELEASE_TOKEN before deploying"
+  );
+}
 // Validate every destination before starting any deployment.
 for (const entry of hosted) {
   const list = destinations[entry.name];
@@ -85,26 +91,34 @@ for (const name of ["api", "web", "docs", "landing"]) {
       run("gh", ["release", "upload", entry.tag, receiptPath, "--clobber"]);
     };
     let attempt = receipt.attempts.at(-1);
-    if (!attempt || ["FAILED", "CRASHED"].includes(attempt.status)) {
+    if (
+      !attempt ||
+      ["FAILED", "CRASHED", "PACKAGING_FAILED"].includes(attempt.status)
+    ) {
       attempt = { deploymentId: null, status: "UPLOADING" };
       receipt.attempts.push(attempt);
       save();
-      const upload = JSON.parse(
-        run("railway", [
+      const upload = run(
+        "railway",
+        [
           "up",
           ...scope,
           "--detach",
           "--json",
           "--message",
           `${entry.tag} ${sha}`,
-        ]).text
-      ) as { deploymentId: string };
-      if (!upload.deploymentId) {
-        throw new Error(
-          "Railway did not return a deployment ID; inspect deployment history before retrying"
-        );
+        ],
+        { allowFailure: true }
+      );
+      try {
+        attempt.deploymentId = parseRailwayUpload(upload);
+      } catch (error) {
+        if (error instanceof RailwayPackagingError) {
+          attempt.status = "PACKAGING_FAILED";
+          save();
+        }
+        throw error;
       }
-      attempt.deploymentId = upload.deploymentId;
       attempt.status = "QUEUED";
       save();
     }
