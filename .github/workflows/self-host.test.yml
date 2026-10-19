@@ -18,7 +18,25 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      # Release versioning creates a new commit after the triggering event.
+      # Validate its provenance before executing any code from that checkout.
+      - name: Select trusted release revision
+        if: inputs.ref != github.sha
+        env:
+          RELEASE_SHA: ${{ inputs.ref }}
+        shell: bash
+        run: |
+          if [[ ! $RELEASE_SHA =~ ^[0-9a-f]{40}$ ]] ||
+             [[ $GITHUB_REF != refs/heads/main ]] ||
+             [[ $GITHUB_EVENT_NAME != push && $GITHUB_EVENT_NAME != workflow_dispatch ]]; then
+            echo 'Alternate revisions must be full release commit SHAs from main.' >&2
+            exit 1
+          fi
+          git merge-base --is-ancestor "$RELEASE_SHA" refs/remotes/origin/main
+          git checkout --detach "$RELEASE_SHA"
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile
         env:
