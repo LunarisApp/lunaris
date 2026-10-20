@@ -1,8 +1,8 @@
+import { openSourceCopy } from "@/data/open-source";
 const en = {
 	meta: {
-		title: "Lunaris — A writing organization that fits your work",
-		description:
-			"Write offline, collaborate in real time, control where your data lives, and shape each organization with community or private extensions.",
+		title: `Lunaris — ${openSourceCopy.en.headline}`,
+		description: openSourceCopy.en.description,
 	},
 	accessibility: {
 		demoVideoDescription:
@@ -31,7 +31,7 @@ const en = {
 			badge: "New",
 			label: "Connect your AI tools with MCP",
 		},
-		headline: "A writing organization you can make your own.",
+		headline: openSourceCopy.en.headline,
 		subheadline: {
 			beforeHighlight: "Start with the",
 			highlight: "essentials.",

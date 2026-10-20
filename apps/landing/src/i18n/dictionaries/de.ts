@@ -1,10 +1,10 @@
+import { openSourceCopy } from "@/data/open-source";
 import type { Dictionary } from "./types";
 
 const de = {
 	meta: {
-		title: "Lunaris — Ein Schreibarbeitsbereich, der zu Ihrer Arbeit passt",
-		description:
-			"Schreiben Sie offline, arbeiten Sie in Echtzeit zusammen, bestimmen Sie den Speicherort Ihrer Daten und gestalten Sie Organisationen mit öffentlichen oder privaten Erweiterungen.",
+		title: `Lunaris — ${openSourceCopy.de.headline}`,
+		description: openSourceCopy.de.description,
 	},
 	accessibility: {
 		demoVideoDescription:
@@ -33,7 +33,7 @@ const de = {
 			badge: "Neu",
 			label: "Verbinden Sie Ihre KI-Tools mit MCP",
 		},
-		headline: "Ein Schreibarbeitsbereich, den Sie zu Ihrem eigenen machen.",
+		headline: openSourceCopy.de.headline,
 		subheadline: {
 			beforeHighlight: "Beginnen Sie mit dem",
 			highlight: "Wesentlichen.",

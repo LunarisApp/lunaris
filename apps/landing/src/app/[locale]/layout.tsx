@@ -26,8 +26,10 @@ import { localePath } from "@/i18n/locale-path";
 import { brandIcons, localizedAlternates } from "@/i18n/metadata";
 import { legalDocumentPaths } from "@/lib/legal-document-links";
 
+import { openSourceCopy, repositoryUrl } from "@/data/open-source";
+
 const DOCS_URL = "https://docs.lunaris.app";
-const GITHUB_URL = "https://github.com/LunarisApp";
+const GITHUB_URL = repositoryUrl;
 const LINKEDIN_URL = "https://www.linkedin.com/company/lunarisapp";
 const TRUST_CENTER_URL = "https://trust.lunaris.app";
 const X_URL = "https://x.com/lunarisapp";
@@ -63,6 +65,7 @@ export default async function LocaleLayout({
 	const { locale: rawLocale } = await params;
 	const locale = rawLocale as Locale;
 	const dict = await getDictionary(locale);
+	const source = openSourceCopy[locale];
 
 	return (
 		<html lang={locale} suppressHydrationWarning>
@@ -122,9 +125,10 @@ export default async function LocaleLayout({
 								<NavbarLink href={localePath(locale, "/mcp")}>
 									{dict.nav.mcp}
 								</NavbarLink>
-								<NavbarLink href={localePath(locale, "/demo")}>
-									{dict.nav.contact}
+								<NavbarLink href={localePath(locale, "/self-hosted")}>
+									{source.label}
 								</NavbarLink>
+								<NavbarLink href={GITHUB_URL}>GitHub</NavbarLink>
 							</>
 						}
 						logo={
@@ -199,6 +203,10 @@ export default async function LocaleLayout({
 						links={
 							<>
 								<FooterCategory title={dict.footer.resources}>
+									<FooterLink href={localePath(locale, "/self-hosted")}>
+										{source.label}
+									</FooterLink>
+									<FooterLink href={GITHUB_URL}>GitHub</FooterLink>
 									<FooterLink href={DOCS_URL}>{dict.nav.docs}</FooterLink>
 									<FooterLink href={localePath(locale, "/pricing")}>
 										{dict.nav.pricing}
