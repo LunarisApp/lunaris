@@ -1,10 +1,10 @@
+import { openSourceCopy } from "@/data/open-source";
 import type { Dictionary } from "./types";
 
 const ptBR = {
 	meta: {
-		title: "Lunaris — Um espaço de escrita que combina com seu trabalho",
-		description:
-			"Escreva offline, colabore em tempo real, escolha onde seus dados ficam e molde cada espaço com extensões públicas ou privadas.",
+		title: `Lunaris — ${openSourceCopy["pt-BR"].headline}`,
+		description: openSourceCopy["pt-BR"].description,
 	},
 	accessibility: {
 		demoVideoDescription:
@@ -33,7 +33,7 @@ const ptBR = {
 			badge: "Novo",
 			label: "Conecte suas ferramentas de IA ao MCP",
 		},
-		headline: "Um espaço de escrita que você pode fazer do seu jeito.",
+		headline: openSourceCopy["pt-BR"].headline,
 		subheadline: {
 			beforeHighlight: "Comece com o",
 			highlight: "essencial.",

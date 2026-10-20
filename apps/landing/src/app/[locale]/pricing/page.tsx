@@ -1,3 +1,6 @@
+import { SoftButtonLink } from "@/components/elements/button";
+import { openSourceCopy } from "@/data/open-source";
+import { localePath } from "@/i18n/locale-path";
 import type { Metadata } from "next";
 import {
 	TrackedButtonLink,
@@ -130,6 +133,23 @@ export default async function Page({
 				}}
 				subheadline={<p>{dict.pricingPage.subheadline}</p>}
 			/>
+			<Container className="pb-12">
+				<section className="border-y border-olive-950/10 py-8 dark:border-white/10">
+					<h2 className="text-xl font-medium">
+						{openSourceCopy[locale].selfHostHeadline}
+					</h2>
+					<p className="mt-3 max-w-3xl text-base/7 text-olive-700 dark:text-olive-300">
+						{openSourceCopy[locale].cloudDescription}
+					</p>
+					<SoftButtonLink
+						className="mt-5 min-h-11 focus-visible:outline-2 focus-visible:outline-offset-4"
+						href={localePath(locale, "/self-hosted")}
+						size="lg"
+					>
+						{openSourceCopy[locale].label}
+					</SoftButtonLink>
+				</section>
+			</Container>
 			{/* Plan Comparison Table */}
 			<PlanComparisonTable
 				features={[

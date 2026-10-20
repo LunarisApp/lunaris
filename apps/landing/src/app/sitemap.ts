@@ -6,6 +6,7 @@ import { siteUrl } from "@/i18n/metadata";
 const routes = [
 	"",
 	"/pricing",
+	"/self-hosted",
 	"/mcp",
 	"/compare/linear",
 	"/compare/obsidian",
