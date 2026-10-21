@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useId, useState } from "react";
 import { ExtensionIcon } from "@/components/elements/extension-icon";
 import { ArrowNarrowRightIcon } from "@/components/icons/arrow-narrow-right-icon";
 import type { CatalogExtension } from "@/data/extension-types";
@@ -12,6 +13,24 @@ import {
 	type ExtensionFilter,
 	filterExtensions,
 } from "@/lib/extension-catalog";
+
+function CatalogUrlFilters({
+	setQuery,
+	setFilter,
+}: {
+	setQuery: (query: string) => void;
+	setFilter: (filter: ExtensionFilter) => void;
+}) {
+	const searchParams = useSearchParams();
+
+	useEffect(() => {
+		setQuery(searchParams.get("q") ?? "");
+		const kind = searchParams.get("type");
+		setFilter(kind === "catalog" || kind === "built-in" ? kind : "all");
+	}, [searchParams, setQuery, setFilter]);
+
+	return null;
+}
 
 export function ExtensionCatalog({
 	extensions,
@@ -27,18 +46,6 @@ export function ExtensionCatalog({
 	const [query, setQuery] = useState("");
 	const [filter, setFilter] = useState<ExtensionFilter>("all");
 
-	useEffect(() => {
-		const readFilters = () => {
-			const params = new URLSearchParams(window.location.search);
-			const kind = params.get("type");
-			setQuery(params.get("q") ?? "");
-			setFilter(kind === "catalog" || kind === "built-in" ? kind : "all");
-		};
-		readFilters();
-		window.addEventListener("popstate", readFilters);
-		return () => window.removeEventListener("popstate", readFilters);
-	}, []);
-
 	function updateFilters(nextQuery: string, nextFilter: ExtensionFilter) {
 		setQuery(nextQuery);
 		setFilter(nextFilter);
@@ -47,7 +54,7 @@ export function ExtensionCatalog({
 		else url.searchParams.delete("q");
 		if (nextFilter !== "all") url.searchParams.set("type", nextFilter);
 		else url.searchParams.delete("type");
-		window.history.replaceState(window.history.state, "", url);
+		window.history.replaceState(null, "", url);
 	}
 
 	const results = filterExtensions(extensions, query, filter, copy);
@@ -67,6 +74,10 @@ export function ExtensionCatalog({
 
 	return (
 		<div id="toolkit" className="scroll-mt-28">
+			{/* Keep the catalog prerendered while observing client URL changes. */}
+			<Suspense fallback={null}>
+				<CatalogUrlFilters setQuery={setQuery} setFilter={setFilter} />
+			</Suspense>
 			<div className="relative max-w-xl">
 				<label className="sr-only" htmlFor={searchId}>
 					{copy.searchLabel}
