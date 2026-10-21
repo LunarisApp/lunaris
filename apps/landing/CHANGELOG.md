@@ -1,5 +1,11 @@
 # landing
 
+## 0.1.0
+
+### Minor Changes
+
+- [#22](https://github.com/LunarisApp/lunaris/pull/22) [`90ebed9`](https://github.com/LunarisApp/lunaris/commit/90ebed9f80e023757d55a229cacac9d0184ad156) Thanks [@MrLightful](https://github.com/MrLightful)! - Add open-source positioning, self-hosting calls to action, and repository links across the landing site. Introduce a localized self-hosting guide covering installation, server requirements, operations, and licensing, with responsive layout and keyboard access to the install command.
+
 ## 0.0.3
 
 ### Patch Changes

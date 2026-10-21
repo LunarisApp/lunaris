@@ -1,61 +1,13 @@
 {
-  "sourceCommit": "ef95086ac10b58673f8d11bf63526d09851e7e3e",
+  "sourceCommit": "38140e89a5453a5a89ad40bd5d4ebaffb74f0c80",
   "releases": [
-    {
-      "name": "@lunarisapp/plugin-sdk",
-      "path": "packages/plugin-sdk",
-      "kind": "npm",
-      "version": "0.12.1",
-      "tag": "@lunarisapp/plugin-sdk@0.12.1",
-      "notes": "### Patch Changes\n\n- [#14](https://github.com/LunarisApp/lunaris/pull/14) [`d20010e`](https://github.com/LunarisApp/lunaris/commit/d20010eec58c3c1ed38733734f2948b1db65df31) Thanks [@MrLightful](https://github.com/MrLightful)! - Centralize Bun setup and CI validation, and expand tooling type checks across release scripts.\n\n- [#17](https://github.com/LunarisApp/lunaris/pull/17) [`0c1fef1`](https://github.com/LunarisApp/lunaris/commit/0c1fef1c0e7cc2dfb83b2e536c0e7f692cdfbea4) Thanks [@MrLightful](https://github.com/MrLightful)! - Replace AIO with one-command Docker Compose self-hosting."
-    },
-    {
-      "name": "@lunarisapp/ui",
-      "path": "packages/ui",
-      "kind": "npm",
-      "version": "0.0.4",
-      "tag": "@lunarisapp/ui@0.0.4",
-      "notes": "### Patch Changes\n\n- [#14](https://github.com/LunarisApp/lunaris/pull/14) [`d20010e`](https://github.com/LunarisApp/lunaris/commit/d20010eec58c3c1ed38733734f2948b1db65df31) Thanks [@MrLightful](https://github.com/MrLightful)! - Centralize Bun setup and CI validation, and expand tooling type checks across release scripts.\n\n- [#17](https://github.com/LunarisApp/lunaris/pull/17) [`0c1fef1`](https://github.com/LunarisApp/lunaris/commit/0c1fef1c0e7cc2dfb83b2e536c0e7f692cdfbea4) Thanks [@MrLightful](https://github.com/MrLightful)! - Replace AIO with one-command Docker Compose self-hosting."
-    },
-    {
-      "name": "api",
-      "path": "apps/api",
-      "kind": "hosted",
-      "version": "0.0.3",
-      "tag": "api@0.0.3",
-      "notes": "### Patch Changes\n\n- [#14](https://github.com/LunarisApp/lunaris/pull/14) [`d20010e`](https://github.com/LunarisApp/lunaris/commit/d20010eec58c3c1ed38733734f2948b1db65df31) Thanks [@MrLightful](https://github.com/MrLightful)! - Centralize Bun setup and CI validation, and expand tooling type checks across release scripts.\n\n- [#17](https://github.com/LunarisApp/lunaris/pull/17) [`0c1fef1`](https://github.com/LunarisApp/lunaris/commit/0c1fef1c0e7cc2dfb83b2e536c0e7f692cdfbea4) Thanks [@MrLightful](https://github.com/MrLightful)! - Replace AIO with one-command Docker Compose self-hosting.\n- Updated dependencies [[`d20010e`](https://github.com/LunarisApp/lunaris/commit/d20010eec58c3c1ed38733734f2948b1db65df31), [`0c1fef1`](https://github.com/LunarisApp/lunaris/commit/0c1fef1c0e7cc2dfb83b2e536c0e7f692cdfbea4)]:\n  - @lunarisapp/plugin-sdk@0.12.1\n  - @extension/file@0.0.1\n  - @extension/kanban@0.0.1\n  - @extension/rich-text@0.0.1\n  - @repo/agent-contracts@0.0.1\n  - @repo/ee-audit@0.0.1\n  - @repo/ee-teams@0.0.1\n  - @repo/auth@0.0.1"
-    },
-    {
-      "name": "web",
-      "path": "apps/web",
-      "kind": "hosted",
-      "version": "0.0.2",
-      "tag": "web@0.0.2",
-      "notes": "### Patch Changes\n\n- [#14](https://github.com/LunarisApp/lunaris/pull/14) [`d20010e`](https://github.com/LunarisApp/lunaris/commit/d20010eec58c3c1ed38733734f2948b1db65df31) Thanks [@MrLightful](https://github.com/MrLightful)! - Centralize Bun setup and CI validation, and expand tooling type checks across release scripts.\n\n- [#17](https://github.com/LunarisApp/lunaris/pull/17) [`0c1fef1`](https://github.com/LunarisApp/lunaris/commit/0c1fef1c0e7cc2dfb83b2e536c0e7f692cdfbea4) Thanks [@MrLightful](https://github.com/MrLightful)! - Replace AIO with one-command Docker Compose self-hosting.\n- Updated dependencies []:\n  - @repo/data@0.0.1\n  - @repo/app-shell@0.0.1\n  - @repo/features@0.0.1\n  - @repo/ee-composition@0.0.1"
-    },
-    {
-      "name": "docs",
-      "path": "apps/docs",
-      "kind": "hosted",
-      "version": "0.0.3",
-      "tag": "docs@0.0.3",
-      "notes": "### Patch Changes\n\n- [#14](https://github.com/LunarisApp/lunaris/pull/14) [`d20010e`](https://github.com/LunarisApp/lunaris/commit/d20010eec58c3c1ed38733734f2948b1db65df31) Thanks [@MrLightful](https://github.com/MrLightful)! - Centralize Bun setup and CI validation, and expand tooling type checks across release scripts.\n\n- [#17](https://github.com/LunarisApp/lunaris/pull/17) [`0c1fef1`](https://github.com/LunarisApp/lunaris/commit/0c1fef1c0e7cc2dfb83b2e536c0e7f692cdfbea4) Thanks [@MrLightful](https://github.com/MrLightful)! - Replace AIO with one-command Docker Compose self-hosting."
-    },
     {
       "name": "landing",
       "path": "apps/landing",
       "kind": "hosted",
-      "version": "0.0.3",
-      "tag": "landing@0.0.3",
-      "notes": "### Patch Changes\n\n- [#14](https://github.com/LunarisApp/lunaris/pull/14) [`d20010e`](https://github.com/LunarisApp/lunaris/commit/d20010eec58c3c1ed38733734f2948b1db65df31) Thanks [@MrLightful](https://github.com/MrLightful)! - Centralize Bun setup and CI validation, and expand tooling type checks across release scripts.\n\n- [#17](https://github.com/LunarisApp/lunaris/pull/17) [`0c1fef1`](https://github.com/LunarisApp/lunaris/commit/0c1fef1c0e7cc2dfb83b2e536c0e7f692cdfbea4) Thanks [@MrLightful](https://github.com/MrLightful)! - Replace AIO with one-command Docker Compose self-hosting."
-    },
-    {
-      "name": "self-hosted",
-      "path": "infra/self-host",
-      "kind": "self-hosted",
       "version": "0.1.0",
-      "tag": "self-hosted@0.1.0",
-      "notes": "### Minor Changes\n\n- [#17](https://github.com/LunarisApp/lunaris/pull/17) [`0c1fef1`](https://github.com/LunarisApp/lunaris/commit/0c1fef1c0e7cc2dfb83b2e536c0e7f692cdfbea4) Thanks [@MrLightful](https://github.com/MrLightful)! - Replace AIO with one-command Docker Compose self-hosting."
+      "tag": "landing@0.1.0",
+      "notes": "### Minor Changes\n\n- [#22](https://github.com/LunarisApp/lunaris/pull/22) [`90ebed9`](https://github.com/LunarisApp/lunaris/commit/90ebed9f80e023757d55a229cacac9d0184ad156) Thanks [@MrLightful](https://github.com/MrLightful)! - Add open-source positioning, self-hosting calls to action, and repository links across the landing site. Introduce a localized self-hosting guide covering installation, server requirements, operations, and licensing, with responsive layout and keyboard access to the install command."
     }
   ]
 }
