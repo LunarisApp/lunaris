@@ -19,7 +19,7 @@ afterEach(() => {
   }
 });
 
-function fixture(kind: "npm" | "hosted") {
+function fixture(kind: "npm" | "hosted", landing = false) {
   const root = mkdtempSync(join(tmpdir(), "lunaris-publication-"));
   roots.push(root);
   const cwd = join(root, "work");
@@ -42,6 +42,7 @@ function fixture(kind: "npm" | "hosted") {
       : [
           ["web", "apps/web"],
           ["docs", "apps/docs"],
+          ...(landing ? [["landing", "apps/landing"]] : []),
         ]
   ).map(([name, path]) => ({
     name,
@@ -114,6 +115,8 @@ if (tool === "railway") {
     preload,
     `globalThis.fetch = async (url) => {
     if (String(url).includes("registry.npmjs.org")) return Response.json({dist:{integrity: String(url).includes("%2Fui") && process.env.FAIL_INTEGRITY ? "wrong" : process.env.EXPECTED_INTEGRITY}});
+    if (String(url).endsWith("/en/self-hosted") && process.env.FAIL_LANDING) return new Response(null, {status:404});
+    if (String(url) === "https://fixture.test/install.sh") return new Response(null, {status:307, headers:{location:"https://github.com/LunarisApp/lunaris/releases/download/self-hosted%400.1.0/install.sh"}});
     return new Response("healthy");
   };`
   );
@@ -150,6 +153,7 @@ if (tool === "railway") {
           RAILWAY_RELEASE_TARGETS: JSON.stringify({
             web: [destination(1), destination(2)],
             docs: [destination(3)],
+            ...(landing ? { landing: [destination(4)] } : {}),
           }),
           ...extra,
         },
@@ -279,4 +283,18 @@ test("fresh hosted runner resumes published receipts without uploading again", (
     "web@1.0.0",
     "docs@1.0.0",
   ]);
+});
+
+test("missing landing page prevents promotion and retries reuse the deployment", () => {
+  const f = fixture("hosted", true);
+  const failed = f.invoke({ FAIL_LANDING: "true" });
+  expect(failed.exitCode).not.toBe(0);
+  expect(failed.stderr.toString()).toContain("Landing smoke check failed");
+  expect(f.promoted()).toEqual(["web@1.0.0", "docs@1.0.0"]);
+  const recovered = f.invoke();
+  expect(recovered.exitCode, recovered.stderr.toString()).toBe(0);
+  expect(f.promoted().at(-1)).toBe("landing@1.0.0");
+  expect(
+    f.calls().filter(({ tool, args }) => tool === "railway" && args[0] === "up")
+  ).toHaveLength(4);
 });

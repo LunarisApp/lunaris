@@ -1,3 +1,4 @@
+import { smokeLanding } from "./landing-smoke";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { verifyPublicationCommit } from "./manifest";
 import { run, summary } from "./process";
@@ -155,6 +156,9 @@ for (const name of ["api", "web", "docs", "landing"]) {
           throw new Error(
             `Smoke check failed: ${destination.healthUrl}: ${health.status}`
           );
+        }
+        if (name === "landing") {
+          await smokeLanding(destination.healthUrl);
         }
         save();
         summary(

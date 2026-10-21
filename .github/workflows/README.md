@@ -154,3 +154,10 @@ bun run check
 
 `tooling:typecheck` covers all TypeScript under `tooling/`; `brand:typecheck` remains
 an alias for existing callers.
+
+## Publication status
+
+Green branch CI is not proof of deployment. Inspect the parent Release - Publish
+summary and recover failed publication before another release. Landing promotion
+also checks homepage, self-hosting page, installer redirect, and installer asset.
+See the [release runbook](../../docs/procedures/releasing-and-deploying.md#publication-status-and-landing-checks).
