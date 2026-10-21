@@ -1,3 +1,5 @@
+"use client";
+
 import { ElDialog, ElDialogPanel } from "@tailwindplus/elements/react";
 import { clsx } from "clsx/lite";
 import Link from "next/link";
@@ -7,6 +9,7 @@ export function NavbarLink({
 	children,
 	href,
 	className,
+	onClick,
 	...props
 }: { href: string } & Omit<ComponentProps<"a">, "href">) {
 	return (
@@ -17,6 +20,11 @@ export function NavbarLink({
 			)}
 			href={href}
 			{...props}
+			onClick={(event) => {
+				onClick?.(event);
+				if (!event.defaultPrevented)
+					event.currentTarget.closest("dialog")?.close();
+			}}
 		>
 			{children}
 			<span
@@ -56,7 +64,7 @@ export function NavbarLogo({
 	);
 }
 
-export function NavbarWithLinksActionsAndCenteredLogo({
+export function NavbarWithLinksAndActions({
 	links,
 	logo,
 	actions,
@@ -84,14 +92,16 @@ export function NavbarWithLinksActionsAndCenteredLogo({
 			<style>{`:root { --scroll-padding-top: 5.25rem }`}</style>
 			<nav aria-label={navigationLabel}>
 				<div className="mx-auto flex h-(--scroll-padding-top) max-w-7xl items-center gap-4 px-6 lg:px-10">
-					<div className="flex flex-1 gap-8 max-lg:hidden">{links}</div>
 					<div className="flex items-center">{logo}</div>
-					<div className="flex flex-1 items-center justify-end gap-4">
-						<div className="flex shrink-0 items-center gap-5">{actions}</div>
+					<div className="flex flex-1 justify-center gap-7 max-lg:hidden">
+						{links}
+					</div>
+					<div className="ml-auto flex items-center justify-end gap-2 lg:ml-0">
+						<div className="flex shrink-0 items-center gap-2">{actions}</div>
 
 						<button
 							aria-label={openMenuLabel}
-							className="inline-flex rounded-full p-1.5 text-olive-950 hover:bg-olive-950/10 lg:hidden dark:text-white dark:hover:bg-white/10"
+							className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full p-1.5 text-olive-950 hover:bg-olive-950/10 lg:hidden dark:text-white dark:hover:bg-white/10"
 							command="show-modal"
 							commandfor="mobile-menu"
 							type="button"
@@ -122,7 +132,7 @@ export function NavbarWithLinksActionsAndCenteredLogo({
 							<div className="flex justify-end">
 								<button
 									aria-label={closeMenuLabel}
-									className="inline-flex rounded-full p-1.5 text-olive-950 hover:bg-olive-950/10 dark:text-white dark:hover:bg-white/10"
+									className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full p-1.5 text-olive-950 hover:bg-olive-950/10 dark:text-white dark:hover:bg-white/10"
 									command="close"
 									commandfor="mobile-menu"
 									type="button"

@@ -3,6 +3,7 @@ import Linkedin from "@thesvg/react/linkedin";
 import X from "@thesvg/react/x";
 import type { Metadata } from "next";
 import Image from "next/image";
+import { TrackedButtonLink } from "@/components/analytics/tracked-button-link";
 import { LanguageSwitcher } from "@/components/elements/language-switcher";
 import { Main } from "@/components/elements/main";
 import { ProboCookieBanner } from "@/components/elements/probo-cookie-banner";
@@ -15,8 +16,8 @@ import {
 import {
 	NavbarLink,
 	NavbarLogo,
-	NavbarWithLinksActionsAndCenteredLogo,
-} from "@/components/sections/navbar-with-links-actions-and-centered-logo";
+	NavbarWithLinksAndActions,
+} from "@/components/sections/navbar-with-links-and-actions";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ThemeScript } from "@/components/theme/theme-script";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
@@ -27,6 +28,7 @@ import { brandIcons, localizedAlternates } from "@/i18n/metadata";
 import { legalDocumentPaths } from "@/lib/legal-document-links";
 
 import { openSourceCopy, repositoryUrl } from "@/data/open-source";
+import { homepageCopy } from "@/data/homepage";
 
 const DOCS_URL = "https://docs.lunaris.app";
 const GITHUB_URL = repositoryUrl;
@@ -66,6 +68,7 @@ export default async function LocaleLayout({
 	const locale = rawLocale as Locale;
 	const dict = await getDictionary(locale);
 	const source = openSourceCopy[locale];
+	const home = homepageCopy[locale];
 
 	return (
 		<html lang={locale} suppressHydrationWarning>
@@ -95,9 +98,22 @@ export default async function LocaleLayout({
 					>
 						{dict.accessibility.skipToContent}
 					</a>
-					<NavbarWithLinksActionsAndCenteredLogo
+					<NavbarWithLinksAndActions
 						actions={
 							<>
+								<div className="hidden lg:block">
+									<TrackedButtonLink
+										analyticsProperties={{
+											cta: "open_web_app",
+											destination: "web",
+											location: "navbar",
+										}}
+										className="min-h-11 px-5"
+										href="https://web.lunaris.app"
+									>
+										{home.open}
+									</TrackedButtonLink>
+								</div>
 								<LanguageSwitcher
 									currentLocale={locale}
 									label={dict.accessibility.switchLanguage}
@@ -122,13 +138,9 @@ export default async function LocaleLayout({
 									{dict.nav.pricing}
 								</NavbarLink>
 								<NavbarLink href={DOCS_URL}>{dict.nav.docs}</NavbarLink>
-								<NavbarLink href={localePath(locale, "/mcp")}>
-									{dict.nav.mcp}
-								</NavbarLink>
 								<NavbarLink href={localePath(locale, "/self-hosted")}>
 									{source.label}
 								</NavbarLink>
-								<NavbarLink href={GITHUB_URL}>GitHub</NavbarLink>
 							</>
 						}
 						logo={
