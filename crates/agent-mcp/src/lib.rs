@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -6,10 +5,10 @@ use async_trait::async_trait;
 use percent_encoding::{percent_decode_str, utf8_percent_encode, AsciiSet, CONTROLS};
 use reqwest::Method;
 use rmcp::model::{
-    Annotated, CallToolRequestParams, CallToolResult, Content, Implementation,
-    ListResourceTemplatesResult, ListToolsResult, Meta, PaginatedRequestParams,
-    RawResourceTemplate, ReadResourceRequestParams, ReadResourceResult, ResourceContents,
-    ResourceTemplate, ServerCapabilities, ServerInfo, Tool, ToolAnnotations,
+    CallToolRequestParams, CallToolResponse, CallToolResult, ContentBlock, Implementation,
+    ListResourceTemplatesResult, ListToolsResult, MetaObject, PaginatedRequestParams,
+    ReadResourceRequestParams, ReadResourceResponse, ReadResourceResult, ResourceContents,
+    ResourceTemplate, ServerCapabilities, ServerConfig, Tool, ToolAnnotations,
 };
 use rmcp::service::RequestContext;
 use rmcp::{ErrorData as McpError, RoleServer, ServerHandler};
@@ -134,17 +133,14 @@ impl AgentTool {
         if let Some(plugin_id) = &self.plugin_id {
             meta.insert("app.lunaris/pluginId".into(), plugin_id.clone().into());
         }
-        Ok(Tool {
-            annotations: Some(self.annotations.clone()),
-            description: Some(Cow::Owned(self.description.clone())),
-            execution: None,
-            icons: None,
-            input_schema: Arc::new(schema_object(&self.input_schema)?),
-            meta: Some(Meta(meta)),
-            name: Cow::Owned(self.name.clone()),
-            output_schema: Some(Arc::new(schema_object(&self.output_schema)?)),
-            title: None,
-        })
+        Ok(Tool::new(
+            self.name.clone(),
+            self.description.clone(),
+            Arc::new(schema_object(&self.input_schema)?),
+        )
+        .with_annotations(self.annotations.clone())
+        .with_meta(MetaObject(meta))
+        .with_raw_output_schema(Arc::new(schema_object(&self.output_schema)?)))
     }
 }
 
@@ -292,40 +288,29 @@ impl<Executor> AgentMcpServer<Executor> {
             .resources
             .iter()
             .map(|resource| {
-                Annotated::new(
-                    RawResourceTemplate {
-                        description: Some(resource.name.replace('-', " ")),
-                        icons: None,
-                        mime_type: Some("application/json".into()),
-                        name: resource.name.clone(),
-                        title: None,
-                        uri_template: resource.uri_template.clone(),
-                    },
-                    None,
-                )
+                ResourceTemplate::new(resource.uri_template.clone(), resource.name.clone())
+                    .with_description(resource.name.replace('-', " "))
+                    .with_mime_type("application/json")
             })
             .collect()
     }
 }
 
 impl<Executor: AgentExecutor> ServerHandler for AgentMcpServer<Executor> {
-    fn get_info(&self) -> ServerInfo {
-        ServerInfo {
-            capabilities: ServerCapabilities::builder()
+    fn get_info(&self) -> ServerConfig {
+        ServerConfig::new(
+            ServerCapabilities::builder()
                 .enable_resources()
                 .enable_tools()
                 .build(),
-            instructions: Some(self.server.instructions.clone()),
-            server_info: Implementation {
-                description: Some(self.server.description.clone()),
-                icons: None,
-                name: self.server.name.clone(),
-                title: Some(self.server.title.clone()),
-                version: self.server.version.clone(),
-                website_url: Some("https://lunaris.app".into()),
-            },
-            ..Default::default()
-        }
+        )
+        .with_instructions(self.server.instructions.clone())
+        .with_server_info(
+            Implementation::new(self.server.name.clone(), self.server.version.clone())
+                .with_description(self.server.description.clone())
+                .with_title(self.server.title.clone())
+                .with_website_url("https://lunaris.app"),
+        )
     }
 
     async fn list_tools(
@@ -340,7 +325,7 @@ impl<Executor: AgentExecutor> ServerHandler for AgentMcpServer<Executor> {
         &self,
         request: CallToolRequestParams,
         _context: RequestContext<RoleServer>,
-    ) -> Result<CallToolResult, McpError> {
+    ) -> Result<CallToolResponse, McpError> {
         let Some(tool) = self.manifest.tool(&request.name) else {
             return Err(McpError::invalid_params(
                 format!("Unknown Lunaris tool: {}", request.name),
@@ -348,10 +333,12 @@ impl<Executor: AgentExecutor> ServerHandler for AgentMcpServer<Executor> {
             ));
         };
         let input = request.arguments.unwrap_or_default();
-        Ok(match self.executor.execute(tool, input).await {
-            Ok(value) => success_result(value),
-            Err(error) => error_result(error),
-        })
+        Ok(CallToolResponse::Complete(
+            match self.executor.execute(tool, input).await {
+                Ok(value) => success_result(value),
+                Err(error) => error_result(error),
+            },
+        ))
     }
 
     async fn list_resource_templates(
@@ -368,7 +355,7 @@ impl<Executor: AgentExecutor> ServerHandler for AgentMcpServer<Executor> {
         &self,
         request: ReadResourceRequestParams,
         _context: RequestContext<RoleServer>,
-    ) -> Result<ReadResourceResult, McpError> {
+    ) -> Result<ReadResourceResponse, McpError> {
         let Some((resource, input)) = self.manifest.resources.iter().find_map(|resource| {
             match_resource(resource, &request.uri).map(|input| (resource, input))
         }) else {
@@ -386,14 +373,10 @@ impl<Executor: AgentExecutor> ServerHandler for AgentMcpServer<Executor> {
         let value = self.executor.execute(tool, input).await.map_err(|error| {
             McpError::internal_error(error.message.clone(), Some(error.as_json()))
         })?;
-        Ok(ReadResourceResult {
-            contents: vec![ResourceContents::TextResourceContents {
-                meta: None,
-                mime_type: Some("application/json".into()),
-                text: value.to_string(),
-                uri: request.uri,
-            }],
-        })
+        Ok(ReadResourceResponse::Complete(ReadResourceResult::new(
+            vec![ResourceContents::text(value.to_string(), request.uri)
+                .with_mime_type("application/json")],
+        )))
     }
 }
 
@@ -549,22 +532,18 @@ fn value_to_string(value: &Value) -> Result<String, AgentError> {
 }
 
 fn success_result(value: Value) -> CallToolResult {
-    CallToolResult {
-        content: vec![Content::text(summary(&value))],
-        is_error: Some(false),
-        meta: None,
-        structured_content: Some(value),
-    }
+    let mut result = CallToolResult::success(vec![ContentBlock::text(summary(&value))]);
+    result.structured_content = Some(value);
+    result
 }
 
 fn error_result(error: AgentError) -> CallToolResult {
-    let value = error.as_json();
-    CallToolResult {
-        content: vec![Content::text(format!("{}: {}", error.code, error.message))],
-        is_error: Some(true),
-        meta: None,
-        structured_content: Some(value),
-    }
+    let mut result = CallToolResult::error(vec![ContentBlock::text(format!(
+        "{}: {}",
+        error.code, error.message
+    ))]);
+    result.structured_content = Some(error.as_json());
+    result
 }
 
 fn summary(value: &Value) -> String {
@@ -639,6 +618,25 @@ mod tests {
             manifest.tool("kanban_update_task").unwrap().scope,
             "workspace:write",
         );
+    }
+
+    #[test]
+    fn tool_results_preserve_structured_success_and_error_content() {
+        let value = json!({"items": [{"id": "resource-1"}]});
+        let success = serde_json::to_value(success_result(value.clone())).unwrap();
+        assert_eq!(success["isError"], false);
+        assert_eq!(success["structuredContent"], value);
+        assert_eq!(success["content"][0]["text"], "1 result");
+
+        let error = AgentError::invalid_request("name is required");
+        let expected = error.as_json();
+        let failure = serde_json::to_value(error_result(error)).unwrap();
+        assert_eq!(failure["isError"], true);
+        assert_eq!(failure["structuredContent"], expected);
+        assert!(failure["content"][0]["text"]
+            .as_str()
+            .unwrap()
+            .ends_with(": name is required"));
     }
 
     #[test]
