@@ -78,7 +78,7 @@
     "@repo/ee-teams": "workspace:*"
   },
   "devDependencies": {
-    "@modelcontextprotocol/client": "2.0.0",
+    "@modelcontextprotocol/client": "2.3.0",
     "@nestjs/cli": "12.0.5",
     "@nestjs/schematics": "12.0.5",
     "@nestjs/testing": "12.1.0",
