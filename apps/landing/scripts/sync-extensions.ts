@@ -62,7 +62,6 @@ for (const entry of marketplace.extensions) {
 	if (!/^[a-z0-9-]+$/.test(slug)) throw new Error(`Invalid slug: ${slug}`);
 	const iconUrl = entry.iconUrl ?? descriptor.icon?.url;
 	if (!iconUrl) throw new Error(`Missing icon: ${entry.id}`);
-	await saveImage(slug, await download(iconUrl), 144);
 	const screenshots = [];
 	for (const [index, screenshot] of (entry.screenshots ?? []).entries()) {
 		screenshots.push({
@@ -82,6 +81,7 @@ for (const entry of marketplace.extensions) {
 		developer: entry.developer,
 		version: release.version,
 		api: release.api,
+		iconUrl,
 		description: entry.description,
 		longDescription:
 			entry.longDescription ?? descriptor.manifest.longDescription,
@@ -100,16 +100,6 @@ for (const slug of ["rich-text", "kanban", "file"]) {
 				"utf8",
 			),
 		),
-	);
-	await saveImage(
-		slug,
-		await readFile(
-			new URL(
-				`internal/workspaces/src/features/extensions/assets/builtin-${slug}.webp`,
-				root,
-			),
-		),
-		144,
 	);
 	const screenshot = await saveImage(
 		`${slug}-screenshot-1`,

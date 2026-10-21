@@ -58,10 +58,13 @@ describe("extension catalog integrity", () => {
 			expect(entry.slug).toMatch(/^[a-z0-9-]+$/);
 	});
 
-	test("every icon, screenshot, and localized permission label exists", async () => {
+	test("catalog icon URLs, local screenshots, and permission labels are valid", async () => {
 		const publicRoot = new URL("../../public/", import.meta.url);
 		for (const entry of extensionCatalog) {
-			await access(new URL(`img/extensions/${entry.slug}.webp`, publicRoot));
+			if (!entry.builtIn) {
+				expect(entry.iconUrl).toBeTruthy();
+				expect(new URL(entry.iconUrl ?? "").protocol).toBe("https:");
+			}
 			for (const screenshot of entry.screenshots)
 				await access(new URL(screenshot.src.slice(1), publicRoot));
 			for (const locale of locales) {

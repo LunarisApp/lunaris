@@ -12,6 +12,8 @@ export const extensionCatalog: readonly CatalogExtension[] = [
 		developer: "Lunaris",
 		version: "0.0.1",
 		api: "^0.9.0",
+		iconUrl:
+			"https://raw.githubusercontent.com/LunarisApp/extensions/f6053c0a8a0185c9049963561995e25c60c3a902/artifacts/lunaris.excalidraw/0.0.1/icon.png",
 		description: "Collaborative drawing with Excalidraw",
 		keywords: ["drawing", "whiteboard", "diagrams", "collaboration"],
 		permissions: ["content.read", "content.write"],
@@ -35,6 +37,8 @@ export const extensionCatalog: readonly CatalogExtension[] = [
 		developer: "Lunaris",
 		version: "0.0.1",
 		api: "^0.9.0",
+		iconUrl:
+			"https://raw.githubusercontent.com/LunarisApp/extensions/be33b7ce36b5a79e8e3b55ed4487cc613183727d/artifacts/lunaris.exporter/0.0.1/icon.webp",
 		description: "Choose, order, and style workspace content for PDF",
 		keywords: ["PDF", "export", "documents", "printing"],
 		permissions: ["content.read", "content.write", "downloads.write"],
@@ -101,6 +105,8 @@ export const extensionCatalog: readonly CatalogExtension[] = [
 		developer: "Lunaris",
 		version: "0.0.1",
 		api: "^0.9.0",
+		iconUrl:
+			"https://raw.githubusercontent.com/LunarisApp/extensions/f6053c0a8a0185c9049963561995e25c60c3a902/artifacts/lunaris.mini-app/0.0.1/icon.webp",
 		description: "Run interactive, self-contained HTML apps in your workspace",
 		keywords: ["HTML", "apps", "interactive", "sandbox"],
 		permissions: ["content.read", "files.read", "files.write"],
@@ -117,6 +123,8 @@ export const extensionCatalog: readonly CatalogExtension[] = [
 		developer: "Lunaris",
 		version: "0.0.1",
 		api: "^0.9.0",
+		iconUrl:
+			"https://raw.githubusercontent.com/LunarisApp/extensions/f6053c0a8a0185c9049963561995e25c60c3a902/artifacts/lunaris.demo/0.0.1/icon.webp",
 		description:
 			"A generated workspace pulse demonstrating a resource type, key-value storage, and a read-only dashboard view.",
 		keywords: ["demo", "dashboard", "analytics", "metrics", "workspace"],
@@ -159,6 +167,8 @@ export const extensionCatalog: readonly CatalogExtension[] = [
 		developer: "Lunaris",
 		version: "0.0.1",
 		api: "^0.10.0",
+		iconUrl:
+			"https://raw.githubusercontent.com/LunarisApp/extensions/ef757a5b9f43505d9722de507916357f0db8045e/artifacts/lunaris.spreadsheet/0.0.1/icon.webp",
 		description:
 			"Offline collaborative spreadsheets with formulas and portable file formats",
 		keywords: ["spreadsheet", "table", "csv", "xlsx", "formulas"],

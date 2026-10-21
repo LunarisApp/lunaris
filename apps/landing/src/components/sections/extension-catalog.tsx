@@ -164,6 +164,7 @@ export function ExtensionCatalog({
 										<ExtensionIcon
 											className="size-12 rounded-xl"
 											id={extension.slug}
+											src={extension.iconUrl}
 										/>
 										<div className="min-w-0">
 											<h2 className="text-base/6 font-semibold">

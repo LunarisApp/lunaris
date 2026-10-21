@@ -5,6 +5,7 @@ import { Container } from "@/components/elements/container";
 import { DemoVideo } from "@/components/elements/demo-video";
 import { ExtensionIcon } from "@/components/elements/extension-icon";
 import { ArrowNarrowRightIcon } from "@/components/icons/arrow-narrow-right-icon";
+import { extensionCatalog } from "@/data/extension-catalog";
 import { extensionsCopy } from "@/data/extensions";
 import { homepageCopy } from "@/data/homepage";
 import { repositoryUrl } from "@/data/open-source";
@@ -16,7 +17,7 @@ import { localePath } from "@/i18n/locale-path";
  * THESIS: A shared home for small-team knowledge, with extensions and offline access.
  * OWN-WORLD: Existing olive paper, Instrument Serif claims, Inter explanations, pill actions.
  * STORY: Understand notes and knowledge bases; see the real workspace; start free.
- * FIRST VIEWPORT: Left-aligned two-line claim, right-hand explanation and CTA, wide product tour.
+ * FIRST VIEWPORT: Centered claim, one-sentence subtitle and actions below, wide product tour.
  * FORM: Product-led editorial cover; surface candidate 7; seed cde4d312.
  * FINISH: Verify desktop/mobile, interactions, accessibility, and recorded design guidance.
  */
@@ -45,13 +46,13 @@ export default async function Page({
 		<>
 			<section
 				aria-labelledby="home-heading"
-				className="pt-10 sm:pt-16 lg:pt-18"
+				className="pt-10 pb-12 sm:pt-16 sm:pb-16 lg:pt-18"
 				id="hero"
 			>
 				<Container>
-					<div className="grid items-start gap-7 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
+					<div className="mx-auto max-w-4xl text-center">
 						<h1
-							className="max-w-3xl font-display text-[clamp(3.25rem,6vw,5.25rem)] leading-[1.02] tracking-tight text-balance text-olive-950 dark:text-olive-100"
+							className="max-w-4xl font-display text-[clamp(3.25rem,6vw,5.25rem)] leading-[1.02] tracking-tight text-balance text-olive-950 dark:text-olive-100"
 							id="home-heading"
 						>
 							{copy.headline}{" "}
@@ -59,11 +60,11 @@ export default async function Page({
 								{copy.headlineEnd}
 							</span>
 						</h1>
-						<div className="max-w-md lg:pt-2">
-							<p className="text-base/7 text-pretty text-olive-700 sm:text-lg/8 dark:text-olive-300">
+						<div className="mx-auto mt-5 max-w-2xl">
+							<p className="text-base/7 text-balance text-olive-700 sm:text-lg/8 dark:text-olive-300">
 								{copy.description}
 							</p>
-							<div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+							<div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
 								<TrackedButtonLink
 									analyticsProperties={{
 										cta: "open_web_app",
@@ -140,7 +141,14 @@ export default async function Page({
 													className="flex h-full flex-col items-center gap-3 rounded-lg px-2 py-3 text-center text-xs/5 font-medium text-olive-700 transition-colors hover:bg-olive-200/70 hover:text-olive-950 sm:text-sm/6 dark:text-olive-300 dark:hover:bg-olive-800 dark:hover:text-olive-100"
 													href={localePath(locale, `/extensions/${id}`)}
 												>
-													<ExtensionIcon id={id} />
+													<ExtensionIcon
+														id={id}
+														src={
+															extensionCatalog.find(
+																(entry) => entry.slug === id,
+															)?.iconUrl
+														}
+													/>
 													{extensions.homeTools[id]}
 												</Link>
 											</li>
@@ -149,26 +157,6 @@ export default async function Page({
 								</ul>
 							</section>
 						</DemoVideo>
-					</div>
-				</Container>
-			</section>
-
-			<section className="py-12 sm:py-16">
-				<Container>
-					<div className="grid gap-8 lg:grid-cols-2 lg:gap-20">
-						{copy.benefits.map((benefit) => (
-							<div
-								className="border-t border-olive-950/15 pt-5 dark:border-white/20"
-								key={benefit.title}
-							>
-								<h2 className="text-base/7 font-semibold text-olive-950 dark:text-olive-100">
-									{benefit.title}
-								</h2>
-								<p className="mt-2 max-w-md text-sm/7 text-pretty text-olive-700 dark:text-olive-300">
-									{benefit.description}
-								</p>
-							</div>
-						))}
 					</div>
 				</Container>
 			</section>

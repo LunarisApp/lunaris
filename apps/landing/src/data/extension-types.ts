@@ -21,6 +21,7 @@ export type CatalogExtension = {
 	developer: string;
 	version: string;
 	api: string;
+	iconUrl?: string;
 	description: string;
 	longDescription?: string;
 	keywords: readonly string[];

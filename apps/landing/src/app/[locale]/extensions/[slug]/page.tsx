@@ -51,7 +51,11 @@ export default async function ExtensionDetailsPage({ params }: Props) {
 				{copy.allExtensions}
 			</Link>
 			<header className="mt-6 flex items-start gap-4 sm:gap-5">
-				<ExtensionIcon className="size-16 rounded-2xl sm:size-20" id={slug} />
+				<ExtensionIcon
+					className="size-16 rounded-2xl sm:size-20"
+					id={slug}
+					src={extension.iconUrl}
+				/>
 				<div className="min-w-0">
 					<h1 className="text-2xl/8 font-semibold tracking-tight text-olive-950 sm:text-3xl/9 dark:text-olive-100">
 						{extension.name}

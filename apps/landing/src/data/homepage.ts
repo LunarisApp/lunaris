@@ -1,6 +1,6 @@
 import type { Locale } from "@/i18n/config";
 
-type Benefit = { title: string; description: string };
+type Faq = { title: string; description: string };
 
 type HomepageCopy = {
 	metaTitle: string;
@@ -14,14 +14,13 @@ type HomepageCopy = {
 	watch: string;
 	tour: string;
 	chapters: [string, string, string];
-	benefits: [Benefit, Benefit];
 	ownershipTitle: string;
 	ownershipDescription: string;
 	selfHost: string;
 	source: string;
 	faqTitle: string;
 	faqDescription: string;
-	faqs: [Benefit, Benefit, Benefit, Benefit];
+	faqs: [Faq, Faq, Faq, Faq];
 	pricing: string;
 	closingTitle: string;
 	closingDescription: string;
@@ -34,26 +33,13 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			"Bring notes, knowledge bases, and projects together in an offline-first workspace. Collaborate in real time, add extensions, and choose where your data lives.",
 		headline: "A home for your",
 		headlineEnd: "team’s knowledge.",
-		description:
-			"Bring notes, knowledge bases, and projects together. Choose each workspace’s tools with extensions. Keep working offline.",
+		description: "Your team’s notes and tools, together in one workspace.",
 		start: "Start free",
 		open: "Open Lunaris",
 		freeNote: "Free for up to 3 members. No credit card needed.",
 		watch: "See it in action",
 		tour: "Explore the workspace demo",
 		chapters: ["Notes", "Boards", "Whiteboards"],
-		benefits: [
-			{
-				title: "Give knowledge a home.",
-				description:
-					"Keep meeting notes, decisions, and reference material together. Give your team one place to look, and a shared place to think.",
-			},
-			{
-				title: "Move work forward together.",
-				description:
-					"Edit in real time, share workspaces, and manage access. Work on your own or bring the whole team onto the same page.",
-			},
-		],
 		ownershipTitle: "Your workspace. Your terms.",
 		ownershipDescription:
 			"Keep working without a connection. Choose local-only storage, sync with Lunaris Cloud, or host Community Edition on your own server.",
@@ -94,26 +80,13 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			"Reúne notas, bases de conocimiento y proyectos en un espacio que funciona sin conexión. Colabora en tiempo real, añade extensiones y decide dónde guardar tus datos.",
 		headline: "Un hogar para el",
 		headlineEnd: "conocimiento de tu equipo.",
-		description:
-			"Reúne notas, bases de conocimiento y proyectos. Elige las herramientas de cada espacio con extensiones. Sigue trabajando sin conexión.",
+		description: "Las notas y herramientas de tu equipo, en un mismo espacio.",
 		start: "Empieza gratis",
 		open: "Abrir Lunaris",
 		freeNote: "Gratis para hasta 3 miembros. Sin tarjeta de crédito.",
 		watch: "Ver en acción",
 		tour: "Explora la demostración del espacio de trabajo",
 		chapters: ["Notas", "Tableros", "Pizarras"],
-		benefits: [
-			{
-				title: "Dale un hogar al conocimiento.",
-				description:
-					"Reúne notas de reuniones, decisiones y material de referencia. Un lugar donde tu equipo pueda buscar y pensar en conjunto.",
-			},
-			{
-				title: "Avanzad juntos.",
-				description:
-					"Edita en tiempo real, comparte espacios y gestiona el acceso. Trabaja por tu cuenta o reúne a todo el equipo en la misma página.",
-			},
-		],
 		ownershipTitle: "Tu espacio. Tus condiciones.",
 		ownershipDescription:
 			"Sigue trabajando sin conexión. Guarda tu trabajo solo en tu dispositivo, sincroniza con Lunaris Cloud o aloja Community Edition en tu servidor.",
@@ -155,25 +128,13 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		headline: "Un espace pour le",
 		headlineEnd: "savoir de votre équipe.",
 		description:
-			"Réunissez notes, bases de connaissances et projets. Choisissez les outils de chaque espace grâce aux extensions. Continuez hors ligne.",
+			"Les notes et les outils de votre équipe, dans un même espace.",
 		start: "Commencer gratuitement",
 		open: "Ouvrir Lunaris",
 		freeNote: "Gratuit jusqu’à 3 membres. Sans carte bancaire.",
 		watch: "Voir en action",
 		tour: "Explorer la démonstration de l’espace de travail",
 		chapters: ["Notes", "Tableaux", "Tableaux blancs"],
-		benefits: [
-			{
-				title: "Donnez un espace au savoir.",
-				description:
-					"Réunissez comptes rendus, décisions et références. Offrez à votre équipe un endroit où chercher et réfléchir ensemble.",
-			},
-			{
-				title: "Avancez ensemble.",
-				description:
-					"Éditez en temps réel, partagez des espaces et gérez les accès. Travaillez en solo ou réunissez toute l’équipe sur la même page.",
-			},
-		],
 		ownershipTitle: "Votre espace. Vos conditions.",
 		ownershipDescription:
 			"Continuez sans connexion. Gardez vos données sur votre appareil, synchronisez avec Lunaris Cloud ou hébergez Community Edition sur votre serveur.",
@@ -214,26 +175,13 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			"Notizen, Wissensdatenbanken und Projekte in einem Workspace, der offline funktioniert. Gemeinsam in Echtzeit arbeiten, Erweiterungen hinzufügen und den Speicherort selbst wählen.",
 		headline: "Ein Zuhause für das",
 		headlineEnd: "Wissen deines Teams.",
-		description:
-			"Vereine Notizen, Wissensdatenbanken und Projekte. Wähle die Werkzeuge jedes Workspaces mit Erweiterungen. Arbeite auch offline weiter.",
+		description: "Notizen und Werkzeuge für dein Team, in einem Workspace.",
 		start: "Kostenlos starten",
 		open: "Lunaris öffnen",
 		freeNote: "Kostenlos für bis zu 3 Mitglieder. Ohne Kreditkarte.",
 		watch: "In Aktion ansehen",
 		tour: "Workspace-Demo erkunden",
 		chapters: ["Notizen", "Boards", "Whiteboards"],
-		benefits: [
-			{
-				title: "Gib Wissen ein Zuhause.",
-				description:
-					"Halte Besprechungsnotizen, Entscheidungen und Referenzen zusammen. Ein gemeinsamer Ort zum Nachschlagen und Nachdenken.",
-			},
-			{
-				title: "Bringt die Arbeit gemeinsam voran.",
-				description:
-					"Bearbeitet Inhalte in Echtzeit, teilt Workspaces und verwaltet Zugriffe. Arbeite allein oder mit dem ganzen Team an derselben Seite.",
-			},
-		],
 		ownershipTitle: "Dein Workspace. Deine Regeln.",
 		ownershipDescription:
 			"Arbeite ohne Verbindung weiter. Speichere nur auf deinem Gerät, synchronisiere mit Lunaris Cloud oder betreibe Community Edition auf deinem Server.",
@@ -274,26 +222,13 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			"Reúna notas, bases de conhecimento e projetos em um espaço que funciona offline. Colabore em tempo real, adicione extensões e escolha onde seus dados ficam.",
 		headline: "Um lar para o",
 		headlineEnd: "conhecimento da sua equipe.",
-		description:
-			"Reúna notas, bases de conhecimento e projetos. Escolha as ferramentas de cada espaço com extensões. Continue trabalhando offline.",
+		description: "As notas e ferramentas da sua equipe, em um só espaço.",
 		start: "Comece grátis",
 		open: "Abrir Lunaris",
 		freeNote: "Grátis para até 3 membros. Sem cartão de crédito.",
 		watch: "Veja em ação",
 		tour: "Explore a demonstração do espaço de trabalho",
 		chapters: ["Notas", "Quadros", "Lousas"],
-		benefits: [
-			{
-				title: "Dê um lar ao conhecimento.",
-				description:
-					"Reúna notas de reuniões, decisões e materiais de referência. Um lugar para sua equipe encontrar respostas e pensar junto.",
-			},
-			{
-				title: "Avancem juntos.",
-				description:
-					"Edite em tempo real, compartilhe espaços e gerencie o acesso. Trabalhe por conta própria ou reúna toda a equipe na mesma página.",
-			},
-		],
 		ownershipTitle: "Seu espaço. Suas condições.",
 		ownershipDescription:
 			"Continue trabalhando sem conexão. Mantenha os dados só no dispositivo, sincronize com Lunaris Cloud ou hospede Community Edition no seu servidor.",
