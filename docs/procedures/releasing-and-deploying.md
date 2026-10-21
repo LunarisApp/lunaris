@@ -237,3 +237,23 @@ CLI/Desktop releases remain separate manual invocations of `Native - Publish`;
 their version edits and Cargo/Tauri synchronization remain an explicit native
 release task. This coordinator neither consumes their changesets nor publishes
 their artifacts.
+
+## Publication status and landing checks
+
+Green branch CI does not mean production deployed. Inspect the parent
+**Release - Publish** summary for validation, publication, and back-merge results.
+Recover its failed jobs before merging another release PR; preserve existing
+versions, tags, drafts, and deployment receipts.
+
+If reviewed automation-only fixes must reach main first, the recovery hotfix
+provides manual `repair_untagged=true`. It preserves pending versions and history,
+requires full CI/E2E, and refuses any existing target tag/release or shipped-input
+change. Tagged or partially published releases must recover their original source.
+
+Landing promotion checks homepage, `/en/self-hosted`, installer redirect, and
+installer asset availability after the normal health check. Failures keep the
+release draft; retries resume the recorded deployment.
+
+API/web/docs/landing GitHub sources were disconnected on 2026-10-21; coordinator
+CLI uploads own production deployment. Preserve monorepo-root builds and each
+service's `apps/<app>/railway.json` path.

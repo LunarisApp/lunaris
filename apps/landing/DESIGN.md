@@ -221,7 +221,7 @@ Printed Olive is a complete warm neutral ramp, moving from parchment to black ol
 
 Pages use a centered responsive container: 42rem on small screens, 48rem at the medium breakpoint, and 80rem with 2.5rem gutters at the large breakpoint. Mobile gutters are 1.5rem. Major sections use 4rem vertical padding, while heroes add larger top and bottom space at the small breakpoint. Content alternates between narrow editorial measures and full-width product evidence rather than filling the container uniformly.
 
-The primary grid grows from one column to two at 40rem and, for feature bento compositions, to twelve columns at 64rem. Navigation is centered and sticky at 5.25rem tall; desktop links appear at 64rem, while smaller screens use a full-page menu. Pricing comparison collapses from a multi-column table into plan tabs below 40rem.
+The primary grid grows from one column to two at 40rem and, for feature bento compositions, to twelve columns at 64rem. Navigation is sticky at 5.25rem tall, with the brand on the left, sparse links in the middle, and app, language, and theme actions on the right. Desktop links and the app entry appear at 64rem, while smaller screens use a full-page menu. Pricing comparison collapses from a multi-column table into plan tabs below 40rem.
 
 **The Narrow Claim, Wide Proof Rule.** Keep prose constrained enough to read as editorial copy, then allow screenshots, bento grids, tables, and illustrations to use the full container as proof.
 
@@ -277,11 +277,11 @@ Components are softly tactile and assured: pill CTAs, translucent surfaces, fine
 
 ### Navigation
 
-Sticky navigation uses the page's Warm Paper or Black Olive field with no shadow. The centered brand mark separates sparse desktop links from language and theme actions. Mobile navigation expands into a full-page paper surface with large Inter links rather than compressing desktop navigation.
+Sticky navigation uses the page's Warm Paper or Black Olive field with no shadow. The brand anchors the left edge; sparse desktop links lead to extensions, pricing, documentation, and self-hosting. A primary app entry sits beside language and theme actions. Mobile navigation expands into a full-page paper surface with large Inter links and closes when a link is followed.
 
 ### Screenshot Frames
 
-Main demos sit inside a Sage Wash mat with a fine Black Olive ring, broad shadow, and progressively larger corners. Smaller screenshots sit on weathered wallpaper with directional padding, one exposed edge, and a concentrated object shadow.
+Product tours use a flat Sage Wash mat with nested corners and optional chapter controls; the recording supplies the visual depth. Other hero screenshots may use a fine Black Olive ring and broad shadow. Smaller screenshots sit on weathered wallpaper with directional padding, one exposed edge, and a concentrated object shadow.
 
 ### Wallpaper Portals
 

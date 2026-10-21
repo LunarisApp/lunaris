@@ -86,8 +86,14 @@ test("E2E avoids nightly duplicates and cancels superseded PR runs only", () => 
 
 test("every external action is pinned, including native releases and composite actions", async () => {
   const paths = [
-    ...new Bun.Glob(".github/workflows/*.{yml,yaml}").scanSync("."),
-    ...new Bun.Glob(".github/actions/**/action.{yml,yaml}").scanSync("."),
+    ...new Bun.Glob(".github/workflows/*.{yml,yaml}").scanSync({
+      cwd: ".",
+      dot: true,
+    }),
+    ...new Bun.Glob(".github/actions/**/action.{yml,yaml}").scanSync({
+      cwd: ".",
+      dot: true,
+    }),
   ];
   expect(paths).toContain(".github/workflows/release.yml");
   expect(paths).toContain(".github/actions/setup-bun/action.yml");
@@ -123,7 +129,10 @@ test("workflows share repository Bun setup and preserve download-cache opt-ins",
     "release-policy",
     "sites",
   ]);
-  for (const path of new Bun.Glob(".github/workflows/*.yml").scanSync(".")) {
+  for (const path of new Bun.Glob(".github/workflows/*.yml").scanSync({
+    cwd: ".",
+    dot: true,
+  })) {
     const document = parse(readFileSync(path, "utf8"));
     expect(document.env?.BUN_VERSION).toBeUndefined();
     for (const [name, job] of Object.entries(document.jobs) as [
