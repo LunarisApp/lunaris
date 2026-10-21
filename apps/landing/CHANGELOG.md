@@ -1,5 +1,15 @@
 # landing
 
+## 0.2.0
+
+### Minor Changes
+
+- [#29](https://github.com/LunarisApp/lunaris/pull/29) [`80ce3c3`](https://github.com/LunarisApp/lunaris/commit/80ce3c383190474e3f59dce13a519a525750f58c) Thanks [@MrLightful](https://github.com/MrLightful)! - Refocus the homepage on small-team notes and knowledge, with a compact product tour and extension highlights. Add a searchable extension catalog and localized detail pages using published metadata and shared app icons. Generate Next.js types before typechecking clean checkouts.
+
+### Patch Changes
+
+- [#24](https://github.com/LunarisApp/lunaris/pull/24) [`bf107d7`](https://github.com/LunarisApp/lunaris/commit/bf107d7210f05e1d76f085fad7de07da7676e94f) Thanks [@dependabot](https://github.com/apps/dependabot)! - Refresh the workspace lockfile for the MCP client 2.3.0 development dependency update.
+
 ## 0.1.0
 
 ### Minor Changes

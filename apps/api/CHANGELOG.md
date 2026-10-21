@@ -1,5 +1,20 @@
 # api
 
+## 0.0.4
+
+### Patch Changes
+
+- [#24](https://github.com/LunarisApp/lunaris/pull/24) [`bf107d7`](https://github.com/LunarisApp/lunaris/commit/bf107d7210f05e1d76f085fad7de07da7676e94f) Thanks [@dependabot](https://github.com/apps/dependabot)! - Refresh the workspace lockfile for the MCP client 2.3.0 development dependency update.
+- Updated dependencies [[`bf107d7`](https://github.com/LunarisApp/lunaris/commit/bf107d7210f05e1d76f085fad7de07da7676e94f)]:
+  - @lunarisapp/plugin-sdk@0.12.2
+  - @extension/file@0.0.1
+  - @extension/kanban@0.0.1
+  - @extension/rich-text@0.0.1
+  - @repo/agent-contracts@0.0.1
+  - @repo/ee-audit@0.0.1
+  - @repo/ee-teams@0.0.1
+  - @repo/auth@0.0.1
+
 ## 0.0.3
 
 ### Patch Changes

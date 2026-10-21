@@ -1,13 +1,61 @@
 {
-  "sourceCommit": "38140e89a5453a5a89ad40bd5d4ebaffb74f0c80",
+  "sourceCommit": "3470eea9e973033d72064bd8be4bb92ae0fccdf4",
   "releases": [
+    {
+      "name": "@lunarisapp/plugin-sdk",
+      "path": "packages/plugin-sdk",
+      "kind": "npm",
+      "version": "0.12.2",
+      "tag": "@lunarisapp/plugin-sdk@0.12.2",
+      "notes": "### Patch Changes\n\n- [#24](https://github.com/LunarisApp/lunaris/pull/24) [`bf107d7`](https://github.com/LunarisApp/lunaris/commit/bf107d7210f05e1d76f085fad7de07da7676e94f) Thanks [@dependabot](https://github.com/apps/dependabot)! - Refresh the workspace lockfile for the MCP client 2.3.0 development dependency update."
+    },
+    {
+      "name": "@lunarisapp/ui",
+      "path": "packages/ui",
+      "kind": "npm",
+      "version": "0.0.5",
+      "tag": "@lunarisapp/ui@0.0.5",
+      "notes": "### Patch Changes\n\n- [#24](https://github.com/LunarisApp/lunaris/pull/24) [`bf107d7`](https://github.com/LunarisApp/lunaris/commit/bf107d7210f05e1d76f085fad7de07da7676e94f) Thanks [@dependabot](https://github.com/apps/dependabot)! - Refresh the workspace lockfile for the MCP client 2.3.0 development dependency update."
+    },
+    {
+      "name": "api",
+      "path": "apps/api",
+      "kind": "hosted",
+      "version": "0.0.4",
+      "tag": "api@0.0.4",
+      "notes": "### Patch Changes\n\n- [#24](https://github.com/LunarisApp/lunaris/pull/24) [`bf107d7`](https://github.com/LunarisApp/lunaris/commit/bf107d7210f05e1d76f085fad7de07da7676e94f) Thanks [@dependabot](https://github.com/apps/dependabot)! - Refresh the workspace lockfile for the MCP client 2.3.0 development dependency update.\n- Updated dependencies [[`bf107d7`](https://github.com/LunarisApp/lunaris/commit/bf107d7210f05e1d76f085fad7de07da7676e94f)]:\n  - @lunarisapp/plugin-sdk@0.12.2\n  - @extension/file@0.0.1\n  - @extension/kanban@0.0.1\n  - @extension/rich-text@0.0.1\n  - @repo/agent-contracts@0.0.1\n  - @repo/ee-audit@0.0.1\n  - @repo/ee-teams@0.0.1\n  - @repo/auth@0.0.1"
+    },
+    {
+      "name": "web",
+      "path": "apps/web",
+      "kind": "hosted",
+      "version": "0.0.3",
+      "tag": "web@0.0.3",
+      "notes": "### Patch Changes\n\n- [#24](https://github.com/LunarisApp/lunaris/pull/24) [`bf107d7`](https://github.com/LunarisApp/lunaris/commit/bf107d7210f05e1d76f085fad7de07da7676e94f) Thanks [@dependabot](https://github.com/apps/dependabot)! - Refresh the workspace lockfile for the MCP client 2.3.0 development dependency update.\n- Updated dependencies []:\n  - @repo/data@0.0.1\n  - @repo/app-shell@0.0.1\n  - @repo/features@0.0.1\n  - @repo/ee-composition@0.0.1"
+    },
+    {
+      "name": "docs",
+      "path": "apps/docs",
+      "kind": "hosted",
+      "version": "0.0.4",
+      "tag": "docs@0.0.4",
+      "notes": "### Patch Changes\n\n- [#24](https://github.com/LunarisApp/lunaris/pull/24) [`bf107d7`](https://github.com/LunarisApp/lunaris/commit/bf107d7210f05e1d76f085fad7de07da7676e94f) Thanks [@dependabot](https://github.com/apps/dependabot)! - Refresh the workspace lockfile for the MCP client 2.3.0 development dependency update."
+    },
     {
       "name": "landing",
       "path": "apps/landing",
       "kind": "hosted",
-      "version": "0.1.0",
-      "tag": "landing@0.1.0",
-      "notes": "### Minor Changes\n\n- [#22](https://github.com/LunarisApp/lunaris/pull/22) [`90ebed9`](https://github.com/LunarisApp/lunaris/commit/90ebed9f80e023757d55a229cacac9d0184ad156) Thanks [@MrLightful](https://github.com/MrLightful)! - Add open-source positioning, self-hosting calls to action, and repository links across the landing site. Introduce a localized self-hosting guide covering installation, server requirements, operations, and licensing, with responsive layout and keyboard access to the install command."
+      "version": "0.2.0",
+      "tag": "landing@0.2.0",
+      "notes": "### Minor Changes\n\n- [#29](https://github.com/LunarisApp/lunaris/pull/29) [`80ce3c3`](https://github.com/LunarisApp/lunaris/commit/80ce3c383190474e3f59dce13a519a525750f58c) Thanks [@MrLightful](https://github.com/MrLightful)! - Refocus the homepage on small-team notes and knowledge, with a compact product tour and extension highlights. Add a searchable extension catalog and localized detail pages using published metadata and shared app icons. Generate Next.js types before typechecking clean checkouts.\n\n### Patch Changes\n\n- [#24](https://github.com/LunarisApp/lunaris/pull/24) [`bf107d7`](https://github.com/LunarisApp/lunaris/commit/bf107d7210f05e1d76f085fad7de07da7676e94f) Thanks [@dependabot](https://github.com/apps/dependabot)! - Refresh the workspace lockfile for the MCP client 2.3.0 development dependency update."
+    },
+    {
+      "name": "self-hosted",
+      "path": "infra/self-host",
+      "kind": "self-hosted",
+      "version": "0.1.1",
+      "tag": "self-hosted@0.1.1",
+      "notes": "### Patch Changes\n\n- [#24](https://github.com/LunarisApp/lunaris/pull/24) [`bf107d7`](https://github.com/LunarisApp/lunaris/commit/bf107d7210f05e1d76f085fad7de07da7676e94f) Thanks [@dependabot](https://github.com/apps/dependabot)! - Refresh the workspace lockfile for the MCP client 2.3.0 development dependency update."
     }
   ]
 }
