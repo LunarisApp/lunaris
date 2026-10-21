@@ -1,3 +1,4 @@
+import { repairUntaggedRelease } from "./repair-untagged";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { manifestPath, readManifest, verifyReleaseCommit } from "./manifest";
 import { git, output, run, summary } from "./process";
@@ -27,44 +28,53 @@ if (mode === "version") {
   ) {
     verifyReleaseCommit();
   } else {
-    const releases = versionTargets();
+    const repair = process.env.REPAIR_UNTAGGED === "true";
+    const releases = repair ? repairUntaggedRelease() : versionTargets();
     if (!releases.length) {
       output("sha", requested);
       output("publish", "false");
       process.exit(0);
     }
-    run("bun", ["install", "--lockfile-only", "--ignore-scripts"]);
+    if (!repair) {
+      run("bun", ["install", "--lockfile-only", "--ignore-scripts"]);
+    }
     mkdirSync(".release", { recursive: true });
     writeFileSync(
       manifestPath,
       `${JSON.stringify({ sourceCommit: requested, releases }, null, 2)}\n`
     );
-    run("bun", [
-      "x",
-      "biome",
-      "format",
-      "--write",
-      manifestPath,
-      ...releases.map((entry) => `${entry.path}/package.json`),
-    ]);
+    if (!repair) {
+      run("bun", [
+        "x",
+        "biome",
+        "format",
+        "--write",
+        manifestPath,
+        ...releases.map((entry) => `${entry.path}/package.json`),
+      ]);
+    }
     git("config", "user.name", "lunaris-release[bot]");
     git(
       "config",
       "user.email",
       "lunaris-release[bot]@users.noreply.github.com"
     );
-    git(
-      "add",
-      ".changeset",
-      "apps",
-      "packages",
-      "internal",
-      "extensions",
-      "ee",
-      "infra",
-      "bun.lock",
-      manifestPath
-    );
+    if (repair) {
+      git("add", manifestPath);
+    } else {
+      git(
+        "add",
+        ".changeset",
+        "apps",
+        "packages",
+        "internal",
+        "extensions",
+        "ee",
+        "infra",
+        "bun.lock",
+        manifestPath
+      );
+    }
     git("commit", "-m", "chore(release): version packages");
     git("push", "origin", "HEAD:main");
   }

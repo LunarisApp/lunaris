@@ -3,6 +3,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      repair_untagged:
+        description: Resume an untagged release after a reviewed automation-only fix (no version bump)
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -35,6 +40,7 @@ jobs:
         run: bun tooling/release/automation/coordinate.ts version
         env:
           GITHUB_TOKEN: ${{ steps.app.outputs.token }}
+          REPAIR_UNTAGGED: ${{ github.event_name == 'workflow_dispatch' && inputs.repair_untagged }}
   validate:
     needs: version
     uses: ./.github/workflows/ci.yml
