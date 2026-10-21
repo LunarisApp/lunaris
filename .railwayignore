@@ -1,0 +1,4 @@
+# Agent tooling and local collaboration files are not production inputs.
+/.claude/
+/.agents/
+/.context/

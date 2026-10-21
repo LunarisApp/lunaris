@@ -1,3 +1,5 @@
+import { SoftButtonLink, PlainButtonLink } from "@/components/elements/button";
+import { openSourceCopy, repositoryUrl } from "@/data/open-source";
 import Link from "next/link";
 import { TrackedButtonLink } from "@/components/analytics/tracked-button-link";
 import { DemoVideo } from "@/components/elements/demo-video";
@@ -28,6 +30,7 @@ export default async function Page({
 	const { locale: rawLocale } = await params;
 	const locale = rawLocale as Locale;
 	const dict = await getDictionary(locale);
+	const source = openSourceCopy[locale];
 	const faqs = getFaqs(locale, dict);
 	const ctaClassName =
 		"min-h-12 max-w-full flex-wrap gap-x-2 gap-y-0 text-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-950 dark:focus-visible:outline-olive-200";
@@ -36,22 +39,31 @@ export default async function Page({
 		<>
 			<HeroCenteredWithDemo
 				cta={
-					<TrackedButtonLink
-						analyticsProperties={{
-							cta: "open_web_app",
-							destination: "web",
-							location: "home_hero",
-						}}
-						className={ctaClassName}
-						href="https://web.lunaris.app"
-						size="lg"
-					>
-						<span>{dict.cta.label}</span>
-						<span className="font-normal opacity-80">
-							<span aria-hidden="true">· </span>
-							{dict.cta.suffix}
-						</span>
-					</TrackedButtonLink>
+					<div className="flex flex-wrap items-center justify-center gap-3">
+						<TrackedButtonLink
+							analyticsProperties={{
+								cta: "open_web_app",
+								destination: "web",
+								location: "home_hero",
+							}}
+							className={ctaClassName}
+							href="https://web.lunaris.app"
+							size="lg"
+						>
+							<span>{dict.cta.label}</span>
+							<span className="font-normal opacity-80">
+								<span aria-hidden="true">· </span>
+								{dict.cta.suffix}
+							</span>
+						</TrackedButtonLink>
+						<SoftButtonLink
+							className={ctaClassName}
+							href={localePath(locale, "/self-hosted")}
+							size="lg"
+						>
+							{source.label}
+						</SoftButtonLink>
+					</div>
 				}
 				demo={
 					<DemoVideo
@@ -62,34 +74,42 @@ export default async function Page({
 				eyebrow={
 					<Link
 						className="group inline-flex min-h-11 max-w-full items-center gap-2 rounded-full border border-olive-950/10 bg-white/50 py-1 pr-3 pl-1 text-sm/6 font-medium text-olive-800 shadow-sm transition-colors hover:border-olive-950/15 hover:bg-white/80 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-950 dark:border-white/15 dark:bg-white/10 dark:text-olive-200 dark:focus-visible:outline-olive-200 dark:hover:border-white/25 dark:hover:bg-white/15"
-						href={localePath(locale, "/mcp")}
+						href={repositoryUrl}
 					>
 						<span className="shrink-0 rounded-full bg-olive-950 px-2 py-0.5 text-xs/5 font-semibold text-white dark:bg-olive-100 dark:text-olive-950">
-							{dict.hero.mcpAnnouncement.badge}
+							{source.badge}
 						</span>
 						<span className="min-w-0 text-left text-pretty">
-							{dict.hero.mcpAnnouncement.label}
+							{source.github}
 						</span>
 						<ArrowNarrowRightIcon className="shrink-0 motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
 					</Link>
 				}
 				headline={dict.hero.headline}
 				id="hero"
-				subheadline={
-					<p className="text-pretty">
-						{dict.hero.subheadline.beforeHighlight}{" "}
-						<strong className="font-medium text-olive-950 dark:text-white">
-							{dict.hero.subheadline.highlight}
-						</strong>{" "}
-						{dict.hero.subheadline.betweenHighlights}{" "}
-						<strong className="font-medium text-olive-950 dark:text-white">
-							{dict.hero.subheadline.secondHighlight}
-						</strong>
-						{dict.hero.subheadline.afterHighlight}
-					</p>
-				}
+				subheadline={<p className="text-pretty">{source.description}</p>}
 			/>
 
+			<section className="border-y border-olive-950/10 px-6 py-16 dark:border-white/10">
+				<div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+					<div className="max-w-2xl">
+						<h2 className="font-display text-3xl text-olive-950 dark:text-white">
+							{source.selfHostHeadline}
+						</h2>
+						<p className="mt-4 text-base/7 text-olive-700 dark:text-olive-300">
+							{source.selfHostDescription}
+						</p>
+					</div>
+					<PlainButtonLink
+						className={ctaClassName}
+						href={localePath(locale, "/self-hosted")}
+						size="lg"
+					>
+						{source.label}
+						<ArrowNarrowRightIcon />
+					</PlainButtonLink>
+				</div>
+			</section>
 			{/* Problems */}
 			<Features
 				features={
@@ -158,22 +178,31 @@ export default async function Page({
 			<CallToActionSimple
 				className="border-t border-olive-950/10 dark:border-white/10"
 				cta={
-					<TrackedButtonLink
-						analyticsProperties={{
-							cta: "open_web_app",
-							destination: "web",
-							location: "home_bottom",
-						}}
-						className={`${ctaClassName} self-start`}
-						href="https://web.lunaris.app"
-						size="lg"
-					>
-						<span>{dict.cta.label}</span>
-						<span className="font-normal opacity-80">
-							<span aria-hidden="true">· </span>
-							{dict.cta.suffix}
-						</span>
-					</TrackedButtonLink>
+					<div className="flex flex-wrap items-center justify-center gap-3">
+						<TrackedButtonLink
+							analyticsProperties={{
+								cta: "open_web_app",
+								destination: "web",
+								location: "home_bottom",
+							}}
+							className={`${ctaClassName} self-start`}
+							href="https://web.lunaris.app"
+							size="lg"
+						>
+							<span>{dict.cta.label}</span>
+							<span className="font-normal opacity-80">
+								<span aria-hidden="true">· </span>
+								{dict.cta.suffix}
+							</span>
+						</TrackedButtonLink>
+						<SoftButtonLink
+							className={ctaClassName}
+							href={localePath(locale, "/self-hosted")}
+							size="lg"
+						>
+							{source.label}
+						</SoftButtonLink>
+					</div>
 				}
 				headline={dict.cta.headline}
 				subheadline={<p>{dict.cta.subheadline}</p>}

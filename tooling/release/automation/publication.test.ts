@@ -5,6 +5,7 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  existsSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -73,17 +74,35 @@ function fixture(kind: "npm" | "hosted") {
   }
   git("push", "origin", "main", "--tags");
   const log = join(root, "calls.jsonl");
+  const releaseAssets = join(root, "release-assets");
   const stub = `#!${process.execPath}
-import { appendFileSync } from "node:fs";
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
+import { basename, join } from "node:path";
 const args = process.argv.slice(2);
 const tool = process.argv[1].split("/").at(-1);
 appendFileSync(process.env.CALL_LOG, JSON.stringify({tool,args})+"\\n");
 if (tool === "npm" && args[0] === "pack") console.log(JSON.stringify([{filename:"archive.tgz"}]));
-if (tool === "gh" && args[1] === "view") console.log(JSON.stringify({assets:[]}));
+if (tool === "gh") {
+ const assets = join(process.env.RELEASE_ASSETS, args[2]);
+ if (args[1] === "view") console.log(JSON.stringify({assets:existsSync(assets) ? readdirSync(assets).map(name=>({name})) : []}));
+ if (args[1] === "upload") {
+  mkdirSync(assets, {recursive:true});
+  copyFileSync(args[3], join(assets, basename(args[3])));
+ }
+ if (args[1] === "download") copyFileSync(join(assets, args[args.indexOf("--pattern")+1]), args[args.indexOf("--output")+1]);
+}
 if (tool === "gh" && args[1] === "edit" && process.env.FAIL_PROMOTION === args[2]) process.exit(1);
 if (tool === "railway") {
  const service = args[args.indexOf("--service")+1];
- if (args[0] === "up") console.log(JSON.stringify({deploymentId:service}));
+ if (args[0] === "up") {
+  if (process.env.FAIL_UPLOAD) {
+    console.error(process.env.FAIL_UPLOAD === "packaging"
+      ? JSON.stringify({code:"ERROR",error:"/work/.claude/skills/missing: IO error for operation on /work/.claude/skills/missing: No such file or directory (os error 2)"})
+      : "connection reset");
+    process.exit(1);
+  }
+  console.log(JSON.stringify({deploymentId:service}));
+ }
  else console.log(JSON.stringify([{id:service,status:service===process.env.FAIL_SERVICE?"FAILED":"SUCCESS"}]));
 }
 `;
@@ -123,9 +142,11 @@ if (tool === "railway") {
           ...process.env,
           PATH: `${bin}:${process.env.PATH}`,
           CALL_LOG: log,
-          RUNNER_TEMP: root,
+          RUNNER_TEMP: mkdtempSync(join(root, "runner-")),
+          RELEASE_ASSETS: releaseAssets,
           GITHUB_STEP_SUMMARY: join(root, "summary"),
           EXPECTED_INTEGRITY: `sha512-${createHash("sha512").update("validated archive").digest("base64")}`,
+          RAILWAY_API_TOKEN: "fixture-token",
           RAILWAY_RELEASE_TARGETS: JSON.stringify({
             web: [destination(1), destination(2)],
             docs: [destination(3)],
@@ -135,15 +156,27 @@ if (tool === "railway") {
       }
     );
   const calls = () =>
-    readFileSync(log, "utf8")
+    (existsSync(log) ? readFileSync(log, "utf8") : "")
       .trim()
       .split("\n")
+      .filter(Boolean)
       .map((line) => JSON.parse(line) as { tool: string; args: string[] });
   const promoted = () =>
     calls()
       .filter(({ tool, args }) => tool === "gh" && args[1] === "edit")
       .map(({ args }) => args[2]);
-  return { invoke, calls, promoted, service };
+  const receipt = (n: number) =>
+    JSON.parse(
+      readFileSync(
+        join(
+          releaseAssets,
+          n === 3 ? "docs@1.0.0" : "web@1.0.0",
+          `railway-${service(n)}.json`
+        ),
+        "utf8"
+      )
+    ) as { attempts: { deploymentId: string | null; status: string }[] };
+  return { invoke, calls, promoted, service, receipt };
 }
 
 test("npm recovery promotes verified existing versions, including reruns, without republishing", () => {
@@ -192,4 +225,58 @@ test("later hosted failure preserves already promoted target", () => {
   const f = fixture("hosted");
   expect(f.invoke({ FAIL_SERVICE: f.service(3) }).exitCode).not.toBe(0);
   expect(f.promoted()).toEqual(["web@1.0.0"]);
+});
+
+test("missing Railway token fails before creating receipts or uploading", () => {
+  const f = fixture("hosted");
+  const result = f.invoke({ RAILWAY_API_TOKEN: " " });
+  expect(result.exitCode).not.toBe(0);
+  expect(result.stderr.toString()).toContain("Missing RAILWAY_API_TOKEN");
+  expect(
+    f.calls().filter(({ tool }) => tool === "gh" || tool === "railway")
+  ).toEqual([]);
+});
+
+test("local packaging failure records a retryable attempt and preserves history", () => {
+  const f = fixture("hosted");
+  const result = f.invoke({ FAIL_UPLOAD: "packaging" });
+  expect(result.exitCode).not.toBe(0);
+  expect(result.stderr.toString()).toContain("packaging failed before upload");
+  expect(f.receipt(1).attempts).toEqual([
+    { deploymentId: null, status: "PACKAGING_FAILED" },
+  ]);
+  expect(f.invoke().exitCode).toBe(0);
+  expect(f.receipt(1).attempts).toEqual([
+    { deploymentId: null, status: "PACKAGING_FAILED" },
+    { deploymentId: f.service(1), status: "SUCCESS" },
+  ]);
+});
+
+test("uncertain upload failure blocks duplicate uploads on retry", () => {
+  const f = fixture("hosted");
+  expect(f.invoke({ FAIL_UPLOAD: "unknown" }).exitCode).not.toBe(0);
+  expect(f.receipt(1).attempts).toEqual([
+    { deploymentId: null, status: "UPLOADING" },
+  ]);
+  const retry = f.invoke();
+  expect(retry.exitCode).not.toBe(0);
+  expect(retry.stderr.toString()).toContain("Upload outcome unknown");
+  expect(
+    f.calls().filter(({ tool, args }) => tool === "railway" && args[0] === "up")
+  ).toHaveLength(1);
+});
+
+test("fresh hosted runner resumes published receipts without uploading again", () => {
+  const f = fixture("hosted");
+  expect(f.invoke().exitCode).toBe(0);
+  expect(f.invoke().exitCode).toBe(0);
+  expect(
+    f.calls().filter(({ tool, args }) => tool === "railway" && args[0] === "up")
+  ).toHaveLength(3);
+  expect(f.promoted()).toEqual([
+    "web@1.0.0",
+    "docs@1.0.0",
+    "web@1.0.0",
+    "docs@1.0.0",
+  ]);
 });
