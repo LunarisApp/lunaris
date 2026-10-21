@@ -237,3 +237,47 @@ CLI/Desktop releases remain separate manual invocations of `Native - Publish`;
 their version edits and Cargo/Tauri synchronization remain an explicit native
 release task. This coordinator neither consumes their changesets nor publishes
 their artifacts.
+
+
+## Blocked publication and reviewed CI repair
+
+Green branch CI does not mean production deployed. Ordinary pushes skip E2E;
+the parent **Release - Publish** run owns final validation and publication.
+Use its summary to distinguish validation, tagging, each publication job, and
+back-merge. Recover an incomplete release before merging another release PR.
+Preparation and ready-main PR policy fail closed while previous manifest targets
+lack matching tags/public releases or the version commit is absent from `next`.
+Feature work into `next` can continue. Preparation refreshes after a release run
+completes; it preserves the release PR's draft/ready state.
+
+First rerun failed jobs on the original release, or dispatch Release - Publish on
+current `main`. Normal retries reuse the existing version commit and receipts.
+Do not remove tags, drafts, or receipts to force another upload.
+
+If a CI/release tooling defect prevents recovery, review an automation-only hotfix
+into `main`. Before any target has a tag or GitHub Release (including drafts),
+manual Release - Publish supports `repair_untagged=true`. It verifies the last
+manifest came from a version commit, package versions still match, and all changes
+since that commit are limited to workflow/release/CI tooling or this runbook.
+It creates a new manifest-only version commit at current main, retaining the
+pending versions and original history. Full CI/E2E must pass before tags are
+created. Tagged or partially published releases cannot use this repair mode;
+recover their original source instead. No automatic version bump is performed.
+
+Hosted uploads stamp each app's `build-info.ts` in the upload snapshot and restore
+the checkout afterward. The generated input is part of the build cache key.
+Health responses preserve their existing body/status and add `X-Lunaris-Commit`
+and `X-Lunaris-Version`; local builds report `local`. Publication requires both
+headers to match expected release SHA/version. Landing also checks homepage,
+`/en/self-hosted`, installer redirect destination, and installer asset availability.
+A verification failure leaves the target draft and retains its deployment receipt.
+
+E2E starts both preview servers explicitly, records their logs and PIDs, and polls
+API/preview readiness with bounded retries. Startup failure and readiness timeout
+are distinct errors. Cypress assertions are never automatically retried by this
+startup helper; both Electron suites remain mandatory.
+
+Production GitHub source connections for API/web/docs/landing were disconnected
+on 2026-10-21. CLI uploads through the release coordinator own deployment. Effective
+config paths were verified as `apps/<app>/railway.json`; keep these paths,
+monorepo-root builds, variables, domains, and API migration hooks intact.

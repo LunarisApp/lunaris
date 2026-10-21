@@ -1,3 +1,5 @@
+import { withBuildInfo } from "./build-info";
+import { verifyHostedHealth } from "./health";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { verifyPublicationCommit } from "./manifest";
 import { run, summary } from "./process";
@@ -55,6 +57,9 @@ for (const name of ["api", "web", "docs", "landing"]) {
     continue;
   }
   for (const destination of destinations[name] ?? []) {
+    summary(
+      `${entry.tag}: deployment pending; expected ${sha}; health ${destination.healthUrl}`
+    );
     const scope = [
       "--project",
       destination.project,
@@ -95,21 +100,27 @@ for (const name of ["api", "web", "docs", "landing"]) {
       !attempt ||
       ["FAILED", "CRASHED", "PACKAGING_FAILED"].includes(attempt.status)
     ) {
-      attempt = { deploymentId: null, status: "UPLOADING" };
-      receipt.attempts.push(attempt);
-      save();
-      const upload = run(
-        "railway",
-        [
-          "up",
-          ...scope,
-          "--detach",
-          "--json",
-          "--message",
-          `${entry.tag} ${sha}`,
-        ],
-        { allowFailure: true }
-      );
+      const uploadAttempt: Receipt["attempts"][number] = {
+        deploymentId: null,
+        status: "UPLOADING",
+      };
+      attempt = uploadAttempt;
+      const upload = withBuildInfo(name, sha, entry.version, () => {
+        receipt.attempts.push(uploadAttempt);
+        save();
+        return run(
+          "railway",
+          [
+            "up",
+            ...scope,
+            "--detach",
+            "--json",
+            "--message",
+            `${entry.tag} ${sha}`,
+          ],
+          { allowFailure: true }
+        );
+      });
       try {
         attempt.deploymentId = parseRailwayUpload(upload);
       } catch (error) {
@@ -121,6 +132,9 @@ for (const name of ["api", "web", "docs", "landing"]) {
       }
       attempt.status = "QUEUED";
       save();
+      summary(
+        `${entry.tag}: deployment ${attempt.deploymentId} QUEUED; expected ${sha}; health pending`
+      );
     }
     if (!attempt.deploymentId) {
       throw new Error(
@@ -148,13 +162,19 @@ for (const name of ["api", "web", "docs", "landing"]) {
       }
       attempt.status = deployment.status;
       if (deployment.status === "SUCCESS") {
-        const health = await fetch(destination.healthUrl, {
-          signal: AbortSignal.timeout(30_000),
-        });
-        if (!health.ok) {
-          throw new Error(
-            `Smoke check failed: ${destination.healthUrl}: ${health.status}`
+        try {
+          await verifyHostedHealth(
+            destination.healthUrl,
+            sha,
+            entry.version,
+            name === "landing"
           );
+        } catch (error) {
+          save();
+          summary(
+            `${entry.tag}: verification FAILED; expected ${sha}; deployment ${attempt.deploymentId}; ${String(error)}; recover via https://github.com/${process.env.GITHUB_REPOSITORY}/actions/workflows/release.publish.yml`
+          );
+          throw error;
         }
         save();
         summary(
@@ -172,6 +192,9 @@ for (const name of ["api", "web", "docs", "landing"]) {
         ].includes(deployment.status)
       ) {
         save();
+        summary(
+          `${entry.tag}: deployment ${attempt.deploymentId} ${deployment.status}; expected ${sha}; health not verified`
+        );
         throw new Error(
           `${entry.tag}: ${attempt.deploymentId} ended with ${deployment.status}`
         );

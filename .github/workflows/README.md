@@ -154,3 +154,22 @@ bun run check
 
 `tooling:typecheck` covers all TypeScript under `tooling/`; `brand:typecheck` remains
 an alias for existing callers.
+
+
+## Publication recovery and production identity
+
+Branch CI success is validation, not publication. Inspect the parent Release -
+Publish run: its summary reports validation, tagging, publication, and back-merge
+separately. Another promotion is blocked until prior manifest targets are publicly
+released at matching tags and the version commit is back-merged. Preparation
+refreshes when publication completes.
+
+Rerun the existing release first. For a reviewed automation-only repair before
+any tags/releases exist, dispatch Release - Publish on main with
+`repair_untagged=true`; versions stay unchanged and full validation remains
+mandatory. See the release runbook for eligibility and recovery constraints.
+
+Hosted health checks retain existing response bodies and add release SHA/version
+headers. Promotion verifies identity and landing routes, beyond HTTP health.
+E2E uses explicit server startup, bounded readiness probes, and server log
+artifacts; neither browser suite is optional for stable publication.

@@ -86,8 +86,14 @@ test("E2E avoids nightly duplicates and cancels superseded PR runs only", () => 
 
 test("every external action is pinned, including native releases and composite actions", async () => {
   const paths = [
-    ...new Bun.Glob(".github/workflows/*.{yml,yaml}").scanSync("."),
-    ...new Bun.Glob(".github/actions/**/action.{yml,yaml}").scanSync("."),
+    ...new Bun.Glob(".github/workflows/*.{yml,yaml}").scanSync({
+      cwd: ".",
+      dot: true,
+    }),
+    ...new Bun.Glob(".github/actions/**/action.{yml,yaml}").scanSync({
+      cwd: ".",
+      dot: true,
+    }),
   ];
   expect(paths).toContain(".github/workflows/release.yml");
   expect(paths).toContain(".github/actions/setup-bun/action.yml");
@@ -123,7 +129,10 @@ test("workflows share repository Bun setup and preserve download-cache opt-ins",
     "release-policy",
     "sites",
   ]);
-  for (const path of new Bun.Glob(".github/workflows/*.yml").scanSync(".")) {
+  for (const path of new Bun.Glob(".github/workflows/*.yml").scanSync({
+    cwd: ".",
+    dot: true,
+  })) {
     const document = parse(readFileSync(path, "utf8"));
     expect(document.env?.BUN_VERSION).toBeUndefined();
     for (const [name, job] of Object.entries(document.jobs) as [
@@ -229,4 +238,29 @@ test("workflow exports every selection flag validated by the gate", () => {
   expect(Object.keys(workflow("ci").jobs.changes.outputs).sort()).toEqual(
     [...checks].sort()
   );
+});
+
+test("both E2E suites use explicit readiness and retain server failure artifacts", () => {
+  const steps = workflow("e2e").jobs.e2e.steps;
+  const readiness = steps.findIndex((step: { run?: string }) =>
+    step.run?.includes("tooling/ci/readiness.ts")
+  );
+  const suites = steps.filter((step: { uses?: string }) =>
+    step.uses?.startsWith("cypress-io/github-action@")
+  );
+  expect(suites).toHaveLength(2);
+  expect(readiness).toBeGreaterThan(-1);
+  for (const suite of suites) {
+    expect(steps.indexOf(suite)).toBeGreaterThan(readiness);
+    expect(suite.with.browser).toBe("electron");
+    expect(suite.with.start).toBeUndefined();
+    expect(suite.with["wait-on"]).toBeUndefined();
+    expect(suite["continue-on-error"]).toBeUndefined();
+  }
+  expect(
+    steps.find(
+      (step: { with?: { name?: string } }) =>
+        step.with?.name === "e2e-server-logs"
+    ).with.path
+  ).toBe("logs/*.log");
 });

@@ -58,15 +58,15 @@ function fixture() {
   );
   git("add", ".");
   git("commit", "-m", "chore(release): version packages");
-  git("push", "origin", "main");
+  git("push", "origin", "main", "main:next");
   const bin = join(root, "bin");
   mkdirSync(bin);
   writeFileSync(
     join(bin, "gh"),
-    '#!/bin/sh\nprintf \'[{"tag_name":"api@1.0.1"}]\'\n',
+    `#!${process.execPath}\nconsole.log(process.env.GH_RELEASES ?? '[{"tag_name":"api@1.0.1"}]');\n`,
     { mode: 0o755 }
   );
-  const invoke = (mode: string) =>
+  const invoke = (mode: string, extra: Record<string, string> = {}) =>
     spawnSync(
       [process.execPath, resolve(import.meta.dir, "coordinate.ts"), mode],
       {
@@ -75,6 +75,7 @@ function fixture() {
           ...process.env,
           PATH: `${bin}:${process.env.PATH}`,
           GITHUB_REPOSITORY: "fixture/repo",
+          ...extra,
         },
       }
     );
@@ -150,7 +151,7 @@ test("fresh changesets release formats JSON and pushes its version commit", () =
   );
   git("add", ".");
   git("commit", "-m", "source");
-  git("push", "origin", "main");
+  git("push", "origin", "main", "main:next");
   const source = git("rev-parse", "HEAD");
   const outputPath = join(root, "outputs");
   const result = spawnSync(
@@ -190,3 +191,53 @@ test("fresh changesets release formats JSON and pushes its version commit", () =
   expect(readFileSync(outputPath, "utf8")).toContain(`sha=${head}`);
   expect(readFileSync(outputPath, "utf8")).toContain("publish=true");
 }, 30_000);
+
+test("explicit untagged repair preserves versions and validates a new manifest source", () => {
+  const f = fixture();
+  const pending = f.git("rev-parse", "HEAD");
+  mkdirSync(join(f.cwd, ".github/workflows"), { recursive: true });
+  writeFileSync(
+    join(f.cwd, ".github/workflows/e2e.yml"),
+    "name: corrected readiness\n"
+  );
+  f.git("add", ".");
+  f.git("commit", "-m", "fix(ci): readiness");
+  f.git("push", "origin", "main");
+  const source = f.git("rev-parse", "HEAD");
+  const result = f.invoke("version", {
+    REPAIR_UNTAGGED: "true",
+    GH_RELEASES: "[]",
+  });
+  expect(result.exitCode, result.stderr.toString()).toBe(0);
+  expect(f.git("rev-parse", "HEAD^")).toBe(source);
+  expect(f.git("merge-base", "--is-ancestor", pending, "HEAD")).toBe("");
+  const manifest = JSON.parse(
+    readFileSync(join(f.cwd, ".release/manifest.json"), "utf8")
+  );
+  expect(manifest.sourceCommit).toBe(source);
+  expect(manifest.releases[0].version).toBe("1.0.1");
+});
+
+for (const scenario of ["tag", "draft", "source"]) {
+  test(`untagged repair rejects ${scenario}`, () => {
+    const f = fixture();
+    if (scenario === "tag") {
+      f.git("tag", "api@1.0.1");
+      f.git("push", "origin", "--tags");
+    }
+    const path =
+      scenario === "source" ? "apps/api/main.ts" : "tooling/ci/fix.ts";
+    mkdirSync(join(f.cwd, path, ".."), { recursive: true });
+    writeFileSync(join(f.cwd, path), "// fix\n");
+    f.git("add", ".");
+    f.git("commit", "-m", "fix");
+    f.git("push", "origin", "main");
+    const before = f.git("rev-parse", "HEAD");
+    const result = f.invoke("version", {
+      REPAIR_UNTAGGED: "true",
+      GH_RELEASES: scenario === "draft" ? '[{"tag_name":"api@1.0.1"}]' : "[]",
+    });
+    expect(result.exitCode).not.toBe(0);
+    expect(f.git("rev-parse", "HEAD")).toBe(before);
+  });
+}

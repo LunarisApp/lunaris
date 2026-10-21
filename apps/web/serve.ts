@@ -1,3 +1,4 @@
+import { buildInfo } from "./build-info";
 import { normalize, resolve } from "node:path";
 import { scrubMaybe } from "@repo/utils";
 import type { DrainContext } from "evlog";
@@ -259,7 +260,12 @@ function withSecurityHeaders(response: Response, isHttps: boolean): Response {
 
 export function createHealthResponse(isHttps: boolean): Response {
   const response = new Response("ok\n", {
-    headers: { "Cache-Control": "no-store", "Content-Type": "text/plain" },
+    headers: {
+      "Cache-Control": "no-store",
+      "Content-Type": "text/plain",
+      "X-Lunaris-Commit": buildInfo.sha,
+      "X-Lunaris-Version": buildInfo.version,
+    },
     status: 200,
   });
   return withSecurityHeaders(response, isHttps);

@@ -3,6 +3,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      repair_untagged:
+        description: Resume an untagged release after a reviewed automation-only fix (no version bump)
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -35,6 +40,7 @@ jobs:
         run: bun tooling/release/automation/coordinate.ts version
         env:
           GITHUB_TOKEN: ${{ steps.app.outputs.token }}
+          REPAIR_UNTAGGED: ${{ github.event_name == 'workflow_dispatch' && inputs.repair_untagged }}
   validate:
     needs: version
     uses: ./.github/workflows/ci.yml
@@ -120,9 +126,12 @@ jobs:
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
           RELEASE_SHA: ${{ needs.version.outputs.sha }}
+          JOB_RESULTS: ${{ toJSON(needs) }}
         run: |
           echo "Release commit: $RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"
-          echo "Job results: $RESULTS" >> "$GITHUB_STEP_SUMMARY"
+          echo "Recovery: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Validation, tagging, publication (npm/hosted/self-hosted), and back-merge results:' >> "$GITHUB_STEP_SUMMARY"
+          echo "$JOB_RESULTS" >> "$GITHUB_STEP_SUMMARY"
           for result in $RESULTS; do
             case "$result" in success|skipped) ;; *) exit 1 ;; esac
           done

@@ -58,6 +58,13 @@ function fixture(kind: "npm" | "hosted") {
       JSON.stringify({ name: entry.name, version: entry.version })
     );
     writeFileSync(join(cwd, entry.path!, "archive.tgz"), "validated archive");
+    const info =
+      entry.name === "docs" ? "app/health/build-info.ts" : "build-info.ts";
+    mkdirSync(join(cwd, entry.path!, info, ".."), { recursive: true });
+    writeFileSync(
+      join(cwd, entry.path!, info),
+      'export const buildInfo = {sha: "local", version: "local"};'
+    );
   }
   git("add", ".");
   git("commit", "-m", "source");
@@ -76,7 +83,7 @@ function fixture(kind: "npm" | "hosted") {
   const log = join(root, "calls.jsonl");
   const releaseAssets = join(root, "release-assets");
   const stub = `#!${process.execPath}
-import { appendFileSync, copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 const args = process.argv.slice(2);
 const tool = process.argv[1].split("/").at(-1);
@@ -95,6 +102,8 @@ if (tool === "gh" && args[1] === "edit" && process.env.FAIL_PROMOTION === args[2
 if (tool === "railway") {
  const service = args[args.indexOf("--service")+1];
  if (args[0] === "up") {
+  const path = service.endsWith("3") ? "apps/docs/app/health/build-info.ts" : "apps/web/build-info.ts";
+  appendFileSync(process.env.CALL_LOG, JSON.stringify({tool:"snapshot",args:[readFileSync(path,"utf8")]})+"\\n");
   if (process.env.FAIL_UPLOAD) {
     console.error(process.env.FAIL_UPLOAD === "packaging"
       ? JSON.stringify({code:"ERROR",error:"/work/.claude/skills/missing: IO error for operation on /work/.claude/skills/missing: No such file or directory (os error 2)"})
@@ -114,7 +123,7 @@ if (tool === "railway") {
     preload,
     `globalThis.fetch = async (url) => {
     if (String(url).includes("registry.npmjs.org")) return Response.json({dist:{integrity: String(url).includes("%2Fui") && process.env.FAIL_INTEGRITY ? "wrong" : process.env.EXPECTED_INTEGRITY}});
-    return new Response("healthy");
+    return new Response("healthy", {headers: {"X-Lunaris-Commit": process.env.FAIL_HEALTH ? "wrong" : process.env.EXPECTED_SHA, "X-Lunaris-Version": "1.0.0"}});
   };`
   );
   const service = (n: number) =>
@@ -145,6 +154,7 @@ if (tool === "railway") {
           RUNNER_TEMP: mkdtempSync(join(root, "runner-")),
           RELEASE_ASSETS: releaseAssets,
           GITHUB_STEP_SUMMARY: join(root, "summary"),
+          EXPECTED_SHA: git("rev-parse", "HEAD"),
           EXPECTED_INTEGRITY: `sha512-${createHash("sha512").update("validated archive").digest("base64")}`,
           RAILWAY_API_TOKEN: "fixture-token",
           RAILWAY_RELEASE_TARGETS: JSON.stringify({
@@ -176,7 +186,15 @@ if (tool === "railway") {
         "utf8"
       )
     ) as { attempts: { deploymentId: string | null; status: string }[] };
-  return { invoke, calls, promoted, service, receipt };
+  return {
+    invoke,
+    calls,
+    promoted,
+    service,
+    receipt,
+    cwd,
+    sha: git("rev-parse", "HEAD"),
+  };
 }
 
 test("npm recovery promotes verified existing versions, including reruns, without republishing", () => {
@@ -279,4 +297,30 @@ test("fresh hosted runner resumes published receipts without uploading again", (
     "web@1.0.0",
     "docs@1.0.0",
   ]);
+});
+
+test("hosted uploads stamp expected metadata and restore checked-out inputs", () => {
+  const f = fixture("hosted");
+  const path = join(f.cwd, "apps/web/build-info.ts");
+  const original = readFileSync(path, "utf8");
+  expect(f.invoke().exitCode).toBe(0);
+  const snapshots = f.calls().filter(({ tool }) => tool === "snapshot");
+  expect(snapshots).toHaveLength(3);
+  for (const snapshot of snapshots) {
+    expect(snapshot.args[0]).toContain(f.sha);
+  }
+  expect(readFileSync(path, "utf8")).toBe(original);
+});
+
+test("served revision mismatch retains receipt and prevents promotion", () => {
+  const f = fixture("hosted");
+  const result = f.invoke({ FAIL_HEALTH: "true" });
+  expect(result.exitCode).not.toBe(0);
+  expect(result.stderr.toString()).toContain("Served revision mismatch");
+  expect(f.promoted()).toEqual([]);
+  expect(f.receipt(1).attempts.at(-1)?.status).toBe("SUCCESS");
+  expect(f.invoke().exitCode).toBe(0);
+  expect(
+    f.calls().filter(({ tool, args }) => tool === "railway" && args[0] === "up")
+  ).toHaveLength(3);
 });
