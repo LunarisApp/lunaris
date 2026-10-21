@@ -153,7 +153,8 @@ afterEach(async () => {
   );
 });
 
-describe("Lunaris Vite plugin compiler", () => {
+// Real builds and runtime package copies need headroom on shared CI runners.
+describe("Lunaris Vite plugin compiler", { timeout: 30_000 }, () => {
   it("emits one registering IIFE and normalized manifest", async () => {
     const root = await fixture(validSource);
     await buildFixture(root, { tag: "1.2.3" });
