@@ -1,3 +1,4 @@
+import { openSourceCopy, repositoryUrl } from "@/data/open-source";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Locale } from "@/i18n/config";
@@ -20,8 +21,15 @@ export function getFaqs(
 	return [
 		{
 			id: "faq-1",
-			question: items.openPlatform.question,
-			answer: items.openPlatform.answer,
+			question: openSourceCopy[locale].license,
+			answer: (
+				<p>
+					{openSourceCopy[locale].licenseDescription}{" "}
+					<Link className="underline underline-offset-3" href={repositoryUrl}>
+						{openSourceCopy[locale].github}
+					</Link>
+				</p>
+			),
 		},
 		{
 			id: "faq-2",
