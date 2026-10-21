@@ -13,9 +13,11 @@ Audience: small teams building knowledge bases, notes, and shared project contex
 
 Job: understand what Lunaris holds, why the team would choose it, and start free. One primary action: open the web app. Existing pricing, self-hosting, documentation, comparison, and tool routes remain accessible.
 
-Direction: product-led editorial cover within the existing olive/Instrument Serif/Inter identity. A two-column opening makes one claim; a full-width real product tour shows notes, boards, and whiteboards. Three unboxed benefits explain knowledge, extensibility, and collaboration. A compact ownership band presents local, cloud, and self-hosted choices. Four native FAQs resolve free/offline/extensions/solo objections before the closing CTA.
+Direction: product-led editorial cover within the existing olive/Instrument Serif/Inter identity. A top-aligned two-column opening makes one claim; a full-width real product tour shows notes, boards, and whiteboards. A compact continuation shares the video frame beneath its chapter controls: “The demo is just the start.” Three real extension icons link to their dedicated catalog detail pages for spreadsheets, mini apps, and PDF exports. No separate homepage configuration widget. Two unboxed benefits explain knowledge and collaboration. A compact ownership band presents local, cloud, and self-hosted choices. Four native FAQs resolve free/offline/extensions/solo objections before the closing CTA.
 
-Memorable moment: Notes / Boards / Whiteboards chapter controls seek and play the actual 25-second workspace recording. No new autoplay. Preserve native video controls, text description, keyboard focus, reduced-motion support, and all five locales.
+Additional distinction: extensions define content types, resource views, and workspace tools. They are configured per workspace; the homepage names concrete additions beyond the recording. The dedicated extensions page carries the detailed toolkit and developer path so the homepage stays compact.
+
+Memorable moment: Notes / Boards / Whiteboards chapter controls seek and play the actual 25-second workspace recording. Extension links navigate to the corresponding catalog detail page, with no simulated installation or selection. No new autoplay. Preserve native video controls, text description, keyboard focus, reduced-motion support, and all five locales.
 
 Proof: bundled product recording and repository-backed capabilities. Free limits match existing pricing. No invented customers, testimonials, or performance claims.
 

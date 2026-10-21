@@ -1,11 +1,14 @@
 import type { MetadataRoute } from "next";
 
+import { extensionCatalog } from "@/data/extension-catalog";
 import { defaultLocale, locales } from "@/i18n/config";
 import { siteUrl } from "@/i18n/metadata";
 
 const routes = [
 	"",
 	"/pricing",
+	"/extensions",
+	...extensionCatalog.map(({ slug }) => `/extensions/${slug}`),
 	"/self-hosted",
 	"/mcp",
 	"/compare/linear",

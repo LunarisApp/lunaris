@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 
 // Chapter boundaries match the bundled 25-second workspace walkthrough.
 const chapterStarts = [0, 6, 12] as const;
@@ -11,12 +11,14 @@ export function DemoVideo({
 	autoPlay = true,
 	chapters,
 	chapterNavigationLabel,
+	children,
 }: {
 	label: string;
 	description: string;
 	autoPlay?: boolean;
 	chapters?: readonly [string, string, string];
 	chapterNavigationLabel?: string;
+	children?: ReactNode;
 }) {
 	const descriptionId = useId();
 	const videoId = useId();
@@ -112,6 +114,7 @@ export function DemoVideo({
 					))}
 				</div>
 			)}
+			{children}
 			<figcaption className="sr-only" id={descriptionId}>
 				{description}
 			</figcaption>

@@ -13,10 +13,8 @@ type HomepageCopy = {
 	freeNote: string;
 	watch: string;
 	tour: string;
-	tourCaption: string;
 	chapters: [string, string, string];
-	benefitsTitle: string;
-	benefits: [Benefit, Benefit, Benefit];
+	benefits: [Benefit, Benefit];
 	ownershipTitle: string;
 	ownershipDescription: string;
 	selfHost: string;
@@ -37,25 +35,18 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		headline: "A home for your",
 		headlineEnd: "team’s knowledge.",
 		description:
-			"Bring notes, knowledge bases, and projects together in a workspace that works offline and grows with extensions.",
+			"Bring notes, knowledge bases, and projects together. Choose each workspace’s tools with extensions. Keep working offline.",
 		start: "Start free",
 		open: "Open Lunaris",
 		freeNote: "Free for up to 3 members. No credit card needed.",
 		watch: "See it in action",
 		tour: "Explore the workspace demo",
-		tourCaption: "From shared knowledge to the work that follows.",
 		chapters: ["Notes", "Boards", "Whiteboards"],
-		benefitsTitle: "Shared context. Room to make it yours.",
 		benefits: [
 			{
 				title: "Give knowledge a home.",
 				description:
 					"Keep meeting notes, decisions, and reference material together. Give your team one place to look, and a shared place to think.",
-			},
-			{
-				title: "Add what your team needs.",
-				description:
-					"Bring boards, whiteboards, and more into your workspace with extensions. Use community tools or build your own.",
 			},
 			{
 				title: "Move work forward together.",
@@ -84,7 +75,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			{
 				title: "What can we add with extensions?",
 				description:
-					"Boards, whiteboards, AI chat, and other tools can live alongside your notes. Choose community extensions or build private tools for your team’s workflow.",
+					"Boards, whiteboards, spreadsheets, and other tools can live alongside your notes. Choose community extensions or build private tools for your team’s workflow.",
 			},
 			{
 				title: "Can I use Lunaris on my own?",
@@ -104,25 +95,18 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		headline: "Un hogar para el",
 		headlineEnd: "conocimiento de tu equipo.",
 		description:
-			"Reúne notas, bases de conocimiento y proyectos en un espacio que funciona sin conexión y crece con extensiones.",
+			"Reúne notas, bases de conocimiento y proyectos. Elige las herramientas de cada espacio con extensiones. Sigue trabajando sin conexión.",
 		start: "Empieza gratis",
 		open: "Abrir Lunaris",
 		freeNote: "Gratis para hasta 3 miembros. Sin tarjeta de crédito.",
 		watch: "Ver en acción",
 		tour: "Explora la demostración del espacio de trabajo",
-		tourCaption: "Del conocimiento compartido al trabajo que viene después.",
 		chapters: ["Notas", "Tableros", "Pizarras"],
-		benefitsTitle: "Contexto compartido. Un espacio a tu manera.",
 		benefits: [
 			{
 				title: "Dale un hogar al conocimiento.",
 				description:
 					"Reúne notas de reuniones, decisiones y material de referencia. Un lugar donde tu equipo pueda buscar y pensar en conjunto.",
-			},
-			{
-				title: "Añade lo que tu equipo necesita.",
-				description:
-					"Incorpora tableros, pizarras y más con extensiones. Usa herramientas de la comunidad o crea las tuyas.",
 			},
 			{
 				title: "Avanzad juntos.",
@@ -151,7 +135,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			{
 				title: "¿Qué podemos añadir con extensiones?",
 				description:
-					"Tableros, pizarras, chat con IA y otras herramientas junto a tus notas. Elige extensiones de la comunidad o crea herramientas privadas para tu equipo.",
+					"Tableros, pizarras, hojas de cálculo y otras herramientas junto a tus notas. Elige extensiones de la comunidad o crea herramientas privadas para tu equipo.",
 			},
 			{
 				title: "¿Puedo usar Lunaris por mi cuenta?",
@@ -171,25 +155,18 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		headline: "Un espace pour le",
 		headlineEnd: "savoir de votre équipe.",
 		description:
-			"Réunissez notes, bases de connaissances et projets dans un espace qui fonctionne hors ligne et évolue avec des extensions.",
+			"Réunissez notes, bases de connaissances et projets. Choisissez les outils de chaque espace grâce aux extensions. Continuez hors ligne.",
 		start: "Commencer gratuitement",
 		open: "Ouvrir Lunaris",
 		freeNote: "Gratuit jusqu’à 3 membres. Sans carte bancaire.",
 		watch: "Voir en action",
 		tour: "Explorer la démonstration de l’espace de travail",
-		tourCaption: "Du savoir partagé au travail qui en découle.",
 		chapters: ["Notes", "Tableaux", "Tableaux blancs"],
-		benefitsTitle: "Un contexte partagé. Un espace à votre image.",
 		benefits: [
 			{
 				title: "Donnez un espace au savoir.",
 				description:
 					"Réunissez comptes rendus, décisions et références. Offrez à votre équipe un endroit où chercher et réfléchir ensemble.",
-			},
-			{
-				title: "Ajoutez ce qui vous est utile.",
-				description:
-					"Intégrez tableaux, tableaux blancs et autres outils grâce aux extensions. Utilisez celles de la communauté ou créez les vôtres.",
 			},
 			{
 				title: "Avancez ensemble.",
@@ -218,7 +195,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			{
 				title: "Que peut-on ajouter avec les extensions ?",
 				description:
-					"Tableaux, tableaux blancs, chat IA et autres outils peuvent côtoyer vos notes. Choisissez des extensions de la communauté ou créez des outils privés pour votre équipe.",
+					"Tableaux, tableaux blancs, feuilles de calcul et autres outils peuvent côtoyer vos notes. Choisissez des extensions de la communauté ou créez des outils privés pour votre équipe.",
 			},
 			{
 				title: "Puis-je utiliser Lunaris en solo ?",
@@ -238,25 +215,18 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		headline: "Ein Zuhause für das",
 		headlineEnd: "Wissen deines Teams.",
 		description:
-			"Vereine Notizen, Wissensdatenbanken und Projekte in einem Workspace, der offline funktioniert und mit Erweiterungen wächst.",
+			"Vereine Notizen, Wissensdatenbanken und Projekte. Wähle die Werkzeuge jedes Workspaces mit Erweiterungen. Arbeite auch offline weiter.",
 		start: "Kostenlos starten",
 		open: "Lunaris öffnen",
 		freeNote: "Kostenlos für bis zu 3 Mitglieder. Ohne Kreditkarte.",
 		watch: "In Aktion ansehen",
 		tour: "Workspace-Demo erkunden",
-		tourCaption: "Vom gemeinsamen Wissen zur Arbeit, die daraus entsteht.",
 		chapters: ["Notizen", "Boards", "Whiteboards"],
-		benefitsTitle: "Gemeinsamer Kontext. Raum für eure Arbeitsweise.",
 		benefits: [
 			{
 				title: "Gib Wissen ein Zuhause.",
 				description:
 					"Halte Besprechungsnotizen, Entscheidungen und Referenzen zusammen. Ein gemeinsamer Ort zum Nachschlagen und Nachdenken.",
-			},
-			{
-				title: "Ergänze, was dein Team braucht.",
-				description:
-					"Füge Boards, Whiteboards und weitere Tools mit Erweiterungen hinzu. Nutze Community-Tools oder entwickle eigene.",
 			},
 			{
 				title: "Bringt die Arbeit gemeinsam voran.",
@@ -285,7 +255,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			{
 				title: "Was können wir mit Erweiterungen ergänzen?",
 				description:
-					"Boards, Whiteboards, KI-Chat und weitere Tools neben deinen Notizen. Wähle Community-Erweiterungen oder entwickle private Tools für dein Team.",
+					"Boards, Whiteboards, Tabellen und weitere Tools neben deinen Notizen. Wähle Community-Erweiterungen oder entwickle private Tools für dein Team.",
 			},
 			{
 				title: "Kann ich Lunaris allein nutzen?",
@@ -305,25 +275,18 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		headline: "Um lar para o",
 		headlineEnd: "conhecimento da sua equipe.",
 		description:
-			"Reúna notas, bases de conhecimento e projetos em um espaço que funciona offline e cresce com extensões.",
+			"Reúna notas, bases de conhecimento e projetos. Escolha as ferramentas de cada espaço com extensões. Continue trabalhando offline.",
 		start: "Comece grátis",
 		open: "Abrir Lunaris",
 		freeNote: "Grátis para até 3 membros. Sem cartão de crédito.",
 		watch: "Veja em ação",
 		tour: "Explore a demonstração do espaço de trabalho",
-		tourCaption: "Do conhecimento compartilhado ao trabalho que vem depois.",
 		chapters: ["Notas", "Quadros", "Lousas"],
-		benefitsTitle: "Contexto compartilhado. Espaço para o seu jeito.",
 		benefits: [
 			{
 				title: "Dê um lar ao conhecimento.",
 				description:
 					"Reúna notas de reuniões, decisões e materiais de referência. Um lugar para sua equipe encontrar respostas e pensar junto.",
-			},
-			{
-				title: "Adicione o que sua equipe precisa.",
-				description:
-					"Traga quadros, lousas e outras ferramentas com extensões. Use ferramentas da comunidade ou crie as suas.",
 			},
 			{
 				title: "Avancem juntos.",
@@ -352,7 +315,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			{
 				title: "O que podemos adicionar com extensões?",
 				description:
-					"Quadros, lousas, chat com IA e outras ferramentas ao lado das suas notas. Escolha extensões da comunidade ou crie ferramentas privadas para sua equipe.",
+					"Quadros, lousas, planilhas e outras ferramentas ao lado das suas notas. Escolha extensões da comunidade ou crie ferramentas privadas para sua equipe.",
 			},
 			{
 				title: "Posso usar o Lunaris sozinho?",

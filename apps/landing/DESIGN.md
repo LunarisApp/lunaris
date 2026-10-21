@@ -277,7 +277,7 @@ Components are softly tactile and assured: pill CTAs, translucent surfaces, fine
 
 ### Navigation
 
-Sticky navigation uses the page's Warm Paper or Black Olive field with no shadow. The brand anchors the left edge; sparse desktop links lead to pricing, documentation, and self-hosting. A primary app entry sits beside language and theme actions. Mobile navigation expands into a full-page paper surface with large Inter links and closes when a link is followed.
+Sticky navigation uses the page's Warm Paper or Black Olive field with no shadow. The brand anchors the left edge; sparse desktop links lead to extensions, pricing, documentation, and self-hosting. A primary app entry sits beside language and theme actions. Mobile navigation expands into a full-page paper surface with large Inter links and closes when a link is followed.
 
 ### Screenshot Frames
 

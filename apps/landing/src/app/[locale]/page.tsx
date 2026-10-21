@@ -3,7 +3,9 @@ import Link from "next/link";
 import { TrackedButtonLink } from "@/components/analytics/tracked-button-link";
 import { Container } from "@/components/elements/container";
 import { DemoVideo } from "@/components/elements/demo-video";
+import { ExtensionIcon } from "@/components/elements/extension-icon";
 import { ArrowNarrowRightIcon } from "@/components/icons/arrow-narrow-right-icon";
+import { extensionsCopy } from "@/data/extensions";
 import { homepageCopy } from "@/data/homepage";
 import { repositoryUrl } from "@/data/open-source";
 import type { Locale } from "@/i18n/config";
@@ -36,6 +38,7 @@ export default async function Page({
 	const { locale: rawLocale } = await params;
 	const locale = rawLocale as Locale;
 	const copy = homepageCopy[locale];
+	const extensions = extensionsCopy[locale];
 	const dict = await getDictionary(locale);
 
 	return (
@@ -46,7 +49,7 @@ export default async function Page({
 				id="hero"
 			>
 				<Container>
-					<div className="grid items-end gap-7 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
+					<div className="grid items-start gap-7 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
 						<h1
 							className="max-w-3xl font-display text-[clamp(3.25rem,6vw,5.25rem)] leading-[1.02] tracking-tight text-balance text-olive-950 dark:text-olive-100"
 							id="home-heading"
@@ -56,7 +59,7 @@ export default async function Page({
 								{copy.headlineEnd}
 							</span>
 						</h1>
-						<div className="max-w-md lg:pb-1">
+						<div className="max-w-md lg:pt-2">
 							<p className="text-base/7 text-pretty text-olive-700 sm:text-lg/8 dark:text-olive-300">
 								{copy.description}
 							</p>
@@ -105,35 +108,62 @@ export default async function Page({
 							chapterNavigationLabel={copy.tour}
 							description={dict.accessibility.demoVideoDescription}
 							label={dict.accessibility.demoVideo}
-						/>
-						<p className="mt-4 text-center text-sm/6 text-olive-600 dark:text-olive-400">
-							{copy.tourCaption}
-						</p>
+						>
+							<section
+								aria-labelledby="extensions-heading"
+								className="mt-1.5 grid scroll-mt-28 gap-6 rounded-lg bg-olive-100 px-5 py-6 sm:px-7 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-10 dark:bg-olive-950"
+								id="extensions"
+							>
+								<div>
+									<h2
+										className="font-display text-3xl/9 tracking-tight text-balance text-olive-950 dark:text-olive-100"
+										id="extensions-heading"
+									>
+										{extensions.homeTitle}
+									</h2>
+									<p className="mt-2 max-w-lg text-sm/6 text-pretty text-olive-700 dark:text-olive-300">
+										{extensions.homeDescription}
+									</p>
+									<Link
+										className="mt-2 inline-flex min-h-11 items-center gap-2 text-sm/6 font-medium text-olive-950 underline-offset-4 hover:underline dark:text-olive-100"
+										href={localePath(locale, "/extensions")}
+									>
+										{extensions.explore}
+										<ArrowNarrowRightIcon />
+									</Link>
+								</div>
+								<ul className="grid grid-cols-3 gap-2 lg:w-96">
+									{(["spreadsheet", "mini-app", "exporter"] as const).map(
+										(id) => (
+											<li key={id}>
+												<Link
+													className="flex h-full flex-col items-center gap-3 rounded-lg px-2 py-3 text-center text-xs/5 font-medium text-olive-700 transition-colors hover:bg-olive-200/70 hover:text-olive-950 sm:text-sm/6 dark:text-olive-300 dark:hover:bg-olive-800 dark:hover:text-olive-100"
+													href={localePath(locale, `/extensions/${id}`)}
+												>
+													<ExtensionIcon id={id} />
+													{extensions.homeTools[id]}
+												</Link>
+											</li>
+										),
+									)}
+								</ul>
+							</section>
+						</DemoVideo>
 					</div>
 				</Container>
 			</section>
 
-			<section
-				aria-labelledby="benefits-heading"
-				className="py-14 sm:py-20"
-				id="platform"
-			>
+			<section className="py-12 sm:py-16">
 				<Container>
-					<h2
-						className="max-w-2xl font-display text-3xl/9 tracking-tight text-balance text-olive-950 sm:text-4xl/11 dark:text-olive-100"
-						id="benefits-heading"
-					>
-						{copy.benefitsTitle}
-					</h2>
-					<div className="mt-8 grid gap-8 sm:mt-10 lg:grid-cols-3 lg:gap-12">
+					<div className="grid gap-8 lg:grid-cols-2 lg:gap-20">
 						{copy.benefits.map((benefit) => (
 							<div
 								className="border-t border-olive-950/15 pt-5 dark:border-white/20"
 								key={benefit.title}
 							>
-								<h3 className="text-base/7 font-semibold text-olive-950 dark:text-olive-100">
+								<h2 className="text-base/7 font-semibold text-olive-950 dark:text-olive-100">
 									{benefit.title}
-								</h3>
+								</h2>
 								<p className="mt-2 max-w-md text-sm/7 text-pretty text-olive-700 dark:text-olive-300">
 									{benefit.description}
 								</p>

@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
+		"extensions:sync": "bun scripts/sync-extensions.ts",
 		"check:regions": "node scripts/check-region-discovery.mjs",
 		"start": "next start",
 		"lint": "biome lint --config-path ./biome.jsonc .",

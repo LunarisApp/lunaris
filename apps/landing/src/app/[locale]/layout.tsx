@@ -28,6 +28,7 @@ import { brandIcons, localizedAlternates } from "@/i18n/metadata";
 import { legalDocumentPaths } from "@/lib/legal-document-links";
 
 import { openSourceCopy, repositoryUrl } from "@/data/open-source";
+import { extensionsCopy } from "@/data/extensions";
 import { homepageCopy } from "@/data/homepage";
 
 const DOCS_URL = "https://docs.lunaris.app";
@@ -134,6 +135,9 @@ export default async function LocaleLayout({
 						navigationLabel={dict.accessibility.primaryNavigation}
 						links={
 							<>
+								<NavbarLink href={localePath(locale, "/extensions")}>
+									{extensionsCopy[locale].nav}
+								</NavbarLink>
 								<NavbarLink href={localePath(locale, "/pricing")}>
 									{dict.nav.pricing}
 								</NavbarLink>
@@ -215,6 +219,9 @@ export default async function LocaleLayout({
 						links={
 							<>
 								<FooterCategory title={dict.footer.resources}>
+									<FooterLink href={localePath(locale, "/extensions")}>
+										{extensionsCopy[locale].nav}
+									</FooterLink>
 									<FooterLink href={localePath(locale, "/self-hosted")}>
 										{source.label}
 									</FooterLink>
