@@ -1,7 +1,6 @@
-import { buildInfo } from "./build-info";
 import { DbHealthIndicator } from "@app/health/db.health";
 import { StorageHealthIndicator } from "@app/health/storage.health";
-import { Controller, Get, Header } from "@nestjs/common";
+import { Controller, Get } from "@nestjs/common";
 import type {
   HealthCheckResult,
   HealthIndicatorFunction,
@@ -27,9 +26,6 @@ export class HealthController {
   ) {}
 
   @Get()
-  @Header("Cache-Control", "no-store")
-  @Header("X-Lunaris-Commit", buildInfo.sha)
-  @Header("X-Lunaris-Version", buildInfo.version)
   @HealthCheck()
   check(): Promise<HealthCheckResult> {
     const checks: HealthIndicatorFunction[] = [

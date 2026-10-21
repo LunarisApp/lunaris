@@ -1,4 +1,3 @@
-import { requireCompletedRelease } from "./incomplete-release";
 import { writeFileSync } from "node:fs";
 import { git, run } from "./process";
 import { versionTargets } from "./version";
@@ -13,7 +12,6 @@ if (
 ) {
   process.exit(0);
 }
-requireCompletedRelease();
 const releases = versionTargets();
 const body = [
   "Mark this PR ready for review to run full E2E, then wait for CI on the latest revision. Merge with a **merge commit** when ready. This publishes npm packages and deploys affected hosted apps to Railway production, and publishes self-hosted deployment bundles automatically.",

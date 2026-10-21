@@ -223,8 +223,6 @@ jobs:
           cache: "true"
       - run: bun install --frozen-lockfile
       - run: bun tooling/release/automation/check-policy.ts
-        env:
-          GH_TOKEN: ${{ github.token }}
 
   sites:
     needs: changes

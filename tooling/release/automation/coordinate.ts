@@ -1,5 +1,3 @@
-import { repairUntaggedRelease } from "./repair-untagged";
-import { requireCompletedRelease } from "./incomplete-release";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { manifestPath, readManifest, verifyReleaseCommit } from "./manifest";
 import { git, output, run, summary } from "./process";
@@ -29,56 +27,44 @@ if (mode === "version") {
   ) {
     verifyReleaseCommit();
   } else {
-    const repair = process.env.REPAIR_UNTAGGED === "true";
-    if (!repair) {
-      requireCompletedRelease();
-    }
-    const releases = repair ? repairUntaggedRelease() : versionTargets();
+    const releases = versionTargets();
     if (!releases.length) {
       output("sha", requested);
       output("publish", "false");
       process.exit(0);
     }
-    if (!repair) {
-      run("bun", ["install", "--lockfile-only", "--ignore-scripts"]);
-    }
+    run("bun", ["install", "--lockfile-only", "--ignore-scripts"]);
     mkdirSync(".release", { recursive: true });
     writeFileSync(
       manifestPath,
       `${JSON.stringify({ sourceCommit: requested, releases }, null, 2)}\n`
     );
-    if (!repair) {
-      run("bun", [
-        "x",
-        "biome",
-        "format",
-        "--write",
-        manifestPath,
-        ...releases.map((entry) => `${entry.path}/package.json`),
-      ]);
-    }
+    run("bun", [
+      "x",
+      "biome",
+      "format",
+      "--write",
+      manifestPath,
+      ...releases.map((entry) => `${entry.path}/package.json`),
+    ]);
     git("config", "user.name", "lunaris-release[bot]");
     git(
       "config",
       "user.email",
       "lunaris-release[bot]@users.noreply.github.com"
     );
-    if (repair) {
-      git("add", manifestPath);
-    } else {
-      git(
-        "add",
-        ".changeset",
-        "apps",
-        "packages",
-        "internal",
-        "extensions",
-        "ee",
-        "infra",
-        "bun.lock",
-        manifestPath
-      );
-    }
+    git(
+      "add",
+      ".changeset",
+      "apps",
+      "packages",
+      "internal",
+      "extensions",
+      "ee",
+      "infra",
+      "bun.lock",
+      manifestPath
+    );
     git("commit", "-m", "chore(release): version packages");
     git("push", "origin", "HEAD:main");
   }

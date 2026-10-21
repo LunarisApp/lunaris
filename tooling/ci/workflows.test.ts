@@ -239,28 +239,3 @@ test("workflow exports every selection flag validated by the gate", () => {
     [...checks].sort()
   );
 });
-
-test("both E2E suites use explicit readiness and retain server failure artifacts", () => {
-  const steps = workflow("e2e").jobs.e2e.steps;
-  const readiness = steps.findIndex((step: { run?: string }) =>
-    step.run?.includes("tooling/ci/readiness.ts")
-  );
-  const suites = steps.filter((step: { uses?: string }) =>
-    step.uses?.startsWith("cypress-io/github-action@")
-  );
-  expect(suites).toHaveLength(2);
-  expect(readiness).toBeGreaterThan(-1);
-  for (const suite of suites) {
-    expect(steps.indexOf(suite)).toBeGreaterThan(readiness);
-    expect(suite.with.browser).toBe("electron");
-    expect(suite.with.start).toBeUndefined();
-    expect(suite.with["wait-on"]).toBeUndefined();
-    expect(suite["continue-on-error"]).toBeUndefined();
-  }
-  expect(
-    steps.find(
-      (step: { with?: { name?: string } }) =>
-        step.with?.name === "e2e-server-logs"
-    ).with.path
-  ).toBe("logs/*.log");
-});

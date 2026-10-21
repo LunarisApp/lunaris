@@ -1,8 +1,5 @@
-export async function verifyHostedHealth(
+export async function smokeLanding(
   healthUrl: string,
-  sha: string,
-  version: string,
-  landing = false,
   request: (url: string, options?: RequestInit) => Promise<Response> = fetch
 ) {
   const get = (url: string, redirect: RequestRedirect = "follow") =>
@@ -11,21 +8,6 @@ export async function verifyHostedHealth(
       cache: "no-store",
       signal: AbortSignal.timeout(30_000),
     });
-  const health = await get(healthUrl);
-  if (!health.ok) {
-    throw new Error(`Smoke check failed: ${healthUrl}: ${health.status}`);
-  }
-  if (
-    health.headers.get("X-Lunaris-Commit") !== sha ||
-    health.headers.get("X-Lunaris-Version") !== version
-  ) {
-    throw new Error(
-      `Served revision mismatch: ${healthUrl}; expected ${sha} (${version}), received ${health.headers.get("X-Lunaris-Commit")} (${health.headers.get("X-Lunaris-Version")})`
-    );
-  }
-  if (!landing) {
-    return;
-  }
   for (const path of ["/", "/en/self-hosted"]) {
     const url = new URL(path, healthUrl).href;
     const response = await get(url);

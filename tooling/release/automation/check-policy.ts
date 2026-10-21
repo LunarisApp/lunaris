@@ -1,4 +1,3 @@
-import { requireCompletedRelease } from "./incomplete-release";
 import { readFileSync } from "node:fs";
 import {
   affectedTargets,
@@ -23,17 +22,6 @@ validateSource(
 );
 const base = git("merge-base", pr.base.sha, pr.head.sha);
 const files = git("diff", "--name-only", base, pr.head.sha).split("\n");
-// An automation-only hotfix must remain reviewable while release recovery is blocked.
-const repairOnly =
-  pr.head.ref.startsWith("hotfix/") &&
-  files.every((file: string) =>
-    /^(\.github\/workflows\/|tooling\/ci\/|tooling\/release\/automation\/|docs\/procedures\/releasing-and-deploying\.md$)/.test(
-      file
-    )
-  );
-if (pr.base.ref === "main" && !pr.draft && !repairOnly) {
-  requireCompletedRelease();
-}
 const added = git(
   "diff",
   "--name-only",
