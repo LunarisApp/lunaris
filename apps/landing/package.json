@@ -10,7 +10,7 @@
 		"start": "next start",
 		"lint": "biome lint --config-path ./biome.jsonc .",
 		"test": "bun test",
-		"typecheck": "node ./node_modules/@typescript/native/bin/tsc --noEmit"
+		"typecheck": "next typegen && node ./node_modules/@typescript/native/bin/tsc --noEmit"
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "3.1123.0",
