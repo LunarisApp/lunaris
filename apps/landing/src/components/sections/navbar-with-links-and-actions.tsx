@@ -91,11 +91,9 @@ export function NavbarWithLinksAndActions({
 		>
 			<style>{`:root { --scroll-padding-top: 5.25rem }`}</style>
 			<nav aria-label={navigationLabel}>
-				<div className="mx-auto flex h-(--scroll-padding-top) max-w-7xl items-center gap-4 px-6 lg:px-10">
+				<div className="mx-auto flex h-(--scroll-padding-top) max-w-7xl items-center gap-4 px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:px-10">
 					<div className="flex items-center">{logo}</div>
-					<div className="flex flex-1 justify-center gap-7 max-lg:hidden">
-						{links}
-					</div>
+					<div className="flex justify-center gap-7 max-lg:hidden">{links}</div>
 					<div className="ml-auto flex items-center justify-end gap-2 lg:ml-0">
 						<div className="flex shrink-0 items-center gap-2">{actions}</div>
 
