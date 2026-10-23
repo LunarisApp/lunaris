@@ -22,16 +22,37 @@ permissions:
 
 env:
   MACOSX_DEPLOYMENT_TARGET: "13.0"
-  LUNARIS_BUILD_SHA: ${{ inputs.ref }}
 
 jobs:
-  plan:
+  source:
     if: github.ref == 'refs/heads/main'
+    name: Validate native source
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: read
+    outputs:
+      sha: ${{ steps.source.outputs.sha }}
+    steps:
+      # Validate with workflow-revision tooling before checking out release code.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun
+      - id: source
+        run: bun tooling/delivery/native-source.ts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NATIVE_SOURCE_SHA: ${{ inputs.ref }}
+
+  plan:
+    needs: source
     name: Plan releases
     runs-on: ubuntu-latest
     permissions:
       contents: read
     outputs:
+      source_sha: ${{ needs.source.outputs.sha }}
       cli: ${{ steps.plan.outputs.cli }}
       cli_tag: ${{ steps.plan.outputs.cli_tag }}
       cli_version: ${{ steps.plan.outputs.cli_version }}
@@ -47,19 +68,10 @@ jobs:
             .github/actions/setup-bun
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ needs.source.outputs.sha }}
           fetch-depth: 0
           clean: false
-      - name: Verify trunk source
-        env:
-          SOURCE_SHA: ${{ inputs.ref }}
-        run: |
-          [[ $SOURCE_SHA =~ ^[a-f0-9]{40}$ ]]
-          git merge-base --is-ancestor "$SOURCE_SHA" origin/main
       - uses: ./.delivery-tools/.github/actions/setup-bun
-      - run: bun .delivery-tools/tooling/delivery/native-source.ts
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - id: plan
         run: bun .delivery-tools/tooling/release/plan.ts
         env:
@@ -76,7 +88,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ needs.plan.outputs.source_sha }}
           fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - id: mode
@@ -98,7 +110,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ needs.plan.outputs.source_sha }}
           fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile
@@ -128,12 +140,12 @@ jobs:
     permissions:
       contents: read
     env:
-      LUNARIS_BUILD_SHA: ${{ inputs.ref }}
+      LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.source_sha }}
       LUNARIS_SIGNING_MODE: ${{ needs.signing.outputs.mode }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ needs.plan.outputs.source_sha }}
           fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
@@ -243,14 +255,14 @@ jobs:
     permissions:
       contents: read
     env:
-      LUNARIS_BUILD_SHA: ${{ inputs.ref }}
+      LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.source_sha }}
       LUNARIS_BUILD_VERSION: ${{ needs.plan.outputs.desktop_version }}
       LUNARIS_SIGNING_MODE: ${{ needs.signing.outputs.mode }}
       VITE_REGION_DIRECTORY_URL: https://lunaris.app/.well-known/lunaris-regions
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ needs.plan.outputs.source_sha }}
           fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
@@ -356,10 +368,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.source_sha }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ needs.plan.outputs.source_sha }}
           fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -420,10 +434,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.source_sha }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ needs.plan.outputs.source_sha }}
           fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4

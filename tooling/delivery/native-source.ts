@@ -1,7 +1,10 @@
 import { github, verifyTrunk } from "./github";
-import { git } from "../release/automation/process";
+import { output } from "../release/automation/process";
 
-const sha = git("rev-parse", "HEAD");
+const sha = process.env.NATIVE_SOURCE_SHA;
+if (!sha) {
+  throw new Error("Native source SHA required");
+}
 verifyTrunk(sha);
 const checks = await github<{
   check_runs: { name: string; conclusion: string; app: { slug: string } }[];
@@ -18,3 +21,4 @@ if (
     "Native publication requires successful CI on the exact trunk SHA"
   );
 }
+output("sha", sha);

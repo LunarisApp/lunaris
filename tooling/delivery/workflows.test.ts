@@ -43,6 +43,35 @@ test("production uses trusted tooling and resolves evidence before source checko
     ".delivery-tools/tooling/delivery/core.ts"
   );
 });
+test("native publication validates input before every release checkout", () => {
+  const { jobs } = workflow("release");
+  const source = jobs.source;
+  expect(source.if).toBe("github.ref == 'refs/heads/main'");
+  expect(source.permissions).toEqual({ contents: "read", checks: "read" });
+  expect(source.steps[0].with.ref).toBeUndefined();
+  expect(source.steps[0].with["fetch-depth"]).toBe(0);
+  expect(source.steps.at(-1).run).toBe("bun tooling/delivery/native-source.ts");
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: Literal GitHub Actions expression.
+  expect(source.steps.at(-1).env.NATIVE_SOURCE_SHA).toBe("${{ inputs.ref }}");
+  expect(source.outputs.sha).toContain("steps.source.outputs.sha");
+  expect(jobs.plan.needs).toBe("source");
+  expect(jobs.plan.outputs.source_sha).toContain("needs.source.outputs.sha");
+  expect(jobs.plan.steps[1].with.ref).toContain("needs.source.outputs.sha");
+  for (const name of [
+    "signing",
+    "verify",
+    "build-cli",
+    "build-desktop",
+    "publish-cli",
+    "publish-desktop",
+  ]) {
+    expect(jobs[name].needs).toContain("plan");
+    expect(jobs[name].steps[0].with.ref).toContain(
+      "needs.plan.outputs.source_sha"
+    );
+    expect(JSON.stringify(jobs[name])).not.toContain("inputs.ref");
+  }
+});
 test("cutover preserves immutable historical tags and permits normal main PRs", () => {
   const rules = trunkRulesets(123, 456);
   expect(rules.some((rule) => rule.name === "Release next - PRs")).toBe(false);
