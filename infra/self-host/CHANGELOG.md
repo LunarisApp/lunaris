@@ -1,5 +1,11 @@
 # self-hosted
 
+## 0.1.2
+
+### Patch Changes
+
+- [#33](https://github.com/LunarisApp/lunaris/pull/33) [`8dfe8b4`](https://github.com/LunarisApp/lunaris/commit/8dfe8b4758c6c41d961e26626aa701af2fcab4c1) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix agent consent signatures and retry after network errors.
+
 ## 0.1.1
 
 ### Patch Changes

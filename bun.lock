@@ -27,7 +27,7 @@
     },
     "apps/api": {
       "name": "api",
-      "version": "0.0.4",
+      "version": "0.0.5",
       "dependencies": {
         "@aws-sdk/client-s3": "^3.1123.0",
         "@aws-sdk/lib-storage": "^3.1123.0",
@@ -177,7 +177,7 @@
     },
     "apps/landing": {
       "name": "landing",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "dependencies": {
         "@aws-sdk/client-s3": "3.1123.0",
         "@aws-sdk/s3-presigned-post": "3.1123.0",
@@ -209,7 +209,7 @@
     },
     "apps/web": {
       "name": "web",
-      "version": "0.0.3",
+      "version": "0.0.4",
       "dependencies": {
         "@probo/cookie-banner": "^0.17.0",
         "@repo/app-shell": "workspace:*",
@@ -463,7 +463,7 @@
     },
     "infra/self-host": {
       "name": "self-hosted",
-      "version": "0.1.1",
+      "version": "0.1.2",
     },
     "internal/agent-contracts": {
       "name": "@repo/agent-contracts",

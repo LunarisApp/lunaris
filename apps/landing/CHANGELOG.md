@@ -1,5 +1,11 @@
 # landing
 
+## 0.2.1
+
+### Patch Changes
+
+- [#31](https://github.com/LunarisApp/lunaris/pull/31) [`ab6dd69`](https://github.com/LunarisApp/lunaris/commit/ab6dd69dc57d89e51bbe0b9e222be972c0a89332) Thanks [@MrLightful](https://github.com/MrLightful)! - Center desktop header navigation independently of logo and action widths.
+
 ## 0.2.0
 
 ### Minor Changes
