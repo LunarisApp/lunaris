@@ -1,4 +1,5 @@
 ---
+api: patch
 web: patch
 self-hosted: patch
 ---
