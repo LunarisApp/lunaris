@@ -43,11 +43,12 @@
     "powersync:config:check-production": "bun tooling/powersync-config.ts --check-production",
     "powersync:config:deploy": "bun tooling/powersync-config.ts --deploy-production",
     "changeset": "changeset",
-    "release:version": "bun tooling/release/automation/version.ts",
+    "release:version": "bun tooling/delivery/version-family.ts npm",
     "release:validate": "bun tooling/release/sync-versions.ts --check",
     "release:test": "bun test tooling/release",
     "release:plan": "bun tooling/release/plan.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "release:self-hosted:version": "bun tooling/delivery/version-family.ts self-hosted"
   },
   "packageManager": "bun@1.4.0",
   "overrides": {
@@ -74,7 +75,8 @@
     "typescript": "^6.0.3",
     "ultracite": "^7.10.7",
     "vite": "^8.2.2",
-    "yaml": "2.9.0"
+    "yaml": "2.9.0",
+    "zod": "^4.5.4"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [

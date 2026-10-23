@@ -13,7 +13,7 @@ interface ReleaseState {
   target_commitish: string;
 }
 
-const root = resolve(import.meta.dir, "../..");
+const root = process.cwd();
 const repository = process.env.GITHUB_REPOSITORY;
 const token = process.env.GITHUB_TOKEN;
 
@@ -107,7 +107,22 @@ const manifests = [
   readPackage("apps/cli/package.json"),
   readPackage("apps/desktop/package.json"),
 ];
-const plan = await Promise.all(manifests.map(planComponent));
+const target = process.env.NATIVE_TARGET;
+if (target && target !== "cli" && target !== "desktop") {
+  throw new Error("Invalid native target");
+}
+const plan = await Promise.all(
+  manifests.map((manifest) =>
+    target && target !== manifest.name
+      ? {
+          component: manifest.name,
+          publish: false,
+          tag: `${manifest.name}@${manifest.version}`,
+          version: manifest.version,
+        }
+      : planComponent(manifest)
+  )
+);
 
 for (const item of plan) {
   console.log(JSON.stringify(item));

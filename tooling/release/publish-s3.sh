@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+release_source_sha="${LUNARIS_BUILD_SHA:-${GITHUB_SHA:-}}"
 
 if [[ "$#" -ne 4 ]]; then
   echo "Usage: publish-s3.sh <cli|desktop> <version> <signed|adhoc> <dist-directory>" >&2
@@ -23,7 +24,7 @@ required_environment=(
   AWS_DEFAULT_REGION
   AWS_SECRET_ACCESS_KEY
   RELEASES_S3_BUCKET
-  GITHUB_SHA
+  release_source_sha
 )
 for variable in "${required_environment[@]}"; do
   if [[ -z "${!variable:-}" ]]; then
@@ -100,7 +101,7 @@ if remote_sha="$(
       --query "Metadata.sourcecommit" \
       --output text
   )"
-  if [[ "$remote_sha" != "$local_sha" || "$remote_commit" != "$GITHUB_SHA" ]]; then
+  if [[ "$remote_sha" != "$local_sha" || "$remote_commit" != "$release_source_sha" ]]; then
     echo "Refusing to overwrite conflicting release object: $asset_key" >&2
     exit 1
   fi
@@ -116,7 +117,7 @@ else
     "s3://$RELEASES_S3_BUCKET/$asset_key" \
     --cache-control "public,max-age=31536000,immutable" \
     --content-type "$content_type" \
-    --metadata "sha256=$local_sha,sourcecommit=$GITHUB_SHA" \
+    --metadata "sha256=$local_sha,sourcecommit=$release_source_sha" \
     --no-progress \
     --only-show-errors
 fi

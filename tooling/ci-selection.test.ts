@@ -7,7 +7,7 @@ test("repository docs skip builds; application docs still build", () => {
       (value) => !value
     )
   ).toBe(true);
-  expect(selectChecks(["apps/docs/content/guide.mdx"], ["docs"]).sites).toBe(
+  expect(selectChecks(["apps/docs/content/guide.mdx"], ["docs"]).docs).toBe(
     true
   );
 });
@@ -20,7 +20,7 @@ test("shared data changes select dependent applications", () => {
   expect(checks.editions).toBe(true);
   expect(checks["desktop-mcp"]).toBe(true);
   expect(checks.powersync).toBe(true);
-  expect(checks.sites).toBe(false);
+  expect(checks.docs).toBe(false);
 });
 
 test("Rust, contract, generated asset and release inputs retain coverage", () => {
@@ -51,4 +51,28 @@ test("unknown inputs, root configuration and release runs select everything", ()
     expect(Object.values(selectChecks([file], [])).every(Boolean)).toBe(true);
   }
   expect(Object.values(selectChecks([], [], true)).every(Boolean)).toBe(true);
+});
+
+test("landing-only PRs avoid native, core and installer jobs", () => {
+  const selected = selectChecks(["apps/landing/src/app/page.tsx"], ["landing"]);
+  expect(selected.landing).toBe(true);
+  for (const name of [
+    "docs",
+    "editions",
+    "smoke",
+    "self-hosted",
+    "agent-rust",
+    "desktop-mcp",
+  ]) {
+    expect(selected[name as keyof typeof selected]).toBe(false);
+  }
+});
+test("ordinary core changes retain smoke and edition checks without full installer matrix", () => {
+  const selected = selectChecks(["apps/api/src/account/service.ts"], ["api"]);
+  expect(selected.smoke).toBe(true);
+  expect(selected.editions).toBe(true);
+  expect(selected["self-hosted"]).toBe(false);
+  expect(
+    selectChecks(["infra/self-host/compose.yaml"], [])["self-hosted"]
+  ).toBe(true);
 });

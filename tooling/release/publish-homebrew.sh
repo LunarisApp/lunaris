@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+release_source_sha="${LUNARIS_BUILD_SHA:-${GITHUB_SHA:-}}"
 
 if [[ "$#" -ne 5 ]]; then
   echo "Usage: publish-homebrew.sh <cli|desktop> <version> <signed|adhoc> <dist-directory> <tap-directory>" >&2
@@ -20,7 +21,7 @@ for command in bun gh git; do
   fi
 done
 
-for variable in GH_TOKEN GITHUB_SHA; do
+for variable in GH_TOKEN release_source_sha; do
   if [[ -z "${!variable:-}" ]]; then
     echo "Required environment variable is empty: $variable" >&2
     exit 1
@@ -98,7 +99,7 @@ if [[ -z "$pr_number" ]]; then
       --head "$branch" \
       --base main \
       --title "Lunaris $component_title $version" \
-      --body "Automated Homebrew update for Lunaris $component_title $version from LunarisApp/lunaris@$GITHUB_SHA."
+      --body "Automated Homebrew update for Lunaris $component_title $version from LunarisApp/lunaris@$release_source_sha."
   )"
   pr_number="${pr_url##*/}"
 fi

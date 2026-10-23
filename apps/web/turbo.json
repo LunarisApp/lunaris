@@ -3,7 +3,11 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "env": ["RAILWAY_GIT_COMMIT_SHA"]
+      "env": [
+        "RAILWAY_GIT_COMMIT_SHA",
+        "LUNARIS_BUILD_SHA",
+        "LUNARIS_RUNTIME_CONFIG"
+      ]
     }
   }
 }

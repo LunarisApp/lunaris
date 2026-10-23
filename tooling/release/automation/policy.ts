@@ -1,4 +1,6 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { affectedComponents } from "../../delivery/affected";
+export { readWorkspaces, type Workspace } from "../../delivery/affected";
+import type { Workspace } from "../../delivery/affected";
 import { parse, stringify } from "yaml";
 
 export const targets = [
@@ -29,14 +31,15 @@ export function parseChangeset(source: string): Changeset {
   }
   return { releases, summary: match[2] ?? "" };
 }
-export function splitChangeset(source: string) {
+export function splitChangeset(
+  source: string,
+  names: readonly string[] = targets.map((target) => target.name)
+) {
   const { releases, summary } = parseChangeset(source);
   const selected: Record<string, Bump> = {};
   const excluded: Record<string, Bump> = {};
   for (const [name, bump] of Object.entries(releases)) {
-    (targets.some((target) => target.name === name) ? selected : excluded)[
-      name
-    ] = bump;
+    (names.includes(name) ? selected : excluded)[name] = bump;
   }
   const format = (entries: Record<string, Bump>) =>
     Object.keys(entries).length
@@ -68,97 +71,18 @@ export function validateHotfix(head: string, changesets: Changeset[]) {
     throw new Error("Hotfix changesets must use patch bumps only");
   }
 }
-export interface Workspace {
-  dependencies: string[];
-  name: string;
-  path: string;
-}
-export function readWorkspaces(): Workspace[] {
-  return ["apps", "packages", "internal", "extensions", "ee", "infra"].flatMap(
-    (directory) =>
-      readdirSync(directory, { withFileTypes: true })
-        .filter((entry) => entry.isDirectory())
-        .flatMap((entry) => {
-          const path = `${directory}/${entry.name}`;
-          try {
-            const manifest = JSON.parse(
-              readFileSync(`${path}/package.json`, "utf8")
-            );
-            return [
-              {
-                name: manifest.name,
-                path,
-                dependencies: Object.keys({
-                  ...manifest.dependencies,
-                  ...manifest.devDependencies,
-                  ...manifest.peerDependencies,
-                }),
-              },
-            ];
-          } catch (error) {
-            if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-              return [];
-            }
-            throw error;
-          }
-        })
-  );
-}
 export function affectedTargets(
   files: string[],
   workspaces: Workspace[]
 ): string[] {
-  const changed = new Set<string>();
-  for (const file of files) {
-    if (
-      file.startsWith(".changeset/") ||
-      /(^|\/)(CHANGELOG|README|AGENTS)\.md$/.test(file) ||
-      /\.(test|spec)\.[cm]?[jt]sx?$/.test(file)
-    ) {
-      continue;
-    }
-    if (
-      ["bun.lock", "bunfig.toml", "package.json", "turbo.json"].includes(
-        file
-      ) ||
-      file.startsWith("tooling/editions/")
-    ) {
-      for (const target of targets) {
-        changed.add(target.name);
-      }
-    }
-    if (
-      file.startsWith("infra/local/config/") ||
-      file === "tooling/powersync-config.ts"
-    ) {
-      changed.add("api");
-    }
-    if (
-      file.startsWith("infra/self-host/") ||
-      file.startsWith("tooling/self-host/") ||
-      file === ".github/workflows/self-host.publish.yml"
-    ) {
-      changed.add("self-hosted");
-    }
-    for (const workspace of workspaces) {
-      if (file.startsWith(`${workspace.path}/`)) {
-        changed.add(workspace.name);
-      }
-    }
-  }
-  let size = -1;
-  while (size !== changed.size) {
-    size = changed.size;
-    for (const workspace of workspaces) {
-      if (workspace.dependencies.some((name) => changed.has(name))) {
-        changed.add(workspace.name);
-      }
-    }
-  }
-  if (changed.has("api") || changed.has("web")) {
-    changed.add("self-hosted");
-  }
-  return targets
-    .filter((target) => changed.has(target.name))
-    .map((target) => target.name);
+  const releasedFiles = files.filter(
+    (file) =>
+      !(
+        file.startsWith(".changeset/") ||
+        /\.(test|spec)\.[cm]?[jt]sx?$/.test(file)
+      )
+  );
+  return affectedComponents(releasedFiles, workspaces).filter((name) =>
+    targets.some((target) => target.name === name)
+  );
 }

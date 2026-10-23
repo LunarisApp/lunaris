@@ -42,6 +42,7 @@ test("release automation runs without configuration flags and preserves branch g
         "chore(release): version packages",
       ]) {
         const context = {
+          vars: { DELIVERY_MODE: "legacy" },
           github: {
             ref: `refs/heads/${branch}`,
             event_name: event,
