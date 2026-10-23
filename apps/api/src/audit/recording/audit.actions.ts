@@ -380,7 +380,8 @@ const authRouteActions: ReadonlyArray<{
   },
   {
     action: "oauthConsentChanged",
-    pattern: /\/oauth2\/(?:consent|update-consent|delete-consent)$/,
+    pattern:
+      /\/(?:oauth2\/(?:consent|update-consent|delete-consent)|agent\/(?:authorize|revoke)|device\/(?:approve|deny))$/,
   },
   {
     action: "oauthTokenIssued",

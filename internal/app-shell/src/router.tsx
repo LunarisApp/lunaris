@@ -159,6 +159,7 @@ function WorkspacesAppBarTrailing() {
 const AUTH_PAGE_LOADERS = {
   "accept-invitation": () =>
     import("@repo/features/auth/pages/accept-invitation"),
+  device: () => import("@repo/features/auth/pages/device"),
   "agent-consent": () => import("@repo/features/auth/pages/agent-consent"),
   continue: () => import("@repo/features/auth/pages/continue"),
   "email-sign-in": () => import("@repo/features/auth/pages/email-sign-in"),
@@ -266,13 +267,11 @@ const createAppRouter = (shell: Shell, runtime?: RoutingRuntime) => {
           path: "auth/accept-invitation",
           lazy: lazyAuthPage("accept-invitation"),
         },
+        { path: "auth/agent-consent", lazy: lazyAuthPage("agent-consent") },
+        { path: "auth/device", lazy: lazyAuthPage("device") },
         {
           Component: AuthGuard,
           children: [
-            {
-              path: "auth/agent-consent",
-              lazy: lazyAuthPage("agent-consent"),
-            },
             {
               Component: SuspenseLayout,
               children: [

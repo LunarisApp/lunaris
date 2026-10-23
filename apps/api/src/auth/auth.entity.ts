@@ -133,6 +133,48 @@ export const apikey = pgTable(
   ]
 );
 
+export const deviceCode = pgTable("device_code", {
+  id: text("id").primaryKey(),
+  deviceCode: text("device_code").notNull().unique(),
+  userCode: text("user_code").notNull().unique(),
+  userId: text("user_id"),
+  expiresAt: timestamp("expires_at").notNull(),
+  status: text("status").notNull(),
+  lastPolledAt: timestamp("last_polled_at"),
+  pollingInterval: integer("polling_interval"),
+  clientId: text("client_id"),
+  scope: text("scope"),
+  resources: text("resources").array(),
+  oauthClientId: text("oauth_client_id"),
+});
+
+export const agentAuthorization = pgTable(
+  "agent_authorization",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    clientId: text("client_id").notNull(),
+    resource: text("resource").notNull(),
+    scopes: text("scopes").array().notNull(),
+    organizationIds: text("organization_ids").array().notNull(),
+    requestHash: text("request_hash").notNull(),
+    version: text("version").notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
+    revokedAt: timestamp("revoked_at"),
+  },
+  (table) => [
+    index("agentAuthorization_userId_idx").on(table.userId),
+    uniqueIndex("agentAuthorization_user_client_resource_idx").on(
+      table.userId,
+      table.clientId,
+      table.resource
+    ),
+  ]
+);
+
 export const oauthClient = pgTable(
   "oauth_client",
   {
@@ -653,6 +695,8 @@ export const authSchema = {
   oauthClient,
   oauthClientResource,
   oauthConsent,
+  deviceCode,
+  agentAuthorization,
   oauthRefreshToken,
   oauthResource,
   organization,

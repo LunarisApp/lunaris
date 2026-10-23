@@ -12,7 +12,7 @@ import { RegionSwitcher } from "./region-switcher";
 
 interface AuthLayoutProps {
   children: ReactNode;
-  description: string;
+  description?: string;
   leading?: ReactNode;
   regionControl?: "full" | "compact";
   title: string;
@@ -55,7 +55,9 @@ export function AuthLayout({
                       <CardTitle>
                         <h1>{title}</h1>
                       </CardTitle>
-                      <CardDescription>{description}</CardDescription>
+                      {description ? (
+                        <CardDescription>{description}</CardDescription>
+                      ) : null}
                     </div>
                   </div>
                 ) : (
@@ -63,7 +65,9 @@ export function AuthLayout({
                     <CardTitle>
                       <h1>{title}</h1>
                     </CardTitle>
-                    <CardDescription>{description}</CardDescription>
+                    {description ? (
+                      <CardDescription>{description}</CardDescription>
+                    ) : null}
                   </>
                 )}
               </CardHeader>
