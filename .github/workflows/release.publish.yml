@@ -43,6 +43,9 @@ jobs:
           REPAIR_UNTAGGED: ${{ github.event_name == 'workflow_dispatch' && inputs.repair_untagged }}
   validate:
     needs: version
+    permissions:
+      contents: read
+      packages: read
     uses: ./.github/workflows/ci.yml
     with:
       ref: ${{ needs.version.outputs.sha }}
