@@ -1,5 +1,23 @@
 # api
 
+## 0.1.0
+
+### Minor Changes
+
+- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent
+
+### Patch Changes
+
+- Updated dependencies [[`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5)]:
+  - @lunarisapp/plugin-sdk@0.12.3
+  - @extension/file@0.0.1
+  - @extension/kanban@0.0.1
+  - @extension/rich-text@0.0.1
+  - @repo/agent-contracts@0.0.1
+  - @repo/ee-audit@0.0.1
+  - @repo/ee-teams@0.0.1
+  - @repo/auth@0.0.1
+
 ## 0.0.5
 
 ### Patch Changes
