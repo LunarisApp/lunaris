@@ -22,6 +22,17 @@ async function bootstrap() {
   // the real client scheme and address. Keep this enabled on Railway and
   // any equivalent PaaS. Disable only for direct-public deployments.
   const adapter = new FastifyAdapter({ trustProxy: true });
+  adapter.getInstance().addHook("onSend", async (request, reply, payload) => {
+    if (request.url.split("?")[0] === "/v1/health") {
+      reply.header(
+        "X-Lunaris-Commit",
+        process.env.LUNARIS_BUILD_SHA ??
+          process.env.RAILWAY_GIT_COMMIT_SHA ??
+          "local"
+      );
+    }
+    return payload;
+  });
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     adapter,

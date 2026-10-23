@@ -1,3 +1,4 @@
+import { getPublicRuntimeConfig } from "./runtime-config";
 import {
   DEFAULT_REGION_DIRECTORY_URL,
   parseRegionDirectory,
@@ -39,6 +40,9 @@ const EnvSchema = z.object({
   SENTRY_DSN: z.string().optional(),
 });
 
+const runtime = getPublicRuntimeConfig();
+const regionDirectoryUrl =
+  runtime?.REGION_DIRECTORY_URL ?? import.meta.env.VITE_REGION_DIRECTORY_URL;
 const env = createEnv(EnvSchema, {
   // Explicit build-time directories support local development and E2E builds.
   // Production releases omit this value and discover regions from the URL.
@@ -47,19 +51,18 @@ const env = createEnv(EnvSchema, {
     import.meta.env.VITE_ALLOW_INLINE_REGION_DIRECTORY === "true"
       ? import.meta.env.VITE_REGION_DIRECTORY_JSON
       : undefined,
-  REGION_DIRECTORY_URL: import.meta.env.VITE_REGION_DIRECTORY_URL?.startsWith(
-    "/"
-  )
+  REGION_DIRECTORY_URL: regionDirectoryUrl?.startsWith("/")
     ? new URL(
-        import.meta.env.VITE_REGION_DIRECTORY_URL,
+        regionDirectoryUrl,
         createBrowserPlatform({ kind: "web" }).navigation.origin()
       ).href
-    : import.meta.env.VITE_REGION_DIRECTORY_URL,
-  POSTHOG_KEY: import.meta.env.VITE_POSTHOG_KEY,
-  POSTHOG_ORG: import.meta.env.VITE_POSTHOG_ORG,
-  POSTHOG_WORKSPACE_ID: import.meta.env.VITE_POSTHOG_WORKSPACE_ID,
-  POSTHOG_URL: import.meta.env.VITE_POSTHOG_URL,
-  SENTRY_DSN: import.meta.env.VITE_SENTRY_DSN,
+    : regionDirectoryUrl,
+  POSTHOG_KEY: runtime?.POSTHOG_KEY ?? import.meta.env.VITE_POSTHOG_KEY,
+  POSTHOG_ORG: runtime?.POSTHOG_ORG ?? import.meta.env.VITE_POSTHOG_ORG,
+  POSTHOG_WORKSPACE_ID:
+    runtime?.POSTHOG_WORKSPACE_ID ?? import.meta.env.VITE_POSTHOG_WORKSPACE_ID,
+  POSTHOG_URL: runtime?.POSTHOG_URL ?? import.meta.env.VITE_POSTHOG_URL,
+  SENTRY_DSN: runtime?.SENTRY_DSN ?? import.meta.env.VITE_SENTRY_DSN,
 }) as z.TypeOf<typeof EnvSchema>;
 export default env;
 

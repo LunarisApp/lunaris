@@ -7,7 +7,7 @@ import { checks } from "../ci-selection";
 const workflow = (name: string) =>
   parse(readFileSync(`.github/workflows/${name}.yml`, "utf8"));
 
-test("E2E runs only for ready main PRs, manual CI, and explicit release refs", () => {
+test("trunk uses candidate E2E while legacy release PRs retain full validation", () => {
   const { jobs, on } = workflow("ci");
   const condition = jobs.e2e.if.trim();
   expect(
@@ -37,6 +37,14 @@ test("E2E runs only for ready main PRs, manual CI, and explicit release refs", (
       base: "main",
       draft: false,
       ref: "",
+      expected: false,
+    },
+    {
+      event: "pull_request",
+      base: "main",
+      draft: false,
+      ref: "",
+      mode: "legacy",
       expected: true,
     },
     { event: "push", base: "", draft: false, ref: "", expected: false },
@@ -60,6 +68,7 @@ test("E2E runs only for ready main PRs, manual CI, and explicit release refs", (
     // This workflow expression uses only boolean operators shared with JS.
     const result = runInNewContext(condition, {
       inputs: { ref: entry.ref },
+      vars: { DELIVERY_MODE: entry.mode ?? "trunk" },
       github: {
         event_name: entry.event,
         base_ref: entry.base,
@@ -127,7 +136,8 @@ test("workflows share repository Bun setup and preserve download-cache opt-ins",
     "agent-rust",
     "desktop-mcp",
     "release-policy",
-    "sites",
+    "landing",
+    "docs",
   ]);
   for (const path of new Bun.Glob(".github/workflows/*.yml").scanSync({
     cwd: ".",
@@ -236,6 +246,6 @@ test("shared setup uses the resolved version for installation and download-cache
 
 test("workflow exports every selection flag validated by the gate", () => {
   expect(Object.keys(workflow("ci").jobs.changes.outputs).sort()).toEqual(
-    [...checks].sort()
+    [...checks, "filters"].sort()
   );
 });

@@ -1,5 +1,9 @@
 # GitHub workflows
 
+For the independent trunk pipeline, setup and staged cutover, see [Independent delivery](../../docs/procedures/independent-delivery.md).
+The legacy workflow below remains active only while `DELIVERY_MODE` is empty or `legacy`.
+
+
 - `ci.yml` validates pull requests and pushes to `main`/`next`, and supports manual
   dispatch: code quality, types, unit tests, generated configs, Rust agents,
   and Desktop MCP smoke tests.

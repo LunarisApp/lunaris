@@ -1,3 +1,4 @@
+import { publicConfigFromEnvironment } from "../../internal/app-shell/src/runtime-config";
 import { normalize, resolve } from "node:path";
 import { scrubMaybe } from "@repo/utils";
 import type { DrainContext } from "evlog";
@@ -20,7 +21,8 @@ const webServerDrain = process.env.POSTHOG_API_KEY
       },
     })(createPostHogDrain())
   : undefined;
-const commitHash = process.env.RAILWAY_GIT_COMMIT_SHA;
+const commitHash =
+  process.env.LUNARIS_BUILD_SHA ?? process.env.RAILWAY_GIT_COMMIT_SHA;
 
 initLogger({
   drain: webServerDrain,
@@ -49,7 +51,7 @@ const UPDATE_CRITICAL_PATHS = new Set([
 const HASHED_FILE_PATH = /(?:^|\/)[^/]+-[A-Za-z0-9_-]{8,}\.[^/]+$/;
 
 function isProduction(): boolean {
-  return process.env.NODE_ENV === "production";
+  return Bun.env.NODE_ENV === "production";
 }
 
 function getRegionDirectoryOrigins(): string[] {
@@ -259,7 +261,11 @@ function withSecurityHeaders(response: Response, isHttps: boolean): Response {
 
 export function createHealthResponse(isHttps: boolean): Response {
   const response = new Response("ok\n", {
-    headers: { "Cache-Control": "no-store", "Content-Type": "text/plain" },
+    headers: {
+      "Cache-Control": "no-store",
+      "Content-Type": "text/plain",
+      "X-Lunaris-Commit": commitHash ?? "local",
+    },
     status: 200,
   });
   return withSecurityHeaders(response, isHttps);
@@ -268,6 +274,27 @@ export function createHealthResponse(isHttps: boolean): Response {
 export async function handleRequest(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const isHttps = getForwardedProtocol(req, url) === "https";
+
+  if (
+    url.pathname === "/regions.json" &&
+    process.env.VITE_REGION_DIRECTORY_JSON
+  ) {
+    return withSecurityHeaders(
+      Response.json(JSON.parse(process.env.VITE_REGION_DIRECTORY_JSON), {
+        headers: { "Cache-Control": "no-store" },
+      }),
+      isHttps
+    );
+  }
+
+  if (url.pathname === "/runtime-config.json") {
+    return withSecurityHeaders(
+      Response.json(publicConfigFromEnvironment(process.env), {
+        headers: { "Cache-Control": "no-store" },
+      }),
+      isHttps
+    );
+  }
 
   if (url.pathname === "/health") {
     return createHealthResponse(isHttps);

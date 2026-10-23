@@ -12,7 +12,15 @@ import {
   type ResourceViewDefinition,
 } from "@lunarisapp/plugin-sdk";
 import type { ReactNode } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { Doc, Map as YMap } from "yjs";
 import {
   KANBAN_PLUGIN_ID,
@@ -21,6 +29,19 @@ import {
 } from "./index";
 
 const kanbanActivation = await preparePluginActivation(kanbanPlugin);
+
+// Cold module transforms can outlast a test on shared CI runners. Load the
+// board before entering React act scopes; lazy-loading behavior has its own test.
+beforeAll(async () => {
+  const boardView = kanbanActivation.contributions.find(
+    (contribution) =>
+      contribution.type === "view" && contribution.viewId === KANBAN_PLUGIN_ID
+  );
+  if (boardView?.type !== "view") {
+    throw new Error("Board view not registered");
+  }
+  await boardView.preload?.();
+}, 30_000);
 
 interface TestItem {
   createdAt?: string;

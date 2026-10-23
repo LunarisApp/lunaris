@@ -2,6 +2,7 @@
 export const navigateFallbackDenylist = [
   /^\/robots\.txt$/,
   /^\/regions\.json$/,
+  /^\/runtime-config\.json$/,
   /^\/\.well-known\//,
   /^\/(?:v1|api|oauth2|sync|lunaris)(?:\/|$)/,
   // Keep known auth pages available offline, but never intercept callbacks.

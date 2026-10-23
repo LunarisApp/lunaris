@@ -12,6 +12,7 @@ const { regionClients } = vi.hoisted(() => ({
   regionClients: {
     authClient: null as {
       $fetch: ReturnType<typeof vi.fn>;
+      multiSession: { listDeviceSessions: ReturnType<typeof vi.fn> };
       useSession: () => unknown;
     } | null,
     manifest: { apiUrl: "http://localhost:3000" },
@@ -54,6 +55,9 @@ describe("AgentConsentPage", () => {
   ) {
     regionClients.authClient = {
       $fetch: fetch,
+      multiSession: {
+        listDeviceSessions: vi.fn().mockResolvedValue({ data: [] }),
+      },
       useSession: () => ({
         data: { user: { id: "user-1", emailVerified: true } },
         isPending: false,

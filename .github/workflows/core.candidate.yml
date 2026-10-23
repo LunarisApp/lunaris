@@ -1,0 +1,106 @@
+name: Core - Candidate
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  deployments: write
+  packages: write
+jobs:
+  build:
+    if: vars.DELIVERY_MODE == 'trunk'
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.plan.outputs.enabled }}
+      images: ${{ steps.images.outputs.images }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CORE_CONFIGURATION_REVISION: ${{ vars.CORE_CONFIGURATION_REVISION }}
+      CYPRESS_INSTALL_BINARY: 0
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun
+      - uses: ./.github/actions/cache-turbo
+      - run: bun install --frozen-lockfile
+      - id: plan
+        run: bun tooling/delivery/core.ts plan
+      - name: Validate core workspaces
+        if: steps.plan.outputs.enabled == 'true'
+        env:
+          WORKSPACE_FILTERS: '["--filter=api...", "--filter=web..."]'
+          LUNARIS_EDITION: enterprise
+        run: |
+          bun run check
+          bun tooling/delivery/check-workspaces.ts typecheck
+          bun tooling/delivery/check-workspaces.ts test
+      - uses: ./.github/actions/buildkit-runtime
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+        if: steps.plan.outputs.enabled == 'true'
+      - name: Authenticate registry
+        if: steps.plan.outputs.enabled == 'true'
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY_USER: ${{ github.actor }}
+        run: printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io -u "$REGISTRY_USER" --password-stdin
+      - id: images
+        if: steps.plan.outputs.enabled == 'true'
+        run: bun tooling/delivery/core.ts images
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: steps.plan.outputs.enabled == 'true'
+        with:
+          name: core-images
+          path: artifacts/candidate.json
+          retention-days: 30
+  test:
+    needs: build
+    if: needs.build.outputs.enabled == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
+    uses: ./.github/workflows/e2e.yml
+    with:
+      ref: ${{ github.sha }}
+      images: ${{ needs.build.outputs.images }}
+      shard: ${{ matrix.shard }}
+      shards: 3
+  stage:
+    needs: [build, test]
+    if: needs.build.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: core-staging
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_RELEASE_TOKEN }}
+      RAILWAY_RELEASE_TARGETS: ${{ vars.RAILWAY_STAGING_TARGETS }}
+      POWERSYNC_API_SERVICE_ID: ${{ vars.STAGING_POWERSYNC_API_SERVICE_ID }}
+      POWERSYNC_COMPACT_SERVICE_ID: ${{ vars.STAGING_POWERSYNC_COMPACT_SERVICE_ID }}
+      POWERSYNC_ENVIRONMENT_ID: ${{ vars.STAGING_POWERSYNC_ENVIRONMENT_ID }}
+      POWERSYNC_PROJECT_ID: ${{ vars.STAGING_POWERSYNC_PROJECT_ID }}
+      POWERSYNC_REPLICATION_SERVICE_ID: ${{ vars.STAGING_POWERSYNC_REPLICATION_SERVICE_ID }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun
+      - run: bun install --frozen-lockfile
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: core-images
+          path: artifacts
+      - run: npm install --global @railway/cli@5.26.4
+      - run: bun tooling/delivery/core.ts stage
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: core-candidate
+          path: |
+            artifacts/candidate.json
+            artifacts/staging.json
+          retention-days: 30

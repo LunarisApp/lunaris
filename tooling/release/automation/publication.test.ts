@@ -19,7 +19,7 @@ afterEach(() => {
   }
 });
 
-function fixture(kind: "npm" | "hosted", landing = false) {
+function fixture(kind: "npm" | "hosted", landing = false, family = false) {
   const root = mkdtempSync(join(tmpdir(), "lunaris-publication-"));
   roots.push(root);
   const cwd = join(root, "work");
@@ -65,9 +65,15 @@ function fixture(kind: "npm" | "hosted", landing = false) {
   const sourceCommit = git("rev-parse", "HEAD");
   mkdirSync(join(cwd, ".release"));
   writeFileSync(
-    join(cwd, ".release/manifest.json"),
-    JSON.stringify({ sourceCommit, releases: entries })
+    join(cwd, family ? ".release/npm.json" : ".release/manifest.json"),
+    JSON.stringify({ ...(family ? {} : { sourceCommit }), releases: entries })
   );
+  if (family) {
+    writeFileSync(
+      join(cwd, ".release/manifest.json"),
+      "legacy manifest must not be read"
+    );
+  }
   git("add", ".");
   git("commit", "-m", "release");
   for (const entry of entries) {
@@ -85,6 +91,10 @@ appendFileSync(process.env.CALL_LOG, JSON.stringify({tool,args})+"\\n");
 if (tool === "npm" && args[0] === "pack") console.log(JSON.stringify([{filename:"archive.tgz"}]));
 if (tool === "gh") {
  const assets = join(process.env.RELEASE_ASSETS, args[2]);
+ if (args[1] === "view" && args.includes("isDraft")) {
+  console.log(JSON.stringify({isDraft: process.env.PENDING_RELEASE === args[2]}));
+  process.exit(0);
+ }
  if (args[1] === "view") console.log(JSON.stringify({assets:existsSync(assets) ? readdirSync(assets).map(name=>({name})) : []}));
  if (args[1] === "upload") {
   mkdirSync(assets, {recursive:true});
@@ -128,21 +138,28 @@ if (tool === "railway") {
     service: service(n),
     healthUrl: "https://fixture.test/health",
   });
-  const invoke = (extra: Record<string, string> = {}) =>
+  const invoke = (
+    extra: Record<string, string> = {},
+    script?: string,
+    args: string[] = []
+  ) =>
     Bun.spawnSync(
       [
         process.execPath,
         "--preload",
         preload,
-        resolve(
-          import.meta.dir,
-          kind === "npm" ? "publish-npm.ts" : "deploy-hosted.ts"
-        ),
+        script ??
+          resolve(
+            import.meta.dir,
+            kind === "npm" ? "publish-npm.ts" : "deploy-hosted.ts"
+          ),
+        ...args,
       ],
       {
         cwd,
         env: {
           ...process.env,
+          RELEASE_FAMILY: family ? "npm" : "",
           PATH: `${bin}:${process.env.PATH}`,
           CALL_LOG: log,
           RUNNER_TEMP: mkdtempSync(join(root, "runner-")),
@@ -180,8 +197,79 @@ if (tool === "railway") {
         "utf8"
       )
     ) as { attempts: { deploymentId: string | null; status: string }[] };
-  return { invoke, calls, promoted, service, receipt };
+  return { invoke, calls, promoted, service, receipt, git, cwd };
 }
+
+test("family publication reads its own manifest and permits validated older trunk commits", () => {
+  const f = fixture("npm", false, true);
+  const release = f.git("rev-parse", "HEAD");
+  writeFileSync(join(f.cwd, "later.txt"), "newer trunk commit");
+  f.git("add", ".");
+  f.git("commit", "-m", "later trunk commit");
+  f.git("push", "origin", "main");
+  f.git("checkout", release);
+  const result = f.invoke();
+  expect(result.exitCode, result.stderr.toString()).toBe(0);
+  expect(f.promoted()).toEqual([
+    "@lunarisapp/plugin-sdk@1.0.0",
+    "@lunarisapp/ui@1.0.0",
+  ]);
+});
+
+test("family planning recovers older pending versions after newer version PRs merge", () => {
+  const f = fixture("npm", false, true);
+  const original = f.git("rev-parse", "HEAD");
+  const path = join(f.cwd, ".release/npm.json");
+  const manifest = JSON.parse(readFileSync(path, "utf8"));
+  for (const entry of manifest.releases) {
+    entry.version = "1.1.0";
+    entry.tag = `${entry.name}@1.1.0`;
+  }
+  writeFileSync(path, JSON.stringify(manifest));
+  f.git("add", ".");
+  f.git("commit", "-m", "new version PR");
+  f.git("push", "origin", "main");
+  const output = join(f.cwd, "outputs");
+  const result = f.invoke(
+    { PENDING_RELEASE: "@lunarisapp/plugin-sdk@1.0.0", GITHUB_OUTPUT: output },
+    resolve(import.meta.dir, "../../delivery/artifact-release.ts"),
+    ["plan"]
+  );
+  expect(result.exitCode, result.stderr.toString()).toBe(0);
+  expect(readFileSync(output, "utf8")).toContain(`sha=${original}`);
+});
+
+test("family planning selects the merged trunk tree rather than a version PR parent", () => {
+  const f = fixture("npm", false, true);
+  f.git("checkout", "-b", "version-pr");
+  const path = join(f.cwd, ".release/npm.json");
+  const manifest = JSON.parse(readFileSync(path, "utf8"));
+  for (const entry of manifest.releases) {
+    entry.version = "1.1.0";
+    entry.tag = `${entry.name}@1.1.0`;
+  }
+  writeFileSync(path, JSON.stringify(manifest));
+  f.git("add", ".");
+  f.git("commit", "-m", "version PR");
+  f.git("checkout", "main");
+  writeFileSync(
+    join(f.cwd, "new-source.txt"),
+    "code merged while version PR was open"
+  );
+  f.git("add", ".");
+  f.git("commit", "-m", "new source");
+  f.git("merge", "--no-ff", "version-pr", "-m", "merge version PR");
+  const merged = f.git("rev-parse", "HEAD");
+  f.git("push", "origin", "main");
+  const output = join(f.cwd, "outputs");
+  const result = f.invoke(
+    { PENDING_RELEASE: "@lunarisapp/plugin-sdk@1.1.0", GITHUB_OUTPUT: output },
+    resolve(import.meta.dir, "../../delivery/artifact-release.ts"),
+    ["plan"]
+  );
+  expect(result.exitCode, result.stderr.toString()).toBe(0);
+  expect(readFileSync(output, "utf8")).toContain(`sha=${merged}`);
+});
 
 test("npm recovery promotes verified existing versions, including reruns, without republishing", () => {
   const f = fixture("npm");

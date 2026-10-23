@@ -3,6 +3,7 @@ import path from "node:path";
 
 const GENERATED_WORKBOX_FILE = /^workbox-[A-Za-z0-9_-]+\.js$/;
 export const NETWORK_ONLY_DISCOVERY_URLS = [
+  "runtime-config.json",
   ".well-known/lunaris-servers",
   ".well-known/lunaris-regions",
 ];

@@ -96,6 +96,18 @@ test("enterprise runtime carries implementation and license", () => {
     "Enterprise license"
   );
 });
+test("hosted API runtime needs no web build and carries no web assets", () => {
+  const f = fixture("enterprise");
+  rmSync(join(f.root, "apps/web"), { recursive: true });
+  assembleRuntime(f.root, f.destination, "enterprise", false);
+  expect(existsSync(join(f.destination, "apps/web"))).toBe(false);
+  expect(existsSync(join(f.destination, "apps/api/drizzle/0001.sql"))).toBe(
+    true
+  );
+  expect(existsSync(join(f.destination, "ee/teams/src/server/teams.ts"))).toBe(
+    true
+  );
+});
 test("rejects mixed artifacts and transitive enterprise imports in community", () => {
   const f = fixture("community");
   f.put("apps/web/dist/edition.json", { edition: "enterprise" });

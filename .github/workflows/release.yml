@@ -2,9 +2,19 @@ name: Native - Publish
 
 on:
   workflow_dispatch:
+    inputs:
+      ref:
+        description: Exact validated trunk commit SHA
+        required: true
+        type: string
+      target:
+        description: Native component to publish
+        type: choice
+        options: [cli, desktop]
+        required: true
 
 concurrency:
-  group: release-main
+  group: native-${{ inputs.target }}
   cancel-in-progress: false
 
 permissions:
@@ -14,12 +24,35 @@ env:
   MACOSX_DEPLOYMENT_TARGET: "13.0"
 
 jobs:
+  source:
+    if: github.ref == 'refs/heads/main'
+    name: Validate native source
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: read
+    outputs:
+      validated_revision: ${{ steps.source.outputs.validated_revision }}
+    steps:
+      # Validate with workflow-revision tooling before checking out release code.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun
+      - id: source
+        run: bun tooling/delivery/native-source.ts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NATIVE_SOURCE_SHA: ${{ inputs.ref }}
+
   plan:
+    needs: source
     name: Plan releases
     runs-on: ubuntu-latest
     permissions:
       contents: read
     outputs:
+      validated_revision: ${{ needs.source.outputs.validated_revision }}
       cli: ${{ steps.plan.outputs.cli }}
       cli_tag: ${{ steps.plan.outputs.cli_tag }}
       cli_version: ${{ steps.plan.outputs.cli_version }}
@@ -28,11 +61,22 @@ jobs:
       desktop_version: ${{ steps.plan.outputs.desktop_version }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-      - uses: ./.github/actions/setup-bun
+        with:
+          path: .delivery-tools
+          sparse-checkout: |
+            tooling
+            .github/actions/setup-bun
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.source.outputs.validated_revision }}
+          fetch-depth: 0
+          clean: false
+      - uses: ./.delivery-tools/.github/actions/setup-bun
       - id: plan
-        run: bun run release:plan
+        run: bun .delivery-tools/tooling/release/plan.ts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NATIVE_TARGET: ${{ inputs.target }}
 
   signing:
     name: Select signing mode
@@ -43,6 +87,9 @@ jobs:
       mode: ${{ steps.mode.outputs.mode }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.plan.outputs.validated_revision }}
+          fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - id: mode
         name: Validate Apple credentials
@@ -62,6 +109,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.plan.outputs.validated_revision }}
+          fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile
       - run: bun run release:validate
@@ -69,9 +119,18 @@ jobs:
       - run: bun test tooling/licenses
       - run: bun run check
       - run: bun run brand:check
-      - run: bun run typecheck
+      - name: Validate selected native dependencies
+        env:
+          NATIVE_TARGET: ${{ inputs.target }}
+        run: |
+          if [ "$NATIVE_TARGET" = desktop ]; then
+            bun run typecheck --filter=desktop...
+            bun run test --filter=desktop... -- --concurrency=4
+          else
+            bun run typecheck --filter=@lunarisapp/plugin-sdk...
+            bun run test --filter=@lunarisapp/plugin-sdk... -- --concurrency=4
+          fi
       - run: bun run tooling:typecheck
-      - run: bun run test -- --concurrency=4
 
   build-cli:
     name: Build CLI
@@ -81,10 +140,13 @@ jobs:
     permissions:
       contents: read
     env:
-      LUNARIS_BUILD_SHA: ${{ github.sha }}
+      LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.validated_revision }}
       LUNARIS_SIGNING_MODE: ${{ needs.signing.outputs.mode }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.plan.outputs.validated_revision }}
+          fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         with:
@@ -193,12 +255,15 @@ jobs:
     permissions:
       contents: read
     env:
-      LUNARIS_BUILD_SHA: ${{ github.sha }}
+      LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.validated_revision }}
       LUNARIS_BUILD_VERSION: ${{ needs.plan.outputs.desktop_version }}
       LUNARIS_SIGNING_MODE: ${{ needs.signing.outputs.mode }}
       VITE_REGION_DIRECTORY_URL: https://lunaris.app/.well-known/lunaris-regions
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.plan.outputs.validated_revision }}
+          fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         with:
@@ -303,8 +368,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.validated_revision }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.plan.outputs.validated_revision }}
+          fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
@@ -350,7 +420,7 @@ jobs:
           VERSION: ${{ needs.plan.outputs.cli_version }}
         run: |
           gh release create "$TAG" \
-            --target "$GITHUB_SHA" \
+            --target "$LUNARIS_BUILD_SHA" \
             --draft \
             --title "Lunaris CLI $VERSION" \
             --notes-file release-notes.md
@@ -364,8 +434,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.validated_revision }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.plan.outputs.validated_revision }}
+          fetch-depth: 0
       - uses: ./.github/actions/setup-bun
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
@@ -411,7 +486,7 @@ jobs:
           VERSION: ${{ needs.plan.outputs.desktop_version }}
         run: |
           gh release create "$TAG" \
-            --target "$GITHUB_SHA" \
+            --target "$LUNARIS_BUILD_SHA" \
             --draft \
             --title "Lunaris Desktop $VERSION" \
             --notes-file release-notes.md

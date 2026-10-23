@@ -25,7 +25,8 @@ const section =
       new RegExp(`^## ${escapedVersion}\\s*$([\\s\\S]*?)(?=^## \\S|\\s*$)`, "m")
     )?.[1]
     ?.trim() || "Initial private release.";
-const sha = process.env.GITHUB_SHA ?? "unknown";
+const sha =
+  process.env.LUNARIS_BUILD_SHA ?? process.env.GITHUB_SHA ?? "unknown";
 const serverUrl = process.env.GITHUB_SERVER_URL ?? "https://github.com";
 const repository = process.env.GITHUB_REPOSITORY ?? "LunarisApp/lunaris";
 const runId = process.env.GITHUB_RUN_ID;

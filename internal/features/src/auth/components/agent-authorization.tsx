@@ -7,13 +7,18 @@ import {
 } from "@lunarisapp/ui/components/select";
 import { Button } from "@lunarisapp/ui/components/button";
 import type { AuthClient } from "@repo/auth/client";
+import { usePlatform } from "@repo/platform";
 import { useQuery } from "@tanstack/react-query";
-import { Fragment, type ReactNode, useState } from "react";
+import { createContext, type ReactNode, useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate, useLocation } from "react-router";
+import { Navigate, useLocation, useNavigate } from "react-router";
 import { useRegion, useRegionClients } from "../../region";
 import { agentAuthFetch } from "../agent-auth-client";
-import { appendRedirectToPath, buildAuthRedirectPath } from "../redirect";
+import {
+  appendRedirectToPath,
+  buildAddAccountPath,
+  buildAuthRedirectPath,
+} from "../redirect";
 
 export interface AuthorizationRequest {
   oauth_query?: string;
@@ -77,7 +82,184 @@ function SessionGate({
       />
     );
   }
-  return <Fragment key={session.user.id}>{children}</Fragment>;
+  return (
+    <AuthorizationAccount key={session.user.id} auth={auth}>
+      {children}
+    </AuthorizationAccount>
+  );
+}
+
+const AuthorizationBusyContext = createContext<(busy: boolean) => void>(
+  () => undefined
+);
+
+function AuthorizationAccount({
+  auth,
+  children,
+}: {
+  auth: AuthClient;
+  children: ReactNode;
+}) {
+  const { data: session } = auth.useSession();
+  const { navigation } = usePlatform();
+  const { t } = useTranslation();
+  const { pathWithRegion, region } = useRegion();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string>();
+  const [deciding, setDeciding] = useState(false);
+  const accounts = useQuery({
+    queryKey: ["authorization-accounts", region.id, session?.user.id],
+    queryFn: async () => {
+      const result = await auth.multiSession.listDeviceSessions();
+      if (result.error) {
+        throw new Error(result.error.message ?? t("auth.accountListFailed"));
+      }
+      return result.data ?? [];
+    },
+    retry: false,
+    gcTime: 0,
+  });
+  const users = new Map(
+    (accounts.data ?? [])
+      .filter(
+        (account) =>
+          !("isAnonymous" in account.user && account.user.isAnonymous)
+      )
+      .map((account) => [account.user.id, account])
+  );
+  if (session) {
+    users.set(session.user.id, session);
+  }
+  const changeAccount = async (userId: string | null) => {
+    if (!userId || userId === session?.user.id || pending || deciding) {
+      return;
+    }
+    const account = users.get(userId);
+    if (!account) {
+      return;
+    }
+    setPending(true);
+    setError(undefined);
+    try {
+      const result = await auth.multiSession.setActive({
+        sessionToken: account.session.token,
+      });
+      if (result.error) {
+        throw new Error(result.error.message ?? t("auth.agentConsentError"));
+      }
+      // Reload from the new cookie before exposing any consent controls.
+      navigation.assign(
+        `${location.pathname}${location.search}${location.hash}`
+      );
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : t("auth.agentConsentError")
+      );
+      setPending(false);
+    }
+  };
+  const signOut = async () => {
+    if (pending || deciding) {
+      return;
+    }
+    setPending(true);
+    setError(undefined);
+    try {
+      const result = await auth.signOut();
+      if (result.error) {
+        throw new Error(result.error.message ?? t("auth.agentConsentError"));
+      }
+      navigate(buildAddAccountPath(pathWithRegion("/auth"), location), {
+        replace: true,
+      });
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : t("auth.agentConsentError")
+      );
+      setPending(false);
+    }
+  };
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        {users.size > 1 ? (
+          <label
+            htmlFor="authorization-account"
+            className="block font-medium text-sm"
+          >
+            {t("auth.switchAccount")}
+          </label>
+        ) : (
+          <p className="font-medium text-sm">{t("auth.accounts")}</p>
+        )}
+        {users.size > 1 ? (
+          <Select
+            value={session?.user.id ?? null}
+            onValueChange={(value) => void changeAccount(value)}
+            disabled={pending || deciding}
+            items={[...users.values()].map((account) => ({
+              value: account.user.id,
+              label: account.user.email,
+            }))}
+          >
+            <SelectTrigger
+              id="authorization-account"
+              className="min-h-11 w-full"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[...users.values()].map((account) => (
+                <SelectItem key={account.user.id} value={account.user.id}>
+                  {account.user.email}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <p id="authorization-account" className="break-all text-sm">
+            {session?.user.email}
+          </p>
+        )}
+        {accounts.error ? (
+          <div className="space-y-2">
+            <p role="alert" className="text-destructive text-sm">
+              {t("auth.accountListFailed")}
+            </p>
+            <Button
+              variant="outline"
+              disabled={pending || deciding || accounts.isFetching}
+              onClick={() => void accounts.refetch()}
+            >
+              {t("common.retry")}
+            </Button>
+          </div>
+        ) : null}
+        <Button
+          variant="outline"
+          className="min-h-11 w-full"
+          disabled={pending || deciding}
+          onClick={() => void signOut()}
+        >
+          {t("common.logout")}
+        </Button>
+        {error ? (
+          <p role="alert" className="text-destructive text-sm">
+            {error}
+          </p>
+        ) : null}
+      </div>
+      {pending ? (
+        <p role="status">{t("auth.agentAuthorization.loading")}</p>
+      ) : (
+        <AuthorizationBusyContext.Provider value={setDeciding}>
+          {children}
+        </AuthorizationBusyContext.Provider>
+      )}
+    </div>
+  );
 }
 
 export function AgentAuthorizationReview({
@@ -94,6 +276,7 @@ export function AgentAuthorizationReview({
   onBack?: () => void;
 }) {
   const { t } = useTranslation();
+  const setDeciding = useContext(AuthorizationBusyContext);
   const [selected, setSelected] = useState<string[]>([]);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
@@ -124,6 +307,7 @@ export function AgentAuthorizationReview({
       return;
     }
     setPending(true);
+    setDeciding(true);
     setError(undefined);
     try {
       if (accept) {
@@ -139,6 +323,7 @@ export function AgentAuthorizationReview({
       );
     } finally {
       setPending(false);
+      setDeciding(false);
     }
   };
   if (details.isPending) {

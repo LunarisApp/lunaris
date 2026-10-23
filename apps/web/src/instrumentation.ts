@@ -1,13 +1,15 @@
+import { getPublicRuntimeConfig } from "@repo/app-shell/runtime-config";
 import { getConsent } from "@probo/cookie-banner/consent";
 import { initPostHogBrowser } from "@repo/utils/posthog-browser";
 import { createPostHogBrowserDrain } from "@repo/utils/posthog-log";
 import { auditRedactPreset, initLogger } from "evlog";
 import posthog from "posthog-js";
 
+const runtime = getPublicRuntimeConfig();
 const hasPostHogConfig = Boolean(
-  import.meta.env.VITE_POSTHOG_API_HOST &&
-    import.meta.env.VITE_POSTHOG_KEY &&
-    import.meta.env.VITE_POSTHOG_UI_HOST
+  (runtime?.POSTHOG_API_HOST ?? import.meta.env.VITE_POSTHOG_API_HOST) &&
+    (runtime?.POSTHOG_KEY ?? import.meta.env.VITE_POSTHOG_KEY) &&
+    (runtime?.POSTHOG_UI_HOST ?? import.meta.env.VITE_POSTHOG_UI_HOST)
 );
 const posthogDrain = createPostHogBrowserDrain(posthog);
 let posthogInitialized = false;
@@ -23,16 +25,16 @@ function initializePostHogWithConsent(
   const analyticsAllowed = categories.analytics === true;
 
   posthogInitialized = initPostHogBrowser(posthog, {
-    apiHost: import.meta.env.VITE_POSTHOG_API_HOST,
+    apiHost: runtime?.POSTHOG_API_HOST ?? import.meta.env.VITE_POSTHOG_API_HOST,
     appSurface: "web",
     appVersion: __BUILD_VERSION__,
     cookielessMode: "on_reject",
     environment: import.meta.env.MODE,
-    key: import.meta.env.VITE_POSTHOG_KEY,
+    key: runtime?.POSTHOG_KEY ?? import.meta.env.VITE_POSTHOG_KEY,
     optOutCapturingByDefault: !analyticsAllowed,
     optOutPersistenceByDefault: !analyticsAllowed,
     persistence: "localStorage+cookie",
-    uiHost: import.meta.env.VITE_POSTHOG_UI_HOST,
+    uiHost: runtime?.POSTHOG_UI_HOST ?? import.meta.env.VITE_POSTHOG_UI_HOST,
   });
 
   if (!posthogInitialized) {

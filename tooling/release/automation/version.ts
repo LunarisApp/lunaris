@@ -8,7 +8,9 @@ import {
 import { splitChangeset, targets } from "./policy";
 import { run } from "./process";
 
-export function versionTargets() {
+export function versionTargets(
+  names: readonly string[] = targets.map((target) => target.name)
+) {
   const before = new Map(
     targets.map((target) => [
       target.name,
@@ -29,7 +31,7 @@ export function versionTargets() {
   let success = false;
   try {
     for (const [path, source] of backups) {
-      const { selected } = splitChangeset(source);
+      const { selected } = splitChangeset(source, names);
       if (selected) {
         writeFileSync(path, selected);
         pending = true;
@@ -43,7 +45,9 @@ export function versionTargets() {
     success = true;
   } finally {
     for (const [path, source] of backups) {
-      const excluded = success ? splitChangeset(source).excluded : source;
+      const excluded = success
+        ? splitChangeset(source, names).excluded
+        : source;
       if (excluded) {
         writeFileSync(path, excluded);
       } else if (existsSync(path)) {

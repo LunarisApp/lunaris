@@ -122,6 +122,39 @@ export function releaseRulesets(appId: number, maintainerTeamId: number) {
     },
   ];
 }
+
+/** Trunk cutover keeps legacy tag immutability while replacing branch choreography. */
+export function trunkRulesets(appId: number, maintainerTeamId: number) {
+  return releaseRulesets(appId, maintainerTeamId)
+    .filter((rule) => rule.name !== "Release next - PRs")
+    .map((rule) => {
+      if (rule.target !== "branch") {
+        return rule;
+      }
+      const result = {
+        ...rule,
+        conditions: { ref_name: { include: ["refs/heads/main"], exclude: [] } },
+      };
+      if (result.name === "Release main - PRs") {
+        return {
+          ...result,
+          rules: result.rules.map((entry) =>
+            entry.type === "pull_request" && "parameters" in entry
+              ? {
+                  ...entry,
+                  parameters: {
+                    ...entry.parameters,
+                    allowed_merge_methods: ["squash", "merge"],
+                  },
+                }
+              : entry
+          ),
+        };
+      }
+      return result;
+    });
+}
+
 if (import.meta.main) {
   console.log(
     JSON.stringify(

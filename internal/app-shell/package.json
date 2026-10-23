@@ -46,6 +46,7 @@
   },
   "exports": {
     ".": "./src/index.tsx",
-    "./globals.css": "./src/globals.css"
+    "./globals.css": "./src/globals.css",
+    "./runtime-config": "./src/runtime-config.ts"
   }
 }
