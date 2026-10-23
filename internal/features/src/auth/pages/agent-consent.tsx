@@ -58,18 +58,23 @@ export default function AgentConsentPage() {
     }
     setPending(true);
     setError(undefined);
-    const result = await submitAgentConsent(
-      authClient,
-      accept,
-      location.search.slice(1)
-    );
-    const redirect = result.data?.redirect_uri ?? result.data?.url;
-    if (redirect) {
-      navigation.assign(redirect);
-      return;
+    try {
+      const result = await submitAgentConsent(
+        authClient,
+        accept,
+        location.search.slice(1)
+      );
+      const redirect = result.data?.redirect_uri ?? result.data?.url;
+      if (redirect) {
+        navigation.assign(redirect);
+        return;
+      }
+      setError(result.error?.message ?? t("auth.agentConsentError"));
+    } catch {
+      setError(t("auth.agentConsentError"));
+    } finally {
+      setPending(false);
     }
-    setError(result.error?.message ?? t("auth.agentConsentError"));
-    setPending(false);
   };
 
   return (
@@ -138,8 +143,26 @@ export function submitAgentConsent(
   return authClient.$fetch<{ redirect_uri?: string; url?: string }>(
     "/oauth2/consent",
     {
-      body: { accept, oauth_query: oauthQuery },
+      body: { accept, oauth_query: getSignedOAuthQuery(oauthQuery) },
       method: "POST",
     }
   );
+}
+
+function getSignedOAuthQuery(search: string) {
+  const params = new URLSearchParams(search);
+  const signedNames = params.getAll("ba_param");
+  // Older providers sign the whole query. Current providers declare which
+  // parameters are signed so app routing parameters cannot break the signature.
+  if (!signedNames.length) {
+    return search;
+  }
+  const names = new Set([...signedNames, "ba_param", "sig"]);
+  const signedParams = new URLSearchParams();
+  for (const [name, value] of params) {
+    if (names.has(name)) {
+      signedParams.append(name, value);
+    }
+  }
+  return signedParams.toString();
 }
