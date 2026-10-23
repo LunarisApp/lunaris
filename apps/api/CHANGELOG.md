@@ -1,5 +1,24 @@
 # api
 
+## 0.1.1
+
+### Patch Changes
+
+- [#38](https://github.com/LunarisApp/lunaris/pull/38) [`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821) Thanks [@lunaris-release](https://github.com/apps/lunaris-release)! - Add account picker and logout to agent consent
+
+- [#38](https://github.com/LunarisApp/lunaris/pull/38) [`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821) Thanks [@lunaris-release](https://github.com/apps/lunaris-release)! - Separate hosted deployments, certify immutable core images before promotion, and prepare independent package, self-hosted, and native releases.
+
+- [#39](https://github.com/LunarisApp/lunaris/pull/39) [`981b3a0`](https://github.com/LunarisApp/lunaris/commit/981b3a0bfd5f547ee7e0684c96dab52cc6338f6b) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix release publication startup by granting reusable CI validation package read access.
+- Updated dependencies [[`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821), [`981b3a0`](https://github.com/LunarisApp/lunaris/commit/981b3a0bfd5f547ee7e0684c96dab52cc6338f6b)]:
+  - @lunarisapp/plugin-sdk@0.12.4
+  - @extension/file@0.0.1
+  - @extension/kanban@0.0.1
+  - @extension/rich-text@0.0.1
+  - @repo/agent-contracts@0.0.1
+  - @repo/ee-audit@0.0.1
+  - @repo/ee-teams@0.0.1
+  - @repo/auth@0.0.1
+
 ## 0.1.0
 
 ### Minor Changes

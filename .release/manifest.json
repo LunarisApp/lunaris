@@ -1,61 +1,61 @@
 {
-  "sourceCommit": "534931cba0c0dc3ee02240f8bce885b012fa53f9",
+  "sourceCommit": "fe57e84aaae8083c057fcc6f1436cfbae2653ee0",
   "releases": [
     {
       "name": "@lunarisapp/plugin-sdk",
       "path": "packages/plugin-sdk",
       "kind": "npm",
-      "version": "0.12.3",
-      "tag": "@lunarisapp/plugin-sdk@0.12.3",
-      "notes": "### Patch Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent"
+      "version": "0.12.4",
+      "tag": "@lunarisapp/plugin-sdk@0.12.4",
+      "notes": "### Patch Changes\n\n- [#38](https://github.com/LunarisApp/lunaris/pull/38) [`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821) Thanks [@lunaris-release](https://github.com/apps/lunaris-release)! - Separate hosted deployments, certify immutable core images before promotion, and prepare independent package, self-hosted, and native releases.\n\n- [#39](https://github.com/LunarisApp/lunaris/pull/39) [`981b3a0`](https://github.com/LunarisApp/lunaris/commit/981b3a0bfd5f547ee7e0684c96dab52cc6338f6b) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix release publication startup by granting reusable CI validation package read access."
     },
     {
       "name": "@lunarisapp/ui",
       "path": "packages/ui",
       "kind": "npm",
-      "version": "0.0.6",
-      "tag": "@lunarisapp/ui@0.0.6",
-      "notes": "### Patch Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent"
+      "version": "0.0.7",
+      "tag": "@lunarisapp/ui@0.0.7",
+      "notes": "### Patch Changes\n\n- [#38](https://github.com/LunarisApp/lunaris/pull/38) [`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821) Thanks [@lunaris-release](https://github.com/apps/lunaris-release)! - Separate hosted deployments, certify immutable core images before promotion, and prepare independent package, self-hosted, and native releases.\n\n- [#39](https://github.com/LunarisApp/lunaris/pull/39) [`981b3a0`](https://github.com/LunarisApp/lunaris/commit/981b3a0bfd5f547ee7e0684c96dab52cc6338f6b) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix release publication startup by granting reusable CI validation package read access."
     },
     {
       "name": "api",
       "path": "apps/api",
       "kind": "hosted",
-      "version": "0.1.0",
-      "tag": "api@0.1.0",
-      "notes": "### Minor Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent\n\n### Patch Changes\n\n- Updated dependencies [[`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5)]:\n  - @lunarisapp/plugin-sdk@0.12.3\n  - @extension/file@0.0.1\n  - @extension/kanban@0.0.1\n  - @extension/rich-text@0.0.1\n  - @repo/agent-contracts@0.0.1\n  - @repo/ee-audit@0.0.1\n  - @repo/ee-teams@0.0.1\n  - @repo/auth@0.0.1"
+      "version": "0.1.1",
+      "tag": "api@0.1.1",
+      "notes": "### Patch Changes\n\n- [#38](https://github.com/LunarisApp/lunaris/pull/38) [`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821) Thanks [@lunaris-release](https://github.com/apps/lunaris-release)! - Add account picker and logout to agent consent\n\n- [#38](https://github.com/LunarisApp/lunaris/pull/38) [`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821) Thanks [@lunaris-release](https://github.com/apps/lunaris-release)! - Separate hosted deployments, certify immutable core images before promotion, and prepare independent package, self-hosted, and native releases.\n\n- [#39](https://github.com/LunarisApp/lunaris/pull/39) [`981b3a0`](https://github.com/LunarisApp/lunaris/commit/981b3a0bfd5f547ee7e0684c96dab52cc6338f6b) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix release publication startup by granting reusable CI validation package read access.\n- Updated dependencies [[`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821), [`981b3a0`](https://github.com/LunarisApp/lunaris/commit/981b3a0bfd5f547ee7e0684c96dab52cc6338f6b)]:\n  - @lunarisapp/plugin-sdk@0.12.4\n  - @extension/file@0.0.1\n  - @extension/kanban@0.0.1\n  - @extension/rich-text@0.0.1\n  - @repo/agent-contracts@0.0.1\n  - @repo/ee-audit@0.0.1\n  - @repo/ee-teams@0.0.1\n  - @repo/auth@0.0.1"
     },
     {
       "name": "web",
       "path": "apps/web",
       "kind": "hosted",
-      "version": "0.1.0",
-      "tag": "web@0.1.0",
-      "notes": "### Minor Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent\n\n### Patch Changes\n\n- Updated dependencies []:\n  - @repo/data@0.0.1\n  - @repo/app-shell@0.0.1\n  - @repo/features@0.0.1\n  - @repo/ee-composition@0.0.1"
+      "version": "0.1.1",
+      "tag": "web@0.1.1",
+      "notes": "### Patch Changes\n\n- [#38](https://github.com/LunarisApp/lunaris/pull/38) [`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821) Thanks [@lunaris-release](https://github.com/apps/lunaris-release)! - Add account picker and logout to agent consent\n\n- [#38](https://github.com/LunarisApp/lunaris/pull/38) [`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821) Thanks [@lunaris-release](https://github.com/apps/lunaris-release)! - Separate hosted deployments, certify immutable core images before promotion, and prepare independent package, self-hosted, and native releases.\n\n- [#39](https://github.com/LunarisApp/lunaris/pull/39) [`981b3a0`](https://github.com/LunarisApp/lunaris/commit/981b3a0bfd5f547ee7e0684c96dab52cc6338f6b) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix release publication startup by granting reusable CI validation package read access.\n- Updated dependencies []:\n  - @repo/data@0.0.1\n  - @repo/app-shell@0.0.1\n  - @repo/features@0.0.1\n  - @repo/ee-composition@0.0.1"
     },
     {
       "name": "docs",
       "path": "apps/docs",
       "kind": "hosted",
-      "version": "0.0.5",
-      "tag": "docs@0.0.5",
-      "notes": "### Patch Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent"
+      "version": "0.0.6",
+      "tag": "docs@0.0.6",
+      "notes": "### Patch Changes\n\n- [#38](https://github.com/LunarisApp/lunaris/pull/38) [`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821) Thanks [@lunaris-release](https://github.com/apps/lunaris-release)! - Separate hosted deployments, certify immutable core images before promotion, and prepare independent package, self-hosted, and native releases.\n\n- [#39](https://github.com/LunarisApp/lunaris/pull/39) [`981b3a0`](https://github.com/LunarisApp/lunaris/commit/981b3a0bfd5f547ee7e0684c96dab52cc6338f6b) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix release publication startup by granting reusable CI validation package read access."
     },
     {
       "name": "landing",
       "path": "apps/landing",
       "kind": "hosted",
-      "version": "0.2.2",
-      "tag": "landing@0.2.2",
-      "notes": "### Patch Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent"
+      "version": "0.2.3",
+      "tag": "landing@0.2.3",
+      "notes": "### Patch Changes\n\n- [#38](https://github.com/LunarisApp/lunaris/pull/38) [`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821) Thanks [@lunaris-release](https://github.com/apps/lunaris-release)! - Separate hosted deployments, certify immutable core images before promotion, and prepare independent package, self-hosted, and native releases.\n\n- [#39](https://github.com/LunarisApp/lunaris/pull/39) [`981b3a0`](https://github.com/LunarisApp/lunaris/commit/981b3a0bfd5f547ee7e0684c96dab52cc6338f6b) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix release publication startup by granting reusable CI validation package read access."
     },
     {
       "name": "self-hosted",
       "path": "infra/self-host",
       "kind": "self-hosted",
-      "version": "0.2.0",
-      "tag": "self-hosted@0.2.0",
-      "notes": "### Minor Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent"
+      "version": "0.2.1",
+      "tag": "self-hosted@0.2.1",
+      "notes": "### Patch Changes\n\n- [#38](https://github.com/LunarisApp/lunaris/pull/38) [`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821) Thanks [@lunaris-release](https://github.com/apps/lunaris-release)! - Add account picker and logout to agent consent\n\n- [#38](https://github.com/LunarisApp/lunaris/pull/38) [`64f1c91`](https://github.com/LunarisApp/lunaris/commit/64f1c91ed6f7fbe7c2dea2bf8939160122d8d821) Thanks [@lunaris-release](https://github.com/apps/lunaris-release)! - Separate hosted deployments, certify immutable core images before promotion, and prepare independent package, self-hosted, and native releases.\n\n- [#39](https://github.com/LunarisApp/lunaris/pull/39) [`981b3a0`](https://github.com/LunarisApp/lunaris/commit/981b3a0bfd5f547ee7e0684c96dab52cc6338f6b) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix release publication startup by granting reusable CI validation package read access."
     }
   ]
 }
