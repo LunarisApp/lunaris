@@ -10,6 +10,7 @@ test("release ordering validates the version commit and isolates back-merge from
   const { jobs } = workflow("release.publish");
   // biome-ignore lint/suspicious/noTemplateCurlyInString: Literal GitHub Actions expression, not JavaScript interpolation.
   expect(jobs.validate.with.ref).toBe("${{ needs.version.outputs.sha }}");
+  expect(jobs.validate.permissions).toEqual(workflow("ci").permissions);
   expect(jobs.tag.needs).toEqual(["version", "validate"]);
   expect(jobs["back-merge"].needs).toEqual(["version", "validate", "tag"]);
   expect(jobs.complete).toBeUndefined();
