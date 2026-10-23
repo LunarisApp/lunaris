@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { createElement } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it, vi } from "vitest";
@@ -82,6 +82,48 @@ describe("loadAgentClientName", () => {
 });
 
 describe("AgentConsentPage", () => {
+  it("shows network failures and lets the user retry consent", async () => {
+    const fetch = vi
+      .fn()
+      .mockImplementation((path: string) =>
+        path === "/oauth2/public-client"
+          ? Promise.resolve({ data: { client_name: "Lunaris CLI" } })
+          : Promise.reject(new Error("Network error"))
+      );
+    regionClients.authClient = { $fetch: fetch };
+    const router = createMemoryRouter(
+      [
+        {
+          path: "/auth/agent-consent",
+          element: createElement(AgentConsentPage),
+        },
+      ],
+      { initialEntries: ["/auth/agent-consent?client_id=cli&sig=signed"] }
+    );
+    render(createElement(RouterProvider, { router }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Allow" }));
+    });
+
+    expect(screen.getByRole("alert").textContent).toBe(
+      "auth.agentConsentError"
+    );
+    expect(
+      screen.getByRole("button", { name: "Allow" }).hasAttribute("disabled")
+    ).toBe(false);
+    expect(
+      screen.getByRole("button", { name: "Deny" }).hasAttribute("disabled")
+    ).toBe(false);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Deny" }));
+    });
+    expect(
+      fetch.mock.calls.filter(([path]) => path === "/oauth2/consent")
+    ).toHaveLength(2);
+  });
+
   it("returns to the generic label while a different client loads", async () => {
     const fetch = vi
       .fn()
@@ -124,6 +166,38 @@ describe("AgentConsentPage", () => {
 });
 
 describe("submitAgentConsent", () => {
+  it.each([true, false])(
+    "preserves signed parameters when routing adds region (accept=%s)",
+    async (accept) => {
+      const fetch = vi.fn().mockResolvedValue({
+        data: { url: "http://127.0.0.1/oauth/callback" },
+      });
+      const signedParams = new URLSearchParams({
+        client_id: "cli",
+        sig: "signed+value=",
+      });
+      signedParams.append("resource", "https://api.lunaris.app");
+      signedParams.append("resource", "https://api.lunaris.app/mcp");
+      for (const name of ["client_id", "resource", "ba_param"]) {
+        signedParams.append("ba_param", name);
+      }
+      const pageParams = new URLSearchParams(signedParams);
+      pageParams.set("region", "us");
+      pageParams.set("redirectTo", "/");
+
+      await submitAgentConsent(
+        { $fetch: fetch } as never,
+        accept,
+        pageParams.toString()
+      );
+
+      expect(fetch).toHaveBeenCalledWith("/oauth2/consent", {
+        body: { accept, oauth_query: signedParams.toString() },
+        method: "POST",
+      });
+    }
+  );
+
   it("posts to OAuth Provider's nested consent endpoint", async () => {
     const fetch = vi.fn().mockResolvedValue({
       data: { redirect_uri: "http://127.0.0.1/oauth/callback" },
