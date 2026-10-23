@@ -165,7 +165,14 @@ export const agentAuthorization = pgTable(
     updatedAt: timestamp("updated_at").notNull(),
     revokedAt: timestamp("revoked_at"),
   },
-  (table) => [index("agentAuthorization_userId_idx").on(table.userId)]
+  (table) => [
+    index("agentAuthorization_userId_idx").on(table.userId),
+    uniqueIndex("agentAuthorization_user_client_resource_idx").on(
+      table.userId,
+      table.clientId,
+      table.resource
+    ),
+  ]
 );
 
 export const oauthClient = pgTable(

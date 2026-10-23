@@ -449,3 +449,47 @@ it("preserves explicit browser reauthentication", async () => {
     new URL(response.headers.get("location")!, "http://localhost:3000").pathname
   ).toBe("/login");
 });
+
+it("preserves existing grant IDs and matches the full authorization boundary", async () => {
+  const { auth, call, code, clientId, db } = await fixture();
+  await call(`/device?user_code=${code.user_code}`, undefined, true);
+  const approval = { userCode: code.user_code, organizationIds: ["org-1"] };
+  expect((await call("/agent/authorize", approval, true)).status).toBe(200);
+  const grant = db.agentAuthorization![0]!;
+  grant.id = "existing-grant-id";
+  const originalVersion = grant.version;
+  expect((await call("/agent/authorize", approval, true)).status).toBe(200);
+  expect(db.agentAuthorization).toHaveLength(1);
+  const updated = db.agentAuthorization![0]!;
+  expect(updated.id).toBe("existing-grant-id");
+  expect(updated.version).not.toBe(originalVersion);
+  const adapter = (await auth.$context).adapter;
+  const userId = db.user![0]!.id as string;
+  const versions = { [resource]: updated.version };
+  await expect(
+    resolveAgentAuthorization(
+      adapter,
+      userId,
+      clientId,
+      resource,
+      ["organization:read"],
+      versions
+    )
+  ).resolves.toMatchObject({ organizationIds: ["org-1"] });
+  for (const [user, client, audience] of [
+    ["another-user", clientId, resource],
+    [userId, "another-client", resource],
+    [userId, clientId, "https://another.example/mcp"],
+  ] as const) {
+    await expect(
+      resolveAgentAuthorization(
+        adapter,
+        user,
+        client,
+        audience,
+        ["organization:read"],
+        versions
+      )
+    ).rejects.toThrow();
+  }
+});

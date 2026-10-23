@@ -54,10 +54,12 @@ function denied(
     message,
   });
 }
-function grantId(userId: string, clientId: string, resource: string) {
-  return createHash("sha256")
-    .update(JSON.stringify([userId, clientId, resource]))
-    .digest("hex");
+function grantWhere(userId: string, clientId: string, resource: string) {
+  return [
+    { field: "userId", value: userId },
+    { field: "clientId", value: clientId },
+    { field: "resource", value: resource },
+  ];
 }
 export function effectiveAgentGrant(
   grant: AgentGrant | null,
@@ -81,7 +83,7 @@ export async function resolveAgentAuthorization(
 ) {
   const grant = await adapter.findOne<AgentGrant>({
     model: "agentAuthorization",
-    where: [{ field: "id", value: grantId(userId, clientId, resource) }],
+    where: grantWhere(userId, clientId, resource),
   });
   const effective = effectiveAgentGrant(grant, scopes);
   if (
@@ -113,12 +115,7 @@ export function agentAuthorization(resources: string[]) {
             for (const resource of audiences) {
               const grant = await request.context.adapter.findOne<AgentGrant>({
                 model: "agentAuthorization",
-                where: [
-                  {
-                    field: "id",
-                    value: grantId(user.id, client.clientId, resource),
-                  },
-                ],
+                where: grantWhere(user.id, client.clientId, resource),
               });
               if (!grant || grant.revokedAt) {
                 denied();
@@ -230,10 +227,9 @@ export function agentAuthorization(resources: string[]) {
             ],
           });
           for (const resource of details.resources) {
-            const id = grantId(session.user.id, details.clientId, resource);
             const previous = await ctx.context.adapter.findOne<AgentGrant>({
               model: "agentAuthorization",
-              where: [{ field: "id", value: id }],
+              where: grantWhere(session.user.id, details.clientId, resource),
             });
             const data = {
               userId: session.user.id,
@@ -249,13 +245,13 @@ export function agentAuthorization(resources: string[]) {
             if (previous) {
               await ctx.context.adapter.update({
                 model: "agentAuthorization",
-                where: [{ field: "id", value: id }],
+                where: [{ field: "id", value: previous.id }],
                 update: data,
               });
             } else {
               await ctx.context.adapter.create({
                 model: "agentAuthorization",
-                data: { ...data, id, createdAt: new Date() },
+                data: { ...data, id: randomUUID(), createdAt: new Date() },
                 forceAllowId: true,
               });
             }
@@ -414,12 +410,7 @@ export function agentAuthorization(resources: string[]) {
             for (const resource of details.resources) {
               const grant = await ctx.context.adapter.findOne<AgentGrant>({
                 model: "agentAuthorization",
-                where: [
-                  {
-                    field: "id",
-                    value: grantId(session.user.id, details.clientId, resource),
-                  },
-                ],
+                where: grantWhere(session.user.id, details.clientId, resource),
               });
               if (
                 !grant ||

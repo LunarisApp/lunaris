@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "agentAuthorization_user_client_resource_idx" ON "agent_authorization" USING btree ("user_id","client_id","resource");
