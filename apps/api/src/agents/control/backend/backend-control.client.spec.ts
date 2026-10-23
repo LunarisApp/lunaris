@@ -2,17 +2,18 @@ import { describe, expect, it, mock } from "bun:test";
 import type { AgentPrincipal } from "../access/agent-principal";
 import { BackendControlClientFactory } from "./backend-control.client";
 
-const principal: AgentPrincipal = {
+const principal = {
   actorId: "user_1",
   clientId: "client_1",
   kind: "oauth",
   scopes: ["file:read"],
-  organizationIds: null,
-};
+  organizationIds: ["organization_1"],
+} satisfies AgentPrincipal;
 
 function createFactory(
   workspaceAccess: () => Promise<unknown>,
-  scopes: AgentPrincipal["scopes"] = principal.scopes
+  scopes: AgentPrincipal["scopes"] = principal.scopes,
+  organizationIds = ["organization_1"]
 ) {
   const getDownloadUrl = mock(async () => {
     await workspaceAccess();
@@ -49,7 +50,7 @@ function createFactory(
     { audit } as never
   );
   return {
-    client: factory.create({ ...principal, scopes }),
+    client: factory.create({ ...principal, scopes, organizationIds }),
     audit,
     getDownloadUrl,
     getWorkspace,
@@ -153,5 +154,30 @@ describe("BackendControlClientFactory file access", () => {
         targetId: "document_item_1",
       })
     );
+  });
+});
+
+describe("OAuth organization boundaries", () => {
+  it("blocks direct file IDs outside selected organizations", async () => {
+    const { client, getDownloadUrl } = createFactory(
+      () => Promise.resolve({}),
+      ["file:read"],
+      ["other-org"]
+    );
+    await expect(
+      client.getFileDownloadUrl("organization_1", "workspace_1", "storage_1")
+    ).rejects.toThrow("Organization not authorized");
+    expect(getDownloadUrl).not.toHaveBeenCalled();
+  });
+  it("blocks organization search outside selected organizations", async () => {
+    const { client, searchResources } = createFactory(
+      () => Promise.resolve({}),
+      ["workspace:read"],
+      ["other-org"]
+    );
+    await expect(
+      client.searchResources("organization_1", { search: "plan" })
+    ).rejects.toThrow("Organization not authorized");
+    expect(searchResources).not.toHaveBeenCalled();
   });
 });

@@ -9,6 +9,7 @@ const LOGOUT_PENDING_STATE_KEY = "logoutPending";
 const REGION_QUERY_PARAM = "region";
 const REDIRECT_TO_QUERY_PARAM = "redirectTo";
 const POST_AUTH_PATHS = new Set([
+  "/auth/device",
   "/auth/accept-invitation",
   "/auth/agent-consent",
 ]);

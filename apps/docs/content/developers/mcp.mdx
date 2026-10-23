@@ -43,3 +43,61 @@ approved clients.
 
 If cloud workspaces are missing, check the account, data region, and organization
 used for the connection.
+
+## Remote agents and SSH servers
+
+For Hermes on a remote server, use OAuth device authorization. Your browser
+stays on Lunaris; Hermes receives tokens by polling the authorization server.
+No callback listener or SSH port forwarding is needed.
+
+Configure your selected region's MCP URL in Hermes:
+
+```yaml
+mcp_servers:
+  lunaris:
+    url: "https://YOUR-REGION-API/mcp"
+    auth: oauth
+    oauth:
+      flow: device
+      scope: "openid offline_access organization:read workspace:read content:read file:read"
+```
+
+On the remote machine, in the same Hermes profile used by your agent:
+
+```sh
+hermes mcp login lunaris --flow device
+```
+
+Open the printed verification URL on your personal computer. Sign in, confirm
+that the code matches your terminal, review permissions, and select allowed
+organizations. Approve only requests you started. Return to the terminal;
+Lunaris does not redirect your browser to the remote server.
+
+Hermes must support `--flow device`. If the option is unavailable, update
+Hermes. Other MCP clients must explicitly implement RFC 8628; browser OAuth
+with PKCE remains available for clients using a local callback.
+
+Device requests expire after five minutes. Start login again after expiry or
+denial. If the wrong region is selected, reopen the original verification link
+and choose the issuing region. Never copy access tokens or session cookies
+between machines.
+
+## Manage cloud connections
+
+Open **Settings → Account → Connected agents** in the connection's data region.
+Each connection shows requested permissions, allowed organizations, API audience,
+and approval time. **Revoke access** blocks subsequent requests and removes
+refresh authorization for that client. Existing in-flight operations may finish.
+
+Agents cannot access unselected organizations, including organizations you join
+later. Membership and resource permissions still apply within selected
+organizations. Reconnect to change permissions or organization selection.
+
+Connections created before organization consent was introduced must authorize
+again. A valid old token alone no longer grants cloud agent access. Existing
+client registrations remain usable.
+
+For deployment, apply the additive auth migration before starting the new API.
+Coordinate the API and consent UI rollout: old consent pages cannot approve new
+connections because organization selection is now required. Keep JWT signing
+keys and the OAuth issuer unchanged.

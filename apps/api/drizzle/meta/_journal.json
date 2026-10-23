@@ -372,6 +372,20 @@
       "when": 1789025046082,
       "tag": "0052_oauth_client_provider_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1792755072442,
+      "tag": "0053_agent_authorization",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1792755736853,
+      "tag": "0054_agent_grant_version",
+      "breakpoints": true
     }
   ]
 }

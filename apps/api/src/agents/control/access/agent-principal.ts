@@ -17,7 +17,7 @@ export type AgentPrincipal =
       clientId: string;
       kind: "oauth";
       scopes: AgentScope[];
-      organizationIds: null;
+      organizationIds: string[];
     }
   | {
       actorId: string;

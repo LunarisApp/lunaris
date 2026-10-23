@@ -14,7 +14,7 @@ import {
   VERSION_NEUTRAL,
 } from "@nestjs/common";
 import { agentScopeSchema } from "@repo/agent-contracts";
-import type { Auth } from "@repo/auth/server";
+import { type Auth, resolveAgentAuthorization } from "@repo/auth/server";
 import { AuthService } from "@thallesp/nestjs-better-auth";
 import { useLogger } from "evlog/nestjs";
 import type { FastifyReply, FastifyRequest } from "fastify";
@@ -77,7 +77,15 @@ export class McpController {
       if (!(actorId && clientId)) {
         return unauthorized(reply, this.resourceUrl);
       }
-      const scopes = parseAgentScopes(jwt.scope ?? jwt.scopes);
+      const policy = await resolveAgentAuthorization(
+        (await this.auth.instance.$context).adapter,
+        actorId,
+        clientId,
+        this.resourceUrl,
+        parseAgentScopes(jwt.scope ?? jwt.scopes),
+        jwt.lunaris_grants
+      );
+      const scopes = parseAgentScopes(policy.scopes);
       useLogger().set({
         agent: { clientId, kind: "oauth", scopeCount: scopes.length },
         user: { id: actorId },
@@ -87,7 +95,7 @@ export class McpController {
         clientId,
         kind: "oauth",
         scopes,
-        organizationIds: null,
+        organizationIds: policy.organizationIds,
       });
       const server = createAgentToolsServer(client, { name: "lunaris-hosted" });
       instrumentMcpServer(server, this.mcpPosthog, actorId);
