@@ -21,7 +21,7 @@ const PII: ReadonlyArray<readonly [RegExp, string]> = [
   [/\bBearer\s+[A-Za-z0-9._~+/-]{12,}=*/gi, "Bearer [token]"],
   // Secret-bearing URL query parameters
   [
-    /([?&](?:access_token|api_key|code|password|refresh_token|secret|token)=)[^&\s]+/gi,
+    /([?&](?:access_token|api_key|code|device_code|user_code|oauth_query|sig|password|refresh_token|secret|token)=)[^&\s]+/gi,
     "$1[redacted]",
   ],
   // Long hex-shaped tokens (32+ chars, common API keys / secrets)
@@ -39,7 +39,7 @@ export function scrubMaybe(value: string | undefined): string | undefined {
 const MAX_SCRUB_DEPTH = 6;
 const MAX_SCRUB_ENTRIES = 100;
 const SENSITIVE_OBJECT_KEY =
-  /^(?:authorization|backupcodes?|content|cookies?|document(?:content|text)|email|name|password|passwd|prompt|secret|session(?:id|token)?|text|token|totpuri)$/i;
+  /^(?:authorization|device_?code|user_?code|oauth_?query|sig|backupcodes?|content|cookies?|document(?:content|text)|email|name|password|passwd|prompt|secret|session(?:id|token)?|text|token|totpuri)$/i;
 
 function scrubValue(value: unknown, depth: number): unknown {
   if (typeof value === "string") {

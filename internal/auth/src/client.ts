@@ -1,4 +1,7 @@
-import { oauthProviderClient } from "@better-auth/oauth-provider/client";
+import {
+  oauthDeviceAuthorizationClient,
+  oauthProviderClient,
+} from "@better-auth/oauth-provider/client";
 import { passkeyClient } from "@better-auth/passkey/client";
 import { polarClient } from "@polar-sh/better-auth/client";
 import type { BetterAuthClientPlugin, InferActions } from "better-auth/client";
@@ -110,6 +113,7 @@ function createAuthClientInternal({
     multiSessionClient(),
     accountSwitchSignalsClient(),
     oauthProviderClient(),
+    oauthDeviceAuthorizationClient(),
     emailAuthDiscoveryClient(),
     lastLoginMethodClient({
       cookieName: LAST_LOGIN_METHOD_COOKIE_NAME,

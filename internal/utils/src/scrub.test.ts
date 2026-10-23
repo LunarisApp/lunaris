@@ -157,3 +157,15 @@ describe("scrubTelemetryProperties", () => {
     });
   });
 });
+
+describe("device authorization telemetry", () => {
+  test("removes device codes and signed authorization queries", () => {
+    expect(
+      scrubString(
+        "/auth/device?user_code=ABCD-EFGH&device_code=private&oauth_query=signed&sig=secret"
+      )
+    ).toBe(
+      "/auth/device?user_code=[redacted]&device_code=[redacted]&oauth_query=[redacted]&sig=[redacted]"
+    );
+  });
+});

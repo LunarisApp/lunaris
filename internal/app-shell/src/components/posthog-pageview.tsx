@@ -7,6 +7,7 @@ import { useLocation } from "react-router";
 const AUTH_ROUTES = new Set([
   "accept-invitation",
   "agent-consent",
+  "device",
   "continue",
   "email",
   "forgot-password",

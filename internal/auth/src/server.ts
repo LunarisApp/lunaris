@@ -1,6 +1,10 @@
 import crypto from "node:crypto";
 import { apiKey } from "@better-auth/api-key";
-import { oauthProvider } from "@better-auth/oauth-provider";
+import { oauthDeviceAuthorization } from "@better-auth/oauth-provider";
+import { mcp } from "@better-auth/mcp";
+import { cimd } from "@better-auth/cimd";
+import { fetchClientMetadataResource } from "./cimd-transport";
+import { agentAuthorization } from "./agent-authorization";
 import { passkey } from "@better-auth/passkey";
 import { redisStorage } from "@better-auth/redis-storage";
 import {
@@ -56,6 +60,8 @@ import {
   syncOrganizationMemberSeats,
   type OrganizationPlanCallbacks,
 } from "./organization-policy";
+
+export { resolveAgentAuthorization } from "./agent-authorization";
 
 export {
   agentApiKeyMetadataSchema,
@@ -534,7 +540,8 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
       apiKey(buildAgentApiKeyOptions()),
       ...(backendUrl
         ? [
-            oauthProvider({
+            mcp({
+              resource: `${backendUrl}/mcp`,
               allowDynamicClientRegistration: true,
               allowUnauthenticatedClientRegistration: true,
               clientRegistrationAllowedScopes: [
@@ -557,7 +564,7 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
                 "content:read",
                 "file:read",
               ],
-              consentPage: `${options.frontendUrl}/auth/agent-consent`,
+              consentPage: `${options.frontendUrl}/auth/agent-consent?issuer=${encodeURIComponent(backendUrl)}`,
               loginPage: `${options.frontendUrl}/auth`,
               enforcePerClientResources: false,
               resources: [backendUrl, `${backendUrl}/mcp`],
@@ -574,6 +581,17 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
                 "file:read",
               ],
             }),
+            cimd({
+              fetchClientMetadataResource,
+              metadataProfile: "mcp-2026-07-28",
+            }),
+            oauthDeviceAuthorization({
+              verificationUri: `${options.frontendUrl}/auth/device?issuer=${encodeURIComponent(backendUrl)}`,
+              expiresIn: "5m",
+              interval: "5s",
+              validateClient: async () => false,
+            }),
+            agentAuthorization([backendUrl, `${backendUrl}/mcp`]),
           ]
         : []),
       emailAuthDiscovery({

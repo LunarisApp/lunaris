@@ -42,6 +42,14 @@ export class BackendControlClientFactory {
       if (!organizationId) {
         return;
       }
+      if (
+        principal.organizationIds &&
+        !principal.organizationIds.includes(organizationId)
+      ) {
+        throw new ForbiddenException(
+          "Organization not authorized for this agent"
+        );
+      }
       const [membership] = await this.database.db
         .select({ id: member.id })
         .from(member)

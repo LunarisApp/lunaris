@@ -1,3 +1,4 @@
+import { APIError } from "better-auth/api";
 import { oauthProviderResourceClient } from "@better-auth/oauth-provider/resource-client";
 import {
   CanActivate,
@@ -10,7 +11,11 @@ import {
 import { Reflector } from "@nestjs/core";
 import { type AgentScope, agentScopeSchema } from "@repo/agent-contracts";
 import type { AppPermission } from "@repo/auth/permissions";
-import { type Auth, agentApiKeyMetadataSchema } from "@repo/auth/server";
+import {
+  type Auth,
+  agentApiKeyMetadataSchema,
+  resolveAgentAuthorization,
+} from "@repo/auth/server";
 import { AuthService, type UserSession } from "@thallesp/nestjs-better-auth";
 import { useLogger } from "evlog/nestjs";
 import type { FastifyRequest } from "fastify";
@@ -128,13 +133,39 @@ export class AgentAccessGuard implements CanActivate {
       }
       request.auditActor = { id: actorId, type: "api" };
       await this.control.assertAgentEligible(actorId);
-      const scopes = parseAgentScopes(jwt.scope ?? jwt.scopes);
+      const policy = await resolveAgentAuthorization(
+        (await this.auth.instance.$context).adapter,
+        actorId,
+        clientId,
+        this.appConfig.url.replace(/\/$/, ""),
+        parseAgentScopes(jwt.scope ?? jwt.scopes),
+        jwt.lunaris_grants
+      ).catch((error: unknown) => {
+        if (error instanceof APIError && error.statusCode === 403) {
+          throw new ForbiddenException({
+            code: "AGENT_AUTHORIZATION_REQUIRED",
+            message: error.message,
+          });
+        }
+        throw error;
+      });
+      const scopes = parseAgentScopes(policy.scopes);
+      if (!scopes.includes(scope)) {
+        throw new ForbiddenException(`Missing scope: ${scope}`);
+      }
+      const organizationId = (request.params as { organizationId?: string })
+        .organizationId;
+      if (organizationId && !policy.organizationIds.includes(organizationId)) {
+        throw new ForbiddenException(
+          "Organization not authorized for this agent"
+        );
+      }
       request.agentPrincipal = {
         actorId,
         clientId,
         kind: "oauth",
         scopes,
-        organizationIds: null,
+        organizationIds: policy.organizationIds,
       };
       request.session = agentSession(
         actorId,

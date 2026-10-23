@@ -1,0 +1,1 @@
+ALTER TABLE "agent_authorization" ADD COLUMN "version" text NOT NULL;
