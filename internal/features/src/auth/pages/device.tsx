@@ -2,7 +2,7 @@ import { Button } from "@lunarisapp/ui/components/button";
 import { Input } from "@lunarisapp/ui/components/input";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router";
+import { useLocation, useSearchParams } from "react-router";
 import { useRegionClients } from "../../region";
 import {
   AgentAuthorizationGate,
@@ -15,6 +15,7 @@ export default function DeviceAuthorizationPage() {
   const { t } = useTranslation();
   const { authClient } = useRegionClients();
   const location = useLocation();
+  const [, setSearchParams] = useSearchParams();
   const [code, setCode] = useState(
     new URLSearchParams(location.search).get("user_code") ?? ""
   );
@@ -58,7 +59,16 @@ export default function DeviceAuthorizationPage() {
             className="space-y-4"
             onSubmit={(event) => {
               event.preventDefault();
-              setConfirmedCode(code.replace(/[^a-zA-Z0-9]/g, "").toUpperCase());
+              const userCode = code.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+              setConfirmedCode(userCode);
+              // Keep the reviewed code when account switching reloads this page.
+              setSearchParams(
+                (params) => {
+                  params.set("user_code", userCode);
+                  return params;
+                },
+                { replace: true }
+              );
             }}
           >
             <label className="block space-y-2" htmlFor="device-user-code">
@@ -71,7 +81,17 @@ export default function DeviceAuthorizationPage() {
                 value={code}
                 required
                 maxLength={32}
-                onChange={(event) => setCode(event.target.value)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setCode(value);
+                  setSearchParams(
+                    (params) => {
+                      params.set("user_code", value);
+                      return params;
+                    },
+                    { replace: true }
+                  );
+                }}
               />
             </label>
             <p className="text-muted-foreground text-sm">
