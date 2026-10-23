@@ -1,5 +1,11 @@
 # landing
 
+## 0.2.2
+
+### Patch Changes
+
+- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent
+
 ## 0.2.1
 
 ### Patch Changes

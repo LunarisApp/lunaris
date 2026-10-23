@@ -1,37 +1,61 @@
 {
-  "sourceCommit": "61d39abf8b2c9647671d4d3646ccc7b651809439",
+  "sourceCommit": "534931cba0c0dc3ee02240f8bce885b012fa53f9",
   "releases": [
+    {
+      "name": "@lunarisapp/plugin-sdk",
+      "path": "packages/plugin-sdk",
+      "kind": "npm",
+      "version": "0.12.3",
+      "tag": "@lunarisapp/plugin-sdk@0.12.3",
+      "notes": "### Patch Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent"
+    },
+    {
+      "name": "@lunarisapp/ui",
+      "path": "packages/ui",
+      "kind": "npm",
+      "version": "0.0.6",
+      "tag": "@lunarisapp/ui@0.0.6",
+      "notes": "### Patch Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent"
+    },
     {
       "name": "api",
       "path": "apps/api",
       "kind": "hosted",
-      "version": "0.0.5",
-      "tag": "api@0.0.5",
-      "notes": "### Patch Changes\n\n- [#33](https://github.com/LunarisApp/lunaris/pull/33) [`8dfe8b4`](https://github.com/LunarisApp/lunaris/commit/8dfe8b4758c6c41d961e26626aa701af2fcab4c1) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix agent consent signatures and retry after network errors."
+      "version": "0.1.0",
+      "tag": "api@0.1.0",
+      "notes": "### Minor Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent\n\n### Patch Changes\n\n- Updated dependencies [[`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5)]:\n  - @lunarisapp/plugin-sdk@0.12.3\n  - @extension/file@0.0.1\n  - @extension/kanban@0.0.1\n  - @extension/rich-text@0.0.1\n  - @repo/agent-contracts@0.0.1\n  - @repo/ee-audit@0.0.1\n  - @repo/ee-teams@0.0.1\n  - @repo/auth@0.0.1"
     },
     {
       "name": "web",
       "path": "apps/web",
       "kind": "hosted",
-      "version": "0.0.4",
-      "tag": "web@0.0.4",
-      "notes": "### Patch Changes\n\n- [#33](https://github.com/LunarisApp/lunaris/pull/33) [`8dfe8b4`](https://github.com/LunarisApp/lunaris/commit/8dfe8b4758c6c41d961e26626aa701af2fcab4c1) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix agent consent signatures and retry after network errors."
+      "version": "0.1.0",
+      "tag": "web@0.1.0",
+      "notes": "### Minor Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent\n\n### Patch Changes\n\n- Updated dependencies []:\n  - @repo/data@0.0.1\n  - @repo/app-shell@0.0.1\n  - @repo/features@0.0.1\n  - @repo/ee-composition@0.0.1"
+    },
+    {
+      "name": "docs",
+      "path": "apps/docs",
+      "kind": "hosted",
+      "version": "0.0.5",
+      "tag": "docs@0.0.5",
+      "notes": "### Patch Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent"
     },
     {
       "name": "landing",
       "path": "apps/landing",
       "kind": "hosted",
-      "version": "0.2.1",
-      "tag": "landing@0.2.1",
-      "notes": "### Patch Changes\n\n- [#31](https://github.com/LunarisApp/lunaris/pull/31) [`ab6dd69`](https://github.com/LunarisApp/lunaris/commit/ab6dd69dc57d89e51bbe0b9e222be972c0a89332) Thanks [@MrLightful](https://github.com/MrLightful)! - Center desktop header navigation independently of logo and action widths."
+      "version": "0.2.2",
+      "tag": "landing@0.2.2",
+      "notes": "### Patch Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent"
     },
     {
       "name": "self-hosted",
       "path": "infra/self-host",
       "kind": "self-hosted",
-      "version": "0.1.2",
-      "tag": "self-hosted@0.1.2",
-      "notes": "### Patch Changes\n\n- [#33](https://github.com/LunarisApp/lunaris/pull/33) [`8dfe8b4`](https://github.com/LunarisApp/lunaris/commit/8dfe8b4758c6c41d961e26626aa701af2fcab4c1) Thanks [@MrLightful](https://github.com/MrLightful)! - Fix agent consent signatures and retry after network errors."
+      "version": "0.2.0",
+      "tag": "self-hosted@0.2.0",
+      "notes": "### Minor Changes\n\n- [#34](https://github.com/LunarisApp/lunaris/pull/34) [`fccf54a`](https://github.com/LunarisApp/lunaris/commit/fccf54ac8f90dee5ba2377d8bd52d4ec2026d0d5) Thanks [@MrLightful](https://github.com/MrLightful)! - Add remote agent login and scoped consent"
     }
   ]
 }
