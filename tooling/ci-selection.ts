@@ -1,18 +1,28 @@
-import { execFileSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
+import {
+  affectedWorkspaces,
+  affectedComponents,
+  changedFiles,
+  readWorkspaces,
+  repositoryDoc,
+  requiresFullValidation,
+} from "./delivery/affected";
 
 export const optionalJobs = [
   "editions",
   "agent-rust",
   "desktop-mcp",
-  "sites",
+  "landing",
+  "docs",
   "self-hosted",
+  "smoke",
 ] as const;
 export const checks = [
   ...optionalJobs,
   "brand",
   "powersync",
   "release",
+  "public-packages",
 ] as const;
 
 export function selectChecks(
@@ -20,20 +30,10 @@ export function selectChecks(
   affected: string[],
   full = false
 ) {
-  const all = () => Object.fromEntries(checks.map((name) => [name, true]));
-  // Unknown root/tooling inputs must never silently lose coverage.
-  const known =
-    /^(apps\/|internal\/|packages\/|extensions\/|ee\/|crates\/|assets\/brand\/|infra\/|tooling\/(powersync|generate-brand-assets|release\/|self-host\/)|docs\/|\.changeset\/)/;
-  const repositoryDoc = (file: string) =>
-    file.startsWith("docs/") || (!file.includes("/") && file.endsWith(".md"));
-  if (
-    full ||
-    files.includes("THIRD-PARTY-NOTICES.md") ||
-    files.some((file) => !(known.test(file) || repositoryDoc(file)))
-  ) {
-    return all();
+  affected = [...new Set([...affected, ...affectedComponents(files)])];
+  if (full || requiresFullValidation(files)) {
+    return Object.fromEntries(checks.map((name) => [name, true]));
   }
-  // LICENSE inputs remain covered by the full-check fallback above.
   if (files.every(repositoryDoc)) {
     return Object.fromEntries(checks.map((name) => [name, false]));
   }
@@ -42,18 +42,20 @@ export function selectChecks(
     names.some((name) => affected.includes(name));
   return {
     editions:
-      has("api", "web", "desktop") ||
-      changed(/^(ee\/|assets\/brand\/|infra\/)/),
+      has("api", "web", "desktop") || changed(/^(ee\/|assets\/brand\/)/),
     "agent-rust":
       has("cli", "@repo/agent-contracts", "@lunarisapp/plugin-sdk") ||
       changed(/^crates\//),
     "desktop-mcp":
       has("desktop", "@repo/agent-contracts", "@lunarisapp/plugin-sdk") ||
       changed(/^(crates\/|tooling\/mcp|assets\/brand\/)/),
-    sites: has("docs", "landing"),
-    "self-hosted":
-      has("api", "web", "self-hosted") ||
-      changed(/^(infra\/|tooling\/(editions\/|self-host\/))/),
+    landing: has("landing"),
+    docs: has("docs"),
+    // Complete installer coverage belongs to packaging changes and release candidates.
+    "self-hosted": changed(/^(infra\/|tooling\/(editions\/|self-host\/))/),
+    smoke:
+      has("api", "web", "@repo/data", "@repo/auth") ||
+      changed(/^infra\/local\//),
     brand: changed(
       /^(assets\/brand\/|tooling\/generate-brand-assets|apps\/(desktop|web|landing)\/public\/|apps\/desktop\/src-tauri\/icons\/)/
     ),
@@ -61,60 +63,58 @@ export function selectChecks(
       has("api", "@repo/data", "@repo/auth") ||
       changed(/^(infra\/|tooling\/powersync)/),
     release: changed(
-      /^(tooling\/release\/|\.changeset\/)|\/(package\.json|Cargo\.toml|tauri\.conf\.json)$/
+      /^(tooling\/release\/|\.changeset\/|\.release\/)|\/(package\.json|Cargo\.toml|tauri\.conf\.json)$/
     ),
+    "public-packages": has("@lunarisapp/plugin-sdk", "@lunarisapp/ui"),
   };
 }
 
-function detect() {
-  const base = process.env.CI_BASE_SHA;
-  if (process.env.CI_FULL === "true" || !base) {
-    return selectChecks([], [], true);
-  }
-  try {
-    const files = execFileSync(
-      "git",
-      ["diff", "--name-only", "--no-renames", "-z", `${base}...HEAD`],
-      { encoding: "utf8" }
-    )
-      .split("\0")
-      .filter(Boolean);
-    const result = JSON.parse(
-      execFileSync(
-        "bun",
-        ["x", "--no-install", "turbo", "ls", "--affected", "--output=json"],
-        {
-          encoding: "utf8",
-          env: { ...process.env, TURBO_SCM_BASE: base, TURBO_SCM_HEAD: "HEAD" },
-        }
-      )
-    );
-    const items: unknown = result.packages?.items;
-    if (
-      !Array.isArray(items) ||
-      items.some((item) => typeof item.name !== "string")
-    ) {
-      throw new Error("Unexpected Turbo package list");
-    }
-    return selectChecks(
-      files,
-      items.map((item) => item.name)
-    );
-  } catch (error) {
-    console.warn("Change detection failed; running full validation.", error);
-    return selectChecks([], [], true);
-  }
-}
-
 if (import.meta.main) {
-  const selected = detect();
+  let selected: ReturnType<typeof selectChecks>;
+  let affected: string[] = [];
+  try {
+    const base = process.env.CI_BASE_SHA;
+    if (!base || /^0+$/.test(base) || process.env.CI_FULL === "true") {
+      throw new Error("Full validation requested");
+    }
+    const files = changedFiles(base);
+    affected = affectedWorkspaces(files, readWorkspaces());
+    affected = [...new Set([...affected, ...affectedComponents(files)])];
+    selected = selectChecks(files, affected);
+    if (requiresFullValidation(files)) {
+      affected = readWorkspaces().map(({ name }) => name);
+    }
+  } catch (error) {
+    console.warn("Running full validation:", String(error));
+    selected = selectChecks([], [], true);
+    affected = readWorkspaces().map(({ name }) => name);
+  }
+  if (process.env.CI_SHADOW === "true") {
+    if (process.env.GITHUB_STEP_SUMMARY) {
+      appendFileSync(
+        process.env.GITHUB_STEP_SUMMARY,
+        `Proposed affected checks: ${JSON.stringify(selected)}\n`
+      );
+    }
+    // Keep legacy broad JS/package/installer coverage until trunk cutover.
+    selected["self-hosted"] ||= affected.some((name) =>
+      ["api", "web", "self-hosted"].includes(name)
+    );
+    selected["public-packages"] = true;
+    affected = readWorkspaces().map(({ name }) => name);
+  }
+  // An empty affected set must never turn into an unfiltered Turbo invocation.
+  const filters = affected.length
+    ? affected.map((name) => `--filter=${name}`)
+    : ["--filter=__no_affected_workspace__"];
   console.log(selected);
   if (process.env.GITHUB_OUTPUT) {
     appendFileSync(
       process.env.GITHUB_OUTPUT,
-      Object.entries(selected)
-        .map(([name, value]) => `${name}=${value}\n`)
-        .join("")
+      `${[
+        ...Object.entries(selected).map(([name, value]) => `${name}=${value}`),
+        `filters=${JSON.stringify(filters)}`,
+      ].join("\n")}\n`
     );
   }
 }

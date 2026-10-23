@@ -149,7 +149,7 @@ if (import.meta.main) {
     );
   }
 
-  const sourceCommit = process.env.GITHUB_SHA;
+  const sourceCommit = process.env.LUNARIS_BUILD_SHA ?? process.env.GITHUB_SHA;
   if (!sourceCommit) {
     throw new Error("GITHUB_SHA is required");
   }

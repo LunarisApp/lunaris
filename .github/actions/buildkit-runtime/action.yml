@@ -1,0 +1,5 @@
+name: Expose BuildKit cache runtime
+description: Make the job-scoped Actions cache v2 credentials available to Buildx shell commands.
+runs:
+  using: node24
+  main: index.cjs

@@ -1,0 +1,11 @@
+name: Cache Turbo tasks
+description: Restore task outputs across validation jobs; Turbo validates task hashes.
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: .turbo/cache
+        key: turbo-${{ runner.os }}-${{ runner.arch }}-${{ env.LUNARIS_EDITION || 'default' }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}-${{ github.job }}-${{ github.sha }}
+        restore-keys: |
+          turbo-${{ runner.os }}-${{ runner.arch }}-${{ env.LUNARIS_EDITION || 'default' }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}-

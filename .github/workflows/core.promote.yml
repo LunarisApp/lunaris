@@ -1,0 +1,91 @@
+name: Core - Promote
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_run_id:
+        description: Successful Core - Candidate run ID (blank for rollback)
+        type: string
+      target:
+        type: choice
+        options: [core, api, web]
+        default: core
+      rollback_deployment_id:
+        description: Previous successful production/core GitHub deployment ID
+        type: string
+permissions:
+  contents: read
+  actions: read
+  deployments: write
+concurrency:
+  group: core-production
+  cancel-in-progress: false
+jobs:
+  resolve:
+    if: vars.DELIVERY_MODE == 'trunk' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+      staging: ${{ steps.resolve.outputs.staging }}
+      mode: ${{ steps.resolve.outputs.mode }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
+      ROLLBACK_DEPLOYMENT_ID: ${{ inputs.rollback_deployment_id }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun
+      - run: bun install --frozen-lockfile
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+      - id: resolve
+        run: bun tooling/delivery/resolve-candidate.ts
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: selected-candidate
+          path: artifacts/candidate.json
+  promote:
+    needs: resolve
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CORE_TARGET: ${{ inputs.target }}
+      STAGING_DEPLOYMENT_ID: ${{ needs.resolve.outputs.staging }}
+      ROLLBACK_DEPLOYMENT_ID: ${{ inputs.rollback_deployment_id }}
+      CORE_CONFIGURATION_REVISION: ${{ vars.CORE_CONFIGURATION_REVISION }}
+      RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_RELEASE_TOKEN }}
+      RAILWAY_RELEASE_TARGETS: ${{ vars.RAILWAY_RELEASE_TARGETS }}
+      POWERSYNC_API_SERVICE_ID: ${{ vars.POWERSYNC_API_SERVICE_ID }}
+      POWERSYNC_COMPACT_SERVICE_ID: ${{ vars.POWERSYNC_COMPACT_SERVICE_ID }}
+      POWERSYNC_ENVIRONMENT_ID: ${{ vars.POWERSYNC_ENVIRONMENT_ID }}
+      POWERSYNC_PROJECT_ID: ${{ vars.POWERSYNC_PROJECT_ID }}
+      POWERSYNC_REPLICATION_SERVICE_ID: ${{ vars.POWERSYNC_REPLICATION_SERVICE_ID }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          path: .delivery-tools
+          sparse-checkout: |
+            tooling/delivery
+            tooling/release/automation
+            internal/app-shell/src
+            .github/actions/setup-bun
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          fetch-depth: 0
+          clean: false
+      - uses: ./.delivery-tools/.github/actions/setup-bun
+      - run: bun install --frozen-lockfile
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: selected-candidate
+          path: artifacts
+      - run: npm install --global @railway/cli@5.26.4
+      - name: Promote tested images
+        env:
+          MODE: ${{ needs.resolve.outputs.mode }}
+        run: bun .delivery-tools/tooling/delivery/core.ts "$MODE"

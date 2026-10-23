@@ -15,11 +15,13 @@ const pr = event.pull_request;
 if (!pr) {
   throw new Error("Expected pull_request event");
 }
-validateSource(
-  pr.base.ref,
-  pr.head.ref,
-  pr.head.repo.full_name === pr.base.repo.full_name
-);
+if (process.env.DELIVERY_MODE !== "trunk") {
+  validateSource(
+    pr.base.ref,
+    pr.head.ref,
+    pr.head.repo.full_name === pr.base.repo.full_name
+  );
+}
 const base = git("merge-base", pr.base.sha, pr.head.sha);
 const files = git("diff", "--name-only", base, pr.head.sha).split("\n");
 const added = git(
@@ -41,14 +43,26 @@ validateHotfix(pr.head.ref, changesets);
 const reviewedHistory =
   pr.head.repo.full_name === pr.base.repo.full_name &&
   (pr.head.ref === "next" ||
+    pr.head.ref === "changeset-release/main" ||
+    pr.head.ref === "release/self-hosted" ||
     (pr.base.ref === "next" && pr.head.ref.startsWith("back-merge/")));
 if (!reviewedHistory) {
   const covered = new Set(
     changesets.flatMap((entry) => Object.keys(entry.releases))
   );
-  const missing = affectedTargets(files, readWorkspaces()).filter(
-    (name) => !covered.has(name)
-  );
+  const affected = affectedTargets(files, readWorkspaces());
+  const required =
+    process.env.DELIVERY_MODE === "trunk"
+      ? affected.filter(
+          (name) =>
+            name.startsWith("@lunarisapp/") ||
+            (name === "self-hosted" &&
+              files.some((file) =>
+                /^(infra\/self-host\/|tooling\/self-host\/)/.test(file)
+              ))
+        )
+      : affected;
+  const missing = required.filter((name) => !covered.has(name));
   if (missing.length) {
     throw new Error(
       `Add changesets for affected release targets: ${missing.join(", ")}`

@@ -1,0 +1,81 @@
+name: Artifact - Release family
+on:
+  workflow_call:
+    inputs:
+      family:
+        required: true
+        type: string
+      ref:
+        required: true
+        type: string
+permissions:
+  contents: write
+  id-token: write
+  packages: write
+concurrency:
+  group: artifact-${{ inputs.family }}
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun
+      - run: bun install --frozen-lockfile
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+      - run: bun run check
+      - run: bun run tooling:typecheck
+      - run: bun run release:test
+      - if: inputs.family == 'npm'
+        run: bun run public:validate
+  stack:
+    needs: validate
+    if: inputs.family == 'self-hosted'
+    uses: ./.github/workflows/self-host.test.yml
+    with:
+      ref: ${{ inputs.ref }}
+  tags:
+    needs: [validate, stack]
+    if: always() && needs.validate.result == 'success' && (inputs.family == 'npm' || needs.stack.result == 'success')
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_FAMILY: ${{ inputs.family }}
+    steps:
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
+        id: app
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token }}
+      - uses: ./.github/actions/setup-bun
+      - run: bun install --frozen-lockfile
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+      - run: bun tooling/delivery/artifact-release.ts tags
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+  npm:
+    needs: tags
+    if: inputs.family == 'npm'
+    uses: ./.github/workflows/packages.publish.yml
+    with:
+      ref: ${{ inputs.ref }}
+      family: npm
+    secrets: inherit
+  self-hosted:
+    needs: tags
+    if: inputs.family == 'self-hosted'
+    uses: ./.github/workflows/self-host.publish.yml
+    with:
+      ref: ${{ inputs.ref }}
+      family: self-hosted
+    secrets: inherit

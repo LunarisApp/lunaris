@@ -1,5 +1,9 @@
 # Releasing and deploying
 
+For the independent trunk pipeline, setup and staged cutover, see [Independent delivery](independent-delivery.md).
+The legacy workflow below remains active only while `DELIVERY_MODE` is empty or `legacy`.
+
+
 `next` is the development branch. `main` contains stable releases. Public packages
 and hosted apps version independently through Changesets, alongside the
 `self-hosted` deployment bundle. There are no preview environments or prereleases.

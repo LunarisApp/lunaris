@@ -1,8 +1,13 @@
+import { verifyTrunk } from "../../delivery/github";
 import { readFileSync } from "node:fs";
 import { targets } from "./policy";
 import { git } from "./process";
 
-export const manifestPath = ".release/manifest.json";
+export const manifestPath = ["npm", "self-hosted"].includes(
+  process.env.RELEASE_FAMILY ?? ""
+)
+  ? `.release/${process.env.RELEASE_FAMILY}.json`
+  : ".release/manifest.json";
 export interface ReleaseEntry {
   kind: "npm" | "hosted" | "self-hosted";
   name: string;
@@ -19,6 +24,15 @@ export function readManifest(): ReleaseManifest {
   const value = JSON.parse(
     readFileSync(manifestPath, "utf8")
   ) as ReleaseManifest;
+  if (process.env.RELEASE_FAMILY) {
+    if (
+      !["npm", "self-hosted"].includes(process.env.RELEASE_FAMILY) ||
+      value.releases.some((entry) => entry.kind !== process.env.RELEASE_FAMILY)
+    ) {
+      throw new Error("Invalid release family");
+    }
+    value.sourceCommit = git("rev-parse", "HEAD^");
+  }
   if (
     !(
       /^[a-f0-9]{40}$/.test(value.sourceCommit) && Array.isArray(value.releases)
@@ -53,6 +67,10 @@ export function readManifest(): ReleaseManifest {
 export function verifyReleaseCommit() {
   git("fetch", "origin", "main", "--tags");
   const sha = git("rev-parse", "HEAD");
+  if (process.env.RELEASE_FAMILY) {
+    verifyTrunk(sha);
+    return { sha, manifest: readManifest() };
+  }
   if (git("rev-parse", "origin/main") !== sha) {
     throw new Error(
       "Only current main can publish; refusing a stale release or rollback"

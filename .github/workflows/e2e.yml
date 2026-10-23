@@ -6,14 +6,27 @@ on:
       ref:
         required: true
         type: string
+      suite:
+        type: string
+        default: full
+      shard:
+        type: number
+        default: 0
+      shards:
+        type: number
+        default: 1
+      images:
+        type: string
+        default: ''
   workflow_dispatch:
 
 concurrency:
-  group: e2e-${{ github.workflow }}-${{ github.event.pull_request.number || inputs.ref || github.ref }}
+  group: e2e-${{ github.workflow }}-${{ github.event.pull_request.number || inputs.ref || github.ref }}-${{ inputs.suite || 'full' }}-${{ inputs.shard || 0 }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   e2e:
@@ -32,6 +45,14 @@ jobs:
       - name: Build public package dependencies
         run: bun run build --filter=@lunarisapp/plugin-sdk --filter=@lunarisapp/ui
 
+      - name: Select specs
+        id: specs
+        run: bun tooling/delivery/e2e-specs.ts
+        env:
+          E2E_SUITE: ${{ inputs.suite || 'full' }}
+          E2E_SHARD: ${{ inputs.shard || 0 }}
+          E2E_SHARDS: ${{ inputs.shards || 1 }}
+
       - name: Seed API CI overrides
         run: |
           cp apps/api/.env.development apps/api/.env.e2e
@@ -48,14 +69,17 @@ jobs:
           LUNARIS_COMPOSE_ENV=.env.e2e bun run services:init
 
       - name: Migrate API database
+        if: inputs.images == ''
         run: bun --env-file=.env.e2e run db:migrate
         working-directory: apps/api
 
       - name: Build API
+        if: inputs.images == ''
         run: bun run build
         working-directory: apps/api
 
       - name: Start API (stdout piped to log file for Cypress)
+        if: inputs.images == ''
         run: |
           mkdir -p "$GITHUB_WORKSPACE/logs"
           nohup bun run start:prod > "$GITHUB_WORKSPACE/logs/backend.log" 2>&1 &
@@ -63,6 +87,7 @@ jobs:
         working-directory: apps/api
 
       - name: Build production PWA
+        if: inputs.images == ''
         run: bun run build
         env:
           VITE_ALLOW_INLINE_REGION_DIRECTORY: "true"
@@ -70,6 +95,7 @@ jobs:
         working-directory: apps/web
 
       - name: Start preview servers and verify readiness
+        if: inputs.images == ''
         run: |
           for port in 5173 4173; do
             nohup bun run --cwd apps/web preview -- --host 0.0.0.0 --port "$port" --strictPort > "logs/preview-$port.log" 2>&1 &
@@ -79,6 +105,14 @@ jobs:
           for port in 5173 4173; do
             bun tooling/ci/readiness.ts "http://127.0.0.1:$port" "logs/preview-$port.pid"
           done
+
+      - name: Start candidate images
+        if: inputs.images != ''
+        env:
+          CANDIDATE_IMAGES: ${{ inputs.images }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY_USER: ${{ github.actor }}
+        run: bun tooling/delivery/e2e-images.ts
 
       - name: Run full Cypress E2E suite
         uses: cypress-io/github-action@fa4a118725a8f001170d49631ea89e5d66fee626 # v7.4.1
@@ -90,8 +124,10 @@ jobs:
           # Runner Chrome 155 crashes its network service during this suite.
           # Use the Chromium runtime bundled with the locked Cypress version.
           browser: electron
+          spec: ${{ steps.specs.outputs.specs }}
 
       - name: Run returning-user offline PWA test
+        if: inputs.suite != 'smoke' && inputs.shard == 0
         uses: cypress-io/github-action@fa4a118725a8f001170d49631ea89e5d66fee626 # v7.4.1
         env:
           CYPRESS_BACKEND_LOG_PATH: ${{ github.workspace }}/logs/backend.log
@@ -109,19 +145,23 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
-          name: cypress-screenshots
+          name: cypress-screenshots-${{ inputs.suite || 'full' }}-${{ inputs.shard || 0 }}
           path: apps/e2e/cypress/screenshots
 
       - name: Upload server logs on failure
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
-          name: e2e-server-logs
+          name: e2e-server-logs-${{ inputs.suite || 'full' }}-${{ inputs.shard || 0 }}
           path: logs/*.log
 
       - name: Dump service logs on failure
         if: failure()
         run: LUNARIS_COMPOSE_ENV=.env.e2e bun run services:logs
+
+      - name: Stop candidate containers
+        if: always() && inputs.images != ''
+        run: docker rm -f lunaris-e2e-api lunaris-e2e-web-5173 lunaris-e2e-web-4173 || true
 
       - name: Stop E2E servers
         if: always()
