@@ -89,7 +89,7 @@ test("native source gate accepts a validated historical SHA without checking it 
   const result = f.run(f.sha);
   expect(result.status).toBe(0);
   expect(f.head()).toBe(head);
-  expect(f.output()).toBe(`sha=${f.sha}\n`);
+  expect(f.output()).toBe(`validated_revision=${f.sha}\n`);
   expect(f.calls()).toContain(`/commits/${f.sha}/check-runs?`);
 });
 

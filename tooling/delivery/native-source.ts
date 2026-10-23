@@ -21,4 +21,5 @@ if (
     "Native publication requires successful CI on the exact trunk SHA"
   );
 }
-output("sha", sha);
+// Release jobs consume only the result of this trusted gate.
+output("validated_revision", sha);

@@ -53,10 +53,16 @@ test("native publication validates input before every release checkout", () => {
   expect(source.steps.at(-1).run).toBe("bun tooling/delivery/native-source.ts");
   // biome-ignore lint/suspicious/noTemplateCurlyInString: Literal GitHub Actions expression.
   expect(source.steps.at(-1).env.NATIVE_SOURCE_SHA).toBe("${{ inputs.ref }}");
-  expect(source.outputs.sha).toContain("steps.source.outputs.sha");
+  expect(source.outputs.validated_revision).toContain(
+    "steps.source.outputs.validated_revision"
+  );
   expect(jobs.plan.needs).toBe("source");
-  expect(jobs.plan.outputs.source_sha).toContain("needs.source.outputs.sha");
-  expect(jobs.plan.steps[1].with.ref).toContain("needs.source.outputs.sha");
+  expect(jobs.plan.outputs.validated_revision).toContain(
+    "needs.source.outputs.validated_revision"
+  );
+  expect(jobs.plan.steps[1].with.ref).toContain(
+    "needs.source.outputs.validated_revision"
+  );
   for (const name of [
     "signing",
     "verify",
@@ -67,7 +73,7 @@ test("native publication validates input before every release checkout", () => {
   ]) {
     expect(jobs[name].needs).toContain("plan");
     expect(jobs[name].steps[0].with.ref).toContain(
-      "needs.plan.outputs.source_sha"
+      "needs.plan.outputs.validated_revision"
     );
     expect(JSON.stringify(jobs[name])).not.toContain("inputs.ref");
   }
