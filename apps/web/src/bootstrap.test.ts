@@ -1,12 +1,21 @@
 import { afterEach, expect, test, vi } from "vitest";
 
-const startup = vi.hoisted(() => ({
-  configuration: Promise.withResolvers<void>(),
-  application: Promise.withResolvers<void>(),
-  applicationRequested: vi.fn(),
-  applicationStarted: vi.fn(),
-  loadConfiguration: vi.fn(),
-}));
+const startup = vi.hoisted(() => {
+  const deferred = () => {
+    let resolve = () => {};
+    const promise = new Promise<void>((done) => {
+      resolve = done;
+    });
+    return { promise, resolve };
+  };
+  return {
+    configuration: deferred(),
+    application: deferred(),
+    applicationRequested: vi.fn(),
+    applicationStarted: vi.fn(),
+    loadConfiguration: vi.fn(),
+  };
+});
 
 vi.mock("./runtime-config", () => ({
   loadRuntimeConfig: () => {
