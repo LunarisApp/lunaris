@@ -5,6 +5,7 @@ import { catalogUpdatedAt, extensionCatalog } from "@/data/extension-catalog";
 import {
 	extensionDocsUrl,
 	extensionQuickstartUrl,
+	extensionRequestsUrl,
 	extensionsCopy,
 } from "@/data/extensions";
 import type { Locale } from "@/i18n/config";
@@ -49,7 +50,37 @@ export default async function ExtensionsPage({ params }: Props) {
 				copy={copy}
 				locale={locale}
 			/>
-			<div className="mt-8 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-olive-950/15 pt-5 dark:border-white/20">
+			<section
+				aria-labelledby="extension-requests-title"
+				className="mt-10 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t border-olive-950/15 pt-6 dark:border-white/20"
+			>
+				<div className="max-w-xl">
+					<h2
+						id="extension-requests-title"
+						className="text-lg/7 font-medium text-olive-950 dark:text-olive-100"
+					>
+						{copy.contributeTitle}
+					</h2>
+					<p className="mt-1 text-sm/6 text-pretty text-olive-700 dark:text-olive-300">
+						{copy.contributeDescription}
+					</p>
+				</div>
+				<div className="flex flex-wrap items-center gap-x-6 gap-y-1">
+					<a
+						className={`${textLink} focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-700 dark:focus-visible:outline-olive-300`}
+						href={extensionRequestsUrl}
+					>
+						{copy.contribute}
+					</a>
+					<a
+						className={`${textLink} focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-700 dark:focus-visible:outline-olive-300`}
+						href={extensionQuickstartUrl}
+					>
+						{copy.build}
+					</a>
+				</div>
+			</section>
+			<div className="mt-8 border-t border-olive-950/15 pt-5 dark:border-white/20">
 				<p className="text-xs/5 text-olive-600 dark:text-olive-400">
 					{copy.updated}:{" "}
 					{new Intl.DateTimeFormat(locale, {
@@ -57,9 +88,6 @@ export default async function ExtensionsPage({ params }: Props) {
 						timeZone: "UTC",
 					}).format(new Date(catalogUpdatedAt))}
 				</p>
-				<a className={textLink} href={extensionQuickstartUrl}>
-					{copy.build}
-				</a>
 			</div>
 		</Container>
 	);

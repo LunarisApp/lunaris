@@ -100,6 +100,8 @@ for your own workflow using the public packages:
 Start with the [extension quickstart](apps/docs/content/developers/extensions/quickstart.mdx),
 explore the [bundled extensions](extensions), or
 [connect an AI client through MCP](apps/docs/content/developers/mcp.mdx).
+Looking for something to build? Browse [Requests for extensions](https://github.com/LunarisApp/extensions/tree/main/requests)
+for open contribution briefs and a proposal template.
 
 ## Contributing
 
