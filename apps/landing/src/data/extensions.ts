@@ -3,6 +3,8 @@ import type { ExtensionPermission } from "./extension-types";
 
 export const extensionDocsUrl =
 	"https://docs.lunaris.app/guides/tools-and-extensions/manage-extensions";
+export const extensionRequestsUrl =
+	"https://github.com/LunarisApp/extensions/tree/main/requests";
 export const extensionQuickstartUrl =
 	"https://docs.lunaris.app/developers/extensions/quickstart";
 
@@ -17,6 +19,9 @@ export type ExtensionsCopy = {
 	explore: string;
 	manage: string;
 	build: string;
+	contributeTitle: string;
+	contributeDescription: string;
+	contribute: string;
 	description: string;
 	searchLabel: string;
 	searchPlaceholder: string;
@@ -66,6 +71,10 @@ export const extensionsCopy: Record<Locale, ExtensionsCopy> = {
 		explore: "Explore extensions",
 		manage: "How to manage extensions",
 		build: "Build your first extension",
+		contributeTitle: "Help build the next extension",
+		contributeDescription:
+			"Pick an open request or propose an idea for the community to build.",
+		contribute: "Browse extension requests",
 		description:
 			"Browse tools for your workspace. Install and manage them in Lunaris.",
 		searchLabel: "Search extensions",
@@ -173,6 +182,10 @@ export const extensionsCopy: Record<Locale, ExtensionsCopy> = {
 		explore: "Explorar extensiones",
 		manage: "Cómo gestionar extensiones",
 		build: "Crea tu primera extensión",
+		contributeTitle: "Ayuda a crear la próxima extensión",
+		contributeDescription:
+			"Elige una propuesta abierta o comparte una idea para que la comunidad la desarrolle.",
+		contribute: "Ver propuestas de extensiones",
 		description:
 			"Explora herramientas para tu espacio. Instálalas y gestiónalas en Lunaris.",
 		searchLabel: "Buscar extensiones",
@@ -283,6 +296,10 @@ export const extensionsCopy: Record<Locale, ExtensionsCopy> = {
 		explore: "Découvrir les extensions",
 		manage: "Comment gérer les extensions",
 		build: "Créer votre première extension",
+		contributeTitle: "Contribuez à la prochaine extension",
+		contributeDescription:
+			"Choisissez une proposition ouverte ou partagez une idée à développer avec la communauté.",
+		contribute: "Voir les propositions d’extensions",
 		description:
 			"Parcourez les outils pour votre espace. Installez-les et gérez-les dans Lunaris.",
 		searchLabel: "Rechercher des extensions",
@@ -393,6 +410,10 @@ export const extensionsCopy: Record<Locale, ExtensionsCopy> = {
 		explore: "Erweiterungen entdecken",
 		manage: "Erweiterungen verwalten",
 		build: "Deine erste Erweiterung bauen",
+		contributeTitle: "Hilf bei der nächsten Erweiterung mit",
+		contributeDescription:
+			"Wähle einen offenen Vorschlag oder teile eine Idee, die die Community umsetzen kann.",
+		contribute: "Erweiterungsvorschläge ansehen",
 		description:
 			"Entdecke Werkzeuge für deinen Workspace. Installiere und verwalte sie in Lunaris.",
 		searchLabel: "Erweiterungen suchen",
@@ -501,6 +522,10 @@ export const extensionsCopy: Record<Locale, ExtensionsCopy> = {
 		explore: "Explore as extensões",
 		manage: "Como gerenciar extensões",
 		build: "Crie sua primeira extensão",
+		contributeTitle: "Ajude a criar a próxima extensão",
+		contributeDescription:
+			"Escolha uma proposta aberta ou compartilhe uma ideia para a comunidade desenvolver.",
+		contribute: "Ver propostas de extensões",
 		description:
 			"Explore ferramentas para seu espaço. Instale e gerencie no Lunaris.",
 		searchLabel: "Buscar extensões",
