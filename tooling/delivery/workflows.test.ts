@@ -163,3 +163,12 @@ test("Homebrew is optional while S3 distribution remains required", () => {
     stable.jobs.distribute.env.HOMEBREW_ENABLED
   );
 });
+
+test("CI-selected sites always build even when only shared tooling changed", () => {
+  for (const component of ["landing", "docs"]) {
+    const config = JSON.parse(
+      readFileSync(`apps/${component}/railway.json`, "utf8")
+    );
+    expect(config.build.watchPatterns).toEqual(["/**"]);
+  }
+});
