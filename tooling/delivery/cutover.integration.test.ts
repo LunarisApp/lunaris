@@ -122,7 +122,7 @@ if(method!=='GET'){
  else if(p==='actions/workflows')result={workflows:s.workflows};
  else if(p.startsWith('actions/workflows/'))result=s.workflows.find(w=>w.id===Number(p.split('/')[2]));
  else if(p==='rulesets')result=s.rules;
- else if(p.startsWith('rulesets/'))result=s.rules.find(r=>r.id===Number(p.split('/')[1]));
+ else if(p.startsWith('rulesets/')){result=structuredClone(s.rules.find(r=>r.id===Number(p.split('/')[1])));for(const rule of result.rules||[]){if(rule.type==='pull_request')rule.parameters={required_reviewers:[],...rule.parameters};}if(result.conditions)result.conditions.ref_name={exclude:result.conditions.ref_name.exclude,include:result.conditions.ref_name.include};}
  else if(p==='environments')result={environments:s.environments};
  else if(p.startsWith('environments/')){const [,name,kind]=p.split('/');result=kind==='variables'?{variables:['RAILWAY_RELEASE_TARGETS','RAILWAY_STAGING_TARGETS',...['PROJECT_ID','ENVIRONMENT_ID','API_SERVICE_ID','COMPACT_SERVICE_ID','REPLICATION_SERVICE_ID'].map(k=>'STAGING_POWERSYNC_'+k)].map(name=>({name,value:'not-snapshotted'}))}:kind==='secrets'?{secrets:s.secrets}:kind==='deployment-branch-policies'?{branch_policies:s.policies[name]}:s.environments.find(e=>e.name===name);}
  else if(p==='pulls')result=s.prs;

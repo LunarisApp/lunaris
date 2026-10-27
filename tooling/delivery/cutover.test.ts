@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import {
   assertSettings,
+  assertRuleset,
   assertWritableRules,
   desiredRules,
   trunkSettings,
@@ -91,4 +92,55 @@ test("solo maintainer bypass is PR-only and cannot bypass CI or immutable histor
   ]) {
     expect(rules.find((rule) => rule.name === name)!.bypass_actors).toEqual([]);
   }
+});
+
+test("ruleset readback accepts server defaults and key order but enforces requested protections", () => {
+  const expected = {
+    conditions: { ref_name: { include: ["refs/heads/main"], exclude: [] } },
+    bypass_actors: [],
+    rules: [
+      {
+        type: "pull_request",
+        parameters: { required_approving_review_count: 1 },
+      },
+    ],
+  };
+  const actual = {
+    rules: [
+      {
+        parameters: {
+          required_reviewers: [],
+          required_approving_review_count: 1,
+        },
+        type: "pull_request",
+      },
+    ],
+    bypass_actors: [],
+    conditions: { ref_name: { exclude: [], include: ["refs/heads/main"] } },
+    id: 123,
+  };
+  expect(() => assertRuleset(actual, expected)).not.toThrow();
+  expect(() =>
+    assertRuleset(
+      { ...actual, bypass_actors: [{ actor_id: 456, actor_type: "User" }] },
+      expected
+    )
+  ).toThrow("bypass_actors");
+  expect(() => assertRuleset({ ...actual, rules: [] }, expected)).toThrow(
+    "rules"
+  );
+  expect(() =>
+    assertRuleset(
+      {
+        ...actual,
+        rules: [
+          {
+            type: "pull_request",
+            parameters: { required_approving_review_count: 0 },
+          },
+        ],
+      },
+      expected
+    )
+  ).toThrow("required_approving_review_count");
 });
