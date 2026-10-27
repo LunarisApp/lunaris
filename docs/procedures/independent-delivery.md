@@ -88,7 +88,7 @@ for `artifacts.publish.yml`, environment `release`, and verify release App acces
 Preview from this workspace:
 
 ```sh
-RELEASE_MAINTAINER_TEAM_ID=<verified-team-id> bun tooling/delivery/cutover.ts
+RELEASE_MAINTAINER_USER_ID=<verified-account-id> bun tooling/delivery/cutover.ts
 ```
 
 Preview reads remote settings and saves `.context/release-cutover/before.json`
@@ -100,13 +100,13 @@ delivery workflows are disabled. Merge implementation before applying settings f
 current main:
 
 ```sh
-RELEASE_MAINTAINER_TEAM_ID=<verified-team-id> bun tooling/delivery/cutover.ts --apply
+RELEASE_MAINTAINER_USER_ID=<verified-account-id> bun tooling/delivery/cutover.ts --apply
 ```
 
 Cutover updates existing rulesets by ID, protects unified and historical tags,
 requires CI/CodeQL without branch-write bypass, sets main default, retargets feature
 PRs, restricts environments to main, freezes next, and selects squash-only merges.
-Maintainer team retains PR-only bypass; release App creates protected tags and opens
+Verified maintainer account (or `RELEASE_MAINTAINER_TEAM_ID` team) retains PR-only bypass; release App creates protected tags and opens
 npm version PRs without bypassing checks. Unrelated rules/settings remain intact.
 Inherited active rules require explicit review rather than automatic modification.
 Every changed policy is read back; failures retain paused publication.

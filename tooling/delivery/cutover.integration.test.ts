@@ -116,7 +116,8 @@ if(method!=='GET'){
  else if(p.startsWith('pulls/'))s.prs[0].base.ref=body.base;
  else if(p.startsWith('environments/')){const [,name,,id]=p.split('/');if(p.includes('deployment-branch-policies')){if(method==='DELETE')s.policies[name]=s.policies[name].filter(r=>r.id!==Number(id));else s.policies[name].push({...body,id:2});}}
 }else{
- if(!p)result=s.metadata;
+ if(p==='user')result={id:456};
+ else if(!p)result=s.metadata;
  else if(p==='actions/variables')result={variables:s.variables};
  else if(p==='actions/workflows')result={workflows:s.workflows};
  else if(p.startsWith('actions/workflows/'))result=s.workflows.find(w=>w.id===Number(p.split('/')[2]));
@@ -144,7 +145,7 @@ if(result!==undefined)console.log(JSON.stringify(result));
     state: () => JSON.parse(readFileSync(statePath, "utf8")) as typeof state,
     set: (value: typeof state) =>
       writeFileSync(statePath, JSON.stringify(value)),
-    run: (apply = false) =>
+    run: (apply = false, userId?: string) =>
       spawnSync(
         process.execPath,
         [join(import.meta.dir, "cutover.ts"), ...(apply ? ["--apply"] : [])],
@@ -155,7 +156,8 @@ if(result!==undefined)console.log(JSON.stringify(result));
             ...process.env,
             PATH: `${join(root, "bin")}:${process.env.PATH}`,
             GITHUB_REPOSITORY: "fixture/repo",
-            RELEASE_MAINTAINER_TEAM_ID: "456",
+            RELEASE_MAINTAINER_TEAM_ID: userId ? undefined : "456",
+            RELEASE_MAINTAINER_USER_ID: userId,
             RELEASE_REHEARSAL_VERIFIED: "true",
             FIXTURE_STATE: statePath,
           },
@@ -252,4 +254,33 @@ test("activation failure disables every delivery entrypoint again", () => {
       .state()
       .workflows.every((workflow) => workflow.state === "disabled_manually")
   ).toBe(true);
+});
+
+test("authenticated solo maintainer gets only PR bypass", () => {
+  const f = fixture();
+  const result = f.run(true, "456");
+  expect(result.stderr).toBe("");
+  expect(result.status).toBe(0);
+  const rules = f.state().rules as unknown as {
+    name: string;
+    bypass_actors: unknown[];
+  }[];
+  expect(
+    rules.find((rule) => rule.name === "Release main - PRs")!.bypass_actors
+  ).toEqual([
+    { actor_id: 456, actor_type: "User", bypass_mode: "pull_request" },
+  ]);
+  expect(
+    rules.find((rule) => rule.name === "Release branches - checks")!
+      .bypass_actors
+  ).toEqual([]);
+});
+test("mismatched maintainer account blocks settings mutations", () => {
+  const f = fixture();
+  const result = f.run(true, "789");
+  expect(result.status).not.toBe(0);
+  expect(result.stderr).toContain(
+    "Maintainer user must match authenticated account"
+  );
+  expect(f.state().metadata.default_branch).toBe("next");
 });

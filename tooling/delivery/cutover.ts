@@ -232,9 +232,27 @@ for (const name of [
     blockers.push(`Missing release secret ${name}`);
   }
 }
-const teamId = Number(process.env.RELEASE_MAINTAINER_TEAM_ID);
-if (!Number.isSafeInteger(teamId) || teamId <= 0) {
-  blockers.push("Verified RELEASE_MAINTAINER_TEAM_ID required");
+const maintainerType = process.env.RELEASE_MAINTAINER_USER_ID ? "User" : "Team";
+const maintainerId = Number(
+  process.env.RELEASE_MAINTAINER_USER_ID ??
+    process.env.RELEASE_MAINTAINER_TEAM_ID
+);
+if (
+  process.env.RELEASE_MAINTAINER_USER_ID &&
+  process.env.RELEASE_MAINTAINER_TEAM_ID
+) {
+  blockers.push("Choose one maintainer user or team");
+}
+if (maintainerType === "User") {
+  const actor = JSON.parse(run("gh", ["api", "user"]).text) as { id: number };
+  if (actor.id !== maintainerId) {
+    blockers.push("Maintainer user must match authenticated account");
+  }
+}
+if (!Number.isSafeInteger(maintainerId) || maintainerId <= 0) {
+  blockers.push(
+    "Verified RELEASE_MAINTAINER_USER_ID or RELEASE_MAINTAINER_TEAM_ID required"
+  );
 }
 try {
   assertWritableRules(rules, repository);
@@ -279,8 +297,13 @@ console.log(
       repository,
       settings: trunkSettings,
       rulesets:
-        Number.isSafeInteger(teamId) && Number(value("RELEASE_APP_ID")) > 0
-          ? desiredRules(Number(value("RELEASE_APP_ID")), teamId)
+        Number.isSafeInteger(maintainerId) &&
+        Number(value("RELEASE_APP_ID")) > 0
+          ? desiredRules(
+              Number(value("RELEASE_APP_ID")),
+              maintainerId,
+              maintainerType
+            )
           : [],
       snapshot: snapshotPath,
       blockers,
@@ -343,7 +366,11 @@ if (
 ) {
   throw new Error("Stable implementation missing from main");
 }
-for (const rule of desiredRules(Number(value("RELEASE_APP_ID")), teamId)) {
+for (const rule of desiredRules(
+  Number(value("RELEASE_APP_ID")),
+  maintainerId,
+  maintainerType
+)) {
   const existing = rules.find((entry) => entry.name === rule.name);
   const path = existing ? `rulesets/${existing.id}` : "rulesets";
   await request(path, existing ? "PUT" : "POST", rule);

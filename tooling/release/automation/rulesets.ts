@@ -166,9 +166,13 @@ if (import.meta.main) {
 }
 
 /** Product trunk: package automation may open PRs, never bypass their checks. */
-export function productRulesets(appId: number, maintainerTeamId: number) {
-  const legacy = releaseRulesets(appId, maintainerTeamId);
-  const trunk = trunkRulesets(appId, maintainerTeamId)
+export function productRulesets(
+  appId: number,
+  maintainerId: number,
+  maintainerType: "Team" | "User" = "Team"
+) {
+  const legacy = releaseRulesets(appId, maintainerId);
+  const trunk = trunkRulesets(appId, maintainerId)
     .map((entry) => structuredClone(entry))
     .map((rule) => {
       if (rule.target !== "branch") {
@@ -180,9 +184,13 @@ export function productRulesets(appId: number, maintainerTeamId: number) {
       if (rule.name === "Release main - PRs") {
         return {
           ...rule,
-          bypass_actors: rule.bypass_actors.filter(
-            (actor) => actor.actor_type === "Team"
-          ),
+          bypass_actors: [
+            {
+              actor_id: maintainerId,
+              actor_type: maintainerType,
+              bypass_mode: "pull_request",
+            },
+          ],
           rules: rule.rules.map((entry) =>
             entry.type === "pull_request" && "parameters" in entry
               ? {

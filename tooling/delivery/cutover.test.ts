@@ -76,3 +76,19 @@ test("retired next cannot change and inherited active rules block automatic migr
     )
   ).not.toThrow();
 });
+
+test("solo maintainer bypass is PR-only and cannot bypass CI or immutable history", () => {
+  const rules = desiredRules(123, 456, "User");
+  expect(
+    rules.find((rule) => rule.name === "Release main - PRs")!.bypass_actors
+  ).toEqual([
+    { actor_id: 456, actor_type: "User", bypass_mode: "pull_request" },
+  ]);
+  for (const name of [
+    "Release branches - checks",
+    "Release branches - immutable history",
+    "Release tags - immutable",
+  ]) {
+    expect(rules.find((rule) => rule.name === name)!.bypass_actors).toEqual([]);
+  }
+});

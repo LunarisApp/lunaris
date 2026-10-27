@@ -15,9 +15,13 @@ export interface RuleSnapshot {
   source?: string;
   source_type?: string;
 }
-export function desiredRules(appId: number, teamId: number) {
+export function desiredRules(
+  appId: number,
+  maintainerId: number,
+  maintainerType: "Team" | "User" = "Team"
+) {
   return [
-    ...productRulesets(appId, teamId),
+    ...productRulesets(appId, maintainerId, maintainerType),
     {
       name: "Retired next - frozen",
       target: "branch",

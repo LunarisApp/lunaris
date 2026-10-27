@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import {
-  affectedTargets,
+  npmReleaseTargets,
   parseChangeset,
   readWorkspaces,
   validateHotfix,
@@ -42,8 +42,15 @@ if (!reviewedHistory) {
   const covered = new Set(
     changesets.flatMap((entry) => Object.keys(entry.releases))
   );
-  const affected = affectedTargets(files, readWorkspaces());
-  const required = affected.filter((name) => name.startsWith("@lunarisapp/"));
+  const rootChanged = files.includes("package.json");
+  const required = npmReleaseTargets(
+    files,
+    readWorkspaces(),
+    rootChanged ? JSON.parse(git("show", `${base}:package.json`)) : undefined,
+    rootChanged
+      ? JSON.parse(git("show", `${pr.head.sha}:package.json`))
+      : undefined
+  );
   const config = JSON.parse(readFileSync(".changeset/config.json", "utf8")) as {
     ignore: string[];
   };
