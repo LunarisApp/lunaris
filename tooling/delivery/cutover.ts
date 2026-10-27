@@ -220,7 +220,6 @@ for (const name of [
   "RELEASES_S3_SECRET_ACCESS_KEY",
   "RELEASES_S3_REGION",
   "RELEASES_S3_BUCKET",
-  "HOMEBREW_TAP_TOKEN",
 ]) {
   if (
     !(

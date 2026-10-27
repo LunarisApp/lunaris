@@ -284,3 +284,15 @@ test("mismatched maintainer account blocks settings mutations", () => {
   );
   expect(f.state().metadata.default_branch).toBe("next");
 });
+
+test("deferred Homebrew credentials do not block repository cutover", () => {
+  const f = fixture();
+  const state = f.state();
+  state.secrets = state.secrets.filter(
+    (secret) => secret.name !== "HOMEBREW_TAP_TOKEN"
+  );
+  f.set(state);
+  const result = f.run(true);
+  expect(result.stderr).toBe("");
+  expect(result.status).toBe(0);
+});
