@@ -102,6 +102,7 @@ export default async function Page({
 						<DemoVideo
 							autoPlay={false}
 							chapters={copy.chapters}
+							upcomingChapter={copy.upcomingChapter}
 							chapterDescriptions={copy.chapterDescriptions}
 							chapterNavigationLabel={copy.tour}
 							description={dict.accessibility.demoVideoDescription}

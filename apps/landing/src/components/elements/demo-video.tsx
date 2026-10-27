@@ -12,6 +12,7 @@ export function DemoVideo({
 	chapters,
 	chapterNavigationLabel,
 	chapterDescriptions,
+	upcomingChapter,
 	children,
 }: {
 	label: string;
@@ -20,6 +21,7 @@ export function DemoVideo({
 	chapters?: readonly [string, string, string];
 	chapterNavigationLabel?: string;
 	chapterDescriptions?: readonly [string, string, string];
+	upcomingChapter?: { title: string; description: string };
 	children?: ReactNode;
 }) {
 	const descriptionId = useId();
@@ -82,14 +84,14 @@ export function DemoVideo({
 			{chapters && (
 				<div
 					aria-label={chapterNavigationLabel}
-					className="grid grid-cols-3 gap-1 pt-1.5"
+					className={`grid gap-1 pt-1.5 ${upcomingChapter ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-3"}`}
 					role="group"
 				>
 					{chapters.map((chapter, index) => (
 						<button
 							aria-controls={videoId}
 							aria-pressed={activeChapter === index}
-							className="group flex min-h-12 flex-col items-start justify-center gap-1 rounded-lg px-3 py-3 text-left text-xs/5 font-medium text-olive-700 transition-colors hover:bg-white/40 aria-pressed:bg-olive-100 aria-pressed:text-olive-950 sm:px-5 sm:py-4 sm:text-sm/6 motion-reduce:transition-none dark:text-olive-300 dark:hover:bg-white/10 dark:aria-pressed:bg-olive-700 dark:aria-pressed:text-olive-100"
+							className="group flex min-h-12 flex-col items-start justify-start gap-1 rounded-lg px-3 py-3 text-left text-xs/5 font-medium text-olive-700 transition-colors hover:bg-white/40 aria-pressed:bg-olive-100 aria-pressed:text-olive-950 sm:px-5 sm:py-4 sm:text-sm/6 motion-reduce:transition-none dark:text-olive-300 dark:hover:bg-white/10 dark:aria-pressed:bg-olive-700 dark:aria-pressed:text-olive-100"
 							key={chapter}
 							onClick={() => {
 								const video = ref.current;
@@ -121,6 +123,27 @@ export function DemoVideo({
 							)}
 						</button>
 					))}
+					{upcomingChapter && (
+						<div className="flex min-h-12 flex-col items-start justify-start gap-1 px-3 py-3 text-left text-xs/5 text-olive-600 sm:px-5 sm:py-4 sm:text-sm/6 dark:text-olive-300">
+							<span className="flex items-center gap-2 font-medium">
+								<svg
+									aria-hidden="true"
+									className="size-3 shrink-0"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth={1.5}
+									strokeLinecap="round"
+									viewBox="0 0 12 12"
+								>
+									<path d="M6 2v8M2 6h8" />
+								</svg>
+								{upcomingChapter.title}
+							</span>
+							<span className="hidden max-w-56 text-xs/5 sm:block">
+								{upcomingChapter.description}
+							</span>
+						</div>
+					)}
 				</div>
 			)}
 			{children}
