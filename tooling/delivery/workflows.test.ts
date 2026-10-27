@@ -163,3 +163,12 @@ test("Homebrew is optional while S3 distribution remains required", () => {
     stable.jobs.distribute.env.HOMEBREW_ENABLED
   );
 });
+
+test("CI owns site selection without Railway watch-path filtering", () => {
+  for (const component of ["landing", "docs"]) {
+    const config = JSON.parse(
+      readFileSync(`apps/${component}/railway.json`, "utf8")
+    );
+    expect(config.build.watchPatterns).toEqual([]);
+  }
+});

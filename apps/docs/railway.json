@@ -3,13 +3,7 @@
   "build": {
     "builder": "RAILPACK",
     "buildCommand": "bunx turbo run build --filter=docs",
-    "watchPatterns": [
-      "/bun.lock",
-      "/bunfig.toml",
-      "/apps/docs/**",
-      "/package.json",
-      "/turbo.json"
-    ]
+    "watchPatterns": []
   },
   "deploy": {
     "runtime": "V2",
