@@ -3,7 +3,7 @@
 	"build": {
 		"builder": "RAILPACK",
 		"buildCommand": "bunx turbo run build --filter=landing",
-		"watchPatterns": ["/**"]
+		"watchPatterns": []
 	},
 	"deploy": {
 		"runtime": "V2",

@@ -164,11 +164,11 @@ test("Homebrew is optional while S3 distribution remains required", () => {
   );
 });
 
-test("CI-selected sites always build even when only shared tooling changed", () => {
+test("CI owns site selection without Railway watch-path filtering", () => {
   for (const component of ["landing", "docs"]) {
     const config = JSON.parse(
       readFileSync(`apps/${component}/railway.json`, "utf8")
     );
-    expect(config.build.watchPatterns).toEqual(["/**"]);
+    expect(config.build.watchPatterns).toEqual([]);
   }
 });
