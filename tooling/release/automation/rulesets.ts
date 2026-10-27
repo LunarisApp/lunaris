@@ -164,3 +164,76 @@ if (import.meta.main) {
     )
   );
 }
+
+/** Product trunk: package automation may open PRs, never bypass their checks. */
+export function productRulesets(
+  appId: number,
+  maintainerId: number,
+  maintainerType: "Team" | "User" = "Team"
+) {
+  const legacy = releaseRulesets(appId, maintainerId);
+  const trunk = trunkRulesets(appId, maintainerId)
+    .map((entry) => structuredClone(entry))
+    .map((rule) => {
+      if (rule.target !== "branch") {
+        return rule;
+      }
+      if (rule.name === "Release branches - checks") {
+        return { ...rule, bypass_actors: [] };
+      }
+      if (rule.name === "Release main - PRs") {
+        return {
+          ...rule,
+          bypass_actors: [
+            {
+              actor_id: maintainerId,
+              actor_type: maintainerType,
+              bypass_mode: "pull_request",
+            },
+          ],
+          rules: rule.rules.map((entry) =>
+            entry.type === "pull_request" && "parameters" in entry
+              ? {
+                  ...entry,
+                  parameters: {
+                    ...entry.parameters,
+                    allowed_merge_methods: ["squash"],
+                  },
+                }
+              : entry
+          ),
+        };
+      }
+      return rule;
+    });
+  // Creation rules apply only to current product/npm tags. Historical tags stay immutable.
+  const creation = trunk.find(
+    (rule) => rule.name === "Release tags - creation"
+  )!;
+  creation.conditions.ref_name.include = [
+    "refs/tags/v*",
+    "refs/tags/@lunarisapp/plugin-sdk@*",
+    "refs/tags/@lunarisapp/ui@*",
+  ];
+  for (const rule of creation.rules) {
+    if (
+      rule.type === "tag_name_pattern" &&
+      rule.parameters &&
+      "pattern" in rule.parameters
+    ) {
+      rule.parameters.pattern =
+        "^(v|@lunarisapp/(plugin-sdk|ui)@)(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$";
+    }
+  }
+  const immutable = trunk.find(
+    (rule) => rule.name === "Release tags - immutable"
+  )!;
+  immutable.conditions.ref_name.include = [
+    ...legacy.find((rule) => rule.name === "Release tags - immutable")!
+      .conditions.ref_name.include,
+    "refs/tags/v*",
+    "refs/tags/cli@*",
+    "refs/tags/desktop@*",
+  ];
+  return trunk;
+}

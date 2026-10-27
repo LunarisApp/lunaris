@@ -7,7 +7,7 @@ import { checks } from "../ci-selection";
 const workflow = (name: string) =>
   parse(readFileSync(`.github/workflows/${name}.yml`, "utf8"));
 
-test("trunk uses candidate E2E while legacy release PRs retain full validation", () => {
+test("PRs use candidate E2E; explicit validation still runs E2E", () => {
   const { jobs, on } = workflow("ci");
   const condition = jobs.e2e.if.trim();
   expect(
@@ -39,14 +39,6 @@ test("trunk uses candidate E2E while legacy release PRs retain full validation",
       ref: "",
       expected: false,
     },
-    {
-      event: "pull_request",
-      base: "main",
-      draft: false,
-      ref: "",
-      mode: "legacy",
-      expected: true,
-    },
     { event: "push", base: "", draft: false, ref: "", expected: false },
     {
       event: "workflow_dispatch",
@@ -68,7 +60,6 @@ test("trunk uses candidate E2E while legacy release PRs retain full validation",
     // This workflow expression uses only boolean operators shared with JS.
     const result = runInNewContext(condition, {
       inputs: { ref: entry.ref },
-      vars: { DELIVERY_MODE: entry.mode ?? "trunk" },
       github: {
         event_name: entry.event,
         base_ref: entry.base,

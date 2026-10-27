@@ -179,3 +179,12 @@ test("piped installer forwards no-web without requiring a TLS flag", () => {
   expect(invoke(["https://notes.example.com", "--no-web"]).status).toBe(0);
   expect(readFileSync(join(directory, "web-enabled"), "utf8")).toBe("false");
 });
+
+test("unified installer embeds product tag rather than legacy component tag", () => {
+  const source = renderBootstrap("1.2.3", "a".repeat(64), "v1.2.3");
+  expect(source).toContain("/download/v1.2.3/");
+  expect(source).not.toContain("self-hosted%40");
+  expect(() => renderBootstrap("1.2.3", "a".repeat(64), "v9.0.0")).toThrow(
+    "Invalid installer tag"
+  );
+});

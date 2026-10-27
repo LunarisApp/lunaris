@@ -8,7 +8,7 @@ permissions:
   packages: write
 jobs:
   build:
-    if: vars.DELIVERY_MODE == 'trunk'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
       enabled: ${{ steps.plan.outputs.enabled }}

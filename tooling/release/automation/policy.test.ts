@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   affectedTargets,
+  npmReleaseTargets,
   parseChangeset,
   splitChangeset,
   validateHotfix,
@@ -87,4 +88,43 @@ test("self-host deployment and app/sync changes require a bundle release", () =>
       [{ name: "web", path: "apps/web", dependencies: [] }]
     )
   ).toEqual(["web", "self-hosted"]);
+});
+
+test("npm policy ignores delivery controls but retains package and shared build changes", () => {
+  const workspaces = [
+    { name: "@lunarisapp/ui", path: "packages/ui", dependencies: [] },
+    {
+      name: "@lunarisapp/plugin-sdk",
+      path: "packages/plugin-sdk",
+      dependencies: [],
+    },
+  ];
+  const root = {
+    scripts: { build: "turbo build", "release:old": "old" },
+    dependencies: { bun: "1" },
+  };
+  expect(
+    npmReleaseTargets(
+      [".github/workflows/ci.yml", "tooling/delivery/core.ts", "package.json"],
+      workspaces,
+      root,
+      { ...root, scripts: { build: "turbo build" } }
+    )
+  ).toEqual([]);
+  expect(npmReleaseTargets(["packages/ui/src/button.tsx"], workspaces)).toEqual(
+    ["@lunarisapp/ui"]
+  );
+  expect(npmReleaseTargets(["bun.lock"], workspaces)).toHaveLength(2);
+  expect(
+    npmReleaseTargets(["package.json"], workspaces, root, {
+      ...root,
+      scripts: { build: "other" },
+    })
+  ).toHaveLength(2);
+  expect(
+    npmReleaseTargets(["package.json"], workspaces, root, {
+      ...root,
+      dependencies: { bun: "2" },
+    })
+  ).toHaveLength(2);
 });

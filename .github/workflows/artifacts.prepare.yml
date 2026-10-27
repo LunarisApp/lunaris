@@ -7,11 +7,11 @@ permissions:
   contents: read
 jobs:
   version:
-    if: vars.DELIVERY_MODE == 'trunk' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     strategy:
       fail-fast: false
       matrix:
-        family: [npm, self-hosted]
+        family: [npm]
     concurrency:
       group: version-${{ matrix.family }}
       cancel-in-progress: false

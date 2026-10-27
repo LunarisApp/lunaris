@@ -184,7 +184,7 @@ export function parseReleaseManifest(
 		invalidManifest("Release manifest signing mode is invalid");
 	}
 	if (
-		value.tag !== `${component}@${version}` ||
+		(value.tag !== `${component}@${version}` && value.tag !== `v${version}`) ||
 		value.minimumSystemVersion !== "13.0" ||
 		typeof value.sourceCommit !== "string" ||
 		!/^[0-9a-f]{40}$/i.test(value.sourceCommit)

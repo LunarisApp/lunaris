@@ -47,8 +47,7 @@
     "release:validate": "bun tooling/release/sync-versions.ts --check",
     "release:test": "bun test tooling/release",
     "release:plan": "bun tooling/release/plan.ts",
-    "prepare": "husky",
-    "release:self-hosted:version": "bun tooling/delivery/version-family.ts self-hosted"
+    "prepare": "husky"
   },
   "packageManager": "bun@1.4.0",
   "overrides": {

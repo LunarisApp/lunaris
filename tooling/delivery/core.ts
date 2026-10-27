@@ -56,7 +56,15 @@ if (mode === "plan") {
     affected.includes("web") ||
     previous?.syncRevision !== syncRevision ||
     previous?.configurationRevision !== configurationRevision;
-  output("enabled", String(coreChanged));
+  output(
+    "enabled",
+    String(
+      coreChanged ||
+        affected.some((name) =>
+          ["cli", "desktop", "self-hosted"].includes(name)
+        )
+    )
+  );
   const build = {
     api: !previous || affected.includes("api"),
     web: !previous || affected.includes("web"),
