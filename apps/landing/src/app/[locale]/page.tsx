@@ -102,10 +102,7 @@ export default async function Page({
 							</p>
 						</div>
 					</div>
-					<div
-						className="mt-12 scroll-mt-28 rounded-2xl bg-olive-200 p-2 shadow-[0_24px_64px_-32px_rgba(31,31,27,0.3)] sm:mt-16 sm:p-4 dark:bg-olive-900"
-						id="workspace-demo"
-					>
+					<div className="mt-12 scroll-mt-28 sm:mt-16" id="workspace-demo">
 						<DemoVideo
 							autoPlay={false}
 							chapters={copy.chapters}
