@@ -133,3 +133,33 @@ test("native builders retain signing and durable receipts; product artifact rele
   ).toEqual(["npm"]);
   expect(workflow("artifacts.publish").jobs["self-hosted"]).toBeUndefined();
 });
+
+test("Homebrew is optional while S3 distribution remains required", () => {
+  const stable = workflow("release.stable");
+  const preflight = stable.jobs.reserve.steps.find(
+    (step: { id?: string }) => step.id === "distribution"
+  );
+  expect(preflight.run).toContain(
+    "for name in S3_ACCESS_KEY S3_SECRET_KEY S3_REGION S3_BUCKET; do"
+  );
+  expect(preflight.run).toContain("homebrew_enabled=false");
+  const steps = stable.jobs.distribute.steps;
+  expect(
+    steps.find((step: { run?: string }) => step.run?.includes("publish-s3.sh"))
+      .if
+  ).toBeUndefined();
+  expect(
+    steps.find(
+      (step: { with?: { repository?: string } }) =>
+        step.with?.repository === "LunarisApp/homebrew-tap"
+    ).if
+  ).toBe("env.HOMEBREW_ENABLED == 'true'");
+  expect(
+    steps.find((step: { run?: string }) =>
+      step.run?.includes("publish-homebrew.sh")
+    ).if
+  ).toBe("env.HOMEBREW_ENABLED == 'true'");
+  expect(stable.jobs.finalize.env.HOMEBREW_ENABLED).toBe(
+    stable.jobs.distribute.env.HOMEBREW_ENABLED
+  );
+});

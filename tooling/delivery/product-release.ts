@@ -401,7 +401,16 @@ if (mode === "reserve") {
       assets.push(asset);
     }
   }
-  const manifest = { ...plan, assets, productionDeploymentId: deployed.id };
+  const manifest = {
+    ...plan,
+    assets,
+    productionDeploymentId: deployed.id,
+    distribution: {
+      s3: "published",
+      homebrew:
+        process.env.HOMEBREW_ENABLED === "true" ? "published" : "disabled",
+    },
+  };
   for (const [name, content] of [
     ["release-manifest.json", `${JSON.stringify(manifest, null, 2)}\n`],
     [

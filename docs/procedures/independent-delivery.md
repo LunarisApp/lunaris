@@ -27,7 +27,8 @@ Never enable two deployment owners for one Railway service.
 - Only after artifact validation does stable promote tested hosted digests.
   API regions finish migrations and health checks, then PowerSync updates, then
   web deploys. Existing migration advisory locks support parallel API destinations.
-- Native S3 distribution and Homebrew updates follow hosted success. One `vX.Y.Z`
+- Native S3 distribution follows hosted success. Homebrew updates run only when
+  `HOMEBREW_TAP_TOKEN` is configured; otherwise releases record Homebrew as disabled. One `vX.Y.Z`
   GitHub Release becomes public after every output succeeds. Its assets include
   installers, native archives, checksums, and `release-manifest.json`.
 
@@ -79,7 +80,9 @@ schema and environment-scoped `RAILWAY_RELEASE_TOKEN`. Staging requires its own
 Retain production `POWERSYNC_*`. Set repository `CORE_CONFIGURATION_REVISION`
 and increment it when runtime settings/destinations need recertification.
 
-Configure native S3 and Homebrew credentials used by existing release scripts.
+Configure native S3 credentials used by existing release scripts. Homebrew is
+optional: add `HOMEBREW_TAP_TOKEN` to the `release` environment when tap updates
+should resume. Its absence does not block stable releases or repository migration.
 Apple credentials remain all-or-none: absent credentials select ad-hoc signing;
 partial credentials fail. Native build jobs read repository secrets; distribution
 jobs also support release-environment secrets. Configure npm trusted publishers

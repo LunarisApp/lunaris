@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { git, run } from "../release/automation/process";
 import {
   assertSettings,
+  assertRuleset,
   assertWritableRules,
   desiredRules,
   trunkSettings,
@@ -219,7 +220,6 @@ for (const name of [
   "RELEASES_S3_SECRET_ACCESS_KEY",
   "RELEASES_S3_REGION",
   "RELEASES_S3_BUCKET",
-  "HOMEBREW_TAP_TOKEN",
 ]) {
   if (
     !(
@@ -381,11 +381,7 @@ for (const rule of desiredRules(
   const actual = saved
     ? get<Record<string, unknown>>(`rulesets/${saved.id}`)
     : undefined;
-  for (const [key, expected] of Object.entries(rule)) {
-    if (JSON.stringify(actual?.[key]) !== JSON.stringify(expected)) {
-      throw new Error(`Ruleset readback mismatch: ${rule.name}.${key}`);
-    }
-  }
+  assertRuleset(actual, rule, rule.name);
 }
 await request("", "PATCH", trunkSettings);
 assertSettings(get(""));

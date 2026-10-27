@@ -54,3 +54,40 @@ export function assertSettings(actual: Record<string, unknown>) {
     }
   }
 }
+
+/** Compare requested policy fields; GitHub supplies additional default fields. */
+export function assertRuleset(
+  actual: unknown,
+  expected: unknown,
+  path = "ruleset"
+): void {
+  if (Array.isArray(expected)) {
+    if (!Array.isArray(actual) || actual.length !== expected.length) {
+      throw new Error(`Ruleset readback mismatch: ${path}`);
+    }
+    for (const [index, value] of expected.entries()) {
+      assertRuleset(actual[index], value, `${path}[${index}]`);
+    }
+    return;
+  }
+  if (expected !== null && typeof expected === "object") {
+    if (
+      actual === null ||
+      typeof actual !== "object" ||
+      Array.isArray(actual)
+    ) {
+      throw new Error(`Ruleset readback mismatch: ${path}`);
+    }
+    for (const [key, value] of Object.entries(expected)) {
+      assertRuleset(
+        (actual as Record<string, unknown>)[key],
+        value,
+        `${path}.${key}`
+      );
+    }
+    return;
+  }
+  if (actual !== expected) {
+    throw new Error(`Ruleset readback mismatch: ${path}`);
+  }
+}

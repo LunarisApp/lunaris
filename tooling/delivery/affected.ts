@@ -94,6 +94,10 @@ export function requiresFullValidation(
     (file) =>
       !(
         repositoryDoc(file) ||
+        // Repository administration never enters application images. Tooling tests remain unconditional in CI.
+        /^tooling\/delivery\/(?:cutover(?:\.integration)?(?:\.test)?|repository-settings)\.ts$/.test(
+          file
+        ) ||
         workspaces.some((workspace) => file.startsWith(`${workspace.path}/`)) ||
         /^(crates\/|assets\/brand\/|infra\/(local|hosted|self-host)\/|tooling\/(powersync|generate-brand-assets|release\/|self-host\/)|\.changeset\/|\.release\/)/.test(
           file

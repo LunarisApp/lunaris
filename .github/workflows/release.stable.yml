@@ -28,6 +28,7 @@ jobs:
       version: ${{ steps.reserve.outputs.version }}
       sha: ${{ steps.reserve.outputs.sha }}
       complete: ${{ steps.reserve.outputs.complete }}
+      homebrew_enabled: ${{ steps.distribution.outputs.homebrew_enabled }}
     env:
       CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
       CORE_CONFIGURATION_REVISION: ${{ vars.CORE_CONFIGURATION_REVISION }}
@@ -47,6 +48,7 @@ jobs:
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile
       - name: Validate distribution credentials before reserving version
+        id: distribution
         env:
           S3_ACCESS_KEY: ${{ secrets.RELEASES_S3_ACCESS_KEY_ID }}
           S3_SECRET_KEY: ${{ secrets.RELEASES_S3_SECRET_ACCESS_KEY }}
@@ -54,9 +56,14 @@ jobs:
           S3_BUCKET: ${{ secrets.RELEASES_S3_BUCKET }}
           TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
-          for name in S3_ACCESS_KEY S3_SECRET_KEY S3_REGION S3_BUCKET TAP_TOKEN; do
+          for name in S3_ACCESS_KEY S3_SECRET_KEY S3_REGION S3_BUCKET; do
             if [ -z "${!name}" ]; then echo "Missing distribution setting: $name" >&2; exit 1; fi
           done
+          if [ -n "$TAP_TOKEN" ]; then
+            echo 'homebrew_enabled=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'homebrew_enabled=false' >> "$GITHUB_OUTPUT"
+          fi
       - id: candidate
         run: bun tooling/delivery/resolve-candidate.ts
         env:
@@ -131,6 +138,7 @@ jobs:
       RELEASES_S3_BUCKET: ${{ secrets.RELEASES_S3_BUCKET }}
       RELEASES_S3_ENDPOINT: ${{ secrets.RELEASES_S3_ENDPOINT }}
       PRODUCT_RELEASE: 'true'
+      HOMEBREW_ENABLED: ${{ needs.reserve.outputs.homebrew_enabled }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -140,13 +148,18 @@ jobs:
       - run: bun tooling/delivery/product-release.ts restore dist
       - run: bash tooling/release/publish-s3.sh "$COMPONENT" "$VERSION" "$SIGNING_MODE" dist
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        if: env.HOMEBREW_ENABLED == 'true'
         with:
           repository: LunarisApp/homebrew-tap
           path: homebrew-tap
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
       - run: bash tooling/release/publish-homebrew.sh "$COMPONENT" "$VERSION" "$SIGNING_MODE" dist homebrew-tap
+        if: env.HOMEBREW_ENABLED == 'true'
         env:
           GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+      - name: Record deferred Homebrew publication
+        if: env.HOMEBREW_ENABLED != 'true'
+        run: echo 'Homebrew publication disabled; native artifacts are available through S3 and GitHub Releases.' >> "$GITHUB_STEP_SUMMARY"
   finalize:
     needs: [reserve, hosted, distribute]
     runs-on: ubuntu-latest
@@ -157,6 +170,7 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PRODUCT_VERSION: ${{ needs.reserve.outputs.version }}
+      HOMEBREW_ENABLED: ${{ needs.reserve.outputs.homebrew_enabled }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
