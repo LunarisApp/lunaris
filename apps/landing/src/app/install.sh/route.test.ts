@@ -1,10 +1,12 @@
 import { expect, test } from "bun:test";
+import { installerUrl } from "@/lib/self-host-installer";
 import { handleInstaller } from "./route";
 
 function dependencies() {
 	const errors: Error[] = [];
 	return {
 		errors,
+		versioned: async (version: string) => installerUrl(version),
 		log: {
 			set: (_event: Record<string, unknown>) => {},
 			error: (error: Error) => {

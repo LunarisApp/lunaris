@@ -1,5 +1,9 @@
 import { expect, test } from "bun:test";
-import { installerUrl, latestInstallerUrl } from "./self-host-installer";
+import {
+	installerUrl,
+	latestInstallerUrl,
+	versionedInstallerUrl,
+} from "./self-host-installer";
 
 const release = (tag_name: string, extra: Record<string, unknown> = {}) => ({
 	tag_name,
@@ -60,4 +64,36 @@ test("missing or invalid release data never redirects to executable content", as
 		latestInstallerUrl(async () => ({ message: "rate limited" })),
 	).rejects.toThrow("Invalid GitHub");
 	expect(() => installerUrl("1.0.0/../../main")).toThrow();
+});
+
+test("unified product releases supply installer while incomplete product releases are skipped", async () => {
+	expect(
+		await latestInstallerUrl(async () => [
+			release("v2.0.0"),
+			release("v3.0.0", { assets: [] }),
+			release("self-hosted@1.0.0"),
+		]),
+	).toBe(installerUrl("2.0.0", true));
+	expect(
+		await versionedInstallerUrl("2.0.0", async () =>
+			Response.json(release("v2.0.0")),
+		),
+	).toBe(installerUrl("2.0.0", true));
+	expect(
+		await versionedInstallerUrl(
+			"1.0.0",
+			async () => new Response(null, { status: 404 }),
+		),
+	).toBe(installerUrl("1.0.0"));
+	await expect(
+		versionedInstallerUrl(
+			"2.0.0",
+			async () => new Response(null, { status: 503 }),
+		),
+	).rejects.toThrow("503");
+	await expect(
+		versionedInstallerUrl("2.0.0", async () =>
+			Response.json(release("v2.0.0", { assets: [] })),
+		),
+	).rejects.toThrow("unavailable");
 });

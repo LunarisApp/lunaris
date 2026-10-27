@@ -2,6 +2,9 @@ name: Self-host - Publish
 on:
   workflow_call:
     inputs:
+      version:
+        type: string
+        default: ''
       family:
         type: string
         default: ''
@@ -9,8 +12,11 @@ on:
         required: true
         type: string
 env:
+  PRODUCT_VERSION: ${{ inputs.version }}
+  PRODUCT_GROUP: self-hosted
   RELEASE_FAMILY: ${{ inputs.family }}
 permissions:
+  actions: read
   contents: write
   packages: write
 jobs:
@@ -28,7 +34,17 @@ jobs:
       - run: bun install --frozen-lockfile
         env:
           CYPRESS_INSTALL_BINARY: 0
+      - id: restore
+        if: inputs.version != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bun tooling/delivery/product-release.ts restore dist
+          if [ -f dist/SHA256SUMS ]; then bun tooling/delivery/product-release.ts upload dist; fi
       - id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRODUCT_CACHED: ${{ steps.restore.outputs.cached }}
         run: bun tooling/self-host/release.ts prepare
   images:
     needs: prepare
@@ -43,7 +59,7 @@ jobs:
             architecture: arm64
     runs-on: ${{ matrix.runner }}
     environment: release
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -61,12 +77,23 @@ jobs:
           ARCHITECTURE: ${{ matrix.architecture }}
         run: |
           mkdir -p artifacts
+          if [ -n "$PRODUCT_VERSION" ]; then
+            bun install --frozen-lockfile --ignore-scripts
+            # CE image versions are generated without requiring a Rust toolchain.
+            bun -e 'for (const p of ["apps/api/package.json", "apps/web/package.json", "infra/self-host/package.json"]) { const v = await Bun.file(p).json(); v.version = process.env.PRODUCT_VERSION; await Bun.write(p, JSON.stringify(v, null, 2) + "\n"); }'
+            bun install --lockfile-only --ignore-scripts
+          fi
+          if [ -n "$PRODUCT_VERSION" ]; then
+            bash tooling/self-host/test-stack.sh
+            bash tooling/self-host/test-external-tls.sh
+            bash tooling/self-host/test-external-tls.sh --no-web
+          fi
           revision=$(git rev-parse HEAD)
           for target in api web; do
             docker buildx build -f infra/self-host/Dockerfile --target "$target" \
               --cache-from "type=gha,scope=self-host-community-$ARCHITECTURE" \
               --cache-to "type=gha,scope=self-host-community-$ARCHITECTURE,mode=max" \
-              --platform "linux/$ARCHITECTURE" --build-arg LUNARIS_EDITION=community \
+              --platform "linux/$ARCHITECTURE" --build-arg LUNARIS_EDITION=community --build-arg "LUNARIS_BUILD_SHA=$revision" \
               --label "org.opencontainers.image.revision=$revision" \
               --label org.opencontainers.image.source=https://github.com/LunarisApp/lunaris \
               --output "type=image,name=ghcr.io/lunarisapp/lunaris-$target,push-by-digest=true,name-canonical=true,push=true" \
@@ -79,10 +106,12 @@ jobs:
           '
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
+          overwrite: true
           name: self-host-images-${{ matrix.architecture }}
           path: artifacts/images.json
   bundle:
     needs: [prepare, images]
+    if: needs.prepare.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     environment: release
     steps:
@@ -113,3 +142,15 @@ jobs:
         run: bun tooling/self-host/release.ts publish artifacts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: inputs.version != ''
+        with:
+          overwrite: true
+          name: release-self-hosted
+          path: dist
+          if-no-files-found: error
+      - name: Persist product bundle
+        if: inputs.version != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bun tooling/delivery/product-release.ts upload dist

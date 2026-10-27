@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        family: [npm, self-hosted]
+        family: [npm]
     concurrency:
       group: version-${{ matrix.family }}
       cancel-in-progress: false

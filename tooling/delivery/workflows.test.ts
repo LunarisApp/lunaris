@@ -46,7 +46,8 @@ test("production uses trusted tooling and resolves evidence before source checko
 test("native publication validates input before every release checkout", () => {
   const { jobs } = workflow("release");
   const source = jobs.source;
-  expect(source.if).toBe("github.ref == 'refs/heads/main'");
+  expect(source.if).toContain("github.ref == 'refs/heads/main'");
+  expect(source.if).toContain("legacy");
   expect(source.permissions).toEqual({ contents: "read", checks: "read" });
   expect(source.steps[0].with.ref).toBeUndefined();
   expect(source.steps[0].with["fetch-depth"]).toBe(0);
@@ -94,4 +95,41 @@ test("npm recovery checkout contains transitive release tooling imports", () => 
     (step: { with?: { path?: string } }) => step.with?.path === ".release-tools"
   );
   expect(checkout.with["sparse-checkout"]).toContain("tooling/delivery");
+});
+
+test("stable release stages every artifact before production and finalizes after distribution", () => {
+  const { jobs, concurrency, on } = workflow("release.stable");
+  expect(Object.keys(on)).toEqual(["workflow_dispatch"]);
+  expect(on.workflow_dispatch.inputs.candidate_run_id.required).toBe(true);
+  expect(concurrency).toEqual({
+    group: "stable-release",
+    "cancel-in-progress": false,
+  });
+  expect(jobs.hosted.needs).toEqual(["reserve", "native", "self-hosted"]);
+  expect(jobs.finalize.needs).toEqual(["reserve", "hosted", "distribute"]);
+  expect(jobs.hosted.with.stable_release).toBe(true);
+  expect(workflow("core.promote").jobs.resolve.if).toContain(
+    "inputs.stable_release"
+  );
+  expect(jobs.native.uses).toBe("./.github/workflows/native.build.yml");
+  expect(
+    jobs.reserve.steps.find((step: { id?: string }) => step.id === "reserve")
+      .env.PRODUCT_TAG_TOKEN
+  ).toContain("steps.app.outputs.token");
+});
+test("native builders retain signing and durable receipts; product artifact releases exclude npm", () => {
+  const { jobs } = workflow("native.build");
+  for (const name of ["build-cli", "build-desktop"]) {
+    expect(
+      jobs[name].steps.some((step: { run?: string }) =>
+        step.run?.includes("product-version.ts")
+      )
+    ).toBe(true);
+    expect(jobs[name].steps.at(-1).run).toContain("product-release.ts upload");
+    expect(jobs[name].permissions.contents).toBe("write");
+  }
+  expect(
+    workflow("artifacts.prepare").jobs.version.strategy.matrix.family
+  ).toEqual(["npm"]);
+  expect(workflow("artifacts.publish").jobs["self-hosted"]).toBeUndefined();
 });

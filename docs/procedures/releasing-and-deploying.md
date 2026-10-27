@@ -1,4 +1,4 @@
-# Releasing and deploying
+# Legacy release recovery
 
 For the independent trunk pipeline, setup and staged cutover, see [Independent delivery](independent-delivery.md).
 The legacy workflow below remains active only while `DELIVERY_MODE` is empty or `legacy`.

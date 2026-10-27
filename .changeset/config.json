@@ -30,9 +30,14 @@
     "@repo/typescript-config",
     "@repo/utils",
     "@repo/workspaces",
+    "api",
     "cli",
     "desktop",
-    "e2e"
+    "docs",
+    "e2e",
+    "landing",
+    "self-hosted",
+    "web"
   ],
   "privatePackages": {
     "version": true,

@@ -1,13 +1,15 @@
-import { trunkRulesets } from "../release/automation/rulesets";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { git, run } from "../release/automation/process";
+import {
+  assertSettings,
+  assertWritableRules,
+  desiredRules,
+  trunkSettings,
+  type RuleSnapshot,
+} from "./repository-settings";
 
-// Apply only after the cutover-mode merge has put the implementation on main.
 const apply = process.argv.includes("--apply");
-git("fetch", "origin", "main", "next");
-git("merge-base", "--is-ancestor", "origin/next", "origin/main");
-if (git("rev-parse", "HEAD") !== git("rev-parse", "origin/main")) {
-  throw new Error("Run cutover from current main after reconciling next");
-}
 const repository =
   process.env.GITHUB_REPOSITORY ??
   run("gh", [
@@ -18,21 +20,192 @@ const repository =
     "--jq",
     ".nameWithOwner",
   ]).text;
+const root = `repos/${repository}`;
+function get<T>(path: string): T {
+  return JSON.parse(
+    run("gh", ["api", `${root}${path ? `/${path}` : ""}`]).text
+  );
+}
+function pages<T>(path: string): T[] {
+  return JSON.parse(
+    run("gh", ["api", `${root}/${path}`, "--paginate", "--slurp"]).text
+  );
+}
+async function request(path: string, method: string, body?: unknown) {
+  const child = Bun.spawn(
+    [
+      "gh",
+      "api",
+      `${root}${path ? `/${path}` : ""}`,
+      "--method",
+      method,
+      ...(body === undefined ? [] : ["--input", "-"]),
+    ],
+    {
+      stdin: body === undefined ? "ignore" : new Blob([JSON.stringify(body)]),
+      stdout: "ignore",
+      stderr: "inherit",
+    }
+  );
+  if (await child.exited) {
+    throw new Error(
+      `Cutover stopped at ${path}; publication remains disabled. Reread state before retry.`
+    );
+  }
+}
 interface Variable {
   name: string;
   value: string;
 }
-function pages<T>(path: string): T[] {
-  return JSON.parse(
-    run("gh", ["api", `repos/${repository}/${path}`, "--paginate", "--slurp"])
-      .text
-  );
+interface Environment {
+  can_admins_bypass?: boolean;
+  deployment_branch_policy: unknown;
+  name: string;
+  protection_rules: {
+    type: string;
+    wait_timer?: number;
+    prevent_self_review?: boolean;
+    reviewers?: { type: string; reviewer: { id: number } }[];
+  }[];
 }
-const vars = pages<{ variables: Variable[] }>(
+const variables = pages<{ variables: Variable[] }>(
   "actions/variables?per_page=100"
 ).flatMap((page) => page.variables);
-if (vars.find((entry) => entry.name === "DELIVERY_MODE")?.value !== "cutover") {
-  throw new Error("Set repository DELIVERY_MODE=cutover before cutover");
+const value = (name: string) =>
+  variables.find((entry) => entry.name === name)?.value;
+const metadata = get<Record<string, unknown>>("");
+const rules = pages<RuleSnapshot[]>(
+  "rulesets?includes_parents=true&per_page=100"
+).flat();
+const fullRules = rules.map((rule) =>
+  rule.source && rule.source !== repository
+    ? rule
+    : get<RuleSnapshot>(`rulesets/${rule.id}`)
+);
+const environments = pages<{ environments: Environment[] }>(
+  "environments?per_page=100"
+).flatMap((page) => page.environments);
+const environmentDetails = environments
+  .map((entry) =>
+    get<Environment>(`environments/${encodeURIComponent(entry.name)}`)
+  )
+  .map((environment) => ({
+    ...environment,
+    variableNames: pages<{ variables: Variable[] }>(
+      `environments/${encodeURIComponent(environment.name)}/variables?per_page=100`
+    ).flatMap((page) => page.variables.map((entry) => entry.name)),
+    secretNames: pages<{ secrets: { name: string }[] }>(
+      `environments/${encodeURIComponent(environment.name)}/secrets?per_page=100`
+    ).flatMap((page) => page.secrets.map((entry) => entry.name)),
+    policies: environment.deployment_branch_policy
+      ? pages<{
+          branch_policies: { id: number; name: string; type: string }[];
+        }>(
+          `environments/${encodeURIComponent(environment.name)}/deployment-branch-policies?per_page=100`
+        ).flatMap((page) => page.branch_policies)
+      : [],
+  }));
+const prs = pages<
+  {
+    number: number;
+    title: string;
+    head: { ref: string; sha?: string };
+    base: { ref: string };
+  }[]
+>("pulls?state=open&per_page=100").flat();
+const actions = get<Record<string, unknown>>("actions/permissions");
+const workflowPermissions = get<Record<string, unknown>>(
+  "actions/permissions/workflow"
+);
+const secretNames = pages<{ secrets: { name: string }[] }>(
+  "actions/secrets?per_page=100"
+).flatMap((page) => page.secrets.map((entry) => entry.name));
+const directory = resolve(
+  process.env.CUTOVER_STATE_DIRECTORY ?? ".context/release-cutover"
+);
+mkdirSync(directory, { recursive: true });
+const snapshotPath = resolve(directory, "before.json");
+if (!existsSync(snapshotPath)) {
+  writeFileSync(
+    snapshotPath,
+    `${JSON.stringify({ repository, metadata, rules: fullRules, environments: environmentDetails, actions, workflowPermissions, variableNames: variables.map((entry) => entry.name), secretNames, prs }, null, 2)}\n`,
+    { mode: 0o600 }
+  );
+} else if (
+  JSON.parse(readFileSync(snapshotPath, "utf8")).repository !== repository
+) {
+  throw new Error("Cutover snapshot belongs to another repository");
+}
+const blockers: string[] = [];
+for (const name of ["RELEASE_APP_ID", "CORE_CONFIGURATION_REVISION"]) {
+  if (!value(name)) {
+    blockers.push(`Missing repository variable ${name}`);
+  }
+}
+for (const name of ["production", "staging", "release"]) {
+  if (!environments.some((entry) => entry.name === name)) {
+    blockers.push(`Missing GitHub environment ${name}`);
+  }
+}
+for (const name of ["production", "staging"]) {
+  const details = environmentDetails.find((entry) => entry.name === name);
+  if (!details) {
+    continue;
+  }
+  const required =
+    name === "staging"
+      ? [
+          "RAILWAY_STAGING_TARGETS",
+          ...[
+            "PROJECT_ID",
+            "ENVIRONMENT_ID",
+            "API_SERVICE_ID",
+            "COMPACT_SERVICE_ID",
+            "REPLICATION_SERVICE_ID",
+          ].map((key) => `STAGING_POWERSYNC_${key}`),
+        ]
+      : ["RAILWAY_RELEASE_TARGETS"];
+  for (const key of required) {
+    if (!(details.variableNames.includes(key) || value(key))) {
+      blockers.push(`Missing ${name} variable ${key}`);
+    }
+  }
+  if (
+    !(
+      details.secretNames.includes("RAILWAY_RELEASE_TOKEN") ||
+      secretNames.includes("RAILWAY_RELEASE_TOKEN")
+    )
+  ) {
+    blockers.push(`Missing ${name} RAILWAY_RELEASE_TOKEN`);
+  }
+}
+for (const name of [
+  "RELEASE_APP_PRIVATE_KEY",
+  "RELEASES_S3_ACCESS_KEY_ID",
+  "RELEASES_S3_SECRET_ACCESS_KEY",
+  "RELEASES_S3_REGION",
+  "RELEASES_S3_BUCKET",
+  "HOMEBREW_TAP_TOKEN",
+]) {
+  if (
+    !(
+      secretNames.includes(name) ||
+      environmentDetails
+        .find((entry) => entry.name === "release")
+        ?.secretNames.includes(name)
+    )
+  ) {
+    blockers.push(`Missing release secret ${name}`);
+  }
+}
+const teamId = Number(process.env.RELEASE_MAINTAINER_TEAM_ID);
+if (!Number.isSafeInteger(teamId) || teamId <= 0) {
+  blockers.push("Verified RELEASE_MAINTAINER_TEAM_ID required");
+}
+try {
+  assertWritableRules(rules, repository);
+} catch (error) {
+  blockers.push(String(error));
 }
 for (const status of [
   "in_progress",
@@ -41,64 +214,43 @@ for (const status of [
   "waiting",
   "pending",
 ]) {
-  const batches = pages<{
+  const runs = pages<{
     total_count: number;
     workflow_runs: { path: string }[];
   }>(`actions/runs?status=${status}&per_page=100`);
-  if (batches.some((page) => page.total_count > 1000)) {
-    throw new Error("Too many active workflow runs to verify cutover safely");
-  }
   if (
-    batches.some((page) =>
-      page.workflow_runs.some((entry) =>
-        /release\.(prepare|publish)\.yml$/.test(entry.path)
-      )
+    runs.some(
+      (page) =>
+        page.total_count > 1000 ||
+        page.workflow_runs.some((entry) =>
+          /(?:release(?:\.(?:prepare|publish|stable))?|core\.(?:promote|candidate)|artifacts\.publish|sites\.deploy)\.yml$/.test(
+            entry.path
+          )
+        )
     )
   ) {
-    throw new Error("Legacy release automation is still running");
+    blockers.push(`Active release runs (${status})`);
   }
 }
-const releases = pages<{ draft: boolean }[]>("releases?per_page=100").flat();
-if (releases.some((entry) => entry.draft)) {
-  throw new Error("Finish draft publications before cutover");
-}
-for (const environment of ["production", "staging"]) {
-  const variables = pages<{ variables: Variable[] }>(
-    `environments/${environment}/variables?per_page=100`
-  ).flatMap((page) => page.variables);
-  const names = new Set(variables.map((entry) => entry.name));
-  if (
-    !names.has(
-      environment === "staging"
-        ? "RAILWAY_STAGING_TARGETS"
-        : "RAILWAY_RELEASE_TARGETS"
-    )
-  ) {
-    throw new Error(`Missing ${environment} Railway destinations`);
-  }
-}
-// Snapshot every affected resource before the first mutation.
-const existing = pages<{ id: number; name: string }[]>(
-  "rulesets?per_page=100"
-).flat();
-const prs = pages<{ number: number }[]>(
-  "pulls?base=next&state=open&per_page=100"
-).flat();
-const appId = Number(
-  vars.find((entry) => entry.name === "RELEASE_APP_ID")?.value
-);
 if (
-  !vars.some(
-    (entry) => entry.name === "CORE_CONFIGURATION_REVISION" && entry.value
-  )
+  pages<{ draft: boolean }[]>("releases?per_page=100")
+    .flat()
+    .some((entry) => entry.draft)
 ) {
-  throw new Error("Set CORE_CONFIGURATION_REVISION first");
+  blockers.push("Finish draft publications before cutover");
 }
-const teamId = Number(process.env.RELEASE_MAINTAINER_TEAM_ID);
-const rules = trunkRulesets(appId, teamId);
 console.log(
   JSON.stringify(
-    { defaultBranch: "main", deliveryMode: "trunk", rulesets: rules },
+    {
+      repository,
+      settings: trunkSettings,
+      rulesets:
+        Number.isSafeInteger(teamId) && Number(value("RELEASE_APP_ID")) > 0
+          ? desiredRules(Number(value("RELEASE_APP_ID")), teamId)
+          : [],
+      snapshot: snapshotPath,
+      blockers,
+    },
     null,
     2
   )
@@ -106,59 +258,161 @@ console.log(
 if (!apply) {
   process.exit(0);
 }
-async function request(path: string, method: string, value?: unknown) {
-  const child = Bun.spawn(
-    [
-      "gh",
-      "api",
-      `repos/${repository}/${path}`,
-      "--method",
-      method,
-      ...(value === undefined ? [] : ["--input", "-"]),
-    ],
-    {
-      stdin: value === undefined ? "ignore" : new Blob([JSON.stringify(value)]),
-      stdout: "ignore",
-      stderr: "inherit",
-    }
+// Pause publication before any operation that can fail. A retry reuses original snapshot.
+run("gh", [
+  "variable",
+  "set",
+  "DELIVERY_MODE",
+  "--repo",
+  repository,
+  "--body",
+  "cutover",
+]);
+if (blockers.length) {
+  throw new Error(
+    `Cutover blocked; publication disabled: ${blockers.join("; ")}`
   );
-  if (await child.exited) {
-    throw new Error(
-      `Cutover stopped at ${path}; inspect state before retrying`
-    );
+}
+git("fetch", "origin", "main", "next");
+git("merge-base", "--is-ancestor", "origin/next", "origin/main");
+if (git("rev-parse", "HEAD") !== git("rev-parse", "origin/main")) {
+  throw new Error(
+    "Merge implementation and reconcile next; run cutover from current main"
+  );
+}
+if (
+  !git("show", "origin/main:.github/workflows/release.stable.yml").includes(
+    "name: Release Stable"
+  )
+) {
+  throw new Error("Stable implementation missing from main");
+}
+for (const rule of desiredRules(Number(value("RELEASE_APP_ID")), teamId)) {
+  const existing = rules.find((entry) => entry.name === rule.name);
+  const path = existing ? `rulesets/${existing.id}` : "rulesets";
+  await request(path, existing ? "PUT" : "POST", rule);
+  const all = pages<RuleSnapshot[]>(
+    "rulesets?includes_parents=true&per_page=100"
+  ).flat();
+  const saved = all.find((entry) => entry.name === rule.name);
+  const actual = saved
+    ? get<Record<string, unknown>>(`rulesets/${saved.id}`)
+    : undefined;
+  for (const [key, expected] of Object.entries(rule)) {
+    if (JSON.stringify(actual?.[key]) !== JSON.stringify(expected)) {
+      throw new Error(`Ruleset readback mismatch: ${rule.name}.${key}`);
+    }
   }
 }
-for (const rule of rules) {
-  const previous = existing.find((entry) => entry.name === rule.name);
-  await request(
-    previous ? `rulesets/${previous.id}` : "rulesets",
-    previous ? "PUT" : "POST",
-    rule
-  );
-}
-await request("", "PATCH", { default_branch: "main" });
-for (const pr of prs) {
+await request("", "PATCH", trunkSettings);
+assertSettings(get(""));
+for (const pr of prs.filter((entry) => entry.base.ref === "next")) {
   await request(`pulls/${pr.number}`, "PATCH", { base: "main" });
 }
-// Freeze next without deleting its history.
-const freeze = {
-  name: "Retired next - frozen",
-  target: "branch",
-  enforcement: "active",
-  conditions: { ref_name: { include: ["refs/heads/next"], exclude: [] } },
-  bypass_actors: [],
-  rules: [
-    { type: "update" },
-    { type: "deletion" },
-    { type: "non_fast_forward" },
-  ],
-};
-const previous = existing.find((rule) => rule.name === freeze.name);
-await request(
-  previous ? `rulesets/${previous.id}` : "rulesets",
-  previous ? "PUT" : "POST",
-  freeze
+// Close legacy orchestration PRs only when their source history is already preserved.
+for (const pr of prs.filter(
+  (entry) =>
+    entry.head.ref === "next" ||
+    entry.head.ref.startsWith("back-merge/") ||
+    entry.head.ref === "release/self-hosted"
+)) {
+  const source = pr.head.ref === "next" ? "origin/next" : pr.head.sha;
+  if (
+    source &&
+    run("git", ["merge-base", "--is-ancestor", source, "origin/main"], {
+      allowFailure: true,
+    }).ok
+  ) {
+    await request(`pulls/${pr.number}`, "PATCH", { state: "closed" });
+  }
+}
+for (const environment of environmentDetails.filter((entry) =>
+  ["production", "staging", "release"].includes(entry.name)
+)) {
+  const path = `environments/${environment.name}`;
+  // GitHub PUT can reset omitted protection fields; carry existing values explicitly.
+  const review = environment.protection_rules.find(
+    (rule) => rule.type === "required_reviewers"
+  );
+  const timer = environment.protection_rules.find(
+    (rule) => rule.type === "wait_timer"
+  );
+  await request(path, "PUT", {
+    ...(review
+      ? {
+          reviewers: review.reviewers?.map((item) => ({
+            type: item.type,
+            id: item.reviewer.id,
+          })),
+          prevent_self_review: review.prevent_self_review,
+        }
+      : {}),
+    ...(timer ? { wait_timer: timer.wait_timer } : {}),
+    ...(environment.can_admins_bypass === undefined
+      ? {}
+      : { can_admins_bypass: environment.can_admins_bypass }),
+    deployment_branch_policy: {
+      protected_branches: false,
+      custom_branch_policies: true,
+    },
+  });
+  if (
+    !environment.policies.some(
+      (policy) => policy.name === "main" && policy.type === "branch"
+    )
+  ) {
+    await request(`${path}/deployment-branch-policies`, "POST", {
+      name: "main",
+      type: "branch",
+    });
+  }
+  for (const policy of environment.policies.filter(
+    (entry) => entry.name !== "main" || entry.type !== "branch"
+  )) {
+    await request(`${path}/deployment-branch-policies/${policy.id}`, "DELETE");
+  }
+  const saved = pages<{ branch_policies: { name: string; type: string }[] }>(
+    `${path}/deployment-branch-policies?per_page=100`
+  ).flatMap((entry) => entry.branch_policies);
+  if (
+    saved.length !== 1 ||
+    saved[0]?.name !== "main" ||
+    saved[0].type !== "branch"
+  ) {
+    throw new Error(`Environment readback failed: ${environment.name}`);
+  }
+}
+const oldNext = rules.find((rule) => rule.name === "Release next - PRs");
+if (oldNext) {
+  await request(`rulesets/${oldNext.id}`, "DELETE");
+}
+await request("actions/permissions/workflow", "PUT", {
+  default_workflow_permissions: "read",
+  can_approve_pull_request_reviews:
+    workflowPermissions.can_approve_pull_request_reviews,
+});
+if (
+  get<{ default_workflow_permissions: string }>("actions/permissions/workflow")
+    .default_workflow_permissions !== "read"
+) {
+  throw new Error("Actions readback failed");
+}
+assertWritableRules(
+  pages<RuleSnapshot[]>("rulesets?includes_parents=true&per_page=100").flat(),
+  repository
 );
+assertSettings(get(""));
+writeFileSync(
+  resolve(directory, "verified.json"),
+  `${JSON.stringify({ repository, settings: get(""), rules: pages("rulesets?includes_parents=true&per_page=100"), at: new Date().toISOString() }, null, 2)}\n`,
+  { mode: 0o600 }
+);
+// Publication stays paused until isolated staging/native rehearsal and npm trust are attested.
+if (process.env.RELEASE_REHEARSAL_VERIFIED !== "true") {
+  throw new Error(
+    "Settings migrated; publication paused. Verify isolated release rehearsal and npm trust, then rerun with RELEASE_REHEARSAL_VERIFIED=true"
+  );
+}
 run("gh", [
   "variable",
   "set",
@@ -168,6 +422,9 @@ run("gh", [
   "--body",
   "trunk",
 ]);
-console.log(
-  "Trunk enabled. Dispatch Artifacts - Prepare and Sites - Deploy; push a core change to certify staging."
-);
+if (
+  get<{ value: string }>("actions/variables/DELIVERY_MODE").value !== "trunk"
+) {
+  throw new Error("Delivery mode readback failed");
+}
+console.log("GitHub cutover verified; trunk enabled.");

@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, next]
+    branches: [main, next] # next remains temporarily supported during cutover
   pull_request:
-    branches: [main, next]
+    branches: [main, next] # next remains temporarily supported during cutover
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited]
   workflow_call:
     inputs:

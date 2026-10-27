@@ -53,16 +53,14 @@ if (!reviewedHistory) {
   const affected = affectedTargets(files, readWorkspaces());
   const required =
     process.env.DELIVERY_MODE === "trunk"
-      ? affected.filter(
-          (name) =>
-            name.startsWith("@lunarisapp/") ||
-            (name === "self-hosted" &&
-              files.some((file) =>
-                /^(infra\/self-host\/|tooling\/self-host\/)/.test(file)
-              ))
-        )
+      ? affected.filter((name) => name.startsWith("@lunarisapp/"))
       : affected;
-  const missing = required.filter((name) => !covered.has(name));
+  const config = JSON.parse(readFileSync(".changeset/config.json", "utf8")) as {
+    ignore: string[];
+  };
+  const missing = required.filter(
+    (name) => !(config.ignore.includes(name) || covered.has(name))
+  );
   if (missing.length) {
     throw new Error(
       `Add changesets for affected release targets: ${missing.join(", ")}`

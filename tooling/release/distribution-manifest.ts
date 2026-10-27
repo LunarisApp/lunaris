@@ -118,7 +118,10 @@ export function buildDistributionManifest({
     schemaVersion: 1,
     component,
     version,
-    tag: `${component}@${version}`,
+    tag:
+      process.env.PRODUCT_RELEASE === "true"
+        ? `v${version}`
+        : `${component}@${version}`,
     sourceCommit,
     signingMode,
     minimumSystemVersion: "13.0",

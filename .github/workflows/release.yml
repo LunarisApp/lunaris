@@ -25,7 +25,7 @@ env:
 
 jobs:
   source:
-    if: github.ref == 'refs/heads/main'
+    if: (vars.DELIVERY_MODE == '' || vars.DELIVERY_MODE == 'legacy') && github.ref == 'refs/heads/main'
     name: Validate native source
     runs-on: ubuntu-latest
     permissions:

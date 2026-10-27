@@ -1,0 +1,52 @@
+import { productRulesets } from "../release/automation/rulesets";
+
+export const trunkSettings = {
+  default_branch: "main",
+  allow_squash_merge: true,
+  allow_merge_commit: false,
+  allow_rebase_merge: false,
+  allow_auto_merge: true,
+  delete_branch_on_merge: true,
+};
+export interface RuleSnapshot {
+  enforcement: string;
+  id: number;
+  name: string;
+  source?: string;
+  source_type?: string;
+}
+export function desiredRules(appId: number, teamId: number) {
+  return [
+    ...productRulesets(appId, teamId),
+    {
+      name: "Retired next - frozen",
+      target: "branch",
+      enforcement: "active",
+      conditions: { ref_name: { include: ["refs/heads/next"], exclude: [] } },
+      bypass_actors: [],
+      rules: [
+        { type: "update" },
+        { type: "deletion" },
+        { type: "non_fast_forward" },
+      ],
+    },
+  ];
+}
+export function assertWritableRules(rules: RuleSnapshot[], repository: string) {
+  const inherited = rules.filter(
+    (rule) =>
+      rule.enforcement === "active" && rule.source && rule.source !== repository
+  );
+  if (inherited.length) {
+    throw new Error(
+      `Inherited rules require explicit review before cutover: ${inherited.map((rule) => `${rule.name} (${rule.id})`).join(", ")}`
+    );
+  }
+}
+export function assertSettings(actual: Record<string, unknown>) {
+  for (const [key, value] of Object.entries(trunkSettings)) {
+    if (actual[key] !== value) {
+      throw new Error(`GitHub setting readback failed: ${key}`);
+    }
+  }
+}

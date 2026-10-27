@@ -1,5 +1,16 @@
 name: Core - Promote
 on:
+  workflow_call:
+    inputs:
+      stable_release:
+        type: boolean
+        default: false
+      candidate_run_id:
+        required: true
+        type: string
+      target:
+        type: string
+        default: core
   workflow_dispatch:
     inputs:
       candidate_run_id:
@@ -21,7 +32,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   resolve:
-    if: vars.DELIVERY_MODE == 'trunk' && github.ref == 'refs/heads/main'
+    if: vars.DELIVERY_MODE == 'trunk' && github.ref == 'refs/heads/main' && (inputs.stable_release || inputs.rollback_deployment_id != '')
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.resolve.outputs.sha }}
