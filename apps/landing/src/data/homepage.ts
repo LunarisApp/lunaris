@@ -14,6 +14,8 @@ type HomepageCopy = {
 	watch: string;
 	tour: string;
 	chapters: [string, string, string];
+	chapterDescriptions: [string, string, string];
+	upcomingChapter: { title: string; description: string };
 	ownershipTitle: string;
 	ownershipDescription: string;
 	selfHost: string;
@@ -39,7 +41,16 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		freeNote: "Free for up to 3 members. No credit card needed.",
 		watch: "See it in action",
 		tour: "Explore the workspace demo",
-		chapters: ["Notes", "Boards", "Whiteboards"],
+		chapters: ["Capture ideas", "Plan work", "Think visually"],
+		upcomingChapter: {
+			title: "Shape your workspace",
+			description: "Add the tools your team needs.",
+		},
+		chapterDescriptions: [
+			"Keep ideas and knowledge together.",
+			"Turn shared plans into progress.",
+			"Give your thinking room to grow.",
+		],
 		ownershipTitle: "Your workspace. Your terms.",
 		ownershipDescription:
 			"Keep working without a connection. Choose local-only storage, sync with Lunaris Cloud, or host Community Edition on your own server.",
@@ -86,7 +97,16 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		freeNote: "Gratis para hasta 3 miembros. Sin tarjeta de crédito.",
 		watch: "Ver en acción",
 		tour: "Explora la demostración del espacio de trabajo",
-		chapters: ["Notas", "Tableros", "Pizarras"],
+		chapters: ["Captura ideas", "Planifica el trabajo", "Piensa visualmente"],
+		upcomingChapter: {
+			title: "Adapta tu espacio",
+			description: "Añade herramientas para tu equipo.",
+		},
+		chapterDescriptions: [
+			"Reúne ideas y conocimiento.",
+			"Convierte planes en avances.",
+			"Dale espacio a tus ideas.",
+		],
 		ownershipTitle: "Tu espacio. Tus condiciones.",
 		ownershipDescription:
 			"Sigue trabajando sin conexión. Guarda tu trabajo solo en tu dispositivo, sincroniza con Lunaris Cloud o aloja Community Edition en tu servidor.",
@@ -134,7 +154,16 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		freeNote: "Gratuit jusqu’à 3 membres. Sans carte bancaire.",
 		watch: "Voir en action",
 		tour: "Explorer la démonstration de l’espace de travail",
-		chapters: ["Notes", "Tableaux", "Tableaux blancs"],
+		chapters: ["Notez vos idées", "Planifiez le travail", "Pensez en images"],
+		upcomingChapter: {
+			title: "Façonnez votre espace",
+			description: "Ajoutez les outils de votre équipe.",
+		},
+		chapterDescriptions: [
+			"Réunissez idées et connaissances.",
+			"Faites avancer vos projets ensemble.",
+			"Donnez de l’espace à vos idées.",
+		],
 		ownershipTitle: "Votre espace. Vos conditions.",
 		ownershipDescription:
 			"Continuez sans connexion. Gardez vos données sur votre appareil, synchronisez avec Lunaris Cloud ou hébergez Community Edition sur votre serveur.",
@@ -181,7 +210,16 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		freeNote: "Kostenlos für bis zu 3 Mitglieder. Ohne Kreditkarte.",
 		watch: "In Aktion ansehen",
 		tour: "Workspace-Demo erkunden",
-		chapters: ["Notizen", "Boards", "Whiteboards"],
+		chapters: ["Ideen festhalten", "Arbeit planen", "Visuell denken"],
+		upcomingChapter: {
+			title: "Gestalte deinen Workspace",
+			description: "Ergänze Werkzeuge für dein Team.",
+		},
+		chapterDescriptions: [
+			"Ideen und Wissen zusammenhalten.",
+			"Gemeinsame Pläne voranbringen.",
+			"Gib deinen Gedanken mehr Raum.",
+		],
 		ownershipTitle: "Dein Workspace. Deine Regeln.",
 		ownershipDescription:
 			"Arbeite ohne Verbindung weiter. Speichere nur auf deinem Gerät, synchronisiere mit Lunaris Cloud oder betreibe Community Edition auf deinem Server.",
@@ -228,7 +266,16 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		freeNote: "Grátis para até 3 membros. Sem cartão de crédito.",
 		watch: "Veja em ação",
 		tour: "Explore a demonstração do espaço de trabalho",
-		chapters: ["Notas", "Quadros", "Lousas"],
+		chapters: ["Capture ideias", "Planeje o trabalho", "Pense visualmente"],
+		upcomingChapter: {
+			title: "Adapte seu espaço",
+			description: "Adicione ferramentas para sua equipe.",
+		},
+		chapterDescriptions: [
+			"Reúna ideias e conhecimento.",
+			"Transforme planos em progresso.",
+			"Dê espaço para suas ideias crescerem.",
+		],
 		ownershipTitle: "Seu espaço. Suas condições.",
 		ownershipDescription:
 			"Continue trabalhando sem conexão. Mantenha os dados só no dispositivo, sincronize com Lunaris Cloud ou hospede Community Edition no seu servidor.",
