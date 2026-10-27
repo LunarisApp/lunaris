@@ -14,6 +14,7 @@ type HomepageCopy = {
 	watch: string;
 	tour: string;
 	chapters: [string, string, string];
+	chapterDescriptions: [string, string, string];
 	ownershipTitle: string;
 	ownershipDescription: string;
 	selfHost: string;
@@ -40,6 +41,11 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		watch: "See it in action",
 		tour: "Explore the workspace demo",
 		chapters: ["Notes", "Boards", "Whiteboards"],
+		chapterDescriptions: [
+			"Keep ideas and knowledge together.",
+			"Turn shared plans into progress.",
+			"Give your thinking room to grow.",
+		],
 		ownershipTitle: "Your workspace. Your terms.",
 		ownershipDescription:
 			"Keep working without a connection. Choose local-only storage, sync with Lunaris Cloud, or host Community Edition on your own server.",
@@ -87,6 +93,11 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		watch: "Ver en acción",
 		tour: "Explora la demostración del espacio de trabajo",
 		chapters: ["Notas", "Tableros", "Pizarras"],
+		chapterDescriptions: [
+			"Reúne ideas y conocimiento.",
+			"Convierte planes en avances.",
+			"Dale espacio a tus ideas.",
+		],
 		ownershipTitle: "Tu espacio. Tus condiciones.",
 		ownershipDescription:
 			"Sigue trabajando sin conexión. Guarda tu trabajo solo en tu dispositivo, sincroniza con Lunaris Cloud o aloja Community Edition en tu servidor.",
@@ -135,6 +146,11 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		watch: "Voir en action",
 		tour: "Explorer la démonstration de l’espace de travail",
 		chapters: ["Notes", "Tableaux", "Tableaux blancs"],
+		chapterDescriptions: [
+			"Réunissez idées et connaissances.",
+			"Faites avancer vos projets ensemble.",
+			"Donnez de l’espace à vos idées.",
+		],
 		ownershipTitle: "Votre espace. Vos conditions.",
 		ownershipDescription:
 			"Continuez sans connexion. Gardez vos données sur votre appareil, synchronisez avec Lunaris Cloud ou hébergez Community Edition sur votre serveur.",
@@ -182,6 +198,11 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		watch: "In Aktion ansehen",
 		tour: "Workspace-Demo erkunden",
 		chapters: ["Notizen", "Boards", "Whiteboards"],
+		chapterDescriptions: [
+			"Ideen und Wissen zusammenhalten.",
+			"Gemeinsame Pläne voranbringen.",
+			"Gib deinen Gedanken mehr Raum.",
+		],
 		ownershipTitle: "Dein Workspace. Deine Regeln.",
 		ownershipDescription:
 			"Arbeite ohne Verbindung weiter. Speichere nur auf deinem Gerät, synchronisiere mit Lunaris Cloud oder betreibe Community Edition auf deinem Server.",
@@ -229,6 +250,11 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		watch: "Veja em ação",
 		tour: "Explore a demonstração do espaço de trabalho",
 		chapters: ["Notas", "Quadros", "Lousas"],
+		chapterDescriptions: [
+			"Reúna ideias e conhecimento.",
+			"Transforme planos em progresso.",
+			"Dê espaço para suas ideias crescerem.",
+		],
 		ownershipTitle: "Seu espaço. Suas condições.",
 		ownershipDescription:
 			"Continue trabalhando sem conexão. Mantenha os dados só no dispositivo, sincronize com Lunaris Cloud ou hospede Community Edition no seu servidor.",

@@ -11,6 +11,7 @@ export function DemoVideo({
 	autoPlay = true,
 	chapters,
 	chapterNavigationLabel,
+	chapterDescriptions,
 	children,
 }: {
 	label: string;
@@ -18,6 +19,7 @@ export function DemoVideo({
 	autoPlay?: boolean;
 	chapters?: readonly [string, string, string];
 	chapterNavigationLabel?: string;
+	chapterDescriptions?: readonly [string, string, string];
 	children?: ReactNode;
 }) {
 	const descriptionId = useId();
@@ -87,7 +89,7 @@ export function DemoVideo({
 						<button
 							aria-controls={videoId}
 							aria-pressed={activeChapter === index}
-							className="flex min-h-11 items-center justify-center gap-2 rounded-md px-2 py-2 text-center text-xs/5 font-medium text-olive-700 transition-colors hover:bg-white/40 aria-pressed:bg-olive-100 aria-pressed:text-olive-950 sm:text-sm/6 dark:text-olive-300 dark:hover:bg-white/10 dark:aria-pressed:bg-olive-700 dark:aria-pressed:text-olive-100"
+							className="group flex min-h-12 flex-col items-start justify-center gap-1 rounded-lg px-3 py-3 text-left text-xs/5 font-medium text-olive-700 transition-colors hover:bg-white/40 aria-pressed:bg-olive-100 aria-pressed:text-olive-950 sm:px-5 sm:py-4 sm:text-sm/6 motion-reduce:transition-none dark:text-olive-300 dark:hover:bg-white/10 dark:aria-pressed:bg-olive-700 dark:aria-pressed:text-olive-100"
 							key={chapter}
 							onClick={() => {
 								const video = ref.current;
@@ -98,18 +100,25 @@ export function DemoVideo({
 							}}
 							type="button"
 						>
-							<svg
-								aria-hidden="true"
-								className="size-3 shrink-0"
-								fill="none"
-								stroke="currentColor"
-								strokeLinejoin="round"
-								strokeWidth={1.5}
-								viewBox="0 0 12 12"
-							>
-								<path d="m4 2 6 4-6 4V2Z" />
-							</svg>
-							{chapter}
+							<span className="flex items-center gap-2">
+								<svg
+									aria-hidden="true"
+									className="size-3 shrink-0"
+									fill="none"
+									stroke="currentColor"
+									strokeLinejoin="round"
+									strokeWidth={1.5}
+									viewBox="0 0 12 12"
+								>
+									<path d="m4 2 6 4-6 4V2Z" />
+								</svg>
+								{chapter}
+							</span>
+							{chapterDescriptions && (
+								<span className="hidden max-w-56 text-xs/5 font-normal text-olive-600 sm:block dark:text-olive-300">
+									{chapterDescriptions[index]}
+								</span>
+							)}
 						</button>
 					))}
 				</div>
