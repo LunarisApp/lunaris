@@ -57,7 +57,7 @@ test("landing can deploy before first published installer", async () => {
   await smokeLanding(
     "https://fixture/health",
     request((url) => {
-      if (url.includes("api.github.com")) {
+      if (new URL(url).hostname === "api.github.com") {
         return Response.json([
           { tag_name: "web@1.0.0", draft: false, prerelease: false },
           { tag_name: "self-hosted@1.0.0", draft: true, prerelease: false },
@@ -75,7 +75,7 @@ test("installer 503 still fails when installer exists on later release page", as
     smokeLanding(
       "https://fixture/health",
       request((url) => {
-        if (url.includes("api.github.com")) {
+        if (new URL(url).hostname === "api.github.com") {
           return Response.json(
             url.endsWith("page=1")
               ? Array.from({ length: 100 }, () => ({ tag_name: "web@1.0.0" }))
@@ -107,7 +107,7 @@ test("missing release evidence cannot excuse installer outage", async () => {
       smokeLanding(
         "https://fixture/health",
         request((url) => {
-          if (url.includes("api.github.com")) {
+          if (new URL(url).hostname === "api.github.com") {
             return evidence.clone();
           }
           return new Response(null, {
