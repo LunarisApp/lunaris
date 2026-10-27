@@ -1,6 +1,5 @@
 import { expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
-import { runInNewContext } from "node:vm";
 import { parse } from "yaml";
 import { releaseRulesets } from "./rulesets";
 
@@ -33,31 +32,17 @@ test("rules preserve immutable history even for automation and scoped tags", () 
   expect(JSON.stringify(rules)).not.toContain("refs/tags/desktop");
 });
 
-test("release automation runs without configuration flags and preserves branch guards", () => {
-  const prepare = workflow("release.prepare").jobs.prepare.if;
-  const publish = workflow("release.publish").jobs.version.if.trim();
-  for (const branch of ["main", "next", "feature/test"]) {
-    for (const event of ["push", "workflow_dispatch"]) {
-      for (const message of [
-        "feat: ship changes",
-        "chore(release): version packages",
-      ]) {
-        const context = {
-          vars: { DELIVERY_MODE: "legacy" },
-          github: {
-            ref: `refs/heads/${branch}`,
-            event_name: event,
-            event: { head_commit: { message } },
-          },
-        };
-        expect(runInNewContext(prepare, context)).toBe(branch === "next");
-        expect(runInNewContext(publish, context)).toBe(
-          branch === "main" &&
-            (event === "workflow_dispatch" ||
-              message !== "chore(release): version packages")
-        );
-      }
-    }
+test("legacy release entrypoints stay retired without configuration flags", () => {
+  for (const name of ["release.prepare", "release.publish", "release"]) {
+    const jobs = workflow(name).jobs;
+    const entry =
+      name === "release.prepare"
+        ? jobs.prepare
+        : name === "release.publish"
+          ? jobs.version
+          : Object.values(jobs)[0];
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub Actions expression.
+    expect(entry.if).toBe("${{ false }}");
   }
   const policy = workflow("ci").jobs["release-policy"];
   expect(policy.if).toBe("github.event_name == 'pull_request'");

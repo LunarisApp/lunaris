@@ -4,8 +4,8 @@ Develop on `main`. Feature PRs use squash merges after aggregate `CI`, CodeQL,
 and code-owner review. Product changes need no Changeset. Public SDK/UI changes
 still need Changesets and publish independently through npm version PRs.
 
-`DELIVERY_MODE` controls rollout: empty/`legacy` retains historical release
-orchestration; `cutover` pauses publication; `trunk` enables the new pipeline.
+GitHub workflow enable/disable controls pause publication during migration.
+Legacy release entrypoints stay retired; no delivery mode variable is needed.
 Never enable two deployment owners for one Railway service.
 
 ## Delivery flow
@@ -96,7 +96,7 @@ without secret values. It never changes GitHub. Apply retains original snapshot
 across retries and pauses publication before mutations; blockers leave it paused.
 
 Drain legacy publications and draft releases, then reconcile next into main while
-`DELIVERY_MODE=cutover`. Merge implementation before applying settings from clean
+delivery workflows are disabled. Merge implementation before applying settings from clean
 current main:
 
 ```sh
@@ -113,7 +113,7 @@ Every changed policy is read back; failures retain paused publication.
 
 Settings alone do not prove staging or publication. Complete isolated release
 rehearsal and verify npm trust; rerun with `RELEASE_REHEARSAL_VERIFIED=true` only
-when that evidence exists. This enables trunk last. Keep original snapshots and
+when that evidence exists. This enables delivery workflows last. Keep original snapshots and
 historical release records for recovery.
 
 ## Validation and measurement

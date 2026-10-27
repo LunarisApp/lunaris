@@ -56,7 +56,6 @@ jobs:
         env:
           CI_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           CI_FULL: ${{ github.event_name == 'workflow_dispatch' || inputs.ref != '' }}
-          CI_SHADOW: ${{ vars.DELIVERY_MODE != 'trunk' }}
         run: bun tooling/ci-selection.ts
 
   quality:
@@ -242,8 +241,6 @@ jobs:
       - uses: ./.github/actions/cache-turbo
       - run: bun install --frozen-lockfile
       - run: bun tooling/release/automation/check-policy.ts
-        env:
-          DELIVERY_MODE: ${{ vars.DELIVERY_MODE }}
 
   landing:
     needs: changes
@@ -279,7 +276,7 @@ jobs:
 
   e2e:
     if: >-
-      inputs.ref != '' || github.event_name == 'workflow_dispatch' || (vars.DELIVERY_MODE != 'trunk' && github.event_name == 'pull_request' && github.base_ref == 'main' && !github.event.pull_request.draft)
+      inputs.ref != '' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/e2e.yml
     with:
       ref: ${{ inputs.ref || github.sha }}
@@ -313,5 +310,5 @@ jobs:
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}
           EVENT: ${{ github.event_name }}
-          E2E_REQUIRED: ${{ inputs.ref != '' || github.event_name == 'workflow_dispatch' || (vars.DELIVERY_MODE != 'trunk' && github.event_name == 'pull_request' && github.base_ref == 'main' && !github.event.pull_request.draft) }}
+          E2E_REQUIRED: ${{ inputs.ref != '' || github.event_name == 'workflow_dispatch' }}
         run: bun tooling/ci/gate.ts

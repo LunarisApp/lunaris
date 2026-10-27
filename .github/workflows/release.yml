@@ -25,7 +25,7 @@ env:
 
 jobs:
   source:
-    if: (vars.DELIVERY_MODE == '' || vars.DELIVERY_MODE == 'legacy') && github.ref == 'refs/heads/main'
+    if: ${{ false }} # Retired; stable product and npm workflows own publication.
     name: Validate native source
     runs-on: ubuntu-latest
     permissions:

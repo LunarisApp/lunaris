@@ -32,7 +32,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   resolve:
-    if: vars.DELIVERY_MODE == 'trunk' && github.ref == 'refs/heads/main' && (inputs.stable_release || inputs.rollback_deployment_id != '')
+    if: github.ref == 'refs/heads/main' && (inputs.stable_release || inputs.rollback_deployment_id != '')
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.resolve.outputs.sha }}

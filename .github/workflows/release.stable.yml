@@ -16,7 +16,7 @@ permissions:
   contents: read
 jobs:
   reserve:
-    if: vars.DELIVERY_MODE == 'trunk' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: release
     permissions:

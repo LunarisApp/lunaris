@@ -68,6 +68,40 @@ interface Environment {
     reviewers?: { type: string; reviewer: { id: number } }[];
   }[];
 }
+const legacyWorkflows = [
+  "release.prepare.yml",
+  "release.publish.yml",
+  "release.yml",
+];
+const deliveryWorkflows = [
+  "core.candidate.yml",
+  "core.promote.yml",
+  "release.stable.yml",
+  "artifacts.prepare.yml",
+  "artifacts.publish.yml",
+  "sites.deploy.yml",
+];
+interface Workflow {
+  id: number;
+  path: string;
+  state: string;
+}
+function readWorkflows() {
+  return pages<{ workflows: Workflow[] }>(
+    "actions/workflows?per_page=100"
+  ).flatMap((page) => page.workflows);
+}
+const workflows = readWorkflows();
+async function setWorkflow(workflow: Workflow, enabled: boolean) {
+  await request(
+    `actions/workflows/${workflow.id}/${enabled ? "enable" : "disable"}`,
+    "PUT"
+  );
+  const actual = get<Workflow>(`actions/workflows/${workflow.id}`);
+  if (actual.state !== (enabled ? "active" : "disabled_manually")) {
+    throw new Error(`Workflow state readback failed: ${workflow.path}`);
+  }
+}
 const variables = pages<{ variables: Variable[] }>(
   "actions/variables?per_page=100"
 ).flatMap((page) => page.variables);
@@ -128,7 +162,7 @@ const snapshotPath = resolve(directory, "before.json");
 if (!existsSync(snapshotPath)) {
   writeFileSync(
     snapshotPath,
-    `${JSON.stringify({ repository, metadata, rules: fullRules, environments: environmentDetails, actions, workflowPermissions, variableNames: variables.map((entry) => entry.name), secretNames, prs }, null, 2)}\n`,
+    `${JSON.stringify({ repository, metadata, rules: fullRules, environments: environmentDetails, actions, workflowPermissions, variableNames: variables.map((entry) => entry.name), secretNames, prs, workflows }, null, 2)}\n`,
     { mode: 0o600 }
   );
 } else if (
@@ -258,16 +292,38 @@ console.log(
 if (!apply) {
   process.exit(0);
 }
-// Pause publication before any operation that can fail. A retry reuses original snapshot.
-run("gh", [
-  "variable",
-  "set",
-  "DELIVERY_MODE",
-  "--repo",
-  repository,
-  "--body",
-  "cutover",
-]);
+// Pause entrypoints using GitHub's workflow controls, independent of checked-in code.
+const workflowSnapshot = resolve(directory, "workflows-before.json");
+if (!existsSync(workflowSnapshot)) {
+  writeFileSync(workflowSnapshot, `${JSON.stringify(workflows, null, 2)}\n`, {
+    mode: 0o600,
+  });
+}
+for (const workflow of workflows) {
+  if (
+    [...legacyWorkflows, ...deliveryWorkflows].some(
+      (name) => workflow.path === `.github/workflows/${name}`
+    )
+  ) {
+    await setWorkflow(workflow, false);
+  }
+}
+// Existing runs can evaluate later jobs after disable; drain before removing old guards.
+if (blockers.some((blocker) => blocker.startsWith("Active release runs"))) {
+  throw new Error(
+    "Drain active release runs before removing historical publication guards"
+  );
+}
+// Removing the historical switch is safe only after legacy entrypoints are disabled.
+if (value("DELIVERY_MODE") !== undefined) {
+  await request("actions/variables/DELIVERY_MODE", "DELETE");
+  const remaining = pages<{ variables: Variable[] }>(
+    "actions/variables?per_page=100"
+  ).flatMap((page) => page.variables);
+  if (remaining.some((entry) => entry.name === "DELIVERY_MODE")) {
+    throw new Error("Obsolete delivery variable still exists");
+  }
+}
 if (blockers.length) {
   throw new Error(
     `Cutover blocked; publication disabled: ${blockers.join("; ")}`
@@ -413,18 +469,42 @@ if (process.env.RELEASE_REHEARSAL_VERIFIED !== "true") {
     "Settings migrated; publication paused. Verify isolated release rehearsal and npm trust, then rerun with RELEASE_REHEARSAL_VERIFIED=true"
   );
 }
-run("gh", [
-  "variable",
-  "set",
-  "DELIVERY_MODE",
-  "--repo",
-  repository,
-  "--body",
-  "trunk",
-]);
-if (
-  get<{ value: string }>("actions/variables/DELIVERY_MODE").value !== "trunk"
-) {
-  throw new Error("Delivery mode readback failed");
+const available = readWorkflows();
+for (const name of deliveryWorkflows) {
+  if (
+    !available.some((workflow) => workflow.path === `.github/workflows/${name}`)
+  ) {
+    throw new Error(
+      `Delivery workflow missing: ${name}; publication remains paused`
+    );
+  }
 }
-console.log("GitHub cutover verified; trunk enabled.");
+try {
+  for (const name of deliveryWorkflows) {
+    await setWorkflow(
+      available.find(
+        (workflow) => workflow.path === `.github/workflows/${name}`
+      )!,
+      true
+    );
+  }
+} catch (error) {
+  const failures = [];
+  for (const workflow of available.filter((entry) =>
+    deliveryWorkflows.some((name) => entry.path === `.github/workflows/${name}`)
+  )) {
+    try {
+      await setWorkflow(workflow, false);
+    } catch {
+      failures.push(workflow.path);
+    }
+  }
+  if (failures.length) {
+    throw new Error(
+      `Activation failed; manually disable workflows: ${failures.join(", ")}`,
+      { cause: error }
+    );
+  }
+  throw error;
+}
+console.log("GitHub cutover verified; delivery workflows enabled.");

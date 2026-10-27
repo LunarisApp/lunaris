@@ -4,7 +4,6 @@ import {
   parseChangeset,
   readWorkspaces,
   validateHotfix,
-  validateSource,
 } from "./policy";
 import { git } from "./process";
 
@@ -14,13 +13,6 @@ const event = JSON.parse(
 const pr = event.pull_request;
 if (!pr) {
   throw new Error("Expected pull_request event");
-}
-if (process.env.DELIVERY_MODE !== "trunk") {
-  validateSource(
-    pr.base.ref,
-    pr.head.ref,
-    pr.head.repo.full_name === pr.base.repo.full_name
-  );
 }
 const base = git("merge-base", pr.base.sha, pr.head.sha);
 const files = git("diff", "--name-only", base, pr.head.sha).split("\n");
@@ -51,10 +43,7 @@ if (!reviewedHistory) {
     changesets.flatMap((entry) => Object.keys(entry.releases))
   );
   const affected = affectedTargets(files, readWorkspaces());
-  const required =
-    process.env.DELIVERY_MODE === "trunk"
-      ? affected.filter((name) => name.startsWith("@lunarisapp/"))
-      : affected;
+  const required = affected.filter((name) => name.startsWith("@lunarisapp/"));
   const config = JSON.parse(readFileSync(".changeset/config.json", "utf8")) as {
     ignore: string[];
   };

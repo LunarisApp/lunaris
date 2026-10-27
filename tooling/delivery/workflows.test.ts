@@ -43,11 +43,11 @@ test("production uses trusted tooling and resolves evidence before source checko
     ".delivery-tools/tooling/delivery/core.ts"
   );
 });
-test("native publication validates input before every release checkout", () => {
+test("retired native publication retains source validation before checkout", () => {
   const { jobs } = workflow("release");
   const source = jobs.source;
-  expect(source.if).toContain("github.ref == 'refs/heads/main'");
-  expect(source.if).toContain("legacy");
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub Actions expression.
+  expect(source.if).toBe("${{ false }}");
   expect(source.permissions).toEqual({ contents: "read", checks: "read" });
   expect(source.steps[0].with.ref).toBeUndefined();
   expect(source.steps[0].with["fetch-depth"]).toBe(0);
