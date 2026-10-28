@@ -61,6 +61,50 @@ export const scope = (destination: Destination) => [
   destination.service,
 ];
 
+/** Preserve explicit nulls: the CLI's typed config serializer omits them. */
+export async function patchEnvironment(
+  destination: Destination,
+  patch: unknown,
+  commitMessage: string
+) {
+  const token = process.env.RAILWAY_API_TOKEN?.trim();
+  if (!token) {
+    throw new Error("RAILWAY_API_TOKEN is required before deployment");
+  }
+  const response = await fetch("https://backboard.railway.com/graphql/v2", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query: `mutation EnvironmentPatchCommit($environmentId: String!, $patch: EnvironmentConfig!, $commitMessage: String) {
+        environmentPatchCommit(environmentId: $environmentId, patch: $patch, commitMessage: $commitMessage)
+      }`,
+      variables: {
+        environmentId: destination.environment,
+        patch,
+        commitMessage,
+      },
+    }),
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!response.ok) {
+    throw new Error(
+      `Railway environment patch failed: HTTP ${response.status}`
+    );
+  }
+  const result = (await response.json()) as {
+    data?: { environmentPatchCommit?: string };
+    errors?: { message: string }[];
+  };
+  if (result.errors?.length || !result.data?.environmentPatchCommit) {
+    throw new Error(
+      "Railway environment patch failed; reconcile before retrying"
+    );
+  }
+}
+
 export async function verifyHealth(destination: Destination, sha?: string) {
   const response = await fetch(destination.healthUrl, {
     signal: AbortSignal.timeout(30_000),

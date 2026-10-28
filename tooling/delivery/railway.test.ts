@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { afterEach, expect, spyOn, test } from "bun:test";
 import {
+  appendFileSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -9,7 +10,12 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { deploySource, settle, type Destination } from "./railway";
+import {
+  deploySource,
+  patchEnvironment,
+  settle,
+  type Destination,
+} from "./railway";
 import { lastSuccess } from "./github";
 import { deployCore, deployImage } from "./core-deploy";
 import type { Candidate } from "./candidate";
@@ -57,6 +63,7 @@ function fixture() {
 import { appendFileSync, readFileSync } from "node:fs";
 const args = process.argv.slice(2);
 appendFileSync(process.env.FIXTURE_CALLS, JSON.stringify(args)+"\\n");
+if (args[0] === "environment") throw new Error("CLI drops explicit nulls; use the patch API");
 if (args[0] === "variable" && process.env.FIXTURE_FAILURE === "variable") process.exit(1);
 if (args[0] === "deployment" && process.env.FIXTURE_FAILURE === "preflight") process.exit(1);
 if (args[0] === "up") {
@@ -81,6 +88,7 @@ else console.log("{}");
   );
   process.env.PATH = `${join(root, "bin")}:${dirname(process.execPath)}:${originals.PATH}`;
   process.env.GH_TOKEN = "fixture";
+  process.env.RAILWAY_API_TOKEN = "fixture";
   process.env.GITHUB_REPOSITORY = "fixture/repo";
   process.env.FIXTURE_CALLS = calls;
   const spawn = Bun.spawn.bind(Bun);
@@ -113,6 +121,36 @@ else console.log("{}");
     options?: Parameters<typeof fetch>[1]
   ) => {
     const url = new URL(String(input));
+    if (url.hostname === "backboard.railway.com") {
+      if (process.env.FIXTURE_FAILURE === "patch-http") {
+        return new Response("unavailable", { status: 503 });
+      }
+      if (process.env.FIXTURE_FAILURE === "patch-graphql") {
+        return Response.json({ errors: [{ message: "Patch rejected" }] });
+      }
+      const { variables } = JSON.parse(String(options?.body));
+      expect(variables.environmentId).toBe(id);
+      const source = variables.patch.services[id].source;
+      // Model a service inherited from a repo deployment, then merge the patch.
+      expect({
+        repo: "fixture/repo",
+        branch: "main",
+        commitSha: "old",
+        ...source,
+      }).toEqual({
+        repo: null,
+        branch: null,
+        commitSha: null,
+        image: expect.stringContaining("@sha256:"),
+      });
+      appendFileSync(
+        calls,
+        `${JSON.stringify(["environment", "patch", variables])}\n`
+      );
+      return Response.json({
+        data: { environmentPatchCommit: "fixture-workflow" },
+      });
+    }
     if (url.hostname === "fixture.test") {
       if (url.pathname === "/runtime-config.json") {
         return Response.json({ REGION_DIRECTORY_URL: "/regions.json" });
@@ -292,6 +330,17 @@ test("image retries preserve successful region records", async () => {
   expect((await lastSuccess(`staging/api/${f.destination.service}`))?.sha).toBe(
     f.sha
   );
+});
+
+test("environment patches reject HTTP and GraphQL failures", async () => {
+  const f = fixture();
+  for (const failure of ["patch-http", "patch-graphql"]) {
+    process.env.FIXTURE_FAILURE = failure;
+    await expect(
+      patchEnvironment(f.destination, {}, "fixture")
+    ).rejects.toThrow("Railway environment patch failed");
+  }
+  expect(f.edits()).toHaveLength(0);
 });
 
 test("failed image attempts can deploy the same immutable image again", async () => {

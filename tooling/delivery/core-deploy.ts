@@ -7,6 +7,7 @@ import {
 } from "./github";
 import {
   destinations,
+  patchEnvironment,
   TerminalDeploymentError,
   railway,
   scope,
@@ -85,22 +86,19 @@ export async function deployImage(
     "in_progress",
     "Changing environment image; reconcile unknown outcomes"
   );
-  await railway(
-    [
-      "environment",
-      "edit",
-      "--project",
-      destination.project,
-      "--environment",
-      destination.environment,
-      "--message",
-      `${component} ${image.sha}`,
-      "--json",
-    ],
+  await patchEnvironment(
+    destination,
     {
       services: {
         [destination.service]: {
-          source: { image: image.image },
+          // Environment edits merge fields: a retained repo takes precedence over
+          // the image and rebuilds source with incompatible image entrypoints.
+          source: {
+            image: image.image,
+            repo: null,
+            branch: null,
+            commitSha: null,
+          },
           variables: {
             LUNARIS_BUILD_SHA: { value: image.sha },
             LUNARIS_DELIVERY_ATTEMPT: { value: String(record.id) },
@@ -112,7 +110,8 @@ export async function deployImage(
           },
         },
       },
-    }
+    },
+    `${component} ${image.sha}`
   );
   let id: string | undefined;
   try {
