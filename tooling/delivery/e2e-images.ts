@@ -56,6 +56,8 @@ run(
     "host",
     "--env-file",
     "apps/api/.env.e2e",
+    "-e",
+    "NODE_ENV=development",
     images.api,
   ],
   { inheritOutput: true }

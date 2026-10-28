@@ -1,5 +1,12 @@
 import { createDeployment, deployments, setStatus, statuses } from "./github";
-import { parseRailwayUpload } from "../release/automation/railway-upload";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { run } from "../release/automation/process";
+import {
+  parseRailwayUpload,
+  RailwayPackagingError,
+} from "../release/automation/railway-upload";
 import { z } from "zod";
 
 export const destinationSchema = z.object({
@@ -19,10 +26,7 @@ export function destinations(component: string): Destination[] {
   const value = JSON.parse(process.env.RAILWAY_RELEASE_TARGETS ?? "{}");
   return z.array(destinationSchema).min(1).parse(value[component]);
 }
-export async function railway(
-  args: string[],
-  input?: unknown
-): Promise<string> {
+async function railwayResult(args: string[], input?: unknown) {
   const child = Bun.spawn(["railway", ...args], {
     stdin: input === undefined ? "ignore" : new Blob([JSON.stringify(input)]),
     stdout: "pipe",
@@ -33,10 +37,20 @@ export async function railway(
     new Response(child.stdout).text(),
     new Response(child.stderr).text(),
   ]);
-  if (exit !== 0) {
-    throw new Error(`Railway ${args[0]} failed: ${stderr.slice(0, 500)}`);
+  return { ok: exit === 0, text: stdout, stderr };
+}
+
+export async function railway(
+  args: string[],
+  input?: unknown
+): Promise<string> {
+  const { ok, text, stderr } = await railwayResult(args, input);
+  if (!ok) {
+    throw new Error(
+      `Railway ${args[0]} failed: ${(stderr || text).slice(0, 2000)}`
+    );
   }
-  return stdout;
+  return text;
 }
 export const scope = (destination: Destination) => [
   "--project",
@@ -177,15 +191,44 @@ export async function deploySource(
       );
       throw error;
     }
-    const text = await railway([
-      "up",
-      ...scope(destination),
-      "--detach",
-      "--json",
-      "--message",
-      `${component} ${sha}`,
-    ]);
-    providerId = parseRailwayUpload({ ok: true, text, stderr: "" });
+    const source = mkdtempSync(join(tmpdir(), "lunaris-site-source-"));
+    let uploadStarted = false;
+    try {
+      // Upload committed inputs only. Build outputs can contain dangling links
+      // that the CLI follows before excluding ignored paths from its archive.
+      run("git", [
+        "archive",
+        "--format=tar",
+        "--output",
+        join(source, "source.tar"),
+        sha,
+      ]);
+      run("tar", ["-xf", join(source, "source.tar"), "-C", source]);
+      rmSync(join(source, "source.tar"));
+      uploadStarted = true;
+      const upload = await railwayResult([
+        "up",
+        source,
+        "--path-as-root",
+        ...scope(destination),
+        "--detach",
+        "--json",
+        "--message",
+        `${component} ${sha}`,
+      ]);
+      providerId = parseRailwayUpload(upload);
+    } catch (error) {
+      if (!uploadStarted || error instanceof RailwayPackagingError) {
+        await setStatus(
+          deployment.id,
+          "failure",
+          "Packaging failed before source upload"
+        );
+      }
+      throw error;
+    } finally {
+      rmSync(source, { recursive: true, force: true });
+    }
     await setStatus(deployment.id, "in_progress", `railway:${providerId}`);
   }
   if (!deployment) {
