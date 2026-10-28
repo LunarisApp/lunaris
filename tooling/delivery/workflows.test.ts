@@ -198,3 +198,17 @@ test("desktop installers build on native runners in CI and stable releases", () 
     ).if
   ).toContain("mode == 'adhoc'");
 });
+
+test("desktop source validation runs before requested code or caches", () => {
+  const { jobs } = workflow("desktop.build");
+  const source = jobs.source;
+  expect(source.steps[0].with.ref).toBeUndefined();
+  expect(source.steps[0].with["persist-credentials"]).toBe(false);
+  expect(source.steps).toHaveLength(2);
+  expect(jobs.build.needs).toBe("source");
+  expect(jobs.build.steps[0].with.ref).toContain("needs.source.outputs.sha");
+  expect(jobs.build.env.LUNARIS_BUILD_SHA).toContain(
+    "needs.source.outputs.sha"
+  );
+  expect(jobs.build.steps[0].with["persist-credentials"]).toBe(false);
+});

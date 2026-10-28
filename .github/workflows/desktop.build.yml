@@ -15,7 +15,46 @@ permissions:
   contents: read
   actions: read
 jobs:
+  source:
+    name: Validate desktop source
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      sha: ${{ steps.source.outputs.sha }}
+    steps:
+      # Keep validation on the workflow revision before executing the requested source.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Restrict source to the PR context or trunk history
+        id: source
+        shell: bash
+        env:
+          SOURCE_REF: ${{ inputs.ref }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_SHA: ${{ github.sha }}
+          RELEASE_BUILD: ${{ inputs.publish }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$SOURCE_REF" =~ ^[a-f0-9]{40}$ ]]; then
+            echo 'Desktop source must be a full commit SHA' >&2
+            exit 1
+          fi
+          if [ "$EVENT_NAME" = pull_request ]; then
+            if [ "$RELEASE_BUILD" = true ] || [ "$SOURCE_REF" != "$EVENT_SHA" ]; then
+              echo 'PR builds must use the current PR commit and cannot publish' >&2
+              exit 1
+            fi
+          else
+            git merge-base --is-ancestor "$SOURCE_REF" refs/remotes/origin/main
+          fi
+          sha="$(git rev-parse --verify "$SOURCE_REF^{commit}")"
+          printf 'sha=%s\n' "$sha" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: source
     permissions:
       contents: read
       actions: read
@@ -43,14 +82,15 @@ jobs:
       CYPRESS_INSTALL_BINARY: 0
       PRODUCT_VERSION: ${{ inputs.version }}
       PRODUCT_GROUP: desktop-${{ matrix.platform }}
-      LUNARIS_BUILD_SHA: ${{ inputs.ref }}
+      LUNARIS_BUILD_SHA: ${{ needs.source.outputs.sha }}
       LUNARIS_BUILD_VERSION: ${{ inputs.version }}
       VITE_REGION_DIRECTORY_URL: https://lunaris.app/.well-known/lunaris-regions
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ needs.source.outputs.sha }}
           fetch-depth: 0
+          persist-credentials: false
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile
       - name: Restore immutable release assets
