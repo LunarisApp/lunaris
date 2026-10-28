@@ -500,6 +500,35 @@ describe("RegionProvider", () => {
     expect(screen.getByText("selection-ready")).toBeTruthy();
   });
 
+  it("unblocks sign-in for a single discovered region without a selector", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+      Response.json(
+        String(input) === DEFAULT_REGION_DIRECTORY_URL
+          ? {
+              schemaVersion: 1,
+              regions: [
+                {
+                  regionId: "eu",
+                  displayName: "Europe",
+                  status: "available",
+                  manifestUrl: "https://api-eu.example.com/v1/manifest",
+                },
+              ],
+            }
+          : EU_MANIFEST
+      )
+    );
+    render(
+      <MemoryRouter initialEntries={["/auth"]}>
+        <RegionProvider>
+          <RegionProbe />
+        </RegionProvider>
+      </MemoryRouter>
+    );
+    expect(await screen.findByText("eu")).toBeTruthy();
+    expect(screen.getByText("selection-ready")).toBeTruthy();
+  });
+
   it("keeps selectionRequired when config has no explicit default", async () => {
     const directoryWithoutDefault = [
       {

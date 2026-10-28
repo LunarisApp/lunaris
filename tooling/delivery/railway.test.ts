@@ -64,7 +64,9 @@ if (args[0] === "up") {
 } else if (args[0] === "deployment") {
   const edits = readFileSync(process.env.FIXTURE_CALLS,"utf8").trim().split("\\n").map(JSON.parse).filter(args => args[0] === "environment").length;
   const id = process.env.FIXTURE_IMAGE ? "11111111-1111-4111-8111-"+String(edits).padStart(12,"0") : "${id}";
-  console.log(JSON.stringify(process.env.FIXTURE_IMAGE && !edits ? [] : [{id,status:process.env.FIXTURE_FAILURE === "deployment" ? "FAILED" : "SUCCESS"}]));
+  const polls = readFileSync(process.env.FIXTURE_CALLS,"utf8").trim().split("\\n").map(JSON.parse).filter(args => args[0] === "deployment").length;
+  const status = process.env.FIXTURE_FAILURE === "slow-deployment" && polls <= 181 ? "DEPLOYING" : process.env.FIXTURE_FAILURE === "deployment" ? "FAILED" : "SUCCESS";
+  console.log(JSON.stringify(process.env.FIXTURE_IMAGE && !edits ? [] : [{id,status}]));
 }
 else console.log("{}");
 `,
@@ -184,6 +186,18 @@ test("successful site attempts resume without another upload", async () => {
     (await lastSuccess(`production/landing/${f.destination.service}`))?.sha
   ).toBe(f.sha);
 });
+test("slow site rollouts can finish after the old 30-minute polling window", async () => {
+  const f = fixture();
+  process.env.FIXTURE_FAILURE = "slow-deployment";
+  const sleep = spyOn(Bun, "sleep").mockResolvedValue(undefined);
+  restoreSleep = () => sleep.mockRestore();
+  await deploySource("landing", f.sha, f.destination);
+  expect(sleep).toHaveBeenCalledTimes(181);
+  expect(f.uploads()).toHaveLength(1);
+  expect(
+    (await lastSuccess(`production/landing/${f.destination.service}`))?.sha
+  ).toBe(f.sha);
+}, 30_000);
 test("site rollout waits for public routing to serve the expected revision", async () => {
   const f = fixture();
   const sleep = spyOn(Bun, "sleep").mockResolvedValue(undefined);

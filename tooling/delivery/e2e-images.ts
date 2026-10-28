@@ -88,7 +88,7 @@ for (const port of [5173, 4173]) {
       "-e",
       "VITE_REGION_DIRECTORY_URL=/regions.json",
       "-e",
-      'VITE_REGION_DIRECTORY_JSON=[{"id":"local","label":"Local","apiUrl":"http://localhost:3000","status":"active","default":true}]',
+      'VITE_REGION_DIRECTORY_JSON={"schemaVersion":1,"regions":[{"regionId":"local","displayName":"Local","manifestUrl":"http://localhost:3000/v1/manifest","status":"available"}]}',
       images.web,
     ],
     { inheritOutput: true }

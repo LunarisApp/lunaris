@@ -5,6 +5,19 @@ import { trunkRulesets } from "../release/automation/rulesets";
 
 const workflow = (name: string) =>
   parse(readFileSync(`.github/workflows/${name}.yml`, "utf8"));
+
+test("artifact publication carries permissions through nested workflows", () => {
+  const caller = workflow("artifacts.publish").jobs.npm.permissions;
+  const family = workflow("artifact.family").permissions;
+  const publish = workflow("self-host.publish").permissions;
+  const ranks: Record<string, number> = { none: 0, read: 1, write: 2 };
+  for (const [scope, level] of Object.entries(publish)) {
+    const required = ranks[level as string]!;
+    expect(ranks[family[scope] ?? "none"]!).toBeGreaterThanOrEqual(required);
+    expect(ranks[caller[scope] ?? "none"]!).toBeGreaterThanOrEqual(required);
+  }
+});
+
 test("independent sites have no core release dependency and never cancel active rollout", () => {
   const job = workflow("sites.deploy").jobs.deploy;
   expect(job.needs).toBeUndefined();

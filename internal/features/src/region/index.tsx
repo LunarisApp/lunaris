@@ -413,8 +413,9 @@ function ResolvedRegionProvider({
   });
   const regions = directory;
   const defaultRegion = useMemo(() => resolveDefaultRegion(regions), [regions]);
-  const hasConfiguredDefault = useMemo(
-    () => regions.some((entry) => entry.default === true),
+  const hasDefaultRegion = useMemo(
+    () =>
+      regions.length === 1 || regions.some((entry) => entry.default === true),
     [regions]
   );
   const queryRegionId = useMemo(
@@ -566,7 +567,7 @@ function ResolvedRegionProvider({
       pathWithRegion,
       region,
       regions,
-      selectionRequired: !(hasExplicitRegionSelection || hasConfiguredDefault),
+      selectionRequired: !(hasExplicitRegionSelection || hasDefaultRegion),
       setRegion,
       urlWithRegion,
     }),
@@ -575,7 +576,7 @@ function ResolvedRegionProvider({
       authClient,
       authUrl,
       error,
-      hasConfiguredDefault,
+      hasDefaultRegion,
       hasExplicitRegionSelection,
       isLoading,
       activeManifest,
