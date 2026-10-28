@@ -134,7 +134,7 @@ test("native builders retain signing and durable receipts; product artifact rele
   expect(workflow("artifacts.publish").jobs["self-hosted"]).toBeUndefined();
 });
 
-test("Homebrew is optional while S3 distribution remains required", () => {
+test("Homebrew is optional and only CLI publishes to S3", () => {
   const stable = workflow("release.stable");
   const preflight = stable.jobs.reserve.steps.find(
     (step: { id?: string }) => step.id === "distribution"
@@ -147,22 +147,18 @@ test("Homebrew is optional while S3 distribution remains required", () => {
   expect(
     steps.find((step: { run?: string }) => step.run?.includes("publish-s3.sh"))
       .if
-  ).toBeUndefined();
+  ).toBe("matrix.component == 'cli'");
   expect(
     steps.find(
       (step: { with?: { repository?: string } }) =>
         step.with?.repository === "LunarisApp/homebrew-tap"
     ).if
-  ).toBe(
-    "env.HOMEBREW_ENABLED == 'true' && (matrix.component == 'cli' || matrix.component == 'desktop')"
-  );
+  ).toBe("env.HOMEBREW_ENABLED == 'true'");
   expect(
     steps.find((step: { run?: string }) =>
       step.run?.includes("publish-homebrew.sh")
     ).if
-  ).toBe(
-    "env.HOMEBREW_ENABLED == 'true' && (matrix.component == 'cli' || matrix.component == 'desktop')"
-  );
+  ).toBe("env.HOMEBREW_ENABLED == 'true'");
   expect(stable.jobs.finalize.env.HOMEBREW_ENABLED).toBe(
     stable.jobs.distribute.env.HOMEBREW_ENABLED
   );
@@ -195,7 +191,7 @@ test("desktop installers build on native runners in CI and stable releases", () 
   ).toBe(true);
   expect(
     workflow("release.stable").jobs.distribute.strategy.matrix.component
-  ).toEqual(["cli", "desktop", "desktop-windows", "desktop-linux"]);
+  ).toEqual(["cli", "desktop"]);
   expect(
     workflow("native.build").jobs["build-desktop"].steps.find(
       (step: { name?: string }) => step.name === "Configure ad-hoc signing"

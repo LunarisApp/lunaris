@@ -1,12 +1,8 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, resolve } from "node:path";
 
-export type DistributionComponent =
-  | "cli"
-  | "desktop"
-  | "desktop-windows"
-  | "desktop-linux";
-export type DistributionSigningMode = "adhoc" | "signed" | "unsigned";
+export type DistributionComponent = "cli" | "desktop";
+export type DistributionSigningMode = "adhoc" | "signed";
 
 interface BuildManifestOptions {
   component: DistributionComponent;
@@ -19,18 +15,15 @@ interface BuildManifestOptions {
 
 interface DistributionManifest {
   artifacts: Array<{
-    format: "dmg" | "zip" | "exe" | "deb";
+    format: "dmg" | "zip";
     name: string;
     objectKey: string;
     sha256: string;
     size: number;
-    target:
-      | "universal-apple-darwin"
-      | "x86_64-pc-windows-msvc"
-      | "x86_64-unknown-linux-gnu";
+    target: "universal-apple-darwin";
   }>;
   component: DistributionComponent;
-  minimumSystemVersion?: "13.0";
+  minimumSystemVersion: "13.0";
   schemaVersion: 1;
   signingMode: DistributionSigningMode;
   sourceCommit: string;
@@ -67,19 +60,6 @@ export function expectedAssetName(
   version: string,
   signingMode: DistributionSigningMode
 ): string {
-  if (component === "desktop-windows" || component === "desktop-linux") {
-    if (signingMode !== "unsigned") {
-      throw new Error(
-        "Windows and Linux installers require unsigned signing mode"
-      );
-    }
-    return component === "desktop-windows"
-      ? `Lunaris-desktop-${version}-x86_64-pc-windows-msvc.exe`
-      : `Lunaris-desktop-${version}-x86_64-unknown-linux-gnu.deb`;
-  }
-  if (signingMode === "unsigned") {
-    throw new Error("macOS artifacts require signed or adhoc signing mode");
-  }
   const unsignedSuffix = signingMode === "adhoc" ? "-adhoc" : "";
   return component === "cli"
     ? `lunaris-cli-${version}-universal-apple-darwin${unsignedSuffix}.zip`
@@ -144,27 +124,13 @@ export function buildDistributionManifest({
         : `${component}@${version}`,
     sourceCommit,
     signingMode,
-    ...(component === "cli" || component === "desktop"
-      ? { minimumSystemVersion: "13.0" as const }
-      : {}),
+    minimumSystemVersion: "13.0",
     artifacts: [
       {
         name: basename(assetPath),
         objectKey: `${normalizedPrefix}/${component}/${version}/${assetName}`,
-        target:
-          component === "desktop-windows"
-            ? "x86_64-pc-windows-msvc"
-            : component === "desktop-linux"
-              ? "x86_64-unknown-linux-gnu"
-              : "universal-apple-darwin",
-        format:
-          component === "cli"
-            ? "zip"
-            : component === "desktop"
-              ? "dmg"
-              : component === "desktop-windows"
-                ? "exe"
-                : "deb",
+        target: "universal-apple-darwin",
+        format: component === "cli" ? "zip" : "dmg",
         size: statSync(assetPath).size,
         sha256,
       },
@@ -176,18 +142,13 @@ if (import.meta.main) {
   const [component, version, signingMode, distDirectory] =
     process.argv.slice(2);
   if (
-    (component !== "cli" &&
-      component !== "desktop" &&
-      component !== "desktop-windows" &&
-      component !== "desktop-linux") ||
+    (component !== "cli" && component !== "desktop") ||
     !version ||
-    (signingMode !== "signed" &&
-      signingMode !== "adhoc" &&
-      signingMode !== "unsigned") ||
+    (signingMode !== "signed" && signingMode !== "adhoc") ||
     !distDirectory
   ) {
     throw new Error(
-      "Usage: distribution-manifest.ts <cli|desktop|desktop-windows|desktop-linux> <version> <signed|adhoc|unsigned> <dist-directory>"
+      "Usage: distribution-manifest.ts <cli|desktop> <version> <signed|adhoc> <dist-directory>"
     );
   }
 

@@ -27,7 +27,8 @@ Never enable two deployment owners for one Railway service.
 - Only after artifact validation does stable promote tested hosted digests.
   API regions finish migrations and health checks, then PowerSync updates, then
   web deploys. Existing migration advisory locks support parallel API destinations.
-- Native S3 distribution follows hosted success. Homebrew updates run only when
+- CLI S3 distribution follows hosted success. Desktop installers publish only
+  as GitHub Release assets. Homebrew updates run only when
   `HOMEBREW_TAP_TOKEN` is configured; otherwise releases record Homebrew as disabled. One `vX.Y.Z`
   GitHub Release becomes public after every output succeeds. Its assets include
   installers, native archives, checksums, and `release-manifest.json`.

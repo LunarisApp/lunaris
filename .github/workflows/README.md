@@ -160,9 +160,9 @@ in separate jobs enabled only by the stable release caller.
 `Native - Build stable artifacts` also calls this workflow with the reserved
 product version. Windows and Linux installers have separate immutable receipts,
 join the same draft GitHub product release, and must succeed before hosted
-promotion. Stable distribution publishes separate S3 channels under
-`releases/desktop-windows` and `releases/desktop-linux`; final release checksums
-cover every platform. Homebrew remains macOS-only.
+promotion. All desktop installers publish exclusively as GitHub release assets;
+final release checksums cover every platform. CLI S3 publication stays enabled.
+Homebrew remains macOS-only, with desktop downloads resolved from GitHub Releases.
 
 Windows/Linux installers are currently unsigned. macOS retains universal DMG,
 Developer ID/notarization when all six `APPLE_*` repository secrets are present,

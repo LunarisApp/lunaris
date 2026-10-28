@@ -406,7 +406,8 @@ if (mode === "reserve") {
     assets,
     productionDeploymentId: deployed.id,
     distribution: {
-      s3: "published",
+      github: "published",
+      s3: { cli: "published" },
       homebrew:
         process.env.HOMEBREW_ENABLED === "true" ? "published" : "disabled",
     },
