@@ -27,9 +27,11 @@ const originals = {
 const roots: string[] = [];
 let restoreFetch: (() => void) | undefined;
 let restoreSpawn: (() => void) | undefined;
+let restoreSleep: (() => void) | undefined;
 afterEach(() => {
   restoreFetch?.();
   restoreSpawn?.();
+  restoreSleep?.();
   for (const [key, value] of Object.entries(originals)) {
     if (value === undefined) {
       delete process.env[key];
@@ -94,7 +96,7 @@ else console.log("{}");
   }[] = [];
   const state = new Map<number, { state: string; description: string }[]>();
   const sha = "a".repeat(40);
-  const health = { sha, responses: [] as string[] };
+  const health = { sha, responses: [] as (string | Response | Error)[] };
   const fetchMock = spyOn(globalThis, "fetch").mockImplementation((async (
     input: Parameters<typeof fetch>[0],
     options?: Parameters<typeof fetch>[1]
@@ -107,8 +109,15 @@ else console.log("{}");
       if (url.pathname === "/") {
         return new Response('<div id="root"></div>');
       }
+      const response = health.responses.shift() ?? health.sha;
+      if (response instanceof Error) {
+        throw response;
+      }
+      if (response instanceof Response) {
+        return response;
+      }
       return new Response("ok", {
-        headers: { "X-Lunaris-Commit": health.responses.shift() ?? health.sha },
+        headers: { "X-Lunaris-Commit": response },
       });
     }
     const path = url.pathname.replace("/repos/fixture/repo/", "");
@@ -174,6 +183,37 @@ test("successful site attempts resume without another upload", async () => {
   expect(
     (await lastSuccess(`production/landing/${f.destination.service}`))?.sha
   ).toBe(f.sha);
+});
+test("site rollout waits for public routing to serve the expected revision", async () => {
+  const f = fixture();
+  const sleep = spyOn(Bun, "sleep").mockResolvedValue(undefined);
+  restoreSleep = () => sleep.mockRestore();
+  f.health.responses.push(
+    "b".repeat(40),
+    new Response("unavailable", { status: 503 }),
+    new TypeError("fetch failed")
+  );
+  await deploySource("landing", f.sha, f.destination);
+  expect(sleep).toHaveBeenCalledTimes(3);
+  expect(f.uploads()).toHaveLength(1);
+  expect(
+    (await lastSuccess(`production/landing/${f.destination.service}`))?.sha
+  ).toBe(f.sha);
+});
+test("persistent revision mismatch exhausts retries without recording success", async () => {
+  const f = fixture();
+  const sleep = spyOn(Bun, "sleep").mockResolvedValue(undefined);
+  restoreSleep = () => sleep.mockRestore();
+  f.health.sha = "b".repeat(40);
+  await expect(deploySource("landing", f.sha, f.destination)).rejects.toThrow(
+    `expected ${f.sha}, received ${f.health.sha}`
+  );
+  expect(sleep).toHaveBeenCalledTimes(11);
+  expect(f.uploads()).toHaveLength(1);
+  expect(
+    await lastSuccess(`production/landing/${f.destination.service}`)
+  ).toBeUndefined();
+  expect(f.state.get(f.records[0]!.id)?.[0]?.state).toBe("error");
 });
 test("known provider failures create a fresh attempt on retry", async () => {
   const f = fixture();
