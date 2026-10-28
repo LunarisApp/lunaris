@@ -146,7 +146,9 @@ jobs:
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun tooling/delivery/product-release.ts restore dist
-      - run: bash tooling/release/publish-s3.sh "$COMPONENT" "$VERSION" "$SIGNING_MODE" dist
+      - name: Publish CLI to S3
+        if: matrix.component == 'cli'
+        run: bash tooling/release/publish-s3.sh "$COMPONENT" "$VERSION" "$SIGNING_MODE" dist
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         if: env.HOMEBREW_ENABLED == 'true'
         with:
@@ -159,7 +161,7 @@ jobs:
           GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
       - name: Record deferred Homebrew publication
         if: env.HOMEBREW_ENABLED != 'true'
-        run: echo 'Homebrew publication disabled; native artifacts are available through S3 and GitHub Releases.' >> "$GITHUB_STEP_SUMMARY"
+        run: echo 'Homebrew publication disabled. Native artifacts are attached to GitHub Releases; CLI archives are also available through S3.' >> "$GITHUB_STEP_SUMMARY"
   finalize:
     needs: [reserve, hosted, distribute]
     runs-on: ubuntu-latest

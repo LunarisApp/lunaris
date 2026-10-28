@@ -143,3 +143,34 @@ Green branch CI is not proof of deployment. Inspect the parent Release - Publish
 summary and recover failed publication before another release. Landing promotion
 also checks homepage, self-hosting page, installer redirect, and installer asset.
 See the [release runbook](../../docs/procedures/releasing-and-deploying.md#publication-status-and-landing-checks).
+
+## Desktop installers
+
+`Desktop - Build Windows and Linux` builds Windows x64 NSIS (`.exe`) and Linux
+x64 Debian (`.deb`) installers on native runners. Linux uses Ubuntu 22.04 as its
+compatibility baseline and requires WebKitGTK 4.1 at runtime. CI selects this
+workflow for desktop changes and affected dependencies; its result is required
+by the aggregate CI gate. CI artifacts remain downloadable for 14 days.
+
+Every build includes the compiled Bun agent sidecar, frontend, and third-party
+license notices. Rust tests and MCP smoke checks run against the built executable.
+Source validation runs on the workflow revision before requested code executes.
+PR builds must use the current PR commit and cannot publish; other events require
+an exact commit already in `main` history. Only the validated revision reaches
+build checkouts, which do not persist Git credentials.
+Build jobs have read-only repository permissions; release asset persistence runs
+in separate jobs enabled only by the stable release caller.
+
+`Native - Build stable artifacts` also calls this workflow with the reserved
+product version. Windows and Linux installers have separate immutable receipts,
+join the same draft GitHub product release, and must succeed before hosted
+promotion. All desktop installers publish exclusively as GitHub release assets;
+final release checksums cover every platform. CLI S3 publication stays enabled.
+Homebrew remains macOS-only, with desktop downloads resolved from GitHub Releases.
+
+Windows/Linux installers are currently unsigned. macOS retains universal DMG,
+Developer ID/notarization when all six `APPLE_*` repository secrets are present,
+and ad-hoc signing when none are present. Partial Apple credentials fail the
+release. See [Tauri distribution](https://v2.tauri.app/distribute/) for platform
+requirements. To release, run **Release Stable** on `main` with a successful
+**Core - Candidate** run ID; use the existing stable recovery flow for retries.

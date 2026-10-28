@@ -106,7 +106,7 @@ writeFileSync(process.env.FIXTURE_STATE,JSON.stringify(s));if(result!==undefined
     state: () => JSON.parse(readFileSync(statePath, "utf8")) as typeof initial,
     set: (state: typeof initial) =>
       writeFileSync(statePath, JSON.stringify(state)),
-    run: (mode: string, version = "") =>
+    run: (mode: string, version = "", group = "cli") =>
       spawnSync(
         process.execPath,
         [
@@ -127,7 +127,7 @@ writeFileSync(process.env.FIXTURE_STATE,JSON.stringify(s));if(result!==undefined
             GH_TOKEN: "fixture",
             PRODUCT_TAG_TOKEN: "fixture",
             PRODUCT_VERSION: version,
-            PRODUCT_GROUP: "cli",
+            PRODUCT_GROUP: group,
             GITHUB_RUN_ID: "200",
             CORE_CONFIGURATION_REVISION: "1",
             GITHUB_OUTPUT: join(root, "outputs"),
@@ -210,4 +210,25 @@ test("reservation survives outage between immutable tag and draft creation", () 
   expect(result.status).toBe(0);
   expect(f.state().releases.map((item) => item.tag_name)).toEqual(["v0.9.1"]);
   expect(f.state().reservations).toHaveLength(1);
+});
+
+test("Windows and Linux receipts restore installer bytes independently", () => {
+  for (const [group, target, format] of [
+    ["desktop-windows", "x86_64-pc-windows-msvc", "exe"],
+    ["desktop-linux", "x86_64-unknown-linux-gnu", "deb"],
+  ]) {
+    const f = fixture();
+    expect(f.run("reserve").status).toBe(0);
+    const name = `Lunaris-desktop-0.9.1-${target}.${format}`;
+    writeFileSync(join(f.root, "dist", name), "installer bytes");
+    const result = f.run("upload", "0.9.1", group);
+    expect(result.stderr).toBe("");
+    expect(result.status).toBe(0);
+    expect(f.state().files[`v0.9.1/${group}-receipt.json`]).toContain(name);
+    writeFileSync(join(f.root, "dist", name), "changed bytes");
+    expect(f.run("restore", "0.9.1", group).status).toBe(0);
+    expect(readFileSync(join(f.root, "dist", name), "utf8")).toBe(
+      "installer bytes"
+    );
+  }
 });

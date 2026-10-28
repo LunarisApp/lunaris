@@ -43,13 +43,22 @@ export const productPlanSchema = z
   })
   .strict();
 export type ProductPlan = z.infer<typeof productPlanSchema>;
+export const productGroups = [
+  "cli",
+  "desktop",
+  "desktop-windows",
+  "desktop-linux",
+  "self-hosted",
+] as const;
+export const productGroupSchema = z.enum(productGroups);
+
 export const assetReceiptSchema = z
   .object({
     schemaVersion: z.literal(1),
     version: z.string().regex(stableVersion),
     sourceCommit: z.string().regex(/^[a-f0-9]{40}$/),
     producerRunId: z.string().regex(/^\d+$/),
-    group: z.enum(["cli", "desktop", "self-hosted"]),
+    group: productGroupSchema,
     assets: z
       .array(
         z
@@ -74,7 +83,11 @@ export const assetReceiptSchema = z
           new RegExp(
             receipt.group === "cli"
               ? `^lunaris-cli-${version}-universal-apple-darwin(?:-adhoc)?\\.zip$`
-              : `^Lunaris-desktop-${version}-universal(?:-adhoc)?\\.dmg$`
+              : receipt.group === "desktop-windows"
+                ? `^Lunaris-desktop-${version}-x86_64-pc-windows-msvc\\.exe$`
+                : receipt.group === "desktop-linux"
+                  ? `^Lunaris-desktop-${version}-x86_64-unknown-linux-gnu\\.deb$`
+                  : `^Lunaris-desktop-${version}-universal(?:-adhoc)?\\.dmg$`
           ).test(names[0]!);
     if (!valid || new Set(names).size !== names.length) {
       context.addIssue({

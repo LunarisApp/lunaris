@@ -134,7 +134,7 @@ test("native builders retain signing and durable receipts; product artifact rele
   expect(workflow("artifacts.publish").jobs["self-hosted"]).toBeUndefined();
 });
 
-test("Homebrew is optional while S3 distribution remains required", () => {
+test("Homebrew is optional and only CLI publishes to S3", () => {
   const stable = workflow("release.stable");
   const preflight = stable.jobs.reserve.steps.find(
     (step: { id?: string }) => step.id === "distribution"
@@ -147,7 +147,7 @@ test("Homebrew is optional while S3 distribution remains required", () => {
   expect(
     steps.find((step: { run?: string }) => step.run?.includes("publish-s3.sh"))
       .if
-  ).toBeUndefined();
+  ).toBe("matrix.component == 'cli'");
   expect(
     steps.find(
       (step: { with?: { repository?: string } }) =>
@@ -171,4 +171,49 @@ test("CI owns site selection without Railway watch-path filtering", () => {
     );
     expect(config.build.watchPatterns).toEqual([]);
   }
+});
+
+test("desktop installers build on native runners in CI and stable releases", () => {
+  const platforms = workflow("desktop.build");
+  const build = platforms.jobs.build;
+  expect(build.strategy["fail-fast"]).toBe(false);
+  expect(
+    build.strategy.matrix.include.map((item: { runner: string }) => item.runner)
+  ).toEqual(["windows-2022", "ubuntu-22.04"]);
+  expect(workflow("native.build").jobs["persist-desktop-platforms"].needs).toBe(
+    "build-desktop-platforms"
+  );
+  expect(build.permissions.contents).toBe("read");
+  expect(workflow("ci").jobs.ci.needs).toContain("desktop-platforms");
+  expect(workflow("ci").jobs["desktop-platforms"].with.publish).toBeUndefined();
+  expect(
+    workflow("native.build").jobs["build-desktop-platforms"].with.publish
+  ).toBe(true);
+  expect(
+    workflow("release.stable").jobs.distribute.strategy.matrix.component
+  ).toEqual(["cli", "desktop"]);
+  expect(
+    workflow("native.build").jobs["build-desktop"].steps.find(
+      (step: { name?: string }) => step.name === "Configure ad-hoc signing"
+    ).if
+  ).toContain("mode == 'adhoc'");
+});
+
+test("desktop source validation runs before requested code or caches", () => {
+  const { jobs } = workflow("desktop.build");
+  const source = jobs.source;
+  expect(source.steps[0].with.ref).toBeUndefined();
+  expect(source.steps[0].with["persist-credentials"]).toBe(false);
+  expect(source.steps).toHaveLength(2);
+  expect(jobs.build.needs).toBe("source");
+  const checkout = jobs.build.steps.find((step: { uses?: string }) =>
+    step.uses?.startsWith("actions/checkout@")
+  );
+  expect(checkout.with.ref).toContain(
+    "needs.source.outputs.validated_revision"
+  );
+  expect(jobs.build.env.LUNARIS_BUILD_SHA).toContain(
+    "needs.source.outputs.validated_revision"
+  );
+  expect(checkout.with["persist-credentials"]).toBe(false);
 });

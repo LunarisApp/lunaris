@@ -9,6 +9,8 @@ import {
 import { basename, resolve } from "node:path";
 import {
   productVersion,
+  productGroups,
+  productGroupSchema,
   productPlanSchema,
   assetReceiptSchema,
   assertSamePlan,
@@ -279,10 +281,7 @@ if (mode === "reserve") {
   const tag = tagFromEnvironment();
   const plan = readPlan(tag);
   verifySource(plan);
-  const group = process.env.PRODUCT_GROUP;
-  if (group !== "cli" && group !== "desktop" && group !== "self-hosted") {
-    throw new Error("Product artifact group required");
-  }
+  const group = productGroupSchema.parse(process.env.PRODUCT_GROUP);
   const receiptName = `${group}-receipt.json`;
   const directory = resolve(process.argv[3] ?? "dist");
   mkdirSync(directory, { recursive: true });
@@ -340,7 +339,8 @@ if (mode === "reserve") {
   } else {
     const assets = readdirSync(directory)
       .filter(
-        (name) => /\.(zip|dmg|tar\.gz)$/.test(name) || name === "install.sh"
+        (name) =>
+          /\.(zip|dmg|exe|deb|tar\.gz)$/.test(name) || name === "install.sh"
       )
       .map((name) => ({ name, sha256: hash(resolve(directory, name)) }));
     const proposed = assetReceiptSchema.parse({
@@ -383,7 +383,7 @@ if (mode === "reserve") {
     throw new Error("Product candidate not deployed successfully");
   }
   const assets = [];
-  for (const group of ["cli", "desktop", "self-hosted"]) {
+  for (const group of productGroups) {
     const receipt = assetReceiptSchema.parse(
       JSON.parse(readFileSync(download(tag, `${group}-receipt.json`), "utf8"))
     );
@@ -406,7 +406,8 @@ if (mode === "reserve") {
     assets,
     productionDeploymentId: deployed.id,
     distribution: {
-      s3: "published",
+      github: "published",
+      s3: { cli: "published" },
       homebrew:
         process.env.HOMEBREW_ENABLED === "true" ? "published" : "disabled",
     },
