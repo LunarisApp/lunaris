@@ -136,7 +136,7 @@ jobs:
     name: Build CLI
     needs: [plan, signing, verify]
     if: needs.plan.outputs.cli == 'true'
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       contents: read
     env:
@@ -251,7 +251,7 @@ jobs:
     name: Build Desktop
     needs: [plan, signing, verify]
     if: needs.plan.outputs.desktop == 'true'
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       contents: read
     env:

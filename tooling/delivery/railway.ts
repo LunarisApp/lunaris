@@ -57,7 +57,7 @@ export async function verifyHealth(destination: Destination, sha?: string) {
     (sha && response.headers.get("X-Lunaris-Commit") !== sha)
   ) {
     throw new Error(
-      `Health/revision check failed for ${destination.healthUrl}`
+      `Health/revision check failed for ${destination.healthUrl}: status ${response.status}, expected ${sha ?? "any revision"}, received ${response.headers.get("X-Lunaris-Commit") ?? "missing revision"}`
     );
   }
 }
@@ -85,7 +85,18 @@ export async function waitForDeployment(
       throw new Error(`Deployment ${id} missing; reconcile before retrying`);
     }
     if (deployment.status === "SUCCESS") {
-      await verifyHealth(destination, sha);
+      // Public routing can still serve the previous replica after Railway succeeds.
+      for (let healthAttempt = 0; healthAttempt < 12; healthAttempt++) {
+        try {
+          await verifyHealth(destination, sha);
+          return;
+        } catch (error) {
+          if (healthAttempt === 11) {
+            throw error;
+          }
+          await Bun.sleep(10_000);
+        }
+      }
       return;
     }
     if (
