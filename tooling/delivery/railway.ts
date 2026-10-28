@@ -69,7 +69,8 @@ export async function waitForDeployment(
   id: string,
   sha?: string
 ) {
-  for (let attempt = 0; attempt < 180; attempt++) {
+  // Site image builds/uploads can consume most of the old 30-minute window.
+  for (let attempt = 0; attempt < 360; attempt++) {
     const items = JSON.parse(
       await railway([
         "deployment",

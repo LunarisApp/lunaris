@@ -12,7 +12,7 @@ export async function loadRuntimeConfig(options: {
 }): Promise<PublicRuntimeConfig> {
   let response: Response;
   try {
-    response = await options.request("/runtime-config.json", {
+    response = await options.request.call(globalThis, "/runtime-config.json", {
       cache: "no-store",
       signal: AbortSignal.timeout(5000),
     });

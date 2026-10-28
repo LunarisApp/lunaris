@@ -14,6 +14,17 @@ afterEach(() => {
   setPublicRuntimeConfig();
 });
 describe("web runtime configuration", () => {
+  it("calls native fetch with the browser receiver", async () => {
+    const request = vi.fn(function (this: unknown) {
+      if (this !== globalThis) {
+        throw new TypeError("Illegal invocation");
+      }
+      return Promise.resolve(Response.json(config));
+    });
+    await expect(loadRuntimeConfig({ request })).resolves.toEqual(config);
+    expect(request).toHaveBeenCalledOnce();
+  });
+
   it("serves only allowlisted public variables", () => {
     expect(
       publicConfigFromEnvironment({

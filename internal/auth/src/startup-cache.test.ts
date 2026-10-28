@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "bun:test";
+import { afterEach, describe, expect, it, spyOn } from "bun:test";
 import { createAuthClient } from "better-auth/client";
 import { organizationClient } from "better-auth/client/plugins";
 import { cleanStores } from "nanostores";
@@ -71,6 +71,30 @@ const saved = () => ({
 });
 
 describe("auth startup cache", () => {
+  it("preserves the browser receiver when using native fetch", async () => {
+    const nativeFetch = spyOn(globalThis, "fetch").mockImplementation(
+      async function (this: unknown) {
+        if (this !== globalThis) {
+          throw new TypeError("Illegal invocation");
+        }
+        return Response.json(null);
+      } as unknown as typeof fetch
+    );
+    cleanups.push(() => nativeFetch.mockRestore());
+    const client = createAuthClient({
+      baseURL,
+      basePath: BASE_PATH,
+      plugins: [startupCachePlugin({ baseURL, storage: memoryStorage() })],
+    });
+    cleanups.push(() => cleanStores(client.$store.atoms.session));
+
+    const result = await client.getSession();
+
+    expect(nativeFetch).toHaveBeenCalled();
+    expect(result.error).toBeNull();
+    expect(result.data).toBeNull();
+  });
+
   it("restores a coherent snapshot before network completes and refreshes normally", async () => {
     let respond!: (value: Response) => void;
     const { client } = setup({

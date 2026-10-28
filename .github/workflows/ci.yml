@@ -203,8 +203,10 @@ jobs:
   desktop-mcp:
     needs: changes
     if: needs.changes.outputs.desktop-mcp == 'true'
-    name: Desktop MCP (macos-15)
-    runs-on: macos-15
+    name: Desktop MCP (macos-15-intel)
+    # Keep this smoke test off the capacity-constrained macOS arm64 pool.
+    # Agent Rust still covers arm64 on macos-15.
+    runs-on: macos-15-intel
 
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6

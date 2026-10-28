@@ -179,7 +179,12 @@ export function startupCachePlugin({
         id: "lunaris-auth-startup-cache",
         name: "lunaris-auth-startup-cache",
         init(url, options) {
-          const originalFetch = options?.customFetchImpl ?? globalThis.fetch;
+          // Better Auth also supplies native fetch as customFetchImpl.
+          const sourceFetch = options?.customFetchImpl ?? globalThis.fetch;
+          const originalFetch =
+            sourceFetch === globalThis.fetch
+              ? sourceFetch.bind(globalThis)
+              : sourceFetch;
           const wrappedFetch = async (
             input: RequestInfo | URL,
             init?: RequestInit
