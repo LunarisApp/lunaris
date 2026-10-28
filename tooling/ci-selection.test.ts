@@ -76,3 +76,35 @@ test("ordinary core changes retain smoke and edition checks without full install
     selectChecks(["infra/self-host/compose.yaml"], [])["self-hosted"]
   ).toBe(true);
 });
+
+test("repository administration skips image builds while runtime delivery retains full validation", () => {
+  for (const file of [
+    "tooling/delivery/cutover.ts",
+    "tooling/delivery/cutover.integration.test.ts",
+    "tooling/delivery/repository-settings.ts",
+  ]) {
+    expect(
+      Object.values(selectChecks([file], [])).every((value) => !value)
+    ).toBe(true);
+  }
+  for (const file of [
+    "tooling/delivery/core.ts",
+    "tooling/delivery/product-release.ts",
+    "tooling/delivery/affected.ts",
+  ]) {
+    expect(Object.values(selectChecks([file], [])).every(Boolean)).toBe(true);
+  }
+});
+
+test("desktop dependencies select native Windows/Linux packaging", () => {
+  expect(
+    selectChecks(["internal/data/src/schema.ts"], ["desktop"])[
+      "desktop-platforms"
+    ]
+  ).toBe(true);
+  expect(
+    selectChecks(["apps/landing/src/page.tsx"], ["landing"])[
+      "desktop-platforms"
+    ]
+  ).toBe(false);
+});

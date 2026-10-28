@@ -4,9 +4,11 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, resolve } from "node:path";
 import { verifyPublicationCommit } from "../release/automation/manifest";
-import { output, run, summary } from "../release/automation/process";
+import { git, output, run, summary } from "../release/automation/process";
 import { createBundle } from "./bundle";
 import { renderBootstrap } from "./bootstrap";
+import { productPlanSchema, stableVersion } from "../delivery/product";
+import { verifyTrunk } from "../delivery/github";
 
 interface ImageReceipt {
   api: string;
@@ -15,10 +17,46 @@ interface ImageReceipt {
   web: string;
 }
 const digestPattern = /^sha256:[a-f0-9]{64}$/;
-const { sha, manifest } = verifyPublicationCommit();
+function publication() {
+  const version = process.env.PRODUCT_VERSION;
+  if (!version) {
+    return verifyPublicationCommit();
+  }
+  if (!stableVersion.test(version)) {
+    throw new Error("Invalid product version");
+  }
+  const sha = git("rev-parse", "HEAD");
+  verifyTrunk(sha);
+  const work = mkdtempSync(resolve(tmpdir(), "lunaris-product-plan-"));
+  run("gh", [
+    "release",
+    "download",
+    `v${version}`,
+    "--pattern",
+    "release-plan.json",
+    "--dir",
+    work,
+  ]);
+  const plan = productPlanSchema.parse(
+    JSON.parse(readFileSync(resolve(work, "release-plan.json"), "utf8"))
+  );
+  if (plan.version !== version || plan.candidate.sha !== sha) {
+    throw new Error("Self-hosted source differs from stable reservation");
+  }
+  return {
+    sha,
+    manifest: {
+      releases: [{ kind: "self-hosted", version, tag: `v${version}` }],
+    },
+  };
+}
+const { sha, manifest } = publication();
 const entry = manifest.releases.find(({ kind }) => kind === "self-hosted");
 if (process.argv[2] === "prepare") {
-  output("enabled", entry ? "true" : "false");
+  output(
+    "enabled",
+    entry && process.env.PRODUCT_CACHED !== "true" ? "true" : "false"
+  );
   if (entry) {
     output("version", entry.version);
     output("tag", entry.tag);
@@ -127,11 +165,27 @@ if (process.argv[2] === "prepare") {
     createHash("sha256").update(readFileSync(path)).digest("hex");
   const checksums = resolve(work, "SHA256SUMS");
   const installer = resolve(work, "install.sh");
-  writeFileSync(installer, renderBootstrap(entry.version, hash(archive)));
+  writeFileSync(
+    installer,
+    renderBootstrap(
+      entry.version,
+      hash(archive),
+      process.env.PRODUCT_VERSION ? `v${entry.version}` : undefined
+    )
+  );
   writeFileSync(
     checksums,
     `${hash(archive)}  ${basename(archive)}\n${hash(installer)}  install.sh\n`
   );
+  if (process.env.PRODUCT_VERSION) {
+    const dist = resolve("dist");
+    mkdirSync(dist, { recursive: true });
+    for (const path of [archive, installer, checksums]) {
+      writeFileSync(resolve(dist, basename(path)), readFileSync(path));
+    }
+    summary(`Prepared ${entry.tag}; source ${sha}; ${basename(archive)}`);
+    process.exit(0);
+  }
   const release: { assets: { name: string }[] } = JSON.parse(
     run("gh", ["release", "view", entry.tag, "--json", "assets"]).text
   );

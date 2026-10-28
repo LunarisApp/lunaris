@@ -1,42 +1,20 @@
 # GitHub workflows
 
-For the independent trunk pipeline, setup and staged cutover, see [Independent delivery](../../docs/procedures/independent-delivery.md).
-The legacy workflow below remains active only while `DELIVERY_MODE` is empty or `legacy`.
+See [trunk delivery and stable releases](../../docs/procedures/independent-delivery.md)
+for current architecture, migration, credentials and recovery.
 
+- CI gates feature PRs with affected checks and CodeQL.
+- Core - Candidate certifies private staging images after main merges.
+- Release Stable selects a candidate, builds all installable outputs, promotes
+  hosted digests, and publishes one product release.
+- Native - Build stable artifacts is reusable by the stable coordinator.
+- Core - Promote manual dispatch provides explicit rollback only.
+- Sites - Deploy independently deploys landing/docs after successful checks.
+- Artifacts - Prepare/Publish retain independent SDK/UI Changesets releases.
 
-- `ci.yml` validates pull requests and pushes to `main`/`next`, and supports manual
-  dispatch: code quality, types, unit tests, generated configs, Rust agents,
-  and Desktop MCP smoke tests.
-- `e2e.yml` runs the full browser suite for ready PRs into `main`, final release
-  commit validation, and manual runs. Feature PRs, draft release PRs, and ordinary
-  branch pushes skip E2E. Nightly runs are disabled to avoid duplicate costs.
-- `release.yml` manually builds/publishes CLI and Desktop; it owns no version PR.
-- `release.prepare.yml` creates a draft `next` to `main` release PR and preserves
-  its review state when updating release notes.
-- `release.publish.yml` versions, validates, tags, publishes, and back-merges.
-- `packages.publish.yml` publishes public npm packages through the coordinator.
-- `apps.publish.yml` deploys stable releases to Railway through the coordinator.
-- `self-host.test.yml` tests the isolated Compose deployment on native AMD64/ARM64.
-- `self-host.publish.yml` publishes digest-pinned CE images, a deployment bundle,
-  and a release-specific remote installer with an embedded bundle checksum
-  for `self-hosted@<version>`, after release validation. GHCR packages must be public
-  for anonymous installation; set their visibility after first image publication,
-  then rerun the bundle job. Anonymous access is checked before release promotion.
-  The landing site's `/install.sh` redirects to the latest stable self-hosted
-  installer asset; `?version=<version>` selects a specific release.
-
-See [release setup and operation](../../docs/procedures/releasing-and-deploying.md).
-Release automation and PR release-policy checks are enabled by default.
-PowerSync deployment runs through the hosted-app release pipeline; the standalone
-PowerSync push workflow has been retired.
-
-CI requires E2E success for ready PRs into `main` (including hotfixes), manual CI
-runs, and validation of the exact version commit. Other CI runs allow E2E to be
-skipped. New commits to a ready release PR rerun E2E and cancel superseded PR
-runs; keep the PR draft while accumulating changes. Publishing starts only after
-aggregate CI passes on the exact version commit.
-
-For optional feature-branch testing, dispatch `E2E` manually and select that branch.
+Legacy release preparation/publication and native publication are disabled in
+trunk mode. Historical recovery details follow; their branch/version choreography
+applies only before cutover.
 
 ## PowerSync deployment configuration
 
@@ -165,3 +143,34 @@ Green branch CI is not proof of deployment. Inspect the parent Release - Publish
 summary and recover failed publication before another release. Landing promotion
 also checks homepage, self-hosting page, installer redirect, and installer asset.
 See the [release runbook](../../docs/procedures/releasing-and-deploying.md#publication-status-and-landing-checks).
+
+## Desktop installers
+
+`Desktop - Build Windows and Linux` builds Windows x64 NSIS (`.exe`) and Linux
+x64 Debian (`.deb`) installers on native runners. Linux uses Ubuntu 22.04 as its
+compatibility baseline and requires WebKitGTK 4.1 at runtime. CI selects this
+workflow for desktop changes and affected dependencies; its result is required
+by the aggregate CI gate. CI artifacts remain downloadable for 14 days.
+
+Every build includes the compiled Bun agent sidecar, frontend, and third-party
+license notices. Rust tests and MCP smoke checks run against the built executable.
+Source validation runs on the workflow revision before requested code executes.
+PR builds must use the current PR commit and cannot publish; other events require
+an exact commit already in `main` history. Only the validated revision reaches
+build checkouts, which do not persist Git credentials.
+Build jobs have read-only repository permissions; release asset persistence runs
+in separate jobs enabled only by the stable release caller.
+
+`Native - Build stable artifacts` also calls this workflow with the reserved
+product version. Windows and Linux installers have separate immutable receipts,
+join the same draft GitHub product release, and must succeed before hosted
+promotion. All desktop installers publish exclusively as GitHub release assets;
+final release checksums cover every platform. CLI S3 publication stays enabled.
+Homebrew remains macOS-only, with desktop downloads resolved from GitHub Releases.
+
+Windows/Linux installers are currently unsigned. macOS retains universal DMG,
+Developer ID/notarization when all six `APPLE_*` repository secrets are present,
+and ad-hoc signing when none are present. Partial Apple credentials fail the
+release. See [Tauri distribution](https://v2.tauri.app/distribute/) for platform
+requirements. To release, run **Release Stable** on `main` with a successful
+**Core - Candidate** run ID; use the existing stable recovery flow for retries.

@@ -43,10 +43,11 @@ test("production uses trusted tooling and resolves evidence before source checko
     ".delivery-tools/tooling/delivery/core.ts"
   );
 });
-test("native publication validates input before every release checkout", () => {
+test("retired native publication retains source validation before checkout", () => {
   const { jobs } = workflow("release");
   const source = jobs.source;
-  expect(source.if).toBe("github.ref == 'refs/heads/main'");
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub Actions expression.
+  expect(source.if).toBe("${{ false }}");
   expect(source.permissions).toEqual({ contents: "read", checks: "read" });
   expect(source.steps[0].with.ref).toBeUndefined();
   expect(source.steps[0].with["fetch-depth"]).toBe(0);
@@ -94,4 +95,125 @@ test("npm recovery checkout contains transitive release tooling imports", () => 
     (step: { with?: { path?: string } }) => step.with?.path === ".release-tools"
   );
   expect(checkout.with["sparse-checkout"]).toContain("tooling/delivery");
+});
+
+test("stable release stages every artifact before production and finalizes after distribution", () => {
+  const { jobs, concurrency, on } = workflow("release.stable");
+  expect(Object.keys(on)).toEqual(["workflow_dispatch"]);
+  expect(on.workflow_dispatch.inputs.candidate_run_id.required).toBe(true);
+  expect(concurrency).toEqual({
+    group: "stable-release",
+    "cancel-in-progress": false,
+  });
+  expect(jobs.hosted.needs).toEqual(["reserve", "native", "self-hosted"]);
+  expect(jobs.finalize.needs).toEqual(["reserve", "hosted", "distribute"]);
+  expect(jobs.hosted.with.stable_release).toBe(true);
+  expect(workflow("core.promote").jobs.resolve.if).toContain(
+    "inputs.stable_release"
+  );
+  expect(jobs.native.uses).toBe("./.github/workflows/native.build.yml");
+  expect(
+    jobs.reserve.steps.find((step: { id?: string }) => step.id === "reserve")
+      .env.PRODUCT_TAG_TOKEN
+  ).toContain("steps.app.outputs.token");
+});
+test("native builders retain signing and durable receipts; product artifact releases exclude npm", () => {
+  const { jobs } = workflow("native.build");
+  for (const name of ["build-cli", "build-desktop"]) {
+    expect(
+      jobs[name].steps.some((step: { run?: string }) =>
+        step.run?.includes("product-version.ts")
+      )
+    ).toBe(true);
+    expect(jobs[name].steps.at(-1).run).toContain("product-release.ts upload");
+    expect(jobs[name].permissions.contents).toBe("write");
+  }
+  expect(
+    workflow("artifacts.prepare").jobs.version.strategy.matrix.family
+  ).toEqual(["npm"]);
+  expect(workflow("artifacts.publish").jobs["self-hosted"]).toBeUndefined();
+});
+
+test("Homebrew is optional and only CLI publishes to S3", () => {
+  const stable = workflow("release.stable");
+  const preflight = stable.jobs.reserve.steps.find(
+    (step: { id?: string }) => step.id === "distribution"
+  );
+  expect(preflight.run).toContain(
+    "for name in S3_ACCESS_KEY S3_SECRET_KEY S3_REGION S3_BUCKET; do"
+  );
+  expect(preflight.run).toContain("homebrew_enabled=false");
+  const steps = stable.jobs.distribute.steps;
+  expect(
+    steps.find((step: { run?: string }) => step.run?.includes("publish-s3.sh"))
+      .if
+  ).toBe("matrix.component == 'cli'");
+  expect(
+    steps.find(
+      (step: { with?: { repository?: string } }) =>
+        step.with?.repository === "LunarisApp/homebrew-tap"
+    ).if
+  ).toBe("env.HOMEBREW_ENABLED == 'true'");
+  expect(
+    steps.find((step: { run?: string }) =>
+      step.run?.includes("publish-homebrew.sh")
+    ).if
+  ).toBe("env.HOMEBREW_ENABLED == 'true'");
+  expect(stable.jobs.finalize.env.HOMEBREW_ENABLED).toBe(
+    stable.jobs.distribute.env.HOMEBREW_ENABLED
+  );
+});
+
+test("CI owns site selection without Railway watch-path filtering", () => {
+  for (const component of ["landing", "docs"]) {
+    const config = JSON.parse(
+      readFileSync(`apps/${component}/railway.json`, "utf8")
+    );
+    expect(config.build.watchPatterns).toEqual([]);
+  }
+});
+
+test("desktop installers build on native runners in CI and stable releases", () => {
+  const platforms = workflow("desktop.build");
+  const build = platforms.jobs.build;
+  expect(build.strategy["fail-fast"]).toBe(false);
+  expect(
+    build.strategy.matrix.include.map((item: { runner: string }) => item.runner)
+  ).toEqual(["windows-2022", "ubuntu-22.04"]);
+  expect(workflow("native.build").jobs["persist-desktop-platforms"].needs).toBe(
+    "build-desktop-platforms"
+  );
+  expect(build.permissions.contents).toBe("read");
+  expect(workflow("ci").jobs.ci.needs).toContain("desktop-platforms");
+  expect(workflow("ci").jobs["desktop-platforms"].with.publish).toBeUndefined();
+  expect(
+    workflow("native.build").jobs["build-desktop-platforms"].with.publish
+  ).toBe(true);
+  expect(
+    workflow("release.stable").jobs.distribute.strategy.matrix.component
+  ).toEqual(["cli", "desktop"]);
+  expect(
+    workflow("native.build").jobs["build-desktop"].steps.find(
+      (step: { name?: string }) => step.name === "Configure ad-hoc signing"
+    ).if
+  ).toContain("mode == 'adhoc'");
+});
+
+test("desktop source validation runs before requested code or caches", () => {
+  const { jobs } = workflow("desktop.build");
+  const source = jobs.source;
+  expect(source.steps[0].with.ref).toBeUndefined();
+  expect(source.steps[0].with["persist-credentials"]).toBe(false);
+  expect(source.steps).toHaveLength(2);
+  expect(jobs.build.needs).toBe("source");
+  const checkout = jobs.build.steps.find((step: { uses?: string }) =>
+    step.uses?.startsWith("actions/checkout@")
+  );
+  expect(checkout.with.ref).toContain(
+    "needs.source.outputs.validated_revision"
+  );
+  expect(jobs.build.env.LUNARIS_BUILD_SHA).toContain(
+    "needs.source.outputs.validated_revision"
+  );
+  expect(checkout.with["persist-credentials"]).toBe(false);
 });

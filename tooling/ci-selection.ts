@@ -12,6 +12,7 @@ export const optionalJobs = [
   "editions",
   "agent-rust",
   "desktop-mcp",
+  "desktop-platforms",
   "landing",
   "docs",
   "self-hosted",
@@ -47,6 +48,9 @@ export function selectChecks(
       has("cli", "@repo/agent-contracts", "@lunarisapp/plugin-sdk") ||
       changed(/^crates\//),
     "desktop-mcp":
+      has("desktop", "@repo/agent-contracts", "@lunarisapp/plugin-sdk") ||
+      changed(/^(crates\/|tooling\/mcp|assets\/brand\/)/),
+    "desktop-platforms":
       has("desktop", "@repo/agent-contracts", "@lunarisapp/plugin-sdk") ||
       changed(/^(crates\/|tooling\/mcp|assets\/brand\/)/),
     landing: has("landing"),

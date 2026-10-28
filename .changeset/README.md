@@ -1,21 +1,10 @@
 # Changesets
 
-Run `bun changeset` for releasable changes to:
+Use `bun changeset` for public `@lunarisapp/plugin-sdk` and `@lunarisapp/ui`
+changes. Packages version independently through npm version PRs into `main`.
 
-- `@lunarisapp/plugin-sdk` and `@lunarisapp/ui`;
-- hosted `api`, `web`, `docs`, and `landing` apps;
-- the `self-hosted` deployment bundle.
+Product apps use one manually selected stable version, without Changesets.
+Pending historical product summaries are retained in
+[product transition notes](../.release/product-transition.md) for first unified release.
 
-Select each affected target, including consumers of changed private libraries.
-Each target versions independently. API, web, and sync changes also require a
-`self-hosted` entry; deployment changes can release that target alone.
-Feature PRs target `next`; hotfix PRs target
-`main` and use patch bumps only. Test/repository-documentation-only changes can
-omit a changeset; hosted docs content needs a `docs` changeset.
-
-`bun run release:version` consumes only these seven targets. CLI/Desktop changesets
-are preserved for their separate release process. Never run unscoped
-`changeset version` in release automation.
-
-See [release and deployment procedures](../docs/procedures/releasing-and-deploying.md)
-for setup, release approval, npm publication, Railway deployment, and retries.
+See [trunk delivery](../docs/procedures/independent-delivery.md).

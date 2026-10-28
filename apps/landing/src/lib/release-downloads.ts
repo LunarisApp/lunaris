@@ -184,7 +184,7 @@ export function parseReleaseManifest(
 		invalidManifest("Release manifest signing mode is invalid");
 	}
 	if (
-		value.tag !== `${component}@${version}` ||
+		(value.tag !== `${component}@${version}` && value.tag !== `v${version}`) ||
 		value.minimumSystemVersion !== "13.0" ||
 		typeof value.sourceCommit !== "string" ||
 		!/^[0-9a-f]{40}$/i.test(value.sourceCommit)
@@ -322,11 +322,105 @@ async function resolveManifestDownload(
 	};
 }
 
+export async function resolveGithubDesktopDownload(
+	version?: string,
+	filename?: string,
+	request: (path: string) => Promise<Response> = (path) =>
+		fetch(`https://api.github.com/repos/LunarisApp/lunaris/releases/${path}`, {
+			headers: { Accept: "application/vnd.github+json" },
+			next: { revalidate: 300 },
+			signal: AbortSignal.timeout(10_000),
+		}),
+): Promise<SignedReleaseDownload> {
+	if (version && !isReleaseVersion(version)) {
+		throw new ReleaseDownloadError("not_found", "Release version is invalid");
+	}
+	try {
+		let response = await request(
+			version ? `tags/v${encodeURIComponent(version)}` : "latest",
+		);
+		if (version && response.status === 404) {
+			response = await request(
+				`tags/${encodeURIComponent(`desktop@${version}`)}`,
+			);
+		}
+		if (response.status === 404) {
+			throw new ReleaseDownloadError(
+				"not_found",
+				"Desktop release was not found",
+			);
+		}
+		if (!response.ok) {
+			throw new ReleaseDownloadError(
+				"storage",
+				"GitHub release could not be read",
+			);
+		}
+		const release: unknown = await response.json();
+		if (
+			!isRecord(release) ||
+			release.draft !== false ||
+			release.prerelease !== false ||
+			typeof release.tag_name !== "string" ||
+			!Array.isArray(release.assets)
+		) {
+			invalidManifest("GitHub release metadata is invalid");
+		}
+		const releasedVersion = release.tag_name.replace(/^(v|desktop@)/, "");
+		if (
+			!isReleaseVersion(releasedVersion) ||
+			(version && version !== releasedVersion)
+		) {
+			invalidManifest("GitHub release version does not match request");
+		}
+		const signedName = expectedAssetName("desktop", releasedVersion, "signed");
+		const adhocName = expectedAssetName("desktop", releasedVersion, "adhoc");
+		const assets = release.assets.filter(
+			(asset: unknown): asset is Record<string, unknown> =>
+				isRecord(asset) &&
+				(asset.name === signedName || asset.name === adhocName) &&
+				asset.state === "uploaded" &&
+				typeof asset.size === "number" &&
+				asset.size > 0,
+		);
+		if (assets.length === 0) {
+			throw new ReleaseDownloadError(
+				"not_found",
+				"Desktop installer was not found",
+			);
+		}
+		if (assets.length !== 1) {
+			invalidManifest("GitHub release has ambiguous desktop installers");
+		}
+		const name = assets[0]!.name as string;
+		if (filename && filename !== name) {
+			throw new ReleaseDownloadError(
+				"not_found",
+				"Desktop installer was not found",
+			);
+		}
+		return {
+			component: "desktop",
+			version: releasedVersion,
+			signingMode: name === adhocName ? "adhoc" : "signed",
+			url: `https://github.com/LunarisApp/lunaris/releases/download/${encodeURIComponent(release.tag_name)}/${encodeURIComponent(name)}`,
+		};
+	} catch (error) {
+		if (error instanceof ReleaseDownloadError) throw error;
+		throw new ReleaseDownloadError(
+			"storage",
+			"GitHub release could not be read",
+			{ cause: error },
+		);
+	}
+}
+
 export function resolveReleaseDownload(
 	target: ReleaseTarget,
 	environment: Record<string, string | undefined> = process.env,
 	dependencies?: ReleaseStorageDependencies,
 ): Promise<SignedReleaseDownload> {
+	if (target === "macos") return resolveGithubDesktopDownload();
 	const _config = readReleaseStorageConfig(environment);
 	const component = targetConfig[target].component;
 	return resolveManifestDownload(
@@ -352,6 +446,8 @@ export function resolveVersionedReleaseDownload(
 		);
 	}
 
+	if (target === "macos")
+		return resolveGithubDesktopDownload(version, filename);
 	const _config = readReleaseStorageConfig(environment);
 	const component = targetConfig[target].component;
 	return resolveManifestDownload(

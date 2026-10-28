@@ -1,8 +1,12 @@
 import { useLogger, withEvlog } from "@/lib/evlog";
-import { installerUrl, latestInstallerUrl } from "@/lib/self-host-installer";
+import {
+	versionedInstallerUrl,
+	latestInstallerUrl,
+} from "@/lib/self-host-installer";
 
 interface Dependencies {
 	latest: () => Promise<string>;
+	versioned?: (version: string) => Promise<string>;
 	log: {
 		set: (context: Record<string, unknown>) => void;
 		error: (error: Error) => void;
@@ -29,7 +33,7 @@ export async function handleInstaller(
 		const url =
 			version === null
 				? await (dependencies?.latest ?? latestInstallerUrl)()
-				: installerUrl(version);
+				: await (dependencies?.versioned ?? versionedInstallerUrl)(version);
 		log.set({
 			installer: { outcome: "redirect", version: version ?? "latest" },
 		});

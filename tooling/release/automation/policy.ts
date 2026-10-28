@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from "node:util";
 import { affectedComponents } from "../../delivery/affected";
 export { readWorkspaces, type Workspace } from "../../delivery/affected";
 import type { Workspace } from "../../delivery/affected";
@@ -84,5 +85,38 @@ export function affectedTargets(
   );
   return affectedComponents(releasedFiles, workspaces).filter((name) =>
     targets.some((target) => target.name === name)
+  );
+}
+
+/** CI/release orchestration changes require validation, not npm version bumps. */
+export function npmReleaseTargets(
+  files: string[],
+  workspaces: Workspace[],
+  rootBefore?: Record<string, unknown>,
+  rootAfter?: Record<string, unknown>
+): string[] {
+  const buildInputs = (manifest: Record<string, unknown>) => ({
+    ...manifest,
+    scripts: Object.fromEntries(
+      Object.entries(
+        (manifest.scripts ?? {}) as Record<string, unknown>
+      ).filter(([name]) => !name.startsWith("release:"))
+    ),
+  });
+  const rootUnchanged =
+    rootBefore &&
+    rootAfter &&
+    isDeepStrictEqual(buildInputs(rootBefore), buildInputs(rootAfter));
+  const inputs = files.filter(
+    (file) =>
+      !(
+        /^(\.github\/|tooling\/(delivery|ci)\/)/.test(file) ||
+        file === "tooling/licenses/about.toml" ||
+        file === "tooling/ci-selection.ts" ||
+        (file === "package.json" && rootUnchanged)
+      )
+  );
+  return affectedTargets(inputs, workspaces).filter((name) =>
+    name.startsWith("@lunarisapp/")
   );
 }

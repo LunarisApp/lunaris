@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	parseReleaseManifest,
+	resolveGithubDesktopDownload,
 	ReleaseDownloadError,
 	type ReleaseTarget,
 	readReleaseStorageConfig,
@@ -51,43 +52,6 @@ function manifestFor(
 }
 
 describe("resolveReleaseDownload", () => {
-	test("resolves the latest macOS DMG with a five-minute signed URL", async () => {
-		const calls: Array<{ type: string; value: unknown }> = [];
-		const result = await resolveReleaseDownload("macos", environment, {
-			getManifest(key) {
-				calls.push({ type: "manifest", value: { key } });
-				return Promise.resolve(JSON.stringify(manifestFor("macos")));
-			},
-			signDownload(input) {
-				calls.push({ type: "sign", value: input });
-				return Promise.resolve("https://storage.example.test/signed-desktop");
-			},
-		});
-
-		expect(result).toEqual({
-			component: "desktop",
-			signingMode: "signed",
-			url: "https://storage.example.test/signed-desktop",
-			version: "1.2.3",
-		});
-		expect(calls).toEqual([
-			{
-				type: "manifest",
-				value: {
-					key: "releases/desktop/latest.json",
-				},
-			},
-			{
-				type: "sign",
-				value: {
-					expiresIn: 300,
-					key: "releases/desktop/1.2.3/Lunaris-desktop-1.2.3-universal.dmg",
-					name: "Lunaris-desktop-1.2.3-universal.dmg",
-				},
-			},
-		]);
-	});
-
 	test("allows the latest ad-hoc CLI archive", async () => {
 		const result = await resolveReleaseDownload("cli", environment, {
 			getManifest: () =>
@@ -126,9 +90,8 @@ describe("resolveReleaseDownload", () => {
 
 	test("wraps signing failures as storage errors", async () => {
 		try {
-			await resolveReleaseDownload("macos", environment, {
-				getManifest: () =>
-					Promise.resolve(JSON.stringify(manifestFor("macos"))),
+			await resolveReleaseDownload("cli", environment, {
+				getManifest: () => Promise.resolve(JSON.stringify(manifestFor("cli"))),
 				signDownload: () => Promise.reject(new Error("provider unavailable")),
 			});
 			throw new Error("Expected release resolution to fail");
@@ -188,13 +151,13 @@ describe("resolveVersionedReleaseDownload", () => {
 	});
 
 	test("rejects a filename that differs from the manifest", async () => {
-		const release = manifestFor("macos");
+		const release = manifestFor("cli");
 
 		await expect(
 			resolveVersionedReleaseDownload(
-				"macos",
+				"cli",
 				"1.2.3",
-				"another.dmg",
+				"another.zip",
 				environment,
 				{
 					getManifest: () => Promise.resolve(JSON.stringify(release)),
@@ -273,5 +236,78 @@ describe("release storage configuration", () => {
 				RELEASES_S3_SECRET_ACCESS_KEY: "",
 			}),
 		).toThrow("RELEASES_S3_SECRET_ACCESS_KEY");
+	});
+});
+
+describe("GitHub desktop downloads", () => {
+	const assetName = "Lunaris-desktop-1.2.3-universal-adhoc.dmg";
+	const release = {
+		tag_name: "v1.2.3",
+		draft: false,
+		prerelease: false,
+		assets: [{ name: assetName, size: 1024, state: "uploaded" }],
+	};
+	test("resolves latest and versioned installers without S3", async () => {
+		const calls: string[] = [];
+		const request = (path: string) => {
+			calls.push(path);
+			return Promise.resolve(Response.json(release));
+		};
+		const latest = await resolveGithubDesktopDownload(
+			undefined,
+			undefined,
+			request,
+		);
+		expect(latest).toEqual({
+			component: "desktop",
+			version: "1.2.3",
+			signingMode: "adhoc",
+			url: `https://github.com/LunarisApp/lunaris/releases/download/v1.2.3/${assetName}`,
+		});
+		expect(
+			await resolveGithubDesktopDownload("1.2.3", assetName, request),
+		).toEqual(latest);
+		expect(calls).toEqual(["latest", "tags/v1.2.3"]);
+	});
+	test("keeps historical desktop tags downloadable", async () => {
+		const calls: string[] = [];
+		const result = await resolveGithubDesktopDownload(
+			"1.2.3",
+			assetName,
+			(path) => {
+				calls.push(path);
+				return Promise.resolve(
+					path === "tags/v1.2.3"
+						? new Response(null, { status: 404 })
+						: Response.json({ ...release, tag_name: "desktop@1.2.3" }),
+				);
+			},
+		);
+		expect(calls).toEqual(["tags/v1.2.3", "tags/desktop%401.2.3"]);
+		expect(result.url).toContain("desktop%401.2.3");
+	});
+	test("rejects unavailable, mismatched and unpublished release assets", async () => {
+		for (const data of [
+			{ ...release, draft: true },
+			{ ...release, prerelease: true },
+			{ ...release, tag_name: "v9.0.0" },
+			{ ...release, assets: [] },
+		]) {
+			await expect(
+				resolveGithubDesktopDownload("1.2.3", assetName, () =>
+					Promise.resolve(Response.json(data)),
+				),
+			).rejects.toBeInstanceOf(ReleaseDownloadError);
+		}
+		await expect(
+			resolveGithubDesktopDownload("1.2.3", "different.dmg", () =>
+				Promise.resolve(Response.json(release)),
+			),
+		).rejects.toBeInstanceOf(ReleaseDownloadError);
+		await expect(
+			resolveGithubDesktopDownload(undefined, undefined, () =>
+				Promise.resolve(new Response(null, { status: 503 })),
+			),
+		).rejects.toMatchObject({ kind: "storage" });
 	});
 });

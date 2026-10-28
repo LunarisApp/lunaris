@@ -1,0 +1,348 @@
+name: Native - Build stable artifacts
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+    outputs:
+      signing_mode:
+        value: ${{ jobs.signing.outputs.mode }}
+permissions:
+  actions: read
+  contents: write
+env:
+  MACOSX_DEPLOYMENT_TARGET: "13.0"
+jobs:
+  signing:
+    name: Select signing mode
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.mode.outputs.mode }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun
+      - id: mode
+        name: Validate Apple credentials
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
+        run: bun tooling/release/signing-mode.ts
+
+  build-cli:
+    name: Build CLI
+    needs: signing
+    runs-on: macos-14
+    permissions:
+      contents: write
+      actions: read
+    env:
+      PRODUCT_VERSION: ${{ inputs.version }}
+      PRODUCT_GROUP: cli
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      LUNARIS_BUILD_SHA: ${{ inputs.ref }}
+      LUNARIS_SIGNING_MODE: ${{ needs.signing.outputs.mode }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun
+      - id: restore
+        run: bun install --frozen-lockfile --ignore-scripts && bun tooling/delivery/product-release.ts restore dist
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        if: steps.restore.outputs.cached != 'true'
+        with:
+          toolchain: 1.96.0
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
+        if: steps.restore.outputs.cached != 'true'
+        with:
+          workspaces: .
+      - run: bun install --frozen-lockfile
+        if: steps.restore.outputs.cached != 'true'
+      - name: Set isolated build versions
+        if: steps.restore.outputs.cached != 'true'
+        run: bun tooling/delivery/product-version.ts
+      - run: bun run release:validate
+        if: steps.restore.outputs.cached != 'true'
+      - name: Install license generator
+        if: steps.restore.outputs.cached != 'true'
+        run: cargo install --locked --version 0.9.1 --features cli cargo-about
+      - run: cargo test --locked --manifest-path apps/cli/Cargo.toml
+        if: steps.restore.outputs.cached != 'true'
+      - name: Build universal executable
+        if: steps.restore.outputs.cached != 'true'
+        run: |
+          cargo build --release --locked --manifest-path apps/cli/Cargo.toml --target aarch64-apple-darwin
+          cargo build --release --locked --manifest-path apps/cli/Cargo.toml --target x86_64-apple-darwin
+          mkdir -p dist
+          lipo -create \
+            target/aarch64-apple-darwin/release/lunaris \
+            target/x86_64-apple-darwin/release/lunaris \
+            -output dist/lunaris
+          lipo -info dist/lunaris
+      - name: Import Developer ID certificate
+        if: steps.restore.outputs.cached != 'true' && needs.signing.outputs.mode == 'signed'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          certificate="$RUNNER_TEMP/apple-certificate.p12"
+          keychain="$RUNNER_TEMP/release.keychain-db"
+          keychain_password="$(uuidgen)"
+          printf '%s' "$APPLE_CERTIFICATE" | base64 -D > "$certificate"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$certificate" -k "$keychain" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security list-keychains -d user -s "$keychain"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain"
+      - name: Sign CLI
+        if: steps.restore.outputs.cached != 'true'
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          if [ "$LUNARIS_SIGNING_MODE" = "signed" ]; then
+            codesign --force --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" dist/lunaris
+          else
+            codesign --force --sign - dist/lunaris
+          fi
+          codesign --verify --strict --verbose=2 dist/lunaris
+      - name: Smoke test final CLI
+        if: steps.restore.outputs.cached != 'true'
+        run: |
+          dist/lunaris --version
+          bun tooling/mcp-smoke.ts dist/lunaris
+      - name: Package CLI
+        if: steps.restore.outputs.cached != 'true'
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [ "$LUNARIS_SIGNING_MODE" = "signed" ]; then
+            asset="lunaris-cli-${VERSION}-universal-apple-darwin.zip"
+          else
+            asset="lunaris-cli-${VERSION}-universal-apple-darwin-adhoc.zip"
+          fi
+          package_dir="dist/lunaris-cli-${VERSION}"
+          mkdir -p "$package_dir"
+          cp dist/lunaris "$package_dir/lunaris"
+          cp apps/cli/LICENSE "$package_dir/LICENSE"
+          cargo about generate \
+            --manifest-path apps/cli/Cargo.toml \
+            --config apps/cli/about.toml \
+            --locked \
+            --fail \
+            --output-file "$package_dir/THIRD-PARTY-LICENSES.txt" \
+            apps/cli/about.hbs
+          (cd "$package_dir" && zip -9 "../$asset" lunaris LICENSE THIRD-PARTY-LICENSES.txt)
+          unzip -t "dist/$asset"
+          (cd dist && shasum -a 256 "$asset" > SHA256SUMS)
+          echo "asset=$asset" >> "$GITHUB_ENV"
+      - name: Notarize CLI archive
+        if: steps.restore.outputs.cached != 'true' && needs.signing.outputs.mode == 'signed'
+        env:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
+        run: |
+          api_key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY}.p8"
+          printf '%s' "$APPLE_API_PRIVATE_KEY" > "$api_key_path"
+          xcrun notarytool submit "dist/$asset" \
+            --key "$api_key_path" \
+            --key-id "$APPLE_API_KEY" \
+            --issuer "$APPLE_API_ISSUER" \
+            --wait
+          spctl --assess --type execute --verbose=2 dist/lunaris
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: steps.restore.outputs.cached != 'true'
+        with:
+          overwrite: true
+          name: release-cli
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS
+          if-no-files-found: error
+      - name: Persist immutable product assets
+        run: bun tooling/delivery/product-release.ts upload dist
+
+  build-desktop:
+    name: Build Desktop
+    needs: signing
+    runs-on: macos-14
+    permissions:
+      contents: write
+      actions: read
+    env:
+      PRODUCT_VERSION: ${{ inputs.version }}
+      PRODUCT_GROUP: desktop
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      LUNARIS_BUILD_SHA: ${{ inputs.ref }}
+      LUNARIS_BUILD_VERSION: ${{ inputs.version }}
+      LUNARIS_SIGNING_MODE: ${{ needs.signing.outputs.mode }}
+      VITE_REGION_DIRECTORY_URL: https://lunaris.app/.well-known/lunaris-regions
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun
+      - id: restore
+        run: bun install --frozen-lockfile --ignore-scripts && bun tooling/delivery/product-release.ts restore dist
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        if: steps.restore.outputs.cached != 'true'
+        with:
+          toolchain: 1.96.0
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
+        if: steps.restore.outputs.cached != 'true'
+        with:
+          workspaces: .
+      - run: bun install --frozen-lockfile
+        if: steps.restore.outputs.cached != 'true'
+      - name: Set isolated build versions
+        if: steps.restore.outputs.cached != 'true'
+        run: bun tooling/delivery/product-version.ts
+      - run: bun run release:validate
+        if: steps.restore.outputs.cached != 'true'
+      - name: Install license generator
+        if: steps.restore.outputs.cached != 'true'
+        run: cargo install --locked --version 0.9.1 --features cli cargo-about
+      - name: Build Agent Work sidecar
+        if: steps.restore.outputs.cached != 'true'
+        run: bun run --cwd apps/desktop build:agent
+      - run: cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml
+        if: steps.restore.outputs.cached != 'true'
+      - name: Configure ad-hoc signing
+        if: steps.restore.outputs.cached != 'true' && needs.signing.outputs.mode == 'adhoc'
+        run: echo "APPLE_SIGNING_IDENTITY=-" >> "$GITHUB_ENV"
+      - name: Configure Developer ID signing
+        if: steps.restore.outputs.cached != 'true' && needs.signing.outputs.mode == 'signed'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
+        run: |
+          certificate="$RUNNER_TEMP/apple-certificate.p12"
+          keychain="$RUNNER_TEMP/release.keychain-db"
+          keychain_password="$(uuidgen)"
+          api_key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY}.p8"
+          printf '%s' "$APPLE_CERTIFICATE" | base64 -D > "$certificate"
+          printf '%s' "$APPLE_API_PRIVATE_KEY" > "$api_key_path"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$certificate" -k "$keychain" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security list-keychains -d user -s "$keychain"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain"
+          echo "APPLE_SIGNING_IDENTITY=$APPLE_SIGNING_IDENTITY" >> "$GITHUB_ENV"
+          echo "APPLE_API_KEY_PATH=$api_key_path" >> "$GITHUB_ENV"
+      - name: Build universal Desktop app
+        if: steps.restore.outputs.cached != 'true'
+        env:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+        run: bun run --cwd apps/desktop tauri:build -- --target universal-apple-darwin --bundles app,dmg
+      - name: Verify Desktop bundle
+        if: steps.restore.outputs.cached != 'true'
+        shell: bash
+        run: |
+          app_path="$(find target/universal-apple-darwin/release/bundle/macos -maxdepth 1 -name '*.app' -print -quit)"
+          dmg_path="$(find target/universal-apple-darwin/release/bundle/dmg -maxdepth 1 -name '*.dmg' -print -quit)"
+          test -n "$app_path"
+          test -n "$dmg_path"
+          for notice in LICENSE THIRD-PARTY-NOTICES.md THIRD-PARTY-LICENSES.md EXTEND-LICENSE.txt RUST-LICENSES.txt BUN-RUNTIME.md AGENT-aarch64-apple-darwin-LICENSES.md AGENT-x86_64-apple-darwin-LICENSES.md; do
+            test -s "$app_path/Contents/Resources/notices/$notice"
+          done
+          binary="$app_path/Contents/MacOS/lunaris-desktop"
+          lipo -info "$binary"
+          codesign --verify --deep --strict --verbose=2 "$app_path"
+          bun tooling/mcp-smoke.ts "$binary" lunaris-desktop
+
+          "$binary" > "$RUNNER_TEMP/desktop-launch.log" 2>&1 &
+          app_pid=$!
+          sleep 5
+          kill -0 "$app_pid"
+          kill "$app_pid"
+          wait "$app_pid" || true
+
+          mount_point="$(mktemp -d)"
+          hdiutil attach "$dmg_path" -nobrowse -mountpoint "$mount_point"
+          test -d "$mount_point/Lunaris.app"
+          codesign --verify --deep --strict --verbose=2 "$mount_point/Lunaris.app"
+          hdiutil detach "$mount_point"
+
+          if [ "$LUNARIS_SIGNING_MODE" = "signed" ]; then
+            spctl --assess --type execute --verbose=2 "$app_path"
+            spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg_path"
+            xcrun stapler validate "$app_path"
+            xcrun stapler validate "$dmg_path"
+          fi
+
+          mkdir -p dist
+          if [ "$LUNARIS_SIGNING_MODE" = "signed" ]; then
+            asset="Lunaris-desktop-${LUNARIS_BUILD_VERSION}-universal.dmg"
+          else
+            asset="Lunaris-desktop-${LUNARIS_BUILD_VERSION}-universal-adhoc.dmg"
+          fi
+          cp "$dmg_path" "dist/$asset"
+          (cd dist && shasum -a 256 "$asset" > SHA256SUMS)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: steps.restore.outputs.cached != 'true'
+        with:
+          overwrite: true
+          name: release-desktop
+          path: |
+            dist/*.dmg
+            dist/SHA256SUMS
+          if-no-files-found: error
+
+      - name: Persist immutable product assets
+        run: bun tooling/delivery/product-release.ts upload dist
+
+  build-desktop-platforms:
+    uses: ./.github/workflows/desktop.build.yml
+    with:
+      ref: ${{ inputs.ref }}
+      version: ${{ inputs.version }}
+      publish: true
+    secrets: inherit
+
+  persist-desktop-platforms:
+    needs: build-desktop-platforms
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [windows, linux]
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PRODUCT_VERSION: ${{ inputs.version }}
+      PRODUCT_GROUP: desktop-${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: ./.github/actions/setup-bun
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-desktop-${{ matrix.platform }}
+          path: dist
+      - name: Persist immutable product assets
+        run: bun tooling/delivery/product-release.ts upload dist
