@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { afterEach, expect, spyOn, test } from "bun:test";
 import {
   mkdirSync,
@@ -60,6 +61,12 @@ if (args[0] === "variable" && process.env.FIXTURE_FAILURE === "variable") proces
 if (args[0] === "deployment" && process.env.FIXTURE_FAILURE === "preflight") process.exit(1);
 if (args[0] === "up") {
   if (process.env.FIXTURE_FAILURE === "upload") process.exit(1);
+  if (process.env.FIXTURE_FAILURE === "packaging") {
+    console.log(JSON.stringify({code: "ERROR", error: "/work/link: IO error for operation on /work/link: No such file or directory (os error 2)"}));
+    process.exit(1);
+  }
+  const source = args[1];
+  if (!require("node:fs").existsSync(source + "/package.json") || require("node:fs").existsSync(source + "/node_modules")) throw new Error("Expected clean committed source");
   console.log(JSON.stringify({deploymentId:"${id}"}));
 } else if (args[0] === "deployment") {
   const edits = readFileSync(process.env.FIXTURE_CALLS,"utf8").trim().split("\\n").map(JSON.parse).filter(args => args[0] === "environment").length;
@@ -97,7 +104,9 @@ else console.log("{}");
     payload: unknown;
   }[] = [];
   const state = new Map<number, { state: string; description: string }[]>();
-  const sha = "a".repeat(40);
+  const sha = execFileSync("git", ["rev-parse", "HEAD"], {
+    encoding: "utf8",
+  }).trim();
   const health = { sha, responses: [] as (string | Response | Error)[] };
   const fetchMock = spyOn(globalThis, "fetch").mockImplementation((async (
     input: Parameters<typeof fetch>[0],
@@ -258,7 +267,7 @@ test("unknown uploads block replay on both the same and later source commits", a
   const f = fixture();
   process.env.FIXTURE_FAILURE = "upload";
   await expect(deploySource("landing", f.sha, f.destination)).rejects.toThrow(
-    "failed"
+    "outcome unknown"
   );
   delete process.env.FIXTURE_FAILURE;
   await expect(deploySource("landing", f.sha, f.destination)).rejects.toThrow(
@@ -417,4 +426,16 @@ test("regional failure still waits for the remaining rollout", async () => {
     ])
   ).rejects.toThrow("Regional deployment failed");
   expect(finished).toBe(true);
+});
+
+test("structured packaging failures remain retryable and expose stdout errors", async () => {
+  const f = fixture();
+  process.env.FIXTURE_FAILURE = "packaging";
+  await expect(deploySource("docs", f.sha, f.destination)).rejects.toThrow(
+    "packaging failed before upload"
+  );
+  expect(f.state.get(f.records[0]!.id)?.[0]?.state).toBe("failure");
+  delete process.env.FIXTURE_FAILURE;
+  await deploySource("docs", f.sha, f.destination);
+  expect(f.uploads()).toHaveLength(2);
 });
