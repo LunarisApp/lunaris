@@ -427,7 +427,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("file plugin", () => {
+// First load transforms the SDK and file-viewer graph on cold CI runners.
+describe("file plugin", { timeout: 10_000 }, () => {
   it("indexes supported text files through scoped file access", async () => {
     const resource = await loadResource({ mediaType: "text/plain", state: 3 });
     const bytes = new TextEncoder().encode("searchable notes").buffer;
@@ -458,7 +459,7 @@ describe("file plugin", () => {
     expect(
       definition?.commands.some((command) => command.id === "download-file")
     ).toBe(true);
-  }, 10_000);
+  });
 
   it("creates and uploads every selected file", async () => {
     const definition = await loadResource({
