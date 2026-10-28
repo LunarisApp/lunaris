@@ -111,6 +111,8 @@ export function npmReleaseTargets(
     (file) =>
       !(
         /^(\.github\/|tooling\/(delivery|ci)\/)/.test(file) ||
+        file === "tooling/licenses/about.toml" ||
+        file === "tooling/ci-selection.ts" ||
         (file === "package.json" && rootUnchanged)
       )
   );

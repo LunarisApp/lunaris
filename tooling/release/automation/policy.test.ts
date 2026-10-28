@@ -105,7 +105,12 @@ test("npm policy ignores delivery controls but retains package and shared build 
   };
   expect(
     npmReleaseTargets(
-      [".github/workflows/ci.yml", "tooling/delivery/core.ts", "package.json"],
+      [
+        ".github/workflows/ci.yml",
+        "tooling/delivery/core.ts",
+        "tooling/ci-selection.ts",
+        "package.json",
+      ],
       workspaces,
       root,
       { ...root, scripts: { build: "turbo build" } }
@@ -126,5 +131,22 @@ test("npm policy ignores delivery controls but retains package and shared build 
       ...root,
       dependencies: { bun: "2" },
     })
+  ).toHaveLength(2);
+});
+
+test("Rust license targets do not bump npm packages; shared license tooling still does", () => {
+  const workspaces = [
+    { name: "@lunarisapp/ui", path: "packages/ui", dependencies: [] },
+    {
+      name: "@lunarisapp/plugin-sdk",
+      path: "packages/plugin-sdk",
+      dependencies: [],
+    },
+  ];
+  expect(
+    npmReleaseTargets(["tooling/licenses/about.toml"], workspaces)
+  ).toEqual([]);
+  expect(
+    npmReleaseTargets(["tooling/licenses/vite.ts"], workspaces)
   ).toHaveLength(2);
 });
