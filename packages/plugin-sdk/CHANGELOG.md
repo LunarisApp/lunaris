@@ -1,5 +1,11 @@
 # @lunarisapp/plugin-sdk
 
+## 0.12.5
+
+### Patch Changes
+
+- [#48](https://github.com/LunarisApp/lunaris/pull/48) [`aea4dd7`](https://github.com/LunarisApp/lunaris/commit/aea4dd71ae6f58eb823c13c23212e676d99bb41f) Thanks [@MrLightful](https://github.com/MrLightful)! - Retry deployment health verification while public routing settles, report revision mismatches, and update the native TLS dependency chain to patched rustls 0.23.46.
+
 ## 0.12.4
 
 ### Patch Changes
