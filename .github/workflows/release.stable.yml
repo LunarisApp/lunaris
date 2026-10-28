@@ -120,7 +120,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        component: [cli, desktop]
+        component: [cli, desktop, desktop-windows, desktop-linux]
     permissions:
       contents: read
       actions: read
@@ -129,7 +129,7 @@ jobs:
       PRODUCT_VERSION: ${{ needs.reserve.outputs.version }}
       PRODUCT_GROUP: ${{ matrix.component }}
       LUNARIS_BUILD_SHA: ${{ needs.reserve.outputs.sha }}
-      SIGNING_MODE: ${{ needs.native.outputs.signing_mode }}
+      SIGNING_MODE: ${{ (matrix.component == 'desktop-windows' || matrix.component == 'desktop-linux') && 'unsigned' || needs.native.outputs.signing_mode }}
       VERSION: ${{ needs.reserve.outputs.version }}
       COMPONENT: ${{ matrix.component }}
       AWS_ACCESS_KEY_ID: ${{ secrets.RELEASES_S3_ACCESS_KEY_ID }}
@@ -148,13 +148,13 @@ jobs:
       - run: bun tooling/delivery/product-release.ts restore dist
       - run: bash tooling/release/publish-s3.sh "$COMPONENT" "$VERSION" "$SIGNING_MODE" dist
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-        if: env.HOMEBREW_ENABLED == 'true'
+        if: env.HOMEBREW_ENABLED == 'true' && (matrix.component == 'cli' || matrix.component == 'desktop')
         with:
           repository: LunarisApp/homebrew-tap
           path: homebrew-tap
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
       - run: bash tooling/release/publish-homebrew.sh "$COMPONENT" "$VERSION" "$SIGNING_MODE" dist homebrew-tap
-        if: env.HOMEBREW_ENABLED == 'true'
+        if: env.HOMEBREW_ENABLED == 'true' && (matrix.component == 'cli' || matrix.component == 'desktop')
         env:
           GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
       - name: Record deferred Homebrew publication

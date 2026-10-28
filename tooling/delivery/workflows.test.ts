@@ -153,12 +153,16 @@ test("Homebrew is optional while S3 distribution remains required", () => {
       (step: { with?: { repository?: string } }) =>
         step.with?.repository === "LunarisApp/homebrew-tap"
     ).if
-  ).toBe("env.HOMEBREW_ENABLED == 'true'");
+  ).toBe(
+    "env.HOMEBREW_ENABLED == 'true' && (matrix.component == 'cli' || matrix.component == 'desktop')"
+  );
   expect(
     steps.find((step: { run?: string }) =>
       step.run?.includes("publish-homebrew.sh")
     ).if
-  ).toBe("env.HOMEBREW_ENABLED == 'true'");
+  ).toBe(
+    "env.HOMEBREW_ENABLED == 'true' && (matrix.component == 'cli' || matrix.component == 'desktop')"
+  );
   expect(stable.jobs.finalize.env.HOMEBREW_ENABLED).toBe(
     stable.jobs.distribute.env.HOMEBREW_ENABLED
   );
@@ -171,4 +175,30 @@ test("CI owns site selection without Railway watch-path filtering", () => {
     );
     expect(config.build.watchPatterns).toEqual([]);
   }
+});
+
+test("desktop installers build on native runners in CI and stable releases", () => {
+  const platforms = workflow("desktop.build");
+  const build = platforms.jobs.build;
+  expect(build.strategy["fail-fast"]).toBe(false);
+  expect(
+    build.strategy.matrix.include.map((item: { runner: string }) => item.runner)
+  ).toEqual(["windows-2022", "ubuntu-22.04"]);
+  expect(workflow("native.build").jobs["persist-desktop-platforms"].needs).toBe(
+    "build-desktop-platforms"
+  );
+  expect(build.permissions.contents).toBe("read");
+  expect(workflow("ci").jobs.ci.needs).toContain("desktop-platforms");
+  expect(workflow("ci").jobs["desktop-platforms"].with.publish).toBeUndefined();
+  expect(
+    workflow("native.build").jobs["build-desktop-platforms"].with.publish
+  ).toBe(true);
+  expect(
+    workflow("release.stable").jobs.distribute.strategy.matrix.component
+  ).toEqual(["cli", "desktop", "desktop-windows", "desktop-linux"]);
+  expect(
+    workflow("native.build").jobs["build-desktop"].steps.find(
+      (step: { name?: string }) => step.name === "Configure ad-hoc signing"
+    ).if
+  ).toContain("mode == 'adhoc'");
 });

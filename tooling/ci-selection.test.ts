@@ -95,3 +95,16 @@ test("repository administration skips image builds while runtime delivery retain
     expect(Object.values(selectChecks([file], [])).every(Boolean)).toBe(true);
   }
 });
+
+test("desktop dependencies select native Windows/Linux packaging", () => {
+  expect(
+    selectChecks(["internal/data/src/schema.ts"], ["desktop"])[
+      "desktop-platforms"
+    ]
+  ).toBe(true);
+  expect(
+    selectChecks(["apps/landing/src/page.tsx"], ["landing"])[
+      "desktop-platforms"
+    ]
+  ).toBe(false);
+});

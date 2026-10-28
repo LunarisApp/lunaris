@@ -9,16 +9,16 @@ import {
 } from "./distribution-manifest";
 
 interface HomebrewDefinitionOptions {
-  component: DistributionComponent;
+  component: Extract<DistributionComponent, "cli" | "desktop">;
   sha256: string;
-  signingMode: DistributionSigningMode;
+  signingMode: Exclude<DistributionSigningMode, "unsigned">;
   version: string;
 }
 
 interface UpdateHomebrewTapOptions {
-  component: DistributionComponent;
+  component: Extract<DistributionComponent, "cli" | "desktop">;
   distDirectory: string;
-  signingMode: DistributionSigningMode;
+  signingMode: Exclude<DistributionSigningMode, "unsigned">;
   tapDirectory: string;
   version: string;
 }

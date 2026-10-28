@@ -121,3 +121,32 @@ describe("normalizeDistributionPrefix", () => {
     );
   });
 });
+
+test("Windows and Linux distribution uses separate channels and unsigned metadata", () => {
+  for (const [component, target, format] of [
+    ["desktop-windows", "x86_64-pc-windows-msvc", "exe"],
+    ["desktop-linux", "x86_64-unknown-linux-gnu", "deb"],
+  ] as const) {
+    const name = `Lunaris-desktop-1.2.3-${target}.${format}`;
+    const options = {
+      component,
+      distDirectory: createDistributionFixture(name),
+      prefix: "releases",
+      signingMode: "unsigned" as const,
+      sourceCommit: "a".repeat(40),
+      version: "1.2.3",
+    };
+    const manifest = buildDistributionManifest(options);
+    expect(manifest.minimumSystemVersion).toBeUndefined();
+    expect(manifest.signingMode).toBe("unsigned");
+    expect(manifest.artifacts[0]).toMatchObject({
+      name,
+      target,
+      format,
+      objectKey: `releases/${component}/1.2.3/${name}`,
+    });
+    expect(() =>
+      buildDistributionManifest({ ...options, signingMode: "signed" })
+    ).toThrow("require unsigned");
+  }
+});

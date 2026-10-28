@@ -44,6 +44,7 @@ jobs:
     permissions:
       contents: read
       packages: read
+      actions: read
     uses: ./.github/workflows/ci.yml
     with:
       ref: ${{ needs.version.outputs.sha }}

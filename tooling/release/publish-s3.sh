@@ -3,7 +3,7 @@ set -euo pipefail
 release_source_sha="${LUNARIS_BUILD_SHA:-${GITHUB_SHA:-}}"
 
 if [[ "$#" -ne 4 ]]; then
-  echo "Usage: publish-s3.sh <cli|desktop> <version> <signed|adhoc> <dist-directory>" >&2
+  echo "Usage: publish-s3.sh <cli|desktop|desktop-windows|desktop-linux> <version> <signed|adhoc|unsigned> <dist-directory>" >&2
   exit 1
 fi
 
@@ -51,6 +51,14 @@ case "$component:$signing_mode" in
   desktop:adhoc)
     asset_name="Lunaris-desktop-${version}-universal-adhoc.dmg"
     content_type="application/x-apple-diskimage"
+    ;;
+  desktop-windows:unsigned)
+    asset_name="Lunaris-desktop-${version}-x86_64-pc-windows-msvc.exe"
+    content_type="application/vnd.microsoft.portable-executable"
+    ;;
+  desktop-linux:unsigned)
+    asset_name="Lunaris-desktop-${version}-x86_64-unknown-linux-gnu.deb"
+    content_type="application/vnd.debian.binary-package"
     ;;
   *)
     echo "Unsupported component or signing mode: $component $signing_mode" >&2

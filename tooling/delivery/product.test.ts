@@ -66,3 +66,26 @@ test("asset receipts reject path traversal and invalid checksums", () => {
     }).success
   ).toBe(false);
 });
+
+test("desktop receipts accept only their platform installer and version", () => {
+  for (const [group, name] of [
+    ["desktop-windows", "Lunaris-desktop-1.0.0-x86_64-pc-windows-msvc.exe"],
+    ["desktop-linux", "Lunaris-desktop-1.0.0-x86_64-unknown-linux-gnu.deb"],
+  ]) {
+    const receipt = {
+      schemaVersion: 1,
+      version: "1.0.0",
+      sourceCommit: "a".repeat(40),
+      producerRunId: "1",
+      group,
+      assets: [{ name, sha256: "b".repeat(64) }],
+    };
+    expect(assetReceiptSchema.safeParse(receipt).success).toBe(true);
+    expect(
+      assetReceiptSchema.safeParse({ ...receipt, version: "1.0.1" }).success
+    ).toBe(false);
+    expect(
+      assetReceiptSchema.safeParse({ ...receipt, group: "desktop" }).success
+    ).toBe(false);
+  }
+});
