@@ -21,7 +21,7 @@ jobs:
     permissions:
       contents: read
     outputs:
-      sha: ${{ steps.source.outputs.sha }}
+      validated_revision: ${{ steps.source.outputs.validated_revision }}
     steps:
       # Keep validation on the workflow revision before executing the requested source.
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -51,7 +51,7 @@ jobs:
             git merge-base --is-ancestor "$SOURCE_REF" refs/remotes/origin/main
           fi
           sha="$(git rev-parse --verify "$SOURCE_REF^{commit}")"
-          printf 'sha=%s\n' "$sha" >> "$GITHUB_OUTPUT"
+          printf 'validated_revision=%s\n' "$sha" >> "$GITHUB_OUTPUT"
 
   build:
     needs: source
@@ -82,13 +82,13 @@ jobs:
       CYPRESS_INSTALL_BINARY: 0
       PRODUCT_VERSION: ${{ inputs.version }}
       PRODUCT_GROUP: desktop-${{ matrix.platform }}
-      LUNARIS_BUILD_SHA: ${{ needs.source.outputs.sha }}
+      LUNARIS_BUILD_SHA: ${{ needs.source.outputs.validated_revision }}
       LUNARIS_BUILD_VERSION: ${{ inputs.version }}
       VITE_REGION_DIRECTORY_URL: https://lunaris.app/.well-known/lunaris-regions
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ needs.source.outputs.sha }}
+          ref: ${{ needs.source.outputs.validated_revision }}
           fetch-depth: 0
           persist-credentials: false
       - uses: ./.github/actions/setup-bun

@@ -154,6 +154,10 @@ by the aggregate CI gate. CI artifacts remain downloadable for 14 days.
 
 Every build includes the compiled Bun agent sidecar, frontend, and third-party
 license notices. Rust tests and MCP smoke checks run against the built executable.
+Source validation runs on the workflow revision before requested code executes.
+PR builds must use the current PR commit and cannot publish; other events require
+an exact commit already in `main` history. Only the validated revision reaches
+build checkouts, which do not persist Git credentials.
 Build jobs have read-only repository permissions; release asset persistence runs
 in separate jobs enabled only by the stable release caller.
 

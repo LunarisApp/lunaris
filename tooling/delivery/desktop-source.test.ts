@@ -48,7 +48,9 @@ test("desktop source gate rejects unmerged dispatch refs and PR publication", ()
       },
     });
   expect(run(trunk, "workflow_dispatch", true).status).toBe(0);
-  expect(readFileSync(join(root, "outputs"), "utf8")).toBe(`sha=${trunk}\n`);
+  expect(readFileSync(join(root, "outputs"), "utf8")).toBe(
+    `validated_revision=${trunk}\n`
+  );
   expect(run(unmerged, "workflow_dispatch").status).not.toBe(0);
   expect(run(unmerged, "push").status).not.toBe(0);
   expect(run("main", "workflow_dispatch").status).not.toBe(0);

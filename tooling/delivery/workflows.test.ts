@@ -206,9 +206,11 @@ test("desktop source validation runs before requested code or caches", () => {
   expect(source.steps[0].with["persist-credentials"]).toBe(false);
   expect(source.steps).toHaveLength(2);
   expect(jobs.build.needs).toBe("source");
-  expect(jobs.build.steps[0].with.ref).toContain("needs.source.outputs.sha");
+  expect(jobs.build.steps[0].with.ref).toContain(
+    "needs.source.outputs.validated_revision"
+  );
   expect(jobs.build.env.LUNARIS_BUILD_SHA).toContain(
-    "needs.source.outputs.sha"
+    "needs.source.outputs.validated_revision"
   );
   expect(jobs.build.steps[0].with["persist-credentials"]).toBe(false);
 });
