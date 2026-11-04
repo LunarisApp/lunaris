@@ -15,7 +15,7 @@ path = "src/main.rs"
 async-trait = "0.1"
 base64 = "0.22"
 clap = { version = "4.5", features = ["derive"] }
-dirs = "6"
+dirs = "7"
 keyring = { version = "4.1.4", features = ["apple-native-keyring-store", "windows-native-keyring-store", "zbus-secret-service-keyring-store"] }
 lunaris-agent-mcp = { path = "../../crates/agent-mcp" }
 open = "5"
