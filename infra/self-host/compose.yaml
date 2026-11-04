@@ -52,7 +52,7 @@ services:
     extends:
       file: ./web.${WEB_ENABLED:-true}.yaml
       service: garage
-    image: dxflrs/garage:v1.3.1@sha256:58e68794286868230708803e50495bfe7d1d1c7b696e0c2dee99b03c524fc960
+    image: dxflrs/garage:v2.5.0@sha256:677e5b758e4425a325b811c425c026bf35a4bf42f7ddbaa773de3f4fd779a5a5
     restart: unless-stopped
     command: ["/garage", "server"]
     environment:
