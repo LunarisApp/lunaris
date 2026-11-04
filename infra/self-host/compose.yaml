@@ -73,7 +73,7 @@ services:
       file: ./web.${WEB_ENABLED:-true}.yaml
       service: api
     # Release packaging replaces these tags with verified multi-platform digests.
-    image: ghcr.io/lunarisapp/lunaris-api:0.0.0
+    image: ghcr.io/lunarisapp/lunaris-api:0.2.1
     restart: unless-stopped
     environment:
       PUBLIC_URL: ${PUBLIC_URL:?Run ./install.sh first}
@@ -123,7 +123,7 @@ services:
     extends:
       file: ./web.${WEB_ENABLED:-true}.yaml
       service: powersync
-    image: journeyapps/powersync-service:1.26.1@sha256:413a0c813e96935ebe7203b5759f8a594a7b7cd8aa42134713e63af637e0f079
+    image: journeyapps/powersync-service:1.27.2@sha256:d7a99817057a42dae9e6d8fe0c70b49d99105dcac8b8ab0e9ed3cf1ff0978b8b
     restart: unless-stopped
     command: ["start", "-r", "unified"]
     environment:
@@ -146,7 +146,7 @@ services:
     logging: *logging
 
   web:
-    image: ghcr.io/lunarisapp/lunaris-web:0.0.0
+    image: ghcr.io/lunarisapp/lunaris-web:0.2.1
     restart: unless-stopped
     extends:
       file: ./web.${WEB_ENABLED:-true}.yaml
