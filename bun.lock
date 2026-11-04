@@ -698,7 +698,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@lunarisapp/plugin-sdk": "workspace:*",
-        "cordis": "4.0.0-rc.9",
+        "cordis": "4.0.0-rc.12",
         "semver": "^7.8.5",
       },
       "devDependencies": {
@@ -2923,7 +2923,7 @@
 
     "cookiejar": ["cookiejar@2.1.4", "", {}, "sha512-LDx6oHrK+PhzLKJU9j5S7/Y3jM/mUHvD/DeI1WQmJn652iPC5Y4TBzC9l+5OMOXlyTTA+SmVUPm0HQUwpD5Jqw=="],
 
-    "cordis": ["cordis@4.0.0-rc.9", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "cosmokit": "^1.8.1" }, "peerDependencies": { "@cordisjs/plugin-include": "^1.0.5", "@cordisjs/plugin-loader": "^1.0.0-rc.6" }, "optionalPeers": ["@cordisjs/plugin-include", "@cordisjs/plugin-loader"], "bin": "bin.js" }, "sha512-Y18SoewBvJ0eTZK7lHSQ5xl5YT1OWwoqFI92UrtpSAZyjUcW7cIEAOgOBVFp7PtO605vx6gBWdiOVaxY6UmSGw=="],
+    "cordis": ["cordis@4.0.0-rc.12", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "cosmokit": "^1.8.1" }, "peerDependencies": { "@cordisjs/plugin-include": "^1.2.0", "@cordisjs/plugin-loader": "^1.0.0-rc.9" }, "optionalPeers": ["@cordisjs/plugin-include", "@cordisjs/plugin-loader"], "bin": "bin.js" }, "sha512-/ZtRivYxr5sffTULPewHuX5kEy5sWi8oADHSpnt0KjAd8uKRIj+kv4fh3lxtutIfVlgwJVFVXWOQp/gYa+kIOQ=="],
 
     "core-js": ["core-js@3.49.0", "", {}, "sha512-es1U2+YTtzpwkxVLwAFdSpaIMyQaq0PBgm3YD1W3Qpsn1NAmO3KSgZfu+oGSWVu6NvLHoHCV/aYcsE5wiB7ALg=="],
 
