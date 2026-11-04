@@ -85,13 +85,14 @@ import{readFileSync,writeFileSync,mkdirSync}from'node:fs';import{join}from'node:
 const s=JSON.parse(readFileSync(process.env.FIXTURE_STATE,'utf8'));const a=process.argv.slice(2);s.calls.push(a.join(' '));let result;
 if(a[0]==='api'){
  if(a[1].includes('/releases?'))result=[s.releases];
- else if(a[1].includes('/releases/tags/'))result=s.releases.find(r=>r.tag_name===a[1].split('/').at(-1));
+ else if(a[1].includes('/releases/tags/')){const r=s.releases.find(r=>r.tag_name===a[1].split('/').at(-1));if(!r||r.draft){console.error('HTTP 404');process.exit(1);}result=r;}
  else if(a[1].includes('/git/ref/tags/')){if(!s.tags.includes(a[1].split('/').at(-1))){console.error('HTTP 404');process.exit(1);}result={object:{type:'commit',sha:s.candidate.sha}};}
  else if(a[1].endsWith('/git/refs'))s.tags.push(a[a.indexOf('-f')+1].split('/').at(-1));
  else throw new Error('Unexpected api '+a[1]);
 }else if(a[0]==='release'){
  const tag=a[2];let r=s.releases.find(r=>r.tag_name===tag);
- if(a[1]==='create'&&s.failCreate){console.error('Simulated outage');process.exit(1);}if(a[1]==='create')s.releases.push({tag_name:tag,draft:true,assets:[]});
+ if(a[1]==='view'){if(!r)throw new Error('Missing release '+tag);result={assets:r.assets,isDraft:r.draft,tagName:r.tag_name};}
+ else if(a[1]==='create'&&s.failCreate){console.error('Simulated outage');process.exit(1);}else if(a[1]==='create')s.releases.push({tag_name:tag,draft:true,assets:[]});
  else if(a[1]==='upload'){const path=a[3];const name=path.split('/').at(-1);r.assets.push({name});s.files[tag+'/'+name]=readFileSync(path,'utf8');}
  else if(a[1]==='download'){const name=a[a.indexOf('--pattern')+1];const dir=a[a.indexOf('--dir')+1];mkdirSync(dir,{recursive:true});if(!(tag+'/'+name in s.files))throw new Error('Missing asset '+name);writeFileSync(join(dir,name),s.files[tag+'/'+name]);}
  else throw new Error('Unexpected release '+a[1]);

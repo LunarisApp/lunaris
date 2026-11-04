@@ -230,3 +230,38 @@ test("desktop source validation runs before requested code or caches", () => {
   );
   expect(checkout.with["persist-credentials"]).toBe(false);
 });
+
+test("stable asset jobs use workflow tooling while retaining candidate source", () => {
+  for (const name of [
+    "native.build",
+    "desktop.build",
+    "self-host.publish",
+    "release.stable",
+  ]) {
+    const { jobs } = workflow(name);
+    for (const [jobName, job] of Object.entries(jobs)) {
+      const steps = (
+        job as {
+          steps?: { run?: string; with?: { path?: string; ref?: string } }[];
+        }
+      ).steps;
+      if (!steps || (name === "release.stable" && jobName === "reserve")) {
+        continue;
+      }
+      const assetSteps = steps.filter((step) =>
+        step.run?.includes("product-release.ts")
+      );
+      if (!assetSteps.length) {
+        continue;
+      }
+      const tools = steps.find((step) => step.with?.path === ".delivery-tools");
+      expect(tools).toBeDefined();
+      expect(tools?.with?.ref).toBeUndefined();
+      for (const step of assetSteps) {
+        expect(step.run).toContain(
+          "bun .delivery-tools/tooling/delivery/product-release.ts"
+        );
+      }
+    }
+  }
+});
