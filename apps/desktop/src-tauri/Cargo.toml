@@ -23,7 +23,7 @@ futures-lite = "2"
 keyring = { version = "4.1.4", features = ["apple-native-keyring-store", "windows-native-keyring-store", "zbus-secret-service-keyring-store"] }
 lunaris-agent-mcp = { path = "../../../crates/agent-mcp" }
 powersync = "0.1.0"
-rand = "0.9"
+rand = "0.10"
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
 rmcp = { version = "=3.5.1", features = ["transport-io"] }
 serde = { version = "1", features = ["derive"] }

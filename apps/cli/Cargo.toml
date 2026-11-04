@@ -19,7 +19,7 @@ dirs = "6"
 keyring = { version = "4.1.4", features = ["apple-native-keyring-store", "windows-native-keyring-store", "zbus-secret-service-keyring-store"] }
 lunaris-agent-mcp = { path = "../../crates/agent-mcp" }
 open = "5"
-rand = "0.9"
+rand = "0.10"
 reqwest = { version = "0.13", default-features = false, features = ["form", "json", "rustls"] }
 rpassword = "7"
 rmcp = { version = "=3.5.1", features = ["transport-io"] }
