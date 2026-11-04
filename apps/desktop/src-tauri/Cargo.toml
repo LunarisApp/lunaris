@@ -17,7 +17,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 async-trait = "0.1"
 axum = "0.8"
-base64 = "0.22"
+base64 = "0.23"
 cookie = "0.18"
 futures-lite = "2"
 keyring = { version = "4.1.4", features = ["apple-native-keyring-store", "windows-native-keyring-store", "zbus-secret-service-keyring-store"] }

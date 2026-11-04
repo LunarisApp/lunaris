@@ -2686,7 +2686,7 @@ name = "lunaris-cli"
 version = "0.0.1"
 dependencies = [
  "async-trait",
- "base64 0.22.1",
+ "base64 0.23.1",
  "clap",
  "dirs",
  "keyring",
@@ -2710,7 +2710,7 @@ version = "0.0.1"
 dependencies = [
  "async-trait",
  "axum",
- "base64 0.22.1",
+ "base64 0.23.1",
  "cookie",
  "futures-lite",
  "keyring",
