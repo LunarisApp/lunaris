@@ -1,0 +1,47 @@
+version: 2
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directory: /infra/self-host
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker-compose
+    directories:
+      - /infra/local
+      - /infra/self-host
+    schedule:
+      interval: weekly
+    ignore:
+      # Release tooling manages this repository's own images.
+      - dependency-name: ghcr.io/lunarisapp/lunaris-api
+      - dependency-name: ghcr.io/lunarisapp/lunaris-web
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
