@@ -20,7 +20,7 @@
     "@lunarisapp/stats": "^2.0.0",
     "@lunarisapp/ui": "workspace:*",
     "@react-pdf/renderer": "^4.9.0",
-    "@thesvg/react": "^3.3.1",
+    "@thesvg/react": "^4.0.0",
     "buffer": "^6.0.3",
     "docx": "^9.11.0",
     "emoji-regex-xs": "^1.0.0",

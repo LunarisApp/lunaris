@@ -21,7 +21,7 @@
 		"@probo/cookie-banner": "^0.17.0",
 		"@repo/utils": "workspace:*",
 		"@tailwindplus/elements": "1.0.22",
-		"@thesvg/react": "^3.3.1",
+		"@thesvg/react": "^4.0.0",
 		"clsx": "^2.1.1",
 		"evlog": "^2.28.0",
 		"files-sdk": "^2.3.0",
