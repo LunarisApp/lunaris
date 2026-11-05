@@ -35,7 +35,7 @@ jobs:
       validated_revision: ${{ steps.source.outputs.validated_revision }}
     steps:
       # Validate with workflow-revision tooling before checking out release code.
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-bun
@@ -60,13 +60,13 @@ jobs:
       desktop_tag: ${{ steps.plan.outputs.desktop_tag }}
       desktop_version: ${{ steps.plan.outputs.desktop_version }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: .delivery-tools
           sparse-checkout: |
             tooling
             .github/actions/setup-bun
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.source.outputs.validated_revision }}
           fetch-depth: 0
@@ -86,7 +86,7 @@ jobs:
     outputs:
       mode: ${{ steps.mode.outputs.mode }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.plan.outputs.validated_revision }}
           fetch-depth: 0
@@ -108,7 +108,7 @@ jobs:
     if: needs.plan.outputs.cli == 'true' || needs.plan.outputs.desktop == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.plan.outputs.validated_revision }}
           fetch-depth: 0
@@ -143,7 +143,7 @@ jobs:
       LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.validated_revision }}
       LUNARIS_SIGNING_MODE: ${{ needs.signing.outputs.mode }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.plan.outputs.validated_revision }}
           fetch-depth: 0
@@ -260,7 +260,7 @@ jobs:
       LUNARIS_SIGNING_MODE: ${{ needs.signing.outputs.mode }}
       VITE_REGION_DIRECTORY_URL: https://lunaris.app/.well-known/lunaris-regions
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.plan.outputs.validated_revision }}
           fetch-depth: 0
@@ -371,7 +371,7 @@ jobs:
     env:
       LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.validated_revision }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.plan.outputs.validated_revision }}
           fetch-depth: 0
@@ -396,7 +396,7 @@ jobs:
           SIGNING_MODE: ${{ needs.signing.outputs.mode }}
           VERSION: ${{ needs.plan.outputs.cli_version }}
       - name: Check out Homebrew tap
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: LunarisApp/homebrew-tap
           path: homebrew-tap
@@ -437,7 +437,7 @@ jobs:
     env:
       LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.validated_revision }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.plan.outputs.validated_revision }}
           fetch-depth: 0
@@ -462,7 +462,7 @@ jobs:
           SIGNING_MODE: ${{ needs.signing.outputs.mode }}
           VERSION: ${{ needs.plan.outputs.desktop_version }}
       - name: Check out Homebrew tap
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: LunarisApp/homebrew-tap
           path: homebrew-tap

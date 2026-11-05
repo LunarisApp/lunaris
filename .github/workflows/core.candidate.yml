@@ -18,7 +18,7 @@ jobs:
       CORE_CONFIGURATION_REVISION: ${{ vars.CORE_CONFIGURATION_REVISION }}
       CYPRESS_INSTALL_BINARY: 0
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-bun
@@ -84,7 +84,7 @@ jobs:
       POWERSYNC_PROJECT_ID: ${{ vars.STAGING_POWERSYNC_PROJECT_ID }}
       POWERSYNC_REPLICATION_SERVICE_ID: ${{ vars.STAGING_POWERSYNC_REPLICATION_SERVICE_ID }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-bun
