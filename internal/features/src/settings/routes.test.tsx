@@ -1,7 +1,12 @@
 import { type ComponentType, isValidElement, type ReactElement } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createSettingsChildRoutes } from "./routes";
 import type { CookieSettingsLinkProps } from "./types";
+
+// Route wiring does not need the preferences UI and its dependency tree.
+vi.mock("./tabs/preferences", () => ({
+  PreferencesContent: () => null,
+}));
 
 describe("createSettingsChildRoutes", () => {
   it.each(["desktop", "mobile"] as const)(
