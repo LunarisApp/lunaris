@@ -47,7 +47,7 @@ jobs:
       - id: images
         if: steps.plan.outputs.enabled == 'true'
         run: bun tooling/delivery/core.ts images
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: steps.plan.outputs.enabled == 'true'
         with:
           name: core-images
@@ -97,7 +97,7 @@ jobs:
           path: artifacts
       - run: npm install --global @railway/cli@5.26.4
       - run: bun tooling/delivery/core.ts stage
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: core-candidate
           path: |
