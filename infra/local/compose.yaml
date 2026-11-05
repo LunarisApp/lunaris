@@ -64,7 +64,7 @@ services:
       - ./config/sync_rules.yaml:/app/sync_rules.yaml
 
   garage:
-    image: dxflrs/garage:v1.3.1
+    image: dxflrs/garage:v2.5.0
     restart: unless-stopped
     ports:
       - "${GARAGE_S3_HOST_PORT:-3900}:3900"
