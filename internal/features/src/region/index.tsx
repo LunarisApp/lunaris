@@ -34,7 +34,6 @@ const regionDirectoryEntrySchema = z
     manifestUrl: z.string().url().optional(),
     status: z.enum(["active", "coming-soon"]),
     default: z.boolean().optional(),
-    hidden: z.boolean().optional(),
   })
   .superRefine((entry, ctx) => {
     if (entry.status === "active" && !entry.apiUrl && !entry.manifestUrl) {
@@ -50,14 +49,12 @@ const discoveredRegionSchema = z.discriminatedUnion("status", [
     regionId: z.string().min(1),
     displayName: z.string().min(1),
     status: z.literal("available"),
-    hidden: z.boolean().optional(),
     manifestUrl: z.string().url(),
   }),
   z.object({
     regionId: z.string().min(1),
     displayName: z.string().min(1),
     status: z.literal("planned"),
-    hidden: z.boolean().optional(),
   }),
 ]);
 
@@ -134,12 +131,8 @@ class DirectoryFetchNetworkError extends Error {
 }
 
 function resolveDefaultRegion(directory: RegionDirectoryEntry[]) {
-  const explicitDefault = directory.find(
-    (entry) => entry.default && !entry.hidden
-  );
-  const fallbackDefault = directory.find(
-    (entry) => entry.status === "active" && !entry.hidden
-  );
+  const explicitDefault = directory.find((entry) => entry.default);
+  const fallbackDefault = directory.find((entry) => entry.status === "active");
   const region = explicitDefault ?? fallbackDefault;
 
   if (!region) {
@@ -246,7 +239,6 @@ export function parseRegionDiscovery(value: unknown) {
     discovery.regions.map((entry) => ({
       id: entry.regionId,
       label: entry.displayName,
-      ...(entry.hidden ? { hidden: true } : {}),
       status: entry.status === "available" ? "active" : "coming-soon",
       ...(entry.status === "available"
         ? { manifestUrl: entry.manifestUrl }
@@ -423,8 +415,7 @@ function ResolvedRegionProvider({
   const defaultRegion = useMemo(() => resolveDefaultRegion(regions), [regions]);
   const hasDefaultRegion = useMemo(
     () =>
-      regions.filter((entry) => !entry.hidden).length === 1 ||
-      regions.some((entry) => entry.default === true && !entry.hidden),
+      regions.length === 1 || regions.some((entry) => entry.default === true),
     [regions]
   );
   const queryRegionId = useMemo(

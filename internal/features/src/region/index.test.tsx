@@ -174,23 +174,6 @@ describe("parseRegionDirectory", () => {
 });
 
 describe("parseRegionDiscovery", () => {
-  it("preserves hidden metadata for explicit region selection", () => {
-    expect(
-      parseRegionDiscovery({
-        schemaVersion: 1,
-        regions: [
-          {
-            regionId: "staging",
-            displayName: "Staging",
-            status: "available",
-            hidden: true,
-            manifestUrl: "https://staging.example.com/v1/manifest",
-          },
-        ],
-      })[0]
-    ).toMatchObject({ id: "staging", hidden: true, status: "active" });
-  });
-
   it("maps well-known regions into sign-in directory entries", () => {
     expect(parseRegionDiscovery(DISCOVERY)).toEqual([
       {
@@ -226,33 +209,6 @@ describe("createAuthCallbackUrl", () => {
 });
 
 describe("RegionProvider", () => {
-  it("resolves hidden staging through an explicit URL", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ ...US_MANIFEST, regionId: "staging" }))
-    );
-    render(
-      <MemoryRouter initialEntries={["/auth?region=staging"]}>
-        <RegionProvider
-          directory={[
-            ...DIRECTORY,
-            {
-              id: "staging",
-              label: "Staging",
-              status: "active",
-              hidden: true,
-              manifestUrl: "https://staging.example.com/v1/manifest",
-            },
-          ]}
-        >
-          <RegionProbe />
-        </RegionProvider>
-      </MemoryRouter>
-    );
-    expect(screen.getByText("staging")).toBeTruthy();
-    expect(screen.getByText("explicit")).toBeTruthy();
-    await waitFor(() => expect(fetch).toHaveBeenCalled());
-  });
-
   it("discovers sign-in regions from the well-known directory", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")

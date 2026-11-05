@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RegionSwitcher } from "./region-switcher";
 
 interface TestRegion {
-  hidden?: boolean;
   id: string;
   label: string;
   status: "active" | "coming-soon";
@@ -59,27 +58,6 @@ beforeEach(() => {
 });
 
 describe("RegionSwitcher", () => {
-  it("hides staging from the public picker but retains an explicit selection", () => {
-    const staging: TestRegion = {
-      id: "staging",
-      label: "Staging",
-      status: "active",
-      hidden: true,
-    };
-    regionState.regions = [regionState.region, staging];
-    const { unmount } = render(<RegionSwitcher />);
-    expect(screen.queryByText("Staging")).toBeNull();
-    expect(screen.queryByRole("button")).toBeNull();
-    unmount();
-    regionState.region = staging;
-    render(<RegionSwitcher />);
-    expect(
-      screen
-        .getByRole("button", { name: /Staging/ })
-        .getAttribute("aria-pressed")
-    ).toBe("true");
-  });
-
   it("renders a muted non-interactive label for one configured region", () => {
     const { container } = render(<RegionSwitcher />);
 

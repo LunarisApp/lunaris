@@ -74,6 +74,19 @@ PowerSync, API and web. Configure private GHCR reads for hosted EE images in
 staging/production. Disable provider auto-updates and duplicate GitHub autodeploys.
 Production must not share staging state.
 
+Keep staging out of the public region directory. Hosted web images load public
+configuration at container startup, so the Staging Web service can override
+region discovery without rebuilding the image. Set these Railway runtime variables:
+
+```text
+VITE_REGION_DIRECTORY_URL=/regions.json
+VITE_REGION_DIRECTORY_JSON=[{"id":"staging","label":"Staging","apiUrl":"https://api-staging-5a32.up.railway.app/v1","status":"active","default":true}]
+```
+
+The web server exposes this directory at `/regions.json` and its URL at
+`/runtime-config.json`; both responses use `Cache-Control: no-store`.
+Verify both endpoints after deployment. Production keeps the public directory URL.
+
 Required GitHub environments: `staging`, `production`, `release`. Configure
 `RAILWAY_STAGING_TARGETS` / `RAILWAY_RELEASE_TARGETS` using existing destination
 schema and environment-scoped `RAILWAY_RELEASE_TOKEN`. Staging requires its own

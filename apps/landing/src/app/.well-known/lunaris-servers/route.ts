@@ -5,7 +5,7 @@ const regions: readonly DataRegion[] = regionDirectory.regions;
 const body = JSON.stringify({
 	schemaVersion: 1,
 	servers: regions
-		.filter((region) => region.status !== "deprecated" && !region.hidden)
+		.filter((region) => region.status !== "deprecated")
 		.map(({ regionId, ...region }) => ({ ...region, serverId: regionId })),
 });
 const etag = `"${createHash("sha256").update(body).digest("base64url")}"`;

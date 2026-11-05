@@ -42,9 +42,7 @@ export default async function McpPage({
 				<div className="mt-10 sm:mt-14">
 					<McpSetup
 						copy={dict.mcpPage.setup}
-						regions={regionDirectory.regions.filter(
-							(region) => !("hidden" in region && region.hidden),
-						)}
+						regions={regionDirectory.regions}
 					/>
 				</div>
 			</Container>
