@@ -80,7 +80,7 @@ region discovery without rebuilding the image. Set these Railway runtime variabl
 
 ```text
 VITE_REGION_DIRECTORY_URL=/regions.json
-VITE_REGION_DIRECTORY_JSON={"schemaVersion":1,"regions":[{"regionId":"staging","displayName":"Staging","status":"available","manifestUrl":"https://api-staging-5a32.up.railway.app/v1/manifest"}]}
+VITE_REGION_DIRECTORY_JSON={"schemaVersion":1,"regions":[{"regionId":"staging","displayName":"Staging","status":"available","manifestUrl":"https://lunaris-staging-api.up.railway.app/v1/manifest"}]}
 ```
 
 The web server exposes this directory at `/regions.json` and its URL at
