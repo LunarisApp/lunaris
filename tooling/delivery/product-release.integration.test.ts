@@ -165,6 +165,33 @@ test("unfinished product release rejects another candidate and explicit version"
   );
   expect(f.run("reserve").stderr).toContain("different source");
 });
+test("stable reservation ignores independent package and legacy artifact drafts", () => {
+  const f = fixture();
+  const state = f.state();
+  const tags = [
+    "@lunarisapp/ui@0.0.8",
+    "@lunarisapp/plugin-sdk@0.12.5",
+    "desktop@0.9.0",
+  ];
+  state.releases = tags.map((tag_name) => ({
+    tag_name,
+    draft: true,
+    assets: [],
+  }));
+  f.set(state);
+  const result = f.run("reserve");
+  expect(result.stderr).toBe("");
+  expect(result.status).toBe(0);
+  expect(f.state().releases.map((r) => r.tag_name)).toEqual([
+    ...tags,
+    "v0.9.1",
+  ]);
+  expect(f.run("reserve").status).toBe(0);
+  expect(f.state().reservations).toHaveLength(1);
+  expect(
+    f.state().calls.some((call) => call.startsWith("release delete"))
+  ).toBe(false);
+});
 test("new candidate retires empty reservation after initial plan upload failed", () => {
   const f = fixture();
   expect(f.run("reserve").status).toBe(0);

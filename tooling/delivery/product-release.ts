@@ -134,6 +134,7 @@ if (mode === "reserve") {
       "--slurp",
     ]).text
   ).flat() as Release[];
+  // Package and legacy artifact drafts belong to independent release pipelines.
   const pending = releases.filter(
     (item) => item.draft && /^v\d+\.\d+\.\d+$/.test(item.tag_name)
   );
@@ -225,9 +226,6 @@ if (mode === "reserve") {
     assertSamePlan(old, plan);
   }
   const tag = `v${version}`;
-  if (!old && releases.some((item) => item.draft)) {
-    throw new Error("Finish existing draft publications before stable release");
-  }
   if (!reservation) {
     reservation = await createDeployment(
       "release/product",
