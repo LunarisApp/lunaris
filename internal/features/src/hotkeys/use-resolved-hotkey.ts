@@ -1,6 +1,6 @@
 "use client";
 
-import type { Hotkey } from "@tanstack/react-hotkeys";
+import type { HotkeyChord } from "@tanstack/react-hotkeys";
 import { formatHotkeyDisplay } from "./display";
 import { getHotkeyBinding, getHotkeyPlatform } from "./helpers";
 import { useHotkeyOverrides } from "./overrides";
@@ -13,7 +13,7 @@ import type { HotkeyDefinition, HotkeyId, HotkeyPlatform } from "./registry";
 export function useResolvedHotkeyBinding(
   hotkey: HotkeyDefinition | HotkeyId,
   platform: HotkeyPlatform | undefined = getHotkeyPlatform()
-): Hotkey {
+): HotkeyChord {
   const overrides = useHotkeyOverrides((s) => s.overrides);
   return getHotkeyBinding(hotkey, platform, overrides);
 }

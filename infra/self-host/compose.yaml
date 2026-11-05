@@ -26,7 +26,7 @@ services:
       - postgres:/var/lib/postgresql/data
     healthcheck:
       # The entrypoint's temporary initialization server only accepts sockets.
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres" ]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -38,11 +38,20 @@ services:
     restart: unless-stopped
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?Run ./install.sh first}
-    command: ["sh", "-ec", 'exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes']
+    command:
+      [
+        "sh",
+        "-ec",
+        'exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes',
+      ]
     volumes:
       - redis:/data
     healthcheck:
-      test: ["CMD-SHELL", 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      test:
+        [
+          "CMD-SHELL",
+          'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG',
+        ]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -54,14 +63,14 @@ services:
       service: garage
     image: dxflrs/garage:v2.5.0@sha256:677e5b758e4425a325b811c425c026bf35a4bf42f7ddbaa773de3f4fd779a5a5
     restart: unless-stopped
-    command: ["/garage", "server"]
+    command: [ "/garage", "server" ]
     environment:
       GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:?Run ./install.sh first}
     volumes:
       - garage:/var/lib/garage
       - ./garage.toml:/etc/garage.toml:ro
     healthcheck:
-      test: ["CMD", "/garage", "status"]
+      test: [ "CMD", "/garage", "status" ]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -123,9 +132,9 @@ services:
     extends:
       file: ./web.${WEB_ENABLED:-true}.yaml
       service: powersync
-    image: journeyapps/powersync-service:1.26.1@sha256:413a0c813e96935ebe7203b5759f8a594a7b7cd8aa42134713e63af637e0f079
+    image: journeyapps/powersync-service:1.27.2@sha256:d7a99817057a42dae9e6d8fe0c70b49d99105dcac8b8ab0e9ed3cf1ff0978b8b
     restart: unless-stopped
-    command: ["start", "-r", "unified"]
+    command: [ "start", "-r", "unified" ]
     environment:
       PS_POSTGRES_SOURCE_URL: postgresql://powersync:${POWERSYNC_PASSWORD:?Run ./install.sh first}@postgres:5432/lunaris
       PS_POSTGRES_BUCKET_URL: postgresql://powersync:${POWERSYNC_PASSWORD}@postgres:5432/powersync_storage
@@ -137,7 +146,13 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:80/probes/readiness').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:80/probes/readiness').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
       interval: 15s
       timeout: 10s
       start_period: 90s

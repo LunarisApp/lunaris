@@ -1,7 +1,7 @@
 name: Release - Publish
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       repair_untagged:
@@ -28,7 +28,7 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           permission-contents: write
           permission-pull-requests: write
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           token: ${{ steps.app.outputs.token }}
@@ -49,7 +49,7 @@ jobs:
     with:
       ref: ${{ needs.version.outputs.sha }}
   tag:
-    needs: [version, validate]
+    needs: [ version, validate ]
     if: needs.version.outputs.publish == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -60,7 +60,7 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           permission-contents: write
           permission-pull-requests: write
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.version.outputs.sha }}
           fetch-depth: 0
@@ -71,7 +71,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
   back-merge:
-    needs: [version, validate, tag]
+    needs: [ version, validate, tag ]
     if: >-
       always() && needs.validate.result == 'success' &&
       (needs.tag.result == 'success' || needs.version.outputs.publish == 'false')
@@ -84,7 +84,7 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           permission-contents: write
           permission-pull-requests: write
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.version.outputs.sha }}
           fetch-depth: 0
@@ -95,7 +95,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
   npm:
-    needs: [version, tag]
+    needs: [ version, tag ]
     permissions:
       contents: write
       id-token: write
@@ -103,7 +103,7 @@ jobs:
     with:
       ref: ${{ needs.version.outputs.sha }}
   hosted:
-    needs: [version, tag]
+    needs: [ version, tag ]
     permissions:
       contents: write
     uses: ./.github/workflows/apps.publish.yml
@@ -111,7 +111,7 @@ jobs:
       ref: ${{ needs.version.outputs.sha }}
     secrets: inherit
   self-hosted:
-    needs: [version, tag]
+    needs: [ version, tag ]
     permissions:
       contents: write
       packages: write
@@ -120,7 +120,7 @@ jobs:
       ref: ${{ needs.version.outputs.sha }}
     secrets: inherit
   result:
-    needs: [version, validate, tag, back-merge, npm, hosted, self-hosted]
+    needs: [ version, validate, tag, back-merge, npm, hosted, self-hosted ]
     if: always() && needs.version.result != 'skipped'
     runs-on: ubuntu-latest
     steps:

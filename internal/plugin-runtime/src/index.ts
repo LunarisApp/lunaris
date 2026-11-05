@@ -61,7 +61,7 @@ class PluginDependencyService extends Service<PluginDependencyServiceConfig> {
   }
 
   [Service.check](): boolean {
-    const { range } = this[Service.resolveConfig]();
+    const { range } = this[Service.resolveIntercept]();
     return !range || satisfies(this.version, range);
   }
 }

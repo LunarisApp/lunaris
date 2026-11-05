@@ -17,18 +17,18 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 async-trait = "0.1"
 axum = "0.8"
-base64 = "0.22"
+base64 = "0.23"
 cookie = "0.18"
 futures-lite = "2"
 keyring = { version = "4.1.4", features = ["apple-native-keyring-store", "windows-native-keyring-store", "zbus-secret-service-keyring-store"] }
 lunaris-agent-mcp = { path = "../../../crates/agent-mcp" }
 powersync = "0.1.0"
-rand = "0.9"
+rand = "0.10"
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
-rmcp = { version = "=3.5.1", features = ["transport-io"] }
+rmcp = { version = "=3.8.0", features = ["transport-io"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-sha2 = "0.10"
+sha2 = "0.11"
 tauri = { version = "2", features = [] }
 tauri-plugin-deep-link = "2"
 tauri-plugin-http = "2"

@@ -10,7 +10,7 @@ on:
       target:
         description: Native component to publish
         type: choice
-        options: [cli, desktop]
+        options: [ cli, desktop ]
         required: true
 
 concurrency:
@@ -35,7 +35,7 @@ jobs:
       validated_revision: ${{ steps.source.outputs.validated_revision }}
     steps:
       # Validate with workflow-revision tooling before checking out release code.
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-bun
@@ -60,13 +60,13 @@ jobs:
       desktop_tag: ${{ steps.plan.outputs.desktop_tag }}
       desktop_version: ${{ steps.plan.outputs.desktop_version }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: .delivery-tools
           sparse-checkout: |
             tooling
             .github/actions/setup-bun
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.source.outputs.validated_revision }}
           fetch-depth: 0
@@ -86,7 +86,7 @@ jobs:
     outputs:
       mode: ${{ steps.mode.outputs.mode }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.plan.outputs.validated_revision }}
           fetch-depth: 0
@@ -104,11 +104,11 @@ jobs:
 
   verify:
     name: Verify release commit
-    needs: [plan, signing]
+    needs: [ plan, signing ]
     if: needs.plan.outputs.cli == 'true' || needs.plan.outputs.desktop == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.plan.outputs.validated_revision }}
           fetch-depth: 0
@@ -134,7 +134,7 @@ jobs:
 
   build-cli:
     name: Build CLI
-    needs: [plan, signing, verify]
+    needs: [ plan, signing, verify ]
     if: needs.plan.outputs.cli == 'true'
     runs-on: macos-15
     permissions:
@@ -143,7 +143,7 @@ jobs:
       LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.validated_revision }}
       LUNARIS_SIGNING_MODE: ${{ needs.signing.outputs.mode }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.plan.outputs.validated_revision }}
           fetch-depth: 0
@@ -239,7 +239,7 @@ jobs:
             --issuer "$APPLE_API_ISSUER" \
             --wait
           spctl --assess --type execute --verbose=2 dist/lunaris
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-cli
           path: |
@@ -249,7 +249,7 @@ jobs:
 
   build-desktop:
     name: Build Desktop
-    needs: [plan, signing, verify]
+    needs: [ plan, signing, verify ]
     if: needs.plan.outputs.desktop == 'true'
     runs-on: macos-15
     permissions:
@@ -260,7 +260,7 @@ jobs:
       LUNARIS_SIGNING_MODE: ${{ needs.signing.outputs.mode }}
       VITE_REGION_DIRECTORY_URL: https://lunaris.app/.well-known/lunaris-regions
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.plan.outputs.validated_revision }}
           fetch-depth: 0
@@ -353,7 +353,7 @@ jobs:
           fi
           cp "$dmg_path" "dist/$asset"
           (cd dist && shasum -a 256 "$asset" > SHA256SUMS)
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-desktop
           path: |
@@ -363,7 +363,7 @@ jobs:
 
   publish-cli:
     name: Publish CLI
-    needs: [plan, signing, build-cli]
+    needs: [ plan, signing, build-cli ]
     if: needs.plan.outputs.cli == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -371,7 +371,7 @@ jobs:
     env:
       LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.validated_revision }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.plan.outputs.validated_revision }}
           fetch-depth: 0
@@ -396,7 +396,7 @@ jobs:
           SIGNING_MODE: ${{ needs.signing.outputs.mode }}
           VERSION: ${{ needs.plan.outputs.cli_version }}
       - name: Check out Homebrew tap
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: LunarisApp/homebrew-tap
           path: homebrew-tap
@@ -429,7 +429,7 @@ jobs:
 
   publish-desktop:
     name: Publish Desktop
-    needs: [plan, signing, build-desktop]
+    needs: [ plan, signing, build-desktop ]
     if: needs.plan.outputs.desktop == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -437,7 +437,7 @@ jobs:
     env:
       LUNARIS_BUILD_SHA: ${{ needs.plan.outputs.validated_revision }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.plan.outputs.validated_revision }}
           fetch-depth: 0
@@ -462,7 +462,7 @@ jobs:
           SIGNING_MODE: ${{ needs.signing.outputs.mode }}
           VERSION: ${{ needs.plan.outputs.desktop_version }}
       - name: Check out Homebrew tap
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: LunarisApp/homebrew-tap
           path: homebrew-tap

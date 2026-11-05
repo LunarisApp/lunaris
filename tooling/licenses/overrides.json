@@ -17,16 +17,34 @@
       "https://raw.githubusercontent.com/guseggert/duke-sheets/fec1cd04dbefa5eb65a41d29399ca4a7edc220f2/LICENSE"
     ]
   },
+  "@extend-ai/react-docx@0.12.2": {
+    "file": "upstream/extend-hq-react-docx-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/extend-hq/react-docx/05aabd4028fb73888e5e4289d4e1ead6507b9bb5/LICENSE"
+    ]
+  },
   "@headless-tree/core@1.7.0": {
     "file": "upstream/lukasbach-headless-tree-LICENSE.txt",
     "sources": [
       "https://raw.githubusercontent.com/lukasbach/headless-tree/e3ee809d5762264f59c47ac4ab8f2ebd35fae9c3/LICENSE"
     ]
   },
+  "@headless-tree/core@1.8.0": {
+    "file": "upstream/lukasbach-headless-tree-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/lukasbach/headless-tree/8a96358a139c4793f8e572201fd714d1a2d26e83/LICENSE"
+    ]
+  },
   "@headless-tree/react@1.7.0": {
     "file": "upstream/lukasbach-headless-tree-LICENSE.txt",
     "sources": [
       "https://raw.githubusercontent.com/lukasbach/headless-tree/e3ee809d5762264f59c47ac4ab8f2ebd35fae9c3/LICENSE"
+    ]
+  },
+  "@headless-tree/react@1.8.0": {
+    "file": "upstream/lukasbach-headless-tree-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/lukasbach/headless-tree/8a96358a139c4793f8e572201fd714d1a2d26e83/LICENSE"
     ]
   },
   "@hugeicons/core-free-icons@4.3.0": {
@@ -39,6 +57,12 @@
     "file": "upstream/polarsource-polar-LICENSE.txt",
     "sources": [
       "https://raw.githubusercontent.com/polarsource/polar/530331c607ac8941ae7df99b906ea8b029be8785/LICENSE"
+    ]
+  },
+  "@polar-sh/checkout@0.2.1": {
+    "file": "upstream/polarsource-polar-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/polarsource/polar/e997e14768f5682b8b75d8c3c19da2d6af961ab2/LICENSE"
     ]
   },
   "@radix-ui/number@1.1.1": {
@@ -185,6 +209,12 @@
       "https://raw.githubusercontent.com/glincker/thesvg/a7c5ddd3f529accdf86519cc8fb96cb76cef4efd/LICENSE"
     ]
   },
+  "@thesvg/react@4.0.3": {
+    "file": "upstream/glincker-thesvg-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/glincker/thesvg/402dcbdba4711f2e088fa8018f6d7ae52e22b3dc/LICENSE"
+    ]
+  },
   "@uiw/react-json-view@2.0.0-alpha.43": {
     "file": "upstream/uiwjs-react-json-view-LICENSE.txt",
     "sources": [
@@ -195,6 +225,12 @@
     "file": "upstream/jkroso-abs-svg-path-LICENSE.txt",
     "sources": [
       "https://raw.githubusercontent.com/jkroso/abs-svg-path/f0f57c97b12cdc4fc1d94798256fba357394e40a/License"
+    ]
+  },
+  "cordis@4.0.0-rc.12": {
+    "file": "upstream/cordiverse-cordis-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/cordiverse/cordis/01b396240ce47cf2779c40af9bc445bb748fe112/LICENSE"
     ]
   },
   "cordis@4.0.0-rc.9": {

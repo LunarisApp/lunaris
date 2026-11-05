@@ -1,5 +1,5 @@
 import { getOperatingSystem } from "@repo/platform";
-import type { Hotkey, UseHotkeyOptions } from "@tanstack/react-hotkeys";
+import type { HotkeyChord, UseHotkeyOptions } from "@tanstack/react-hotkeys";
 import type { TFunction } from "i18next";
 import { getHotkeyOverrides } from "./overrides";
 import {
@@ -31,8 +31,8 @@ export function getHotkeyPlatform(): HotkeyPlatform | undefined {
 export function getHotkeyBinding(
   hotkey: HotkeyDefinition | HotkeyId | PlatformHotkey,
   platform = getHotkeyPlatform(),
-  overrides: Partial<Record<HotkeyId, Hotkey>> = getHotkeyOverrides()
-): Hotkey {
+  overrides: Partial<Record<HotkeyId, HotkeyChord>> = getHotkeyOverrides()
+): HotkeyChord {
   if (typeof hotkey === "string") {
     if (isHotkeyId(hotkey)) {
       const override = overrides[hotkey];
@@ -62,7 +62,7 @@ export function getHotkeyBinding(
 
   if (!fallback) {
     throw new Error(
-      "Hotkey definition must provide at least one platform binding"
+      "HotkeyChord definition must provide at least one platform binding"
     );
   }
 

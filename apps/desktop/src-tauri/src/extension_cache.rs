@@ -18,7 +18,11 @@ fn cache_path(app: &AppHandle, key: &str) -> Result<PathBuf, String> {
         return Err("invalid extension cache key".into());
     }
     let digest = Sha256::digest(key.as_bytes());
-    let name = format!("{:x}.bin", digest);
+    let hash = digest
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
+    let name = format!("{hash}.bin");
     Ok(app
         .path()
         .app_data_dir()

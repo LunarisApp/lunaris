@@ -2,13 +2,15 @@ name: lunaris
 
 services:
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     restart: unless-stopped
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-lunaris-local}"]
+    command:
+      [ "redis-server", "--requirepass", "${REDIS_PASSWORD:-lunaris-local}" ]
     ports:
       - "127.0.0.1:${REDIS_HOST_PORT:-6379}:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-lunaris-local}", "ping"]
+      test:
+        [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-lunaris-local}", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -31,7 +33,8 @@ services:
       - pg_data:/var/lib/postgresql/data
       - ./init-scripts/00-create-db.sh:/docker-entrypoint-initdb.d/00-create-db.sh
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      test:
+        [ "CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}" ]
       start_period: 20s
       interval: 5s
       timeout: 5s
@@ -46,7 +49,7 @@ services:
       - PS_POSTGRES_BUCKET_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${PS_DATABASE_NAME}
       - PS_AUTH_AUD=${PS_AUDIENCE}
       - PS_AUTH_JWKS=http://host.docker.internal:3000/auth/jwks
-    command: ["start", "-r", "unified"]
+    command: [ "start", "-r", "unified" ]
     depends_on:
       postgres:
         condition: service_healthy
@@ -70,20 +73,20 @@ services:
       - garage_data:/var/lib/garage
       - ./config/garage.toml:/etc/garage.toml:ro
     healthcheck:
-      test: ["CMD", "/garage", "status"]
+      test: [ "CMD", "/garage", "status" ]
       interval: 5s
       timeout: 5s
       retries: 10
 
   garage-init:
-    image: alpine:3.21
+    image: alpine:3.24
     depends_on:
       garage:
         condition: service_healthy
     env_file: ../../apps/api/${LUNARIS_COMPOSE_ENV:-.env.development}
     volumes:
       - ./init-scripts/init-garage.sh:/init-garage.sh:ro
-    entrypoint: ["sh", "/init-garage.sh"]
+    entrypoint: [ "sh", "/init-garage.sh" ]
     restart: "no"
 
 volumes:
