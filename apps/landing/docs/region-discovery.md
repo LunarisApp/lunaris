@@ -41,6 +41,11 @@ The supported lifecycle states are:
 - `available`: selectable and has an HTTPS `manifestUrl`.
 - `deprecated`: not selectable for new organizations, but still has an HTTPS `manifestUrl` for existing organizations.
 
+`hidden: true` keeps an available region out of public pickers and server discovery.
+Hidden regions remain in the region directory for explicit selection, for example
+`?region=staging`; this is a discovery preference, not access control. Hidden regions
+are never automatic defaults. Older clients may ignore this additive field.
+
 Clients must ignore additive fields. An unknown lifecycle state is nonselectable. An unsupported `schemaVersion` is a
 contract failure and triggers the client's cached-directory fallback.
 

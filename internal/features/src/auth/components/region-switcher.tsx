@@ -5,8 +5,11 @@ import { useRegion } from "../../region";
 export function RegionSwitcher() {
   const { t } = useTranslation();
   const { region, regions, setRegion } = useRegion();
+  const visibleRegions = regions.filter(
+    (entry) => !entry.hidden || entry.id === region.id
+  );
 
-  if (regions.length === 1) {
+  if (visibleRegions.length === 1) {
     return (
       <p className="px-1 text-center text-muted-foreground text-xs">
         {region.label}{" "}
@@ -36,7 +39,7 @@ export function RegionSwitcher() {
         </p>
       </div>
       <div className="grid grid-cols-2 gap-1.5">
-        {regions.map((entry) => (
+        {visibleRegions.map((entry) => (
           <Button
             aria-pressed={entry.id === region.id}
             className="h-8 justify-between px-2 text-xs"

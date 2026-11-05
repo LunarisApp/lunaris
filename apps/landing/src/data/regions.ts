@@ -5,6 +5,7 @@ export type RegionStatus = (typeof regionStatuses)[number];
 type RegionBase = {
 	readonly regionId: string;
 	readonly displayName: string;
+	readonly hidden?: boolean;
 };
 
 export type PlannedRegion = RegionBase & {
@@ -44,6 +45,13 @@ export const regionDirectory = {
 			regionId: "eu",
 			displayName: "European Union",
 			status: "planned",
+		},
+		{
+			regionId: "staging",
+			displayName: "Staging",
+			status: "available",
+			manifestUrl: "https://api-staging-5a32.up.railway.app/v1/manifest",
+			hidden: true,
 		},
 	],
 } as const satisfies RegionDirectory;
