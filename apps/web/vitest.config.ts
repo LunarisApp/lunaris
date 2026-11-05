@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "happy-dom",
+    server: { deps: { inline: ["zod"] } },
     include: ["src/**/*.test.{ts,tsx}"],
   },
   resolve: {

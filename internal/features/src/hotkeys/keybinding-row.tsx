@@ -3,7 +3,7 @@
 import { Button } from "@lunarisapp/ui/components/button";
 import { Kbd } from "@lunarisapp/ui/components/kbd";
 import { HugeiconsIcon } from "@lunarisapp/ui/icons";
-import type { Hotkey } from "@tanstack/react-hotkeys";
+import type { HotkeyChord } from "@tanstack/react-hotkeys";
 import { useHotkeyRecorder } from "@tanstack/react-hotkeys";
 import posthog from "posthog-js";
 import { useTranslation } from "react-i18next";
@@ -15,8 +15,8 @@ import { useResolvedHotkeyBinding } from "./use-resolved-hotkey";
 
 function findConflict(
   id: HotkeyId,
-  binding: Hotkey,
-  overrides: Partial<Record<HotkeyId, Hotkey>>
+  binding: HotkeyChord,
+  overrides: Partial<Record<HotkeyId, HotkeyChord>>
 ): HotkeyId | null {
   const platform = getHotkeyPlatform();
   for (const otherId of Object.keys(HOTKEYS) as HotkeyId[]) {

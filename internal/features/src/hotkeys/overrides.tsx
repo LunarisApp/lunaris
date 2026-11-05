@@ -1,6 +1,6 @@
 "use client";
 
-import type { Hotkey } from "@tanstack/react-hotkeys";
+import type { HotkeyChord } from "@tanstack/react-hotkeys";
 import {
   createContext,
   type ReactNode,
@@ -42,12 +42,14 @@ export function isValidHotkeyBinding(value: unknown): value is string {
  * Filter a persisted overrides object to known hotkey ids + valid bindings.
  * Drops orphan entries (ids no longer in HOTKEYS) and malformed values.
  */
-function sanitizeOverrides(input: unknown): Partial<Record<HotkeyId, Hotkey>> {
+function sanitizeOverrides(
+  input: unknown
+): Partial<Record<HotkeyId, HotkeyChord>> {
   if (!input || typeof input !== "object") {
     return {};
   }
   const overrides = input as Record<string, unknown>;
-  const out: Partial<Record<HotkeyId, Hotkey>> = {};
+  const out: Partial<Record<HotkeyId, HotkeyChord>> = {};
   for (const [key, value] of Object.entries(overrides)) {
     if (!isHotkeyId(key)) {
       continue;
@@ -58,16 +60,16 @@ function sanitizeOverrides(input: unknown): Partial<Record<HotkeyId, Hotkey>> {
     if (!isValidHotkeyBinding(value)) {
       continue;
     }
-    out[key] = value as Hotkey;
+    out[key] = value as HotkeyChord;
   }
   return out;
 }
 
 export interface HotkeyOverridesState {
   clearOverride: (id: HotkeyId) => void;
-  overrides: Partial<Record<HotkeyId, Hotkey>>;
+  overrides: Partial<Record<HotkeyId, HotkeyChord>>;
   resetAll: () => void;
-  setOverride: (id: HotkeyId, key: Hotkey) => void;
+  setOverride: (id: HotkeyId, key: HotkeyChord) => void;
 }
 
 export type HotkeyOverridesStore = ReturnType<
@@ -155,6 +157,6 @@ export function useHotkeyOverrides<T>(
  * Non-reactive accessor for pure functions (getHotkeyBinding, formatHotkeyDisplay).
  * Returns `{}` when no provider is mounted (SSR, tests without provider).
  */
-export function getHotkeyOverrides(): Partial<Record<HotkeyId, Hotkey>> {
+export function getHotkeyOverrides(): Partial<Record<HotkeyId, HotkeyChord>> {
   return storeInstance?.getState().overrides ?? {};
 }

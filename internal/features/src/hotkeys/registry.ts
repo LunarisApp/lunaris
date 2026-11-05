@@ -18,14 +18,14 @@ import {
   SidebarLeftIcon,
   Terminal,
 } from "@lunarisapp/ui/icons";
-import type { Hotkey } from "@tanstack/react-hotkeys";
+import type { HotkeyChord } from "@tanstack/react-hotkeys";
 
 export type HotkeyCategory = "general" | "navigation" | "workspaces";
 export type HotkeyPlatform = "linux" | "mac" | "windows";
 export type PlatformHotkey =
-  | Hotkey
-  | (Partial<Record<HotkeyPlatform, Hotkey>> & {
-      default?: Hotkey;
+  | HotkeyChord
+  | (Partial<Record<HotkeyPlatform, HotkeyChord>> & {
+      default?: HotkeyChord;
     });
 
 export interface HotkeyDefinition {

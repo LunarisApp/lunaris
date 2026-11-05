@@ -29,7 +29,10 @@ pub fn agent_work_start(
     if current.is_some() {
         return Err("Agent Work is already open in another window".into());
     }
-    let scope_hash = format!("{:x}", Sha256::digest(scope.as_bytes()));
+    let scope_hash = Sha256::digest(scope.as_bytes())
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
     let directory = app
         .path()
         .app_data_dir()
