@@ -82,7 +82,7 @@ export async function createDeployment(
 }
 export async function setStatus(
   id: number,
-  state: "in_progress" | "success" | "failure" | "error",
+  state: "in_progress" | "success" | "failure" | "error" | "inactive",
   description: string
 ) {
   return github(`deployments/${id}/statuses`, {
