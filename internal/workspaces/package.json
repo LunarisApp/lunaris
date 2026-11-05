@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "lib0": "^0.2.119",
-    "@blocknote/core": "^0.57.0",
+    "@blocknote/core": "0.52.1",
     "@extension/file": "workspace:*",
     "@extension/kanban": "workspace:*",
     "@extension/rich-text": "workspace:*",
