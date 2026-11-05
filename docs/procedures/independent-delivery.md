@@ -80,12 +80,14 @@ region discovery without rebuilding the image. Set these Railway runtime variabl
 
 ```text
 VITE_REGION_DIRECTORY_URL=/regions.json
-VITE_REGION_DIRECTORY_JSON=[{"id":"staging","label":"Staging","apiUrl":"https://api-staging-5a32.up.railway.app/v1","status":"active","default":true}]
+VITE_REGION_DIRECTORY_JSON={"schemaVersion":1,"regions":[{"regionId":"staging","displayName":"Staging","status":"available","manifestUrl":"https://api-staging-5a32.up.railway.app/v1/manifest"}]}
 ```
 
 The web server exposes this directory at `/regions.json` and its URL at
 `/runtime-config.json`; both responses use `Cache-Control: no-store`.
-Verify both endpoints after deployment. Production keeps the public directory URL.
+The directory must use the versioned discovery object (`schemaVersion` and
+`regions`), not the legacy inline array. Verify both endpoints and the linked
+manifest after deployment. Production keeps the public directory URL.
 
 Required GitHub environments: `staging`, `production`, `release`. Configure
 `RAILWAY_STAGING_TARGETS` / `RAILWAY_RELEASE_TARGETS` using existing destination
