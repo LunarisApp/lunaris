@@ -13,7 +13,7 @@ import {
   type WebhooksOptions,
   webhooks,
 } from "@polar-sh/better-auth";
-import { Polar } from "@polar-sh/sdk";
+import { createPolarCore } from "@polar-sh/sdk/2026-10";
 import type { Auth as BetterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import {
@@ -784,9 +784,9 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
       ...(options.polarConfig
         ? [
             polar({
-              client: new Polar({
+              client: createPolarCore({
                 accessToken: options.polarConfig.accessToken,
-                server:
+                environment:
                   options.polarConfig.sandbox === false
                     ? "production"
                     : "sandbox",

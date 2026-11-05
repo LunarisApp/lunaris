@@ -9,16 +9,16 @@ const modifiedAt = new Date("2026-03-01T00:00:00Z");
 function makeSubscription(overrides: Record<string, unknown> = {}) {
   return {
     id: "subscription-1",
-    productId: "plus-product",
+    product_id: "plus-product",
     status: "active",
     seats: 2,
-    currentPeriodEnd: new Date("2030-01-01"),
-    canceledAt: null,
-    customerId: "customer-1",
-    customer: { externalId: "owner-1" },
+    current_period_end: "2030-01-01T00:00:00.000Z",
+    canceled_at: null,
+    customer_id: "customer-1",
+    customer: { external_id: "owner-1" },
     metadata: { referenceId: "organization-1" },
-    createdAt: new Date("2026-02-01T00:00:00Z"),
-    modifiedAt,
+    created_at: "2026-02-01T00:00:00.000Z",
+    modified_at: modifiedAt.toISOString(),
     ...overrides,
   };
 }
@@ -52,12 +52,13 @@ describe("PolarWebhookHandlers", () => {
     await handlers.toCallbacks().onSubscriptionCreated!({
       data: sub as never,
       type: "subscription.created",
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
+      api_version: "2026-10",
     });
 
     expect(upsertSubscription).toHaveBeenCalledWith({
       canceledAt: null,
-      currentPeriodEnd: sub.currentPeriodEnd,
+      currentPeriodEnd: new Date(sub.current_period_end),
       modifiedAt,
       organizationId: "organization-1",
       polarSubscriptionId: "subscription-1",
@@ -68,17 +69,32 @@ describe("PolarWebhookHandlers", () => {
     expect(syncMemberSeats).toHaveBeenCalledWith("organization-1");
   });
 
+  it("uses creation time when the provider has no modification timestamp", async () => {
+    const sub = makeSubscription({ modified_at: null });
+    await handlers.toCallbacks().onSubscriptionCreated!({
+      data: sub as never,
+      type: "subscription.created",
+      api_version: "2026-10",
+      timestamp: new Date().toISOString(),
+    });
+    expect(upsertSubscription).toHaveBeenCalledWith(
+      expect.objectContaining({ modifiedAt: new Date(sub.created_at) })
+    );
+  });
+
   it("upserts cancellation and revocation so organization returns Free", async () => {
     const callbacks = handlers.toCallbacks();
     await callbacks.onSubscriptionCanceled!({
       data: makeSubscription({ status: "canceled" }) as never,
       type: "subscription.canceled",
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
+      api_version: "2026-10",
     });
     await callbacks.onSubscriptionRevoked!({
       data: makeSubscription({ status: "revoked" }) as never,
       type: "subscription.revoked",
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
+      api_version: "2026-10",
     });
 
     expect(upsertSubscription).toHaveBeenCalledTimes(2);
@@ -89,7 +105,8 @@ describe("PolarWebhookHandlers", () => {
     await handlers.toCallbacks().onSubscriptionCreated!({
       data: makeSubscription({ metadata: {} }) as never,
       type: "subscription.created",
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
+      api_version: "2026-10",
     });
     expect(upsertSubscription).not.toHaveBeenCalled();
   });

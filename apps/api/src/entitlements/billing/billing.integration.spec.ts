@@ -357,12 +357,12 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
       id,
       status,
       metadata: { referenceId: "org" },
-      customer: { externalId: "owner" },
-      productId: "plus-monthly",
-      canceledAt: null,
-      currentPeriodEnd: new Date("2026-10-01"),
-      createdAt: new Date("2026-09-01"),
-      modifiedAt: new Date(modified),
+      customer: { external_id: "owner" },
+      product_id: "plus-monthly",
+      canceled_at: null,
+      current_period_end: new Date("2026-10-01").toISOString(),
+      created_at: new Date("2026-09-01").toISOString(),
+      modified_at: new Date(modified).toISOString(),
     });
     await service.upsertSubscription({
       organizationId: "org",
@@ -376,10 +376,10 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
     });
     const polar = {
       subscriptions: {
-        list: mock(async () => [
-          { result: { items: [remote("new", "active", 3)] } },
-          { result: { items: [remote("old", "canceled", 2)] } },
-        ]),
+        async *iterList() {
+          yield remote("new", "active", 3);
+          yield remote("old", "canceled", 2);
+        },
       },
     };
     const billing = new BillingService(
@@ -411,21 +411,21 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
     const remote = {
       id: "paid",
       metadata: { referenceId: "org" },
-      customer: { externalId: "owner" },
-      productId: "business-monthly",
+      customer: { external_id: "owner" },
+      product_id: "business-monthly",
       status: "active",
-      canceledAt: null,
-      currentPeriodEnd: new Date("2026-10-01"),
-      modifiedAt: new Date(2),
-      createdAt: new Date(1),
+      canceled_at: null,
+      current_period_end: new Date("2026-10-01").toISOString(),
+      modified_at: new Date(2).toISOString(),
+      created_at: new Date(1).toISOString(),
     };
     const polar = {
       subscriptions: {
-        list: mock(async () => ({ result: { items: [remote] } })),
+        list: mock(async () => ({ items: [remote] })),
         update: mock(async () => ({
           ...remote,
-          productId: "plus-monthly",
-          modifiedAt: new Date(3),
+          product_id: "plus-monthly",
+          modified_at: new Date(3).toISOString(),
         })),
       },
     };
@@ -441,7 +441,11 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
       {} as never
     );
     await billing.upsertSubscription({
-      ...remote,
+      status: remote.status,
+      productId: remote.product_id,
+      canceledAt: null,
+      currentPeriodEnd: new Date(remote.current_period_end),
+      modifiedAt: new Date(remote.modified_at),
       organizationId: "org",
       purchasedByUserId: "owner",
       polarSubscriptionId: "paid",
@@ -502,19 +506,13 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
     const blocked = new Promise<void>((resolve) => {
       release = resolve;
     });
-    const update = mock(
-      async ({
-        subscriptionUpdate,
-      }: {
-        subscriptionUpdate: { seats: number };
-      }) => {
-        if (remoteSeats === 1) {
-          entered();
-          await blocked;
-        }
-        remoteSeats = subscriptionUpdate.seats;
+    const update = mock(async (_id: string, input: { seats: number }) => {
+      if (remoteSeats === 1) {
+        entered();
+        await blocked;
       }
-    );
+      remoteSeats = input.seats;
+    });
     const polar = {
       subscriptions: {
         get: mock(async () => ({
@@ -540,9 +538,9 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
     release();
     await Promise.all([first, duplicate, joining]);
     expect(remoteSeats).toBe(3);
-    expect(
-      update.mock.calls.map(([input]) => input.subscriptionUpdate.seats)
-    ).toEqual([2, 3]);
+    expect(update.mock.calls.map(([_id, input]) => input.seats)).toEqual([
+      2, 3,
+    ]);
   });
 
   it("continues seat reconciliation after one provider failure and releases locks", async () => {
@@ -575,7 +573,7 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
     const polar = {
       subscriptions: {
         update,
-        get: mock(async ({ id }: { id: string }) => {
+        get: mock(async (id: string) => {
           if (id === "org") {
             throw new Error("Provider unavailable");
           }
@@ -594,9 +592,9 @@ integration("billing entitlement consistency (PostgreSQL)", () => {
       failed: 1,
       updated: 1,
     });
-    expect(update).toHaveBeenCalledWith({
-      id: "other-org",
-      subscriptionUpdate: { prorationBehavior: "prorate", seats: 1 },
+    expect(update).toHaveBeenCalledWith("other-org", {
+      proration_behavior: "prorate",
+      seats: 1,
     });
     await expect(join("person-1")).resolves.toBeDefined();
   });
