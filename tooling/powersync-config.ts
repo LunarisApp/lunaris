@@ -204,7 +204,10 @@ async function checkProduction(
     ]);
 
     if (
-      actualReplication === expectedShared &&
+      actualReplication ===
+        (production.replicationServiceId === production.apiServiceId
+          ? expectedApi
+          : expectedShared) &&
       actualCompact === expectedShared &&
       actualApi === expectedApi
     ) {
@@ -274,15 +277,24 @@ async function deployProduction(
     readProductionConfig(production, production.apiServiceId),
   ]);
   const productionServiceIds = [
-    production.replicationServiceId,
-    production.compactServiceId,
-    production.apiServiceId,
+    ...new Set([
+      production.replicationServiceId,
+      production.compactServiceId,
+      production.apiServiceId,
+    ]),
   ];
+  const replicationConfig =
+    production.replicationServiceId === production.apiServiceId
+      ? apiConfig
+      : sharedConfig;
   const changedServiceIds = [
-    ...(currentReplication === sharedConfig && currentCompact === sharedConfig
-      ? []
-      : [production.replicationServiceId, production.compactServiceId]),
-    ...(currentApi === apiConfig ? [] : [production.apiServiceId]),
+    ...new Set([
+      ...(currentReplication === replicationConfig
+        ? []
+        : [production.replicationServiceId]),
+      ...(currentCompact === sharedConfig ? [] : [production.compactServiceId]),
+      ...(currentApi === apiConfig ? [] : [production.apiServiceId]),
+    ]),
   ];
 
   if (changedServiceIds.length === 0) {
