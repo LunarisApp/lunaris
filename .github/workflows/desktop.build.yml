@@ -94,6 +94,13 @@ jobs:
           ref: ${{ needs.source.outputs.validated_revision }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Check out current release tooling
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          path: .delivery-tools
+          sparse-checkout: |
+            tooling/delivery
+            tooling/release/automation
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile
       - name: Restore immutable release assets
@@ -101,7 +108,7 @@ jobs:
         if: inputs.publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bun tooling/delivery/product-release.ts restore dist
+        run: bun .delivery-tools/tooling/delivery/product-release.ts restore dist
       - name: Install Linux build dependencies
         if: steps.restore.outputs.cached != 'true' && runner.os == 'Linux'
         run: |

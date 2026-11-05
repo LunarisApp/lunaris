@@ -42,9 +42,15 @@ interface Release {
   tag_name: string;
 }
 function release(tag: string): Release {
-  return JSON.parse(
-    run("gh", ["api", `repos/${repository}/releases/tags/${tag}`]).text
+  // The release-by-tag REST endpoint excludes drafts. gh resolves drafts by listing.
+  const result = JSON.parse(
+    run("gh", ["release", "view", tag, "--json", "assets,isDraft,tagName"]).text
   );
+  return {
+    assets: result.assets,
+    draft: result.isDraft,
+    tag_name: result.tagName,
+  };
 }
 function download(tag: string, name: string, directory = work) {
   mkdirSync(directory, { recursive: true });

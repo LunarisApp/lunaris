@@ -165,7 +165,9 @@ jobs:
           bun install --lockfile-only --ignore-scripts
           bun install --production --frozen-lockfile --ignore-scripts
           cd apps/api
-          bun -e 'import "reflect-metadata"; await import("./dist/src/app.module.js")'
+          # Finish evaluating Nest's ESM core before CommonJS plugins require it.
+          # Bun can reject that require while the core is still loading.
+          bun -e 'import "reflect-metadata"; await import("@nestjs/core"); await import("./dist/src/app.module.js")'
 
   agent-rust:
     needs: changes

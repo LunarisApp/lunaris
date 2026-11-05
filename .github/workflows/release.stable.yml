@@ -143,9 +143,16 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ needs.reserve.outputs.sha }}
+      - name: Check out current release tooling
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          path: .delivery-tools
+          sparse-checkout: |
+            tooling/delivery
+            tooling/release/automation
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile --ignore-scripts
-      - run: bun tooling/delivery/product-release.ts restore dist
+      - run: bun .delivery-tools/tooling/delivery/product-release.ts restore dist
       - name: Publish CLI to S3
         if: matrix.component == 'cli'
         run: bash tooling/release/publish-s3.sh "$COMPONENT" "$VERSION" "$SIGNING_MODE" dist
@@ -177,6 +184,13 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ needs.reserve.outputs.sha }}
+      - name: Check out current release tooling
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          path: .delivery-tools
+          sparse-checkout: |
+            tooling/delivery
+            tooling/release/automation
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile --ignore-scripts
-      - run: bun tooling/delivery/product-release.ts finalize
+      - run: bun .delivery-tools/tooling/delivery/product-release.ts finalize
