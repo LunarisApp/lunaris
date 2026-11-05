@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { Subscription } from "@polar-sh/sdk/models/components/subscription";
+import type { models } from "@polar-sh/sdk/2026-10";
 import type { PolarWebhookCallbacks } from "@repo/auth/server";
 import { log } from "evlog";
 import { useLogger } from "evlog/nestjs";
@@ -7,6 +7,8 @@ import { AuditActions } from "../../audit/recording/audit.actions";
 import { recordComplianceAudit } from "../../audit/recording/audit-log";
 import { SeatService } from "../seats/seat.service";
 import { BillingService } from "./billing.service";
+
+type Subscription = models.Subscription;
 
 // Handlers are idempotent — safe for webhook retries.
 @Injectable()
@@ -28,14 +30,14 @@ export class PolarWebhookHandlers {
   }
 
   private async upsert(sub: Subscription): Promise<void> {
-    const purchasedByUserId = sub.customer?.externalId;
+    const purchasedByUserId = sub.customer?.external_id;
     const organizationId = sub.metadata.referenceId;
     if (!purchasedByUserId || typeof organizationId !== "string") {
       log.warn({
         context: "PolarWebhookHandlers",
         message:
           "Skipping subscription upsert: organization reference or customer externalId missing",
-        args: [{ subscriptionId: sub.id, customerId: sub.customerId }],
+        args: [{ subscriptionId: sub.id, customerId: sub.customer_id }],
       });
       return;
     }
@@ -46,7 +48,7 @@ export class PolarWebhookHandlers {
       actor: { id: "polar-webhook", type: "system" as const },
       changes: {
         after: {
-          productId: sub.productId,
+          productId: sub.product_id,
           status: sub.status,
         },
       },
@@ -57,10 +59,12 @@ export class PolarWebhookHandlers {
         polarSubscriptionId: sub.id,
         organizationId,
         purchasedByUserId,
-        productId: sub.productId,
+        productId: sub.product_id,
         status: sub.status,
-        currentPeriodEnd: sub.currentPeriodEnd ?? null,
-        canceledAt: sub.canceledAt ?? null,
+        currentPeriodEnd: sub.current_period_end
+          ? new Date(sub.current_period_end)
+          : null,
+        canceledAt: sub.canceled_at ? new Date(sub.canceled_at) : null,
         modifiedAt: resolveModifiedAt(sub),
       });
 
@@ -92,11 +96,12 @@ export class PolarWebhookHandlers {
 }
 
 /**
- * Polar's `subscription.created` webhook payloads can carry `modifiedAt: null`.
- * Fall back to `createdAt` so the ordering guard always has a real timestamp
+ * Polar's `subscription.created` webhook payloads can carry `modified_at: null`.
+ * Fall back to `created_at` so the ordering guard always has a real timestamp
  * (otherwise the FIRST webhook would write `NULL` and the second — arriving
  * with a real modifiedAt — would always win, even if it's stale).
  */
 function resolveModifiedAt(sub: Subscription): Date | null {
-  return sub.modifiedAt ?? sub.createdAt ?? null;
+  const timestamp = sub.modified_at ?? sub.created_at;
+  return timestamp ? new Date(timestamp) : null;
 }

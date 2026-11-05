@@ -2,8 +2,7 @@ import { DatabaseService } from "@app/db";
 import type { DatabaseOrTx } from "@app/db/utils";
 import { POLAR_CLIENT } from "@app/polar";
 import { Inject, Injectable } from "@nestjs/common";
-import type { Subscription } from "@polar-sh/sdk/models/components/subscription";
-import type { Polar } from "@polar-sh/sdk";
+import type { models, Polar } from "@polar-sh/sdk/2026-10";
 import type {
   BillingInterval,
   PlanDefinition,
@@ -34,6 +33,8 @@ import {
   lockOrganizationCapacity,
   readOrganizationOccupancy,
 } from "../seats/organization-capacity";
+
+type Subscription = models.Subscription;
 
 const ACCESS_STATUSES = ["active", "trialing"];
 
@@ -133,14 +134,14 @@ export class BillingService {
       const productIds = eligiblePlans.map((plan) => plan.productId);
       const seats = Math.max(1, occupancy.members);
       const openCheckouts = await polar.checkouts.list({
-        externalCustomerId: params.user.id,
+        external_customer_id: params.user.id,
         limit: 100,
         status: "open",
       });
-      const matchingCheckouts = openCheckouts.result.items.filter(
+      const matchingCheckouts = openCheckouts.items.filter(
         (checkout) =>
           checkout.metadata.referenceId === params.organizationId &&
-          checkout.expiresAt > new Date() &&
+          new Date(checkout.expires_at) > new Date() &&
           checkout.seats === seats &&
           checkout.products.some(
             (product) => product.id === selectedPlan.productId
@@ -157,12 +158,9 @@ export class BillingService {
         if (reusableCheckout.product?.id === selectedPlan.productId) {
           return { url: reusableCheckout.url };
         }
-        const checkout = await polar.checkouts.update({
-          checkoutUpdate: {
-            productId: selectedPlan.productId,
-            seats,
-          },
-          id: reusableCheckout.id,
+        const checkout = await polar.checkouts.update(reusableCheckout.id, {
+          product_id: selectedPlan.productId,
+          seats,
         });
         return { url: checkout.url };
       }
@@ -172,22 +170,22 @@ export class BillingService {
         params.organizationId
       );
       const checkout = await polar.checkouts.create({
-        allowTrial: false,
-        customerEmail: params.user.email,
-        customerName: params.user.name,
-        externalCustomerId: params.user.id,
-        maxSeats: seats,
+        allow_trial: false,
+        customer_email: params.user.email,
+        customer_name: params.user.name,
+        external_customer_id: params.user.id,
+        max_seats: seats,
         metadata: { referenceId: params.organizationId },
-        minSeats: seats,
+        min_seats: seats,
         products: [
           selectedPlan.productId,
           ...productIds.filter(
             (productId) => productId !== selectedPlan.productId
           ),
         ],
-        returnUrl: billingUrl,
+        return_url: billingUrl,
         seats,
-        successUrl: billingUrl,
+        success_url: billingUrl,
       });
       return { url: checkout.url };
     });
@@ -201,11 +199,11 @@ export class BillingService {
       params.organizationId
     );
     const session = await polar.customerSessions.create({
-      externalCustomerId: params.userId,
-      externalMemberId: params.userId,
-      returnUrl,
+      external_customer_id: params.userId,
+      external_member_id: params.userId,
+      return_url: returnUrl,
     });
-    return { url: session.customerPortalUrl };
+    return { url: session.customer_portal_url };
   }
 
   async getBillingState(
@@ -218,13 +216,13 @@ export class BillingService {
       limit: 2,
       metadata: { referenceId: params.organizationId },
     });
-    if (response.result.items.length > 1) {
+    if (response.items.length > 1) {
       throw new OrganizationSubscriptionConflictError(
         "Organization has multiple active subscriptions"
       );
     }
 
-    const remote = response.result.items[0];
+    const remote = response.items[0];
     if (!remote) {
       return { activeSubscriptions: [] };
     }
@@ -233,12 +231,12 @@ export class BillingService {
       activeSubscriptions: [
         {
           amount: remote.amount,
-          cancelAtPeriodEnd: remote.cancelAtPeriodEnd,
+          cancelAtPeriodEnd: remote.cancel_at_period_end,
           currency: remote.currency,
-          currentPeriodEnd: remote.currentPeriodEnd.toISOString(),
+          currentPeriodEnd: new Date(remote.current_period_end).toISOString(),
           id: remote.id,
-          productId: remote.productId,
-          recurringInterval: remote.recurringInterval,
+          productId: remote.product_id,
+          recurringInterval: remote.recurring_interval,
           seats: remote.seats ?? null,
           status: remote.status,
         },
@@ -276,23 +274,20 @@ export class BillingService {
         return;
       }
 
-      const remote = await polar.subscriptions.update({
-        id: active.id,
-        subscriptionUpdate: {
-          productId: target.productId,
-          prorationBehavior: "prorate",
-        },
+      const remote = await polar.subscriptions.update(active.id, {
+        product_id: target.productId,
+        proration_behavior: "prorate",
       });
       await this.upsertSubscription(
         {
           organizationId: params.organizationId,
           purchasedByUserId: params.userId,
           polarSubscriptionId: remote.id,
-          productId: remote.productId,
+          productId: remote.product_id,
           status: remote.status,
-          canceledAt: remote.canceledAt,
-          currentPeriodEnd: remote.currentPeriodEnd,
-          modifiedAt: remote.modifiedAt ?? remote.createdAt,
+          canceledAt: remote.canceled_at ? new Date(remote.canceled_at) : null,
+          currentPeriodEnd: new Date(remote.current_period_end),
+          modifiedAt: new Date(remote.modified_at ?? remote.created_at),
         },
         tx
       );
@@ -334,7 +329,7 @@ export class BillingService {
       limit: 1,
       metadata: { referenceId: organizationId },
     });
-    return remote.result.items.length > 0;
+    return remote.items.length > 0;
   }
 
   async upsertSubscription(
@@ -464,7 +459,7 @@ export class BillingService {
     let failed = 0;
     const synchronize = async (remote: Subscription) => {
       const organizationId = remote.metadata.referenceId;
-      const purchasedByUserId = remote.customer.externalId;
+      const purchasedByUserId = remote.customer.external_id;
       if (typeof organizationId !== "string" || !purchasedByUserId) {
         return;
       }
@@ -474,11 +469,11 @@ export class BillingService {
           organizationId,
           purchasedByUserId,
           polarSubscriptionId: remote.id,
-          productId: remote.productId,
+          productId: remote.product_id,
           status: remote.status,
-          canceledAt: remote.canceledAt,
-          currentPeriodEnd: remote.currentPeriodEnd,
-          modifiedAt: remote.modifiedAt ?? remote.createdAt,
+          canceledAt: remote.canceled_at ? new Date(remote.canceled_at) : null,
+          currentPeriodEnd: new Date(remote.current_period_end),
+          modifiedAt: new Date(remote.modified_at ?? remote.created_at),
         });
       } catch (error) {
         failed++;
@@ -495,14 +490,12 @@ export class BillingService {
         });
       }
     };
-    const pages = await this.polar.subscriptions.list({ limit: 100 });
-    for await (const page of pages) {
-      for (const remote of page.result.items) {
-        if (ACCESS_STATUSES.includes(remote.status)) {
-          active.push(remote);
-        } else {
-          await synchronize(remote);
-        }
+    const subscriptions = this.polar.subscriptions.iterList({ limit: 100 });
+    for await (const remote of subscriptions) {
+      if (ACCESS_STATUSES.includes(remote.status)) {
+        active.push(remote);
+      } else {
+        await synchronize(remote);
       }
     }
     // Apply revocations before activations so replacement subscriptions do not
@@ -615,20 +608,20 @@ export class BillingService {
       limit: 2,
       metadata: { referenceId: organizationId },
     });
-    if (response.result.items.length > 1) {
+    if (response.items.length > 1) {
       throw new OrganizationSubscriptionConflictError(
         "Organization has multiple active subscriptions"
       );
     }
-    const remote = response.result.items[0];
+    const remote = response.items[0];
     if (!remote) {
       return null;
     }
     return {
-      currentPeriodEnd: remote.currentPeriodEnd,
+      currentPeriodEnd: new Date(remote.current_period_end),
       id: remote.id,
-      planSlug: resolvePlanSlug(remote.productId, this.plans) ?? PLAN.free,
-      productId: remote.productId,
+      planSlug: resolvePlanSlug(remote.product_id, this.plans) ?? PLAN.free,
+      productId: remote.product_id,
     };
   }
 }

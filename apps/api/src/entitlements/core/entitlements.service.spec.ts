@@ -126,23 +126,23 @@ function makeBillingHarness(options?: {
     url: "https://polar.test/checkout/existing",
   }));
   const polarCheckoutList = mock(async () => ({
-    result: { items: options?.openCheckouts ?? [] },
+    items: options?.openCheckouts ?? [],
   }));
   const polarSubscriptionList = mock(async () => ({
-    result: { items: options?.remoteSubscriptions ?? [] },
+    items: options?.remoteSubscriptions ?? [],
   }));
   const polarSubscriptionUpdate = mock(
-    async (input: {
-      id: string;
-      subscriptionUpdate: { productId: string };
-    }) => ({
-      ...subscriptionParams,
-      id: input.id,
-      productId: input.subscriptionUpdate.productId,
+    async (id: string, input: { product_id: string }) => ({
+      id,
+      product_id: input.product_id,
+      status: subscriptionParams.status,
+      canceled_at: null,
+      current_period_end: subscriptionParams.currentPeriodEnd.toISOString(),
+      modified_at: subscriptionParams.modifiedAt.toISOString(),
     })
   );
   const polarCustomerSessionCreate = mock(async () => ({
-    customerPortalUrl: "https://polar.test/portal/session-1",
+    customer_portal_url: "https://polar.test/portal/session-1",
   }));
   let countQuery = 0;
   const asQuery = (rows: unknown[]) => {
@@ -594,12 +594,12 @@ describe("EntitlementsService organization billing", () => {
       remoteSubscriptions: [
         {
           amount: 4800,
-          cancelAtPeriodEnd: false,
+          cancel_at_period_end: false,
           currency: "usd",
-          currentPeriodEnd,
+          current_period_end: currentPeriodEnd.toISOString(),
           id: "subscription-1",
-          productId: "business-monthly-product",
-          recurringInterval: "month",
+          product_id: "business-monthly-product",
+          recurring_interval: "month",
           seats: 3,
           status: "active",
         },
@@ -688,22 +688,22 @@ describe("EntitlementsService organization billing", () => {
       url: "https://polar.test/checkout/new",
     });
     expect(polarCheckoutCreate).toHaveBeenCalledWith({
-      allowTrial: false,
-      customerEmail: "owner@lunaris.test",
-      customerName: "Organization Owner",
-      externalCustomerId: "owner-1",
-      maxSeats: 7,
+      allow_trial: false,
+      customer_email: "owner@lunaris.test",
+      customer_name: "Organization Owner",
+      external_customer_id: "owner-1",
+      max_seats: 7,
       metadata: { referenceId: "organization-1" },
-      minSeats: 7,
+      min_seats: 7,
       products: [
         "plus-monthly-product",
         "plus-yearly-product",
         "business-monthly-product",
         "business-yearly-product",
       ],
-      returnUrl: "https://app.lunaris.test/northstar/settings?tab=billing",
+      return_url: "https://app.lunaris.test/northstar/settings?tab=billing",
       seats: 7,
-      successUrl: "https://app.lunaris.test/northstar/settings?tab=billing",
+      success_url: "https://app.lunaris.test/northstar/settings?tab=billing",
     });
   });
 
@@ -717,9 +717,9 @@ describe("EntitlementsService organization billing", () => {
       })
     ).resolves.toEqual({ url: "https://polar.test/portal/session-1" });
     expect(polarCustomerSessionCreate).toHaveBeenCalledWith({
-      externalCustomerId: "owner-1",
-      externalMemberId: "owner-1",
-      returnUrl: "https://app.lunaris.test/northstar/settings?tab=billing",
+      external_customer_id: "owner-1",
+      external_member_id: "owner-1",
+      return_url: "https://app.lunaris.test/northstar/settings?tab=billing",
     });
   });
 
@@ -762,8 +762,8 @@ describe("EntitlementsService organization billing", () => {
 
     expect(polarCheckoutCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        maxSeats: 11,
-        minSeats: 11,
+        max_seats: 11,
+        min_seats: 11,
         products: ["business-yearly-product", "business-monthly-product"],
         seats: 11,
       })
@@ -788,9 +788,9 @@ describe("EntitlementsService organization billing", () => {
     const remote = makeBillingHarness({
       remoteSubscriptions: [
         {
-          currentPeriodEnd: null,
+          current_period_end: "2026-09-01T00:00:00.000Z",
           id: "subscription-remote",
-          productId: "plus-monthly-product",
+          product_id: "plus-monthly-product",
         },
       ],
     });
@@ -802,7 +802,7 @@ describe("EntitlementsService organization billing", () => {
 
   it("reuses an unchanged open checkout without another provider write", async () => {
     const openCheckout = {
-      expiresAt: new Date("2099-01-01T00:00:00.000Z"),
+      expires_at: "2099-01-01T00:00:00.000Z",
       id: "checkout-1",
       metadata: { referenceId: "organization-1" },
       product: { id: "plus-monthly-product" },
@@ -831,7 +831,7 @@ describe("EntitlementsService organization billing", () => {
         members: 4,
         openCheckouts: [
           {
-            expiresAt: new Date("2099-01-01T00:00:00.000Z"),
+            expires_at: "2099-01-01T00:00:00.000Z",
             id: "checkout-1",
             metadata: { referenceId: "organization-1" },
             product: { id: "plus-yearly-product" },
@@ -851,13 +851,13 @@ describe("EntitlementsService organization billing", () => {
 
     expect(polarCheckoutUpdate).not.toHaveBeenCalled();
     expect(polarCheckoutCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ maxSeats: 4, minSeats: 4, seats: 4 })
+      expect.objectContaining({ max_seats: 4, min_seats: 4, seats: 4 })
     );
   });
 
   it("reuses the current checkout while an older seat quantity remains open", async () => {
     const checkout = (id: string, seats: number) => ({
-      expiresAt: new Date("2099-01-01T00:00:00.000Z"),
+      expires_at: "2099-01-01T00:00:00.000Z",
       id,
       metadata: { referenceId: "organization-1" },
       product: { id: "plus-monthly-product" },
@@ -881,7 +881,7 @@ describe("EntitlementsService organization billing", () => {
       makeBillingHarness({
         openCheckouts: [
           {
-            expiresAt: new Date("2099-01-01T00:00:00.000Z"),
+            expires_at: "2099-01-01T00:00:00.000Z",
             id: "checkout-1",
             metadata: { referenceId: "organization-1" },
             product: { id: "plus-yearly-product" },
@@ -897,19 +897,16 @@ describe("EntitlementsService organization billing", () => {
 
     await service.createCheckout(checkoutParams);
 
-    expect(polarCheckoutUpdate).toHaveBeenCalledWith({
-      checkoutUpdate: {
-        productId: "plus-monthly-product",
-        seats: 3,
-      },
-      id: "checkout-1",
+    expect(polarCheckoutUpdate).toHaveBeenCalledWith("checkout-1", {
+      product_id: "plus-monthly-product",
+      seats: 3,
     });
     expect(polarCheckoutCreate).not.toHaveBeenCalled();
   });
 
   it("refuses to choose arbitrarily between duplicate open checkouts", async () => {
     const openCheckout = {
-      expiresAt: new Date("2099-01-01T00:00:00.000Z"),
+      expires_at: "2099-01-01T00:00:00.000Z",
       metadata: { referenceId: "organization-1" },
       product: { id: "plus-monthly-product" },
       products: [{ id: "plus-monthly-product" }],
@@ -941,9 +938,9 @@ describe("EntitlementsService organization billing", () => {
       },
       remoteSubscriptions: [
         {
-          currentPeriodEnd: null,
+          current_period_end: "2026-09-01T00:00:00.000Z",
           id: "subscription-1",
-          productId: "business-yearly-product",
+          product_id: "business-yearly-product",
         },
       ],
     });
@@ -963,9 +960,9 @@ describe("EntitlementsService organization billing", () => {
       members: 11,
       remoteSubscriptions: [
         {
-          currentPeriodEnd: null,
+          current_period_end: "2026-09-01T00:00:00.000Z",
           id: "subscription-1",
-          productId: "plus-monthly-product",
+          product_id: "plus-monthly-product",
         },
       ],
     });
@@ -977,12 +974,9 @@ describe("EntitlementsService organization billing", () => {
       userId: "owner-1",
     });
 
-    expect(polarSubscriptionUpdate).toHaveBeenCalledWith({
-      id: "subscription-1",
-      subscriptionUpdate: {
-        productId: "business-yearly-product",
-        prorationBehavior: "prorate",
-      },
+    expect(polarSubscriptionUpdate).toHaveBeenCalledWith("subscription-1", {
+      product_id: "business-yearly-product",
+      proration_behavior: "prorate",
     });
   });
 
@@ -992,9 +986,9 @@ describe("EntitlementsService organization billing", () => {
       pendingInvitations: 1,
       remoteSubscriptions: [
         {
-          currentPeriodEnd: null,
+          current_period_end: "2026-09-01T00:00:00.000Z",
           id: "subscription-1",
-          productId: "business-monthly-product",
+          product_id: "business-monthly-product",
         },
       ],
     });
@@ -1014,9 +1008,9 @@ describe("EntitlementsService organization billing", () => {
     const { polarSubscriptionUpdate, service } = makeBillingHarness({
       remoteSubscriptions: [
         {
-          currentPeriodEnd: null,
+          current_period_end: "2026-09-01T00:00:00.000Z",
           id: "subscription-enterprise",
-          productId: "enterprise-custom-product",
+          product_id: "enterprise-custom-product",
         },
       ],
     });
@@ -1036,14 +1030,14 @@ describe("EntitlementsService organization billing", () => {
     const { polarSubscriptionUpdate, service } = makeBillingHarness({
       remoteSubscriptions: [
         {
-          currentPeriodEnd: null,
+          current_period_end: "2026-09-01T00:00:00.000Z",
           id: "subscription-1",
-          productId: "plus-monthly-product",
+          product_id: "plus-monthly-product",
         },
         {
-          currentPeriodEnd: null,
+          current_period_end: "2026-09-01T00:00:00.000Z",
           id: "subscription-2",
-          productId: "plus-yearly-product",
+          product_id: "plus-yearly-product",
         },
       ],
     });
@@ -1062,7 +1056,7 @@ describe("EntitlementsService organization billing", () => {
 
 describe("EntitlementsService active subscription lookup", () => {
   it("uses local state without querying Polar", async () => {
-    const list = mock(async () => ({ result: { items: [] } }));
+    const list = mock(async () => ({ items: [] }));
     const service = makeService({
       polar: { subscriptions: { list } },
       rows: [
@@ -1082,7 +1076,7 @@ describe("EntitlementsService active subscription lookup", () => {
 
   it("falls back to Polar when local state is missing", async () => {
     const list = mock(async () => ({
-      result: { items: [{ id: "subscription-1" }] },
+      items: [{ id: "subscription-1" }],
     }));
     const service = makeService({
       polar: { subscriptions: { list } },
@@ -1098,7 +1092,7 @@ describe("EntitlementsService active subscription lookup", () => {
   });
 
   it("returns false when neither local nor Polar state is active", async () => {
-    const list = mock(async () => ({ result: { items: [] } }));
+    const list = mock(async () => ({ items: [] }));
     const service = makeService({
       polar: { subscriptions: { list } },
       rows: [[]],

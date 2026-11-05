@@ -254,13 +254,9 @@ integration("organization deletion (PostgreSQL)", () => {
     const revoke = mock(async () => undefined);
     const polar = {
       subscriptions: {
-        list: async () => ({
-          async *[Symbol.asyncIterator]() {
-            yield {
-              result: { items: [{ id: "sub-1", cancelAtPeriodEnd: canceled }] },
-            };
-          },
-        }),
+        async *iterList() {
+          yield { id: "sub-1", cancel_at_period_end: canceled };
+        },
         update,
         revoke,
       },
@@ -388,15 +384,11 @@ integration("organization deletion (PostgreSQL)", () => {
     );
     const polar = {
       subscriptions: {
-        list: async () => {
+        async *iterList() {
           if (billingFails) {
             throw new Error("Billing unavailable");
           }
-          return {
-            async *[Symbol.asyncIterator]() {
-              yield { result: { items: [] } };
-            },
-          };
+          yield* [];
         },
       },
     };

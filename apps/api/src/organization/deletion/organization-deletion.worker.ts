@@ -11,7 +11,7 @@ import { RESEND_CLIENT } from "@app/resend";
 import { StorageService } from "@app/storage";
 import { Inject, Injectable } from "@nestjs/common";
 import { Interval } from "@nestjs/schedule";
-import type { Polar } from "@polar-sh/sdk";
+import type { Polar } from "@polar-sh/sdk/2026-10";
 import { and, eq, gt, inArray, isNull, or } from "drizzle-orm";
 import { createLogger } from "evlog";
 import type { Resend } from "resend";
@@ -246,23 +246,20 @@ export class OrganizationDeletionWorker {
       }
       return;
     }
-    const pages = await this.polar.subscriptions.list({
+    const subscriptions = this.polar.subscriptions.iterList({
       active: true,
       limit: 100,
       metadata: { referenceId: organizationId },
     });
-    for await (const page of pages) {
-      for (const remote of page.result.items) {
-        if (revoke) {
-          await this.polar.subscriptions.revoke({ id: remote.id });
-          continue;
-        }
-        if (!remote.cancelAtPeriodEnd) {
-          await this.polar.subscriptions.update({
-            id: remote.id,
-            subscriptionUpdate: { cancelAtPeriodEnd: true },
-          });
-        }
+    for await (const remote of subscriptions) {
+      if (revoke) {
+        await this.polar.subscriptions.revoke(remote.id);
+        continue;
+      }
+      if (!remote.cancel_at_period_end) {
+        await this.polar.subscriptions.update(remote.id, {
+          cancel_at_period_end: true,
+        });
       }
     }
   }

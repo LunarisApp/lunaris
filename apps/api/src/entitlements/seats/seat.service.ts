@@ -7,7 +7,7 @@ import {
 import { DatabaseService } from "@app/db";
 import { POLAR_CLIENT } from "@app/polar";
 import { Inject, Injectable } from "@nestjs/common";
-import type { Polar } from "@polar-sh/sdk";
+import type { Polar } from "@polar-sh/sdk/2026-10";
 import { LIMIT, PLAN, resolveEntitlements } from "@repo/auth/entitlements";
 import { count, eq, inArray } from "drizzle-orm";
 import { log, parseError } from "evlog";
@@ -117,7 +117,7 @@ export class SeatService {
       if (!active || active.planSlug === PLAN.free) {
         return false;
       }
-      const remote = await polar.subscriptions.get({ id: active.id });
+      const remote = await polar.subscriptions.get(active.id);
       if (remote.metadata.referenceId !== organizationId) {
         throw new OrganizationSubscriptionConflictError(
           "Polar subscription organization reference changed"
@@ -134,9 +134,9 @@ export class SeatService {
       if (remote.seats === seats) {
         return false;
       }
-      await polar.subscriptions.update({
-        id: active.id,
-        subscriptionUpdate: { prorationBehavior: "prorate", seats },
+      await polar.subscriptions.update(active.id, {
+        proration_behavior: "prorate",
+        seats,
       });
       return true;
     });

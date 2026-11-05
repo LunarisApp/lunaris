@@ -1,5 +1,5 @@
 import { Global, Module } from "@nestjs/common";
-import { Polar } from "@polar-sh/sdk";
+import { createPolar, type Polar } from "@polar-sh/sdk/2026-10";
 import { PolarConfig } from "./polar.config";
 
 export const POLAR_CLIENT = "POLAR_CLIENT";
@@ -18,13 +18,12 @@ export const POLAR_CLIENT = "POLAR_CLIENT";
         if (!values) {
           return null;
         }
-        return new Polar({
+        return createPolar({
           accessToken: values.accessToken,
-          server: values.sandbox ? "sandbox" : "production",
+          environment: values.sandbox ? "sandbox" : "production",
           // Billing calls can hold database locks. Bound each request and let
           // reconciliation retry failures on its next run instead of under lock.
-          timeoutMs: 10_000,
-          retryConfig: { strategy: "none" },
+          timeout: 10,
         });
       },
     },
