@@ -8,7 +8,7 @@ x-logging: &logging
 
 services:
   postgres:
-    image: postgres:17@sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3
+    image: postgres:18@sha256:3a4264520e121176619f54ff867d12774bc81e95e7b84db58d63bccdb6144b81
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run ./install.sh first}
@@ -23,7 +23,7 @@ services:
       - -c
       - max_slot_wal_keep_size=2GB
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - postgres:/var/lib/postgresql
     healthcheck:
       # The entrypoint's temporary initialization server only accepts sockets.
       test: [ "CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres" ]

@@ -25,6 +25,9 @@ origin="http://localhost:$port"
 export HTTPS_PORT=${SELF_HOST_TEST_HTTPS_PORT:-18443}
 (cd "$work/install" && ./install.sh "$origin")
 bash "$work/install/smoke.sh" "$origin"
+# Validate the server major and versioned directory on the persistent mount.
+[[ $(compose exec -T postgres psql -U postgres -Atc "SHOW server_version_num") == 18* ]]
+[[ $(compose exec -T postgres psql -U postgres -Atc "SHOW data_directory") == /var/lib/postgresql/18/docker ]]
 secret_hash=$(openssl dgst -sha256 "$work/install/.env")
 
 # Real signup/login through the proxy, including its /auth page/API overlap.
@@ -113,13 +116,13 @@ compose stop
 mkdir "$work/backup"
 for name in postgres redis garage admin caddy caddy_config; do
   docker run --rm --entrypoint tar -v "${project}_${name}:/source:ro" \
-    -v "$work/backup:/backup" postgres:17 -czf "/backup/$name.tar.gz" -C /source .
+    -v "$work/backup:/backup" postgres:18 -czf "/backup/$name.tar.gz" -C /source .
 done
 export COMPOSE_PROJECT_NAME="$project-restore"
 compose create
 for name in postgres redis garage admin caddy caddy_config; do
   docker run --rm --entrypoint tar -v "${COMPOSE_PROJECT_NAME}_${name}:/destination" \
-    -v "$work/backup:/backup:ro" postgres:17 -xzpf "/backup/$name.tar.gz" -C /destination
+    -v "$work/backup:/backup:ro" postgres:18 -xzpf "/backup/$name.tar.gz" -C /destination
 done
 (cd "$work/install" && ./install.sh)
 bash "$work/install/smoke.sh" "$origin"

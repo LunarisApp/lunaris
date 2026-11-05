@@ -204,8 +204,24 @@ To retry the already downloaded release without fetching another one, run
 `./install.sh` inside the installation directory.
 
 Do not upgrade individual images or PostgreSQL majors independently. PostgreSQL
-17 is pinned; future major upgrades require an explicit data-migration procedure.
-Image rollback after schema changes requires restoring the matching backup.
+18 is pinned for new installations. Image rollback after schema changes requires
+restoring the matching backup.
+
+### Reset a disposable PostgreSQL 17 test installation
+
+The PostgreSQL 18 release starts a fresh database; it does not migrate PostgreSQL
+17 data. Reset any disposable test installation before installing this release.
+
+**This deletes all installation data, including accounts, resources, uploads, and
+certificates.** Run from the test installation directory, then rerun the download
+command above to install the new release:
+
+```sh
+docker compose down --volumes --remove-orphans
+```
+
+Keep `.env` to retain installation settings and secrets. For data you need to
+keep, use a PostgreSQL dump/restore or `pg_upgrade` migration instead of resetting.
 
 ## Back up and restore
 
