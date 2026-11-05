@@ -142,7 +142,8 @@ if (mode === "reserve") {
   }
   const reservations = [];
   for (const record of await deployments("release/product")) {
-    if ((await statuses(record.id))[0]?.state !== "success") {
+    const state = (await statuses(record.id))[0]?.state;
+    if (state !== "success" && state !== "inactive") {
       reservations.push(record);
     }
   }
@@ -152,11 +153,33 @@ if (mode === "reserve") {
     );
   }
   let reservation = reservations[0];
-  const old = reservation
+  let old = reservation
     ? productPlanSchema.parse(reservation.payload)
     : pending[0]
       ? readPlan(pending[0].tag_name)
       : undefined;
+  // A failed initial upload can leave an empty draft bound to an obsolete candidate.
+  // Retire only that unused reservation; immutable tags still consume their version.
+  if (
+    reservation &&
+    old &&
+    old.candidate.runId !== candidate.runId &&
+    !process.env.PRODUCT_VERSION
+  ) {
+    const tag = `v${old.version}`;
+    const draft = releases.find((item) => item.tag_name === tag);
+    if (!draft || (draft.draft && draft.assets.length === 0)) {
+      git("merge-base", "--is-ancestor", old.candidate.sha, candidate.sha);
+      if (draft) {
+        run("gh", ["release", "delete", tag, "--yes"]);
+        releases.splice(releases.indexOf(draft), 1);
+      }
+      await setStatus(reservation.id, "inactive", `Retired unused ${tag}`);
+      summary(`Retired empty reservation ${tag}; retained its immutable tag.`);
+      reservation = undefined;
+      old = undefined;
+    }
+  }
   // Re-dispatch of an already completed candidate is a no-op, never another version.
   const completed = releases.find(
     (item) =>

@@ -50,6 +50,7 @@ function fixture() {
       environment: string;
     }[],
     reservationState: "in_progress",
+    reservationStates: {} as Record<string, string>,
     failCreate: false,
   };
   const statePath = join(root, "state.json");
@@ -72,9 +73,9 @@ import{readFileSync}from'node:fs';const a=process.argv.slice(2);if(a[0]==='rev-p
   writeFileSync(
     join(root, "preload.ts"),
     `import{readFileSync,writeFileSync}from'node:fs';globalThis.fetch=async(input,options={})=>{const s=JSON.parse(readFileSync(process.env.FIXTURE_STATE,'utf8'));const u=String(input);let v;
-if(u.includes('/statuses')){if(options.method==='POST')s.reservationState=JSON.parse(options.body).state;v=[{state:u.includes('/1/')?'success':s.reservationState}];}
+if(u.includes('/statuses')){const id=u.split('/deployments/')[1].split('/')[0];if(options.method==='POST'){s.reservationState=JSON.parse(options.body).state;s.reservationStates[id]=s.reservationState;}v=[{state:id==='1'?'success':s.reservationStates[id]??s.reservationState}];}
 else if(u.includes('/deployments?'))v=u.includes('release%2Fproduct')?s.reservations:[];
-else if(u.endsWith('/deployments')&&options.method==='POST'){v={id:2,...JSON.parse(options.body)};s.reservations.push(v);}
+else if(u.endsWith('/deployments')&&options.method==='POST'){v={id:s.reservations.length+2,...JSON.parse(options.body)};s.reservations.push(v);}
 else if(u.includes('/deployments/1'))v={id:1,environment:'staging/core',payload:s.candidate,sha:s.candidate.sha};else throw new Error('Unexpected fetch '+u);
 writeFileSync(process.env.FIXTURE_STATE,JSON.stringify(s));return Response.json(v);};`
   );
@@ -92,6 +93,7 @@ if(a[0]==='api'){
 }else if(a[0]==='release'){
  const tag=a[2];let r=s.releases.find(r=>r.tag_name===tag);
  if(a[1]==='view'){if(!r)throw new Error('Missing release '+tag);result={assets:r.assets,isDraft:r.draft,tagName:r.tag_name};}
+ else if(a[1]==='delete'){if(!r||!r.draft||r.assets.length)throw new Error('Cannot delete populated release');s.releases.splice(s.releases.indexOf(r),1);}
  else if(a[1]==='create'&&s.failCreate){console.error('Simulated outage');process.exit(1);}else if(a[1]==='create')s.releases.push({tag_name:tag,draft:true,assets:[]});
  else if(a[1]==='upload'){const path=a[3];const name=path.split('/').at(-1);r.assets.push({name});s.files[tag+'/'+name]=readFileSync(path,'utf8');}
  else if(a[1]==='download'){const name=a[a.indexOf('--pattern')+1];const dir=a[a.indexOf('--dir')+1];mkdirSync(dir,{recursive:true});if(!(tag+'/'+name in s.files))throw new Error('Missing asset '+name);writeFileSync(join(dir,name),s.files[tag+'/'+name]);}
@@ -162,6 +164,48 @@ test("unfinished product release rejects another candidate and explicit version"
     JSON.stringify(state.candidate)
   );
   expect(f.run("reserve").stderr).toContain("different source");
+});
+test("new candidate retires empty reservation after initial plan upload failed", () => {
+  const f = fixture();
+  expect(f.run("reserve").status).toBe(0);
+  const state = f.state();
+  state.releases[0]!.assets = [];
+  delete state.files["v0.9.1/release-plan.json"];
+  state.candidate.runId = "101";
+  f.set(state);
+  writeFileSync(
+    join(f.root, "artifacts/candidate.json"),
+    JSON.stringify(state.candidate)
+  );
+  const result = f.run("reserve");
+  expect(result.stderr).toBe("");
+  expect(result.status).toBe(0);
+  expect(f.state().tags).toContain("v0.9.1");
+  expect(f.state().releases.map((r) => r.tag_name)).toEqual(["v0.9.2"]);
+  expect(f.state().reservationStates["2"]).toBe("inactive");
+  expect(f.state().reservations).toHaveLength(2);
+  expect(f.run("reserve").status).toBe(0);
+  expect(f.state().reservations).toHaveLength(2);
+});
+test("new candidate cannot retire a draft with partial artifacts or a published release", () => {
+  for (const draft of [true, false]) {
+    const f = fixture();
+    expect(f.run("reserve").status).toBe(0);
+    const state = f.state();
+    state.releases[0]!.draft = draft;
+    state.releases[0]!.assets = draft ? [{ name: "partial.zip" }] : [];
+    state.candidate.runId = "101";
+    f.set(state);
+    writeFileSync(
+      join(f.root, "artifacts/candidate.json"),
+      JSON.stringify(state.candidate)
+    );
+    expect(f.run("reserve").stderr).toContain("different source");
+    expect(
+      f.state().calls.some((call) => call.startsWith("release delete"))
+    ).toBe(false);
+    expect(f.state().reservations).toHaveLength(1);
+  }
 });
 test("artifact publication persists receipt, restores exact bytes, and rejects replacement", () => {
   const f = fixture();

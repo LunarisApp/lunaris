@@ -47,6 +47,12 @@ with same candidate resumes reserved version; another candidate/version is refus
 until incomplete publication is resolved. Re-dispatching a completed candidate
 is a no-op.
 
+If reservation failed before uploading any assets, dispatching a newer descendant
+candidate without a version override retires the empty draft and marks its
+reservation inactive. The existing tag stays immutable and consumes its version;
+the next release advances past it. Any uploaded asset, including `release-plan.json`,
+keeps the reservation protected and requires recovery with the original candidate.
+
 Artifact receipts bind source/version to checksums. Successful builds download
 persisted assets rather than rebuild; interrupted uploads can recover from the
 producer run's Actions artifacts. Existing differing bytes are never overwritten.
