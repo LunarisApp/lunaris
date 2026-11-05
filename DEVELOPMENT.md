@@ -23,6 +23,22 @@ Development defaults are committed in `apps/api/.env.development` and
 `apps/web/.env.development`. Use gitignored `.env.local` files for personal
 overrides. Set `LUNARIS_COMPOSE_ENV` to select a different API env file for Compose.
 
+## PostgreSQL 18
+
+Local services and CI use PostgreSQL 18, matching hosted production. Existing
+PostgreSQL 17 local volumes cannot be reused directly. For disposable development
+data, stop the app and reset local services before repeating the setup above:
+
+**This deletes all local service data, including databases and uploaded files.**
+
+```sh
+bun run services:down -- --volumes --remove-orphans
+```
+
+For data you need to keep, migrate with PostgreSQL dump/restore or `pg_upgrade`
+instead. PostgreSQL 18 volumes mount at `/var/lib/postgresql`, with the database
+under `18/docker`.
+
 ## Useful commands
 
 | Command | Purpose |
