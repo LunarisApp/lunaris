@@ -1,5 +1,17 @@
 # @lunarisapp/ui
 
+## 0.0.8
+
+### Patch Changes
+
+- [#77](https://github.com/LunarisApp/lunaris/pull/77) [`c494474`](https://github.com/LunarisApp/lunaris/commit/c494474d3778f33edbc126d9431a1163cc2ee05d) Thanks [@MrLightful](https://github.com/MrLightful)! - Update compatible dependencies and refresh generated MCP schemas.
+
+- [#80](https://github.com/LunarisApp/lunaris/pull/80) [`b4f2dcd`](https://github.com/LunarisApp/lunaris/commit/b4f2dcdb29940169f9de7a349dd79f6dd443f440) Thanks [@MrLightful](https://github.com/MrLightful)! - Align shared dependency resolution across enterprise and community bundles.
+
+- [#83](https://github.com/LunarisApp/lunaris/pull/83) [`a5125db`](https://github.com/LunarisApp/lunaris/commit/a5125dbc02ffb1d954da5d5d20c8f6a2b287878c) Thanks [@MrLightful](https://github.com/MrLightful)! - Migrate Polar billing integration to SDK 1.
+
+- [#48](https://github.com/LunarisApp/lunaris/pull/48) [`aea4dd7`](https://github.com/LunarisApp/lunaris/commit/aea4dd71ae6f58eb823c13c23212e676d99bb41f) Thanks [@MrLightful](https://github.com/MrLightful)! - Retry deployment health verification while public routing settles, report revision mismatches, and update the native TLS dependency chain to patched rustls 0.23.46.
+
 ## 0.0.7
 
 ### Patch Changes

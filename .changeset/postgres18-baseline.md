@@ -1,5 +1,5 @@
 ---
-"self-hosted": minor
+self-hosted: minor
 ---
 
 Use PostgreSQL 18 for fresh self-hosted installs, matching hosted production and
