@@ -39,6 +39,13 @@ For data you need to keep, migrate with PostgreSQL dump/restore or `pg_upgrade`
 instead. PostgreSQL 18 volumes mount at `/var/lib/postgresql`, with the database
 under `18/docker`.
 
+## Garage 2
+
+Local storage uses Garage 2, matching self-hosted installations. Run
+`bun run services:init` after starting services; setup can be rerun safely.
+For disposable Garage 1 development data, use the local service reset above
+before starting Garage 2. Back up any data you need to keep first.
+
 ## Useful commands
 
 | Command | Purpose |
