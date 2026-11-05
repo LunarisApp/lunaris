@@ -57,14 +57,10 @@ describe("DOCX content", () => {
                 italic: true,
                 underline: true,
                 strike: true,
+                code: true,
                 textColor: "red",
                 backgroundColor: "#abc",
               },
-            },
-            {
-              type: "text",
-              text: "Inline code",
-              styles: { code: true },
             },
             {
               type: "link",
@@ -102,7 +98,6 @@ describe("DOCX content", () => {
       "w:u",
       "w:strike",
       "Courier New",
-      "Inline code",
       "e03e3e",
       "aabbcc",
       "w:hyperlink",

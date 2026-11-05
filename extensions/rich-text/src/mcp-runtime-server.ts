@@ -1,5 +1,4 @@
 import { ServerBlockNoteEditor } from "@blocknote/server-util";
-import { getDocument } from "@blocknote/server-util/dom";
 import type { RichTextBlockData } from "./mcp-contract";
 import { richTextHeadlessSchema } from "./entity-reference-schema";
 import {
@@ -15,14 +14,10 @@ export {
 export const { getRichTextDocument, replaceRichTextDocument } =
   createRichTextRuntime(createAdapter);
 
-let serverDocument: Document | undefined;
-
 function createAdapter(): RichTextRuntimeAdapter {
-  serverDocument ??= globalThis.document ?? getDocument();
-  const editor = ServerBlockNoteEditor.create(
-    { schema: richTextHeadlessSchema },
-    serverDocument
-  );
+  const editor = ServerBlockNoteEditor.create({
+    schema: richTextHeadlessSchema,
+  });
   return {
     blocksToMarkdown: (blocks) => editor.blocksToMarkdownLossy(blocks as never),
     blocksToYXmlFragment: (blocks, fragment) =>
