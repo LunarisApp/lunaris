@@ -16,7 +16,7 @@ services:
       retries: 5
 
   postgres:
-    image: postgres:17
+    image: postgres:18
     restart: unless-stopped
     env_file: ../../apps/api/${LUNARIS_COMPOSE_ENV:-.env.development}
     environment:
