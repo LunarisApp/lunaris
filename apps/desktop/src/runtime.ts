@@ -8,6 +8,7 @@ import { DesktopAgentSessionBridge, desktopAgentAccess } from "./agent-access";
 import { desktopAgentWork } from "./agent-work";
 import { keychainStorage } from "./auth-storage";
 import {
+  createDesktopAuthFetch,
   installDesktopFetchBridge,
   type RegionSessionSource,
 } from "./fetch-bridge";
@@ -26,7 +27,7 @@ export const createDesktopRegionClients: RegionClientFactory = (manifest) => {
   });
   const authClient = createAuthClient({
     baseURL: manifest.apiUrl,
-    customFetchImpl: desktopFetch,
+    customFetchImpl: createDesktopAuthFetch(desktopFetch),
     passkeys: false,
     plugins: [plugin],
   });

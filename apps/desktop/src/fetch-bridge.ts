@@ -17,6 +17,14 @@ type NativeFetchImplementation = (
   init?: RequestInit & ClientOptions
 ) => Promise<Response>;
 
+export function createDesktopAuthFetch(
+  bridge: FetchImplementation
+): FetchImplementation {
+  // The Tauri auth plugin omits WebView cookies. Auth requests still need the
+  // keychain session; the native bridge itself always disables WebView cookies.
+  return (input, init) => bridge(input, { ...init, credentials: "include" });
+}
+
 function requestUrl(input: RequestInfo | URL) {
   if (input instanceof Request) {
     return new URL(input.url);
