@@ -25,6 +25,7 @@ describe("built-in agent tools", () => {
     ["kanban_list_boards", "read"],
     ["kanban_create_board", "mutation"],
     ["kanban_get_board_properties", "read"],
+    ["kanban_get_board", "read"],
     ["kanban_list_tasks", "read"],
     ["kanban_create_task", "mutation"],
     ["kanban_update_task", "mutation"],
@@ -35,6 +36,7 @@ describe("built-in agent tools", () => {
     ["rich_text_create_document", "mutation"],
     ["rich_text_get_document", "read"],
     ["rich_text_update_document", "mutation"],
+    ["rich_text_edit_document", "mutation"],
     ["rich_text_preview_delete_document", "read"],
     ["rich_text_delete_document", "mutation"],
   ] as const)("classifies %s as %s", (name, policy) => {

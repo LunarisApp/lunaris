@@ -1,5 +1,9 @@
+import { updateKanbanTaskProperties } from "@extension/kanban/mcp-runtime";
 import { describe, expect, it, mock } from "bun:test";
-import { getRichTextDocument } from "@extension/rich-text/mcp-runtime-server";
+import {
+  getRichTextDocument,
+  replaceRichTextDocument,
+} from "@extension/rich-text/mcp-runtime-server";
 import { applyUpdateV2, Doc, encodeStateAsUpdateV2, Map as YMap } from "yjs";
 import { BuiltInPluginOperationsService } from "./plugin-operations.service";
 
@@ -15,17 +19,12 @@ const selectOneForUpdate = (rows: unknown[]) => ({
   }),
 });
 
-const selectUpdates = () => ({
-  from: () => ({
-    where: () => ({ orderBy: () => Promise.resolve([]) }),
-  }),
-});
-
 function createDocumentHarness(params: {
   documentId: string;
   resourceId: string;
   pluginId: string;
   revision: Date;
+  initialUpdate?: Buffer;
 }) {
   let selectIndex = 0;
   const updates: Buffer[] = [];
@@ -41,7 +40,21 @@ function createDocumentHarness(params: {
     selectOne([{ backingId: params.documentId }]),
     selectOneForUpdate([{ id: params.documentId, updatedAt: params.revision }]),
   ];
-  const select = mock(() => selections[selectIndex++] ?? selectUpdates());
+  const select = mock(
+    () =>
+      selections[selectIndex++] ?? {
+        from: () => ({
+          where: () => ({
+            orderBy: () =>
+              Promise.resolve(
+                params.initialUpdate
+                  ? [{ updateData: params.initialUpdate }]
+                  : []
+              ),
+          }),
+        }),
+      }
+  );
   const tx = {
     insert: mock(() => ({
       values: mock((value: { updateData: Buffer }) => {
@@ -128,6 +141,151 @@ describe("BuiltInPluginOperationsService", () => {
       ["title", "body"]
     );
     doc.destroy();
+  });
+
+  it("persists targeted edits and returns a compact receipt", async () => {
+    const revision = new Date("2026-01-01T00:00:00.000Z");
+    const initial = new Doc();
+    await replaceRichTextDocument(initial, [
+      { id: "intro", type: "paragraph", content: "Before" },
+      { id: "keep", type: "paragraph", content: "Untouched" },
+    ]);
+    const initialUpdate = Buffer.from(encodeStateAsUpdateV2(initial));
+    const { service, updates } = createDocumentHarness({
+      documentId: "rich-text-document",
+      resourceId: "item-1",
+      pluginId: "lunaris.rich-text",
+      revision,
+      initialUpdate,
+    });
+    const result = await service.execute({
+      actorId: "user-1",
+      organizationId: "organization-1",
+      workspaceId: "workspace-1",
+      pluginId: "lunaris.rich-text",
+      operation: "edit_document",
+      input: {
+        documentResourceId: "item-1",
+        expectedRevision: revision.toISOString(),
+        edits: [{ op: "update", blockId: "intro", content: "After" }],
+      },
+    });
+    expect(result).toEqual({
+      documentResourceId: "item-1",
+      appliedEdits: 1,
+      revision: expect.any(String),
+    });
+    expect(updates).toHaveLength(1);
+    applyUpdateV2(initial, updates[0]!);
+    expect((await getRichTextDocument(initial)).markdown).toContain("After");
+    expect((await getRichTextDocument(initial)).markdown).toContain(
+      "Untouched"
+    );
+    initial.destroy();
+  });
+
+  it("rejects stale edit revisions before persisting", async () => {
+    const { service, updates } = createDocumentHarness({
+      documentId: "rich-text-document",
+      resourceId: "item-1",
+      pluginId: "lunaris.rich-text",
+      revision: new Date("2026-01-01T00:00:00.000Z"),
+    });
+    await expect(
+      service.execute({
+        actorId: "user-1",
+        organizationId: "organization-1",
+        workspaceId: "workspace-1",
+        pluginId: "lunaris.rich-text",
+        operation: "edit_document",
+        input: {
+          documentResourceId: "item-1",
+          expectedRevision: "stale",
+          edits: [{ op: "delete", blockId: "intro" }],
+        },
+      })
+    ).rejects.toThrow("Rich Text document revision does not match");
+    expect(updates).toHaveLength(0);
+  });
+
+  it("reads bounded board tasks with values and definitions from one board document", async () => {
+    const doc = new Doc();
+    updateKanbanTaskProperties(doc, "task-1", { Status: "In Progress" });
+    const updateData = Buffer.from(encodeStateAsUpdateV2(doc));
+    doc.destroy();
+    const selections = [
+      selectOne([{ id: "workspace-1" }]),
+      selectOne([{ id: "board-1", resourceTypeId: "lunaris.kanban" }]),
+      selectOne([]),
+      selectOne([{ backingId: "board-document" }]),
+      selectOne([{ id: "board-document" }]),
+      {
+        from: () => ({
+          where: () => ({ orderBy: () => Promise.resolve([{ updateData }]) }),
+        }),
+      },
+      {
+        from: () => ({
+          where: () => ({
+            orderBy: () => ({
+              limit: (limit: number) => ({
+                offset: (offset: number) => {
+                  expect(limit).toBe(2);
+                  expect(offset).toBe(0);
+                  return Promise.resolve([
+                    {
+                      taskId: "task-1",
+                      name: "Ship",
+                      position: 0,
+                      updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+                    },
+                    {
+                      taskId: "task-2",
+                      name: "Later",
+                      position: 1,
+                      updatedAt: new Date(),
+                    },
+                  ]);
+                },
+              }),
+            }),
+          }),
+        }),
+      },
+    ];
+    selections.push(selectOne([]));
+    const tx = { select: mock(() => selections.shift()) };
+    const service = new BuiltInPluginOperationsService(
+      {
+        db: {
+          transaction: (run: (db: typeof tx) => Promise<unknown>) => run(tx),
+        },
+      } as never,
+      {} as never,
+      {} as never
+    );
+    const result = await service.execute({
+      actorId: "user-1",
+      organizationId: "organization-1",
+      workspaceId: "workspace-1",
+      pluginId: "lunaris.kanban",
+      operation: "get_board",
+      input: { boardId: "board-1", limit: "1", offset: "0" },
+    });
+    expect(result).toMatchObject({
+      boardId: "board-1",
+      nextOffset: 1,
+      properties: [{ id: "status", type: "select" }],
+      tasks: [
+        {
+          taskId: "task-1",
+          properties: { status: "in-progress" },
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    });
+    expect((result as { tasks: unknown[] }).tasks).toHaveLength(1);
+    expect(selections).toHaveLength(0);
   });
 
   it("creates a Kanban task and board properties atomically", async () => {

@@ -5,6 +5,7 @@ import type { RichTextBlockInput } from "./mcp-contract";
 import { richTextDocumentOutputSchema } from "./mcp-contract";
 import {
   getRichTextDocument,
+  editRichTextDocument,
   replaceRichTextDocument,
   RichTextMcpInputError,
 } from "./mcp-runtime";
@@ -150,6 +151,136 @@ describe("Rich Text MCP runtime", () => {
       ])
     ).rejects.toThrow("Rich Text document exceeds 5 MiB size limit");
     expect((await getRichTextDocument(doc)).blocks).toEqual([]);
+    doc.destroy();
+  });
+});
+
+describe("targeted Rich Text edits", () => {
+  it("updates nested content while preserving styles, props, children, and siblings", async () => {
+    const doc = new Doc();
+    await replaceRichTextDocument(doc, [
+      {
+        id: "parent",
+        type: "heading",
+        props: { level: 2 },
+        content: "Heading",
+        children: [{ id: "child", type: "paragraph", content: "Before" }],
+      },
+      {
+        id: "keep",
+        type: "paragraph",
+        content: [{ type: "text", text: "Styled", styles: { bold: true } }],
+      },
+    ]);
+    const before = await getRichTextDocument(doc);
+    let transactions = 0;
+    doc.on("afterTransaction", () => {
+      transactions += 1;
+    });
+    await expect(
+      editRichTextDocument(doc, [
+        { op: "update", blockId: "child", content: "After" },
+        { op: "update", blockId: "parent", props: { level: 3 } },
+      ])
+    ).resolves.toEqual({ appliedEdits: 2 });
+    expect(transactions).toBe(1);
+    const after = await getRichTextDocument(doc);
+    expect(after.blocks[1]).toEqual(before.blocks[1]);
+    expect(after.blocks[0]).toMatchObject({
+      id: "parent",
+      props: { level: 3 },
+      children: [{ id: "child" }],
+    });
+    expect(after.markdown).toContain("After");
+    doc.destroy();
+  });
+
+  it("inserts at root and nested sibling positions, then edits inserted blocks", async () => {
+    const doc = new Doc();
+    await replaceRichTextDocument(doc, [
+      { id: "parent", type: "paragraph", content: "Parent" },
+    ]);
+    await editRichTextDocument(doc, [
+      {
+        op: "insert",
+        parentBlockId: null,
+        afterBlockId: null,
+        blocks: [{ id: "first", type: "paragraph" }],
+      },
+      {
+        op: "insert",
+        parentBlockId: "parent",
+        afterBlockId: null,
+        blocks: [{ id: "child", type: "paragraph" }],
+      },
+      {
+        op: "insert",
+        parentBlockId: "parent",
+        afterBlockId: "child",
+        blocks: [{ id: "last", type: "paragraph" }],
+      },
+      { op: "update", blockId: "last", content: "Last" },
+      { op: "delete", blockId: "first" },
+    ]);
+    expect((await getRichTextDocument(doc)).blocks).toMatchObject([
+      { id: "parent", children: [{ id: "child" }, { id: "last" }] },
+    ]);
+    doc.destroy();
+  });
+
+  it("rejects a later missing target without applying earlier edits", async () => {
+    const doc = new Doc();
+    await replaceRichTextDocument(doc, [
+      { id: "keep", type: "paragraph", content: "Before" },
+    ]);
+    const before = await getRichTextDocument(doc);
+    await expect(
+      editRichTextDocument(doc, [
+        { op: "update", blockId: "keep", content: "After" },
+        { op: "delete", blockId: "missing" },
+      ])
+    ).rejects.toThrow("Rich Text block not found: missing");
+    expect(await getRichTextDocument(doc)).toEqual(before);
+    doc.destroy();
+  });
+
+  it("rejects duplicate IDs, wrong-parent anchors, no-op updates, and deleting every block", async () => {
+    const doc = new Doc();
+    await replaceRichTextDocument(doc, [
+      {
+        id: "keep",
+        type: "paragraph",
+        children: [{ id: "child", type: "paragraph" }],
+      },
+    ]);
+    const before = await getRichTextDocument(doc);
+    await expect(
+      editRichTextDocument(doc, [
+        {
+          op: "insert",
+          parentBlockId: null,
+          afterBlockId: null,
+          blocks: [{ id: "child", type: "paragraph" }],
+        },
+      ])
+    ).rejects.toThrow("Duplicate Rich Text block ID");
+    await expect(
+      editRichTextDocument(doc, [
+        {
+          op: "insert",
+          parentBlockId: "keep",
+          afterBlockId: "keep",
+          blocks: [{ id: "new", type: "paragraph" }],
+        },
+      ])
+    ).rejects.toThrow("Insertion sibling not found in parent");
+    await expect(
+      editRichTextDocument(doc, [{ op: "update", blockId: "keep" }])
+    ).rejects.toThrow("requires content or props");
+    await expect(
+      editRichTextDocument(doc, [{ op: "delete", blockId: "keep" }])
+    ).rejects.toThrow("Keep at least one");
+    expect(await getRichTextDocument(doc)).toEqual(before);
     doc.destroy();
   });
 });

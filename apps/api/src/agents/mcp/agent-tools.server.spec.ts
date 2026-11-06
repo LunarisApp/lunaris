@@ -169,6 +169,90 @@ describe("agent tool registry", () => {
     await server.close();
   });
 
+  test("executes board snapshots and targeted edits through MCP", async () => {
+    const calls: unknown[][] = [];
+    const board = {
+      boardId: "board-1",
+      properties: [],
+      tasks: [],
+      nextOffset: null,
+    };
+    const receipt = {
+      documentResourceId: "resource-1",
+      revision: "revision-2",
+      appliedEdits: 1,
+    };
+    const control = {
+      executePluginOperation: async (...args: unknown[]) => {
+        calls.push(args);
+        return args[3] === "get_board" ? board : receipt;
+      },
+    } as unknown as LunarisControlClient;
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+    const server = createAgentToolsServer(control);
+    const client = new Client({ name: "test", version: "1" });
+    await Promise.all([
+      server.connect(serverTransport),
+      client.connect(clientTransport),
+    ]);
+    try {
+      expect(
+        (
+          await client.callTool({
+            name: "kanban_get_board",
+            arguments: {
+              organizationId: "organization-1",
+              workspaceId: "workspace-1",
+              boardId: "board-1",
+            },
+          })
+        ).structuredContent
+      ).toEqual(board);
+      const edits = [{ op: "update", blockId: "intro", content: "After" }];
+      expect(
+        (
+          await client.callTool({
+            name: "rich_text_edit_document",
+            arguments: {
+              organizationId: "organization-1",
+              workspaceId: "workspace-1",
+              documentResourceId: "resource-1",
+              expectedRevision: "revision-1",
+              idempotencyKey: "request-1",
+              edits,
+            },
+          })
+        ).structuredContent
+      ).toEqual(receipt);
+      expect(calls).toEqual([
+        [
+          "organization-1",
+          "workspace-1",
+          "lunaris.kanban",
+          "get_board",
+          { boardId: "board-1", limit: 50, offset: 0 },
+          { idempotencyKey: undefined },
+        ],
+        [
+          "organization-1",
+          "workspace-1",
+          "lunaris.rich-text",
+          "edit_document",
+          {
+            documentResourceId: "resource-1",
+            expectedRevision: "revision-1",
+            edits,
+          },
+          { idempotencyKey: "request-1" },
+        ],
+      ]);
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
   test("executes Kanban creation with properties through the extension port", async () => {
     const calls: unknown[][] = [];
     const control = {

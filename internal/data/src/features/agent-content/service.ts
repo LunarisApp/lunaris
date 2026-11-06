@@ -6,6 +6,8 @@ import {
 import {
   type KanbanCreateTaskOutput,
   type KanbanGetBoardPropertiesOutput,
+  type KanbanGetBoardOutput,
+  kanbanGetBoardOperationInputSchema,
   type KanbanPropertyValue,
   type KanbanTaskProperties,
   type KanbanUpdateTaskOutput,
@@ -15,6 +17,7 @@ import {
 } from "@extension/kanban/mcp-contract";
 import {
   getKanbanBoardProperties,
+  getKanbanTaskProperties,
   kanbanTaskPropertiesIncludePeople,
   KanbanMcpInputError,
   updateKanbanTaskProperties,
@@ -22,12 +25,16 @@ import {
 import { RICH_TEXT_PLUGIN_ID } from "@extension/rich-text/constants";
 import {
   type RichTextDocumentOutput,
+  type RichTextEditDocumentOutput,
+  type RichTextEdit,
+  richTextEditDocumentOperationInputSchema,
   richTextGetDocumentOperationInputSchema,
   richTextReadMeOperationInputSchema,
   richTextUpdateDocumentOperationInputSchema,
 } from "@extension/rich-text/mcp-contract";
 import {
   getRichTextDocument,
+  editRichTextDocument,
   replaceRichTextDocument,
   RICH_TEXT_BLOCK_GUIDE,
   RichTextMcpInputError,
@@ -829,6 +836,19 @@ export function createDeviceControlClient(
       throw error;
     }
   };
+  const editRichTextBlocks = async (
+    doc: Doc,
+    edits: readonly RichTextEdit[]
+  ) => {
+    try {
+      return await editRichTextDocument(doc, edits);
+    } catch (error) {
+      if (error instanceof RichTextMcpInputError) {
+        throw localError(error.code, error.message, error.status);
+      }
+      throw error;
+    }
+  };
   const readRichTextGuide = async (
     organizationId: string,
     workspaceId: string,
@@ -892,10 +912,14 @@ export function createDeviceControlClient(
     organizationId: string,
     workspaceId: string,
     operationInput: Record<string, unknown>,
-    request: PluginOperationRequest
-  ): Promise<RichTextDocumentOutput> => {
-    const parsed =
-      richTextUpdateDocumentOperationInputSchema.safeParse(operationInput);
+    request: PluginOperationRequest,
+    edit = false
+  ): Promise<RichTextDocumentOutput | RichTextEditDocumentOutput> => {
+    const parsed = (
+      edit
+        ? richTextEditDocumentOperationInputSchema
+        : richTextUpdateDocumentOperationInputSchema
+    ).safeParse(operationInput);
     if (!parsed.success) {
       throw localError(
         "INVALID_RICH_TEXT_DOCUMENT_UPDATE",
@@ -904,8 +928,10 @@ export function createDeviceControlClient(
       );
     }
     const input = parsed.data;
-    return safety.idempotent<RichTextDocumentOutput>(
-      `${RICH_TEXT_PLUGIN_ID}:update_document`,
+    return safety.idempotent<
+      RichTextDocumentOutput | RichTextEditDocumentOutput
+    >(
+      `${RICH_TEXT_PLUGIN_ID}:${edit ? "edit_document" : "update_document"}`,
       request?.idempotencyKey,
       { input, pluginId: RICH_TEXT_PLUGIN_ID, workspaceId, organizationId },
       async (database) => {
@@ -941,7 +967,10 @@ export function createDeviceControlClient(
         }
         return withYjsDocument(database, document.id, async (doc) => {
           const before = encodeStateVector(doc);
-          const content = await replaceRichTextBlocks(doc, input.blocks);
+          const content =
+            "edits" in input
+              ? await editRichTextBlocks(doc, input.edits)
+              : await replaceRichTextBlocks(doc, input.blocks);
           const now = await persistYjsUpdate(database, {
             documentId: document.id,
             workspaceId,
@@ -1039,6 +1068,65 @@ export function createDeviceControlClient(
         }) satisfies KanbanGetBoardPropertiesOutput
     );
   };
+  const readKanbanBoard = async (
+    organizationId: string,
+    workspaceId: string,
+    operationInput: Record<string, unknown>,
+    request: PluginOperationRequest
+  ): Promise<KanbanGetBoardOutput> => {
+    const parsed = kanbanGetBoardOperationInputSchema.safeParse(operationInput);
+    if (!parsed.success) {
+      throw localError(
+        "INVALID_KANBAN_BOARD_REQUEST",
+        "Invalid Kanban board request",
+        400
+      );
+    }
+    const { boardId, limit, offset } = parsed.data;
+    const workspace = await requireWorkspace(
+      organizationId,
+      workspaceId,
+      request
+    );
+    const board = await requireKanbanBoard(
+      db,
+      workspaceId,
+      boardId,
+      request,
+      workspace.snapshot
+    );
+    const document = await requirePluginYjsDocument(
+      db,
+      workspaceId,
+      board.yjsBackingId,
+      {
+        errorCode: "KANBAN_BOARD_DOCUMENT_NOT_FOUND",
+        errorMessage: "Kanban board document not found",
+      }
+    );
+    const rows = await db.getAll<ResourceRow>(
+      `SELECT * FROM (${RESOURCES}) resources
+       WHERE workspace_id = ? AND parent_id = ? AND resource_type_id = ?
+       ORDER BY position, created_at, id LIMIT ? OFFSET ?`,
+      [workspaceId, board.id, KANBAN_TASK_RESOURCE_TYPE_ID, limit + 1, offset]
+    );
+    return withYjsDocument(db, document.id, (doc) => {
+      const properties = getKanbanBoardProperties(doc);
+      return {
+        boardId: board.id,
+        properties,
+        tasks: rows.slice(0, limit).map((task) => ({
+          taskId: task.id,
+          name: task.name,
+          position: task.position,
+          updatedAt: task.updated_at,
+          properties: getKanbanTaskProperties(doc, task.id, properties),
+        })),
+        nextOffset: rows.length > limit ? offset + limit : null,
+      };
+    });
+  };
+
   const createKanbanTask = async (
     organizationId: string,
     workspaceId: string,
@@ -1697,6 +1785,14 @@ export function createDeviceControlClient(
       request
     ) {
       if (pluginId === KANBAN_PLUGIN_ID) {
+        if (operation === "get_board") {
+          return readKanbanBoard(
+            organizationId,
+            workspaceId,
+            operationInput,
+            request
+          );
+        }
         if (operation === "get_board_properties") {
           return readKanbanBoardProperties(
             organizationId,
@@ -1723,6 +1819,15 @@ export function createDeviceControlClient(
         }
       }
       if (pluginId === RICH_TEXT_PLUGIN_ID) {
+        if (operation === "edit_document") {
+          return updateRichTextDocument(
+            organizationId,
+            workspaceId,
+            operationInput,
+            request,
+            true
+          );
+        }
         if (operation === "read_me") {
           return readRichTextGuide(
             organizationId,

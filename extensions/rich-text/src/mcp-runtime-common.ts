@@ -2,7 +2,11 @@ import {
   RICH_TEXT_MAX_DOCUMENT_BLOCKS,
   RICH_TEXT_MAX_DOCUMENT_BYTES,
 } from "./constants";
-import type { RichTextBlockData, RichTextBlockInput } from "./mcp-contract";
+import type {
+  RichTextBlockData,
+  RichTextBlockInput,
+  RichTextEdit,
+} from "./mcp-contract";
 import type { Doc, XmlFragment } from "yjs";
 
 export interface RichTextRuntimeAdapter {
@@ -20,7 +24,9 @@ export interface RichTextRuntimeAdapter {
 
 export const RICH_TEXT_BLOCK_GUIDE = `# Rich Text BlockNote document format
 
-Call rich_text_get_document before editing. Send the complete replacement block tree to rich_text_update_document and preserve IDs for unchanged blocks. Every block needs a stable unique ID across the entire nested tree.
+Call rich_text_get_document before editing. Prefer rich_text_edit_document for targeted changes: update content/props, insert blocks under parentBlockId after afterBlockId (null means root/first), or delete a block and its children. Edits run in order, atomically, behind expectedRevision. Omitted fields and unrelated blocks stay unchanged. The receipt returns the next revision. Reread after a revision conflict before rebuilding edits.
+
+Use rich_text_update_document for initial content or a complete rewrite. Preserve unchanged block IDs. Every block needs a unique ID across the entire nested tree. Never reconstruct native content from the lossy Markdown preview.
 
 Common blocks:
 - Paragraph: {"id":"intro","type":"paragraph","content":"Hello world"}
@@ -53,31 +59,115 @@ export function createRichTextRuntime(
           markdown: await adapter.blocksToMarkdown(blocks),
         };
       }),
-    replaceRichTextDocument: async (
+    replaceRichTextDocument: (
       doc: Doc,
       requested: readonly RichTextBlockInput[]
-    ) => {
-      assertRichTextDocumentInput(requested);
-      return withAdapter(createAdapter, async (adapter) => {
-        try {
-          const blocks = adapter.normalizeBlocks(structuredClone(requested));
-          assertRichTextDocumentLimits(blocks);
-          const markdown = await adapter.blocksToMarkdown(blocks);
-          adapter.blocksToYXmlFragment(blocks, doc.getXmlFragment());
-          return { blocks: cloneRichTextBlocks(blocks), markdown };
-        } catch (error) {
-          if (error instanceof RichTextMcpInputError) {
-            throw error;
-          }
+    ) =>
+      withAdapter(createAdapter, (adapter) =>
+        writeBlocks(adapter, doc, requested, async (blocks) => ({
+          blocks: cloneRichTextBlocks(blocks),
+          markdown: await adapter.blocksToMarkdown(blocks),
+        }))
+      ),
+    editRichTextDocument: (doc: Doc, edits: readonly RichTextEdit[]) =>
+      withAdapter(createAdapter, async (adapter) => {
+        const blocks = cloneRichTextBlocks(
+          adapter.yXmlFragmentToBlocks(doc.getXmlFragment())
+        );
+        const requested = applyRichTextEdits(blocks, edits);
+        return writeBlocks(adapter, doc, requested, () => ({
+          appliedEdits: edits.length,
+        }));
+      }),
+  };
+}
+
+async function writeBlocks<T>(
+  adapter: RichTextRuntimeAdapter,
+  doc: Doc,
+  requested: readonly RichTextBlockInput[],
+  prepareResult: (blocks: RichTextBlockData[]) => Promise<T> | T
+) {
+  assertRichTextDocumentInput(requested);
+  try {
+    const blocks = adapter.normalizeBlocks(structuredClone(requested));
+    assertRichTextDocumentLimits(blocks);
+    const result = await prepareResult(blocks);
+    adapter.blocksToYXmlFragment(blocks, doc.getXmlFragment());
+    return result;
+  } catch (error) {
+    if (error instanceof RichTextMcpInputError) {
+      throw error;
+    }
+    throw new RichTextMcpInputError(
+      error instanceof Error ? error.message : "Invalid BlockNote document"
+    );
+  }
+}
+
+function applyRichTextEdits(
+  blocks: RichTextBlockInput[],
+  edits: readonly RichTextEdit[]
+) {
+  for (const edit of edits) {
+    if (edit.op === "insert") {
+      const siblings =
+        edit.parentBlockId === null
+          ? blocks
+          : (findBlock(blocks, edit.parentBlockId).block.children ??= []);
+      const afterIndex =
+        edit.afterBlockId === null
+          ? -1
+          : siblings.findIndex(({ id }) => id === edit.afterBlockId);
+      if (edit.afterBlockId !== null && afterIndex < 0) {
+        throw new RichTextMcpInputError(
+          `Insertion sibling not found in parent: ${edit.afterBlockId}`
+        );
+      }
+      siblings.splice(afterIndex + 1, 0, ...structuredClone(edit.blocks));
+    } else {
+      const { block, siblings, index } = findBlock(blocks, edit.blockId);
+      if (edit.op === "delete") {
+        siblings.splice(index, 1);
+      } else {
+        if (edit.content === undefined && edit.props === undefined) {
           throw new RichTextMcpInputError(
-            error instanceof Error
-              ? error.message
-              : "Invalid BlockNote document"
+            "Block update requires content or props"
           );
         }
-      });
-    },
-  };
+        if (edit.content !== undefined) {
+          block.content = structuredClone(edit.content);
+        }
+        if (edit.props !== undefined) {
+          block.props = { ...block.props, ...edit.props };
+        }
+      }
+    }
+    // Validate each intermediate tree so subsequent targets remain unambiguous.
+    assertRichTextDocumentInput(blocks);
+  }
+  if (blocks.length === 0) {
+    throw new RichTextMcpInputError(
+      "Keep at least one Rich Text block; clear its content to empty the resource"
+    );
+  }
+  return blocks;
+}
+
+function findBlock(blocks: RichTextBlockInput[], blockId: string) {
+  const pending = [blocks];
+  while (pending.length > 0) {
+    const siblings = pending.pop()!;
+    for (const [index, block] of siblings.entries()) {
+      if (block.id === blockId) {
+        return { block, siblings, index };
+      }
+      if (block.children?.length) {
+        pending.push(block.children);
+      }
+    }
+  }
+  throw new RichTextMcpInputError(`Rich Text block not found: ${blockId}`);
 }
 
 async function withAdapter<T>(
