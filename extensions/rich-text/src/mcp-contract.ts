@@ -126,7 +126,7 @@ export const richTextEditSchema = z.discriminatedUnion("op", [
       props: blockPropsSchema
         .optional()
         .describe(
-          "Properties to merge; omitted properties and children stay unchanged."
+          "Declared BlockNote properties to merge, using their native types and allowed values. Block IDs cannot be changed through props. Omitted properties and children stay unchanged."
         ),
     })
     .strict(),

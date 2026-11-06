@@ -227,7 +227,7 @@ export class BuiltInPluginOperationsService {
           "edits" in input
             ? await this.editRichTextBlocks(doc, input.edits)
             : await this.replaceRichTextBlocks(doc, input.blocks);
-        const now = new Date();
+        const now = new Date(Math.max(Date.now(), updatedAt.getTime() + 1));
         await this.persistYjsUpdate(tx, {
           actorId: params.actorId,
           before,

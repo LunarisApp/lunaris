@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { Doc } from "yjs";
+import { Doc, encodeStateAsUpdateV2 } from "yjs";
 import { RICH_TEXT_MAX_DOCUMENT_BLOCKS } from "./constants";
-import type { RichTextBlockInput } from "./mcp-contract";
+import type { RichTextBlockInput, RichTextEdit } from "./mcp-contract";
 import { richTextDocumentOutputSchema } from "./mcp-contract";
 import {
   getRichTextDocument,
@@ -195,6 +195,90 @@ describe("targeted Rich Text edits", () => {
     doc.destroy();
   });
 
+  it.each([
+    [
+      { op: "update", blockId: "target", props: { id: "keep" } },
+      "Unknown Rich Text heading property: id",
+    ],
+    [
+      { op: "update", blockId: "target", props: { typo: "value" } },
+      "Unknown Rich Text heading property: typo",
+    ],
+    [
+      { op: "update", blockId: "target", props: { level: 10 } },
+      "Invalid Rich Text heading property: level",
+    ],
+    [
+      { op: "update", blockId: "target", props: { level: "2" } },
+      "Invalid Rich Text heading property: level",
+    ],
+    [
+      { op: "update", blockId: "target", props: { textAlignment: "sideways" } },
+      "Invalid Rich Text heading property: textAlignment",
+    ],
+    [
+      { op: "update", blockId: "target", props: { level: null } },
+      "Invalid Rich Text heading property: level",
+    ],
+    [
+      {
+        op: "insert",
+        parentBlockId: null,
+        afterBlockId: null,
+        blocks: [
+          {
+            id: "new",
+            type: "paragraph",
+            children: [
+              { id: "nested", type: "heading", props: { id: "keep" } },
+            ],
+          },
+        ],
+      },
+      "Unknown Rich Text heading property: id",
+    ],
+  ] satisfies [RichTextEdit, string][])(
+    "rejects invalid properties without persisting earlier edits: %j",
+    async (edit, message) => {
+      const doc = new Doc();
+      try {
+        await replaceRichTextDocument(doc, [
+          { id: "target", type: "heading", content: "Heading" },
+          { id: "keep", type: "paragraph", content: "Untouched" },
+        ]);
+        const before = encodeStateAsUpdateV2(doc);
+        await expect(
+          editRichTextDocument(doc, [
+            { op: "update", blockId: "keep", content: "Do not save" },
+            edit,
+          ])
+        ).rejects.toThrow(message);
+        expect(encodeStateAsUpdateV2(doc)).toEqual(before);
+      } finally {
+        doc.destroy();
+      }
+    }
+  );
+
+  it("rejects normalized duplicate IDs during full replacements", async () => {
+    const doc = new Doc();
+    try {
+      await replaceRichTextDocument(doc, [
+        { id: "keep", type: "paragraph", content: "Untouched" },
+      ]);
+      const before = encodeStateAsUpdateV2(doc);
+      await expect(
+        replaceRichTextDocument(doc, [
+          { id: "target", type: "paragraph", props: { id: "keep" } },
+          { id: "keep", type: "paragraph" },
+        ])
+      ).rejects.toThrow("Duplicate Rich Text block ID: keep");
+      expect(encodeStateAsUpdateV2(doc)).toEqual(before);
+    } finally {
+      doc.destroy();
+    }
+  });
+
   it("inserts at root and nested sibling positions, then edits inserted blocks", async () => {
     const doc = new Doc();
     await replaceRichTextDocument(doc, [
@@ -276,6 +360,9 @@ describe("targeted Rich Text edits", () => {
     ).rejects.toThrow("Insertion sibling not found in parent");
     await expect(
       editRichTextDocument(doc, [{ op: "update", blockId: "keep" }])
+    ).rejects.toThrow("requires content or props");
+    await expect(
+      editRichTextDocument(doc, [{ op: "update", blockId: "keep", props: {} }])
     ).rejects.toThrow("requires content or props");
     await expect(
       editRichTextDocument(doc, [{ op: "delete", blockId: "keep" }])

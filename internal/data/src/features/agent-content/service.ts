@@ -976,6 +976,9 @@ export function createDeviceControlClient(
             workspaceId,
             updateB64: Uint8ArrayTob64(encodeStateAsUpdateV2(doc, before)),
             visibility: workspace.row.visibility,
+            updatedAt: new Date(
+              Math.max(Date.now(), Date.parse(document.updated_at) + 1)
+            ).toISOString(),
           });
           return {
             documentResourceId: item.id,

@@ -8,8 +8,10 @@ import type {
   RichTextEdit,
 } from "./mcp-contract";
 import type { Doc, XmlFragment } from "yjs";
+import type { BlockSchema } from "@blocknote/core";
 
 export interface RichTextRuntimeAdapter {
+  blockSchema: BlockSchema;
   blocksToMarkdown(
     blocks: readonly RichTextBlockData[]
   ): Promise<string> | string;
@@ -74,7 +76,11 @@ export function createRichTextRuntime(
         const blocks = cloneRichTextBlocks(
           adapter.yXmlFragmentToBlocks(doc.getXmlFragment())
         );
-        const requested = applyRichTextEdits(blocks, edits);
+        const requested = applyRichTextEdits(
+          blocks,
+          edits,
+          adapter.blockSchema
+        );
         return writeBlocks(adapter, doc, requested, () => ({
           appliedEdits: edits.length,
         }));
@@ -92,6 +98,7 @@ async function writeBlocks<T>(
   try {
     const blocks = adapter.normalizeBlocks(structuredClone(requested));
     assertRichTextDocumentLimits(blocks);
+    assertUniqueBlockIds(blocks);
     const result = await prepareResult(blocks);
     adapter.blocksToYXmlFragment(blocks, doc.getXmlFragment());
     return result;
@@ -107,10 +114,12 @@ async function writeBlocks<T>(
 
 function applyRichTextEdits(
   blocks: RichTextBlockInput[],
-  edits: readonly RichTextEdit[]
+  edits: readonly RichTextEdit[],
+  blockSchema: BlockSchema
 ) {
   for (const edit of edits) {
     if (edit.op === "insert") {
+      assertInsertedBlockProps(edit.blocks, blockSchema);
       const siblings =
         edit.parentBlockId === null
           ? blocks
@@ -130,7 +139,10 @@ function applyRichTextEdits(
       if (edit.op === "delete") {
         siblings.splice(index, 1);
       } else {
-        if (edit.content === undefined && edit.props === undefined) {
+        if (
+          edit.content === undefined &&
+          Object.keys(edit.props ?? {}).length === 0
+        ) {
           throw new RichTextMcpInputError(
             "Block update requires content or props"
           );
@@ -139,6 +151,7 @@ function applyRichTextEdits(
           block.content = structuredClone(edit.content);
         }
         if (edit.props !== undefined) {
+          assertBlockProps(block.type, edit.props, blockSchema);
           block.props = { ...block.props, ...edit.props };
         }
       }
@@ -152,6 +165,50 @@ function applyRichTextEdits(
     );
   }
   return blocks;
+}
+
+function assertInsertedBlockProps(
+  blocks: readonly RichTextBlockInput[],
+  blockSchema: BlockSchema
+): void {
+  const pending = [...blocks];
+  while (pending.length > 0) {
+    const block = pending.pop()!;
+    assertBlockProps(block.type, block.props ?? {}, blockSchema);
+    pending.push(...(block.children ?? []));
+  }
+}
+
+function assertBlockProps(
+  type: RichTextBlockInput["type"],
+  props: NonNullable<RichTextBlockInput["props"]>,
+  blockSchema: BlockSchema
+): void {
+  if (!Object.hasOwn(blockSchema, type)) {
+    throw new RichTextMcpInputError(
+      `Unsupported Rich Text block type: ${type}`
+    );
+  }
+  const propSchema = blockSchema[type]!.propSchema;
+  for (const [key, value] of Object.entries(props)) {
+    if (!Object.hasOwn(propSchema, key)) {
+      throw new RichTextMcpInputError(
+        `Unknown Rich Text ${type} property: ${key}`
+      );
+    }
+    const spec = propSchema[key]!;
+    const expectedType = "type" in spec ? spec.type : typeof spec.default;
+    if (
+      value === null ||
+      typeof value !== expectedType ||
+      (typeof value === "number" && !Number.isFinite(value)) ||
+      (spec.values && !spec.values.includes(value))
+    ) {
+      throw new RichTextMcpInputError(
+        `Invalid Rich Text ${type} property: ${key}`
+      );
+    }
+  }
 }
 
 function findBlock(blocks: RichTextBlockInput[], blockId: string) {

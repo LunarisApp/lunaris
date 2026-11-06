@@ -1085,6 +1085,74 @@ describe("createDeviceControlClient", () => {
     initial.destroy();
   });
 
+  it("returns the revision actually persisted when the local clock is behind", async () => {
+    const revision = new Date(Date.now() + 60_000).toISOString();
+    const item = {
+      ...SEARCH_ITEMS[0],
+      yjs_backing_id: "content-1",
+      updated_at: revision,
+    };
+    const { db } = createLocalDocumentHarness(item);
+    const result = await createDeviceControlClient(
+      db as never
+    ).executePluginOperation(
+      "organization",
+      "local-workspace",
+      "lunaris.rich-text",
+      "edit_document",
+      {
+        documentResourceId: item.id,
+        expectedRevision: revision,
+        edits: [
+          {
+            op: "insert",
+            parentBlockId: null,
+            afterBlockId: null,
+            blocks: [{ id: "intro", type: "paragraph", content: "Inserted" }],
+          },
+        ],
+      },
+      { idempotencyKey: "monotonic-local-revision" }
+    );
+    const returnedRevision = (result as { revision: string }).revision;
+    expect(Date.parse(returnedRevision)).toBeGreaterThan(Date.parse(revision));
+    const write = db.execute.mock.calls.find(([query]) =>
+      query.includes("UPDATE local_yjs_documents")
+    );
+    expect(write?.[1]?.[0]).toBe(returnedRevision);
+  });
+
+  it("rejects reserved block props before writing local content", async () => {
+    const item = { ...SEARCH_ITEMS[0], yjs_backing_id: "content-1" };
+    const initial = new Doc();
+    await replaceRichTextDocument(initial, [
+      { id: "intro", type: "paragraph", content: "Before" },
+    ]);
+    const update_b64 = Uint8ArrayTob64(encodeStateAsUpdateV2(initial));
+    initial.destroy();
+    const { db } = createLocalDocumentHarness(item);
+    db.getAll.mockResolvedValue([{ update_b64 }] as never);
+    await expect(
+      createDeviceControlClient(db as never).executePluginOperation(
+        "organization",
+        "local-workspace",
+        "lunaris.rich-text",
+        "edit_document",
+        {
+          documentResourceId: item.id,
+          expectedRevision: item.updated_at,
+          edits: [{ op: "update", blockId: "intro", props: { id: "changed" } }],
+        },
+        { idempotencyKey: "invalid-local-block-prop" }
+      )
+    ).rejects.toThrow("Unknown Rich Text paragraph property: id");
+    expect(
+      db.execute.mock.calls.some(([query]) =>
+        query.includes("INSERT INTO local_yjs_document_updates")
+      )
+    ).toBe(false);
+  });
+
   it("reads a local board page with current values and excludes non-board resources", async () => {
     const board = {
       ...SEARCH_ITEMS[0],

@@ -22,6 +22,7 @@ function createAdapter(): RichTextRuntimeAdapter {
     schema: richTextHeadlessSchema,
   });
   return {
+    blockSchema: richTextHeadlessSchema.blockSchema,
     blocksToMarkdown: (blocks) => editor.blocksToMarkdownLossy(blocks as never),
     blocksToYXmlFragment: (blocks, fragment) =>
       editor.blocksToYXmlFragment(blocks as never, fragment),

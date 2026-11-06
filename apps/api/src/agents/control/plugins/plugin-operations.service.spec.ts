@@ -184,6 +184,69 @@ describe("BuiltInPluginOperationsService", () => {
     initial.destroy();
   });
 
+  it("advances edit receipts beyond a future document revision", async () => {
+    const revision = new Date(Date.now() + 60_000);
+    const { service } = createDocumentHarness({
+      documentId: "rich-text-document",
+      resourceId: "item-1",
+      pluginId: "lunaris.rich-text",
+      revision,
+    });
+    const result = await service.execute({
+      actorId: "user-1",
+      organizationId: "organization-1",
+      workspaceId: "workspace-1",
+      pluginId: "lunaris.rich-text",
+      operation: "edit_document",
+      input: {
+        documentResourceId: "item-1",
+        expectedRevision: revision.toISOString(),
+        edits: [
+          {
+            op: "insert",
+            parentBlockId: null,
+            afterBlockId: null,
+            blocks: [{ id: "intro", type: "paragraph", content: "Inserted" }],
+          },
+        ],
+      },
+    });
+    expect(
+      Date.parse((result as { revision: string }).revision)
+    ).toBeGreaterThan(revision.getTime());
+  });
+
+  it("does not persist an edit with a reserved block ID property", async () => {
+    const initial = new Doc();
+    await replaceRichTextDocument(initial, [
+      { id: "intro", type: "paragraph", content: "Before" },
+    ]);
+    const revision = new Date();
+    const { service, updates } = createDocumentHarness({
+      documentId: "rich-text-document",
+      resourceId: "item-1",
+      pluginId: "lunaris.rich-text",
+      revision,
+      initialUpdate: Buffer.from(encodeStateAsUpdateV2(initial)),
+    });
+    initial.destroy();
+    await expect(
+      service.execute({
+        actorId: "user-1",
+        organizationId: "organization-1",
+        workspaceId: "workspace-1",
+        pluginId: "lunaris.rich-text",
+        operation: "edit_document",
+        input: {
+          documentResourceId: "item-1",
+          expectedRevision: revision.toISOString(),
+          edits: [{ op: "update", blockId: "intro", props: { id: "changed" } }],
+        },
+      })
+    ).rejects.toThrow("Unknown Rich Text paragraph property: id");
+    expect(updates).toHaveLength(0);
+  });
+
   it("rejects stale edit revisions before persisting", async () => {
     const { service, updates } = createDocumentHarness({
       documentId: "rich-text-document",
