@@ -114,6 +114,70 @@ export const richTextUpdateDocumentInputSchema =
     organizationId: z.string().min(1).describe("Exact organization ID."),
   });
 
+export const richTextEditSchema = z.discriminatedUnion("op", [
+  z
+    .object({
+      op: z.literal("update"),
+      blockId: blockIdSchema,
+      content: z
+        .json()
+        .optional()
+        .describe("New inline content; omitted keeps existing content."),
+      props: blockPropsSchema
+        .optional()
+        .describe(
+          "Declared BlockNote properties to merge, using their native types and allowed values. Block IDs cannot be changed through props. Omitted properties and children stay unchanged."
+        ),
+    })
+    .strict(),
+  z
+    .object({
+      op: z.literal("insert"),
+      parentBlockId: blockIdSchema
+        .nullable()
+        .describe("Parent block ID, or null for document root."),
+      afterBlockId: blockIdSchema
+        .nullable()
+        .describe(
+          "Sibling block ID, or null to insert first within the parent."
+        ),
+      blocks: z
+        .array(richTextBlockInputSchema)
+        .min(1)
+        .max(RICH_TEXT_MAX_DOCUMENT_BLOCKS),
+    })
+    .strict(),
+  z.object({ op: z.literal("delete"), blockId: blockIdSchema }).strict(),
+]);
+
+export const richTextEditDocumentOperationInputSchema =
+  richTextUpdateDocumentOperationInputSchema.omit({ blocks: true }).extend({
+    edits: z
+      .array(richTextEditSchema)
+      .min(1)
+      .max(100)
+      .describe(
+        "Ordered edits applied atomically. Use observed block IDs. Later edits see earlier edits. A missing target or invalid edit rejects the entire batch."
+      ),
+  });
+
+export const richTextEditDocumentInputSchema = richTextUpdateDocumentInputSchema
+  .omit({ blocks: true })
+  .extend({
+    edits: richTextEditDocumentOperationInputSchema.shape.edits,
+  });
+
+export const richTextEditDocumentOutputSchema = z.object({
+  documentResourceId: z.string(),
+  revision: z.string().describe("Use as expectedRevision for the next edit."),
+  appliedEdits: z.number().int(),
+});
+
+export type RichTextEdit = z.output<typeof richTextEditSchema>;
+export type RichTextEditDocumentOutput = z.output<
+  typeof richTextEditDocumentOutputSchema
+>;
+
 export type RichTextDocumentOutput = z.output<
   typeof richTextDocumentOutputSchema
 >;

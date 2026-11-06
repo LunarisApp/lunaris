@@ -39,6 +39,22 @@ export function getKanbanBoardProperties(doc: Doc): PropertyDefinition[] {
   }));
 }
 
+export function getKanbanTaskProperties(
+  doc: Doc,
+  taskId: string,
+  definitions: readonly PropertyDefinition[] = getKanbanBoardProperties(doc)
+): Record<string, PropertyValue> {
+  const assignment = getTaskAssignments(doc).get(taskId);
+  return Object.fromEntries(
+    definitions.flatMap((property) => {
+      const value = getTaskPropertyValue(assignment, property);
+      return hasPropertyValue(value)
+        ? [[property.id, structuredClone(value as PropertyValue)] as const]
+        : [];
+    })
+  );
+}
+
 export function updateKanbanTaskProperties(
   doc: Doc,
   taskId: string,
@@ -82,14 +98,7 @@ export function updateKanbanTaskProperties(
     assignments.delete(taskId);
   }
 
-  return Object.fromEntries(
-    definitions.flatMap((property) => {
-      const value = getTaskPropertyValue(assignment, property);
-      return hasPropertyValue(value)
-        ? [[property.id, value as PropertyValue] as const]
-        : [];
-    })
-  );
+  return getKanbanTaskProperties(doc, taskId, definitions);
 }
 
 export function kanbanTaskPropertiesIncludePeople(

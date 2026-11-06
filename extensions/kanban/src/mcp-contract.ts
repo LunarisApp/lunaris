@@ -45,6 +45,25 @@ export const kanbanGetBoardPropertiesOutputSchema = z.object({
   properties: z.array(kanbanPropertyDefinitionSchema),
 });
 
+export const kanbanGetBoardOperationInputSchema =
+  kanbanGetBoardPropertiesOperationInputSchema.extend({
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+    offset: z.coerce.number().int().min(0).default(0),
+  });
+
+export const kanbanGetBoardInputSchema =
+  kanbanGetBoardPropertiesInputSchema.extend({
+    limit: z.number().int().min(1).max(100).default(50),
+    offset: z
+      .number()
+      .int()
+      .min(0)
+      .default(0)
+      .describe(
+        "Start at 0; continue with nextOffset until null. Pages are live; restart if tasks change during traversal."
+      ),
+  });
+
 const kanbanResourcePropertyValueBaseShape = {
   resourceId: z.string().min(1),
   name: z.string().min(1),
@@ -66,6 +85,24 @@ export const kanbanPropertyValueSchema = z.union([
   z.boolean(),
   kanbanResourcePropertyValueSchema,
 ]);
+
+export const kanbanGetBoardOutputSchema =
+  kanbanGetBoardPropertiesOutputSchema.extend({
+    tasks: z.array(
+      z.object({
+        taskId: z.string(),
+        name: z.string(),
+        position: z.number().int(),
+        updatedAt: z
+          .string()
+          .describe("Task revision for renaming with kanban_update_task."),
+        properties: z.record(z.string(), kanbanPropertyValueSchema),
+      })
+    ),
+    nextOffset: z.number().int().nullable(),
+  });
+
+export type KanbanGetBoardOutput = z.output<typeof kanbanGetBoardOutputSchema>;
 
 export const kanbanTaskPropertiesSchema = z
   .record(z.string().min(1), kanbanPropertyValueSchema.nullable())

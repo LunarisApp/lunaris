@@ -9,6 +9,7 @@ describe("Kanban MCP capabilities", () => {
       "kanban_list_boards",
       "kanban_create_board",
       "kanban_get_board_properties",
+      "kanban_get_board",
       "kanban_list_tasks",
       "kanban_create_task",
       "kanban_update_task",
@@ -29,6 +30,31 @@ describe("Kanban MCP capabilities", () => {
       risk: "read",
       scope: "workspace:read",
     });
+  });
+
+  it("bounds board snapshot pages", () => {
+    const tool = kanbanMcpCapabilities.tools.find(
+      ({ name }) => name === "kanban_get_board"
+    )!;
+    const request = {
+      boardId: "board-1",
+      workspaceId: "workspace-1",
+      organizationId: "organization-1",
+    };
+    expect(tool.inputSchema.parse(request)).toMatchObject({
+      limit: 50,
+      offset: 0,
+    });
+    for (const pagination of [
+      { limit: 0 },
+      { limit: 101 },
+      { offset: -1 },
+      { offset: 0.5 },
+    ]) {
+      expect(
+        tool.inputSchema.safeParse({ ...request, ...pagination }).success
+      ).toBe(false);
+    }
   });
 
   it("fixes the board resource type", () => {
