@@ -76,17 +76,16 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          fetch-depth: 0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
           path: .delivery-tools
           sparse-checkout: |
             tooling/delivery
             tooling/release/automation
             internal/app-shell/src
             .github/actions/setup-bun
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ needs.resolve.outputs.sha }}
-          fetch-depth: 0
-          clean: false
       - uses: ./.delivery-tools/.github/actions/setup-bun
       - run: bun install --frozen-lockfile
         env:
