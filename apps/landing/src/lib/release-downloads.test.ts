@@ -18,7 +18,7 @@ const environment = {
 };
 
 function manifestFor(
-	target: ReleaseTarget,
+	target: Extract<ReleaseTarget, "macos" | "cli">,
 	options: { signingMode?: "adhoc" | "signed"; version?: string } = {},
 ) {
 	const component = target === "macos" ? "desktop" : "cli";
@@ -310,4 +310,39 @@ describe("GitHub desktop downloads", () => {
 			),
 		).rejects.toMatchObject({ kind: "storage" });
 	});
+});
+
+describe("cross-platform GitHub installers", () => {
+	test.each([
+		["windows", "Lunaris-desktop-1.2.3-x86_64-pc-windows-msvc.exe"],
+		["linux", "Lunaris-desktop-1.2.3-x86_64-unknown-linux-gnu.deb"],
+	] as const)(
+		"resolves %s from a release with all platforms",
+		async (target, name) => {
+			const request = () =>
+				Promise.resolve(
+					Response.json({
+						tag_name: "v1.2.3",
+						draft: false,
+						prerelease: false,
+						assets: [name, "Lunaris-desktop-1.2.3-universal.dmg"].map(
+							(name) => ({ name, size: 1024, state: "uploaded" }),
+						),
+					}),
+				);
+			const result = await resolveGithubDesktopDownload(
+				undefined,
+				undefined,
+				request,
+				target,
+			);
+			expect(result.url).toBe(
+				`https://github.com/LunarisApp/lunaris/releases/download/v1.2.3/${name}`,
+			);
+			expect(result.signingMode).toBe("unsigned");
+			await expect(
+				resolveGithubDesktopDownload("1.2.3", "wrong.exe", request, target),
+			).rejects.toMatchObject({ kind: "not_found" });
+		},
+	);
 });

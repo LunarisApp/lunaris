@@ -4,6 +4,7 @@ import {
 	ReleaseDownloadError,
 	resolveReleaseDownload,
 	type SignedReleaseDownload,
+	type ReleaseTarget,
 } from "@/lib/release-downloads";
 
 interface RouteContext {
@@ -17,7 +18,7 @@ interface DownloadLogger {
 
 interface DownloadRouteDependencies {
 	log: DownloadLogger;
-	resolve: (target: "cli" | "macos") => Promise<SignedReleaseDownload>;
+	resolve: (target: ReleaseTarget) => Promise<SignedReleaseDownload>;
 }
 
 const noStoreHeaders = {
@@ -66,7 +67,7 @@ export async function handleDownload(
 	} catch (error) {
 		const cause =
 			error instanceof Error ? error : new Error("Unknown release error");
-		const component = target === "macos" ? "desktop" : "cli";
+		const component = target === "cli" ? "cli" : "desktop";
 		log.set({
 			download: {
 				component,

@@ -1,8 +1,10 @@
 import { Files, FilesError } from "files-sdk";
 import { type S3Adapter, s3 } from "files-sdk/s3";
 
-export const releaseTargets = ["macos", "cli"] as const;
+export const releaseTargets = ["macos", "windows", "linux", "cli"] as const;
 export type ReleaseTarget = (typeof releaseTargets)[number];
+type StorageReleaseTarget = "macos" | "cli";
+export type DesktopReleaseTarget = Exclude<ReleaseTarget, "cli">;
 type ReleaseComponent = "cli" | "desktop";
 type SigningMode = "adhoc" | "signed";
 
@@ -36,7 +38,7 @@ interface ReleaseManifest {
 
 export interface SignedReleaseDownload {
 	component: ReleaseComponent;
-	signingMode: SigningMode;
+	signingMode: SigningMode | "unsigned";
 	url: string;
 	version: string;
 }
@@ -80,7 +82,7 @@ const targetConfig = {
 		format: "zip",
 	},
 } as const satisfies Record<
-	ReleaseTarget,
+	StorageReleaseTarget,
 	{
 		component: ReleaseComponent;
 		format: ReleaseArtifact["format"];
@@ -153,7 +155,7 @@ function invalidManifest(message: string): never {
 
 export function parseReleaseManifest(
 	source: string,
-	target: ReleaseTarget,
+	target: StorageReleaseTarget,
 ): ReleaseManifest {
 	let value: unknown;
 	try {
@@ -259,7 +261,7 @@ function defaultDependencies(
 }
 
 async function resolveManifestDownload(
-	target: ReleaseTarget,
+	target: StorageReleaseTarget,
 	manifestKey: string,
 	notFoundMessage: string,
 	expected?: {
@@ -331,6 +333,7 @@ export async function resolveGithubDesktopDownload(
 			next: { revalidate: 300 },
 			signal: AbortSignal.timeout(10_000),
 		}),
+	target: DesktopReleaseTarget = "macos",
 ): Promise<SignedReleaseDownload> {
 	if (version && !isReleaseVersion(version)) {
 		throw new ReleaseDownloadError("not_found", "Release version is invalid");
@@ -373,12 +376,21 @@ export async function resolveGithubDesktopDownload(
 		) {
 			invalidManifest("GitHub release version does not match request");
 		}
-		const signedName = expectedAssetName("desktop", releasedVersion, "signed");
-		const adhocName = expectedAssetName("desktop", releasedVersion, "adhoc");
+		const signedName =
+			target === "macos"
+				? expectedAssetName("desktop", releasedVersion, "signed")
+				: target === "windows"
+					? `Lunaris-desktop-${releasedVersion}-x86_64-pc-windows-msvc.exe`
+					: `Lunaris-desktop-${releasedVersion}-x86_64-unknown-linux-gnu.deb`;
+		const adhocName =
+			target === "macos"
+				? expectedAssetName("desktop", releasedVersion, "adhoc")
+				: undefined;
 		const assets = release.assets.filter(
 			(asset: unknown): asset is Record<string, unknown> =>
 				isRecord(asset) &&
-				(asset.name === signedName || asset.name === adhocName) &&
+				(asset.name === signedName ||
+					(adhocName !== undefined && asset.name === adhocName)) &&
 				asset.state === "uploaded" &&
 				typeof asset.size === "number" &&
 				asset.size > 0,
@@ -402,7 +414,12 @@ export async function resolveGithubDesktopDownload(
 		return {
 			component: "desktop",
 			version: releasedVersion,
-			signingMode: name === adhocName ? "adhoc" : "signed",
+			signingMode:
+				target === "macos"
+					? name === adhocName
+						? "adhoc"
+						: "signed"
+					: "unsigned",
 			url: `https://github.com/LunarisApp/lunaris/releases/download/${encodeURIComponent(release.tag_name)}/${encodeURIComponent(name)}`,
 		};
 	} catch (error) {
@@ -420,7 +437,13 @@ export function resolveReleaseDownload(
 	environment: Record<string, string | undefined> = process.env,
 	dependencies?: ReleaseStorageDependencies,
 ): Promise<SignedReleaseDownload> {
-	if (target === "macos") return resolveGithubDesktopDownload();
+	if (target !== "cli")
+		return resolveGithubDesktopDownload(
+			undefined,
+			undefined,
+			undefined,
+			target,
+		);
 	const _config = readReleaseStorageConfig(environment);
 	const component = targetConfig[target].component;
 	return resolveManifestDownload(
@@ -446,8 +469,8 @@ export function resolveVersionedReleaseDownload(
 		);
 	}
 
-	if (target === "macos")
-		return resolveGithubDesktopDownload(version, filename);
+	if (target !== "cli")
+		return resolveGithubDesktopDownload(version, filename, undefined, target);
 	const _config = readReleaseStorageConfig(environment);
 	const component = targetConfig[target].component;
 	return resolveManifestDownload(

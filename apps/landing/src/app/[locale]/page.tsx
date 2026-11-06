@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { TrackedButtonLink } from "@/components/analytics/tracked-button-link";
+import { DesktopDownload } from "@/components/downloads/desktop-download";
 import { Container } from "@/components/elements/container";
 import { DemoVideo } from "@/components/elements/demo-video";
 import { ArrowNarrowRightIcon } from "@/components/icons/arrow-narrow-right-icon";
@@ -60,42 +61,26 @@ export default async function Page({
 							<p className="text-base/7 text-balance text-olive-700 sm:text-lg/8 dark:text-olive-300">
 								{copy.description}
 							</p>
-							<div className="mt-7 flex flex-col items-stretch justify-center gap-x-6 gap-y-3 sm:flex-row sm:items-center">
+							<DesktopDownload
+								locale={locale}
+								downloadLabel={copy.downloadFor}
+								fallbackLabel={`${copy.download} Lunaris`}
+								allPlatformsLabel={copy.allPlatforms}
+							>
 								<TrackedButtonLink
 									analyticsProperties={{
 										cta: "open_web_app",
 										destination: "web",
 										location: "home_hero",
 									}}
-									className="min-h-12 gap-3 px-6"
+									className="min-h-12 gap-3 px-6 focus-visible:outline-2 focus-visible:outline-offset-4"
 									href="https://web.lunaris.app"
 									size="lg"
 								>
 									{copy.start}
 									<ArrowNarrowRightIcon />
 								</TrackedButtonLink>
-								<a
-									className="inline-flex min-h-12 items-center justify-center gap-2 text-sm/6 font-medium text-olive-700 underline-offset-4 hover:underline dark:text-olive-300"
-									href="#workspace-demo"
-								>
-									{copy.watch}
-									<svg
-										aria-hidden="true"
-										className="size-4"
-										fill="none"
-										stroke="currentColor"
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={1.5}
-										viewBox="0 0 24 24"
-									>
-										<path d="M12 4v16m-6-6 6 6 6-6" />
-									</svg>
-								</a>
-							</div>
-							<p className="mt-3 text-xs/5 text-olive-600 dark:text-olive-400">
-								{copy.freeNote}
-							</p>
+							</DesktopDownload>
 						</div>
 					</div>
 					<div className="mt-12 scroll-mt-28 sm:mt-16" id="workspace-demo">

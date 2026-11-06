@@ -9,6 +9,9 @@ type HomepageCopy = {
 	headlineEnd: string;
 	description: string;
 	start: string;
+	download: string;
+	downloadFor: string;
+	allPlatforms: string;
 	open: string;
 	freeNote: string;
 	watch: string;
@@ -30,6 +33,9 @@ type HomepageCopy = {
 
 export const homepageCopy: Record<Locale, HomepageCopy> = {
 	en: {
+		download: "Download",
+		downloadFor: "Download for",
+		allPlatforms: "All platforms",
 		metaTitle: "Lunaris — A home for your team’s knowledge",
 		metaDescription:
 			"Bring notes, knowledge bases, and projects together in an offline-first workspace. Collaborate in real time, add extensions, and choose where your data lives.",
@@ -86,6 +92,9 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			"Start with a note. Build a shared home for what comes next.",
 	},
 	es: {
+		download: "Descargar",
+		downloadFor: "Descargar para",
+		allPlatforms: "Todas las plataformas",
 		metaTitle: "Lunaris — Un hogar para el conocimiento de tu equipo",
 		metaDescription:
 			"Reúne notas, bases de conocimiento y proyectos en un espacio que funciona sin conexión. Colabora en tiempo real, añade extensiones y decide dónde guardar tus datos.",
@@ -142,6 +151,9 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			"Empieza con una nota. Crea un hogar compartido para lo que viene.",
 	},
 	fr: {
+		download: "Télécharger",
+		downloadFor: "Télécharger pour",
+		allPlatforms: "Toutes les plateformes",
 		metaTitle: "Lunaris — Un espace pour le savoir de votre équipe",
 		metaDescription:
 			"Réunissez notes, bases de connaissances et projets dans un espace utilisable hors ligne. Collaborez en temps réel, ajoutez des extensions et choisissez où stocker vos données.",
@@ -199,6 +211,9 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			"Commencez par une note. Créez un espace partagé pour la suite.",
 	},
 	de: {
+		download: "Herunterladen",
+		downloadFor: "Herunterladen für",
+		allPlatforms: "Alle Plattformen",
 		metaTitle: "Lunaris — Ein Zuhause für das Wissen deines Teams",
 		metaDescription:
 			"Notizen, Wissensdatenbanken und Projekte in einem Workspace, der offline funktioniert. Gemeinsam in Echtzeit arbeiten, Erweiterungen hinzufügen und den Speicherort selbst wählen.",
@@ -255,6 +270,9 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 			"Beginnt mit einer Notiz. Schafft ein gemeinsames Zuhause für alles Weitere.",
 	},
 	"pt-BR": {
+		download: "Baixar",
+		downloadFor: "Baixar para",
+		allPlatforms: "Todas as plataformas",
 		metaTitle: "Lunaris — Um lar para o conhecimento da sua equipe",
 		metaDescription:
 			"Reúna notas, bases de conhecimento e projetos em um espaço que funciona offline. Colabore em tempo real, adicione extensões e escolha onde seus dados ficam.",
