@@ -20,6 +20,7 @@ describe("built-in extension MCP registry", () => {
         name: "kanban_get_board_properties",
         pluginId: "lunaris.kanban",
       },
+      { name: "kanban_get_board", pluginId: "lunaris.kanban" },
       { name: "kanban_list_tasks", pluginId: "lunaris.kanban" },
       { name: "kanban_create_task", pluginId: "lunaris.kanban" },
       { name: "kanban_update_task", pluginId: "lunaris.kanban" },
@@ -45,6 +46,7 @@ describe("built-in extension MCP registry", () => {
         name: "rich_text_update_document",
         pluginId: "lunaris.rich-text",
       },
+      { name: "rich_text_edit_document", pluginId: "lunaris.rich-text" },
       {
         name: "rich_text_preview_delete_document",
         pluginId: "lunaris.rich-text",
@@ -167,6 +169,42 @@ describe("built-in extension MCP registry", () => {
       method: "POST",
       path: "/v1/organizations/organization-1/workspaces/workspace-1/plugins/lunaris.kanban/operations/update_task",
       query: {},
+    });
+  });
+
+  it("transports board pagination as GET query fields", () => {
+    const tool = requiredTool("kanban_get_board");
+    expect(
+      serializeAgentWire(pluginMcpWire(tool), {
+        boardId: "board-1",
+        limit: 10,
+        offset: 20,
+        workspaceId: "workspace-1",
+        organizationId: "organization-1",
+      })
+    ).toMatchObject({
+      method: "GET",
+      query: { boardId: "board-1", limit: 10, offset: 20 },
+      path: "/v1/organizations/organization-1/workspaces/workspace-1/plugins/lunaris.kanban/operations/get_board",
+    });
+  });
+
+  it("transports targeted edits behind revision and retry headers", () => {
+    const tool = requiredTool("rich_text_edit_document");
+    const edits = [{ op: "update", blockId: "intro", content: "Revised" }];
+    expect(
+      serializeAgentWire(pluginMcpWire(tool), {
+        documentResourceId: "item-1",
+        edits,
+        expectedRevision: "revision-1",
+        idempotencyKey: "request-1",
+        workspaceId: "workspace-1",
+        organizationId: "organization-1",
+      })
+    ).toMatchObject({
+      method: "POST",
+      body: { documentResourceId: "item-1", edits },
+      headers: { "If-Match": '"revision-1"', "Idempotency-Key": "request-1" },
     });
   });
 

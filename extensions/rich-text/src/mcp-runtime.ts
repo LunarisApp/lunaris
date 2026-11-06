@@ -16,12 +16,16 @@ export {
   RichTextMcpInputError,
 } from "./mcp-runtime-common";
 
-export const { getRichTextDocument, replaceRichTextDocument } =
-  createRichTextRuntime(createAdapter);
+export const {
+  getRichTextDocument,
+  replaceRichTextDocument,
+  editRichTextDocument,
+} = createRichTextRuntime(createAdapter);
 
 function createAdapter(): RichTextRuntimeAdapter {
   const editor = BlockNoteEditor.create({ schema: richTextHeadlessSchema });
   return {
+    blockSchema: richTextHeadlessSchema.blockSchema,
     blocksToMarkdown: (blocks) => editor.blocksToMarkdownLossy(blocks as never),
     blocksToYXmlFragment: (blocks, fragment) =>
       blocksToYXmlFragment(editor, blocks as never, fragment),

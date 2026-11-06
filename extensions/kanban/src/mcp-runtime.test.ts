@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { Doc, Map as YMap } from "yjs";
+import { Doc, encodeStateAsUpdateV2, Map as YMap } from "yjs";
 import {
   getKanbanBoardProperties,
+  getKanbanTaskProperties,
   KanbanMcpInputError,
   updateKanbanTaskProperties,
 } from "./mcp-runtime";
@@ -251,5 +252,20 @@ describe("updateKanbanTaskProperties", () => {
     doc.getMap<YMap<unknown>>("taskAssignments").set("task-1", assignment);
 
     expect(updateKanbanTaskProperties(doc, "task-1", undefined)).toEqual({});
+  });
+});
+
+describe("getKanbanTaskProperties", () => {
+  it("reads only the selected task's defined values without mutating assignments", () => {
+    const doc = new Doc();
+    updateKanbanTaskProperties(doc, "task-1", { Status: "In Progress" });
+    updateKanbanTaskProperties(doc, "task-2", { Status: "Done" });
+    const before = encodeStateAsUpdateV2(doc);
+    expect(getKanbanTaskProperties(doc, "task-1")).toEqual({
+      status: "in-progress",
+    });
+    expect(getKanbanTaskProperties(doc, "missing")).toEqual({});
+    expect(encodeStateAsUpdateV2(doc)).toEqual(before);
+    doc.destroy();
   });
 });

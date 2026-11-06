@@ -13,6 +13,8 @@ import {
 import {
   type KanbanCreateTaskOutput,
   type KanbanGetBoardPropertiesOutput,
+  type KanbanGetBoardOutput,
+  kanbanGetBoardOperationInputSchema,
   type KanbanPropertyValue,
   type KanbanTaskProperties,
   type KanbanUpdateTaskOutput,
@@ -22,6 +24,7 @@ import {
 } from "@extension/kanban/mcp-contract";
 import {
   getKanbanBoardProperties,
+  getKanbanTaskProperties,
   kanbanTaskPropertiesIncludePeople,
   KanbanMcpInputError,
   updateKanbanTaskProperties,
@@ -29,12 +32,16 @@ import {
 import { RICH_TEXT_PLUGIN_ID } from "@extension/rich-text/constants";
 import {
   type RichTextDocumentOutput,
+  type RichTextEdit,
+  type RichTextEditDocumentOutput,
+  richTextEditDocumentOperationInputSchema,
   richTextGetDocumentOperationInputSchema,
   richTextReadMeOperationInputSchema,
   richTextUpdateDocumentOperationInputSchema,
 } from "@extension/rich-text/mcp-contract";
 import {
   getRichTextDocument,
+  editRichTextDocument,
   replaceRichTextDocument,
   RICH_TEXT_BLOCK_GUIDE,
   RichTextMcpInputError,
@@ -82,6 +89,18 @@ export class BuiltInPluginOperationsService {
   ) {}
 
   execute(params: PluginOperationParams): Promise<unknown> {
+    if (
+      params.pluginId === KANBAN_PLUGIN_ID &&
+      params.operation === "get_board"
+    ) {
+      return this.getKanbanBoard(params);
+    }
+    if (
+      params.pluginId === RICH_TEXT_PLUGIN_ID &&
+      params.operation === "edit_document"
+    ) {
+      return this.updateRichTextDocument(params, true);
+    }
     if (
       params.pluginId === KANBAN_PLUGIN_ID &&
       params.operation === "get_board_properties"
@@ -165,11 +184,14 @@ export class BuiltInPluginOperationsService {
   }
 
   private async updateRichTextDocument(
-    params: PluginOperationContext
-  ): Promise<RichTextDocumentOutput> {
-    const parsed = richTextUpdateDocumentOperationInputSchema.safeParse(
-      params.input
-    );
+    params: PluginOperationContext,
+    edit = false
+  ): Promise<RichTextDocumentOutput | RichTextEditDocumentOutput> {
+    const parsed = (
+      edit
+        ? richTextEditDocumentOperationInputSchema
+        : richTextUpdateDocumentOperationInputSchema
+    ).safeParse(params.input);
     if (!parsed.success) {
       throw new BadRequestException("Invalid Rich Text document update");
     }
@@ -201,8 +223,11 @@ export class BuiltInPluginOperationsService {
           );
         }
         const before = encodeStateVector(doc);
-        const content = await this.replaceRichTextBlocks(doc, input.blocks);
-        const now = new Date();
+        const content =
+          "edits" in input
+            ? await this.editRichTextBlocks(doc, input.edits)
+            : await this.replaceRichTextBlocks(doc, input.blocks);
+        const now = new Date(Math.max(Date.now(), updatedAt.getTime() + 1));
         await this.persistYjsUpdate(tx, {
           actorId: params.actorId,
           before,
@@ -271,6 +296,78 @@ export class BuiltInPluginOperationsService {
         return {
           boardId: board.id,
           properties: getKanbanBoardProperties(doc),
+        };
+      } finally {
+        doc.destroy();
+      }
+    });
+  }
+
+  private async getKanbanBoard(
+    params: PluginOperationContext
+  ): Promise<KanbanGetBoardOutput> {
+    const parsed = kanbanGetBoardOperationInputSchema.safeParse(params.input);
+    if (!parsed.success) {
+      throw new BadRequestException("Invalid Kanban board request");
+    }
+    const { boardId, limit, offset } = parsed.data;
+    return this.database.db.transaction(async (tx) => {
+      await assertWorkspaceAccess(
+        tx,
+        params.workspaceId,
+        params.organizationId,
+        params.actorId
+      );
+      const board = await this.loadKanbanBoard(tx, params.workspaceId, boardId);
+      const { doc } = await this.loadKanbanDocument(
+        tx,
+        params.workspaceId,
+        board.yjsBackingId
+      );
+      try {
+        const rows = await tx
+          .select({
+            taskId: workspaceResourcesDb.id,
+            name: workspaceResourcesDb.name,
+            position: workspaceResourcesDb.position,
+            updatedAt: workspaceResourcesDb.updatedAt,
+          })
+          .from(workspaceResourcesDb)
+          .where(
+            and(
+              eq(workspaceResourcesDb.workspaceId, params.workspaceId),
+              eq(workspaceResourcesDb.parentId, board.id),
+              eq(
+                workspaceResourcesDb.resourceTypeId,
+                KANBAN_TASK_RESOURCE_TYPE_ID
+              ),
+              notExists(
+                tx
+                  .select({ id: workspaceResourceTrashDb.id })
+                  .from(workspaceResourceTrashDb)
+                  .where(
+                    eq(workspaceResourceTrashDb.id, workspaceResourcesDb.id)
+                  )
+              )
+            )
+          )
+          .orderBy(
+            asc(workspaceResourcesDb.position),
+            asc(workspaceResourcesDb.createdAt),
+            asc(workspaceResourcesDb.id)
+          )
+          .limit(limit + 1)
+          .offset(offset);
+        const properties = getKanbanBoardProperties(doc);
+        return {
+          boardId: board.id,
+          properties,
+          tasks: rows.slice(0, limit).map((task) => ({
+            ...task,
+            updatedAt: task.updatedAt.toISOString(),
+            properties: getKanbanTaskProperties(doc, task.taskId, properties),
+          })),
+          nextOffset: rows.length > limit ? offset + limit : null,
         };
       } finally {
         doc.destroy();
@@ -701,6 +798,17 @@ export class BuiltInPluginOperationsService {
   ) {
     try {
       return await replaceRichTextDocument(doc, blocks);
+    } catch (error) {
+      if (error instanceof RichTextMcpInputError) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
+  }
+
+  private async editRichTextBlocks(doc: Doc, edits: readonly RichTextEdit[]) {
+    try {
+      return await editRichTextDocument(doc, edits);
     } catch (error) {
       if (error instanceof RichTextMcpInputError) {
         throw new BadRequestException(error.message);

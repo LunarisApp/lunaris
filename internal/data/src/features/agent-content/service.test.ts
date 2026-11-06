@@ -1,5 +1,9 @@
+import { updateKanbanTaskProperties } from "@extension/kanban/mcp-runtime";
 import { IndexedDbFileStorageAdapter } from "../../storage/indexeddb-file-storage";
-import { getRichTextDocument } from "@extension/rich-text/mcp-runtime";
+import {
+  getRichTextDocument,
+  replaceRichTextDocument,
+} from "@extension/rich-text/mcp-runtime";
 import { describe, expect, it, vi } from "vitest";
 import { applyUpdateV2, Doc, encodeStateAsUpdateV2, Map as YMap } from "yjs";
 import { b64ToUint8Array, Uint8ArrayTob64 } from "../yjs/utils";
@@ -1024,6 +1028,185 @@ describe("createDeviceControlClient", () => {
       ["title", "body"]
     );
     doc.destroy();
+  });
+
+  it("edits local Rich Text with the same revision and compact receipt contract", async () => {
+    const revision = "2026-01-03T00:00:00.000Z";
+    const item = {
+      ...SEARCH_ITEMS[0],
+      yjs_backing_id: "content-1",
+      updated_at: revision,
+    };
+    const initial = new Doc();
+    await replaceRichTextDocument(initial, [
+      { id: "intro", type: "paragraph", content: "Before" },
+      { id: "keep", type: "paragraph", content: "Untouched" },
+    ]);
+    const update_b64 = Uint8ArrayTob64(encodeStateAsUpdateV2(initial));
+    const { db, getUpdate } = createLocalDocumentHarness(item);
+    db.getAll.mockResolvedValue([{ update_b64 }] as never);
+    const client = createDeviceControlClient(db as never);
+    const result = await client.executePluginOperation(
+      "organization",
+      "local-workspace",
+      "lunaris.rich-text",
+      "edit_document",
+      {
+        documentResourceId: item.id,
+        expectedRevision: revision,
+        edits: [{ op: "update", blockId: "intro", content: "After" }],
+      },
+      { idempotencyKey: "edit-local-document" }
+    );
+    expect(result).toEqual({
+      documentResourceId: item.id,
+      appliedEdits: 1,
+      revision: expect.any(String),
+    });
+    applyUpdateV2(initial, getUpdate());
+    expect((await getRichTextDocument(initial)).markdown).toContain("After");
+    expect((await getRichTextDocument(initial)).markdown).toContain(
+      "Untouched"
+    );
+    await expect(
+      client.executePluginOperation(
+        "organization",
+        "local-workspace",
+        "lunaris.rich-text",
+        "edit_document",
+        {
+          documentResourceId: item.id,
+          expectedRevision: "stale",
+          edits: [{ op: "delete", blockId: "intro" }],
+        },
+        { idempotencyKey: "stale-local-document" }
+      )
+    ).rejects.toThrow("Rich Text document revision does not match");
+    initial.destroy();
+  });
+
+  it("returns the revision actually persisted when the local clock is behind", async () => {
+    const revision = new Date(Date.now() + 60_000).toISOString();
+    const item = {
+      ...SEARCH_ITEMS[0],
+      yjs_backing_id: "content-1",
+      updated_at: revision,
+    };
+    const { db } = createLocalDocumentHarness(item);
+    const result = await createDeviceControlClient(
+      db as never
+    ).executePluginOperation(
+      "organization",
+      "local-workspace",
+      "lunaris.rich-text",
+      "edit_document",
+      {
+        documentResourceId: item.id,
+        expectedRevision: revision,
+        edits: [
+          {
+            op: "insert",
+            parentBlockId: null,
+            afterBlockId: null,
+            blocks: [{ id: "intro", type: "paragraph", content: "Inserted" }],
+          },
+        ],
+      },
+      { idempotencyKey: "monotonic-local-revision" }
+    );
+    const returnedRevision = (result as { revision: string }).revision;
+    expect(Date.parse(returnedRevision)).toBeGreaterThan(Date.parse(revision));
+    const write = db.execute.mock.calls.find(([query]) =>
+      query.includes("UPDATE local_yjs_documents")
+    );
+    expect(write?.[1]?.[0]).toBe(returnedRevision);
+  });
+
+  it("rejects reserved block props before writing local content", async () => {
+    const item = { ...SEARCH_ITEMS[0], yjs_backing_id: "content-1" };
+    const initial = new Doc();
+    await replaceRichTextDocument(initial, [
+      { id: "intro", type: "paragraph", content: "Before" },
+    ]);
+    const update_b64 = Uint8ArrayTob64(encodeStateAsUpdateV2(initial));
+    initial.destroy();
+    const { db } = createLocalDocumentHarness(item);
+    db.getAll.mockResolvedValue([{ update_b64 }] as never);
+    await expect(
+      createDeviceControlClient(db as never).executePluginOperation(
+        "organization",
+        "local-workspace",
+        "lunaris.rich-text",
+        "edit_document",
+        {
+          documentResourceId: item.id,
+          expectedRevision: item.updated_at,
+          edits: [{ op: "update", blockId: "intro", props: { id: "changed" } }],
+        },
+        { idempotencyKey: "invalid-local-block-prop" }
+      )
+    ).rejects.toThrow("Unknown Rich Text paragraph property: id");
+    expect(
+      db.execute.mock.calls.some(([query]) =>
+        query.includes("INSERT INTO local_yjs_document_updates")
+      )
+    ).toBe(false);
+  });
+
+  it("reads a local board page with current values and excludes non-board resources", async () => {
+    const board = {
+      ...SEARCH_ITEMS[0],
+      id: "board-1",
+      resource_type_id: "lunaris.kanban",
+      yjs_backing_id: "board-document",
+    };
+    const initial = new Doc();
+    updateKanbanTaskProperties(initial, "task-1", { Status: "In Progress" });
+    const update_b64 = Uint8ArrayTob64(encodeStateAsUpdateV2(initial));
+    initial.destroy();
+    const { db } = createLocalDocumentHarness(board);
+    db.getAll.mockImplementation(async (...args: unknown[]) => {
+      const [query, params] = args;
+      if (String(query).includes("ORDER BY position, created_at, id")) {
+        expect(query).toContain("parent_id = ? AND resource_type_id = ?");
+        expect(query).toContain("workspace_resource_trash");
+        expect(params).toEqual([
+          "local-workspace",
+          "board-1",
+          "lunaris.kanban.task",
+          2,
+          0,
+        ]);
+        return [
+          { ...SEARCH_ITEMS[0], id: "task-1", name: "Ship" },
+          { ...SEARCH_ITEMS[0], id: "task-2", name: "Later" },
+        ] as never;
+      }
+      return [{ update_b64 }] as never;
+    });
+    const result = await createDeviceControlClient(
+      db as never
+    ).executePluginOperation(
+      "organization",
+      "local-workspace",
+      "lunaris.kanban",
+      "get_board",
+      { boardId: "board-1", limit: 1 },
+      { consistency: "cached" }
+    );
+    expect(result).toMatchObject({
+      boardId: "board-1",
+      nextOffset: 1,
+      tasks: [
+        {
+          taskId: "task-1",
+          name: "Ship",
+          properties: { status: "in-progress" },
+        },
+      ],
+      properties: [{ id: "status", type: "select" }],
+    });
+    expect((result as { tasks: unknown[] }).tasks).toHaveLength(1);
   });
 
   it("rejects task deletion previews for non-task items", async () => {

@@ -11,6 +11,7 @@ describe("Rich Text MCP capabilities", () => {
       "rich_text_create_document",
       "rich_text_get_document",
       "rich_text_update_document",
+      "rich_text_edit_document",
       "rich_text_preview_delete_document",
       "rich_text_delete_document",
     ]);
@@ -48,6 +49,45 @@ describe("Rich Text MCP capabilities", () => {
         organizationId: "organization-1",
       }).success
     ).toBe(true);
+  });
+
+  it("requires a revision and bounded, unambiguous edits", () => {
+    const tool = richTextMcpCapabilities.tools.find(
+      ({ name }) => name === "rich_text_edit_document"
+    )!;
+    const request = {
+      documentResourceId: "resource-1",
+      expectedRevision: "revision-1",
+      idempotencyKey: "request-1",
+      workspaceId: "workspace-1",
+      organizationId: "organization-1",
+    };
+    const edit = { op: "update", blockId: "intro", content: "After" };
+    expect(
+      tool.inputSchema.safeParse({ ...request, edits: [edit] }).success
+    ).toBe(true);
+    expect(
+      tool.inputSchema.safeParse({
+        ...request,
+        expectedRevision: undefined,
+        edits: [edit],
+      }).success
+    ).toBe(false);
+    expect(tool.inputSchema.safeParse({ ...request, edits: [] }).success).toBe(
+      false
+    );
+    expect(
+      tool.inputSchema.safeParse({
+        ...request,
+        edits: Array.from({ length: 101 }, () => edit),
+      }).success
+    ).toBe(false);
+    expect(
+      tool.inputSchema.safeParse({
+        ...request,
+        edits: [{ ...edit, children: [] }],
+      }).success
+    ).toBe(false);
   });
 
   it("fixes the resource type for lifecycle operations", () => {
