@@ -118,3 +118,26 @@ test("missing release evidence cannot excuse installer outage", async () => {
     ).rejects.toThrow();
   }
 });
+
+test("release evidence authenticates only GitHub API requests", async () => {
+  for (const token of ["fixture-token", undefined]) {
+    await smokeLanding(
+      "https://fixture/health",
+      request((url, options) => {
+        const headers = new Headers(options?.headers);
+        if (new URL(url).hostname === "api.github.com") {
+          expect(headers.get("Authorization")).toBe(
+            token ? `Bearer ${token}` : null
+          );
+          expect(headers.get("Accept")).toBe("application/vnd.github+json");
+          return Response.json([]);
+        }
+        expect(headers.has("Authorization")).toBe(false);
+        return new Response(null, {
+          status: url.endsWith("/install.sh") ? 503 : 200,
+        });
+      }),
+      token ?? ""
+    );
+  }
+});

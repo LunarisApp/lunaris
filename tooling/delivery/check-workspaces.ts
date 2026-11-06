@@ -12,6 +12,14 @@ if (
 ) {
   throw new Error("Invalid affected workspace filters");
 }
+// CI uses this marker when changes affect no JavaScript workspace.
+// Turbo rejects exact filters naming nonexistent packages.
+if (
+  filters.length === 1 &&
+  filters[0] === "--filter=__no_affected_workspace__"
+) {
+  process.exit(0);
+}
 const child = Bun.spawn(
   ["bun", "x", "--no-install", "turbo", task, ...filters, "--concurrency=4"],
   { stdout: "inherit", stderr: "inherit" }
