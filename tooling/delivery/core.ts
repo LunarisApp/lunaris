@@ -90,6 +90,9 @@ if (mode === "plan") {
       continue;
     }
     const repository = `${registry}-hosted-${component}`;
+    // Separate targets so API and web exports do not overwrite each other's cache.
+    // The new scopes also bypass the legacy cache with missing blobs.
+    const cacheScope = `hosted-enterprise-${component}-amd64`;
     run(
       "docker",
       [
@@ -112,9 +115,9 @@ if (mode === "plan") {
         "--label",
         `org.opencontainers.image.source=https://github.com/${process.env.GITHUB_REPOSITORY}`,
         "--cache-from",
-        "type=gha,scope=hosted-enterprise-amd64",
+        `type=gha,scope=${cacheScope}`,
         "--cache-to",
-        "type=gha,scope=hosted-enterprise-amd64,mode=max",
+        `type=gha,scope=${cacheScope},mode=max`,
         "--tag",
         `${repository}:${sha}`,
         "--metadata-file",
