@@ -40,7 +40,6 @@ import {
 } from "../../auth";
 import { SsoButtons } from "../../auth/components/sso-buttons";
 import { RegionSummary, useRegion } from "../../region";
-import { ConnectedAgents } from "./connected-agents";
 import { SecurityContent } from "./security";
 
 function ProfileSection() {
@@ -367,7 +366,6 @@ export function AccountContent() {
               <SecurityContent />
             </div>
           </section>
-          <ConnectedAgents />
           <DangerZoneSection />
         </>
       )}

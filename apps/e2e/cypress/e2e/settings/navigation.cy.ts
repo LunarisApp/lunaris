@@ -33,6 +33,34 @@ describe("settings/navigation", () => {
     cy.location("pathname").should("eq", "/auth/register");
   });
 
+  it("separates agent connections from local data", () => {
+    cy.openSettings();
+    cy.openSettingsTab("agents");
+    cy.get('[data-testid="settings-panel-agents"]').should("be.visible");
+    cy.contains("Sign in to manage cloud agent connections.").should(
+      "be.visible"
+    );
+
+    cy.openSettingsTab("local-data");
+    cy.get('[data-testid="settings-local-data-overview"] section').should(
+      "have.length",
+      3
+    );
+    cy.get(
+      "#agent-access-heading, #agent-chatgpt-heading, #connected-agents-title"
+    ).should("not.exist");
+    cy.get('[data-testid="settings-local-data-clear-queue"]').should(
+      "be.visible"
+    );
+    cy.contains("button", "Purge All Local Data").click();
+    cy.get('[role="alertdialog"]')
+      .should("be.visible")
+      .within(() => {
+        cy.contains("button", "Cancel").click();
+      });
+    cy.get('[role="alertdialog"]').should("not.exist");
+  });
+
   it("opens app settings from the hotkey outside a workspace", () => {
     pressSettingsHotkey();
 

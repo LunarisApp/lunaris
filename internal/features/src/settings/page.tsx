@@ -3,6 +3,7 @@
 import {
   HardDriveIcon,
   KeyboardIcon,
+  PlugSocketIcon,
   Setting07Icon,
   UserIcon,
 } from "@lunarisapp/ui/icons";
@@ -80,6 +81,12 @@ function DesktopSettingsPage({ buildVersion }: { buildVersion?: ReactNode }) {
         icon: KeyboardIcon,
         id: "keybindings",
         label: t("settings.tabs.keybindings"),
+      },
+      {
+        description: t("settings.agents.description"),
+        icon: PlugSocketIcon,
+        id: "agents",
+        label: t("settings.tabs.agents"),
       },
       {
         description: t("settings.local-data.description"),

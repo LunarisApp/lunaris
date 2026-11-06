@@ -77,13 +77,12 @@ export function GridLayoutView({ className }: { className?: string }) {
     removeGroup,
   });
 
-  useEffect(
-    () => () => {
-      dockviewRef.current = null;
-      setDockviewApi(null);
-    },
-    [setDockviewApi]
-  );
+  useEffect(() => {
+    // Dockview keeps its instance through StrictMode/Activity effect replays
+    // without firing onReady again. Preserve the ref and restore store access.
+    setDockviewApi(dockviewRef.current);
+    return () => setDockviewApi(null);
+  }, [setDockviewApi]);
 
   // Store dockview API reference - useGridLayoutSync handles the actual sync
   const onReady = (event: DockviewReadyEvent) => {

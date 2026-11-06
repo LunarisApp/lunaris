@@ -5,6 +5,7 @@ import {
   HardDriveIcon,
   HugeiconsIcon,
   type IconSvgObject,
+  PlugSocketIcon,
   Setting07Icon,
   UserIcon,
 } from "@lunarisapp/ui/icons";
@@ -36,6 +37,11 @@ export function MobileSettingsIndexPage() {
         id: "preferences",
         label: t("settings.tabs.preferences"),
         icon: Setting07Icon,
+      },
+      {
+        id: "agents",
+        label: t("settings.tabs.agents"),
+        icon: PlugSocketIcon,
       },
       {
         id: "local-data",

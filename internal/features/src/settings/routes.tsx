@@ -45,6 +45,23 @@ export function createSettingsChildRoutes(
       };
     },
   };
+  const agentsRoute: RouteObject = {
+    path: "agents",
+    lazy: async () => {
+      const { AgentsContent } = await import("./tabs/agents");
+      if (shell === "desktop") {
+        return { Component: AgentsContent };
+      }
+      const { MobileTabPage } = await import("./mobile-tab-page");
+      return {
+        Component: () => (
+          <MobileTabPage tab="agents">
+            <AgentsContent />
+          </MobileTabPage>
+        ),
+      };
+    },
+  };
   const localDataRoute: RouteObject = {
     path: "local-data",
     lazy: async () => {
@@ -74,6 +91,7 @@ export function createSettingsChildRoutes(
       },
       accountRoute,
       preferencesRoute,
+      agentsRoute,
       localDataRoute,
     ];
   }
@@ -88,6 +106,7 @@ export function createSettingsChildRoutes(
         Component: (await import("./tabs/keybindings")).KeybindingsContent,
       }),
     },
+    agentsRoute,
     localDataRoute,
   ];
 }

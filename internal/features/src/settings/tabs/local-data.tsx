@@ -43,7 +43,6 @@ import {
   resolveSyncStatus,
   type SyncStatusDescriptor,
 } from "../../sync-status";
-import { AgentAccessSection } from "./agent-access-section";
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) {
@@ -172,11 +171,11 @@ export function LocalDataContent() {
   const measurableQuota =
     estimate?.quota && estimate.quota > 0 ? estimate.quota : null;
   const storageUsageText = estimate
-    ? estimate.quota === null
+    ? measurableQuota === null
       ? formatBytes(estimate.usage)
       : t("settings.local-data.usageOfQuota", {
           used: formatBytes(estimate.usage),
-          quota: formatBytes(estimate.quota),
+          quota: formatBytes(measurableQuota),
         })
     : "";
   const downloadProgress = status.downloadProgress;
@@ -189,7 +188,10 @@ export function LocalDataContent() {
     (status.dataFlowStatus.uploading || status.dataFlowStatus.downloading);
 
   return (
-    <div className="space-y-10" data-testid="settings-panel-local-data">
+    <div
+      className="mx-auto w-full max-w-5xl space-y-12"
+      data-testid="settings-panel-local-data"
+    >
       {loading ? (
         <p className="sr-only" role="status">
           {t("common.loading")}
@@ -202,13 +204,22 @@ export function LocalDataContent() {
       )}
 
       <div className="space-y-10" data-testid="settings-local-data-overview">
-        <AgentAccessSection />
-
-        <div className="divide-y">
-          <section
-            aria-labelledby="local-data-sync-health-heading"
-            className="space-y-3 pb-5"
-          >
+        <section
+          aria-labelledby="local-data-sync-heading"
+          className="grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
+        >
+          <header className="space-y-1.5">
+            <h2
+              className="font-semibold text-base"
+              id="local-data-sync-heading"
+            >
+              {t("settings.local-data.syncTitle")}
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              {t("settings.local-data.syncDescription")}
+            </p>
+          </header>
+          <div className="min-w-0 space-y-3">
             <SyncHealthSection
               blocked={blocked}
               clearing={clearing}
@@ -266,121 +277,113 @@ export function LocalDataContent() {
                 </ProgressValue>
               </Progress>
             )}
-          </section>
+          </div>
+        </section>
 
-          <section
-            aria-labelledby="local-data-storage-heading"
-            className="space-y-2 py-5"
-          >
+        <section
+          aria-labelledby="local-data-storage-heading"
+          className="grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
+        >
+          <header className="space-y-1.5">
+            <h2
+              className="font-semibold text-base"
+              id="local-data-storage-heading"
+            >
+              {t("settings.local-data.storageUsed")}
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              {t("settings.local-data.storageDescription")}
+            </p>
+          </header>
+          <div className="min-w-0 space-y-3">
             {loading ? (
-              <>
-                <h2 className="sr-only" id="local-data-storage-heading">
-                  {t("settings.local-data.storageUsed")}
-                </h2>
-                <Skeleton className="h-4 w-40" />
-                <Skeleton className="h-1 w-full" />
-              </>
+              <Skeleton className="h-5 w-40" />
             ) : estimate ? (
               <>
-                <div className="flex items-center justify-between gap-3">
-                  <h2
-                    className="font-medium text-sm"
-                    id="local-data-storage-heading"
-                  >
-                    {t("settings.local-data.storageUsed")}
-                  </h2>
-                  <p className="text-muted-foreground text-xs tabular-nums">
-                    {storageUsageText}
-                    {estimate.quota !== null && (
-                      <>
-                        {" · "}
-                        {usagePercent > 0 && usagePercent < 1
-                          ? "< 1%"
-                          : `${Math.round(usagePercent)}%`}
-                      </>
-                    )}
-                  </p>
-                </div>
-                {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: ARIA meter attributes and role are enabled together only when quota is measurable. */}
-                <div
-                  aria-hidden={measurableQuota === null ? true : undefined}
-                  aria-label={
-                    measurableQuota === null
-                      ? undefined
-                      : t("settings.local-data.storageUsed")
-                  }
-                  aria-valuemax={measurableQuota ?? undefined}
-                  aria-valuemin={measurableQuota === null ? undefined : 0}
-                  aria-valuenow={
-                    measurableQuota === null
-                      ? undefined
-                      : Math.min(estimate.usage, measurableQuota)
-                  }
-                  aria-valuetext={
-                    measurableQuota === null ? undefined : storageUsageText
-                  }
-                  className="h-1.5 w-full overflow-hidden rounded-full bg-foreground/15"
-                  role={measurableQuota === null ? undefined : "meter"}
-                >
-                  <div
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{ width: `${Math.max(usagePercent, 0)}%` }}
-                  />
-                </div>
-              </>
-            ) : null}
-          </section>
-
-          <section
-            aria-labelledby="local-data-upload-queue-heading"
-            className="flex items-center justify-between gap-3 pt-5"
-          >
-            {loading ? (
-              <>
-                <h2 className="sr-only" id="local-data-upload-queue-heading">
-                  {t("settings.local-data.uploadQueue")}
-                </h2>
-                <Skeleton className="h-8 flex-1" />
-              </>
-            ) : (
-              <div className="min-w-0">
-                <h2
-                  className="font-medium text-sm"
-                  id="local-data-upload-queue-heading"
-                >
-                  {t("settings.local-data.uploadQueue")}
-                </h2>
-                <p
-                  className="text-muted-foreground text-xs"
-                  data-testid="settings-local-data-queue-meta"
-                >
-                  {queueStats && queueStats.count > 0 ? (
-                    <>
-                      {t("settings.local-data.pendingUploads", {
-                        count: queueStats.count,
-                      })}
-                      {queueStats.size != null &&
-                        ` · ${formatBytes(queueStats.size)}`}
-                    </>
-                  ) : (
-                    <span data-testid="settings-local-data-no-pending">
-                      {t("settings.local-data.noPendingUploads")}
+                <p className="text-sm tabular-nums">
+                  {storageUsageText}
+                  {measurableQuota !== null && (
+                    <span className="text-muted-foreground">
+                      {" · "}
+                      {usagePercent > 0 && usagePercent < 1
+                        ? "< 1%"
+                        : `${Math.round(usagePercent)}%`}
                     </span>
                   )}
                 </p>
-              </div>
-            )}
-          </section>
-        </div>
+                {measurableQuota !== null && (
+                  <div
+                    aria-label={t("settings.local-data.storageUsed")}
+                    aria-valuemax={measurableQuota}
+                    aria-valuemin={0}
+                    aria-valuenow={Math.min(estimate.usage, measurableQuota)}
+                    aria-valuetext={storageUsageText}
+                    className="h-1.5 w-full overflow-hidden rounded-full bg-foreground/15"
+                    role="meter"
+                  >
+                    <div
+                      className="h-full rounded-full bg-primary"
+                      style={{
+                        width: `${Math.min(Math.max(usagePercent, 0), 100)}%`,
+                      }}
+                    />
+                  </div>
+                )}
+              </>
+            ) : null}
+          </div>
+        </section>
+
+        <section
+          aria-labelledby="local-data-upload-queue-heading"
+          className="grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
+        >
+          <header className="space-y-1.5">
+            <h2
+              className="font-semibold text-base"
+              id="local-data-upload-queue-heading"
+            >
+              {t("settings.local-data.uploadQueue")}
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              {t("settings.local-data.uploadDescription")}
+            </p>
+          </header>
+          {loading ? (
+            <Skeleton className="h-5 w-40" />
+          ) : (
+            <p
+              className="min-w-0 text-sm"
+              data-testid="settings-local-data-queue-meta"
+            >
+              {queueStats && queueStats.count > 0 ? (
+                <>
+                  {t("settings.local-data.pendingUploads", {
+                    count: queueStats.count,
+                  })}
+                  {queueStats.size != null &&
+                    ` · ${formatBytes(queueStats.size)}`}
+                </>
+              ) : (
+                <span
+                  className="text-muted-foreground"
+                  data-testid="settings-local-data-no-pending"
+                >
+                  {t("settings.local-data.noPendingUploads")}
+                </span>
+              )}
+            </p>
+          )}
+        </section>
       </div>
 
       <section
         aria-labelledby="local-data-danger-zone-heading"
-        className="space-y-4 border-destructive/20 border-t pt-6"
+        className="grid gap-5 border-t pt-8 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10"
       >
-        <div className="space-y-1">
+        <header className="space-y-1.5">
           <h2
-            className="font-semibold text-destructive text-sm"
+            className="font-semibold text-base"
             id="local-data-danger-zone-heading"
           >
             {t("settings.local-data.dangerZone")}
@@ -388,25 +391,25 @@ export function LocalDataContent() {
           <p className="text-muted-foreground text-sm">
             {t("settings.local-data.dangerZoneDescription")}
           </p>
-        </div>
+        </header>
 
-        <div className="divide-y divide-destructive/20">
+        <div className="min-w-0 divide-y">
           <div className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="font-medium text-destructive text-sm">
+              <p className="font-medium text-sm">
                 {t("settings.local-data.clearQueue")}
               </p>
-              <p className="text-destructive/80 text-xs">
+              <p className="text-muted-foreground text-xs">
                 {t("settings.local-data.clearQueueDescription")}
               </p>
             </div>
             <Button
-              className="w-full shrink-0 sm:w-auto"
+              className="h-11 w-full shrink-0 sm:h-8 sm:w-auto"
               data-testid="settings-local-data-clear-queue"
               disabled={clearing || !queueStats || queueStats.count === 0}
               onClick={() => setClearQueueConfirmOpen(true)}
               size="sm"
-              variant="destructive"
+              variant="outline"
             >
               {clearing
                 ? t("settings.local-data.clearingQueue")
@@ -416,20 +419,19 @@ export function LocalDataContent() {
 
           <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="font-medium text-destructive text-sm">
+              <p className="font-medium text-sm">
                 {t("settings.local-data.purgeStorage")}
               </p>
-              <p className="text-destructive/80 text-xs">
+              <p className="text-muted-foreground text-xs">
                 {t("settings.local-data.purgeStorageDescription")}
               </p>
             </div>
             <AlertDialog>
               <AlertDialogTrigger
                 disabled={purging}
-                nativeButton={false}
                 render={
                   <Button
-                    className="w-full shrink-0 sm:w-auto"
+                    className="h-11 w-full shrink-0 sm:h-8 sm:w-auto"
                     size="sm"
                     variant="destructive"
                   />
@@ -518,12 +520,9 @@ function SyncHealthSection({
         className="space-y-2"
         role="status"
       >
-        <h2
-          className="font-semibold text-sm"
-          id="local-data-sync-health-heading"
-        >
+        <h3 className="font-medium text-sm" id="local-data-sync-health-heading">
           {labels.title}
-        </h2>
+        </h3>
         {!!labels.message && (
           <p className="text-muted-foreground text-sm">{labels.message}</p>
         )}
