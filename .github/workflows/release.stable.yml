@@ -122,7 +122,8 @@ jobs:
       matrix:
         component: [ cli, desktop ]
     permissions:
-      contents: read
+      # Distribution reads assets while the stable release is still a draft.
+      contents: write
       actions: read
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

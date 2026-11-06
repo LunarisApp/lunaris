@@ -212,6 +212,28 @@ test("desktop installers build on native runners in CI and stable releases", () 
   ).toContain("mode == 'adhoc'");
 });
 
+test("draft release restores have write access without elevating PR build tokens", () => {
+  const build = workflow("desktop.build").jobs.build;
+  expect(build.permissions.contents).toBe("read");
+  expect(build.environment).toBe(`\${{ inputs.publish && 'release' || '' }}`);
+  const app = build.steps.find(
+    (step: { id?: string }) => step.id === "release-app"
+  );
+  expect(app.if).toBe("inputs.publish");
+  expect(app.with["permission-contents"]).toBe("write");
+  expect(app.with["app-id"]).toContain("vars.RELEASE_APP_ID");
+  expect(app.with["private-key"]).toContain("secrets.RELEASE_APP_PRIVATE_KEY");
+  const restore = build.steps.find(
+    (step: { id?: string }) => step.id === "restore"
+  );
+  expect(restore.if).toBe("inputs.publish");
+  expect(restore.env.GH_TOKEN).toContain("steps.release-app.outputs.token");
+  expect(build.steps.indexOf(app)).toBeLessThan(build.steps.indexOf(restore));
+  expect(workflow("release.stable").jobs.distribute.permissions.contents).toBe(
+    "write"
+  );
+});
+
 test("desktop source validation runs before requested code or caches", () => {
   const { jobs } = workflow("desktop.build");
   const source = jobs.source;
