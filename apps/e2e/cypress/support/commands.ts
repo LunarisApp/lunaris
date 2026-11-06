@@ -283,13 +283,10 @@ Cypress.Commands.add("openSettings", () => {
   cy.get('[data-testid="settings-page"]').should("be.visible");
 });
 
-Cypress.Commands.add(
-  "openSettingsTab",
-  (tab: "account" | "billing" | "local-data" | "preferences") => {
-    cy.get(`[data-testid="settings-tab-${tab}"]`).click();
-    cy.get(`[data-testid="settings-panel-${tab}"]`).should("be.visible");
-  }
-);
+Cypress.Commands.add("openSettingsTab", (tab: Cypress.SettingsTab) => {
+  cy.get(`[data-testid="settings-tab-${tab}"]`).click();
+  cy.get(`[data-testid="settings-panel-${tab}"]`).should("be.visible");
+});
 
 Cypress.Commands.add(
   "createWorkspace",

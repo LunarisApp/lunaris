@@ -20,6 +20,16 @@ describe("createSettingsChildRoutes", () => {
     }
   );
 
+  it.each(["desktop", "mobile"] as const)(
+    "exposes a dedicated agents route in the %s shell",
+    (shell) => {
+      const route = createSettingsChildRoutes(shell).find(
+        (candidate) => candidate.path === "agents"
+      );
+      expect(route?.lazy).toBeTypeOf("function");
+    }
+  );
+
   it("loads settings tabs lazily", () => {
     for (const shell of ["desktop", "mobile"] as const) {
       const routes = createSettingsChildRoutes(shell);

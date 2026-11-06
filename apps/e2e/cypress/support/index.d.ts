@@ -2,7 +2,12 @@
 
 declare global {
   namespace Cypress {
-    type SettingsTab = "account" | "billing" | "local-data" | "preferences";
+    type SettingsTab =
+      | "account"
+      | "agents"
+      | "billing"
+      | "local-data"
+      | "preferences";
 
     interface Chainable {
       /** Opens and accepts the latest invitation email sent to this address. */

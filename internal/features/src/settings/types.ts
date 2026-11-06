@@ -5,6 +5,11 @@ export interface CookieSettingsLinkProps {
   className?: string;
 }
 
-export type TabId = "account" | "keybindings" | "local-data" | "preferences";
+export type TabId =
+  | "account"
+  | "agents"
+  | "keybindings"
+  | "local-data"
+  | "preferences";
 
 export type Shell = "desktop" | "mobile";

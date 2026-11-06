@@ -393,6 +393,20 @@ describe("LocalDataContent", () => {
     ).toBeTruthy();
   });
 
+  it.each([null, 0])(
+    "shows storage usage without a meter when quota is %s",
+    async (quota) => {
+      mockUsePowerSync.mockReturnValue(makeDb());
+      mockUseSyncBlocker.mockReturnValue({ resume: vi.fn() });
+      mockEstimateStorage.mockResolvedValue({ usage: 100, quota });
+
+      render(<LocalDataContent />);
+
+      await screen.findByText("100 B");
+      expect(screen.queryByRole("meter")).toBeNull();
+    }
+  );
+
   it("renders transfer hint when connected and uploading + downloading", async () => {
     const db = makeDb();
     mockStorageApis();

@@ -70,7 +70,8 @@
       "account": "Compte",
       "preferences": "Préférences",
       "keybindings": "Raccourcis clavier",
-      "local-data": "Données locales"
+      "local-data": "Données locales",
+      "agents": "Agents"
     },
     "account": {
       "title": "Compte",
@@ -270,17 +271,26 @@
       "pendingUploads_one": "{{count}} envoi en attente",
       "pendingUploads_other": "{{count}} envois en attente",
       "noPendingUploads": "Aucun envoi en attente",
-      "dangerZone": "Zone dangereuse",
-      "dangerZoneDescription": "Ces actions sont irréversibles et n'affectent que les données locales de cet appareil. Vos données cloud ne sont pas touchées.",
+      "dangerZone": "Nettoyage local",
+      "dangerZoneDescription": "Ces actions concernent uniquement cet appareil. Les envois abandonnés et les modifications non synchronisées ne peuvent pas être récupérés.",
       "purgeStorage": "Purger toutes les données locales",
       "purgingStorage": "Purge...",
       "purgeConfirmTitle": "Purger toutes les données locales ?",
       "purgeStorageDescription": "Efface les données locales. Les données cloud sont rechargées.",
       "purgeConfirmDescription": "Cela supprimera toutes les bases de données et fichiers locaux. L'application sera rechargée.",
+      "syncTitle": "Synchronisation cloud",
+      "syncDescription": "Gardez votre travail à jour sur tous vos appareils.",
+      "storageDescription": "Stockage des données locales et des fichiers en cache.",
+      "uploadDescription": "Modifications en attente de synchronisation avec le cloud."
+    },
+    "agents": {
+      "title": "Agents",
+      "description": "Gérez les connexions des agents et leur accès à vos espaces de travail.",
+      "signInDescription": "Connectez-vous pour gérer les connexions des agents cloud.",
       "agentAccess": {
-        "title": "Accès des agents",
-        "description": "Autorisez les clients locaux approuvés à lire vos espaces de travail et documents pendant que Lunaris est ouvert.",
-        "enable": "Activer l’accès des agents",
+        "title": "Accès local",
+        "description": "Autorisez les applications approuvées à accéder à Lunaris pendant son exécution.",
+        "enable": "Activer les connexions locales",
         "failed": "Échec de l’accès des agents",
         "pairingRequests": "Demandes d’association",
         "code": "Code",

@@ -70,7 +70,8 @@
       "account": "Conta",
       "preferences": "Preferências",
       "keybindings": "Atalhos de teclado",
-      "local-data": "Dados locais"
+      "local-data": "Dados locais",
+      "agents": "Agentes"
     },
     "account": {
       "title": "Conta",
@@ -270,17 +271,26 @@
       "pendingUploads_one": "{{count}} upload pendente",
       "pendingUploads_other": "{{count}} uploads pendentes",
       "noPendingUploads": "Nenhum upload pendente",
-      "dangerZone": "Zona de perigo",
-      "dangerZoneDescription": "Essas ações são irreversíveis e afetam apenas os dados locais neste dispositivo. Seus dados na nuvem não são alterados.",
+      "dangerZone": "Limpeza local",
+      "dangerZoneDescription": "Estas ações afetam apenas este dispositivo. Envios descartados e alterações não sincronizadas não podem ser recuperados.",
       "purgeStorage": "Limpar todos os dados locais",
       "purgingStorage": "Limpando...",
       "purgeConfirmTitle": "Limpar todos os dados locais?",
       "purgeStorageDescription": "Apaga dados locais. Dados na nuvem são recarregados.",
       "purgeConfirmDescription": "Isso excluirá todos os bancos de dados e arquivos locais. O aplicativo será recarregado.",
+      "syncTitle": "Sincronização na nuvem",
+      "syncDescription": "Mantenha seu trabalho atualizado em todos os dispositivos.",
+      "storageDescription": "Armazenamento de dados locais e arquivos em cache.",
+      "uploadDescription": "Alterações aguardando sincronização com a nuvem."
+    },
+    "agents": {
+      "title": "Agentes",
+      "description": "Gerencie conexões de agentes e o acesso aos seus espaços de trabalho.",
+      "signInDescription": "Entre para gerenciar conexões de agentes na nuvem.",
       "agentAccess": {
-        "title": "Acesso de agentes",
-        "description": "Permita que clientes locais aprovados leiam seus espaços de trabalho e documentos enquanto o Lunaris estiver aberto.",
-        "enable": "Ativar acesso de agentes",
+        "title": "Acesso local",
+        "description": "Permita que aplicativos aprovados acessem o Lunaris enquanto ele estiver aberto.",
+        "enable": "Ativar conexões locais",
         "failed": "Falha no acesso de agentes",
         "pairingRequests": "Solicitações de pareamento",
         "code": "Código",
