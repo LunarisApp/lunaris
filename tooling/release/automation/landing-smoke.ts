@@ -1,6 +1,7 @@
 export async function smokeLanding(
   healthUrl: string,
-  request: (url: string, options?: RequestInit) => Promise<Response> = fetch
+  request: (url: string, options?: RequestInit) => Promise<Response> = fetch,
+  githubToken = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN
 ) {
   const get = (url: string, redirect: RequestRedirect = "follow") =>
     request(url, {
@@ -18,7 +19,10 @@ export async function smokeLanding(
   const installer = await get(new URL("/install.sh", healthUrl).href, "manual");
   // Before the first self-hosted release, the installer intentionally returns 503.
   // Check public release evidence so outages after publication still fail CI.
-  if (installer.status === 503 && !(await hasPublishedInstaller(get))) {
+  if (
+    installer.status === 503 &&
+    !(await hasPublishedInstaller(request, githubToken))
+  ) {
     return;
   }
   const location = installer.headers.get("location") ?? "";
@@ -38,10 +42,22 @@ export async function smokeLanding(
   }
 }
 
-async function hasPublishedInstaller(get: (url: string) => Promise<Response>) {
+async function hasPublishedInstaller(
+  request: (url: string, options?: RequestInit) => Promise<Response>,
+  token?: string
+) {
   for (let page = 1; page <= 10; page++) {
-    const response = await get(
-      `https://api.github.com/repos/LunarisApp/lunaris/releases?per_page=100&page=${page}`
+    const response = await request(
+      `https://api.github.com/repos/LunarisApp/lunaris/releases?per_page=100&page=${page}`,
+      {
+        headers: {
+          Accept: "application/vnd.github+json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+        cache: "no-store",
+        signal: AbortSignal.timeout(30_000),
+      }
     );
     if (!response.ok) {
       throw new Error(`Installer release check failed: ${response.status}`);
