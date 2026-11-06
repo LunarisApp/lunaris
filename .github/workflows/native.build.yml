@@ -42,7 +42,7 @@ jobs:
   build-cli:
     name: Build CLI
     needs: signing
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       contents: write
       actions: read
@@ -186,7 +186,7 @@ jobs:
   build-desktop:
     name: Build Desktop
     needs: signing
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       contents: write
       actions: read
