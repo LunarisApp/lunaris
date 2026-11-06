@@ -78,6 +78,9 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
   } = useAccountSwitcher();
 
   const user = session?.user;
+  const otherAccounts = accounts.filter(
+    (account) => account.user.id !== currentUserId
+  );
 
   return (
     <Drawer
@@ -117,38 +120,36 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
           </div>
         </DrawerHeader>
         <nav className="flex flex-col gap-0.5 px-2 pb-4">
-          {accounts.some((account) => account.user.id !== currentUserId) ? (
+          {otherAccounts.length > 0 ? (
             <p className="px-3 pt-2 pb-2 font-medium text-muted-foreground text-xs">
               {t("auth.accounts")}
             </p>
           ) : null}
-          {accounts
-            .filter((account) => account.user.id !== currentUserId)
-            .map((account) => (
-              <DrawerClose
-                key={account.user.id}
-                render={
-                  <button
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors active:bg-accent disabled:opacity-60"
-                    disabled={isSwitching}
-                    onClick={() => void switchAccount(account)}
-                    type="button"
-                  >
-                    <UserAvatar size="sm" user={account.user} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate">
-                        {account.user.name || account.user.email}
-                      </span>
-                      {account.user.name ? (
-                        <span className="block truncate text-muted-foreground text-xs">
-                          {account.user.email}
-                        </span>
-                      ) : null}
+          {otherAccounts.map((account) => (
+            <DrawerClose
+              key={account.user.id}
+              render={
+                <button
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors active:bg-accent disabled:opacity-60"
+                  disabled={isSwitching}
+                  onClick={() => void switchAccount(account)}
+                  type="button"
+                >
+                  <UserAvatar size="sm" user={account.user} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">
+                      {account.user.name || account.user.email}
                     </span>
-                  </button>
-                }
-              />
-            ))}
+                    {account.user.name ? (
+                      <span className="block truncate text-muted-foreground text-xs">
+                        {account.user.email}
+                      </span>
+                    ) : null}
+                  </span>
+                </button>
+              }
+            />
+          ))}
           {accountListStatus === "ready" ? null : (
             <div
               className="mx-2 flex items-center gap-2 rounded-lg bg-muted px-3 py-2"

@@ -1,5 +1,4 @@
 import { createPortal } from "react-dom";
-import { useIsMobile } from "@lunarisapp/ui/hooks/use-mobile";
 import { useMobileResourceHeader } from "./mobile-resource-header";
 import { useResourceViewPresenceScope } from "@lunarisapp/plugin-sdk";
 import { PresenceBadges } from "./presence-badges";
@@ -29,7 +28,6 @@ export function ResourceViewLayout({
   children,
 }: ResourceViewLayoutProps) {
   const mobileHeader = useMobileResourceHeader();
-  const isMobile = useIsMobile();
   const presence = useResourceViewPresenceScope()?.presence;
   const { workspaceId } = useCurrentWorkspace();
   const resourceId = resource.resourceId;
@@ -38,47 +36,44 @@ export function ResourceViewLayout({
   const focusModeWidth = useGridLayoutStore((s) => s.focusModeWidth);
   const outerRef = useRef<HTMLDivElement>(null);
 
+  const timestamp = yjsStorage ? (
+    <EditedTimestamp
+      className="block truncate text-muted-foreground text-xs leading-4"
+      resourceId={resourceId}
+      storageId={yjsStorage.storageId}
+    />
+  ) : null;
+  const actions = (
+    <>
+      {!!presence && <PresenceBadges {...presence} />}
+      <EditorOptions resource={resource} />
+    </>
+  );
+
   return (
     <div className="resource-view-layout flex h-full flex-col">
       <FileTransferStatus workspaceId={workspaceId} />
-      {isMobile && mobileHeader ? (
+      {mobileHeader ? (
         <>
-          {mobileHeader.metadata && yjsStorage
-            ? createPortal(
-                <EditedTimestamp
-                  className="block truncate text-xs leading-4"
-                  resourceId={resourceId}
-                  storageId={yjsStorage.storageId}
-                />,
-                mobileHeader.metadata
-              )
+          {mobileHeader.metadata
+            ? createPortal(timestamp, mobileHeader.metadata)
             : null}
           {mobileHeader.actions
             ? createPortal(
-                <div className="flex items-center gap-1">
-                  {!!presence && <PresenceBadges {...presence} />}
-                  <EditorOptions resource={resource} />
-                </div>,
+                <div className="flex items-center gap-1">{actions}</div>,
                 mobileHeader.actions
               )
             : null}
         </>
       ) : (
-        <EditorHeader className="editor-header mb-1 flex h-12 px-5 md:mb-3 md:grid md:h-8 md:px-2.5">
-          <EditorHeader.Leading className="hidden md:flex" />
-          <EditorHeader.Middle className="hidden md:flex">
+        <EditorHeader className="editor-header mb-3">
+          <EditorHeader.Leading />
+          <EditorHeader.Middle>
             {!!resourceId && <EditorBreadcrumb resourceId={resourceId} />}
           </EditorHeader.Middle>
-          <EditorHeader.Trailing className="flex-1 gap-3 md:flex-initial md:gap-2">
-            {yjsStorage && (
-              <EditedTimestamp
-                className="mr-auto truncate text-muted-foreground text-xs md:mr-0"
-                resourceId={resourceId}
-                storageId={yjsStorage.storageId}
-              />
-            )}
-            {!!presence && <PresenceBadges {...presence} />}
-            <EditorOptions resource={resource} />
+          <EditorHeader.Trailing>
+            {timestamp}
+            {actions}
           </EditorHeader.Trailing>
         </EditorHeader>
       )}

@@ -1,9 +1,4 @@
-import {
-  ResponsiveDropdownMenu,
-  ResponsiveDropdownMenuContent,
-  ResponsiveDropdownMenuItem,
-  ResponsiveDropdownMenuTrigger,
-} from "@lunarisapp/ui/blocks/responsive-dropdown-menu";
+import { WorkspacesSortControl } from "../features/workspaces-list/components/workspaces-sort-control";
 import { HomeSearchProvider } from "../features/search/components/home-search";
 import { SearchButton } from "../features/search/components/search-button";
 import {
@@ -12,13 +7,6 @@ import {
   AlertTitle,
 } from "@lunarisapp/ui/components/alert";
 import { Button } from "@lunarisapp/ui/components/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@lunarisapp/ui/components/select";
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -30,8 +18,6 @@ import {
   GridViewIcon,
   HugeiconsIcon,
   ListViewIcon,
-  Sorting01Icon,
-  Tick02Icon,
 } from "@lunarisapp/ui/icons";
 import { permission } from "@repo/auth/permissions";
 import { resolveSyncAccess, SYNC_ACCESS } from "@repo/auth/sync-access";
@@ -276,98 +262,17 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                   }
                 >
                   <SearchButton
-                    className="h-11 min-w-0 flex-1 justify-start rounded-xl bg-muted/50 text-base text-muted-foreground shadow-none sm:h-8 sm:min-w-16 sm:flex-1 sm:basis-auto sm:rounded-lg sm:bg-background sm:text-sm"
+                    className="h-11 min-w-0 flex-1 justify-start rounded-xl bg-muted/50 text-base text-muted-foreground shadow-none md:h-8 md:rounded-lg md:bg-background md:text-sm"
                     data-testid="workspaces-search"
                   />
                 </HomeSearchProvider>
               )}
-              {canReadWorkspaces &&
-                (isMobile ? (
-                  <ResponsiveDropdownMenu>
-                    <ResponsiveDropdownMenuTrigger
-                      render={
-                        <Button
-                          aria-label={t("workspaces.sortBy")}
-                          className="size-11 rounded-lg"
-                          data-testid="workspaces-sort"
-                          size="icon"
-                          variant="outline"
-                        />
-                      }
-                    >
-                      <HugeiconsIcon aria-hidden="true" icon={Sorting01Icon} />
-                    </ResponsiveDropdownMenuTrigger>
-                    <ResponsiveDropdownMenuContent
-                      title={t("workspaces.sortBy")}
-                    >
-                      {(["activity", "name"] as const).map((sort) => (
-                        <ResponsiveDropdownMenuItem
-                          aria-pressed={workspaceSort === sort}
-                          className="min-h-12 rounded-xl text-base"
-                          data-testid={`workspaces-sort-${sort}`}
-                          key={sort}
-                          onClick={() => setWorkspaceSort(sort)}
-                        >
-                          <span className="flex-1">
-                            {t(
-                              sort === "name"
-                                ? "workspaces.sortByName"
-                                : "workspaces.sortByActivity"
-                            )}
-                          </span>
-                          {workspaceSort === sort ? (
-                            <HugeiconsIcon
-                              aria-hidden="true"
-                              icon={Tick02Icon}
-                            />
-                          ) : null}
-                        </ResponsiveDropdownMenuItem>
-                      ))}
-                    </ResponsiveDropdownMenuContent>
-                  </ResponsiveDropdownMenu>
-                ) : (
-                  <Select
-                    onValueChange={(value) => {
-                      if (value === "name" || value === "activity") {
-                        setWorkspaceSort(value);
-                      }
-                    }}
-                    value={workspaceSort}
-                  >
-                    <SelectTrigger
-                      aria-label={t("workspaces.sortBy")}
-                      className="w-11 shrink-0 justify-center rounded-lg px-0 data-[size=default]:h-11 sm:w-36 sm:justify-between sm:px-2.5 sm:data-[size=default]:h-8 [&>svg:last-child]:hidden sm:[&>svg:last-child]:block"
-                      data-testid="workspaces-sort"
-                    >
-                      <HugeiconsIcon
-                        aria-hidden="true"
-                        icon={Sorting01Icon}
-                        strokeWidth={2}
-                      />
-                      <SelectValue className="sr-only sm:not-sr-only">
-                        {(value: WorkspacesSort | null) =>
-                          value === "name"
-                            ? t("workspaces.sortByName")
-                            : t("workspaces.sortByActivity")
-                        }
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent align="end">
-                      <SelectItem
-                        data-testid="workspaces-sort-activity"
-                        value="activity"
-                      >
-                        {t("workspaces.sortByActivity")}
-                      </SelectItem>
-                      <SelectItem
-                        data-testid="workspaces-sort-name"
-                        value="name"
-                      >
-                        {t("workspaces.sortByName")}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                ))}
+              {canReadWorkspaces && (
+                <WorkspacesSortControl
+                  onChange={setWorkspaceSort}
+                  value={workspaceSort}
+                />
+              )}
               {canReadWorkspaces && !isMobile && (
                 <ToggleGroup
                   aria-label={t("workspaces.view")}
@@ -385,7 +290,6 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                       }
                     }
                   }}
-                  className="[&_button]:size-11 sm:[&_button]:h-8 sm:[&_button]:w-auto"
                   spacing={0}
                   value={[workspaceView]}
                   variant="outline"
@@ -424,11 +328,11 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                   trigger={
                     <Button
                       aria-label={t("common.create")}
-                      className="size-11 shrink-0 rounded-lg p-0 sm:h-8 sm:w-auto sm:px-2.5"
+                      className="size-11 shrink-0 rounded-lg p-0 md:h-8 md:w-auto md:px-2.5"
                       data-testid="workspaces-create-launcher-header"
                     >
                       <HugeiconsIcon aria-hidden="true" icon={FolderAddIcon} />
-                      <span className="hidden sm:inline">
+                      <span className="hidden md:inline">
                         {t("common.create")}
                       </span>
                     </Button>

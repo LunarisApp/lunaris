@@ -34,7 +34,7 @@ export function SearchButton({
     >
       <HugeiconsIcon icon={Search01Icon} strokeWidth={2} />
       <span className="min-w-0 truncate">{t("common.search")}</span>
-      <Kbd className="ml-auto hidden sm:inline-flex">{shortcutHint}</Kbd>
+      <Kbd className="ml-auto hidden md:inline-flex">{shortcutHint}</Kbd>
     </Button>
   );
 }

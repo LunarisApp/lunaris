@@ -201,9 +201,7 @@ export function WorkspaceTreeItem({
   const treeItemContent = (
     <TreeItemLabel
       className={
-        isMobile
-          ? "min-h-12 rounded-xl bg-transparent text-base [&>span]:min-w-0 [&>span]:overflow-hidden [&>span]:text-ellipsis"
-          : undefined
+        isMobile ? "min-h-12 rounded-xl bg-transparent text-base" : undefined
       }
     >
       <span
@@ -214,7 +212,9 @@ export function WorkspaceTreeItem({
         ref={preloadRef}
       >
         <WorkspaceTreeItemIcon resourceIcon={resource?.icon} item={item} />
-        <WorkspaceTreeItemLabel item={item} />
+        <span className="min-w-0 flex-1 truncate">
+          <WorkspaceTreeItemLabel item={item} />
+        </span>
       </span>
     </TreeItemLabel>
   );
