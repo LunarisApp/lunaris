@@ -5,6 +5,7 @@ import {
 	ReleaseDownloadError,
 	resolveVersionedReleaseDownload,
 	type SignedReleaseDownload,
+	type ReleaseTarget,
 } from "@/lib/release-downloads";
 
 interface RouteContext {
@@ -23,7 +24,7 @@ interface DownloadLogger {
 interface DownloadRouteDependencies {
 	log: DownloadLogger;
 	resolve: (
-		target: "cli" | "macos",
+		target: ReleaseTarget,
 		version: string,
 		filename: string,
 	) => Promise<SignedReleaseDownload>;
@@ -85,7 +86,7 @@ export async function handleVersionedDownload(
 		if (error instanceof ReleaseDownloadError && error.kind === "not_found") {
 			log.set({
 				download: {
-					component: target === "macos" ? "desktop" : "cli",
+					component: target === "cli" ? "cli" : "desktop",
 					errorKind: error.kind,
 					filename,
 					outcome: "not_found",
@@ -100,7 +101,7 @@ export async function handleVersionedDownload(
 			error instanceof Error ? error : new Error("Unknown release error");
 		log.set({
 			download: {
-				component: target === "macos" ? "desktop" : "cli",
+				component: target === "cli" ? "cli" : "desktop",
 				...(error instanceof ReleaseDownloadError
 					? { errorKind: error.kind }
 					: {}),

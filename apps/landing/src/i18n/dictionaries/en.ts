@@ -21,6 +21,7 @@ const en = {
 		footerNavigation: "Footer navigation",
 	},
 	nav: {
+		downloads: "Downloads",
 		pricing: "Pricing",
 		docs: "Documentation",
 		mcp: "MCP",

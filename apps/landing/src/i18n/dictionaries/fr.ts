@@ -23,6 +23,7 @@ const fr = {
 		footerNavigation: "Navigation du pied de page",
 	},
 	nav: {
+		downloads: "Téléchargements",
 		pricing: "Tarifs",
 		docs: "Documentation",
 		mcp: "MCP",

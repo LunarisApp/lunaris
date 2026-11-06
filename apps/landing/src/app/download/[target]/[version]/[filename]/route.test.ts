@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
 	ReleaseDownloadError,
 	type SignedReleaseDownload,
+	type ReleaseTarget,
 } from "@/lib/release-downloads";
 import { handleVersionedDownload } from "./route";
 
@@ -17,7 +18,7 @@ function context(target: string, version: string, filename: string) {
 
 function dependencies(
 	resolve: (
-		target: "cli" | "macos",
+		target: ReleaseTarget,
 		version: string,
 		filename: string,
 	) => Promise<SignedReleaseDownload>,
@@ -83,7 +84,7 @@ describe("versioned download route", () => {
 	});
 
 	test.each([
-		["windows", "1.2.3"],
+		["android", "1.2.3"],
 		["cli", "1.2"],
 	])("rejects invalid target %s or version %s", async (target, version) => {
 		const state = dependencies(() =>

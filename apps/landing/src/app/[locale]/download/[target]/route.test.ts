@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
 	ReleaseDownloadError,
 	type SignedReleaseDownload,
+	type ReleaseTarget,
 } from "@/lib/release-downloads";
 import { handleDownload } from "./route";
 
@@ -12,7 +13,7 @@ function context(target: string) {
 }
 
 function dependencies(
-	resolve: (target: "cli" | "macos") => Promise<SignedReleaseDownload>,
+	resolve: (target: ReleaseTarget) => Promise<SignedReleaseDownload>,
 ) {
 	const events: Record<string, unknown>[] = [];
 	const errors: Error[] = [];
@@ -89,13 +90,37 @@ describe("download route", () => {
 		);
 	});
 
+	test.each(["windows", "linux"] as const)(
+		"redirects %s directly to GitHub asset",
+		async (target) => {
+			const url = `https://github.com/LunarisApp/lunaris/releases/download/v1.2.3/installer.${target === "windows" ? "exe" : "deb"}`;
+			const state = dependencies(async (requestedTarget) => {
+				expect(requestedTarget).toBe(target);
+				return {
+					component: "desktop",
+					signingMode: "unsigned",
+					url,
+					version: "1.2.3",
+				};
+			});
+			const response = await handleDownload(
+				new Request(`https://lunaris.app/download/${target}`),
+				context(target),
+				state.dependencies,
+			);
+			expect(response.status).toBe(307);
+			expect(response.headers.get("location")).toBe(url);
+			expect(await response.text()).toBe("");
+		},
+	);
+
 	test("returns 404 for an unsupported target", async () => {
 		const state = dependencies(() =>
 			Promise.reject(new Error("must not resolve")),
 		);
 		const response = await handleDownload(
-			new Request("https://lunaris.app/download/windows"),
-			context("windows"),
+			new Request("https://lunaris.app/download/android"),
+			context("android"),
 			state.dependencies,
 		);
 

@@ -23,6 +23,7 @@ const de = {
 		footerNavigation: "Fußzeilennavigation",
 	},
 	nav: {
+		downloads: "Downloads",
 		pricing: "Preise",
 		docs: "Dokumentation",
 		mcp: "MCP",
