@@ -141,3 +141,42 @@ test("release evidence authenticates only GitHub API requests", async () => {
     );
   }
 });
+
+test("unified product installer redirects pass smoke verification", async () => {
+  const asset =
+    "https://github.com/LunarisApp/lunaris/releases/download/v0.0.2/install.sh";
+  const calls: string[] = [];
+  await smokeLanding(
+    "https://fixture/health",
+    request((url) => {
+      calls.push(url);
+      return url === "https://fixture/install.sh"
+        ? new Response(null, { status: 307, headers: { location: asset } })
+        : new Response("content");
+    })
+  );
+  expect(calls).toContain(asset);
+});
+
+test("unified product releases cannot excuse installer outages", async () => {
+  await expect(
+    smokeLanding(
+      "https://fixture/health",
+      request((url) => {
+        if (new URL(url).hostname === "api.github.com") {
+          return Response.json([
+            {
+              tag_name: "v0.0.2",
+              draft: false,
+              prerelease: false,
+              assets: [{ name: "install.sh" }],
+            },
+          ]);
+        }
+        return new Response(null, {
+          status: url.endsWith("/install.sh") ? 503 : 200,
+        });
+      })
+    )
+  ).rejects.toThrow("Installer smoke check failed: 503");
+});

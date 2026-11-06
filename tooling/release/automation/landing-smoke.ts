@@ -28,7 +28,7 @@ export async function smokeLanding(
   const location = installer.headers.get("location") ?? "";
   if (
     installer.status !== 307 ||
-    !/^https:\/\/github\.com\/LunarisApp\/lunaris\/releases\/download\/self-hosted(?:%40|@)\d+\.\d+\.\d+\/install\.sh$/.test(
+    !/^https:\/\/github\.com\/LunarisApp\/lunaris\/releases\/download\/(?:self-hosted(?:%40|@)|v)\d+\.\d+\.\d+\/install\.sh$/.test(
       location
     )
   ) {
@@ -72,7 +72,7 @@ async function hasPublishedInstaller(
           release?.draft === false &&
           release.prerelease === false &&
           typeof release.tag_name === "string" &&
-          /^self-hosted@\d+\.\d+\.\d+$/.test(release.tag_name) &&
+          /^(?:self-hosted@|v)\d+\.\d+\.\d+$/.test(release.tag_name) &&
           Array.isArray(release.assets) &&
           release.assets.some(
             (asset: { name?: string } | null) => asset?.name === "install.sh"
