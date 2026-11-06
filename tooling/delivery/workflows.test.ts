@@ -147,6 +147,21 @@ test("native builders retain signing and durable receipts; product artifact rele
   expect(workflow("artifacts.publish").jobs["self-hosted"]).toBeUndefined();
 });
 
+test("macOS release builds plugin SDK before compiling the agent sidecar", () => {
+  const { steps } = workflow("native.build").jobs["build-desktop"];
+  const sdk = steps.findIndex(
+    (step: { run?: string }) =>
+      step.run === "bun run --cwd packages/plugin-sdk build"
+  );
+  const agent = steps.findIndex(
+    (step: { run?: string }) =>
+      step.run === "bun run --cwd apps/desktop build:agent"
+  );
+  expect(sdk).toBeGreaterThanOrEqual(0);
+  expect(agent).toBeGreaterThan(sdk);
+  expect(steps[sdk].if).toBe(steps[agent].if);
+});
+
 test("Homebrew is optional and only CLI publishes to S3", () => {
   const stable = workflow("release.stable");
   const preflight = stable.jobs.reserve.steps.find(
