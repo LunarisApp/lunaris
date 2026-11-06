@@ -54,7 +54,7 @@ export function WorkspaceTreeSearch({
           onChange(e.target.value)
         }
         onKeyDown={onKeyDown}
-        placeholder={t("explorer.searchPlaceholder")}
+        placeholder={t("common.search")}
         role="combobox"
         type="search"
         value={value}

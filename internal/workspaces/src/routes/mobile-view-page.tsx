@@ -9,7 +9,7 @@ import { useWorkspaceResourcesMap } from "@repo/workspaces/workspace-explorer";
 import SyncStatusIndicator from "@repo/features/sync-status";
 import { MobileUserMenu } from "@repo/features/user-menu";
 import type { ReactNode } from "react";
-import { createElement, useEffect, useMemo } from "react";
+import { createElement, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { AppUpdateButton } from "@repo/features/app-update";
@@ -20,9 +20,16 @@ import {
   resolveWorkspaceView,
   type ViewResolution,
 } from "./workspace-deep-link";
+import { MobileResourceHeaderContext } from "../features/editor/mobile-resource-header";
 import { useMobileViewRegistry } from "./workspace-mobile-shell";
 
 export default function MobileViewPage() {
+  const [headerActions, setHeaderActions] = useState<HTMLDivElement | null>(
+    null
+  );
+  const [headerMetadata, setHeaderMetadata] = useState<HTMLDivElement | null>(
+    null
+  );
   const { t } = useTranslation();
   const handleLogout = useLogout();
   const { workspace } = useCurrentWorkspace();
@@ -97,15 +104,30 @@ export default function MobileViewPage() {
   );
 
   const renderWithHeader = (title: string, body: ReactNode) => (
-    <div className="flex h-dvh flex-col">
-      <MobileHeader
-        actions={<MobileUserMenu onLogout={handleLogout} />}
-        backTo={backTo}
-        title={title}
-        titleTrailing={headerTrailing}
-      />
-      <div className="min-h-0 flex-1 overflow-y-auto">{body}</div>
-    </div>
+    <MobileResourceHeaderContext.Provider
+      value={{ actions: headerActions, metadata: headerMetadata }}
+    >
+      <div className="flex h-dvh flex-col overflow-hidden bg-background">
+        <MobileHeader
+          actions={
+            <div className="flex items-center gap-1">
+              <div ref={setHeaderActions} />
+              {resolution.kind === "resource" ||
+              resolution.kind === "plugin-subview" ? null : (
+                <MobileUserMenu onLogout={handleLogout} />
+              )}
+            </div>
+          }
+          subtitle={<div ref={setHeaderMetadata} />}
+          backTo={backTo}
+          title={title}
+          titleTrailing={headerTrailing}
+        />
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-[var(--safe-area-right)] pb-[var(--safe-area-bottom)] pl-[var(--safe-area-left)]">
+          {body}
+        </div>
+      </div>
+    </MobileResourceHeaderContext.Provider>
   );
 
   switch (resolution.kind) {
@@ -235,7 +257,7 @@ function ViewNotFound({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="flex h-dvh flex-col items-center justify-center gap-4 p-8 text-center">
+    <div className="flex h-dvh flex-col items-center justify-center gap-4 overflow-hidden bg-background p-8 text-center">
       <h2 className="font-semibold text-lg">{t("mobile.resourceNotFound")}</h2>
       <p className="text-muted-foreground text-sm">
         {t("mobile.resourceNotFoundDescription")}

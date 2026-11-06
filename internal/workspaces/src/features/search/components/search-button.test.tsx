@@ -17,13 +17,13 @@ vi.mock("../hooks/useSearchDialog", () => ({
 }));
 
 describe("SearchButton", () => {
-  it("shows the workspace name while preserving the search action label", () => {
-    render(<SearchButton workspaceName="Workspace One" />);
+  it("shows a concise search label", () => {
+    render(<SearchButton />);
 
     const searchButton = screen.getByRole("button", { name: "Search" });
     expect(searchButton.className).toContain("w-[15.6rem]");
     expect(searchButton.className).toContain("max-w-full");
-    expect(screen.getByText("Workspace One")).toBeTruthy();
-    expect(screen.queryByText("Search")).toBeNull();
+
+    expect(screen.getByText("Search")).toBeTruthy();
   });
 });

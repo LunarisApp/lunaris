@@ -66,8 +66,9 @@ function CriticalErrorView({
 
   return (
     <PanelError
+      className="min-h-dvh"
       actions={
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex w-full min-w-0 flex-col items-center gap-3">
           <Button onClick={onRetry}>{retryLabel}</Button>
           {!!ufe.requestId && (
             <RequestId
@@ -76,11 +77,20 @@ function CriticalErrorView({
             />
           )}
           {!!(import.meta.env.DEV && error instanceof Error && error.stack) && (
-            <details className="max-w-md text-left">
+            <details className="w-full min-w-0 max-w-md text-left">
               <summary className="cursor-pointer text-muted-foreground text-xs">
                 {t("errors.boundary.devDetails", "Developer details")}
               </summary>
-              <pre className="mt-2 overflow-auto whitespace-pre-wrap break-words rounded bg-muted p-2 text-xs">
+              <pre
+                aria-label={t(
+                  "errors.boundary.devDetails",
+                  "Developer details"
+                )}
+                className="mt-2 max-h-[40dvh] w-full min-w-0 overflow-auto overscroll-contain whitespace-pre-wrap rounded-lg bg-muted p-3 text-left text-xs leading-relaxed [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-ring"
+                role="region"
+                // biome-ignore lint/a11y/noNoninteractiveTabindex: Scrollable error output needs keyboard focus for scrolling.
+                tabIndex={0}
+              >
                 {error.stack}
               </pre>
             </details>

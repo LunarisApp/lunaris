@@ -26,7 +26,7 @@ import {
 import { cn } from "@lunarisapp/ui/lib/utils";
 import { permission } from "@repo/auth/permissions";
 import type { WorkspaceResourceEntity } from "@repo/data/features/workspace-resources";
-import type { HTMLAttributes, KeyboardEvent } from "react";
+import type { HTMLAttributes, KeyboardEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useAnyPermission } from "@repo/features/permissions";
 import { useNavigateToResource, useStartRenamingItem } from "../store";
@@ -36,6 +36,7 @@ import { useWorkspaceResourceCreation } from "../hooks/use-workspace-resource-cr
 import { WorkspaceTreeSearch } from "./workspace-tree-search";
 
 interface WorkspaceTreeHeaderProps extends HTMLAttributes<HTMLDivElement> {
+  mobileActions?: ReactNode;
   onCollapseAll?: () => void;
   onSearchChange: (value: string) => void;
   onSearchKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
@@ -46,6 +47,7 @@ interface WorkspaceTreeHeaderProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export function WorkspaceTreeHeader({
+  mobileActions,
   onCollapseAll,
   tree,
   searchQuery,
@@ -107,18 +109,25 @@ export function WorkspaceTreeHeader({
 
   const isMobile = useIsMobile();
   const buttonSize = isMobile ? "icon-lg" : "sm";
-  const buttonClass = isMobile ? "size-12 [&_svg]:size-6" : undefined;
+  const buttonClass = isMobile
+    ? "size-11 rounded-xl [&_svg]:size-5"
+    : undefined;
 
   return (
     <div
       className={cn(
         "flex",
         isMobile
-          ? "items-center justify-between gap-2 border-t px-3 py-0"
+          ? "shrink-0 flex-wrap items-center justify-between gap-2 border-border/60 border-t bg-background pt-2 pr-[calc(1rem+var(--safe-area-right))] pb-[calc(0.5rem+var(--safe-area-bottom))] pl-[calc(1rem+var(--safe-area-left))]"
           : "mb-1.5 @min-[260px]:flex-row flex-col @min-[260px]:items-center @min-[260px]:justify-between gap-1 border-b px-2 py-1.5"
       )}
       {...props}
     >
+      {isMobile && mobileActions ? (
+        <div className="flex flex-wrap items-center gap-1 [&_button]:size-11 [&_button]:rounded-xl">
+          {mobileActions}
+        </div>
+      ) : null}
       {!isMobile && (
         <WorkspaceTreeSearch
           activeDescendantId={searchActiveDescendantId}
@@ -131,7 +140,9 @@ export function WorkspaceTreeHeader({
       <div
         className={cn(
           "flex shrink-0 items-center",
-          isMobile ? "gap-2" : "@min-[260px]:justify-end justify-around gap-1"
+          isMobile
+            ? "ml-auto gap-1"
+            : "@min-[260px]:justify-end justify-around gap-1"
         )}
       >
         {!canMutate && (
@@ -143,7 +154,11 @@ export function WorkspaceTreeHeader({
               aria-label={t("explorer.addFile")}
               render={
                 <Button
-                  className={buttonClass}
+                  className={cn(
+                    buttonClass,
+                    isMobile &&
+                      "bg-primary text-primary-foreground hover:bg-primary/90"
+                  )}
                   size={buttonSize}
                   variant="ghost"
                 />

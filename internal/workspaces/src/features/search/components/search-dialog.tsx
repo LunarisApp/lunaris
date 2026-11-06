@@ -700,7 +700,7 @@ export function SearchDialogMenu({
             </button>
           }
           onValueChange={setQuery}
-          placeholder={t("search.placeholder")}
+          placeholder={t("common.search")}
           value={query}
         />
         <CommandList
