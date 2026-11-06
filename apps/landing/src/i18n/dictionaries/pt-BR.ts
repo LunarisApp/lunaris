@@ -23,6 +23,7 @@ const ptBR = {
 		footerNavigation: "Navegação do rodapé",
 	},
 	nav: {
+		downloads: "Downloads",
 		pricing: "Preços",
 		docs: "Documentação",
 		mcp: "MCP",

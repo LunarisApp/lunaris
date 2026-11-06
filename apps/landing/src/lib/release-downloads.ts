@@ -1,6 +1,3 @@
-import { Files, FilesError } from "files-sdk";
-import { type S3Adapter, s3 } from "files-sdk/s3";
-
 export const releaseTargets = ["macos", "windows", "linux", "cli"] as const;
 export type ReleaseTarget = (typeof releaseTargets)[number];
 type StorageReleaseTarget = "macos" | "cli";
@@ -8,7 +5,7 @@ export type DesktopReleaseTarget = Exclude<ReleaseTarget, "cli">;
 type ReleaseComponent = "cli" | "desktop";
 type SigningMode = "adhoc" | "signed";
 
-interface ReleaseStorageConfig {
+export interface ReleaseStorageConfig {
 	accessKeyId: string;
 	bucket: string;
 	endpoint?: string;
@@ -63,7 +60,7 @@ export class ReleaseDownloadError extends Error {
 	}
 }
 
-interface ReleaseStorageDependencies {
+export interface ReleaseStorageDependencies {
 	getManifest: (key: string) => Promise<string | undefined>;
 	signDownload: (input: {
 		expiresIn: number;
@@ -220,46 +217,6 @@ export function parseReleaseManifest(
 	return value as unknown as ReleaseManifest;
 }
 
-let cachedFiles: Files<S3Adapter> | undefined;
-
-function defaultDependencies(
-	config: ReleaseStorageConfig,
-): ReleaseStorageDependencies {
-	const files = (cachedFiles ??= new Files({
-		adapter: s3({
-			bucket: config.bucket,
-			region: config.region,
-			...(config.endpoint
-				? { endpoint: config.endpoint, forcePathStyle: true }
-				: {}),
-			credentials: {
-				accessKeyId: config.accessKeyId,
-				secretAccessKey: config.secretAccessKey,
-			},
-		}),
-	}));
-
-	return {
-		async getManifest(key) {
-			try {
-				const manifest = await files.download(key);
-				return await manifest.text();
-			} catch (error) {
-				if (error instanceof FilesError && error.code === "NotFound") {
-					return undefined;
-				}
-				throw error;
-			}
-		},
-		signDownload({ expiresIn, key, name }) {
-			return files.url(key, {
-				expiresIn,
-				responseContentDisposition: `attachment; filename="${name}"`,
-			});
-		},
-	};
-}
-
 async function resolveManifestDownload(
 	target: StorageReleaseTarget,
 	manifestKey: string,
@@ -272,11 +229,14 @@ async function resolveManifestDownload(
 	dependencies?: ReleaseStorageDependencies,
 ): Promise<SignedReleaseDownload> {
 	const config = readReleaseStorageConfig(environment);
-	const storage = dependencies ?? defaultDependencies(config);
 	const component = targetConfig[target].component;
 
+	let storage: ReleaseStorageDependencies;
 	let manifestSource: string | undefined;
 	try {
+		storage =
+			dependencies ??
+			(await import("./release-storage")).createReleaseStorage(config);
 		manifestSource = await storage.getManifest(manifestKey);
 	} catch (error) {
 		throw new ReleaseDownloadError(

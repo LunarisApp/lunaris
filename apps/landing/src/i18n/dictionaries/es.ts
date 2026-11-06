@@ -23,6 +23,7 @@ const es = {
 		footerNavigation: "Navegación del pie de página",
 	},
 	nav: {
+		downloads: "Descargas",
 		pricing: "Precios",
 		docs: "Documentación",
 		mcp: "MCP",

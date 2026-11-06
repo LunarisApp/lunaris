@@ -7,6 +7,7 @@ import { siteUrl } from "@/i18n/metadata";
 const routes = [
 	"",
 	"/pricing",
+	"/downloads",
 	"/extensions",
 	...extensionCatalog.map(({ slug }) => `/extensions/${slug}`),
 	"/self-hosted",

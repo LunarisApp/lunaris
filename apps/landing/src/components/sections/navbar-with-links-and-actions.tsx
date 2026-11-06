@@ -15,7 +15,7 @@ export function NavbarLink({
 	return (
 		<Link
 			className={clsx(
-				"group inline-flex items-center justify-between gap-2 text-3xl/10 font-medium text-olive-950 lg:text-sm/7 dark:text-white",
+				"group inline-flex items-center justify-between gap-2 text-3xl/10 font-medium text-olive-950 xl:text-sm/7 dark:text-white",
 				className,
 			)}
 			href={href}
@@ -29,7 +29,7 @@ export function NavbarLink({
 			{children}
 			<span
 				aria-hidden="true"
-				className="inline-flex p-1.5 opacity-0 group-hover:opacity-100 lg:hidden"
+				className="inline-flex p-1.5 opacity-0 group-hover:opacity-100 xl:hidden"
 			>
 				<svg
 					aria-hidden="true"
@@ -91,15 +91,15 @@ export function NavbarWithLinksAndActions({
 		>
 			<style>{`:root { --scroll-padding-top: 5.25rem }`}</style>
 			<nav aria-label={navigationLabel}>
-				<div className="mx-auto flex h-(--scroll-padding-top) max-w-7xl items-center gap-4 px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:px-10">
+				<div className="mx-auto flex h-(--scroll-padding-top) max-w-7xl items-center gap-4 px-6 xl:grid xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:px-10">
 					<div className="flex items-center">{logo}</div>
-					<div className="flex justify-center gap-7 max-lg:hidden">{links}</div>
-					<div className="ml-auto flex items-center justify-end gap-2 lg:ml-0">
+					<div className="flex justify-center gap-7 max-xl:hidden">{links}</div>
+					<div className="ml-auto flex items-center justify-end gap-2 xl:ml-0">
 						<div className="flex shrink-0 items-center gap-2">{actions}</div>
 
 						<button
 							aria-label={openMenuLabel}
-							className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full p-1.5 text-olive-950 hover:bg-olive-950/10 lg:hidden dark:text-white dark:hover:bg-white/10"
+							className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full p-1.5 text-olive-950 hover:bg-olive-950/10 xl:hidden dark:text-white dark:hover:bg-white/10"
 							command="show-modal"
 							commandfor="mobile-menu"
 							type="button"
@@ -120,13 +120,13 @@ export function NavbarWithLinksAndActions({
 					</div>
 				</div>
 
-				<ElDialog className="lg:hidden">
+				<ElDialog className="xl:hidden">
 					<dialog
 						aria-label={navigationLabel}
 						className="backdrop:bg-transparent"
 						id="mobile-menu"
 					>
-						<ElDialogPanel className="fixed inset-0 overflow-y-auto bg-olive-100 px-6 py-6 lg:px-10 dark:bg-olive-950">
+						<ElDialogPanel className="fixed inset-0 overflow-y-auto bg-olive-100 px-6 py-6 xl:px-10 dark:bg-olive-950">
 							<div className="flex justify-end">
 								<button
 									aria-label={closeMenuLabel}

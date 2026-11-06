@@ -102,7 +102,7 @@ export default async function LocaleLayout({
 					<NavbarWithLinksAndActions
 						actions={
 							<>
-								<div className="hidden lg:block">
+								<div className="hidden xl:block">
 									<TrackedButtonLink
 										analyticsProperties={{
 											cta: "open_web_app",
@@ -140,6 +140,9 @@ export default async function LocaleLayout({
 								</NavbarLink>
 								<NavbarLink href={localePath(locale, "/pricing")}>
 									{dict.nav.pricing}
+								</NavbarLink>
+								<NavbarLink href={localePath(locale, "/downloads")}>
+									{dict.nav.downloads}
 								</NavbarLink>
 								<NavbarLink href={DOCS_URL}>{dict.nav.docs}</NavbarLink>
 								<NavbarLink href={localePath(locale, "/self-hosted")}>

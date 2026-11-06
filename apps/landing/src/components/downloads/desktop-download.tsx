@@ -1,9 +1,7 @@
 "use client";
 
-import Apple from "@thesvg/react/apple";
-import Linux from "@thesvg/react/linux";
-import Windows from "@thesvg/react/windows";
 import { type ReactNode, useEffect, useState } from "react";
+import { PlatformIcon } from "@/components/downloads/platform-icon";
 import type { Locale } from "@/i18n/config";
 import { localePath } from "@/i18n/locale-path";
 import {
@@ -11,12 +9,6 @@ import {
 	desktopPlatforms,
 	detectDesktopPlatform,
 } from "@/lib/desktop-platform";
-
-const platformIcons = {
-	macos: <Apple variant="mono" focusable="false" />,
-	windows: <Windows focusable="false" />,
-	linux: <Linux variant="mono" focusable="false" />,
-};
 
 export function DesktopDownload({
 	children,
@@ -47,14 +39,7 @@ export function DesktopDownload({
 						detected ? `/download/${detected.target}` : "/downloads",
 					)}
 				>
-					{platform && (
-						<span
-							aria-hidden="true"
-							className="size-4 shrink-0 [&>svg]:size-4 [&_path]:fill-current"
-						>
-							{platformIcons[platform]}
-						</span>
-					)}
+					{platform && <PlatformIcon platform={platform} />}
 					{detected ? `${downloadLabel} ${detected.label}` : fallbackLabel}
 				</a>
 			</div>
