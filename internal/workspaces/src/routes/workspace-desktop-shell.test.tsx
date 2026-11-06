@@ -175,12 +175,10 @@ vi.mock("@repo/workspaces/workspace-explorer", () => ({
 }));
 
 vi.mock("@repo/workspaces/search", () => ({
-  SearchButton: ({ workspaceName }) => (
-    <button
-      data-workspace-name={workspaceName}
-      data-testid="search-trigger"
-      type="button"
-    />
+  SearchButton: () => (
+    <button data-testid="search-trigger" type="button">
+      Search
+    </button>
   ),
   SearchDialog: () => null,
   SearchProvider: ({ children, indexingReady }) => (
@@ -1240,7 +1238,7 @@ describe("DesktopWorkspaceShell", () => {
     expect(searchAnchor?.className).toContain("relative");
     expect(searchAnchor?.contains(updateTrigger)).toBe(true);
     expect(updateTrigger.parentElement?.className).toContain("start-full");
-    expect(searchTrigger.dataset.workspaceName).toBe("Workspace One");
+    expect(searchTrigger.textContent).toBe("Search");
     const leading = screen.getByTestId("appbar-leading");
     expect(
       Array.from(leading.children).map((element) =>

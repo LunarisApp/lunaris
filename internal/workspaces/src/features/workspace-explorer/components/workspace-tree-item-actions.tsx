@@ -73,7 +73,7 @@ export function MobileWorkspaceTreeItemActions({
       <DrawerTrigger
         render={
           <button
-            className="shrink-0 rounded-sm p-1 text-muted-foreground active:bg-accent"
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring active:bg-accent"
             onClick={(event) => event.stopPropagation()}
             type="button"
           >

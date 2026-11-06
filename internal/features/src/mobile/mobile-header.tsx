@@ -9,7 +9,7 @@ import { Link } from "react-router";
 interface MobileHeaderProps {
   actions?: ReactNode;
   backTo?: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   title: string;
   titleTrailing?: ReactNode;
 }
@@ -23,10 +23,11 @@ export function MobileHeader({
 }: MobileHeaderProps) {
   const { t } = useTranslation();
   return (
-    <header className="shrink-0 border-b pt-[var(--safe-area-top)] pr-[calc(0.75rem+var(--safe-area-right))] pl-[calc(0.75rem+var(--safe-area-left))]">
-      <div className="flex min-h-14 items-center gap-2 py-2">
+    <header className="shrink-0 border-border/60 border-b bg-background pt-[var(--safe-area-top)] pr-[calc(0.75rem+var(--safe-area-right))] pl-[calc(0.75rem+var(--safe-area-left))]">
+      <div className="flex min-h-16 items-center gap-2 py-2">
         {!!backTo && (
           <Button
+            className="size-11 shrink-0 rounded-xl active:bg-muted"
             nativeButton={false}
             render={<Link to={backTo} />}
             size="icon"
@@ -37,14 +38,14 @@ export function MobileHeader({
           </Button>
         )}
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-medium text-base">{title}</h1>
+          <h1 className="truncate font-semibold text-base">{title}</h1>
           {subtitle ? (
-            <p className="line-clamp-2 text-muted-foreground text-xs leading-4">
+            <div className="line-clamp-2 text-muted-foreground text-xs leading-4">
               {subtitle}
-            </p>
+            </div>
           ) : null}
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2">
           {titleTrailing}
           {actions}
         </div>

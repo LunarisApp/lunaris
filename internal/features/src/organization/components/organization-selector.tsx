@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@lunarisapp/ui/components/dropdown-menu";
+import { cn } from "@lunarisapp/ui/lib/utils";
 import { Avatar, AvatarFallback } from "@lunarisapp/ui/components/avatar";
 import {
   Add01Icon,
@@ -57,8 +58,10 @@ function OrganizationInitialAvatar({
 }
 
 export function OrganizationSelector({
+  className,
   excludedOrganizationId,
 }: {
+  className?: string;
   excludedOrganizationId?: string;
 } = {}) {
   const { t } = useTranslation();
@@ -197,7 +200,10 @@ export function OrganizationSelector({
     <>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger
-          className="flex h-8 min-w-0 max-w-52 items-center gap-2 rounded-lg border border-border bg-background px-1.5 font-medium text-sm outline-none transition-colors hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 data-popup-open:bg-muted md:max-w-64"
+          className={cn(
+            "flex h-8 min-w-0 max-w-52 items-center gap-2 rounded-lg border border-border bg-background px-1.5 font-medium text-sm outline-none transition-colors hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 data-popup-open:bg-muted md:max-w-64",
+            className
+          )}
           data-testid="organization-selector-trigger"
           disabled={!activeOrganization}
         >

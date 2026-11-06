@@ -1,3 +1,4 @@
+import { WorkspacesSortControl } from "../features/workspaces-list/components/workspaces-sort-control";
 import { HomeSearchProvider } from "../features/search/components/home-search";
 import { SearchButton } from "../features/search/components/search-button";
 import {
@@ -6,13 +7,6 @@ import {
   AlertTitle,
 } from "@lunarisapp/ui/components/alert";
 import { Button } from "@lunarisapp/ui/components/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@lunarisapp/ui/components/select";
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -24,7 +18,6 @@ import {
   GridViewIcon,
   HugeiconsIcon,
   ListViewIcon,
-  Sorting01Icon,
 } from "@lunarisapp/ui/icons";
 import { permission } from "@repo/auth/permissions";
 import { resolveSyncAccess, SYNC_ACCESS } from "@repo/auth/sync-access";
@@ -161,8 +154,8 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
         data-testid="workspaces-page"
       >
         <div className="flex flex-col gap-4 md:gap-6">
-          <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-2">
-            <div className="flex items-center gap-2">
+          <header className="flex items-center justify-between gap-2 px-0 md:flex-wrap md:gap-x-3 md:gap-y-2 md:px-2">
+            <div className="flex shrink-0 items-center gap-2">
               <div className="inline-flex items-center gap-2.5">
                 <img
                   alt=""
@@ -180,15 +173,20 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                   src="/favicon-dark.svg"
                   width={32}
                 />
-                <span className="font-[650] text-xl/none uppercase tracking-[0.04em]">
+                <span className="sr-only font-[650] text-xl/none uppercase tracking-[0.04em] md:not-sr-only">
                   Lunaris
                 </span>
               </div>
             </div>
-            <div className="ml-auto flex min-w-0 max-w-full items-center gap-2 sm:gap-3">
+            <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-1 md:max-w-full md:flex-initial md:gap-3">
               <AppUpdateButton />
-              <OrganizationSelector />
-              <HelpCenterPopover variant="secondary" />
+              <div className="min-w-0">
+                <OrganizationSelector className="h-11 w-auto max-w-full md:h-8 md:max-w-64" />
+              </div>
+              <HelpCenterPopover
+                className="size-11 shrink-0 rounded-xl md:size-8 md:rounded-lg"
+                variant="secondary"
+              />
               {isMobile ? (
                 <MobileUserMenu onLogout={handleLogout} />
               ) : (
@@ -264,52 +262,18 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                   }
                 >
                   <SearchButton
-                    className="min-w-16 flex-1 justify-start text-muted-foreground"
+                    className="h-11 min-w-0 flex-1 justify-start rounded-xl bg-muted/50 text-base text-muted-foreground shadow-none md:h-8 md:rounded-lg md:bg-background md:text-sm"
                     data-testid="workspaces-search"
                   />
                 </HomeSearchProvider>
               )}
               {canReadWorkspaces && (
-                <Select
-                  onValueChange={(value) => {
-                    if (value === "name" || value === "activity") {
-                      setWorkspaceSort(value);
-                    }
-                  }}
+                <WorkspacesSortControl
+                  onChange={setWorkspaceSort}
                   value={workspaceSort}
-                >
-                  <SelectTrigger
-                    aria-label={t("workspaces.sortBy")}
-                    className="w-28 sm:w-36"
-                    data-testid="workspaces-sort"
-                  >
-                    <HugeiconsIcon
-                      aria-hidden="true"
-                      icon={Sorting01Icon}
-                      strokeWidth={2}
-                    />
-                    <SelectValue>
-                      {(value: WorkspacesSort | null) =>
-                        value === "name"
-                          ? t("workspaces.sortByName")
-                          : t("workspaces.sortByActivity")
-                      }
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent align="end">
-                    <SelectItem
-                      data-testid="workspaces-sort-activity"
-                      value="activity"
-                    >
-                      {t("workspaces.sortByActivity")}
-                    </SelectItem>
-                    <SelectItem data-testid="workspaces-sort-name" value="name">
-                      {t("workspaces.sortByName")}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                />
               )}
-              {canReadWorkspaces && (
+              {canReadWorkspaces && !isMobile && (
                 <ToggleGroup
                   aria-label={t("workspaces.view")}
                   onValueChange={(value) => {
@@ -364,10 +328,11 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                   trigger={
                     <Button
                       aria-label={t("common.create")}
+                      className="size-11 shrink-0 rounded-lg p-0 md:h-8 md:w-auto md:px-2.5"
                       data-testid="workspaces-create-launcher-header"
                     >
                       <HugeiconsIcon aria-hidden="true" icon={FolderAddIcon} />
-                      <span className="hidden sm:inline">
+                      <span className="hidden md:inline">
                         {t("common.create")}
                       </span>
                     </Button>
@@ -397,7 +362,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                 onWorkspaceIntent={handleWorkspaceIntent}
                 organizationId={activeOrg?.id}
                 sortBy={workspaceSort}
-                view={workspaceView}
+                view={isMobile ? "list" : workspaceView}
                 organizationSlug={activeOrg?.slug}
               />
             )}

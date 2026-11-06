@@ -15,7 +15,6 @@ import {
   HugeiconsIcon,
   Logout03Icon,
   Settings01Icon,
-  Tick02Icon,
 } from "@lunarisapp/ui/icons";
 import { usePlatform } from "@repo/platform";
 import type { ReactNode } from "react";
@@ -79,6 +78,9 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
   } = useAccountSwitcher();
 
   const user = session?.user;
+  const otherAccounts = accounts.filter(
+    (account) => account.user.id !== currentUserId
+  );
 
   return (
     <Drawer
@@ -89,10 +91,22 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
       }}
     >
       <DrawerTrigger
-        render={<UserAvatar className={userMenuAvatarClass} user={user} />}
+        render={
+          <Button
+            aria-label={t("auth.accounts")}
+            className="size-11 rounded-xl p-0"
+            size="icon"
+            variant="ghost"
+          >
+            <UserAvatar
+              className="size-full rounded-xl after:rounded-xl [&_[data-slot=avatar-fallback]]:rounded-xl [&_[data-slot=avatar-image]]:rounded-xl"
+              user={user}
+            />
+          </Button>
+        }
       />
       <DrawerContent aria-describedby={undefined}>
-        <DrawerHeader className="flex-row items-center gap-3">
+        <DrawerHeader className="flex-row items-center gap-3 pb-4">
           <UserAvatar className={userMenuAvatarClass} size="lg" user={user} />
           <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
             <DrawerTitle className="truncate text-left">
@@ -106,40 +120,36 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
           </div>
         </DrawerHeader>
         <nav className="flex flex-col gap-0.5 px-2 pb-4">
-          <p className="px-3 py-1 font-medium text-muted-foreground text-xs">
-            {t("auth.accounts")}
-          </p>
-          {accounts.map((account) => {
-            const active = account.user.id === currentUserId;
-            return (
-              <DrawerClose
-                key={account.user.id}
-                render={
-                  <button
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors active:bg-accent disabled:opacity-60"
-                    disabled={active || isSwitching}
-                    onClick={() => void switchAccount(account)}
-                    type="button"
-                  >
-                    <UserAvatar size="sm" user={account.user} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate">
-                        {account.user.name || account.user.email}
-                      </span>
-                      {account.user.name ? (
-                        <span className="block truncate text-muted-foreground text-xs">
-                          {account.user.email}
-                        </span>
-                      ) : null}
+          {otherAccounts.length > 0 ? (
+            <p className="px-3 pt-2 pb-2 font-medium text-muted-foreground text-xs">
+              {t("auth.accounts")}
+            </p>
+          ) : null}
+          {otherAccounts.map((account) => (
+            <DrawerClose
+              key={account.user.id}
+              render={
+                <button
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors active:bg-accent disabled:opacity-60"
+                  disabled={isSwitching}
+                  onClick={() => void switchAccount(account)}
+                  type="button"
+                >
+                  <UserAvatar size="sm" user={account.user} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">
+                      {account.user.name || account.user.email}
                     </span>
-                    {active ? (
-                      <HugeiconsIcon className="size-4" icon={Tick02Icon} />
+                    {account.user.name ? (
+                      <span className="block truncate text-muted-foreground text-xs">
+                        {account.user.email}
+                      </span>
                     ) : null}
-                  </button>
-                }
-              />
-            );
-          })}
+                  </span>
+                </button>
+              }
+            />
+          ))}
           {accountListStatus === "ready" ? null : (
             <div
               className="mx-2 flex items-center gap-2 rounded-lg bg-muted px-3 py-2"

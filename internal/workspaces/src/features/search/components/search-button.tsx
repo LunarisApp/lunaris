@@ -8,15 +8,13 @@ import { useHotkeyDisplay } from "@repo/features/hotkeys";
 import { useSearchDialog } from "../hooks/useSearchDialog";
 
 /**
- * Search button for the app bar - shows the workspace name and shortcut hint.
+ * Search button for the app bar - shows the search label and shortcut hint.
  * Clicking opens the search dialog via SearchProvider context.
  */
 export function SearchButton({
-  workspaceName,
   className,
   "data-testid": testId,
 }: {
-  workspaceName?: string;
   className?: string;
   "data-testid"?: string;
 }) {
@@ -35,10 +33,8 @@ export function SearchButton({
       variant="outline"
     >
       <HugeiconsIcon icon={Search01Icon} strokeWidth={2} />
-      <span className="min-w-0 truncate">
-        {workspaceName ?? t("search.placeholder")}
-      </span>
-      <Kbd className="ml-auto">{shortcutHint}</Kbd>
+      <span className="min-w-0 truncate">{t("common.search")}</span>
+      <Kbd className="ml-auto hidden md:inline-flex">{shortcutHint}</Kbd>
     </Button>
   );
 }

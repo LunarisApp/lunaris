@@ -199,16 +199,22 @@ export function WorkspaceTreeItem({
   };
 
   const treeItemContent = (
-    <TreeItemLabel>
+    <TreeItemLabel
+      className={
+        isMobile ? "min-h-12 rounded-xl bg-transparent text-base" : undefined
+      }
+    >
       <span
-        className="flex items-center gap-2 text-nowrap"
+        className="flex items-center gap-2 overflow-hidden text-nowrap"
         data-workspace-resource-id={item.getId()}
         data-workspace-resource-name={item.getItemName()}
         data-testid="workspace-tree-item"
         ref={preloadRef}
       >
         <WorkspaceTreeItemIcon resourceIcon={resource?.icon} item={item} />
-        <WorkspaceTreeItemLabel item={item} />
+        <span className="min-w-0 flex-1 truncate">
+          <WorkspaceTreeItemLabel item={item} />
+        </span>
       </span>
     </TreeItemLabel>
   );
@@ -221,7 +227,7 @@ export function WorkspaceTreeItem({
           item={item}
           key={item.getId()}
           render={
-            <div className="flex items-center">
+            <div className="flex min-h-14 items-center rounded-xl bg-background py-1 text-base active:bg-accent">
               <span className="min-w-0 flex-1">{treeItemContent}</span>
               <MobileWorkspaceTreeItemActions
                 canCreate={canCreate}

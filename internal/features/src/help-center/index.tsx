@@ -72,7 +72,7 @@ export function HelpCenterPopover({
           }
         />
         <DrawerContent>
-          <DrawerHeader>
+          <DrawerHeader className="pb-4">
             <DrawerTitle>{t("helpCenter.helpCenter")}</DrawerTitle>
           </DrawerHeader>
           <div className="grid gap-4 px-4 pb-4">
