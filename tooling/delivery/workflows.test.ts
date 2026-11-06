@@ -50,8 +50,17 @@ test("production uses trusted tooling and resolves evidence before source checko
     group: "core-production",
     "cancel-in-progress": false,
   });
-  expect(jobs.promote.steps[0].with.path).toBe(".delivery-tools");
-  expect(jobs.promote.steps[1].with.ref).toContain("needs.resolve.outputs.sha");
+  // Root checkout can delete nested repositories even with clean: false.
+  // Fetch trusted tooling only after the candidate source is in place.
+  expect(jobs.promote.steps[0].with.ref).toContain("needs.resolve.outputs.sha");
+  expect(jobs.promote.steps[1].with.path).toBe(".delivery-tools");
+  expect(jobs.promote.steps[1].with.ref).toBeUndefined();
+  expect(jobs.promote.steps[1].with["sparse-checkout"]).toContain(
+    ".github/actions/setup-bun"
+  );
+  expect(jobs.promote.steps[2].uses).toBe(
+    "./.delivery-tools/.github/actions/setup-bun"
+  );
   expect(jobs.promote.steps.at(-1).run).toContain(
     ".delivery-tools/tooling/delivery/core.ts"
   );
