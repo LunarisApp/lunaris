@@ -1,3 +1,5 @@
+import { createPortal } from "react-dom";
+import { useMobileResourceHeader } from "./mobile-resource-header";
 import { useResourceViewPresenceScope } from "@lunarisapp/plugin-sdk";
 import { PresenceBadges } from "./presence-badges";
 import { useCurrentWorkspace } from "@repo/workspaces/workspace";
@@ -25,6 +27,7 @@ export function ResourceViewLayout({
   storage,
   children,
 }: ResourceViewLayoutProps) {
+  const mobileHeader = useMobileResourceHeader();
   const presence = useResourceViewPresenceScope()?.presence;
   const { workspaceId } = useCurrentWorkspace();
   const resourceId = resource.resourceId;
@@ -33,26 +36,47 @@ export function ResourceViewLayout({
   const focusModeWidth = useGridLayoutStore((s) => s.focusModeWidth);
   const outerRef = useRef<HTMLDivElement>(null);
 
+  const timestamp = yjsStorage ? (
+    <EditedTimestamp
+      className="block truncate text-muted-foreground text-xs leading-4"
+      resourceId={resourceId}
+      storageId={yjsStorage.storageId}
+    />
+  ) : null;
+  const actions = (
+    <>
+      {!!presence && <PresenceBadges {...presence} />}
+      <EditorOptions resource={resource} />
+    </>
+  );
+
   return (
     <div className="resource-view-layout flex h-full flex-col">
       <FileTransferStatus workspaceId={workspaceId} />
-      <EditorHeader className="editor-header mb-3">
-        <EditorHeader.Leading />
-        <EditorHeader.Middle className="hidden md:flex">
-          {!!resourceId && <EditorBreadcrumb resourceId={resourceId} />}
-        </EditorHeader.Middle>
-        <EditorHeader.Trailing>
-          {yjsStorage && (
-            <EditedTimestamp
-              className="text-muted-foreground text-xs"
-              resourceId={resourceId}
-              storageId={yjsStorage.storageId}
-            />
-          )}
-          {!!presence && <PresenceBadges {...presence} />}
-          <EditorOptions resource={resource} />
-        </EditorHeader.Trailing>
-      </EditorHeader>
+      {mobileHeader ? (
+        <>
+          {mobileHeader.metadata
+            ? createPortal(timestamp, mobileHeader.metadata)
+            : null}
+          {mobileHeader.actions
+            ? createPortal(
+                <div className="flex items-center gap-1">{actions}</div>,
+                mobileHeader.actions
+              )
+            : null}
+        </>
+      ) : (
+        <EditorHeader className="editor-header mb-3">
+          <EditorHeader.Leading />
+          <EditorHeader.Middle>
+            {!!resourceId && <EditorBreadcrumb resourceId={resourceId} />}
+          </EditorHeader.Middle>
+          <EditorHeader.Trailing>
+            {timestamp}
+            {actions}
+          </EditorHeader.Trailing>
+        </EditorHeader>
+      )}
       <div
         className="resource-view-layout-content min-h-0 flex-1 overflow-auto"
         ref={outerRef}

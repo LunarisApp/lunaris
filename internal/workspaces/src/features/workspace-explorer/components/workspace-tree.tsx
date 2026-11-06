@@ -289,6 +289,7 @@ export function WorkspaceExplorerTree({
       {...props}
     >
       <WorkspaceTreeHeader
+        mobileActions={footerActions}
         onCollapseAll={() => tree.collapseAll()}
         onSearchChange={setSearchQuery}
         onSearchKeyDown={handleSearchKeyDown}
@@ -302,7 +303,7 @@ export function WorkspaceExplorerTree({
         // biome-ignore lint/a11y/useKeyWithClickEvents: Delegated container click clears selection only on empty space; tree items own keyboard interaction.
         // biome-ignore lint/a11y/noStaticElementInteractions: Delegated container click clears selection only on empty space; tree items own keyboard interaction.
         <div
-          className="min-h-0 flex-1 overflow-y-auto pt-2"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-[calc(1rem+var(--safe-area-left))] pt-1 pr-[calc(1rem+var(--safe-area-right))] pb-4"
           onClick={handleContainerClick}
           ref={setPreloadViewport}
         >

@@ -45,7 +45,6 @@ import {
   useRenameActiveResource,
 } from "@repo/workspaces/grid-layout";
 import { WorkspaceLayout } from "@repo/workspaces/layouts";
-import { useCurrentWorkspace } from "@repo/workspaces/workspace";
 import {
   WORKSPACE_EXPLORER_PLUGIN_ID,
   WORKSPACE_EXPLORER_RENDERER,
@@ -1202,7 +1201,6 @@ export function DesktopWorkspaceShell({
   controller: WorkspaceRuntimeController;
 }) {
   const { t } = useTranslation();
-  const { workspace } = useCurrentWorkspace();
   const location = useLocation();
   const { panelWindows } = usePlatform();
   const { organizationSlug, workspaceSlug } = useParams<{
@@ -1255,9 +1253,7 @@ export function DesktopWorkspaceShell({
                 </Appbar.Leading>
                 <Appbar.Middle>
                   <div className="relative w-[15.6rem] max-w-full">
-                    <SearchButton
-                      workspaceName={workspace?.name ?? t("editor.workspace")}
-                    />
+                    <SearchButton />
                     <div className="absolute start-full top-1/2 ms-2 -translate-y-1/2">
                       <AppUpdateButton />
                     </div>

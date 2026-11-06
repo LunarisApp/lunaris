@@ -48,17 +48,17 @@ function MobileSearchResults({ query }: { query: string }) {
 
   if (allResults.length === 0) {
     return (
-      <div className="flex flex-1 items-center justify-center text-muted-foreground text-sm">
+      <div className="flex flex-1 items-center justify-center px-6 py-16 text-center text-base text-muted-foreground">
         {t("search.noResults")}
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-0.5 p-2">
+    <div className="flex flex-col gap-1">
       {allResults.map((result) => (
         <button
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors active:bg-accent"
+          className="flex min-h-14 items-center gap-3 rounded-xl bg-background px-4 py-3 text-left text-base transition-colors focus-visible:outline-2 focus-visible:outline-ring active:bg-accent"
           key={result.id}
           onClick={() => {
             if (!(result.pluginId && result.resourceId)) {
@@ -100,15 +100,9 @@ export default function MobileExplorerPage() {
   useWorkspaceBrowserTitle();
 
   return (
-    <div className="flex h-dvh flex-col">
+    <div className="flex h-dvh flex-col overflow-hidden bg-muted/30">
       <MobileHeader
-        actions={
-          <div className="flex items-center gap-2">
-            <AgentWorkLauncher />
-            <ExtensionViewLaunchers />
-            <MobileUserMenu onLogout={handleLogout} />
-          </div>
-        }
+        actions={<MobileUserMenu onLogout={handleLogout} />}
         backTo={backTo}
         title={workspace?.name || t("common.untitled")}
         titleTrailing={
@@ -119,36 +113,26 @@ export default function MobileExplorerPage() {
         }
       />
 
-      {/* Content area: tree or search results */}
-      <div className="flex min-h-0 flex-1 flex-col">
-        {isSearching ? (
-          <div className="flex-1 overflow-y-auto">
-            <MobileSearchResults query={query} />
-          </div>
-        ) : (
-          <WorkspaceExplorerTree className="px-1" />
-        )}
-      </div>
-
-      {/* Fixed search bar at bottom */}
-      <div className="shrink-0 border-t bg-background pt-2 pr-[calc(0.75rem+var(--safe-area-right))] pb-[calc(0.5rem+var(--safe-area-bottom))] pl-[calc(0.75rem+var(--safe-area-left))]">
+      {/* Search stays beside the resource list, above the keyboard. */}
+      <div className="shrink-0 pt-4 pr-[calc(1rem+var(--safe-area-right))] pb-3 pl-[calc(1rem+var(--safe-area-left))]">
         <div className="flex items-center gap-1">
-          <WorkspaceTrashButton />
           <div className="relative flex-1">
             <HugeiconsIcon
               className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
               icon={Search01Icon}
             />
             <Input
-              className="pr-9 pl-9 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-cancel-button]:appearance-none"
+              aria-label={t("common.search")}
+              className="h-12 rounded-xl border-transparent bg-muted/80 pr-12 pl-10 text-base shadow-none focus-visible:border-ring [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-cancel-button]:appearance-none"
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={t("search.placeholder")}
+              placeholder={t("common.search")}
               type="search"
               value={query}
             />
             {isSearching && (
               <button
-                className="absolute top-1/2 right-2 -translate-y-1/2 p-1 text-muted-foreground"
+                aria-label={t("explorer.clearSearch")}
+                className="absolute top-1/2 right-0 flex size-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring"
                 onClick={() => setQuery("")}
                 type="button"
               >
@@ -157,6 +141,24 @@ export default function MobileExplorerPage() {
             )}
           </div>
         </div>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col">
+        {isSearching ? (
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4">
+            <MobileSearchResults query={query} />
+          </div>
+        ) : (
+          <WorkspaceExplorerTree
+            className="min-h-0"
+            footerActions={
+              <>
+                <WorkspaceTrashButton />
+                <AgentWorkLauncher />
+                <ExtensionViewLaunchers />
+              </>
+            }
+          />
+        )}
       </div>
     </div>
   );

@@ -165,7 +165,13 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
         }}
       >
         <ResponsiveDropdownMenuTrigger
-          render={<Button size="icon" variant="ghost" />}
+          render={
+            <Button
+              className="size-11 shrink-0 rounded-xl active:bg-muted md:size-8 md:rounded-lg md:bg-transparent"
+              size="icon"
+              variant="ghost"
+            />
+          }
         >
           <HugeiconsIcon icon={MoreHorizontal} />
           <span className="sr-only">{t("editor.openOptions")}</span>
