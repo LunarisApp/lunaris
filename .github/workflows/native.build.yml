@@ -232,6 +232,9 @@ jobs:
       - name: Install license generator
         if: steps.restore.outputs.cached != 'true'
         run: cargo install --locked --version 0.9.1 --features cli cargo-about
+      - name: Build plugin SDK for Agent Work sidecar
+        if: steps.restore.outputs.cached != 'true'
+        run: bun run --cwd packages/plugin-sdk build
       - name: Build Agent Work sidecar
         if: steps.restore.outputs.cached != 'true'
         run: bun run --cwd apps/desktop build:agent
