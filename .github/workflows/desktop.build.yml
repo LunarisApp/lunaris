@@ -148,9 +148,11 @@ jobs:
       - name: Build installer and bundled sidecar
         if: steps.restore.outputs.cached != 'true'
         env:
+          # linuxdeploy's bundled strip cannot read newer WebKitGTK ELF sections.
+          NO_STRIP: ${{ runner.os == 'Linux' && 'true' || '' }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ inputs.publish && secrets.TAURI_SIGNING_PRIVATE_KEY || '' }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ inputs.publish && secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
-        run: bun run --cwd apps/desktop tauri:build -- --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} ${{ inputs.publish && '--config ../../artifacts/desktop-updater.conf.json' || '' }}
+        run: bun run --cwd apps/desktop tauri:build -- --verbose --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} ${{ inputs.publish && '--config ../../artifacts/desktop-updater.conf.json' || '' }}
       - name: Test native runtime
         if: steps.restore.outputs.cached != 'true'
         run: |
