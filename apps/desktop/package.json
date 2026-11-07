@@ -42,7 +42,9 @@
     "@mariozechner/pi-coding-agent": "0.73.1",
     "@mariozechner/pi-ai": "0.73.1",
     "@sinclair/typebox": "^0.34.41",
-    "@repo/ee-composition": "workspace:*"
+    "@repo/ee-composition": "workspace:*",
+    "@tauri-apps/plugin-updater": "^2.14.1",
+    "@tauri-apps/plugin-process": "^2.4.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.12.4",

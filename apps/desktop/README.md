@@ -82,10 +82,54 @@ Rust, and vendored-code notices. Preserve these when repackaging. Lunaris-owned
 code uses [MIT](../../LICENSE); unresolved upstream and embedded Bun
 requirements are recorded in [third-party notices](../../THIRD-PARTY-NOTICES.md).
 
+## Desktop updates
+
+Release builds check for updates at startup, every hour while visible and online,
+and when returning online or bringing the app into view. Choose **Update and
+restart** to download, verify, install, and restart. Failed downloads or installs
+leave the action available for retry. Only the main window runs the updater.
+
+Automatic updates support macOS, Windows, and Linux AppImage installations.
+Debian packages use manual/package-manager upgrades. Download the AppImage from
+[GitHub Releases](https://github.com/LunarisApp/lunaris/releases/latest) to use
+automatic updates on Linux. Local development and builds without an updater key
+do not check for updates. Existing releases without this feature need one manual
+upgrade first.
+
+### Configure release signing
+
+Generate a persistent signing key using the
+[Tauri updater instructions](https://v2.tauri.app/plugin/updater/):
+
+```sh
+bun run --cwd apps/desktop tauri signer generate -w ~/.tauri/lunaris-updater.key
+```
+
+Store these in GitHub repository Actions settings (use the same values for any
+overrides in the `release` environment):
+
+- Variable `TAURI_UPDATER_PUBLIC_KEY`: complete contents of the `.pub` file.
+- Secret `TAURI_SIGNING_PRIVATE_KEY`: complete private key file contents.
+- Secret `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`: key password, if configured.
+
+Back up the private key securely. Keep it stable across releases: installed apps
+trust the matching public key. This signature is separate from Apple code signing
+and notarization. Never commit the private key or put it in a `VITE_` variable.
+
+The release workflows generate a Tauri config overlay with the public key and
+`createUpdaterArtifacts: true`. macOS builds emit `.app.tar.gz`, Windows builds
+reuse NSIS `.exe`, and Linux builds emit `.AppImage`, each with a `.sig` file.
+Packaging rejects signatures whose signing key ID differs from the embedded
+public key. Tauri verifies the signature and downloaded bytes before installation.
+Immutable receipts and checksums include these files. Finalization publishes
+`desktop-updater.json` only after all platform assets are verified, then makes
+the stable GitHub release public. The feed covers both macOS architectures.
+Resuming an older reservation with cached installers finishes without an update
+feed; those releases still support manual installation.
+
 ## Preview limitations
 
 This app is preview-only. Startup opens region-scoped native databases and leaves
 obsolete WebView and unscoped native databases untouched. Unsynced writes from
 those databases are not migrated. Downgrades to the Web SDK are unsupported.
-Native attachment storage is deferred. Desktop releases are manual downloads
-and intentionally have no auto-updater.
+Native attachment storage is deferred.

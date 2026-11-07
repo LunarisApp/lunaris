@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { candidateSchema } from "./candidate";
+import { completeDesktopAssets } from "./desktop-updater";
 
 export const stableVersion = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 export function compareVersions(a: string, b: string): number {
@@ -74,7 +75,7 @@ export const assetReceiptSchema = z
   .superRefine((receipt, context) => {
     const names = receipt.assets.map((asset) => asset.name);
     const version = receipt.version.replaceAll(".", "\\.");
-    const valid =
+    const legacy =
       receipt.group === "self-hosted"
         ? names.length === 2 &&
           names.includes("install.sh") &&
@@ -89,6 +90,13 @@ export const assetReceiptSchema = z
                   ? `^Lunaris-desktop-${version}-x86_64-unknown-linux-gnu\\.deb$`
                   : `^Lunaris-desktop-${version}-universal(?:-adhoc)?\\.dmg$`
           ).test(names[0]!);
+    // Legacy receipts remain readable for already reserved releases.
+    const valid =
+      legacy ||
+      ((receipt.group === "desktop" ||
+        receipt.group === "desktop-windows" ||
+        receipt.group === "desktop-linux") &&
+        completeDesktopAssets(receipt.version, receipt.group, names));
     if (!valid || new Set(names).size !== names.length) {
       context.addIssue({
         code: "custom",

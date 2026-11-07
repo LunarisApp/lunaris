@@ -266,12 +266,20 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain"
           echo "APPLE_SIGNING_IDENTITY=$APPLE_SIGNING_IDENTITY" >> "$GITHUB_ENV"
           echo "APPLE_API_KEY_PATH=$api_key_path" >> "$GITHUB_ENV"
+      - name: Configure signed updater
+        if: steps.restore.outputs.cached != 'true'
+        env:
+          TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: bun .delivery-tools/tooling/delivery/desktop-updater-config.ts
       - name: Build universal Desktop app
         if: steps.restore.outputs.cached != 'true'
         env:
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
-        run: bun run --cwd apps/desktop tauri:build -- --target universal-apple-darwin --bundles app,dmg
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: bun run --cwd apps/desktop tauri:build -- --target universal-apple-darwin --bundles app,dmg --config ../../artifacts/desktop-updater.conf.json
       - name: Verify Desktop bundle
         if: steps.restore.outputs.cached != 'true'
         shell: bash
@@ -308,14 +316,9 @@ jobs:
             xcrun stapler validate "$dmg_path"
           fi
 
-          mkdir -p dist
-          if [ "$LUNARIS_SIGNING_MODE" = "signed" ]; then
-            asset="Lunaris-desktop-${LUNARIS_BUILD_VERSION}-universal.dmg"
-          else
-            asset="Lunaris-desktop-${LUNARIS_BUILD_VERSION}-universal-adhoc.dmg"
-          fi
-          cp "$dmg_path" "dist/$asset"
-          (cd dist && shasum -a 256 "$asset" > SHA256SUMS)
+      - name: Package verified Desktop artifacts
+        if: steps.restore.outputs.cached != 'true'
+        run: bun .delivery-tools/tooling/delivery/desktop-artifacts.ts universal-apple-darwin
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: steps.restore.outputs.cached != 'true'
         with:
@@ -323,6 +326,8 @@ jobs:
           name: release-desktop
           path: |
             dist/*.dmg
+            dist/*.app.tar.gz
+            dist/*.sig
             dist/SHA256SUMS
           if-no-files-found: error
 

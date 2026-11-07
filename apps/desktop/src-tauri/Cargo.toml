@@ -34,6 +34,8 @@ tauri-plugin-deep-link = "2"
 tauri-plugin-http = "2"
 tauri-plugin-powersync = "0.1.0"
 tauri-plugin-shell = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 time = { version = "0.3", features = ["formatting", "parsing"] }
 tokio = { version = "1", features = ["io-std", "net", "rt-multi-thread", "sync", "time"] }
 url = "2"
