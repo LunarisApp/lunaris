@@ -99,7 +99,7 @@ jobs:
           for target in api web; do
             docker buildx build -f infra/self-host/Dockerfile --target "$target" \
               --cache-from "type=gha,scope=self-host-community-$ARCHITECTURE" \
-              --cache-to "type=gha,scope=self-host-community-$ARCHITECTURE,mode=max" \
+              --cache-to "type=gha,scope=self-host-community-$ARCHITECTURE,mode=max,ignore-error=true" \
               --platform "linux/$ARCHITECTURE" --build-arg LUNARIS_EDITION=community --build-arg "LUNARIS_BUILD_SHA=$revision" \
               --label "org.opencontainers.image.revision=$revision" \
               --label org.opencontainers.image.source=https://github.com/LunarisApp/lunaris \
