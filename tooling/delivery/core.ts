@@ -91,7 +91,7 @@ if (mode === "plan") {
     }
     const repository = `${registry}-hosted-${component}`;
     // Separate targets so API and web exports do not overwrite each other's cache.
-    // The new scopes also bypass the legacy cache with missing blobs.
+    // Cache export is best-effort; outages must not fail a successful image push.
     const cacheScope = `hosted-enterprise-${component}-amd64`;
     run(
       "docker",
@@ -117,7 +117,7 @@ if (mode === "plan") {
         "--cache-from",
         `type=gha,scope=${cacheScope}`,
         "--cache-to",
-        `type=gha,scope=${cacheScope},mode=max`,
+        `type=gha,scope=${cacheScope},mode=max,ignore-error=true`,
         "--tag",
         `${repository}:${sha}`,
         "--metadata-file",
