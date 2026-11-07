@@ -8,6 +8,10 @@ import {
 } from "node:fs";
 import { basename, resolve } from "node:path";
 import {
+  completeDesktopAssets,
+  createDesktopUpdateManifest,
+} from "./desktop-updater";
+import {
   productVersion,
   productGroups,
   productGroupSchema,
@@ -367,7 +371,8 @@ if (mode === "reserve") {
     const assets = readdirSync(directory)
       .filter(
         (name) =>
-          /\.(zip|dmg|exe|deb|tar\.gz)$/.test(name) || name === "install.sh"
+          /\.(zip|dmg|exe|deb|tar\.gz|AppImage|sig)$/.test(name) ||
+          name === "install.sh"
       )
       .map((name) => ({ name, sha256: hash(resolve(directory, name)) }));
     const proposed = assetReceiptSchema.parse({
@@ -378,6 +383,19 @@ if (mode === "reserve") {
       producerRunId: process.env.GITHUB_RUN_ID,
       assets,
     });
+    if (
+      !cached &&
+      (group === "desktop" ||
+        group === "desktop-windows" ||
+        group === "desktop-linux") &&
+      !completeDesktopAssets(
+        plan.version,
+        group,
+        assets.map((asset) => asset.name)
+      )
+    ) {
+      throw new Error("New desktop releases require signed updater assets");
+    }
     const receipt = cached
       ? assetReceiptSchema.parse(
           JSON.parse(readFileSync(download(tag, receiptName), "utf8"))
@@ -410,6 +428,7 @@ if (mode === "reserve") {
     throw new Error("Product candidate not deployed successfully");
   }
   const assets = [];
+  let hasCompleteDesktopUpdates = true;
   for (const group of productGroups) {
     const receipt = assetReceiptSchema.parse(
       JSON.parse(readFileSync(download(tag, `${group}-receipt.json`), "utf8"))
@@ -420,6 +439,17 @@ if (mode === "reserve") {
       receipt.group !== group
     ) {
       throw new Error("Mismatched release receipt");
+    }
+    if (
+      group === "desktop" ||
+      group === "desktop-windows" ||
+      group === "desktop-linux"
+    ) {
+      hasCompleteDesktopUpdates &&= completeDesktopAssets(
+        plan.version,
+        group,
+        receipt.assets.map((asset) => asset.name)
+      );
     }
     for (const asset of receipt.assets) {
       if (hash(download(tag, asset.name)) !== asset.sha256) {
@@ -439,6 +469,20 @@ if (mode === "reserve") {
         process.env.HOMEBREW_ENABLED === "true" ? "published" : "disabled",
     },
   };
+  // A resumed reservation can mix cached legacy installers with newly signed
+  // builds. Finish that release without a feed; never advertise partial updates.
+  if (hasCompleteDesktopUpdates) {
+    const updateManifest = createDesktopUpdateManifest(
+      plan.version,
+      repository,
+      assets.map((asset) => asset.name),
+      (name) => readFileSync(resolve(work, name), "utf8")
+    );
+    const path = resolve(work, "desktop-updater.json");
+    writeFileSync(path, `${JSON.stringify(updateManifest, null, 2)}\n`);
+    upload(tag, path);
+    assets.push({ name: "desktop-updater.json", sha256: hash(path) });
+  }
   for (const [name, content] of [
     ["release-manifest.json", `${JSON.stringify(manifest, null, 2)}\n`],
     [

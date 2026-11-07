@@ -11,7 +11,7 @@
   },
   "app": {
     "security": {
-      "capabilities": ["desktop"],
+      "capabilities": ["desktop", "updater"],
       "dangerousDisableAssetCspModification": ["style-src"],
       "csp": {
         "default-src": "'self'",
@@ -56,6 +56,12 @@
     }
   },
   "plugins": {
+    "updater": {
+      "pubkey": "",
+      "endpoints": [
+        "https://github.com/LunarisApp/lunaris/releases/latest/download/desktop-updater.json"
+      ]
+    },
     "deep-link": {
       "desktop": {
         "schemes": ["lunaris"]

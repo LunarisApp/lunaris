@@ -1,6 +1,11 @@
 {
   "appUpdate": {
-    "updateNow": "Actualizar"
+    "updateNow": "Actualizar",
+    "updateAndRestart": "Actualizar y reiniciar",
+    "downloading": "Descargando actualización…",
+    "installing": "Instalando actualización…",
+    "restarting": "Reiniciando…",
+    "failed": "Error al actualizar. Inténtalo de nuevo."
   },
   "permissions": {
     "deniedTitle": "Acceso denegado",

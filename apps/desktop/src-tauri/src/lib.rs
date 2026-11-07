@@ -5,6 +5,7 @@ mod auth_store;
 pub mod desktop_mcp;
 mod extension_cache;
 mod native_sync;
+mod updater;
 
 use tauri::Manager;
 
@@ -27,6 +28,8 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_powersync::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
             std::fs::create_dir_all(app.path().app_data_dir()?)?;
             let broker = agent_broker::AgentBroker::new(app.handle().clone())?;
@@ -39,6 +42,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            updater::desktop_updater_enabled,
             agent_work::agent_work_start,
             agent_work::agent_work_send,
             agent_work::agent_work_stop,

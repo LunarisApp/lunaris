@@ -9,8 +9,14 @@ import { createRoot } from "react-dom/client";
 import { keychainStorage } from "./auth-storage";
 import { registerDesktopDeepLinks } from "./deep-link";
 import { desktopRuntime } from "./runtime";
+import { useDesktopAppUpdate } from "./app-update";
 
 applyStoredAppearance();
+
+function DesktopApp() {
+  const appUpdate = useDesktopAppUpdate();
+  return <App runtime={{ ...desktopRuntime, appUpdate }} shell="desktop" />;
+}
 
 function reportDeepLinkError(error: Error) {
   log.error({
@@ -40,7 +46,7 @@ async function bootstrap() {
   createRoot(rootElement).render(
     <StrictMode>
       <OrganizationEditionProvider>
-        <App runtime={desktopRuntime} shell="desktop" />
+        <DesktopApp />
       </OrganizationEditionProvider>
     </StrictMode>
   );

@@ -74,7 +74,7 @@ jobs:
           - platform: linux
             runner: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-            bundles: deb
+            bundles: deb,appimage
             binary: lunaris-desktop
     defaults:
       run:
@@ -122,7 +122,7 @@ jobs:
         if: steps.restore.outputs.cached != 'true' && runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev patchelf xvfb
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev patchelf xvfb libfuse2
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         if: steps.restore.outputs.cached != 'true'
         with:
@@ -139,9 +139,18 @@ jobs:
       - name: Install license generator
         if: steps.restore.outputs.cached != 'true'
         run: cargo install --locked --version 0.9.1 --features cli cargo-about
+      - name: Configure signed updater
+        if: inputs.publish && steps.restore.outputs.cached != 'true'
+        env:
+          TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: bun .delivery-tools/tooling/delivery/desktop-updater-config.ts
       - name: Build installer and bundled sidecar
         if: steps.restore.outputs.cached != 'true'
-        run: bun run --cwd apps/desktop tauri:build -- --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ inputs.publish && secrets.TAURI_SIGNING_PRIVATE_KEY || '' }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ inputs.publish && secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
+        run: bun run --cwd apps/desktop tauri:build -- --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} ${{ inputs.publish && '--config ../../artifacts/desktop-updater.conf.json' || '' }}
       - name: Test native runtime
         if: steps.restore.outputs.cached != 'true'
         run: |
@@ -178,7 +187,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Package verified installer
         if: steps.restore.outputs.cached != 'true'
-        run: bun tooling/delivery/desktop-artifacts.ts ${{ matrix.target }}
+        run: bun .delivery-tools/tooling/delivery/desktop-artifacts.ts ${{ matrix.target }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ inputs.publish && 'release' || 'ci' }}-desktop-${{ matrix.platform }}
