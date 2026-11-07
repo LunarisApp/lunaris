@@ -42,14 +42,16 @@ vi.mock("./sandbox", () => ({
 const pluginScriptUrl = `https://plugins.lunaris.app/artifacts/example.calendar/1.0.0/${"a".repeat(64)}/main.js`;
 
 function store(initial?: Uint8Array) {
-  let value = initial;
+  const values = new Map<string, Uint8Array>(
+    initial ? [[pluginScriptUrl, initial]] : []
+  );
   return {
-    delete: vi.fn(async () => {
-      value = undefined;
+    delete: vi.fn(async (key: string) => {
+      values.delete(key);
     }),
-    get: vi.fn(async () => value ?? null),
-    put: vi.fn(async (_key: string, next: Uint8Array) => {
-      value = next;
+    get: vi.fn(async (key: string) => values.get(key) ?? null),
+    put: vi.fn(async (key: string, next: Uint8Array) => {
+      values.set(key, next);
     }),
   };
 }
@@ -151,21 +153,23 @@ describe("external extension artifact verification", () => {
 
   it("deletes corrupt cache and refetches verified bytes", async () => {
     const expected = new TextEncoder().encode("verified plugin");
-    const artifacts = store(new TextEncoder().encode("corrupt"));
+    const artifacts = store();
     const plugins = {
       artifacts,
       fetch: vi.fn(async () => new Response(expected)),
     } as unknown as PlatformPlugins;
-    const value = await verifiedAsset(
-      {
-        bytes: expected.byteLength,
-        resource: "text/javascript",
-        sha256: await sha256(expected),
-        url: pluginScriptUrl,
-      },
-      1024,
-      plugins
-    );
+    const asset = {
+      bytes: expected.byteLength,
+      resource: "text/javascript",
+      sha256: await sha256(expected),
+      url: pluginScriptUrl,
+    };
+    await verifiedAsset(asset, 1024, plugins);
+    const cacheKey = artifacts.put.mock.calls[0]![0];
+    await artifacts.put(cacheKey, new TextEncoder().encode("corrupt"));
+    artifacts.put.mockClear();
+
+    const value = await verifiedAsset(asset, 1024, plugins);
     expect(value).toEqual(expected);
     expect(artifacts.delete).toHaveBeenCalledOnce();
     expect(artifacts.put).toHaveBeenCalledOnce();
@@ -214,24 +218,27 @@ describe("external extension artifact verification", () => {
   });
 
   it("reports corrupt offline cache separately from a missing cache", async () => {
+    const expected = new TextEncoder().encode("verified plugin");
+    const artifacts = store();
     const plugins = {
-      artifacts: store(new TextEncoder().encode("corrupt")),
-      fetch: vi.fn(async () => {
-        throw new TypeError("offline");
-      }),
+      artifacts,
+      fetch: vi.fn(async () => new Response(expected)),
     } as unknown as PlatformPlugins;
+    const asset = {
+      bytes: expected.byteLength,
+      resource: "text/javascript",
+      sha256: await sha256(expected),
+      url: pluginScriptUrl,
+    };
+    await verifiedAsset(asset, 1024, plugins);
+    const cacheKey = artifacts.put.mock.calls[0]![0];
+    await artifacts.put(cacheKey, new TextEncoder().encode("corrupt"));
+    vi.mocked(plugins.fetch).mockClear();
+
     await expect(
-      verifiedAsset(
-        {
-          bytes: 8,
-          resource: "text/javascript",
-          sha256: "a".repeat(64),
-          url: pluginScriptUrl,
-        },
-        1024,
-        plugins
-      )
+      verifiedAsset(asset, 1024, plugins, { allowNetwork: false })
     ).rejects.toThrow("cache is corrupt");
+    expect(plugins.fetch).not.toHaveBeenCalled();
   });
 });
 
@@ -361,6 +368,107 @@ describe("external extension loading", () => {
       expect.objectContaining({ message: "startup failed" }),
       expect.objectContaining({ message: "cleanup failed" }),
     ]);
+  });
+
+  it("starts while a slow icon is still being cached in the background", async () => {
+    const icon = new Uint8Array([1, 2, 3]);
+    const iconUrl = "https://plugins.lunaris.app/icon.png";
+    const fixture = await createLoadingFixture({
+      icon: {
+        bytes: icon.byteLength,
+        resource: "image/png",
+        sha256: await sha256(icon),
+        url: iconUrl,
+      },
+    });
+    let finishIcon = (_response: Response) => {};
+    const iconResponse = new Promise<Response>((resolve) => {
+      finishIcon = resolve;
+    });
+    const originalFetch = fixture.plugins.fetch;
+    fixture.plugins.fetch = vi.fn((input, init) =>
+      String(input) === iconUrl ? iconResponse : originalFetch(input, init)
+    ) as typeof fetch;
+    sandboxSession.start.mockReset().mockResolvedValue({
+      contributions: [],
+      locales: {},
+      manifest: fixture.descriptor.manifest,
+    });
+    const background = cachePluginRelease(fixture.reference, fixture.plugins);
+    const loaded = await loadExternalPlugin(fixture.reference, fixture.plugins);
+
+    expect(sandboxSession.start).toHaveBeenCalledOnce();
+    // One descriptor, one script, one icon despite concurrent callers.
+    expect(fixture.plugins.fetch).toHaveBeenCalledTimes(3);
+    finishIcon(new Response(icon));
+    const descriptor = await background;
+    await expect(
+      loadExternalPluginIcon(descriptor, fixture.plugins)
+    ).resolves.toEqual(icon);
+    loaded.dispose();
+  });
+
+  it("starts when the optional icon is unavailable offline", async () => {
+    const fixture = await createLoadingFixture({
+      icon: {
+        bytes: 3,
+        resource: "image/png",
+        sha256: "a".repeat(64),
+        url: "https://plugins.lunaris.app/missing.png",
+      },
+    });
+    sandboxSession.start.mockReset().mockResolvedValue({
+      contributions: [],
+      locales: {},
+      manifest: fixture.descriptor.manifest,
+    });
+    const first = await loadExternalPlugin(fixture.reference, fixture.plugins);
+    first.dispose();
+    vi.mocked(fixture.plugins.fetch).mockClear();
+    const offline = await loadExternalPlugin(
+      fixture.reference,
+      fixture.plugins,
+      {
+        allowNetwork: false,
+      }
+    );
+    expect(fixture.plugins.fetch).not.toHaveBeenCalled();
+    offline.dispose();
+  });
+
+  it("completes runtime caching when an optional icon fails", async () => {
+    const iconUrl = "https://plugins.lunaris.app/missing.png";
+    const fixture = await createLoadingFixture({
+      icon: {
+        bytes: 3,
+        resource: "image/png",
+        sha256: "a".repeat(64),
+        url: iconUrl,
+      },
+    });
+    const originalFetch = fixture.plugins.fetch;
+    fixture.plugins.fetch = vi.fn((input, init) =>
+      String(input) === iconUrl
+        ? Promise.resolve(new Response(null, { status: 404 }))
+        : originalFetch(input, init)
+    ) as typeof fetch;
+    sandboxSession.start.mockReset().mockResolvedValue({
+      contributions: [],
+      locales: {},
+      manifest: fixture.descriptor.manifest,
+    });
+
+    await expect(
+      cachePluginRelease(fixture.reference, fixture.plugins)
+    ).resolves.toMatchObject({ status: "active" });
+    vi.mocked(fixture.plugins.fetch).mockClear();
+    const offline = await loadExternalPlugin(
+      fixture.reference,
+      fixture.plugins,
+      { allowNetwork: false }
+    );
+    expect(fixture.plugins.fetch).not.toHaveBeenCalled();
+    offline.dispose();
   });
 
   it("skips missing icons and does not cache assets for blocked releases", async () => {

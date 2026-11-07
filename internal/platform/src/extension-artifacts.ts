@@ -18,22 +18,6 @@ async function digest(value: Uint8Array): Promise<string> {
   ).join("");
 }
 
-async function readMetadata(
-  url: string,
-  plugins: PlatformPlugins
-): Promise<JsonCacheMetadata | null> {
-  const cached = await plugins.artifacts.get(url);
-  if (!cached) {
-    return null;
-  }
-  try {
-    return decodeCacheEnvelope(cached).metadata;
-  } catch {
-    await plugins.artifacts.delete(url);
-    return null;
-  }
-}
-
 function decodeJson(value: Uint8Array): unknown {
   return JSON.parse(new TextDecoder().decode(value));
 }
@@ -119,11 +103,11 @@ export async function readResponseBytes(
   return output;
 }
 
-export async function readCachedJson<T>(
+async function readCachedJsonEntry<T>(
   url: string,
   plugins: PlatformPlugins,
   parse: (value: unknown) => T
-): Promise<T | null> {
+): Promise<{ metadata: JsonCacheMetadata; value: T } | null> {
   const cached = await plugins.artifacts.get(url);
   if (!cached) {
     return null;
@@ -137,11 +121,20 @@ export async function readCachedJson<T>(
       await plugins.artifacts.delete(url);
       return null;
     }
-    return parse(decodeJson(value));
+    return { metadata, value: parse(decodeJson(value)) };
   } catch {
     await plugins.artifacts.delete(url);
     return null;
   }
+}
+
+export async function readCachedJson<T>(
+  url: string,
+  plugins: PlatformPlugins,
+  parse: (value: unknown) => T
+): Promise<T | null> {
+  const cached = await readCachedJsonEntry(url, plugins, parse);
+  return cached ? cached.value : null;
 }
 
 export async function fetchAndCacheJson<T>(
@@ -149,10 +142,12 @@ export async function fetchAndCacheJson<T>(
   plugins: PlatformPlugins,
   parse: (value: unknown) => T
 ): Promise<T> {
-  const cachedMetadata = await readMetadata(url, plugins);
+  // Validate before sending a validator: corrupt bytes must trigger a full fetch.
+  // Retain this snapshot so a 304 needs neither another store read nor hashing.
+  const cached = await readCachedJsonEntry(url, plugins, parse);
   const headers = new Headers();
-  if (cachedMetadata?.etag) {
-    headers.set("If-None-Match", cachedMetadata.etag);
+  if (cached?.metadata.etag) {
+    headers.set("If-None-Match", cached.metadata.etag);
   }
   const response = await plugins.fetch(url, {
     cache: "no-cache",
@@ -161,9 +156,8 @@ export async function fetchAndCacheJson<T>(
     signal: AbortSignal.timeout(PLUGIN_JSON_TIMEOUT_MS),
   });
   if (response.status === 304) {
-    const cached = await readCachedJson(url, plugins, parse);
     if (cached) {
-      return cached;
+      return cached.value;
     }
     throw new Error("Server returned 304 without a valid cached response");
   }

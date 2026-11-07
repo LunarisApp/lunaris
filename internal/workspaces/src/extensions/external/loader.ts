@@ -96,9 +96,6 @@ async function verifiedReleaseAssets(
           options
         )
       : undefined,
-    descriptor.icon
-      ? verifiedAsset(descriptor.icon, MAX_PLUGIN_ICON_BYTES, plugins, options)
-      : undefined,
   ]);
   return { script, style };
 }
@@ -970,7 +967,14 @@ export async function cachePluginRelease(
 ): Promise<PluginReleaseDescriptor> {
   const descriptor = await loadExternalPluginDescriptor(reference, plugins);
   if (descriptor.status === "active") {
-    await verifiedReleaseAssets(descriptor, plugins);
+    // Icons belong to background caching, not the sandbox's startup path.
+    await Promise.all([
+      verifiedReleaseAssets(descriptor, plugins),
+      // A failed optional icon must not prevent runtime cache recovery.
+      loadExternalPluginIcon(descriptor, plugins, { allowNetwork: true }).catch(
+        () => null
+      ),
+    ]);
   }
   return descriptor;
 }
