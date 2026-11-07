@@ -232,6 +232,11 @@ export function usePluginRuntimeHost({
         pluginId: string;
         revision: string;
       }> = [];
+      const candidates: Array<{
+        active?: ActivePlugin;
+        pluginId: string;
+        revision: string;
+      }> = [];
       for (const pluginId of desired) {
         const availability = target.extensionAvailability?.[pluginId];
         if (availability && availability !== "available") {
@@ -251,12 +256,31 @@ export function usePluginRuntimeHost({
         if (active?.revision === revision) {
           continue;
         }
-        let plugin: PluginDefinition;
+        candidates.push({ active, pluginId, revision });
+      }
+
+      // Downloads and sandbox registration are independent. Keep lifecycle
+      // mutations ordered below so dependency activation/replacement stays intact.
+      const pending = candidates.map(async (candidate) => {
         try {
-          plugin = await load(pluginId, revision);
+          return {
+            ...candidate,
+            error: undefined,
+            plugin: await load(candidate.pluginId, candidate.revision),
+          };
         } catch (error) {
-          errors[pluginId] =
-            error instanceof Error ? error : new Error(String(error));
+          return {
+            ...candidate,
+            error: error instanceof Error ? error : new Error(String(error)),
+            plugin: undefined,
+          };
+        }
+      });
+      for (const request of pending) {
+        // Earlier replacements need not wait for later downloads to finish.
+        const { active, error, plugin, pluginId, revision } = await request;
+        if (!plugin) {
+          errors[pluginId] = error;
           continue;
         }
         if (epoch !== epochRef.current) {
@@ -290,15 +314,33 @@ export function usePluginRuntimeHost({
             new Error(`Failed to replace extension "${pluginId}"`);
           continue;
         }
+        if (epoch !== epochRef.current) {
+          await cleanupPlugins([plugin]).catch(() => undefined);
+          unloadPluginRef.current?.(pluginId, revision);
+          errors[pluginId] = new Error(
+            `Extension "${pluginId}" load was cancelled`
+          );
+          continue;
+        }
         pluginsRef.current.set(pluginId, { plugin, revision });
         unloadPluginRef.current?.(pluginId, active.revision);
       }
 
+      if (epoch !== epochRef.current) {
+        for (const { pluginId, revision } of additions) {
+          unloadPluginRef.current?.(pluginId, revision);
+          errors[pluginId] = new Error(
+            `Extension "${pluginId}" load was cancelled`
+          );
+        }
+        return errors;
+      }
       if (additions.length > 0) {
-        const initialized = await initializePlugins(
-          additions.map(({ plugin }) => plugin),
-          deps
-        );
+        const definitions = additions.map(({ plugin }) => plugin);
+        const initialized = await initializePlugins(definitions, deps);
+        if (epoch !== epochRef.current) {
+          await cleanupPlugins(definitions).catch(() => undefined);
+        }
         const initializedById = new Map(
           initialized.map((result) => [result.pluginId, result])
         );
@@ -313,14 +355,20 @@ export function usePluginRuntimeHost({
           }
           unloadPluginRef.current?.(addition.pluginId, addition.revision);
           errors[addition.pluginId] =
-            result?.error ??
-            new Error(`Failed to initialize extension "${addition.pluginId}"`);
+            epoch === epochRef.current
+              ? (result?.error ??
+                new Error(
+                  `Failed to initialize extension "${addition.pluginId}"`
+                ))
+              : new Error(
+                  `Extension "${addition.pluginId}" load was cancelled`
+                );
         }
       }
 
       return errors;
     },
-    [deps, disable, initializePlugins, load, reloadPlugin]
+    [cleanupPlugins, deps, disable, initializePlugins, load, reloadPlugin]
   );
 
   const dispose = useCallback(() => {

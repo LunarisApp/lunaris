@@ -2,6 +2,10 @@ import type { PluginAsset } from "@lunarisapp/plugin-sdk/marketplace";
 import { readResponseBytes, type PlatformPlugins } from "@repo/platform";
 
 const PLUGIN_ASSET_TIMEOUT_MS = 30_000;
+const pendingAssets = new WeakMap<
+  PlatformPlugins,
+  Map<string, Promise<Uint8Array>>
+>();
 
 export async function sha256(value: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest(
@@ -23,17 +27,64 @@ export async function verifiedAsset(
     throw new Error(`Extension asset exceeds ${maximumBytes} bytes`);
   }
 
-  const cached = await plugins.artifacts.get(asset.url);
+  // Share verification/download work across metadata, prefetch, and runtime loads.
+  // Offline callers must never wait for an in-flight network request.
+  const requestKey = JSON.stringify([
+    asset.url,
+    asset.sha256,
+    asset.bytes,
+    allowNetwork,
+  ]);
+  let pending = pendingAssets.get(plugins);
+  if (!pending) {
+    pending = new Map();
+    pendingAssets.set(plugins, pending);
+  }
+  let request = pending.get(requestKey);
+  if (!request) {
+    request = readVerifiedAsset(asset, plugins, allowNetwork).finally(() => {
+      pending.delete(requestKey);
+    });
+    pending.set(requestKey, request);
+  }
+  // Each consumer owns its bytes; retain no resolved in-memory artifact cache.
+  return (await request).slice();
+}
+
+async function readVerifiedAsset(
+  asset: PluginAsset,
+  plugins: PlatformPlugins,
+  allowNetwork: boolean
+): Promise<Uint8Array> {
+  // A publisher may reuse a URL. Keep pinned releases available independently.
+  const cacheKey = `lunaris-extension-asset-v1:${asset.sha256}:${asset.url}`;
+  let sourceKey = cacheKey;
+  let cached = await plugins.artifacts.get(cacheKey);
+  if (!cached) {
+    sourceKey = asset.url;
+    cached = await plugins.artifacts.get(sourceKey);
+  }
   if (
     cached &&
     cached.byteLength === asset.bytes &&
     (await sha256(cached)) === asset.sha256
   ) {
+    if (sourceKey !== cacheKey) {
+      // Migrate existing offline installations only after verifying their bytes.
+      try {
+        await plugins.artifacts.put(cacheKey, cached);
+        await plugins.artifacts.delete(sourceKey);
+      } catch {
+        // A full/read-only store must not break a working offline installation.
+      }
+    }
     return cached;
   }
-  const corruptCache = Boolean(cached);
+  // Legacy URL-only bytes may belong to another pinned release. A mismatch
+  // cannot establish corruption, so leave them available for that release.
+  const corruptCache = Boolean(cached) && sourceKey === cacheKey;
   if (corruptCache) {
-    await plugins.artifacts.delete(asset.url);
+    await plugins.artifacts.delete(sourceKey);
   }
   if (!allowNetwork) {
     throw new Error(
@@ -46,6 +97,7 @@ export async function verifiedAsset(
   let response: Response;
   try {
     response = await plugins.fetch(asset.url, {
+      cache: "no-cache",
       credentials: "omit",
       signal: AbortSignal.timeout(PLUGIN_ASSET_TIMEOUT_MS),
     });
@@ -80,6 +132,6 @@ export async function verifiedAsset(
   if ((await sha256(value)) !== asset.sha256) {
     throw new Error("Extension asset checksum does not match catalog");
   }
-  await plugins.artifacts.put(asset.url, value);
+  await plugins.artifacts.put(cacheKey, value);
   return value;
 }

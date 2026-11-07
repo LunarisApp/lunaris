@@ -156,6 +156,7 @@ describe("fetchCachedJson", () => {
     const url = "https://plugins.example/marketplace.json";
 
     await fetchAndCacheJson(url, platformPlugins, parse);
+    vi.mocked(platformPlugins.artifacts.get).mockClear();
     await expect(
       fetchAndCacheJson(url, platformPlugins, parse)
     ).resolves.toEqual({
@@ -166,6 +167,30 @@ describe("fetchCachedJson", () => {
     expect(new Headers(secondRequest?.headers).get("If-None-Match")).toBe(
       '"release-1"'
     );
+    expect(platformPlugins.artifacts.get).toHaveBeenCalledOnce();
+  });
+
+  it("refetches corrupt cached JSON without sending its ETag", async () => {
+    const { plugins: platformPlugins, values } = storedPlugins();
+    const url = "https://plugins.example/marketplace.json";
+    vi.mocked(platformPlugins.fetch)
+      .mockResolvedValueOnce(
+        new Response('{"source":"old"}', { headers: { etag: '"release-1"' } })
+      )
+      .mockResolvedValueOnce(new Response('{"source":"repaired"}'));
+    await fetchAndCacheJson(url, platformPlugins, parse);
+    const corrupted = values.get(url)!.slice();
+    corrupted[corrupted.length - 3] = "x".charCodeAt(0);
+    values.set(url, corrupted);
+
+    await expect(
+      fetchAndCacheJson(url, platformPlugins, parse)
+    ).resolves.toEqual({
+      source: "repaired",
+    });
+    const request = vi.mocked(platformPlugins.fetch).mock.calls[1]?.[1];
+    expect(new Headers(request?.headers).has("If-None-Match")).toBe(false);
+    expect(platformPlugins.artifacts.delete).toHaveBeenCalledWith(url);
   });
 
   it("rejects cached bytes that do not match their stored digest", async () => {
