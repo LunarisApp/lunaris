@@ -148,8 +148,9 @@ jobs:
       - name: Build installer and bundled sidecar
         if: steps.restore.outputs.cached != 'true'
         env:
-          # linuxdeploy's bundled strip cannot read newer WebKitGTK ELF sections.
+          # Preserve Bun's embedded agent program through both linuxdeploy passes.
           NO_STRIP: ${{ runner.os == 'Linux' && 'true' || '' }}
+          PATCHELF: ${{ runner.os == 'Linux' && format('{0}/tooling/delivery/appimage-patchelf.sh', github.workspace) || '' }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ inputs.publish && secrets.TAURI_SIGNING_PRIVATE_KEY || '' }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ inputs.publish && secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
         run: bun run --cwd apps/desktop tauri:build -- --verbose --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} ${{ inputs.publish && '--config ../../artifacts/desktop-updater.conf.json' || '' }}
@@ -172,6 +173,16 @@ jobs:
           test -n "$(find "$RUNNER_TEMP/desktop-package" -type f -name lunaris-agent -size +0c -print -quit)"
           test -n "$(find "$RUNNER_TEMP/desktop-package" -type f -name RUST-LICENSES.txt -size +0c -print -quit)"
           test -n "$(find "$RUNNER_TEMP/desktop-package" -type f -name AGENT-${{ matrix.target }}-LICENSES.md -size +0c -print -quit)"
+      - name: Inspect and smoke test AppImage
+        if: steps.restore.outputs.cached != 'true' && runner.os == 'Linux'
+        run: |
+          images=("$GITHUB_WORKSPACE"/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage)
+          test "${#images[@]}" -eq 1
+          mkdir -p "$RUNNER_TEMP/desktop-appimage"
+          cd "$RUNNER_TEMP/desktop-appimage"
+          "${images[0]}" --appimage-extract > /dev/null
+          cmp "$GITHUB_WORKSPACE/apps/desktop/src-tauri/binaries/lunaris-agent-${{ matrix.target }}" squashfs-root/usr/bin/lunaris-agent
+          xvfb-run -a bun "$GITHUB_WORKSPACE/tooling/mcp-smoke.ts" "$PWD/squashfs-root/AppRun" lunaris-desktop
       - name: Install and smoke test Windows installer
         if: steps.restore.outputs.cached != 'true' && runner.os == 'Windows'
         shell: pwsh
