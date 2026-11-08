@@ -11,14 +11,19 @@ export function RichTextEditorView({
   editable,
   theme,
   className,
+  resourceId,
 }: {
   controller: RichTextEditorController;
   editable?: boolean;
   theme?: "light" | "dark";
   className?: string;
+  resourceId?: string;
 }) {
   return (
-    <div className={`rich-text-editor-view ${className ?? ""}`}>
+    <div
+      className={`rich-text-editor-view ${className ?? ""}`}
+      data-lunaris-rich-text-resource={resourceId}
+    >
       <BlockNoteView editable={editable} editor={controller} theme={theme}>
         {editable ? (
           <EntityReferenceSuggestionMenu controller={controller} />

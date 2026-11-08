@@ -48,6 +48,7 @@ import {
 } from "@repo/data/features/workspace-storage-slots";
 import type { WorkspaceResourceEntity } from "@repo/data/features/workspace-resources";
 import {
+  waitForYjsDocumentPersistence,
   getYjsDocumentUpdateRows,
   getYjsDocumentUpdates,
   useDocumentLastEdited as useDocumentLastEditedReal,
@@ -715,7 +716,7 @@ function createRuntime(plugins: PluginRegistry): PluginHostCapabilities {
           activeWorkspaceId: workspaceId,
           activeResourceId,
           activeStorage,
-          executeAgentTool: ({
+          executeAgentTool: async ({
             input,
             name,
             workspaceId: expectedWorkspaceId,
@@ -746,6 +747,23 @@ function createRuntime(plugins: PluginRegistry): PluginHostCapabilities {
                 return Promise.reject(
                   new Error("Unsupported built-in agent tool scope")
                 );
+            }
+            if (
+              name.startsWith("rich_text_") &&
+              typeof input.documentResourceId === "string"
+            ) {
+              const storage = storageByResource.get(
+                input.documentResourceId
+              )?.content;
+              if (storage?.kind === "yjs") {
+                const slot = await getStorageSlot(db, storage.storageId);
+                if (slot?.workspace_id === workspaceId && slot.backing_id) {
+                  await waitForYjsDocumentPersistence({
+                    db,
+                    documentId: slot.backing_id,
+                  });
+                }
+              }
             }
             return executeBuiltInAgentTool(client, name, input, {
               workspaceId,
@@ -820,6 +838,7 @@ function createRuntime(plugins: PluginRegistry): PluginHostCapabilities {
         [
           activeResourceId,
           activeStorage,
+          storageByResource,
           client,
           db,
           permissionCheck,

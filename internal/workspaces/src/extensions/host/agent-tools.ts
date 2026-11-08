@@ -30,6 +30,12 @@ export function assertAgentToolWorkspaceContext(
 export function builtInAgentToolPolicy(
   name: string
 ): BuiltInAgentToolPolicy | null {
+  if (name === "get_resource") {
+    return "read";
+  }
+  if (name === "update_resource") {
+    return "mutation";
+  }
   const definition = findBuiltInPluginMcpTool(name);
   if (!definition) {
     return null;
@@ -38,6 +44,12 @@ export function builtInAgentToolPolicy(
 }
 
 export function builtInAgentToolScope(name: string) {
+  if (name === "get_resource") {
+    return "workspace:read";
+  }
+  if (name === "update_resource") {
+    return "workspace:write";
+  }
   const definition = findBuiltInPluginMcpTool(name);
   return definition ? builtInPluginMcpToolScope(definition) : null;
 }
@@ -48,6 +60,40 @@ export async function executeBuiltInAgentTool(
   input: Record<string, unknown>,
   context: AgentToolContext
 ): Promise<unknown> {
+  if (name === "get_resource") {
+    const parsed = agentOperationContracts.get_resource.input.parse({
+      ...input,
+      ...context,
+    });
+    return agentOperationContracts.get_resource.output.parse(
+      await client.getWorkspaceResource(
+        context.organizationId,
+        context.workspaceId,
+        parsed.resourceId
+      )
+    );
+  }
+  if (name === "update_resource") {
+    const {
+      resourceId,
+      idempotencyKey,
+      organizationId,
+      workspaceId,
+      ...changes
+    } = agentOperationContracts.update_resource.input.parse({
+      ...input,
+      ...context,
+    });
+    return agentOperationContracts.update_resource.output.parse(
+      await client.updateWorkspaceResource(
+        organizationId,
+        workspaceId,
+        resourceId,
+        changes,
+        { idempotencyKey }
+      )
+    );
+  }
   const definition = findBuiltInPluginMcpTool(name);
   if (!definition) {
     throw new Error(`Unknown built-in agent tool: ${name}`);

@@ -4,3 +4,5 @@ export * from "./react-hooks";
 export * from "./services";
 export * from "./table";
 export * from "./utils";
+
+export { waitForYjsDocumentPersistence } from "./document-resource-store";
