@@ -57,6 +57,6 @@ Apps compose private `internal/*` libraries and the two public packages. See
 > Most features touch **Database → Sync → Data → Feature module**.
 
 # Procedures
-- After code changes, use `code-review` skill for review/lint/format/typecheck/code-quality checks before merge. Omit when doc-only changes.
+- After code changes, use `lunaris-dev` skill for review and relevant checks before merge. Documentation-only changes need documentation validation.
 - Use `caveman-commit` skills for commit and pr messages. Always.
-- If building a UI feature, use `with-screenshot` skill to show how it looks. Use only if you think it adds value.
+- Use `lunaris-dev` for local setup and UI screenshots when visual proof adds value.
