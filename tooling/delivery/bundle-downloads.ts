@@ -5,18 +5,21 @@ export async function downloadTool(
   token: string,
   request: (url: string, options?: RequestInit) => Promise<Response> = fetch
 ): Promise<Response> {
-  const match = /^\/tauri-apps\/binary-releases\/([^/]+)\/([^/]+)$/.exec(path);
-  if (!(match?.[1] && match[2])) {
+  const match =
+    /^\/tauri-apps\/(binary-releases|nsis-tauri-utils)\/([^/]+)\/([^/]+)$/.exec(
+      path
+    );
+  if (!(match?.[1] && match[2] && match[3])) {
     return new Response("Unknown bundler tool", { status: 404 });
   }
-  const [, tag, name] = match;
+  const [, repository, tag, name] = match;
   const headers = {
     Authorization: `Bearer ${token}`,
     "X-GitHub-Api-Version": "2022-11-28",
     Accept: "application/vnd.github+json",
   };
   const release = await request(
-    `https://api.github.com/repos/tauri-apps/binary-releases/releases/tags/${tag}`,
+    `https://api.github.com/repos/tauri-apps/${repository}/releases/tags/${tag}`,
     { headers, signal: AbortSignal.timeout(60_000) }
   );
   if (!release.ok) {
@@ -34,7 +37,7 @@ export async function downloadTool(
     return new Response("GitHub release asset missing", { status: 404 });
   }
   const result = await request(
-    `https://api.github.com/repos/tauri-apps/binary-releases/releases/assets/${asset.id}`,
+    `https://api.github.com/repos/tauri-apps/${repository}/releases/assets/${asset.id}`,
     {
       headers: { ...headers, Accept: "application/octet-stream" },
       signal: AbortSignal.timeout(120_000),

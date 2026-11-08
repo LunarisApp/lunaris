@@ -1,18 +1,21 @@
 import { expect, test } from "bun:test";
 import { downloadTool } from "../delivery/bundle-downloads";
 
-test("bundler tools resolve exact release assets through the official API", async () => {
+test.each([
+  ["binary-releases", "nsis-3.13", "nsis-3.13.zip"],
+  ["nsis-tauri-utils", "nsis_tauri_utils-v0.5.3", "nsis_tauri_utils.dll"],
+])("bundler tools resolve assets from %s", async (repository, tag, name) => {
   const calls: [string, RequestInit | undefined][] = [];
   const request = ((url: string, options?: RequestInit) => {
     calls.push([url, options]);
     return Promise.resolve(
       calls.length === 1
-        ? Response.json({ assets: [{ name: "nsis-3.13.zip", id: 123 }] })
+        ? Response.json({ assets: [{ name, id: 123 }] })
         : new Response(new Uint8Array([80, 75, 3, 4]))
     );
   }) as Parameters<typeof downloadTool>[2];
   const response = await downloadTool(
-    "/tauri-apps/binary-releases/nsis-3.13/nsis-3.13.zip",
+    `/tauri-apps/${repository}/${tag}/${name}`,
     "test-token",
     request
   );
@@ -20,8 +23,8 @@ test("bundler tools resolve exact release assets through the official API", asyn
     80, 75, 3, 4,
   ]);
   expect(calls.map(([url]) => url)).toEqual([
-    "https://api.github.com/repos/tauri-apps/binary-releases/releases/tags/nsis-3.13",
-    "https://api.github.com/repos/tauri-apps/binary-releases/releases/assets/123",
+    `https://api.github.com/repos/tauri-apps/${repository}/releases/tags/${tag}`,
+    `https://api.github.com/repos/tauri-apps/${repository}/releases/assets/123`,
   ]);
   expect(calls[1]?.[1]?.headers).toMatchObject({
     Accept: "application/octet-stream",
@@ -40,9 +43,18 @@ test("bundler downloads reject unknown routes, missing assets, and API errors", 
     >[2];
     expect((await downloadTool(path, "token", request)).status).toBe(expected);
   }
-  expect(
-    (await downloadTool("/other/repository/tag/asset", "token")).status
-  ).toBe(404);
+  for (const route of [
+    "/other/repository/tag/asset",
+    "/tauri-apps/other-repository/tag/asset",
+    "/other-owner/nsis-tauri-utils/tag/asset",
+  ]) {
+    const unexpectedRequest = () => {
+      throw new Error("Rejected routes must not contact GitHub");
+    };
+    expect((await downloadTool(route, "token", unexpectedRequest)).status).toBe(
+      404
+    );
+  }
   let calls = 0;
   const request = (() => {
     calls += 1;
