@@ -11,7 +11,7 @@
       "source": "vercel-labs/agent-browser",
       "sourceType": "github",
       "skillPath": "skills/agent-browser/SKILL.md",
-      "computedHash": "ecc7641aea05f85ca3b11e7759d32aaf52fe05946ab4b63739c7bf78a41237a2"
+      "computedHash": "60a9cbe5af176150582c019e16e5d3703a41bb02d88438e881349876120d7944"
     },
     "build-audit-logs": {
       "source": "evlog.dev",
@@ -22,19 +22,19 @@
       "source": "juliusbrussee/caveman",
       "sourceType": "github",
       "skillPath": "skills/caveman/SKILL.md",
-      "computedHash": "d18cdf73a5f5c496d681a43a6846336b110223bdffa6817b8992529c57f1a815"
+      "computedHash": "71b600c88c8d1d36f18c4875db23b53c5d6cb9ba3195e19451d6b1bb67db07c4"
     },
     "caveman-commit": {
       "source": "juliusbrussee/caveman",
       "sourceType": "github",
       "skillPath": "skills/caveman-commit/SKILL.md",
-      "computedHash": "790a4eeace0be35c6691faf923518ba5bd50f1f1305d1101d09dd4971be94e00"
+      "computedHash": "b416cf134b0f33ddadeca7977aebdbb2d3db79a166d0fce2e1aabeec98132766"
     },
     "caveman-review": {
       "source": "juliusbrussee/caveman",
       "sourceType": "github",
       "skillPath": "skills/caveman-review/SKILL.md",
-      "computedHash": "fb7214a1c5793bae6ba8b1be4329e2e6f40dbec6dd911dfb335ad29f09c316a1"
+      "computedHash": "36a4007c5c0c6b90b5accfee1cd769a86e4963b651dece2ce5f17a223a0abb4b"
     },
     "documentation-writer": {
       "source": "github/awesome-copilot",
@@ -57,7 +57,7 @@
       "source": "getprobo/probo",
       "sourceType": "github",
       "skillPath": "packages/skills/skills/open-source-compliance/SKILL.md",
-      "computedHash": "a4a44aa4e0a85388bdb9bdad3ea6e2fdbc84dfe87e8c12e5bb1c314360d4f49d"
+      "computedHash": "e750436b7ee0c0087f2e9e9bff1fcf495762ad8b4aebffb3c7775cade8ae1ea9"
     },
     "performance": {
       "source": "addyosmani/web-quality-skills",
@@ -80,7 +80,7 @@
       "source": "railwayapp/railway-skills",
       "sourceType": "github",
       "skillPath": "plugins/railway/skills/use-railway/SKILL.md",
-      "computedHash": "fa983e3ca55d1b3ef80f897f0aaacd2c51e17c4d5ec8e7e3a2af55b59ee09d37"
+      "computedHash": "77b3e7fe7bf0b33a09f8755983eff63de44c388d0d32de0b8bef02520c368687"
     }
   }
 }
