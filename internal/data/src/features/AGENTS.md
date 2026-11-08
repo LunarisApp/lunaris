@@ -1,41 +1,23 @@
-# Data Features
+# Data features
 
-Feature-based layout for PowerSync tables + services.
+Follow a neighboring feature's `table.ts`, `services.ts`, optional `schemas.ts`,
+and `index.ts`. Public imports use `@repo/data/features/{feature}`.
 
-## Structure
+## Add or change a feature
 
-Each feature folder contains:
-- `table.ts` - Table definition via `createXxxTable()`, exports `XxxEntity` via `RowType<>`
-- `services.ts` - CRUD ops, hooks (`useXxxQuery`, `useXxxSuspenseQuery`), `createXxxService()`
-- `schemas.ts` - Zod validation schemas (optional)
-- `index.ts` - Re-exports all modules
+1. Define tables using `Table`, `column`, and `RowType` from `@powersync/common`. Preserve the `localOnly` and `viewName` factory options.
+2. Register new tables in `createAppSchema()` in `src/features/index.ts` (relative to `internal/data`).
+3. Implement services accepting `{ db: DatabaseOrTx }` so callers can share transactions. Generate IDs with `createId(prefix)` from `@repo/utils`.
+4. Wrap `@powersync/react` queries in feature hooks. Follow existing workspace-storage helpers for local/synchronized table selection.
+5. Export the feature API through `index.ts` and verify consumers can resolve its package export.
 
-## Patterns
+Use named SQL table constants and derive entity types with
+`RowType<ReturnType<typeof createXxxTable>>`.
 
-- Table names: `const XXX_TABLE = "tableName"` for SQL
-- Entity types: `RowType<ReturnType<typeof createXxxTable>>`
-- Services accept `{ db: DatabaseOrTx }` for tx support
-- Use `createId("prefix")` from `@repo/utils` for IDs
-- Hooks wrap `useQuery`/`useSuspenseQuery` from `@powersync/react`
+## Yjs lifecycle
 
-## Yjs Feature
-
-Primary hook for collaborative doc storage:
-- `useReadyYjsDocument(documentId, workspaceId, options?)`: ensures doc exists, loads it, caches the Y.Doc + provider across mount/unmount. Returns `{ yDoc, yProvider, isLoading, error }`.
-
-Pattern for extensions:
-```tsx
-const { yDoc, isLoading, error } = useReadyYjsDocument(documentId, workspaceId);
-if (isLoading && !yDoc) return <LoaderView label="Loading..." />;
-if (!yDoc) return <PanelError ... />;
-```
-
-The hook caches the Y.Doc in memory. Closing and reopening the same doc within ~30s reuses the cached instance (no rehydration). Split-view panels opening the same doc share one Y.Doc.
-
-## Adding Features
-
-1. Create folder under `src/features/`
-2. Add table.ts with `createXxxTable()` factory
-3. Register in `src/features/index.ts` `createAppSchema()`
-4. Add services.ts with queries + mutations
-5. Export via index.ts
+Use `useReadyYjsDocument(documentId, workspaceId, options?)` to acquire a cached
+Y.Doc/provider. Render loading and error states until `yDoc` is available.
+The shared resource store supports multiple mounted views and reuse after unmount;
+read `yjs/document-resource-store.ts` for cache identity and lifetime before changing
+ownership or cleanup. Preserve shared instances when closing one of several views.

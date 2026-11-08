@@ -1,27 +1,12 @@
-# @repo/platform
+# Platform boundary
 
-Platform abstractions for cross-platform compatibility (web, desktop, mobile).
+Shared frontend code reaches browser/native behavior through `usePlatform()`.
+Keep capabilities semantic (clipboard, downloads, navigation, network, agent access,
+panel windows), with Tauri/native imports inside app implementations.
 
-## Platform Boundary
+For a new capability:
 
-Shared frontend code calls semantic capabilities through `usePlatform()`:
-- agent access
-- clipboard
-- downloads
-- navigation
-- network state
-- operating-system detection
-- panel windows
-- viewport queries
-
-Apps create a `Platform` with `createBrowserPlatform()` and inject any
-app-specific managers. Keep Tauri and other native imports inside app
-implementations.
-
-## Adding Abstractions
-
-When adding new platform abstractions:
-1. Define a semantic interface in `src/platform.ts`
-2. Export from `src/index.ts`
-3. Add browser/WebView behavior in `src/browser.ts`
-4. Inject native managers from respective apps
+1. Define its interface in `src/platform.ts` and export it through `src/index.ts`.
+2. Implement browser/WebView behavior in `src/browser.ts`.
+3. Inject app-specific native managers when constructing the platform.
+4. Check each affected app's implementation against the shared interface.

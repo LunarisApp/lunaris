@@ -88,7 +88,7 @@ export function affectedTargets(
   );
 }
 
-/** CI/release orchestration changes require validation, not npm version bumps. */
+/** CI, agent guidance, and release controls require validation, not npm bumps. */
 export function npmReleaseTargets(
   files: string[],
   workspaces: Workspace[],
@@ -110,7 +110,11 @@ export function npmReleaseTargets(
   const inputs = files.filter(
     (file) =>
       !(
-        /^(\.github\/|tooling\/(delivery|ci)\/)/.test(file) ||
+        /^(\.github\/|\.agents\/skills\/|tooling\/(delivery|ci)\/)/.test(
+          file
+        ) ||
+        /(^|\/)CLAUDE\.md$/.test(file) ||
+        file === "skills-lock.json" ||
         file === "tooling/licenses/about.toml" ||
         file === "tooling/ci-selection.ts" ||
         (file === "package.json" && rootUnchanged)

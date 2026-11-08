@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lunaris Development"
+  short_description: "Run, check, and capture Lunaris locally"
+  default_prompt: "Use $lunaris-dev to run and validate the current Lunaris change locally."
