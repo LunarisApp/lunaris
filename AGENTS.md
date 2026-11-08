@@ -58,5 +58,11 @@ Apps compose private `internal/*` libraries and the two public packages. See
 
 # Procedures
 - After code changes, use `lunaris-dev` skill for review and relevant checks before merge. Documentation-only changes need documentation validation.
-- Use `caveman-commit` skills for commit and pr messages. Always.
+- Use concise Conventional Commits subjects (aim for 50 characters; maximum 72). Explain non-obvious reasons, breaking changes, security fixes, migrations, and reverts in the body. Keep PR descriptions focused on the problem, final behavior, and validation.
+- Keep review findings actionable: file/line, problem, consequence, and concrete fix. Expand when rationale needs explanation.
 - Use `lunaris-dev` for local setup and UI screenshots when visual proof adds value.
+
+# Routing and local data
+
+- Add routes through `internal/app-shell/src/router.tsx` and existing route factories. Follow nearby auth and organization guards.
+- Keep reactive local data in `internal/data` PowerSync hooks and services. Do not move subscriptions into route loaders merely to follow server-rendered framework patterns.

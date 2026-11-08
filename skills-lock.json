@@ -13,63 +13,22 @@
       "skillPath": "skills/agent-browser/SKILL.md",
       "computedHash": "60a9cbe5af176150582c019e16e5d3703a41bb02d88438e881349876120d7944"
     },
-    "build-audit-logs": {
-      "source": "evlog.dev",
-      "sourceType": "well-known",
-      "computedHash": "b74766565be941fd68ac91f642704a45a9683482821c51f9b298246aeb38f5cc"
-    },
     "caveman": {
       "source": "juliusbrussee/caveman",
       "sourceType": "github",
       "skillPath": "skills/caveman/SKILL.md",
       "computedHash": "71b600c88c8d1d36f18c4875db23b53c5d6cb9ba3195e19451d6b1bb67db07c4"
     },
-    "caveman-commit": {
-      "source": "juliusbrussee/caveman",
-      "sourceType": "github",
-      "skillPath": "skills/caveman-commit/SKILL.md",
-      "computedHash": "b416cf134b0f33ddadeca7977aebdbb2d3db79a166d0fce2e1aabeec98132766"
-    },
-    "caveman-review": {
-      "source": "juliusbrussee/caveman",
-      "sourceType": "github",
-      "skillPath": "skills/caveman-review/SKILL.md",
-      "computedHash": "36a4007c5c0c6b90b5accfee1cd769a86e4963b651dece2ce5f17a223a0abb4b"
-    },
-    "documentation-writer": {
-      "source": "github/awesome-copilot",
-      "sourceType": "github",
-      "skillPath": "skills/documentation-writer/SKILL.md",
-      "computedHash": "ee53d65b163cd7eb953a930c95841cfe398cc2c0bd24c06508bbaa07c432be35"
-    },
-    "frontend-react-router-best-practices": {
-      "source": "sergiodxa/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/frontend-react-router-best-practices/SKILL.md",
-      "computedHash": "dfedb94fcefb0739a281fe8b57935953e24df0df36cc93cb3eeabc9fc668cceb"
-    },
     "instrument-product-analytics": {
       "source": "posthog/ai-plugin",
       "sourceType": "github",
       "computedHash": "bb0c40a80b91e36f9d7c169d7ec13f8c151070454bc246f448421ab226ba331c"
-    },
-    "open-source-compliance": {
-      "source": "getprobo/probo",
-      "sourceType": "github",
-      "skillPath": "packages/skills/skills/open-source-compliance/SKILL.md",
-      "computedHash": "e750436b7ee0c0087f2e9e9bff1fcf495762ad8b4aebffb3c7775cade8ae1ea9"
     },
     "performance": {
       "source": "addyosmani/web-quality-skills",
       "sourceType": "github",
       "skillPath": "skills/performance/SKILL.md",
       "computedHash": "ce9d36f139a1b2a6a8ac2cb222698963b8076d2dd8b41685e8e8ae589cdcf1e4"
-    },
-    "refactor": {
-      "source": "github/awesome-copilot",
-      "sourceType": "github",
-      "skillPath": "skills/refactor/SKILL.md",
-      "computedHash": "87789a786b96f99ba0680e89345a975106e10e7db1071c7cdc2e76d507c449d6"
     },
     "review-logging-patterns": {
       "source": "evlog.dev",
