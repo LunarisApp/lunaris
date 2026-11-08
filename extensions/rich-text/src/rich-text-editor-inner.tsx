@@ -8,6 +8,7 @@ import {
 import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { Doc } from "yjs";
+import { registerAgentEditor } from "./agent-editor";
 import { getResourceName } from "./resource-name";
 import { RichTextEditorView } from "./editor";
 import { useYjsRichTextEditor } from "./hooks";
@@ -60,6 +61,11 @@ export function RichTextEditorInner({
     deps: [i18n.language],
   });
 
+  useEffect(
+    () => registerAgentEditor(resourceId, controller, editable),
+    [resourceId, controller, editable]
+  );
+
   const resourcesMap = useWorkspaceResourcesMap();
   const documentName = getResourceName(resourcesMap, resourceId);
   const headingInserted = useRef(false);
@@ -104,6 +110,7 @@ export function RichTextEditorInner({
       className="min-h-full p-3.5"
       controller={controller}
       editable={editable}
+      resourceId={resourceId}
       theme={theme}
     />
   );

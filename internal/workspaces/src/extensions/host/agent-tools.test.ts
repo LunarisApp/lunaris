@@ -1,5 +1,5 @@
 import type { LunarisControlClient } from "@repo/agent-contracts";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   assertAgentToolWorkspaceContext,
   builtInAgentToolPolicy,
@@ -228,4 +228,60 @@ describe("built-in agent tools", () => {
       ],
     ]);
   });
+});
+
+it("dispatches resource moves with host context, revision and idempotency intact", async () => {
+  const resource = {
+    id: "resource-1",
+    workspaceId: "workspace-1",
+    name: "Renamed",
+    parentId: null,
+    resourceTypeId: "lunaris.rich-text",
+    schemaVersion: 1,
+    position: 0,
+    icon: null,
+    storage: {},
+    createdAt: "before",
+    updatedAt: "after",
+  };
+  const updateWorkspaceResource = vi.fn().mockResolvedValue(resource);
+  const client = { updateWorkspaceResource } as unknown as LunarisControlClient;
+  const context = {
+    organizationId: "organization-1",
+    workspaceId: "workspace-1",
+  };
+  await executeBuiltInAgentTool(
+    client,
+    "update_resource",
+    {
+      resourceId: "resource-1",
+      organizationId: "other",
+      workspaceId: "other",
+      name: "Renamed",
+      parentId: null,
+      expectedRevision: "before",
+      idempotencyKey: "move-key-1",
+    },
+    context
+  );
+  expect(updateWorkspaceResource).toHaveBeenCalledWith(
+    "organization-1",
+    "workspace-1",
+    "resource-1",
+    { name: "Renamed", parentId: null, expectedRevision: "before" },
+    { idempotencyKey: "move-key-1" }
+  );
+  await expect(
+    executeBuiltInAgentTool(
+      client,
+      "update_resource",
+      {
+        resourceId: "resource-1",
+        name: "Missing revision",
+        idempotencyKey: "move-key-2",
+      },
+      context
+    )
+  ).rejects.toThrow();
+  expect(updateWorkspaceResource).toHaveBeenCalledTimes(1);
 });

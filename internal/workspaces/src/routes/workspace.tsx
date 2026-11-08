@@ -1,3 +1,4 @@
+import { WorkspaceWebMcp } from "../extensions/host/workspace-webmcp";
 import { permission } from "@repo/auth/permissions";
 import { WORKSPACE_ROLE, WORKSPACE_VISIBILITY } from "@repo/auth/sync-access";
 import { useWorkspaceMemberRole } from "@repo/data/features/workspace-members";
@@ -308,16 +309,19 @@ function ResolvedWorkspace({
     }
   );
 
-  if (shell === "mobile") {
-    return <MobileWorkspaceShell controller={controller} />;
-  }
-
   return (
-    <DesktopWorkspaceShell
-      AppBarLeading={AppBarLeading}
-      AppBarTrailing={AppBarTrailing}
-      buildVersion={buildVersion}
-      controller={controller}
-    />
+    <>
+      {import.meta.env.VITE_WEBMCP_ENABLED === "true" && <WorkspaceWebMcp />}
+      {shell === "mobile" ? (
+        <MobileWorkspaceShell controller={controller} />
+      ) : (
+        <DesktopWorkspaceShell
+          AppBarLeading={AppBarLeading}
+          AppBarTrailing={AppBarTrailing}
+          buildVersion={buildVersion}
+          controller={controller}
+        />
+      )}
+    </>
   );
 }
