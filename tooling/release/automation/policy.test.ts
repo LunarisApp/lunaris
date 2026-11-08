@@ -150,3 +150,38 @@ test("Rust license targets do not bump npm packages; shared license tooling stil
     npmReleaseTargets(["tooling/licenses/vite.ts"], workspaces)
   ).toHaveLength(2);
 });
+
+test("agent skills and guidance do not require npm releases", () => {
+  const workspaces = [
+    { name: "@repo/utils", path: "internal/utils", dependencies: [] },
+    {
+      name: "@lunarisapp/ui",
+      path: "packages/ui",
+      dependencies: ["@repo/utils"],
+    },
+    {
+      name: "@lunarisapp/plugin-sdk",
+      path: "packages/plugin-sdk",
+      dependencies: ["@repo/utils"],
+    },
+  ];
+  const agentFiles = [
+    ".agents/skills/impeccable/scripts/live-browser.js",
+    ".agents/skills/lunaris-dev/SKILL.md",
+    "skills-lock.json",
+    "AGENTS.md",
+    "packages/ui/AGENTS.md",
+    "apps/api/CLAUDE.md",
+    "internal/utils/CLAUDE.md",
+  ];
+  for (const file of agentFiles) {
+    expect(npmReleaseTargets([file], workspaces)).toEqual([]);
+  }
+  expect(npmReleaseTargets(agentFiles, workspaces)).toEqual([]);
+  expect(
+    npmReleaseTargets([...agentFiles, "packages/ui/src/button.tsx"], workspaces)
+  ).toEqual(["@lunarisapp/ui"]);
+  expect(
+    npmReleaseTargets([...agentFiles, "internal/utils/src/time.ts"], workspaces)
+  ).toEqual(["@lunarisapp/plugin-sdk", "@lunarisapp/ui"]);
+});
