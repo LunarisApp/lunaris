@@ -358,3 +358,125 @@ it("applies a captured selection once and retains its receipt on identical retri
     edit.execute({ ...input, edit: { text: "Other" } })
   ).rejects.toThrow("different input");
 });
+
+it("recovers an uncertain edit without losing its original undo snapshot", async () => {
+  const { register, tools, content } = setup();
+  const original = [{ id: "block", content: "Original" }];
+  const input = {
+    documentResourceId: "resource-1",
+    expectedRevision: "before",
+    idempotencyKey: "edit-key-1",
+    edits: [{ op: "update", blockId: "block", content: "Changed" }],
+  };
+  vi.mocked(content.executeAgentTool)
+    .mockResolvedValueOnce({ blocks: original, revision: "before" })
+    .mockRejectedValueOnce(new Error("Response lost"))
+    .mockResolvedValueOnce({ blocks: [], revision: "after" })
+    .mockResolvedValueOnce({ revision: "after" })
+    .mockResolvedValueOnce({ revision: "restored" });
+  await register(new Set(["lunaris.rich-text"]), { canWrite: true });
+  const edit = tools.get("lunaris_rich_text_edit_document")!;
+  await expect(edit.execute(input)).rejects.toThrow("Response lost");
+  await expect(
+    tools.get("lunaris_undo_rich_text_edit")!.execute({
+      undoToken: "edit-key-1",
+      idempotencyKey: "undo-key-1",
+    })
+  ).rejects.toThrow("outcome unknown");
+  await edit.execute(input);
+  await tools.get("lunaris_undo_rich_text_edit")!.execute({
+    undoToken: "edit-key-1",
+    idempotencyKey: "undo-key-1",
+  });
+  expect(content.executeAgentTool).toHaveBeenLastCalledWith({
+    name: "rich_text_update_document",
+    workspaceId: "workspace-1",
+    input: {
+      documentResourceId: "resource-1",
+      blocks: original,
+      expectedRevision: "after",
+      idempotencyKey: "undo-key-1",
+    },
+  });
+});
+
+it("requires the original undo key after an uncertain response", async () => {
+  const { register, tools, content } = setup();
+  await register(new Set(["lunaris.rich-text"]), {
+    canWrite: true,
+    undoEdits: new Map([
+      [
+        "edit-key-1",
+        { documentResourceId: "resource-1", blocks: [], revision: "after" },
+      ],
+    ]),
+  });
+  const undo = tools.get("lunaris_undo_rich_text_edit")!;
+  vi.mocked(content.executeAgentTool).mockRejectedValueOnce(
+    new Error("Response lost")
+  );
+  await expect(
+    undo.execute({ undoToken: "edit-key-1", idempotencyKey: "undo-key-1" })
+  ).rejects.toThrow("Response lost");
+  await expect(
+    undo.execute({ undoToken: "edit-key-1", idempotencyKey: "undo-key-2" })
+  ).rejects.toThrow("original idempotency key");
+  expect(content.executeAgentTool).toHaveBeenCalledTimes(1);
+});
+
+it("rejects competing selection edits after their overlapping reads", async () => {
+  const { register, tools, content } = setup();
+  const apply = vi.fn();
+  let resolveRead!: (value: unknown) => void;
+  const pendingRead = new Promise((resolve) => {
+    resolveRead = resolve;
+  });
+  vi.mocked(content.executeAgentTool).mockImplementation(
+    async () => pendingRead
+  );
+  await register(new Set(["lunaris.rich-text"]), {
+    canWrite: true,
+    selections: new Map([
+      ["selection-1", { resourceId: "resource-1", revision: "before", apply }],
+    ]),
+  });
+  const tool = tools.get("lunaris_edit_editor_selection")!;
+  const input = {
+    selectionToken: "selection-1",
+    expectedRevision: "before",
+    idempotencyKey: "selection-key-1",
+    edit: { text: "First" },
+  };
+  const first = tool.execute(input);
+  const second = tool.execute({ ...input, edit: { text: "Second" } });
+  const rejected = expect(second).rejects.toThrow("different input");
+  resolveRead({ revision: "before" });
+  await first;
+  await rejected;
+  expect(apply).toHaveBeenCalledTimes(1);
+});
+
+it("rejects reusing an edit key for another resource", async () => {
+  const { register, tools, content } = setup();
+  vi.mocked(content.executeAgentTool).mockResolvedValue({
+    blocks: [],
+    revision: "before",
+  });
+  await register(new Set(["lunaris.rich-text"]), { canWrite: true });
+  const tool = tools.get("lunaris_rich_text_edit_document")!;
+  const input = {
+    documentResourceId: "resource-1",
+    expectedRevision: "before",
+    idempotencyKey: "edit-key-1",
+    edits: [{ op: "update", blockId: "block", content: "Changed" }],
+  };
+  await tool.execute(input);
+  await expect(
+    tool.execute({ ...input, documentResourceId: "resource-2" })
+  ).rejects.toThrow("different input");
+  expect(
+    vi
+      .mocked(content.executeAgentTool)
+      .mock.calls.filter(([call]) => call.name === "rich_text_edit_document")
+  ).toHaveLength(1);
+});

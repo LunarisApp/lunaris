@@ -45,8 +45,10 @@ export interface WebMcpSelection {
 export interface WebMcpUndoEdit {
   blocks: unknown[];
   documentResourceId: string;
+  request?: string;
   result?: unknown;
-  revision: string;
+  revision?: string;
+  undoIdempotencyKey?: string;
 }
 
 const searchSchema = z.object({
@@ -334,17 +336,25 @@ export async function registerWorkspaceWebMcp({
         if (!selection.applied) {
           const current = await read();
           assertActive();
-          if (
-            parsed.expectedRevision !== selection.revision ||
-            current.revision !== selection.revision
-          ) {
+          // Another invocation may have consumed this token during the read.
+          if (selection.request && selection.request !== request) {
             throw new Error(
-              "Resource revision changed. Read the selection again."
+              "Selection token already used with different input."
             );
           }
-          selection.apply(parsed.edit);
-          selection.request = request;
-          selection.applied = true;
+          if (!selection.applied) {
+            if (
+              parsed.expectedRevision !== selection.revision ||
+              current.revision !== selection.revision
+            ) {
+              throw new Error(
+                "Resource revision changed. Read the selection again."
+              );
+            }
+            selection.apply(parsed.edit);
+            selection.request = request;
+            selection.applied = true;
+          }
         }
         const current = await read();
         selection.result = {
@@ -369,30 +379,37 @@ export async function registerWorkspaceWebMcp({
         })
       );
     assertActive();
-    // Replays keep their original undo snapshot and idempotency key.
+    // Retain the snapshot before dispatch: a failed response can hide a saved edit.
     const undoToken = String(input.idempotencyKey);
-    const previous = undoEdits.get(undoToken);
-    if (!previous && before.revision !== input.expectedRevision) {
+    const request = JSON.stringify(input);
+    let edit = undoEdits.get(undoToken);
+    if (edit?.request && edit.request !== request) {
       throw new Error(
-        "Resource revision changed. Read the resource and rebuild the edit."
+        "Edit idempotency key already used with different input."
       );
+    }
+    if (!edit) {
+      if (before.revision !== input.expectedRevision) {
+        throw new Error(
+          "Resource revision changed. Read the resource and rebuild the edit."
+        );
+      }
+      edit = {
+        documentResourceId: String(input.documentResourceId),
+        blocks: before.blocks,
+        request,
+      };
+      undoEdits.set(undoToken, edit);
+      if (undoEdits.size > 10) {
+        undoEdits.delete(undoEdits.keys().next().value!);
+      }
     }
     const result = await content.executeAgentTool({
       name: "rich_text_edit_document",
       input,
       workspaceId,
     });
-    const revision = z.object({ revision: z.string() }).parse(result).revision;
-    if (!previous) {
-      undoEdits.set(undoToken, {
-        documentResourceId: String(input.documentResourceId),
-        blocks: before.blocks,
-        revision,
-      });
-      if (undoEdits.size > 10) {
-        undoEdits.delete(undoEdits.keys().next().value!);
-      }
-    }
+    edit.revision = z.object({ revision: z.string() }).parse(result).revision;
     return { ...z.record(z.string(), z.unknown()).parse(result), undoToken };
   };
   if (canWrite && enabledPluginIds.has("lunaris.rich-text")) {
@@ -410,9 +427,21 @@ export async function registerWorkspaceWebMcp({
             "Undo token expired or unknown. Read the resource before making further edits."
           );
         }
+        if (
+          edit.undoIdempotencyKey &&
+          edit.undoIdempotencyKey !== input.idempotencyKey
+        ) {
+          throw new Error("Retry undo with its original idempotency key.");
+        }
         if (edit.result) {
           return edit.result;
         }
+        if (!edit.revision) {
+          throw new Error(
+            "Edit outcome unknown. Retry the original edit first."
+          );
+        }
+        edit.undoIdempotencyKey = String(input.idempotencyKey);
         edit.result = await content.executeAgentTool({
           name: "rich_text_update_document",
           workspaceId,
