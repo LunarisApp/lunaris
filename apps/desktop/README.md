@@ -75,7 +75,7 @@ bun run build:desktop
 Packaging builds shared dependencies, the agent sidecar, the frontend, and
 third-party notices. `bun run build --filter=desktop` builds and checks the
 frontend only. Release automation produces universal macOS app and DMG bundles;
-see [the release workflow](../../.github/workflows/release.yml).
+see [the release workflow](../../.github/workflows/native.build.yml).
 
 Desktop resources include a `notices` directory containing frontend, agent,
 Rust, and vendored-code notices. Preserve these when repackaging. Lunaris-owned

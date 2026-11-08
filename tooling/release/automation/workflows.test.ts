@@ -1,48 +1,17 @@
 import { expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { parse } from "yaml";
-import { releaseRulesets } from "./rulesets";
 
 const workflow = (name: string) =>
   parse(readFileSync(`.github/workflows/${name}.yml`, "utf8"));
-test("release ordering validates the version commit and isolates back-merge from publishing", () => {
-  const { jobs } = workflow("release.publish");
-  // biome-ignore lint/suspicious/noTemplateCurlyInString: Literal GitHub Actions expression, not JavaScript interpolation.
-  expect(jobs.validate.with.ref).toBe("${{ needs.version.outputs.sha }}");
-  expect(jobs.validate.permissions).toEqual(workflow("ci").permissions);
-  expect(jobs.tag.needs).toEqual(["version", "validate"]);
-  expect(jobs["back-merge"].needs).toEqual(["version", "validate", "tag"]);
-  expect(jobs.complete).toBeUndefined();
-  expect(jobs.result.needs).toContain("npm");
-  expect(jobs.result.needs).toContain("hosted");
-  expect(jobs.npm.permissions.contents).toBe("write");
-  expect(workflow("packages.publish").permissions.contents).toBe("write");
-  expect(workflow("packages.publish").jobs.publish.env.GH_TOKEN).toBeDefined();
-});
-test("rules preserve immutable history even for automation and scoped tags", () => {
-  const rules = releaseRulesets(123, 456);
-  expect(
-    rules.find(({ name }) => name === "Release tags - immutable")?.bypass_actors
-  ).toEqual([]);
-  expect(
-    rules.find(({ name }) => name === "Release branches - immutable history")
-      ?.bypass_actors
-  ).toEqual([]);
-  expect(JSON.stringify(rules)).toContain("refs/tags/@lunarisapp/plugin-sdk@*");
-  expect(JSON.stringify(rules)).not.toContain("refs/tags/desktop");
-});
-
-test("legacy release entrypoints stay retired without configuration flags", () => {
-  for (const name of ["release.prepare", "release.publish", "release"]) {
-    const jobs = workflow(name).jobs;
-    const entry =
-      name === "release.prepare"
-        ? jobs.prepare
-        : name === "release.publish"
-          ? jobs.version
-          : Object.values(jobs)[0];
-    // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub Actions expression.
-    expect(entry.if).toBe("${{ false }}");
+test("retired release workflows are absent; PR policy remains unconditional", () => {
+  for (const name of [
+    "release.prepare",
+    "release.publish",
+    "release",
+    "apps.publish",
+  ]) {
+    expect(existsSync(`.github/workflows/${name}.yml`)).toBe(false);
   }
   const policy = workflow("ci").jobs["release-policy"];
   expect(policy.if).toBe("github.event_name == 'pull_request'");
@@ -53,12 +22,6 @@ test("legacy release entrypoints stay retired without configuration flags", () =
   expect(check).toBeDefined();
   expect(check.if).toBeUndefined();
   expect(existsSync(".github/workflows/deploy-powersync.yml")).toBe(false);
-  expect(
-    workflow("apps.publish").jobs.deploy.steps.some(
-      (step: { run?: string }) =>
-        step.run === "bun tooling/release/automation/deploy-hosted.ts"
-    )
-  ).toBe(true);
 });
 
 test("npm recovery separates tooling from release sources and never deploys hosted services", () => {
@@ -96,14 +59,14 @@ test("publication entrypoints remain explicit", () => {
     "workflow_dispatch",
     "workflow_call",
   ]);
-  expect(Object.keys(workflow("apps.publish").on)).toEqual(["workflow_call"]);
-  expect(workflow("release").jobs["version-pr"]).toBeUndefined();
+  expect(workflow("packages.publish").permissions.contents).toBe("write");
+  expect(workflow("packages.publish").jobs.publish.env.GH_TOKEN).toBeDefined();
 });
 
 test("self-host publishing follows validation, with both native architectures and bundle promotion", () => {
-  const pipeline = workflow("release.publish").jobs;
-  expect(pipeline["self-hosted"].needs).toEqual(["version", "tag"]);
-  expect(pipeline.result.needs).toContain("self-hosted");
+  const pipeline = workflow("release.stable").jobs;
+  expect(pipeline["self-hosted"].needs).toBe("reserve");
+  expect(pipeline.hosted.needs).toContain("self-hosted");
   expect(pipeline["self-hosted"].permissions.packages).toBe("write");
   const publish = workflow("self-host.publish");
   expect(Object.keys(publish.on)).toEqual(["workflow_call"]);

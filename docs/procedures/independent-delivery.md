@@ -5,7 +5,7 @@ and code-owner review. Product changes need no Changeset. Public SDK/UI changes
 still need Changesets and publish independently through npm version PRs.
 
 GitHub workflow enable/disable controls pause publication during migration.
-Legacy release entrypoints stay retired; no delivery mode variable is needed.
+Legacy release entrypoints are removed; no delivery mode variable is needed.
 Never enable two deployment owners for one Railway service.
 
 ## Delivery flow

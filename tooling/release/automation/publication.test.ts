@@ -19,7 +19,7 @@ afterEach(() => {
   }
 });
 
-function fixture(kind: "npm" | "hosted", landing = false, family = false) {
+function fixture(family = false) {
   const root = mkdtempSync(join(tmpdir(), "lunaris-publication-"));
   roots.push(root);
   const cwd = join(root, "work");
@@ -33,21 +33,13 @@ function fixture(kind: "npm" | "hosted", landing = false, family = false) {
   git("config", "user.name", "Test");
   git("config", "user.email", "test@example.com");
   git("checkout", "-b", "main");
-  const entries = (
-    kind === "npm"
-      ? [
-          ["@lunarisapp/plugin-sdk", "packages/plugin-sdk"],
-          ["@lunarisapp/ui", "packages/ui"],
-        ]
-      : [
-          ["web", "apps/web"],
-          ["docs", "apps/docs"],
-          ...(landing ? [["landing", "apps/landing"]] : []),
-        ]
-  ).map(([name, path]) => ({
+  const entries = [
+    ["@lunarisapp/plugin-sdk", "packages/plugin-sdk"],
+    ["@lunarisapp/ui", "packages/ui"],
+  ].map(([name, path]) => ({
     name,
     path,
-    kind,
+    kind: "npm",
     version: "1.0.0",
     tag: `${name}@1.0.0`,
     notes: "Fix.",
@@ -81,43 +73,18 @@ function fixture(kind: "npm" | "hosted", landing = false, family = false) {
   }
   git("push", "origin", "main", "--tags");
   const log = join(root, "calls.jsonl");
-  const releaseAssets = join(root, "release-assets");
   const stub = `#!${process.execPath}
-import { appendFileSync, copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
-import { basename, join } from "node:path";
+import { appendFileSync } from "node:fs";
 const args = process.argv.slice(2);
 const tool = process.argv[1].split("/").at(-1);
 appendFileSync(process.env.CALL_LOG, JSON.stringify({tool,args})+"\\n");
 if (tool === "npm" && args[0] === "pack") console.log(JSON.stringify([{filename:"archive.tgz"}]));
-if (tool === "gh") {
- const assets = join(process.env.RELEASE_ASSETS, args[2]);
- if (args[1] === "view" && args.includes("isDraft")) {
-  console.log(JSON.stringify({isDraft: process.env.PENDING_RELEASE === args[2]}));
-  process.exit(0);
- }
- if (args[1] === "view") console.log(JSON.stringify({assets:existsSync(assets) ? readdirSync(assets).map(name=>({name})) : []}));
- if (args[1] === "upload") {
-  mkdirSync(assets, {recursive:true});
-  copyFileSync(args[3], join(assets, basename(args[3])));
- }
- if (args[1] === "download") copyFileSync(join(assets, args[args.indexOf("--pattern")+1]), args[args.indexOf("--output")+1]);
+if (tool === "gh" && args[1] === "view" && args.includes("isDraft")) {
+ console.log(JSON.stringify({isDraft: process.env.PENDING_RELEASE === args[2]}));
 }
 if (tool === "gh" && args[1] === "edit" && process.env.FAIL_PROMOTION === args[2]) process.exit(1);
-if (tool === "railway") {
- const service = args[args.indexOf("--service")+1];
- if (args[0] === "up") {
-  if (process.env.FAIL_UPLOAD) {
-    console.error(process.env.FAIL_UPLOAD === "packaging"
-      ? JSON.stringify({code:"ERROR",error:"/work/.claude/skills/missing: IO error for operation on /work/.claude/skills/missing: No such file or directory (os error 2)"})
-      : "connection reset");
-    process.exit(1);
-  }
-  console.log(JSON.stringify({deploymentId:service}));
- }
- else console.log(JSON.stringify([{id:service,status:service===process.env.FAIL_SERVICE?"FAILED":"SUCCESS"}]));
-}
 `;
-  for (const tool of ["gh", "npm", "railway"]) {
+  for (const tool of ["gh", "npm"]) {
     writeFileSync(join(bin, tool), stub, { mode: 0o755 });
   }
   const preload = join(root, "fetch.ts");
@@ -125,19 +92,9 @@ if (tool === "railway") {
     preload,
     `globalThis.fetch = async (url) => {
     if (String(url).includes("registry.npmjs.org")) return Response.json({dist:{integrity: String(url).includes("%2Fui") && process.env.FAIL_INTEGRITY ? "wrong" : process.env.EXPECTED_INTEGRITY}});
-    if (String(url).endsWith("/en/self-hosted") && process.env.FAIL_LANDING) return new Response(null, {status:404});
-    if (String(url) === "https://fixture.test/install.sh") return new Response(null, {status:307, headers:{location:"https://github.com/LunarisApp/lunaris/releases/download/self-hosted%400.1.0/install.sh"}});
     return new Response("healthy");
   };`
   );
-  const service = (n: number) =>
-    `00000000-0000-0000-0000-${String(n).padStart(12, "0")}`;
-  const destination = (n: number) => ({
-    project: service(9),
-    environment: service(8),
-    service: service(n),
-    healthUrl: "https://fixture.test/health",
-  });
   const invoke = (
     extra: Record<string, string> = {},
     script?: string,
@@ -148,11 +105,7 @@ if (tool === "railway") {
         process.execPath,
         "--preload",
         preload,
-        script ??
-          resolve(
-            import.meta.dir,
-            kind === "npm" ? "publish-npm.ts" : "deploy-hosted.ts"
-          ),
+        script ?? resolve(import.meta.dir, "publish-npm.ts"),
         ...args,
       ],
       {
@@ -163,15 +116,8 @@ if (tool === "railway") {
           PATH: `${bin}:${process.env.PATH}`,
           CALL_LOG: log,
           RUNNER_TEMP: mkdtempSync(join(root, "runner-")),
-          RELEASE_ASSETS: releaseAssets,
           GITHUB_STEP_SUMMARY: join(root, "summary"),
           EXPECTED_INTEGRITY: `sha512-${createHash("sha512").update("validated archive").digest("base64")}`,
-          RAILWAY_API_TOKEN: "fixture-token",
-          RAILWAY_RELEASE_TARGETS: JSON.stringify({
-            web: [destination(1), destination(2)],
-            docs: [destination(3)],
-            ...(landing ? { landing: [destination(4)] } : {}),
-          }),
           ...extra,
         },
       }
@@ -186,22 +132,11 @@ if (tool === "railway") {
     calls()
       .filter(({ tool, args }) => tool === "gh" && args[1] === "edit")
       .map(({ args }) => args[2]);
-  const receipt = (n: number) =>
-    JSON.parse(
-      readFileSync(
-        join(
-          releaseAssets,
-          n === 3 ? "docs@1.0.0" : "web@1.0.0",
-          `railway-${service(n)}.json`
-        ),
-        "utf8"
-      )
-    ) as { attempts: { deploymentId: string | null; status: string }[] };
-  return { invoke, calls, promoted, service, receipt, git, cwd };
+  return { invoke, calls, promoted, git, cwd };
 }
 
 test("family publication reads its own manifest and permits validated older trunk commits", () => {
-  const f = fixture("npm", false, true);
+  const f = fixture(true);
   const release = f.git("rev-parse", "HEAD");
   writeFileSync(join(f.cwd, "later.txt"), "newer trunk commit");
   f.git("add", ".");
@@ -217,7 +152,7 @@ test("family publication reads its own manifest and permits validated older trun
 });
 
 test("family planning recovers older pending versions after newer version PRs merge", () => {
-  const f = fixture("npm", false, true);
+  const f = fixture(true);
   const original = f.git("rev-parse", "HEAD");
   const path = join(f.cwd, ".release/npm.json");
   const manifest = JSON.parse(readFileSync(path, "utf8"));
@@ -240,7 +175,7 @@ test("family planning recovers older pending versions after newer version PRs me
 });
 
 test("family planning selects the merged trunk tree rather than a version PR parent", () => {
-  const f = fixture("npm", false, true);
+  const f = fixture(true);
   f.git("checkout", "-b", "version-pr");
   const path = join(f.cwd, ".release/npm.json");
   const manifest = JSON.parse(readFileSync(path, "utf8"));
@@ -272,7 +207,7 @@ test("family planning selects the merged trunk tree rather than a version PR par
 });
 
 test("npm recovery promotes verified existing versions, including reruns, without republishing", () => {
-  const f = fixture("npm");
+  const f = fixture();
   for (let attempt = 0; attempt < 2; attempt++) {
     const result = f.invoke();
     expect(result.exitCode, result.stderr.toString()).toBe(0);
@@ -289,7 +224,7 @@ test("npm recovery promotes verified existing versions, including reruns, withou
 });
 
 test("later npm integrity failure keeps that draft without hiding successful SDK", () => {
-  const f = fixture("npm");
+  const f = fixture();
   const result = f.invoke({ FAIL_INTEGRITY: "true" });
   expect(result.exitCode).not.toBe(0);
   expect(result.stderr.toString()).toContain("different bytes");
@@ -297,7 +232,7 @@ test("later npm integrity failure keeps that draft without hiding successful SDK
 });
 
 test("GitHub promotion failure fails the job and can retry without republishing", () => {
-  const f = fixture("npm");
+  const f = fixture();
   expect(
     f.invoke({ FAIL_PROMOTION: "@lunarisapp/plugin-sdk@1.0.0" }).exitCode
   ).not.toBe(0);
@@ -305,84 +240,4 @@ test("GitHub promotion failure fails the job and can retry without republishing"
   expect(
     f.calls().some(({ tool, args }) => tool === "npm" && args[0] === "publish")
   ).toBe(false);
-});
-
-test("hosted promotion requires every destination to succeed", () => {
-  const f = fixture("hosted");
-  expect(f.invoke({ FAIL_SERVICE: f.service(2) }).exitCode).not.toBe(0);
-  expect(f.promoted()).toEqual([]);
-});
-
-test("later hosted failure preserves already promoted target", () => {
-  const f = fixture("hosted");
-  expect(f.invoke({ FAIL_SERVICE: f.service(3) }).exitCode).not.toBe(0);
-  expect(f.promoted()).toEqual(["web@1.0.0"]);
-});
-
-test("missing Railway token fails before creating receipts or uploading", () => {
-  const f = fixture("hosted");
-  const result = f.invoke({ RAILWAY_API_TOKEN: " " });
-  expect(result.exitCode).not.toBe(0);
-  expect(result.stderr.toString()).toContain("Missing RAILWAY_API_TOKEN");
-  expect(
-    f.calls().filter(({ tool }) => tool === "gh" || tool === "railway")
-  ).toEqual([]);
-});
-
-test("local packaging failure records a retryable attempt and preserves history", () => {
-  const f = fixture("hosted");
-  const result = f.invoke({ FAIL_UPLOAD: "packaging" });
-  expect(result.exitCode).not.toBe(0);
-  expect(result.stderr.toString()).toContain("packaging failed before upload");
-  expect(f.receipt(1).attempts).toEqual([
-    { deploymentId: null, status: "PACKAGING_FAILED" },
-  ]);
-  expect(f.invoke().exitCode).toBe(0);
-  expect(f.receipt(1).attempts).toEqual([
-    { deploymentId: null, status: "PACKAGING_FAILED" },
-    { deploymentId: f.service(1), status: "SUCCESS" },
-  ]);
-});
-
-test("uncertain upload failure blocks duplicate uploads on retry", () => {
-  const f = fixture("hosted");
-  expect(f.invoke({ FAIL_UPLOAD: "unknown" }).exitCode).not.toBe(0);
-  expect(f.receipt(1).attempts).toEqual([
-    { deploymentId: null, status: "UPLOADING" },
-  ]);
-  const retry = f.invoke();
-  expect(retry.exitCode).not.toBe(0);
-  expect(retry.stderr.toString()).toContain("Upload outcome unknown");
-  expect(
-    f.calls().filter(({ tool, args }) => tool === "railway" && args[0] === "up")
-  ).toHaveLength(1);
-});
-
-test("fresh hosted runner resumes published receipts without uploading again", () => {
-  const f = fixture("hosted");
-  expect(f.invoke().exitCode).toBe(0);
-  expect(f.invoke().exitCode).toBe(0);
-  expect(
-    f.calls().filter(({ tool, args }) => tool === "railway" && args[0] === "up")
-  ).toHaveLength(3);
-  expect(f.promoted()).toEqual([
-    "web@1.0.0",
-    "docs@1.0.0",
-    "web@1.0.0",
-    "docs@1.0.0",
-  ]);
-});
-
-test("missing landing page prevents promotion and retries reuse the deployment", () => {
-  const f = fixture("hosted", true);
-  const failed = f.invoke({ FAIL_LANDING: "true" });
-  expect(failed.exitCode).not.toBe(0);
-  expect(failed.stderr.toString()).toContain("Landing smoke check failed");
-  expect(f.promoted()).toEqual(["web@1.0.0", "docs@1.0.0"]);
-  const recovered = f.invoke();
-  expect(recovered.exitCode, recovered.stderr.toString()).toBe(0);
-  expect(f.promoted().at(-1)).toBe("landing@1.0.0");
-  expect(
-    f.calls().filter(({ tool, args }) => tool === "railway" && args[0] === "up")
-  ).toHaveLength(4);
 });

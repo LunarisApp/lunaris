@@ -1,7 +1,6 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { parse } from "yaml";
-import { trunkRulesets } from "../release/automation/rulesets";
 
 const workflow = (name: string) =>
   parse(readFileSync(`.github/workflows/${name}.yml`, "utf8"));
@@ -65,53 +64,6 @@ test("production uses trusted tooling and resolves evidence before source checko
     ".delivery-tools/tooling/delivery/core.ts"
   );
 });
-test("retired native publication retains source validation before checkout", () => {
-  const { jobs } = workflow("release");
-  const source = jobs.source;
-  // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub Actions expression.
-  expect(source.if).toBe("${{ false }}");
-  expect(source.permissions).toEqual({ contents: "read", checks: "read" });
-  expect(source.steps[0].with.ref).toBeUndefined();
-  expect(source.steps[0].with["fetch-depth"]).toBe(0);
-  expect(source.steps.at(-1).run).toBe("bun tooling/delivery/native-source.ts");
-  // biome-ignore lint/suspicious/noTemplateCurlyInString: Literal GitHub Actions expression.
-  expect(source.steps.at(-1).env.NATIVE_SOURCE_SHA).toBe("${{ inputs.ref }}");
-  expect(source.outputs.validated_revision).toContain(
-    "steps.source.outputs.validated_revision"
-  );
-  expect(jobs.plan.needs).toBe("source");
-  expect(jobs.plan.outputs.validated_revision).toContain(
-    "needs.source.outputs.validated_revision"
-  );
-  expect(jobs.plan.steps[1].with.ref).toContain(
-    "needs.source.outputs.validated_revision"
-  );
-  for (const name of [
-    "signing",
-    "verify",
-    "build-cli",
-    "build-desktop",
-    "publish-cli",
-    "publish-desktop",
-  ]) {
-    expect(jobs[name].needs).toContain("plan");
-    expect(jobs[name].steps[0].with.ref).toContain(
-      "needs.plan.outputs.validated_revision"
-    );
-    expect(JSON.stringify(jobs[name])).not.toContain("inputs.ref");
-  }
-});
-test("cutover preserves immutable historical tags and permits normal main PRs", () => {
-  const rules = trunkRulesets(123, 456);
-  expect(rules.some((rule) => rule.name === "Release next - PRs")).toBe(false);
-  const main = rules.find((rule) => rule.name === "Release main - PRs");
-  expect(JSON.stringify(main)).toContain('"squash"');
-  expect(
-    rules.find((rule) => rule.name === "Release tags - immutable")
-      ?.bypass_actors
-  ).toEqual([]);
-});
-
 test("npm recovery checkout contains transitive release tooling imports", () => {
   const checkout = workflow("packages.publish").jobs.publish.steps.find(
     (step: { with?: { path?: string } }) => step.with?.path === ".release-tools"

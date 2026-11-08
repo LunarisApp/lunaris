@@ -48,20 +48,6 @@ export function splitChangeset(
       : null;
   return { selected: format(selected), excluded: format(excluded) };
 }
-export function validateSource(
-  base: string,
-  head: string,
-  sameRepository: boolean
-) {
-  if (
-    base === "main" &&
-    (!sameRepository || (head !== "next" && !head.startsWith("hotfix/")))
-  ) {
-    throw new Error(
-      "PRs into main must come from this repository's next or hotfix/* branch"
-    );
-  }
-}
 export function validateHotfix(head: string, changesets: Changeset[]) {
   if (
     head.startsWith("hotfix/") &&

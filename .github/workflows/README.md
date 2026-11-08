@@ -12,13 +12,14 @@ for current architecture, migration, credentials and recovery.
 - Sites - Deploy independently deploys landing/docs after successful checks.
 - Artifacts - Prepare/Publish retain independent SDK/UI Changesets releases.
 
-Legacy release preparation/publication and native publication are disabled in
-trunk mode. Historical recovery details follow; their branch/version choreography
-applies only before cutover.
+Retired release preparation/publication and standalone native workflows have been
+removed. Active jobs keep their existing validation and publication order. Shared
+release helpers remain under `tooling/release`; orchestration lives in
+`tooling/delivery`. Historical manifests and npm recovery remain supported.
 
 ## PowerSync deployment configuration
 
-The hosted-app release workflow reads these GitHub Actions repository variables:
+Core promotion reads these GitHub Actions repository variables:
 
 - `POWERSYNC_PROJECT_ID`
 - `POWERSYNC_ENVIRONMENT_ID`
@@ -139,9 +140,10 @@ an alias for existing callers.
 
 ## Publication status
 
-Green branch CI is not proof of deployment. Inspect the parent Release - Publish
-summary and recover failed publication before another release. Landing promotion
-also checks homepage, self-hosting page, installer redirect, and installer asset.
+Green branch CI is not proof of deployment. Inspect Release Stable, Artifacts -
+Publish, or Sites - Deploy for the affected output. Recover failed publication
+before another release. Landing deployment also checks homepage, self-hosting page,
+installer redirect, and installer asset.
 See the [release runbook](../../docs/procedures/releasing-and-deploying.md#publication-status-and-landing-checks).
 
 ## Desktop installers
