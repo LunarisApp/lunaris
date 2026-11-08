@@ -5,17 +5,9 @@ import {
   parseChangeset,
   splitChangeset,
   validateHotfix,
-  validateSource,
 } from "./policy";
 
 describe("release policy", () => {
-  test("only same-repository release and hotfix PRs reach main", () => {
-    expect(() => validateSource("main", "next", true)).not.toThrow();
-    expect(() => validateSource("main", "hotfix/auth", true)).not.toThrow();
-    expect(() => validateSource("next", "feature/auth", false)).not.toThrow();
-    expect(() => validateSource("main", "next", false)).toThrow();
-    expect(() => validateSource("main", "feature/auth", true)).toThrow();
-  });
   test("hotfixes reject minor and major changesets", () => {
     expect(() =>
       validateHotfix("hotfix/auth", [

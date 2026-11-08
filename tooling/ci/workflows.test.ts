@@ -95,7 +95,7 @@ test("every external action is pinned, including native releases and composite a
       dot: true,
     }),
   ];
-  expect(paths).toContain(".github/workflows/release.yml");
+  expect(paths).toContain(".github/workflows/native.build.yml");
   expect(paths).toContain(".github/actions/setup-bun/action.yml");
   const inspect = (value: unknown): void => {
     if (!value || typeof value !== "object") {

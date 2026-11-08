@@ -62,6 +62,6 @@ bun --cwd internal/agent-contracts test
 Source and binaries use [MIT](LICENSE). Release archives contain
 `LICENSE` and `THIRD-PARTY-LICENSES.txt`. Homebrew keeps
 both in its package share directory. See the
-[release workflow](../../.github/workflows/release.yml) for packaging and
+[release workflow](../../.github/workflows/native.build.yml) for packaging and
 [third-party notices](../../THIRD-PARTY-NOTICES.md) for the repository's license
 exceptions and outstanding reviews.
