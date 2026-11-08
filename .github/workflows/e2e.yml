@@ -63,9 +63,9 @@ jobs:
             -f infra/local/compose.yaml \
             config --quiet
 
-      - name: Start API services (postgres, powersync, garage)
+      - name: Start API dependencies
         run: |
-          LUNARIS_COMPOSE_ENV=.env.e2e bun run services:up
+          docker compose --env-file apps/api/.env.e2e -f infra/local/compose.yaml up -d --wait postgres garage redis
           LUNARIS_COMPOSE_ENV=.env.e2e bun run services:init
 
       - name: Migrate API database
@@ -113,6 +113,15 @@ jobs:
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REGISTRY_USER: ${{ github.actor }}
         run: bun tooling/delivery/e2e-images.ts
+
+      # Both source and candidate-image paths have migrated the database here.
+      # Starting replication earlier triggers publication-not-found backoff.
+      - name: Start PowerSync after migrations
+        env:
+          LUNARIS_COMPOSE_ENV: .env.e2e
+        run: |
+          docker compose --env-file apps/api/.env.e2e -f infra/local/compose.yaml up -d --wait powersync
+          curl --fail --silent --show-error --retry 60 --retry-all-errors --retry-delay 1 --max-time 5 http://127.0.0.1:8080/probes/readiness
 
       - name: Run full Cypress E2E suite
         uses: cypress-io/github-action@18016a55674bd02cabf197de5762a1710cb5577c # v7.4.9

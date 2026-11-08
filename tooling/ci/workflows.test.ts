@@ -84,6 +84,30 @@ test("E2E avoids nightly duplicates and cancels superseded PR runs only", () => 
   expect(e2e.jobs.e2e.if).toBeUndefined();
 });
 
+test("E2E starts PowerSync after both database migration paths", () => {
+  const steps = workflow("e2e").jobs.e2e.steps;
+  const dependencies = steps.find(
+    (step: { name?: string }) => step.name === "Start API dependencies"
+  );
+  expect(dependencies.run).toContain("--wait postgres garage redis");
+  expect(dependencies.run).not.toContain("services:up");
+
+  const syncIndex = steps.findIndex(
+    (step: { name?: string }) =>
+      step.name === "Start PowerSync after migrations"
+  );
+  for (const name of ["Migrate API database", "Start candidate images"]) {
+    const migrationIndex = steps.findIndex(
+      (step: { name?: string }) => step.name === name
+    );
+    expect(migrationIndex).toBeGreaterThan(-1);
+    expect(syncIndex).toBeGreaterThan(migrationIndex);
+  }
+  expect(steps[syncIndex].if).toBeUndefined();
+  expect(steps[syncIndex].run).toContain("/probes/readiness");
+  expect(steps[syncIndex + 1].uses).toContain("cypress-io/github-action@");
+});
+
 test("every external action is pinned, including native releases and composite actions", async () => {
   const paths = [
     ...new Bun.Glob(".github/workflows/*.{yml,yaml}").scanSync({
