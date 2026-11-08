@@ -25,6 +25,12 @@
       "skillPath": "skills/engineering/code-review/SKILL.md",
       "computedHash": "c2745e2be960b82b9fddd82cf45265f42431e7b045c403f297b25f0f311e9210"
     },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "5dce49bdb3a5f461ec15283a6c05197698539e974ac622db8e130a9d49848238"
+    },
     "instrument-product-analytics": {
       "source": "posthog/ai-plugin",
       "sourceType": "github",
