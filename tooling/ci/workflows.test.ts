@@ -240,3 +240,24 @@ test("workflow exports every selection flag validated by the gate", () => {
     [...checks, "filters"].sort()
   );
 });
+
+test("Bun fallback preserves the pinned version and verifies installation", () => {
+  const action = parse(
+    readFileSync(".github/actions/setup-bun/action.yml", "utf8")
+  );
+  const steps = action.runs.steps;
+  const install = steps.find((step: { id?: string }) => step.id === "install");
+  expect(install["continue-on-error"]).toBe(true);
+  const fallback = steps.find((step: { name?: string }) =>
+    step.name?.startsWith("Install Bun from npm")
+  );
+  expect(fallback.if).toBe("steps.install.outcome == 'failure'");
+  expect(fallback.run).toContain('"bun@$BUN_VERSION"');
+  expect(fallback.run).toContain('"$GITHUB_PATH"');
+  expect(fallback.run).toContain('cygpath -w "$bin"');
+  const verify = steps.find(
+    (step: { name?: string }) => step.name === "Verify Bun version"
+  );
+  expect(verify.if).toBeUndefined();
+  expect(verify.run).toBe('test "$(bun --version)" = "$BUN_VERSION"');
+});

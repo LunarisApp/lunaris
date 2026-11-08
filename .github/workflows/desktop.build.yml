@@ -153,7 +153,7 @@ jobs:
           PATCHELF: ${{ runner.os == 'Linux' && format('{0}/tooling/delivery/appimage-patchelf.sh', github.workspace) || '' }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ inputs.publish && secrets.TAURI_SIGNING_PRIVATE_KEY || '' }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ inputs.publish && secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
-        run: bun run --cwd apps/desktop tauri:build -- --verbose --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} ${{ inputs.publish && '--config ../../artifacts/desktop-updater.conf.json' || '' }}
+        run: bash .delivery-tools/tooling/delivery/retry-bundle.sh bun run --cwd apps/desktop tauri:build -- --verbose --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} ${{ inputs.publish && '--config ../../artifacts/desktop-updater.conf.json' || '' }}
       - name: Test native runtime
         if: steps.restore.outputs.cached != 'true'
         run: |
