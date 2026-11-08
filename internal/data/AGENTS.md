@@ -1,37 +1,11 @@
-# Data Package
+# Local data
 
-Local-first data layer with PowerSync (SQLite + sync) + Yjs (CRDT).
+PowerSync owns SQLite persistence and sync; Yjs owns collaborative document state.
+Use `@repo/data/features/{feature}` services and hooks from consumers.
 
-## Structure
+## Changes
 
-- `src/core/` - PowerSync DB factory, provider, schema utils
-- `src/connectors/` - PowerSync backend connectors (base class + impls)
-- `src/features/` - Feature modules with table definitions and services
-
-## Key Patterns
-
-### Table Definitions
-
-Tables use `@powersync/web` `Table` with `column.*` typed columns:
-
-```ts
-export const createXxxTable = ({ localOnly }: CreateSchemaTableProps = {}) =>
-  new Table({ field: column.text }, { localOnly, viewName: "xxx" });
-export type XxxEntity = RowType<ReturnType<typeof createXxxTable>>;
-```
-
-### Connector Pattern
-
-Extend `PowerSyncBackendConnector` from `./connectors/base.ts`:
-- Override `fetchCredentials()` and `uploadData()`
-- `LocalConnector` = offline-only mode
-
-### Feature Exports
-
-Each feature exports via `./features/*` in package.json.
-Import as `@repo/data/features/workspaces`.
-
-### Yjs Integration
-
-Yjs docs store base64 updates in `yjs_document_updates`.
-`./features/yjs/` provider handles persistence + sync.
+- For tables, services, and query hooks, read [feature conventions](src/features/AGENTS.md).
+- Preserve local-only and synchronized table handling when changing queries or writes. Follow the feature's workspace-storage helpers rather than querying only one backing table.
+- For connector changes, extend `PowerSyncBackendConnector` in `src/connectors/base.ts`; implement `fetchCredentials()` and `uploadData()`. `LocalConnector` supports offline-only workspaces.
+- For Yjs persistence, inspect `src/features/yjs/`: updates are stored as base64 in `yjs_document_updates`, and providers bind persistence to sync.

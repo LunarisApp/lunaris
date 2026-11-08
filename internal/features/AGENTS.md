@@ -1,33 +1,13 @@
-# Features Package
+# Cross-tool features
 
-UI features for Lunaris. Each feature = self-contained module with React components, hooks, state.
+Keep reusable product features here. Workspace-specific routes, workbench UI,
+Dockview integration, and explorer bindings belong in `internal/workspaces`.
 
-## Structure
+Expose consumers through `@repo/features/{feature}` or an explicit package export.
+Keep feature components, hooks, and state together; follow the nearest feature's
+provider pattern. When using a Zustand context store, create one store per provider
+and make consuming hooks fail clearly outside that provider.
 
-```
-src/
-  feature-name/
-    index.tsx     # Re-exports public API
-    context.tsx   # Zustand store + Provider + hooks (if stateful)
-    types.ts      # Type definitions
-    components/   # Sub-components
-    hooks/        # Custom hooks
-    services/     # Business logic
-```
-
-## Patterns
-
-- **State**: Use Zustand with `createStore` + React context pattern
-- Store created in ref: `useRef<Store | null>(null)`
-- Provider wraps context; hooks throw outside provider
-- **Exports**: Via `@repo/features/{feature}` (maps to `src/{feature}/index.tsx`)
-- **Dockview**: Grid layout uses dockview; register renderers via `register(pluginId, renderer, builder)`
-- **Yjs integration**: Workspace explorer syncs with Yjs via `externalActions` prop
-
-## Dependencies
-
-- `zustand` - State management
-- `dockview` - Panel/tab layout
-- `yjs` - CRDT for hierarchy sync
-- `@lunarisapp/ui` - UI components
-- `@repo/data` - Data layer
+Use `@repo/data` for persistence and `@lunarisapp/ui` for shared controls.
+Shared feature locale strings live in `src/locale/locales`; extension-owned strings
+stay with their extension.
