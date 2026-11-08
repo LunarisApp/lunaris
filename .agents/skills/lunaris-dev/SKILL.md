@@ -1,14 +1,13 @@
 ---
 name: lunaris-dev
-description: Run, validate, and capture Lunaris locally. Use for dev setup, local service troubleshooting, code quality checks after changes, or UI screenshots in this repository.
+description: "Run Lunaris locally, validate repository changes, or capture UI screenshots. Use for setup, local service failures, post-change checks, and visual verification."
 ---
 
 # Lunaris development
 
-Run commands from the repository root. Read only the guide needed for the task:
+Run commands from the repository root unless a guide specifies otherwise.
+Read the relevant guide; combine guides only when the task needs them:
 
-- [Run locally](references/run-locally.md): dependencies, services, migrations, ports, and troubleshooting.
-- [Checks](references/checks.md): review changes and choose relevant validation before merge. Skip application checks for documentation-only changes.
-- [Screenshots](references/screenshots.md): verify a local UI and capture visual evidence when useful.
-
-For browser interaction, also use [agent-browser](../agent-browser/SKILL.md).
+- **Setup or service failure:** [Run locally](references/run-locally.md). Done when required services and app health checks pass.
+- **Validate changes:** [Checks](references/checks.md). Done when relevant checks pass, or failures and unverified behavior are reported.
+- **Capture UI:** [Screenshots](references/screenshots.md). Done when the requested state is verified and its screenshot is embedded, or an exact blocker is reported.

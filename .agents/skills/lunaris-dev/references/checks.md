@@ -1,21 +1,27 @@
-# Review and validate
+# Validate changes
 
-Review the diff for correctness, regressions, accessibility, and unnecessary complexity.
-Choose checks by changed files and behavior. Read affected package scripts first.
+1. Review the diff and affected package scripts. Select checks by changed behavior and consumers.
+2. Run the checks below that apply. Fix failures introduced by the change and rerun those checks.
+3. Report results, remaining failures, and any relevant behavior left unverified. Broaden checks only when dependencies or failures justify it.
 
-| Change | Check |
+| Change | Validation |
 | --- | --- |
-| Application code or configuration | `bun run check` (global Biome check) |
-| TypeScript | `bun run typecheck --filter=<package-name>` |
-| Behavior | `bun run test --filter=<package-name>` and relevant existing tests |
-| Package boundaries or exports | Relevant package build; `bun run build` when needed |
-| User flows | `bun run e2e` with local services running |
-| UI | Browser verification; [screenshots](screenshots.md) when useful |
+| Application code/configuration | `bun run check` from root |
+| TypeScript | `bun run typecheck --filter=<package-name>`; include affected consumers for shared changes |
+| Behavior | Relevant existing tests via the package's test script; root `bun run test --filter=<package-name>` runs the package suite |
+| Package boundaries/exports | Affected package builds; use root `bun run build` for broader integration |
+| User flows | Relevant Cypress specs in `apps/e2e`; use [setup](run-locally.md) first |
+| UI | Exercise affected interactions; use [screenshots](screenshots.md) when visual evidence adds value |
+| Documentation/skills only | Verify paths, links, commands, frontmatter, and `git diff --check` |
+| Shell helpers | Syntax check with the script's shell, plus relevant behavior checks |
 
-Use actual package names from `package.json`. Broaden typechecks or tests when shared changes affect multiple packages.
-Fix formatting only in affected files; avoid whole-repo `check:fix` unless requested.
-Rerun failed checks after fixes. Report failures and skipped checks with their reasons.
+API tests use `bun:test`; frontend unit/component tests use Vitest. Follow nearby
+test conventions when adding coverage.
 
-Documentation-only changes need link, command, and diff validation, not application tests.
-For skill changes, validate frontmatter and relative links. For shell helpers, run shell syntax checks.
-Use [review-logging-patterns](../../review-logging-patterns/SKILL.md) for substantial logging changes or requested logging reviews.
+Resolve package names and available scripts from `package.json`. Fix formatting
+in affected files; use whole-repo `check:fix` only when requested. Inspect Biome
+exclusions before claiming a file was linted.
+
+For a requested branch/PR review, use [code-review](../../code-review/SKILL.md).
+For substantial logging changes or a requested logging review, use
+[review-logging-patterns](../../review-logging-patterns/SKILL.md).

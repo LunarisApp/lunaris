@@ -8,5 +8,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-Content belongs in `content/`. Keep docs user-focused: app usage, workflows,
-UX, UI, and features. Avoid internal implementation documentation.
+# Documentation content
+
+Write user-facing app guidance in `content/`: usage, workflows, and features.
+Keep implementation notes with the relevant source package. For page or framework
+changes, follow the generated Next.js guidance above.

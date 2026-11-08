@@ -1,22 +1,19 @@
-# Verify and capture UI
+# Capture verified UI
 
-Use [agent-browser](../../agent-browser/SKILL.md) for browser commands.
+Read [agent-browser](../../agent-browser/SKILL.md) for browser commands.
 
-1. Probe web and API health; use [Run locally](run-locally.md) if either is unavailable.
-2. Open the requested route. Infer routes from repository code before asking.
-3. Set desktop viewport to `1280x720` to clear previous device emulation. Use mobile when requested or useful.
-4. Wait for the relevant UI to settle. Use `snapshot -i` and element waits for interactions; use `wait --load networkidle` only when appropriate.
-5. Run `agent-browser get url` after navigation. If a protected route redirects to `/auth`, complete an authorized login flow or report the login blocker. Never present the sign-in page as the requested feature.
-6. Capture one useful viewport screenshot under `.context/`. Use `--full` when page height matters and `--annotate` when interaction references help.
-7. Embed the screenshot in the final response. Include route, viewport, and any interaction needed to reach the captured state.
+1. Resolve the requested route from source. Check app health using [Run locally](run-locally.md); start missing components if needed.
+2. Set desktop viewport to `1280x720` before navigation to clear previous device emulation. Use mobile when requested or useful.
+3. Open the route and run `agent-browser get url`. If redirected to `/auth`, complete an authorized login flow or report the login blocker.
+4. Reach the requested state using `snapshot -i` and element waits. After navigation, recheck the URL. Confirm visible content matches the requested feature before capture; use network-idle waits only when appropriate.
+5. Save a useful viewport screenshot under `.context/`. Use `--full` when page height matters or `--annotate` when interaction references help.
+6. Embed the image in the final response using an absolute Markdown path. Name the route, viewport, and interactions needed to reach it.
 
 ```sh
 mkdir -p .context
-agent-browser set viewport 1280 720
-agent-browser open http://localhost:5173
-agent-browser get url
-# Wait for the target UI and verify the route before capture.
 agent-browser screenshot .context/feature.png
 ```
 
-Never fabricate authentication or feature state. Report the exact blocker if capture cannot proceed.
+A capture is complete only when the screenshot shows the requested state. If auth,
+loading, or a runtime error prevents it, report the exact blocker and identify any
+diagnostic image as such.

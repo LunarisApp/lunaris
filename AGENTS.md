@@ -1,68 +1,54 @@
-Launch `caveman` skill as the first step in the session.
+Load the `caveman` skill first each session.
 
-# Agents
+# Working conventions
 
-- Write ultra-concise. Grammar optional.
-- Prefer simple over complex abstractions.
-- End plans with unresolved questions list, if any.
-- Write code **accessible, performant, type-safe, maintainable**.
+- Write concise responses; preserve technical precision.
+- Prefer simple implementations over new abstractions.
+- End plans with unresolved questions, if any.
+- Keep code accessible, performant, type-safe, and maintainable.
 
-# Project Overview
+# Lunaris
 
-Lunaris = modern offline-first cross-platform word processor.
+Offline-first, cross-platform word processor. Apps compose private `internal/*`
+libraries and public `@lunarisapp/plugin-sdk` and `@lunarisapp/ui` packages.
+Read scripts, dependencies, and exports from the relevant `package.json`.
 
-### Terminology
+## Terminology
 
 - **Resource**: workspace content entity, including folders, files, boards, tasks, and rich text.
-- **Resource view**: rendered presentation of an opened resource. Use these names in files, symbols, UI copy, and telemetry.
-- Keep precise external concepts: browser `document`, Yjs documents, file-format documents, and generic UI/tree items.
-- Legacy names belong only in migration/compatibility reads and their tests; preserve existing stored data.
+- **Resource view**: rendered presentation of an opened resource. Use these terms in files, symbols, UI copy, and telemetry.
+- Preserve precise external terms: browser documents, Yjs documents, file-format documents, and generic UI/tree items.
+- Preserve stored data and existing ID formats; stored references depend on them. Keep legacy names only in migration/compatibility reads and their tests.
 
-### Shared Technologies
+## Ownership
 
-- **Bun** - Pkg mgr + runtime
-- **TypeScript** - Type safety
-- **Turborepo** - Monorepo orchestration
-- **Better Auth** - Authentication
-- **Polar** - Payments
-- **Resend** - Email
-- **Yjs** - CRDT for collaborative editing
+Read an area's `AGENTS.md` when listed below, including when reached from another app or package.
 
-### Shared Packages
+| Work | Owner / guidance |
+| --- | --- |
+| Backend entities and sync handlers | `apps/api/src/{feature}/*.entity.ts`, `apps/api/src/sync/handlers/`; sync rules in `infra/local/config/sync_rules.yaml` |
+| Local tables, queries, persistence, Yjs | [internal/data](internal/data/AGENTS.md) |
+| Workspace routes, workbench, navigation, extension host | [internal/workspaces](internal/workspaces/AGENTS.md) |
+| Cross-tool features and shared locales | [internal/features](internal/features/AGENTS.md) |
+| Extension implementations and locales | [extensions](extensions/AGENTS.md); public contracts in `packages/plugin-sdk` |
+| Shared UI | [packages/ui](packages/ui/AGENTS.md) |
+| Platform capabilities | [internal/platform](internal/platform/AGENTS.md) |
+| PWA composition | [apps/web](apps/web/AGENTS.md) |
+| User documentation / marketing | [apps/docs](apps/docs/AGENTS.md) / [apps/landing](apps/landing/AGENTS.md) |
+| Shared utilities | `internal/utils`, imported through `@repo/utils` |
 
-- `@repo/typescript-config` - `internal/typescript-config` - Shared TypeScript config
-- `@repo/utils` - `internal/utils` - Shared utils + helpers
-- `@repo/auth` - `internal/auth` - Shared auth for clients + API. Better Auth + Polar.
-- `@lunarisapp/plugin-sdk` - `packages/plugin-sdk` - Public extension API.
-- `@lunarisapp/ui` - `packages/ui` - Public shared UI.
+For persisted features, account for backend entity, sync rules/handler, local data,
+and consuming UI. Verify each affected layer; not every change needs all four.
 
-### Ecosystem
-Apps compose private `internal/*` libraries and the two public packages. See
-`apps/web/AGENTS.md` and `apps/api/AGENTS.md`.
+## Routing and local data
 
-# Critical Codebase Areas
+Compose routes through `internal/app-shell/src/router.tsx` and existing route
+factories. Follow nearby auth and organization guards. Keep reactive local data
+in `internal/data` PowerSync hooks and services; preserve subscriptions when
+adding loaders.
 
-| Area | Layer | Key Paths | What Lives Here |
-|------|-------|-----------|-----------------|
-| **Database** | Backend | `apps/api/src/{feature}/*.entity.ts`, Drizzle schemas | PostgreSQL tables, column defs, relations |
-| **Sync** | Backend | `apps/api/src/sync/handlers/`, `infra/local/config/sync_rules.yaml` | PowerSync rules + entity handlers controlling client sync |
-| **Data** | Frontend | `internal/data/src/features/{feature}/` | PowerSync SQLite tables, Zod schemas, CRUD services |
-| **Extensions** | Frontend | `packages/plugin-sdk/src/`, `internal/workspaces/src/extensions/`, `extensions/*/src/` | Public SDK + private workspace host/registry; each extension owns ID, metadata, React component, locales |
-| **Workspaces** | Frontend | `internal/workspaces/src/` | Workspace routes, workbench UI, navigation, editor integration, and extension host |
-| **UI** | Frontend | `packages/ui/src/` | Shared Shadcn/Base UI + Tailwind |
-| **i18n** | Frontend | `internal/features/src/locale/locales/`, `extensions/*/src/locales/` | Two locale layers: feature-level + per-extension |
-| **Routing** | Frontend | `internal/app-shell/src/router.tsx` | React Router tree; add routes here |
-| **Collab** | Both | `apps/api/src/yjs/`, `internal/data/src/features/yjs/` | Yjs doc sync; backend persistence + frontend binding |
+# Validation and delivery
 
-> Most features touch **Database → Sync → Data → Feature module**.
-
-# Procedures
-- After code changes, use `lunaris-dev` skill for review and relevant checks before merge. Documentation-only changes need documentation validation.
-- Use concise Conventional Commits subjects (aim for 50 characters; maximum 72). Explain non-obvious reasons, breaking changes, security fixes, migrations, and reverts in the body. Keep PR descriptions focused on the problem, final behavior, and validation.
-- Keep review findings actionable: file/line, problem, consequence, and concrete fix. Expand when rationale needs explanation.
-- Use `lunaris-dev` for local setup and UI screenshots when visual proof adds value.
-
-# Routing and local data
-
-- Add routes through `internal/app-shell/src/router.tsx` and existing route factories. Follow nearby auth and organization guards.
-- Keep reactive local data in `internal/data` PowerSync hooks and services. Do not move subscriptions into route loaders merely to follow server-rendered framework patterns.
+- For code or documentation changes, load [lunaris-dev](.agents/skills/lunaris-dev/SKILL.md) for relevant validation. Use its setup or screenshot guide when running locally or capturing UI evidence.
+- Use Conventional Commits subjects: aim for 50 characters, maximum 72. Explain non-obvious reasons, breaking changes, security fixes, migrations, and reverts in the body.
+- Describe PRs through the problem, final behavior, and validation. Review findings identify file/line, problem, consequence, and a concrete fix; expand when rationale needs explanation.
