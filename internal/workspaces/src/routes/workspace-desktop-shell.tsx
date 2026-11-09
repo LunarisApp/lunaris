@@ -81,6 +81,7 @@ import {
 } from "@repo/workspaces/organization-navigation";
 import { usePlatform } from "@repo/platform";
 import { log } from "evlog";
+import type { IDockviewPanel } from "dockview";
 import {
   type ComponentType,
   type ReactNode,
@@ -682,12 +683,14 @@ function DesktopOrganizationNavigationBridge({
         extensionId,
         viewInstanceId,
         params,
+        placement,
         route,
         sourceResourceId,
         title,
         viewId: definitionViewId,
       }: OpenViewInput) =>
         openPluginPanel({
+          placement,
           pluginId: extensionId,
           renderer: definitionViewId,
           sourceViewId: sourceResourceId,
@@ -826,23 +829,7 @@ function DesktopOrganizationNavigationBridge({
       return;
     }
 
-    const disposable = dockviewApi.onDidActivePanelChange((event) => {
-      const panel = event.panel;
-      const resourceId = panel?.params?.resourceId;
-      const resourceTypeId = panel?.params?.resourceTypeId;
-      if (
-        typeof resourceId === "string" &&
-        typeof resourceTypeId === "string" &&
-        panel?.params?.viewId === resourceId
-      ) {
-        const resourceType = resourceTypeMap.get(resourceTypeId);
-        trackResourceViewActivation({
-          resourceId,
-          resourceTypeId,
-          preloadRenderer: viewMap.get(resourceType?.defaultViewId ?? "")
-            ?.definition.preload,
-        });
-      }
+    const syncPanelRoute = (panel: IDockviewPanel | undefined) => {
       const mainPanel = dockviewApi.getGroup(MAIN_GROUP_ID)?.activePanel;
       const nextPath = getPathForActiveDesktopPanel(
         organizationSlug,
@@ -864,9 +851,38 @@ function DesktopOrganizationNavigationBridge({
       }
       locationRef.current = nextLocation;
       navigate({ pathname: nextPath, search: nextSearch }, { replace: true });
+    };
+
+    const activePanelDisposable = dockviewApi.onDidActivePanelChange(
+      (event) => {
+        const panel = event.panel;
+        const resourceId = panel?.params?.resourceId;
+        const resourceTypeId = panel?.params?.resourceTypeId;
+        if (
+          typeof resourceId === "string" &&
+          typeof resourceTypeId === "string" &&
+          panel?.params?.viewId === resourceId
+        ) {
+          const resourceType = resourceTypeMap.get(resourceTypeId);
+          trackResourceViewActivation({
+            resourceId,
+            resourceTypeId,
+            preloadRenderer: viewMap.get(resourceType?.defaultViewId ?? "")
+              ?.definition.preload,
+          });
+        }
+        syncPanelRoute(panel);
+      }
+    );
+    // Closing a panel may leave chrome active; resolve the surviving main view.
+    const removePanelDisposable = dockviewApi.onDidRemovePanel(() => {
+      syncPanelRoute(dockviewApi.activePanel);
     });
 
-    return () => disposable.dispose();
+    return () => {
+      activePanelDisposable.dispose();
+      removePanelDisposable.dispose();
+    };
   }, [
     dockviewApi,
     navigate,
@@ -874,50 +890,6 @@ function DesktopOrganizationNavigationBridge({
     routeSyncEnabled,
     resourceTypeMap,
     viewMap,
-    organizationSlug,
-    workspaceSlug,
-  ]);
-
-  // Close-panel URL sync: if the user closes the active panel and the next
-  // active is explorer chrome (or nothing), drop the viewId from the URL.
-  useEffect(() => {
-    if (
-      !(routeSyncEnabled && dockviewApi && organizationSlug && workspaceSlug)
-    ) {
-      return;
-    }
-
-    const disposable = dockviewApi.onDidRemovePanel(() => {
-      const nextActive = dockviewApi.activePanel ?? null;
-      const mainPanel = dockviewApi.getGroup(MAIN_GROUP_ID)?.activePanel;
-      const nextPath = getPathForActiveDesktopPanel(
-        organizationSlug,
-        workspaceSlug,
-        nextActive,
-        mainPanel
-      );
-      const nextSearch = panelWindowSession
-        ? panelWindowSearch(panelWindowSession.windowId)
-        : "";
-      const current = locationRef.current;
-      const nextLocation = resolvePendingDesktopRoute(
-        current,
-        nextPath,
-        nextSearch
-      );
-      if (!nextLocation) {
-        return;
-      }
-      locationRef.current = nextLocation;
-      navigate({ pathname: nextPath, search: nextSearch }, { replace: true });
-    });
-
-    return () => disposable.dispose();
-  }, [
-    dockviewApi,
-    navigate,
-    panelWindowSession,
-    routeSyncEnabled,
     organizationSlug,
     workspaceSlug,
   ]);

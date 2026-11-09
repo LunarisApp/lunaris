@@ -70,6 +70,7 @@ export interface GridLayoutState {
     pluginId: string,
     renderer: string
   ) => GridLayoutRenderer | undefined;
+  /** Managed group definitions, including pending groups. Dockview owns live membership. */
   groups: Group[];
   isFocusMode: boolean;
   /** Set of known extension IDs - used to show placeholder for unloaded extensions */

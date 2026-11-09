@@ -31,33 +31,26 @@ export function getPathForActiveDesktopPanel(
   panel: { params?: Record<string, unknown> } | null | undefined,
   fallbackPanel?: { params?: Record<string, unknown> } | null
 ): string {
-  const routeItemId =
-    panel?.params?.routeItemId ?? fallbackPanel?.params?.routeItemId;
-  const routePath =
-    panel?.params?.routePath ?? fallbackPanel?.params?.routePath;
-  const routeSubviewId =
-    panel?.params?.routeSubviewId ?? fallbackPanel?.params?.routeSubviewId;
-  if (
-    typeof routeItemId === "string" &&
-    typeof routePath === "string" &&
-    typeof routeSubviewId === "string"
-  ) {
-    return getWorkspaceSubviewPath(
-      organizationSlug,
-      workspaceSlug,
-      routeItemId,
-      routePath,
-      routeSubviewId
-    );
-  }
+  for (const candidate of [panel, fallbackPanel]) {
+    const { routeItemId, routePath, routeSubviewId } = candidate?.params ?? {};
+    if (
+      typeof routeItemId === "string" &&
+      typeof routePath === "string" &&
+      typeof routeSubviewId === "string"
+    ) {
+      return getWorkspaceSubviewPath(
+        organizationSlug,
+        workspaceSlug,
+        routeItemId,
+        routePath,
+        routeSubviewId
+      );
+    }
 
-  const viewId =
-    panel?.params?.viewId ??
-    panel?.params?.routeViewId ??
-    fallbackPanel?.params?.viewId ??
-    fallbackPanel?.params?.routeViewId;
-  if (typeof viewId === "string" && viewId.length > 0) {
-    return getWorkspacePath(organizationSlug, workspaceSlug, viewId);
+    const viewId = candidate?.params?.viewId ?? candidate?.params?.routeViewId;
+    if (typeof viewId === "string" && viewId.length > 0) {
+      return getWorkspacePath(organizationSlug, workspaceSlug, viewId);
+    }
   }
   return getWorkspacePath(organizationSlug, workspaceSlug);
 }

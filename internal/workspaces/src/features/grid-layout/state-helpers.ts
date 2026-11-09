@@ -160,15 +160,25 @@ export function restoreNonMainDockviewGroupSizes({
   });
 }
 
-export function resolveOpenPanelPosition(
-  groups: Group[],
-  target?: OpenPanelTarget
-): {
+export function resolveOpenPanelPosition({
+  managedGroups,
+  dockviewApi,
+  target,
+}: {
+  managedGroups: Group[];
+  dockviewApi?: Pick<DockviewApi, "getGroup"> | null;
+  target?: OpenPanelTarget;
+}): {
   position: Panel["position"];
   shouldEnsureMainGroup: boolean;
   withinGroupId?: string;
 } {
-  if (target?.groupId && findGroupById(groups, target.groupId)) {
+  // Live groups include user-created splits. Managed definitions also cover
+  // groups waiting for layout sync to create them.
+  const hasGroup = (id: string) =>
+    Boolean(dockviewApi?.getGroup?.(id) || findGroupById(managedGroups, id));
+
+  if (target?.groupId && hasGroup(target.groupId)) {
     const direction = target.direction ?? "within";
     return {
       position: {
@@ -189,7 +199,7 @@ export function resolveOpenPanelPosition(
 
   return {
     position: { referenceGroup: MAIN_GROUP_ID },
-    shouldEnsureMainGroup: !findGroupById(groups, MAIN_GROUP_ID),
+    shouldEnsureMainGroup: !hasGroup(MAIN_GROUP_ID),
     withinGroupId: MAIN_GROUP_ID,
   };
 }

@@ -618,6 +618,42 @@ describe("getPathForActiveDesktopPanel", () => {
     ).toBe("/ws-abc/novel/item_board/task/task_1");
   });
 
+  it.each([
+    { viewId: "res_notes", resourceId: "res_notes" },
+    { viewId: "debugger", toolId: "debugger" },
+    { routeViewId: "res_notes" },
+  ])("prefers the active route over the fallback subview (%j)", (params) => {
+    expect(
+      getPathForActiveDesktopPanel(
+        "ws-abc",
+        "novel",
+        { params },
+        {
+          params: {
+            routeItemId: "res_board",
+            routePath: "task",
+            routeSubviewId: "task_1",
+          },
+        }
+      )
+    ).toBe(`/ws-abc/novel/${params.viewId ?? params.routeViewId}`);
+  });
+
+  it("does not combine partial routes from different panels", () => {
+    expect(
+      getPathForActiveDesktopPanel(
+        "ws-abc",
+        "novel",
+        {
+          params: { routeItemId: "res_board" },
+        },
+        {
+          params: { routePath: "task", routeSubviewId: "task_1" },
+        }
+      )
+    ).toBe("/ws-abc/novel");
+  });
+
   it("falls back to workspace root when neither active nor fallback panel is routable", () => {
     expect(
       getPathForActiveDesktopPanel(
@@ -1020,6 +1056,89 @@ function createDesktopController() {
 describe("DesktopWorkspaceShell", () => {
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it("preserves secondary placement through the navigation bridge", () => {
+    const gridState = mockDesktopShellEnv();
+    render(<DesktopWorkspaceShell controller={createDesktopController()} />);
+    const navigation = vi.mocked(OrganizationNavigationProvider).mock
+      .lastCall?.[0].navigation;
+    expect(navigation).toBeDefined();
+    navigation!.openView({
+      extensionId: "test",
+      viewId: "inspector",
+      viewInstanceId: "inspector-instance",
+      placement: "secondary",
+      title: "Inspector",
+    });
+    expect(gridState.openPluginPanel).toHaveBeenCalledWith(
+      expect.objectContaining({ placement: "secondary" })
+    );
+  });
+
+  it("syncs activation and removal without duplicate routes, preserving window search", () => {
+    const gridState = mockDesktopShellEnv();
+    readPanelWindowSessionMock.mockReturnValue({
+      descriptor: null,
+      windowId: "window-1",
+    });
+    const resourcePanel = { params: { viewId: "res_notes" } };
+    const taskPanel = {
+      params: {
+        routeItemId: "res_board",
+        routePath: "task",
+        routeSubviewId: "task_1",
+      },
+    };
+    const disposeActive = vi.fn();
+    const disposeRemove = vi.fn();
+    const onDidActivePanelChange = vi.fn(
+      (_listener: (event: { panel: typeof resourcePanel }) => void) => ({
+        dispose: disposeActive,
+      })
+    );
+    const onDidRemovePanel = vi.fn((_listener: () => void) => ({
+      dispose: disposeRemove,
+    }));
+    const api = {
+      activePanel: { params: {} },
+      getGroup: () => ({ activePanel: taskPanel }),
+      onDidActivePanelChange,
+      onDidRemovePanel,
+    };
+    Object.assign(gridState, { dockviewApi: api });
+    const navigate = vi.fn();
+    vi.mocked(useNavigate).mockReturnValue(navigate);
+    const { unmount } = render(
+      <DesktopWorkspaceShell controller={createDesktopController()} />
+    );
+    const activate = onDidActivePanelChange.mock.calls[0]![0];
+    const remove = onDidRemovePanel.mock.calls[0]![0];
+    act(() => {
+      activate({ panel: resourcePanel });
+      activate({ panel: resourcePanel });
+      remove();
+      remove();
+    });
+    expect(navigate.mock.calls).toEqual([
+      [
+        {
+          pathname: "/ws-abc/novel/res_notes",
+          search: "?panelWindow=window-1",
+        },
+        { replace: true },
+      ],
+      [
+        {
+          pathname: "/ws-abc/novel/res_board/task/task_1",
+          search: "?panelWindow=window-1",
+        },
+        { replace: true },
+      ],
+    ]);
+    unmount();
+    expect(disposeActive).toHaveBeenCalledOnce();
+    expect(disposeRemove).toHaveBeenCalledOnce();
   });
 
   it("shows dockview while extension boot is loading", () => {

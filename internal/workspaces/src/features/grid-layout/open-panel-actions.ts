@@ -106,7 +106,11 @@ export function createOpenPanelActions(
       }
 
       const { position, shouldEnsureMainGroup, withinGroupId } =
-        resolveOpenPanelPosition(groups, target);
+        resolveOpenPanelPosition({
+          managedGroups: groups,
+          dockviewApi,
+          target,
+        });
       const emptyPanelId = findEmptyPanelIdToReplace({
         dockviewApi,
         groupId: withinGroupId,
@@ -352,7 +356,11 @@ export function createOpenPanelActions(
       }
 
       const { position, shouldEnsureMainGroup, withinGroupId } =
-        resolveOpenPanelPosition(groups, target);
+        resolveOpenPanelPosition({
+          managedGroups: groups,
+          dockviewApi,
+          target,
+        });
       const emptyPanelId = findEmptyPanelIdToReplace({
         dockviewApi,
         groupId: withinGroupId,
