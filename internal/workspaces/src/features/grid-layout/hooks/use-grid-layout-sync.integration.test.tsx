@@ -18,14 +18,22 @@ import {
   useGridLayoutStoreState,
 } from "../context";
 import { createEmptyPanelDefinition } from "../empty-panel";
+import type { GridLayoutState } from "../store-types";
 import { LEFT_GROUP_ID, MAIN_GROUP_ID } from "../types";
 import { useGridLayoutSync } from "./use-grid-layout-sync";
 
 vi.mock("posthog-js", () => ({ default: { capture: vi.fn() } }));
 afterEach(cleanup);
 
-function Harness({ empty }: { empty: boolean }) {
+function Harness({
+  empty,
+  onState,
+}: {
+  empty: boolean;
+  onState?: (state: GridLayoutState) => void;
+}) {
   const state = useGridLayoutStoreState();
+  useEffect(() => onState?.(state), [onState, state]);
   const dockviewRef = useRef<DockviewApi | null>(null);
   const initialized = useRef(false);
   const panels = useGridLayoutStore((value) => value.panels);
@@ -183,5 +191,148 @@ it.each([true, false])(
       );
       expect((draft as HTMLTextAreaElement).value).toBe("Still editing");
     }
+  }
+);
+
+it.each([
+  ["resource", "within"],
+  ["resource", "below"],
+  ["tool", "within"],
+  ["tool", "below"],
+] as const)(
+  "opens a %s %s a Dockview-created split",
+  async (kind, direction) => {
+    const onState = vi.fn<(state: GridLayoutState) => void>();
+    render(
+      <GridLayoutProvider>
+        <Harness empty={false} onState={onState} />
+      </GridLayoutProvider>
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("textbox", { name: "Resource draft" })
+      ).toBeTruthy()
+    );
+    const state = onState.mock.lastCall![0];
+    const api = state.dockviewApi!;
+    act(() => {
+      state.openResourcePanel({
+        resourceId: "res_split",
+        resourceTypeId: "test",
+        extensionId: "test",
+        viewId: "resource",
+        schemaVersion: 1,
+        title: "Split",
+        target: { direction: "right" },
+      });
+    });
+    const split = api.panels.find(
+      (panel) => panel.params?.viewId === "res_split"
+    )!;
+    const splitGroupId = split.group.id;
+    expect(splitGroupId).not.toBe(MAIN_GROUP_ID);
+    expect(state.groups.some((group) => group.id === splitGroupId)).toBe(false);
+
+    const addPanel = vi.spyOn(api, "addPanel");
+    const target = { groupId: splitGroupId, direction };
+    act(() => {
+      if (kind === "resource") {
+        state.openResourcePanel({
+          resourceId: "res_dropped",
+          resourceTypeId: "test",
+          extensionId: "test",
+          viewId: "resource",
+          schemaVersion: 1,
+          title: "Dropped",
+          target,
+        });
+      } else {
+        state.openToolPanel({
+          pluginId: "system-agent-work",
+          renderer: "agent-work",
+          toolId: "agent-work",
+          title: "Agent Work",
+          target,
+        });
+      }
+    });
+    expect(addPanel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        position: { referenceGroup: splitGroupId, direction },
+      })
+    );
+    const viewId = kind === "resource" ? "res_dropped" : "agent-work";
+    const opened = api.panels.find((panel) => panel.params?.viewId === viewId)!;
+    expect(opened).toBeDefined();
+    if (direction === "within") {
+      expect(opened.group.id).toBe(splitGroupId);
+    } else {
+      expect(opened.group.id).not.toBe(splitGroupId);
+      expect(opened.group.id).not.toBe(MAIN_GROUP_ID);
+    }
+  }
+);
+
+it.each([true, false])(
+  "opens a pending resource after its split closes (main exists: %s)",
+  async (keepMainGroup) => {
+    const onState = vi.fn<(state: GridLayoutState) => void>();
+    render(
+      <GridLayoutProvider>
+        <Harness empty={false} onState={onState} />
+      </GridLayoutProvider>
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("textbox", { name: "Resource draft" })
+      ).toBeTruthy()
+    );
+    const state = onState.mock.lastCall![0];
+    const api = state.dockviewApi!;
+    act(() => {
+      state.openResourcePanel({
+        resourceId: "res_split",
+        resourceTypeId: "test",
+        extensionId: "test",
+        viewId: "resource",
+        schemaVersion: 1,
+        title: "Split",
+        target: { direction: "right" },
+      });
+    });
+    const split = api.panels.find(
+      (panel) => panel.params?.viewId === "res_split"
+    )!;
+    const splitGroupId = split.group.id;
+    if (!keepMainGroup) {
+      act(() => api.getGroup(MAIN_GROUP_ID)!.activePanel!.api.close());
+      expect(api.getGroup(MAIN_GROUP_ID)).toBeUndefined();
+    }
+    act(() => {
+      state.openResourcePanel({
+        resourceId: "res_pending",
+        resourceTypeId: "deferred",
+        extensionId: "deferred",
+        viewId: "resource",
+        schemaVersion: 1,
+        title: "Pending",
+        target: { groupId: splitGroupId, direction: "within" },
+      });
+    });
+    expect(
+      api.panels.some((panel) => panel.params?.viewId === "res_pending")
+    ).toBe(false);
+    act(() => split.api.close());
+    expect(api.getGroup(splitGroupId)).toBeUndefined();
+    act(() => {
+      state.register("deferred", "resource", () => <div>Pending content</div>);
+    });
+    await waitFor(() =>
+      expect(screen.getByText("Pending content")).toBeTruthy()
+    );
+    expect(
+      api.panels.find((panel) => panel.params?.viewId === "res_pending")?.group
+        .id
+    ).toBe(MAIN_GROUP_ID);
   }
 );

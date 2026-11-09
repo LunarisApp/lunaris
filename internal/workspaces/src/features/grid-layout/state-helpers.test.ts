@@ -75,7 +75,7 @@ describe("state-helpers", () => {
   });
 
   it("defaults to main group when no target is provided", () => {
-    expect(resolveOpenPanelPosition(groups)).toEqual({
+    expect(resolveOpenPanelPosition({ managedGroups: groups })).toEqual({
       position: { referenceGroup: MAIN_GROUP_ID },
       shouldEnsureMainGroup: false,
       withinGroupId: MAIN_GROUP_ID,
@@ -83,31 +83,67 @@ describe("state-helpers", () => {
   });
 
   it("requests main group bootstrap when missing", () => {
-    expect(resolveOpenPanelPosition([])).toEqual({
+    expect(resolveOpenPanelPosition({ managedGroups: [] })).toEqual({
       position: { referenceGroup: MAIN_GROUP_ID },
       shouldEnsureMainGroup: true,
       withinGroupId: MAIN_GROUP_ID,
     });
   });
 
+  it("targets managed groups waiting for Dockview creation", () => {
+    expect(
+      resolveOpenPanelPosition({
+        managedGroups: [{ id: "pending" }],
+        dockviewApi: { getGroup: () => undefined },
+        target: { groupId: "pending" },
+      })
+    ).toEqual({
+      position: { referenceGroup: "pending", direction: "within" },
+      shouldEnsureMainGroup: false,
+      withinGroupId: "pending",
+    });
+  });
+
+  it("falls back to main when the target group no longer exists", () => {
+    expect(
+      resolveOpenPanelPosition({
+        managedGroups: groups,
+        dockviewApi: { getGroup: () => undefined },
+        target: { groupId: "removed", direction: "within" },
+      })
+    ).toEqual({
+      position: { referenceGroup: MAIN_GROUP_ID },
+      shouldEnsureMainGroup: false,
+      withinGroupId: MAIN_GROUP_ID,
+    });
+  });
+
   it("respects valid group and edge targets", () => {
     expect(
-      resolveOpenPanelPosition(groups, {
-        groupId: MAIN_GROUP_ID,
-        direction: "below",
+      resolveOpenPanelPosition({
+        managedGroups: groups,
+        target: { groupId: MAIN_GROUP_ID, direction: "below" },
       })
     ).toEqual({
       position: { referenceGroup: MAIN_GROUP_ID, direction: "below" },
       shouldEnsureMainGroup: false,
     });
 
-    expect(resolveOpenPanelPosition(groups, { direction: "left" })).toEqual({
+    expect(
+      resolveOpenPanelPosition({
+        managedGroups: groups,
+        target: { direction: "left" },
+      })
+    ).toEqual({
       position: { direction: "left" },
       shouldEnsureMainGroup: false,
     });
 
     expect(
-      resolveOpenPanelPosition(groups, { groupId: MAIN_GROUP_ID })
+      resolveOpenPanelPosition({
+        managedGroups: groups,
+        target: { groupId: MAIN_GROUP_ID },
+      })
     ).toEqual({
       position: { direction: "within", referenceGroup: MAIN_GROUP_ID },
       shouldEnsureMainGroup: false,

@@ -30,9 +30,10 @@ import {
   findGroupById,
   findPanelsByResourceId,
   findPanelsByViewId,
+  resolveOpenPanelPosition,
 } from "./state-helpers";
 import type { GridLayoutState, MovePanelToWindow } from "./store-types";
-import { getRendererComponent, type Panel } from "./types";
+import { getRendererComponent, MAIN_GROUP_ID, type Panel } from "./types";
 
 export type {
   GridLayoutState,
@@ -556,16 +557,15 @@ export const createGridLayoutStore = (
       return newGroup;
     },
     removeGroup: (id) => {
-      const { dockviewApi, panels } = get();
-      const hasPendingPanel = Boolean(
-        dockviewApi &&
-          panels.some(
+      const { dockviewApi, groups, panels } = get();
+      const pendingPanels = dockviewApi
+        ? panels.filter(
             (panel) =>
               getReferenceGroupId(panel) === id &&
               !dockviewApi.getPanel(panel.id)
           )
-      );
-      if (hasPendingPanel) {
+        : [];
+      if (pendingPanels.length > 0 && findGroupById(groups, id)) {
         // Dockview already removed the empty live group. Emit a new groups
         // reference so layout sync recreates it before mounting the pending
         // panel.
@@ -576,6 +576,24 @@ export const createGridLayoutStore = (
           id,
         });
         return;
+      }
+
+      if (pendingPanels.length > 0) {
+        // User-created splits have no managed definition to recreate. Keep
+        // queued views reachable by moving them to the default main group.
+        const { position, shouldEnsureMainGroup } = resolveOpenPanelPosition({
+          managedGroups: groups,
+          dockviewApi,
+        });
+        if (shouldEnsureMainGroup) {
+          get().addGroup({ id: MAIN_GROUP_ID, direction: "right" });
+        }
+        const pendingIds = new Set(pendingPanels.map((panel) => panel.id));
+        set((state) => ({
+          panels: state.panels.map((panel) =>
+            pendingIds.has(panel.id) ? { ...panel, position } : panel
+          ),
+        }));
       }
 
       set((state) => ({ groups: state.groups.filter((g) => g.id !== id) }));
