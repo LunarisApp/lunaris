@@ -1,5 +1,11 @@
 # @lunarisapp/ui
 
+## 0.0.9
+
+### Patch Changes
+
+- [#102](https://github.com/LunarisApp/lunaris/pull/102) [`6b702cd`](https://github.com/LunarisApp/lunaris/commit/6b702cda3fa7319acac7c887d4a6f61bace08cd5) Thanks [@MrLightful](https://github.com/MrLightful)! - Refresh workspace dependency metadata for the signed desktop updater integration.
+
 ## 0.0.8
 
 ### Patch Changes
