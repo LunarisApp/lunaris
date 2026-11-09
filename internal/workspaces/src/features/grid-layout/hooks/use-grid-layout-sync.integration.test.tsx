@@ -272,3 +272,67 @@ it.each([
     }
   }
 );
+
+it.each([true, false])(
+  "opens a pending resource after its split closes (main exists: %s)",
+  async (keepMainGroup) => {
+    const onState = vi.fn<(state: GridLayoutState) => void>();
+    render(
+      <GridLayoutProvider>
+        <Harness empty={false} onState={onState} />
+      </GridLayoutProvider>
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("textbox", { name: "Resource draft" })
+      ).toBeTruthy()
+    );
+    const state = onState.mock.lastCall![0];
+    const api = state.dockviewApi!;
+    act(() => {
+      state.openResourcePanel({
+        resourceId: "res_split",
+        resourceTypeId: "test",
+        extensionId: "test",
+        viewId: "resource",
+        schemaVersion: 1,
+        title: "Split",
+        target: { direction: "right" },
+      });
+    });
+    const split = api.panels.find(
+      (panel) => panel.params?.viewId === "res_split"
+    )!;
+    const splitGroupId = split.group.id;
+    if (!keepMainGroup) {
+      act(() => api.getGroup(MAIN_GROUP_ID)!.activePanel!.api.close());
+      expect(api.getGroup(MAIN_GROUP_ID)).toBeUndefined();
+    }
+    act(() => {
+      state.openResourcePanel({
+        resourceId: "res_pending",
+        resourceTypeId: "deferred",
+        extensionId: "deferred",
+        viewId: "resource",
+        schemaVersion: 1,
+        title: "Pending",
+        target: { groupId: splitGroupId, direction: "within" },
+      });
+    });
+    expect(
+      api.panels.some((panel) => panel.params?.viewId === "res_pending")
+    ).toBe(false);
+    act(() => split.api.close());
+    expect(api.getGroup(splitGroupId)).toBeUndefined();
+    act(() => {
+      state.register("deferred", "resource", () => <div>Pending content</div>);
+    });
+    await waitFor(() =>
+      expect(screen.getByText("Pending content")).toBeTruthy()
+    );
+    expect(
+      api.panels.find((panel) => panel.params?.viewId === "res_pending")?.group
+        .id
+    ).toBe(MAIN_GROUP_ID);
+  }
+);

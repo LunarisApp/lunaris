@@ -35,8 +35,11 @@ export function getPathForActiveDesktopPanel(
     const { routeItemId, routePath, routeSubviewId } = candidate?.params ?? {};
     if (
       typeof routeItemId === "string" &&
+      routeItemId.length > 0 &&
       typeof routePath === "string" &&
-      typeof routeSubviewId === "string"
+      routePath.length > 0 &&
+      typeof routeSubviewId === "string" &&
+      routeSubviewId.length > 0
     ) {
       return getWorkspaceSubviewPath(
         organizationSlug,
@@ -47,9 +50,13 @@ export function getPathForActiveDesktopPanel(
       );
     }
 
-    const viewId = candidate?.params?.viewId ?? candidate?.params?.routeViewId;
-    if (typeof viewId === "string" && viewId.length > 0) {
-      return getWorkspacePath(organizationSlug, workspaceSlug, viewId);
+    for (const viewId of [
+      candidate?.params?.viewId,
+      candidate?.params?.routeViewId,
+    ]) {
+      if (typeof viewId === "string" && viewId.length > 0) {
+        return getWorkspacePath(organizationSlug, workspaceSlug, viewId);
+      }
     }
   }
   return getWorkspacePath(organizationSlug, workspaceSlug);

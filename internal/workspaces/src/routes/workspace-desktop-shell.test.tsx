@@ -654,6 +654,37 @@ describe("getPathForActiveDesktopPanel", () => {
     ).toBe("/ws-abc/novel");
   });
 
+  it.each(["routeItemId", "routePath", "routeSubviewId"])(
+    "ignores a subview route with an empty %s",
+    (field) => {
+      expect(
+        getPathForActiveDesktopPanel("ws-abc", "novel", {
+          params: {
+            viewId: "res_notes",
+            routeItemId: "res_board",
+            routePath: "task",
+            routeSubviewId: "task_1",
+            [field]: "",
+          },
+        })
+      ).toBe("/ws-abc/novel/res_notes");
+    }
+  );
+
+  it.each(["", 42])(
+    "uses the active routeViewId when viewId is invalid (%j)",
+    (viewId) => {
+      expect(
+        getPathForActiveDesktopPanel(
+          "ws-abc",
+          "novel",
+          { params: { viewId, routeViewId: "res_notes" } },
+          { params: { viewId: "res_board" } }
+        )
+      ).toBe("/ws-abc/novel/res_notes");
+    }
+  );
+
   it("falls back to workspace root when neither active nor fallback panel is routable", () => {
     expect(
       getPathForActiveDesktopPanel(
