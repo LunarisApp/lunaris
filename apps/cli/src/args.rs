@@ -76,17 +76,25 @@ pub enum Command {
         #[command(subcommand)]
         command: ResourceCommand,
     },
-    /// Read Yjs storage as JSON or encoded state.
+    /// Read resource storage by format.
+    Storage {
+        #[command(subcommand)]
+        command: StorageCommand,
+    },
+    /// Deprecated: use storage yjs.
+    #[command(hide = true)]
     YjsStorage {
         #[command(subcommand)]
         command: YjsStorageCommand,
     },
-    /// Read resource key-value storage.
+    /// Deprecated: use storage kv.
+    #[command(hide = true)]
     KeyValueStorage {
         #[command(subcommand)]
         command: KeyValueStorageCommand,
     },
-    /// Get download URLs for file storage.
+    /// Deprecated: use storage file.
+    #[command(hide = true)]
     File {
         #[command(subcommand)]
         command: FileCommand,
@@ -99,10 +107,33 @@ pub enum Command {
     /// Invoke any generated agent operation with a JSON object.
     Call {
         /// Operation name from the generated agent contract, e.g. search_resources.
-        operation: String,
+        #[arg(required_unless_present = "list", conflicts_with = "list")]
+        operation: Option<String>,
+        /// List available operations without connecting to a server.
+        #[arg(long, conflicts_with_all = ["operation", "input"])]
+        list: bool,
         /// Complete operation input as a JSON object; include organizationId when required.
-        #[arg(long)]
-        input: String,
+        #[arg(long, required_unless_present = "list", requires = "operation")]
+        input: Option<String>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum StorageCommand {
+    /// Read Yjs storage as JSON or encoded state.
+    Yjs {
+        #[command(subcommand)]
+        command: YjsStorageCommand,
+    },
+    /// Read key-value storage entries.
+    Kv {
+        #[command(subcommand)]
+        command: KeyValueStorageCommand,
+    },
+    /// Get download URLs for file storage.
+    File {
+        #[command(subcommand)]
+        command: FileCommand,
     },
 }
 
@@ -241,7 +272,8 @@ pub enum OrganizationCommand {
     },
     /// List organization members and their roles.
     Members {
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
         #[command(flatten)]
         page: PageArgs,
@@ -250,28 +282,39 @@ pub enum OrganizationCommand {
     Invite {
         /// Email address of the person to invite.
         email: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
         /// Organization role to grant.
         #[arg(long, value_parser = ["admin", "member"])]
         role: String,
     },
     /// Preview member removal and obtain a confirmation token.
+    #[command(hide = true)]
     PreviewRemoveMember {
         /// Member ID from organization members.
         member_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
     },
-    /// Remove a member using the token from preview-remove-member.
+    /// Preview or apply member removal.
     RemoveMember {
         /// Member ID from organization members.
         member_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
-        /// Token returned by the matching preview command; review the preview before using it.
-        #[arg(long)]
-        preview_token: String,
+        /// Preview the action and obtain a token without applying changes.
+        #[arg(
+            long,
+            required_unless_present = "preview_token",
+            conflicts_with = "preview_token"
+        )]
+        preview: bool,
+        /// Token from --preview; review the preview before applying the action.
+        #[arg(long, required_unless_present = "preview", conflicts_with = "preview")]
+        preview_token: Option<String>,
     },
 }
 
@@ -285,7 +328,8 @@ pub enum Visibility {
 pub enum WorkspaceCommand {
     /// List workspaces in an organization.
     List {
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
         #[command(flatten)]
         page: PageArgs,
@@ -294,7 +338,8 @@ pub enum WorkspaceCommand {
     Get {
         /// Workspace ID from workspace list.
         workspace_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
     },
     /// Create a workspace with a name and slug.
@@ -303,7 +348,8 @@ pub enum WorkspaceCommand {
         name: String,
         /// Workspace URL slug.
         slug: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
         /// Workspace visibility.
         #[arg(long, value_enum, default_value = "shared")]
@@ -313,7 +359,8 @@ pub enum WorkspaceCommand {
     Update {
         /// Workspace ID from workspace list.
         workspace_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
         /// Current revision from get; rejects changes if the entity has changed.
         #[arg(long)]
@@ -326,21 +373,31 @@ pub enum WorkspaceCommand {
         slug: Option<String>,
     },
     /// Preview workspace deletion and obtain a confirmation token.
+    #[command(hide = true)]
     PreviewDelete {
         /// Workspace ID from workspace list.
         workspace_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
     },
-    /// Delete a workspace using the token from preview-delete.
+    /// Preview or apply workspace deletion.
     Delete {
         /// Workspace ID from workspace list.
         workspace_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
-        /// Token returned by the matching preview command; review the preview before using it.
-        #[arg(long)]
-        preview_token: String,
+        /// Preview the action and obtain a token without applying changes.
+        #[arg(
+            long,
+            required_unless_present = "preview_token",
+            conflicts_with = "preview_token"
+        )]
+        preview: bool,
+        /// Token from --preview; review the preview before applying the action.
+        #[arg(long, required_unless_present = "preview", conflicts_with = "preview")]
+        preview_token: Option<String>,
     },
 }
 
@@ -349,8 +406,10 @@ pub enum ResourceCommand {
     /// List resources in a workspace, optionally filtering by name, type, or parent.
     List {
         /// Workspace ID from workspace list.
+        #[arg(long = "workspace", alias = "workspace-id")]
         workspace_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
         #[command(flatten)]
         page: PageArgs,
@@ -371,30 +430,35 @@ pub enum ResourceCommand {
     Search {
         /// Text to search for in resource names.
         search: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
         #[command(flatten)]
         page: PageArgs,
         /// Workspace ID from workspace list.
-        #[arg(long)]
+        #[arg(long = "workspace", alias = "workspace-id")]
         workspace_id: Option<String>,
     },
     /// Show resource details, including storage and current revision.
     Get {
         /// Workspace ID from workspace list.
+        #[arg(long = "workspace", alias = "workspace-id")]
         workspace_id: String,
         /// Resource ID from resource list or search.
         resource_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
     },
     /// Create a resource with its type and storage definitions.
     Create {
         /// Workspace ID from workspace list.
+        #[arg(long = "workspace", alias = "workspace-id")]
         workspace_id: String,
         /// Display name.
         name: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
         /// Resource type identifier.
         #[arg(long)]
@@ -418,10 +482,12 @@ pub enum ResourceCommand {
     /// Rename, move, or update a resource using the current revision.
     Update {
         /// Workspace ID from workspace list.
+        #[arg(long = "workspace", alias = "workspace-id")]
         workspace_id: String,
         /// Resource ID from resource list or search.
         resource_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
         /// Current revision from get; rejects changes if the entity has changed.
         #[arg(long)]
@@ -446,25 +512,37 @@ pub enum ResourceCommand {
         position: Option<i64>,
     },
     /// Preview resource deletion and obtain a confirmation token.
+    #[command(hide = true)]
     PreviewDelete {
         /// Workspace ID from workspace list.
+        #[arg(long = "workspace", alias = "workspace-id")]
         workspace_id: String,
         /// Resource ID from resource list or search.
         resource_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
     },
-    /// Delete a resource using the token from preview-delete.
+    /// Preview or apply resource deletion.
     Delete {
         /// Workspace ID from workspace list.
+        #[arg(long = "workspace", alias = "workspace-id")]
         workspace_id: String,
         /// Resource ID from resource list or search.
         resource_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
-        /// Token returned by the matching preview command; review the preview before using it.
-        #[arg(long)]
-        preview_token: String,
+        /// Preview the action and obtain a token without applying changes.
+        #[arg(
+            long,
+            required_unless_present = "preview_token",
+            conflicts_with = "preview_token"
+        )]
+        preview: bool,
+        /// Token from --preview; review the preview before applying the action.
+        #[arg(long, required_unless_present = "preview", conflicts_with = "preview")]
+        preview_token: Option<String>,
     },
 }
 
@@ -473,19 +551,23 @@ pub enum YjsStorageCommand {
     /// Read the JSON representation of a Yjs document.
     Json {
         /// Workspace ID from workspace list.
+        #[arg(long = "workspace", alias = "workspace-id")]
         workspace_id: String,
         /// Storage ID from resource get.
         storage_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
     },
     /// Read base64-encoded Yjs state, optionally relative to a state vector.
     State {
         /// Workspace ID from workspace list.
+        #[arg(long = "workspace", alias = "workspace-id")]
         workspace_id: String,
         /// Storage ID from resource get.
         storage_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
         /// Base64-encoded Yjs state vector to compute an incremental update.
         #[arg(long)]
@@ -498,10 +580,12 @@ pub enum KeyValueStorageCommand {
     /// List the entries in a key-value storage.
     List {
         /// Workspace ID from workspace list.
+        #[arg(long = "workspace", alias = "workspace-id")]
         workspace_id: String,
         /// Storage ID from resource get.
         storage_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
     },
 }
@@ -511,10 +595,12 @@ pub enum FileCommand {
     /// Get a download URL for a file storage.
     DownloadUrl {
         /// Workspace ID from workspace list.
+        #[arg(long = "workspace", alias = "workspace-id")]
         workspace_id: String,
         /// Storage ID from resource get.
         storage_id: String,
-        /// Organization ID; defaults to --organization, then the saved default.
+        /// Deprecated positional scope; use --organization instead.
+        #[arg(hide = true)]
         organization_id: Option<String>,
     },
 }
@@ -529,6 +615,58 @@ pub enum McpCommand {
 mod tests {
     use super::*;
     use clap::CommandFactory;
+
+    #[test]
+    fn destructive_commands_require_exactly_one_mode() {
+        for arguments in [
+            vec!["lunaris", "workspace", "delete", "w"],
+            vec!["lunaris", "resource", "delete", "r", "--workspace", "w"],
+            vec!["lunaris", "organization", "remove-member", "m"],
+        ] {
+            let error = Cli::try_parse_from(&arguments).unwrap_err();
+            assert_eq!(
+                error.kind(),
+                clap::error::ErrorKind::MissingRequiredArgument
+            );
+            let help = error.to_string();
+            assert!(help.contains("--preview"));
+            assert!(help.contains("--preview-token"));
+            let mut both = arguments;
+            both.extend(["--preview", "--preview-token", "token"]);
+            assert_eq!(
+                Cli::try_parse_from(both).unwrap_err().kind(),
+                clap::error::ErrorKind::ArgumentConflict
+            );
+        }
+    }
+
+    #[test]
+    fn call_discovery_and_execution_are_exclusive() {
+        assert!(Cli::try_parse_from(["lunaris", "call", "--list"]).is_ok());
+        assert!(Cli::try_parse_from(["lunaris", "call", "get_resource", "--input", "{}"]).is_ok());
+        for arguments in [
+            vec!["lunaris", "call"],
+            vec!["lunaris", "call", "get_resource"],
+            vec!["lunaris", "call", "--input", "{}"],
+            vec!["lunaris", "call", "--list", "get_resource"],
+            vec!["lunaris", "call", "--list", "--input", "{}"],
+        ] {
+            assert!(Cli::try_parse_from(arguments).is_err());
+        }
+    }
+
+    #[test]
+    fn positional_workspace_syntax_is_rejected_instead_of_reinterpreted() {
+        assert!(Cli::try_parse_from([
+            "lunaris",
+            "resource",
+            "get",
+            "old_workspace",
+            "old_resource"
+        ])
+        .is_err());
+        assert!(Cli::try_parse_from(["lunaris", "resource", "list", "old_workspace"]).is_err());
+    }
 
     #[test]
     fn command_tree_is_valid() {
