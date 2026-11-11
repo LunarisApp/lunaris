@@ -70,6 +70,9 @@ it("inserts an atomic entity reference instead of a link", () => {
   expect(insertInlineContent).toHaveBeenCalledWith([
     {
       props: {
+        embed: false,
+        storageId: "",
+        width: 0,
         resourceId: "item_1",
         kind: "resource",
         name: "Launch plan",

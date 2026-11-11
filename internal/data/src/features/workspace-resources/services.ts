@@ -208,6 +208,8 @@ export function useWorkspaceResourceTimestamps(resourceId: string | undefined) {
 
 export async function createWorkspaceResource(params: {
   db: DatabaseOrTx;
+  /** Preallocated by importers so forward references remain stable across retries. */
+  id?: string;
   icon?: string;
   name: string;
   initialPayload?: JsonObject;
@@ -261,7 +263,7 @@ export async function createWorkspaceResource(params: {
     initialPayload,
   } = params;
   const visibility = await resolveWorkspaceVisibility(db, workspaceId);
-  const id = createId("res");
+  const id = params.id ?? createId("res");
   const now = new Date().toISOString();
   const tables = resolveWorkspaceScopedTables(visibility);
   const handles: Record<

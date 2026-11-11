@@ -73,6 +73,9 @@ describe("DOCX content", () => {
               type: "entityReference",
               props: {
                 name: "Referenced resource",
+                embed: false,
+                storageId: "",
+                width: 0,
                 resourceId: "r-1",
                 workspaceId: "w-1",
                 kind: "resource",

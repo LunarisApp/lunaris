@@ -553,7 +553,29 @@
     "noSearchResults": "Keine passenden Arbeitsbereiche",
     "noWorkspaces": "Noch keine Arbeitsbereiche",
     "noWorkspacesDescription": "Erstellen Sie Ihr ersten Arbeitsbereich, um loszulegen",
-    "updated": "Aktualisiert"
+    "updated": "Aktualisiert",
+    "importKeepOriginals": "Originale Markdown-Dateien behalten",
+    "importCost": "{{resources}} Ressourcen · {{source}} MB Quelldateien · {{retained}} MB gespeicherte Dateien, zuzüglich konvertierter Notizen",
+    "importProgress": "{{completed}} von {{total}} Ressourcen importiert",
+    "importIncomplete": "Import unvollständig: {{remaining}} Ressourcen verbleiben",
+    "importComplete": "Import abgeschlossen",
+    "importRetryHint": "Importierte Ressourcen sind gespeichert. Hier erneut versuchen, um im selben Arbeitsbereich fortzufahren. Schließen beendet diese Wiederholungssitzung.",
+    "importReportSummary": "{{issues}} Ressourcen prüfen · {{skipped}} Pfade übersprungen",
+    "importReviewReport": "Importbericht prüfen (erste 50 pro Abschnitt)",
+    "importFileFailed": "Import fehlgeschlagen. Erneut versuchen oder heruntergeladenen Bericht prüfen.",
+    "importDownloadReport": "Vollständigen Bericht herunterladen",
+    "importRetry": "Verbleibende erneut versuchen",
+    "importWarning": {
+      "frontmatter": "Frontmatter konnte nicht gelesen werden; als YAML erhalten.",
+      "unresolved-link": "Linkziel nicht gefunden; Quelle erhalten.",
+      "ambiguous-link": "Linkziel ist mehrdeutig; Quelle erhalten.",
+      "anchor": "Link öffnet die Ressource; Überschriften- und Blockanker werden nicht unterstützt.",
+      "transclusion": "Einbettung in einen Ressourcenlink umgewandelt.",
+      "unsupported-syntax": "Obsidian-Syntax ohne Plugin-Funktion erhalten.",
+      "conversion": "Konvertierung fehlgeschlagen; Markdown als Code erhalten.",
+      "hidden": "Versteckter Pfad übersprungen.",
+      "unsupported": "Nicht unterstützte Datei übersprungen."
+    }
   },
   "explorer": {
     "title": "Explorer",

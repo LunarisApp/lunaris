@@ -3,6 +3,7 @@ import {
   type PluginEntityReferenceOption,
   useEntityReferenceSearch,
   useOrganizationNavigation,
+  useStoredFile,
 } from "@lunarisapp/plugin-sdk";
 import { BlockNoteSchema, defaultInlineContentSpecs } from "@blocknote/core";
 import {
@@ -27,9 +28,12 @@ import {
 } from "./entity-reference-schema";
 
 export interface EntityReferenceInlineProps {
+  embed?: boolean;
   kind: "folder" | "resource" | "workspace";
   name: string;
   resourceId: string;
+  storageId?: string;
+  width?: number;
   workspaceId: string;
 }
 
@@ -50,6 +54,9 @@ export function entityReferenceOptionToInlineContent(
 ) {
   return {
     props: {
+      embed: false,
+      storageId: "",
+      width: 0,
       resourceId:
         option.reference.type === "workspace-resource"
           ? option.reference.resourceId
@@ -60,6 +67,31 @@ export function entityReferenceOptionToInlineContent(
     },
     type: ENTITY_REFERENCE_TYPE,
   } as const;
+}
+
+function EmbeddedReferenceImage({
+  props,
+}: {
+  props: EntityReferenceInlineProps;
+}) {
+  const { objectUrl } = useStoredFile({
+    kind: "file",
+    storageId: props.storageId!,
+  });
+  return objectUrl ? (
+    <img
+      alt={props.name}
+      src={objectUrl}
+      loading="lazy"
+      style={{
+        maxWidth: "100%",
+        width: props.width || undefined,
+        height: "auto",
+      }}
+    />
+  ) : (
+    <span>{props.name}</span>
+  );
 }
 
 export function EntityReferenceInlineContent({
@@ -91,19 +123,29 @@ export function EntityReferenceInlineContent({
 
   return (
     <button
-      className="entity-reference-inline"
+      className={
+        props.embed
+          ? "inline-block max-w-full align-middle"
+          : "entity-reference-inline"
+      }
       contentEditable={false}
       data-entity-reference-kind={props.kind}
       onClick={handleClick}
       onMouseDown={(event) => event.preventDefault()}
       type="button"
     >
-      <HugeiconsIcon
-        aria-hidden="true"
-        className="entity-reference-inline__icon"
-        icon={entityReferenceIcon(props.kind)}
-      />
-      <span className="entity-reference-inline__label">{props.name}</span>
+      {props.embed && props.storageId ? (
+        <EmbeddedReferenceImage props={props} />
+      ) : (
+        <>
+          <HugeiconsIcon
+            aria-hidden="true"
+            className="entity-reference-inline__icon"
+            icon={entityReferenceIcon(props.kind)}
+          />
+          <span className="entity-reference-inline__label">{props.name}</span>
+        </>
+      )}
     </button>
   );
 }

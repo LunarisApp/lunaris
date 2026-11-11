@@ -10,6 +10,9 @@ export const entityReferenceInlineConfig = {
   content: "none",
   propSchema: {
     resourceId: { default: "" },
+    embed: { default: false },
+    storageId: { default: "" },
+    width: { default: 0 },
     kind: {
       default: "resource",
       values: ["folder", "resource", "workspace"],
