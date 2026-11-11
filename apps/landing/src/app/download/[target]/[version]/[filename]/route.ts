@@ -4,7 +4,7 @@ import {
 	isReleaseVersion,
 	ReleaseDownloadError,
 	resolveVersionedReleaseDownload,
-	type SignedReleaseDownload,
+	type ReleaseDownload,
 	type ReleaseTarget,
 } from "@/lib/release-downloads";
 
@@ -27,7 +27,7 @@ interface DownloadRouteDependencies {
 		target: ReleaseTarget,
 		version: string,
 		filename: string,
-	) => Promise<SignedReleaseDownload>;
+	) => Promise<ReleaseDownload>;
 }
 
 const noStoreHeaders = {

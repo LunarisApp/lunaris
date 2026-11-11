@@ -3,7 +3,7 @@ export type ReleaseTarget = (typeof releaseTargets)[number];
 type ReleaseComponent = "cli" | "desktop";
 type SigningMode = "adhoc" | "signed";
 
-export interface SignedReleaseDownload {
+export interface ReleaseDownload {
 	component: ReleaseComponent;
 	signingMode: SigningMode | "unsigned";
 	url: string;
@@ -69,7 +69,7 @@ export async function resolveGithubReleaseDownload(
 			signal: AbortSignal.timeout(10_000),
 		}),
 	target: ReleaseTarget = "macos",
-): Promise<SignedReleaseDownload> {
+): Promise<ReleaseDownload> {
 	if (version && !isReleaseVersion(version)) {
 		throw new ReleaseDownloadError("not_found", "Release version is invalid");
 	}
@@ -172,7 +172,7 @@ export async function resolveGithubReleaseDownload(
 export function resolveReleaseDownload(
 	target: ReleaseTarget,
 	request?: (path: string) => Promise<Response>,
-): Promise<SignedReleaseDownload> {
+): Promise<ReleaseDownload> {
 	return resolveGithubReleaseDownload(undefined, undefined, request, target);
 }
 
@@ -181,7 +181,7 @@ export function resolveVersionedReleaseDownload(
 	version: string,
 	filename: string,
 	request?: (path: string) => Promise<Response>,
-): Promise<SignedReleaseDownload> {
+): Promise<ReleaseDownload> {
 	if (!isReleaseVersion(version) || !filename) {
 		return Promise.reject(
 			new ReleaseDownloadError("not_found", "Release artifact was not found"),

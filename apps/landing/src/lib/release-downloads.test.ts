@@ -133,7 +133,25 @@ describe("GitHub CLI downloads", () => {
 				return Promise.resolve(
 					Response.json({
 						...release,
-						assets: [{ name: filename, size: 1024, state: "uploaded" }],
+						assets: [
+							{ name: filename, size: 1024, state: "uploaded" },
+							{
+								name: "Lunaris-desktop-1.2.3-universal.dmg",
+								size: 2048,
+								state: "uploaded",
+							},
+							{
+								name: "Lunaris-desktop-1.2.3-x86_64-pc-windows-msvc.exe",
+								size: 2048,
+								state: "uploaded",
+							},
+							{
+								name: "Lunaris-desktop-1.2.3-x86_64-unknown-linux-gnu.deb",
+								size: 2048,
+								state: "uploaded",
+							},
+							{ name: "SHA256SUMS", size: 128, state: "uploaded" },
+						],
 					}),
 				);
 			};
@@ -179,6 +197,7 @@ describe("GitHub CLI downloads", () => {
 			{ ...release, assets: [...release.assets, ...release.assets] },
 			{ ...release, assets: [{ name, size: 1024, state: "new" }] },
 			{ ...release, tag_name: "v1.2.4" },
+			{ ...release, tag_name: "desktop@1.2.3" },
 			{ ...release, draft: true },
 			{ ...release, prerelease: true },
 		]) {

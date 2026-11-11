@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	ReleaseDownloadError,
-	type SignedReleaseDownload,
+	type ReleaseDownload,
 	type ReleaseTarget,
 } from "@/lib/release-downloads";
 import { handleVersionedDownload } from "./route";
@@ -21,7 +21,7 @@ function dependencies(
 		target: ReleaseTarget,
 		version: string,
 		filename: string,
-	) => Promise<SignedReleaseDownload>,
+	) => Promise<ReleaseDownload>,
 ) {
 	const events: Record<string, unknown>[] = [];
 	const errors: Error[] = [];
