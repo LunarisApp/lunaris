@@ -104,6 +104,11 @@ and increment it when runtime settings/destinations need recertification.
 Release downloads use GitHub Releases without storage credentials. Homebrew is
 optional: add `HOMEBREW_TAP_TOKEN` to the `release` environment when tap updates
 should resume. Its absence does not block stable releases or repository migration.
+Desktop updater signing requires repository variable `TAURI_UPDATER_PUBLIC_KEY`
+and repository secret `TAURI_SIGNING_PRIVATE_KEY`. Set
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` when the key is password protected. Keep the
+same keypair across releases so installed apps can verify updates. Stable checks
+these settings before reserving a version or starting native builds.
 Apple credentials remain all-or-none: absent credentials select ad-hoc signing;
 partial credentials fail. Native build jobs read repository secrets; distribution
 jobs also support release-environment secrets. Configure npm trusted publishers

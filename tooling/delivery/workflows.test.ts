@@ -261,3 +261,21 @@ test("stable asset jobs use workflow tooling while retaining candidate source", 
     }
   }
 });
+
+test("stable checks updater keys before reserving a release or building artifacts", () => {
+  const steps = workflow("release.stable").jobs.reserve.steps;
+  const signing = steps.findIndex((step: { run?: string }) =>
+    step.run?.includes("desktop-updater-config.ts")
+  );
+  const reserve = steps.findIndex(
+    (step: { id?: string }) => step.id === "reserve"
+  );
+  expect(signing).toBeGreaterThanOrEqual(0);
+  expect(signing).toBeLessThan(reserve);
+  expect(steps[signing].env.TAURI_UPDATER_PUBLIC_KEY).toContain(
+    "vars.TAURI_UPDATER_PUBLIC_KEY"
+  );
+  expect(steps[signing].env.TAURI_SIGNING_PRIVATE_KEY).toContain(
+    "secrets.TAURI_SIGNING_PRIVATE_KEY"
+  );
+});

@@ -47,6 +47,11 @@ jobs:
           token: ${{ steps.app.outputs.token }}
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile
+      - name: Validate desktop updater signing before reserving version
+        run: bun tooling/delivery/desktop-updater-config.ts
+        env:
+          TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       - name: Check optional Homebrew publication
         id: distribution
         env:
