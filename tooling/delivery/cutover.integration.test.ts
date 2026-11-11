@@ -61,10 +61,6 @@ function fixture() {
     secrets: [
       "RELEASE_APP_PRIVATE_KEY",
       "RAILWAY_RELEASE_TOKEN",
-      "RELEASES_S3_ACCESS_KEY_ID",
-      "RELEASES_S3_SECRET_ACCESS_KEY",
-      "RELEASES_S3_REGION",
-      "RELEASES_S3_BUCKET",
       "HOMEBREW_TAP_TOKEN",
     ].map((name) => ({ name })),
     policies: Object.fromEntries(
@@ -174,7 +170,7 @@ test("preview snapshots paginated settings without values or mutations", () => {
     join(f.root, ".context/release-cutover/before.json"),
     "utf8"
   );
-  expect(snapshot).toContain('"RELEASES_S3_SECRET_ACCESS_KEY"');
+  expect(snapshot).toContain('"RELEASE_APP_PRIVATE_KEY"');
   expect(snapshot).not.toContain("not-snapshotted");
 });
 test("missing prerequisites leave publication disabled before any settings writes", () => {

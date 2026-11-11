@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	ReleaseDownloadError,
-	type SignedReleaseDownload,
+	type ReleaseDownload,
 	type ReleaseTarget,
 } from "@/lib/release-downloads";
 import { handleVersionedDownload } from "./route";
@@ -21,7 +21,7 @@ function dependencies(
 		target: ReleaseTarget,
 		version: string,
 		filename: string,
-	) => Promise<SignedReleaseDownload>,
+	) => Promise<ReleaseDownload>,
 ) {
 	const events: Record<string, unknown>[] = [];
 	const errors: Error[] = [];
@@ -54,7 +54,7 @@ describe("versioned download route", () => {
 			return Promise.resolve({
 				component: "cli",
 				signingMode: "signed",
-				url: "https://storage.example.test/signed-cli",
+				url: "https://github.com/LunarisApp/lunaris/releases/download/v1.2.3/lunaris-cli-1.2.3-universal-apple-darwin.zip",
 				version,
 			});
 		});
@@ -67,7 +67,7 @@ describe("versioned download route", () => {
 
 		expect(response.status).toBe(307);
 		expect(response.headers.get("location")).toBe(
-			"https://storage.example.test/signed-cli",
+			"https://github.com/LunarisApp/lunaris/releases/download/v1.2.3/lunaris-cli-1.2.3-universal-apple-darwin.zip",
 		);
 		expect(response.headers.get("cache-control")).toBe("no-store");
 		expect(state.errors).toHaveLength(0);

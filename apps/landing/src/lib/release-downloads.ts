@@ -1,39 +1,9 @@
 export const releaseTargets = ["macos", "windows", "linux", "cli"] as const;
 export type ReleaseTarget = (typeof releaseTargets)[number];
-type StorageReleaseTarget = "macos" | "cli";
-export type DesktopReleaseTarget = Exclude<ReleaseTarget, "cli">;
 type ReleaseComponent = "cli" | "desktop";
 type SigningMode = "adhoc" | "signed";
 
-export interface ReleaseStorageConfig {
-	accessKeyId: string;
-	bucket: string;
-	endpoint?: string;
-	region: string;
-	secretAccessKey: string;
-}
-
-interface ReleaseArtifact {
-	format: "dmg" | "zip";
-	name: string;
-	objectKey: string;
-	sha256: string;
-	size: number;
-	target: "universal-apple-darwin";
-}
-
-interface ReleaseManifest {
-	artifacts: [ReleaseArtifact];
-	component: ReleaseComponent;
-	minimumSystemVersion: "13.0";
-	schemaVersion: 1;
-	signingMode: SigningMode;
-	sourceCommit: string;
-	tag: string;
-	version: string;
-}
-
-export interface SignedReleaseDownload {
+export interface ReleaseDownload {
 	component: ReleaseComponent;
 	signingMode: SigningMode | "unsigned";
 	url: string;
@@ -60,36 +30,8 @@ export class ReleaseDownloadError extends Error {
 	}
 }
 
-export interface ReleaseStorageDependencies {
-	getManifest: (key: string) => Promise<string | undefined>;
-	signDownload: (input: {
-		expiresIn: number;
-		key: string;
-		name: string;
-	}) => Promise<string>;
-}
-
-const targetConfig = {
-	macos: {
-		component: "desktop",
-		format: "dmg",
-	},
-	cli: {
-		component: "cli",
-		format: "zip",
-	},
-} as const satisfies Record<
-	StorageReleaseTarget,
-	{
-		component: ReleaseComponent;
-		format: ReleaseArtifact["format"];
-	}
->;
-
 const semverPattern =
 	/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:(?:0|[1-9]\d*)|(?:\d*[A-Za-z-][0-9A-Za-z-]*))(?:\.(?:(?:0|[1-9]\d*)|(?:\d*[A-Za-z-][0-9A-Za-z-]*)))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
-const releaseObjectPrefix = "releases";
-
 export function isReleaseTarget(value: string): value is ReleaseTarget {
 	return releaseTargets.some((target) => target === value);
 }
@@ -100,39 +42,6 @@ export function isReleaseVersion(value: string): boolean {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function requireEnvironmentValue(
-	environment: Record<string, string | undefined>,
-	name: string,
-): string {
-	const value = environment[name]?.trim();
-	if (!value) {
-		throw new ReleaseDownloadError(
-			"configuration",
-			`Required release storage setting is missing: ${name}`,
-		);
-	}
-	return value;
-}
-
-export function readReleaseStorageConfig(
-	environment: Record<string, string | undefined>,
-): ReleaseStorageConfig {
-	const endpoint = environment.RELEASES_S3_ENDPOINT?.trim();
-	return {
-		accessKeyId: requireEnvironmentValue(
-			environment,
-			"RELEASES_S3_ACCESS_KEY_ID",
-		),
-		secretAccessKey: requireEnvironmentValue(
-			environment,
-			"RELEASES_S3_SECRET_ACCESS_KEY",
-		),
-		region: requireEnvironmentValue(environment, "RELEASES_S3_REGION"),
-		bucket: requireEnvironmentValue(environment, "RELEASES_S3_BUCKET"),
-		...(endpoint ? { endpoint } : {}),
-	};
 }
 
 function expectedAssetName(
@@ -150,141 +59,7 @@ function invalidManifest(message: string): never {
 	throw new ReleaseDownloadError("invalid_manifest", message);
 }
 
-export function parseReleaseManifest(
-	source: string,
-	target: StorageReleaseTarget,
-): ReleaseManifest {
-	let value: unknown;
-	try {
-		value = JSON.parse(source);
-	} catch (error) {
-		throw new ReleaseDownloadError(
-			"invalid_manifest",
-			"Release manifest is not valid JSON",
-			{ cause: error },
-		);
-	}
-
-	if (!isRecord(value)) invalidManifest("Release manifest must be an object");
-	const config = targetConfig[target];
-	const { component } = config;
-	const version = value.version;
-	const signingMode = value.signingMode;
-	if (value.schemaVersion !== 1) {
-		invalidManifest("Unsupported release manifest schema");
-	}
-	if (value.component !== component) {
-		invalidManifest("Release manifest component does not match target");
-	}
-	if (typeof version !== "string" || !semverPattern.test(version)) {
-		invalidManifest("Release manifest version is invalid");
-	}
-	if (signingMode !== "signed" && signingMode !== "adhoc") {
-		invalidManifest("Release manifest signing mode is invalid");
-	}
-	if (
-		(value.tag !== `${component}@${version}` && value.tag !== `v${version}`) ||
-		value.minimumSystemVersion !== "13.0" ||
-		typeof value.sourceCommit !== "string" ||
-		!/^[0-9a-f]{40}$/i.test(value.sourceCommit)
-	) {
-		invalidManifest("Release manifest metadata is invalid");
-	}
-	if (!Array.isArray(value.artifacts) || value.artifacts.length !== 1) {
-		invalidManifest("Release manifest must contain exactly one artifact");
-	}
-
-	const artifact = value.artifacts[0];
-	if (!isRecord(artifact)) {
-		invalidManifest("Release artifact must be an object");
-	}
-	const name = expectedAssetName(component, version, signingMode);
-	const objectKey = `${releaseObjectPrefix}/${component}/${version}/${name}`;
-	if (
-		artifact.name !== name ||
-		artifact.objectKey !== objectKey ||
-		artifact.target !== "universal-apple-darwin" ||
-		artifact.format !== config.format ||
-		typeof artifact.size !== "number" ||
-		!Number.isSafeInteger(artifact.size) ||
-		artifact.size <= 0 ||
-		typeof artifact.sha256 !== "string" ||
-		!/^[0-9a-f]{64}$/i.test(artifact.sha256)
-	) {
-		invalidManifest("Release artifact metadata is invalid");
-	}
-
-	return value as unknown as ReleaseManifest;
-}
-
-async function resolveManifestDownload(
-	target: StorageReleaseTarget,
-	manifestKey: string,
-	notFoundMessage: string,
-	expected?: {
-		filename: string;
-		version: string;
-	},
-	environment: Record<string, string | undefined> = process.env,
-	dependencies?: ReleaseStorageDependencies,
-): Promise<SignedReleaseDownload> {
-	const config = readReleaseStorageConfig(environment);
-	const component = targetConfig[target].component;
-
-	let storage: ReleaseStorageDependencies;
-	let manifestSource: string | undefined;
-	try {
-		storage =
-			dependencies ??
-			(await import("./release-storage")).createReleaseStorage(config);
-		manifestSource = await storage.getManifest(manifestKey);
-	} catch (error) {
-		throw new ReleaseDownloadError(
-			"storage",
-			"Release manifest could not be read",
-			{ cause: error },
-		);
-	}
-	if (manifestSource === undefined) {
-		throw new ReleaseDownloadError("not_found", notFoundMessage);
-	}
-
-	const manifest = parseReleaseManifest(manifestSource, target);
-	if (expected && manifest.version !== expected.version) {
-		invalidManifest("Release manifest version does not match request");
-	}
-	const artifact = manifest.artifacts[0];
-	if (expected && artifact.name !== expected.filename) {
-		throw new ReleaseDownloadError(
-			"not_found",
-			"Release artifact was not found",
-		);
-	}
-	let url: string;
-	try {
-		url = await storage.signDownload({
-			key: artifact.objectKey,
-			name: artifact.name,
-			expiresIn: 300,
-		});
-	} catch (error) {
-		if (error instanceof ReleaseDownloadError) throw error;
-		throw new ReleaseDownloadError(
-			"storage",
-			"Release download URL could not be signed",
-			{ cause: error },
-		);
-	}
-
-	return {
-		component,
-		version: manifest.version,
-		signingMode: manifest.signingMode,
-		url,
-	};
-}
-
-export async function resolveGithubDesktopDownload(
+export async function resolveGithubReleaseDownload(
 	version?: string,
 	filename?: string,
 	request: (path: string) => Promise<Response> = (path) =>
@@ -293,25 +68,23 @@ export async function resolveGithubDesktopDownload(
 			next: { revalidate: 300 },
 			signal: AbortSignal.timeout(10_000),
 		}),
-	target: DesktopReleaseTarget = "macos",
-): Promise<SignedReleaseDownload> {
+	target: ReleaseTarget = "macos",
+): Promise<ReleaseDownload> {
 	if (version && !isReleaseVersion(version)) {
 		throw new ReleaseDownloadError("not_found", "Release version is invalid");
 	}
+	const component = target === "cli" ? "cli" : "desktop";
 	try {
 		let response = await request(
 			version ? `tags/v${encodeURIComponent(version)}` : "latest",
 		);
 		if (version && response.status === 404) {
 			response = await request(
-				`tags/${encodeURIComponent(`desktop@${version}`)}`,
+				`tags/${encodeURIComponent(`${component}@${version}`)}`,
 			);
 		}
 		if (response.status === 404) {
-			throw new ReleaseDownloadError(
-				"not_found",
-				"Desktop release was not found",
-			);
+			throw new ReleaseDownloadError("not_found", "Release was not found");
 		}
 		if (!response.ok) {
 			throw new ReleaseDownloadError(
@@ -329,7 +102,11 @@ export async function resolveGithubDesktopDownload(
 		) {
 			invalidManifest("GitHub release metadata is invalid");
 		}
-		const releasedVersion = release.tag_name.replace(/^(v|desktop@)/, "");
+		const releasedVersion = release.tag_name.startsWith("v")
+			? release.tag_name.slice(1)
+			: release.tag_name.startsWith(`${component}@`)
+				? release.tag_name.slice(component.length + 1)
+				: "";
 		if (
 			!isReleaseVersion(releasedVersion) ||
 			(version && version !== releasedVersion)
@@ -337,14 +114,14 @@ export async function resolveGithubDesktopDownload(
 			invalidManifest("GitHub release version does not match request");
 		}
 		const signedName =
-			target === "macos"
-				? expectedAssetName("desktop", releasedVersion, "signed")
+			target === "macos" || target === "cli"
+				? expectedAssetName(component, releasedVersion, "signed")
 				: target === "windows"
 					? `Lunaris-desktop-${releasedVersion}-x86_64-pc-windows-msvc.exe`
 					: `Lunaris-desktop-${releasedVersion}-x86_64-unknown-linux-gnu.deb`;
 		const adhocName =
-			target === "macos"
-				? expectedAssetName("desktop", releasedVersion, "adhoc")
+			target === "macos" || target === "cli"
+				? expectedAssetName(component, releasedVersion, "adhoc")
 				: undefined;
 		const assets = release.assets.filter(
 			(asset: unknown): asset is Record<string, unknown> =>
@@ -358,24 +135,24 @@ export async function resolveGithubDesktopDownload(
 		if (assets.length === 0) {
 			throw new ReleaseDownloadError(
 				"not_found",
-				"Desktop installer was not found",
+				"Release artifact was not found",
 			);
 		}
 		if (assets.length !== 1) {
-			invalidManifest("GitHub release has ambiguous desktop installers");
+			invalidManifest("GitHub release has ambiguous artifacts");
 		}
 		const name = assets[0]!.name as string;
 		if (filename && filename !== name) {
 			throw new ReleaseDownloadError(
 				"not_found",
-				"Desktop installer was not found",
+				"Release artifact was not found",
 			);
 		}
 		return {
-			component: "desktop",
+			component,
 			version: releasedVersion,
 			signingMode:
-				target === "macos"
+				target === "macos" || target === "cli"
 					? name === adhocName
 						? "adhoc"
 						: "signed"
@@ -394,51 +171,21 @@ export async function resolveGithubDesktopDownload(
 
 export function resolveReleaseDownload(
 	target: ReleaseTarget,
-	environment: Record<string, string | undefined> = process.env,
-	dependencies?: ReleaseStorageDependencies,
-): Promise<SignedReleaseDownload> {
-	if (target !== "cli")
-		return resolveGithubDesktopDownload(
-			undefined,
-			undefined,
-			undefined,
-			target,
-		);
-	const _config = readReleaseStorageConfig(environment);
-	const component = targetConfig[target].component;
-	return resolveManifestDownload(
-		target,
-		`${releaseObjectPrefix}/${component}/latest.json`,
-		`Latest ${component} release was not found`,
-		undefined,
-		environment,
-		dependencies,
-	);
+	request?: (path: string) => Promise<Response>,
+): Promise<ReleaseDownload> {
+	return resolveGithubReleaseDownload(undefined, undefined, request, target);
 }
 
 export function resolveVersionedReleaseDownload(
 	target: ReleaseTarget,
 	version: string,
 	filename: string,
-	environment: Record<string, string | undefined> = process.env,
-	dependencies?: ReleaseStorageDependencies,
-): Promise<SignedReleaseDownload> {
+	request?: (path: string) => Promise<Response>,
+): Promise<ReleaseDownload> {
 	if (!isReleaseVersion(version) || !filename) {
 		return Promise.reject(
 			new ReleaseDownloadError("not_found", "Release artifact was not found"),
 		);
 	}
-
-	if (target !== "cli")
-		return resolveGithubDesktopDownload(version, filename, undefined, target);
-	const _config = readReleaseStorageConfig(environment);
-	const component = targetConfig[target].component;
-	return resolveManifestDownload(
-		target,
-		`${releaseObjectPrefix}/${component}/${version}/release.json`,
-		`${component} ${version} release was not found`,
-		{ filename, version },
-		environment,
-		dependencies,
-	);
+	return resolveGithubReleaseDownload(version, filename, request, target);
 }

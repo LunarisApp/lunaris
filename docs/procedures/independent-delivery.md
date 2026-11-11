@@ -28,8 +28,7 @@ Never enable two deployment owners for one Railway service.
 - Only after artifact validation does stable promote tested hosted digests.
   API regions finish migrations and health checks, then PowerSync updates, then
   web deploys. Existing migration advisory locks support parallel API destinations.
-- CLI S3 distribution follows hosted success. Desktop installers publish only
-  as GitHub Release assets. Homebrew updates run only when
+- CLI archives and desktop installers publish as GitHub Release assets. Homebrew updates run only when
   `HOMEBREW_TAP_TOKEN` is configured; otherwise releases record Homebrew as disabled. One `vX.Y.Z`
   GitHub Release becomes public after every output succeeds. Its assets include
   installers, native archives, checksums, and `release-manifest.json`.
@@ -86,9 +85,14 @@ Set repository `CORE_CONFIGURATION_REVISION` and increment it when runtime
 settings/destinations need recertification. Staging targets, credentials, and
 PowerSync variables are no longer used by delivery workflows.
 
-Configure native S3 credentials used by existing release scripts. Homebrew is
+Release downloads use GitHub Releases without storage credentials. Homebrew is
 optional: add `HOMEBREW_TAP_TOKEN` to the `release` environment when tap updates
 should resume. Its absence does not block stable releases or repository migration.
+Desktop updater signing requires repository variable `TAURI_UPDATER_PUBLIC_KEY`
+and repository secret `TAURI_SIGNING_PRIVATE_KEY`. Set
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` when the key is password protected. Keep the
+same keypair across releases so installed apps can verify updates. Stable checks
+these settings before reserving a version or starting native builds.
 Apple credentials remain all-or-none: absent credentials select ad-hoc signing;
 partial credentials fail. Native build jobs read repository secrets; distribution
 jobs also support release-environment secrets. Configure npm trusted publishers

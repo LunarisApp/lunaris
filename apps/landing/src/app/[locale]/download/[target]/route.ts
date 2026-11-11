@@ -3,7 +3,7 @@ import {
 	isReleaseTarget,
 	ReleaseDownloadError,
 	resolveReleaseDownload,
-	type SignedReleaseDownload,
+	type ReleaseDownload,
 	type ReleaseTarget,
 } from "@/lib/release-downloads";
 
@@ -18,7 +18,7 @@ interface DownloadLogger {
 
 interface DownloadRouteDependencies {
 	log: DownloadLogger;
-	resolve: (target: ReleaseTarget) => Promise<SignedReleaseDownload>;
+	resolve: (target: ReleaseTarget) => Promise<ReleaseDownload>;
 }
 
 const noStoreHeaders = {

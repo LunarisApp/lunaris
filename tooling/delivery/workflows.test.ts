@@ -118,20 +118,18 @@ test("macOS release builds plugin SDK before compiling the agent sidecar", () =>
   expect(steps[sdk].if).toBe(steps[agent].if);
 });
 
-test("Homebrew is optional and only CLI publishes to S3", () => {
+test("Homebrew is optional and distribution needs no S3 credentials", () => {
   const stable = workflow("release.stable");
   const preflight = stable.jobs.reserve.steps.find(
     (step: { id?: string }) => step.id === "distribution"
   );
-  expect(preflight.run).toContain(
-    "for name in S3_ACCESS_KEY S3_SECRET_KEY S3_REGION S3_BUCKET; do"
-  );
+  expect(preflight.run).not.toContain("S3_");
   expect(preflight.run).toContain("homebrew_enabled=false");
   const steps = stable.jobs.distribute.steps;
+  expect(JSON.stringify(stable)).not.toContain("RELEASES_S3_");
   expect(
-    steps.find((step: { run?: string }) => step.run?.includes("publish-s3.sh"))
-      .if
-  ).toBe("matrix.component == 'cli'");
+    steps.some((step: { run?: string }) => step.run?.includes("publish-s3.sh"))
+  ).toBe(false);
   expect(
     steps.find(
       (step: { with?: { repository?: string } }) =>
@@ -257,4 +255,22 @@ test("stable asset jobs use workflow tooling while retaining candidate source", 
       }
     }
   }
+});
+
+test("stable checks updater keys before reserving a release or building artifacts", () => {
+  const steps = workflow("release.stable").jobs.reserve.steps;
+  const signing = steps.findIndex((step: { run?: string }) =>
+    step.run?.includes("desktop-updater-config.ts")
+  );
+  const reserve = steps.findIndex(
+    (step: { id?: string }) => step.id === "reserve"
+  );
+  expect(signing).toBeGreaterThanOrEqual(0);
+  expect(signing).toBeLessThan(reserve);
+  expect(steps[signing].env.TAURI_UPDATER_PUBLIC_KEY).toContain(
+    "vars.TAURI_UPDATER_PUBLIC_KEY"
+  );
+  expect(steps[signing].env.TAURI_SIGNING_PRIVATE_KEY).toContain(
+    "secrets.TAURI_SIGNING_PRIVATE_KEY"
+  );
 });
