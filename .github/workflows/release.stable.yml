@@ -47,18 +47,11 @@ jobs:
           token: ${{ steps.app.outputs.token }}
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile
-      - name: Validate distribution credentials before reserving version
+      - name: Check optional Homebrew publication
         id: distribution
         env:
-          S3_ACCESS_KEY: ${{ secrets.RELEASES_S3_ACCESS_KEY_ID }}
-          S3_SECRET_KEY: ${{ secrets.RELEASES_S3_SECRET_ACCESS_KEY }}
-          S3_REGION: ${{ secrets.RELEASES_S3_REGION }}
-          S3_BUCKET: ${{ secrets.RELEASES_S3_BUCKET }}
           TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
-          for name in S3_ACCESS_KEY S3_SECRET_KEY S3_REGION S3_BUCKET; do
-            if [ -z "${!name}" ]; then echo "Missing distribution setting: $name" >&2; exit 1; fi
-          done
           if [ -n "$TAP_TOKEN" ]; then
             echo 'homebrew_enabled=true' >> "$GITHUB_OUTPUT"
           else
@@ -133,11 +126,6 @@ jobs:
       SIGNING_MODE: ${{ needs.native.outputs.signing_mode }}
       VERSION: ${{ needs.reserve.outputs.version }}
       COMPONENT: ${{ matrix.component }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.RELEASES_S3_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.RELEASES_S3_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: ${{ secrets.RELEASES_S3_REGION }}
-      RELEASES_S3_BUCKET: ${{ secrets.RELEASES_S3_BUCKET }}
-      RELEASES_S3_ENDPOINT: ${{ secrets.RELEASES_S3_ENDPOINT }}
       PRODUCT_RELEASE: "true"
       HOMEBREW_ENABLED: ${{ needs.reserve.outputs.homebrew_enabled }}
     steps:
@@ -154,9 +142,6 @@ jobs:
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun .delivery-tools/tooling/delivery/product-release.ts restore dist
-      - name: Publish CLI to S3
-        if: matrix.component == 'cli'
-        run: bash tooling/release/publish-s3.sh "$COMPONENT" "$VERSION" "$SIGNING_MODE" dist
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         if: env.HOMEBREW_ENABLED == 'true'
         with:
@@ -169,7 +154,7 @@ jobs:
           GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
       - name: Record deferred Homebrew publication
         if: env.HOMEBREW_ENABLED != 'true'
-        run: echo 'Homebrew publication disabled. Native artifacts are attached to GitHub Releases; CLI archives are also available through S3.' >> "$GITHUB_STEP_SUMMARY"
+        run: echo 'Homebrew publication disabled. Native artifacts are attached to GitHub Releases.' >> "$GITHUB_STEP_SUMMARY"
   finalize:
     needs: [ reserve, hosted, distribute ]
     runs-on: ubuntu-latest

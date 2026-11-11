@@ -23,8 +23,6 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-	// Keep the storage adapter and its AWS imports resolved together by the runtime.
-	serverExternalPackages: ["files-sdk"],
 	experimental: {
 		globalNotFound: true,
 	},

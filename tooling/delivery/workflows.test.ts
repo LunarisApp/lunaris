@@ -123,20 +123,18 @@ test("macOS release builds plugin SDK before compiling the agent sidecar", () =>
   expect(steps[sdk].if).toBe(steps[agent].if);
 });
 
-test("Homebrew is optional and only CLI publishes to S3", () => {
+test("Homebrew is optional and distribution needs no S3 credentials", () => {
   const stable = workflow("release.stable");
   const preflight = stable.jobs.reserve.steps.find(
     (step: { id?: string }) => step.id === "distribution"
   );
-  expect(preflight.run).toContain(
-    "for name in S3_ACCESS_KEY S3_SECRET_KEY S3_REGION S3_BUCKET; do"
-  );
+  expect(preflight.run).not.toContain("S3_");
   expect(preflight.run).toContain("homebrew_enabled=false");
   const steps = stable.jobs.distribute.steps;
+  expect(JSON.stringify(stable)).not.toContain("RELEASES_S3_");
   expect(
-    steps.find((step: { run?: string }) => step.run?.includes("publish-s3.sh"))
-      .if
-  ).toBe("matrix.component == 'cli'");
+    steps.some((step: { run?: string }) => step.run?.includes("publish-s3.sh"))
+  ).toBe(false);
   expect(
     steps.find(
       (step: { with?: { repository?: string } }) =>

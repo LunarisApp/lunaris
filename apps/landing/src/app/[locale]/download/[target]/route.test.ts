@@ -35,12 +35,12 @@ function dependencies(
 }
 
 describe("download route", () => {
-	test("redirects macOS downloads without caching the signed URL", async () => {
+	test("redirects macOS downloads without caching the redirect", async () => {
 		const state = dependencies(() =>
 			Promise.resolve({
 				component: "desktop",
 				signingMode: "signed",
-				url: "https://storage.example.test/signed",
+				url: "https://github.com/LunarisApp/lunaris/releases/download/v1.2.3/Lunaris-desktop-1.2.3-universal.dmg",
 				version: "1.2.3",
 			}),
 		);
@@ -53,7 +53,7 @@ describe("download route", () => {
 
 		expect(response.status).toBe(307);
 		expect(response.headers.get("location")).toBe(
-			"https://storage.example.test/signed",
+			"https://github.com/LunarisApp/lunaris/releases/download/v1.2.3/Lunaris-desktop-1.2.3-universal.dmg",
 		);
 		expect(response.headers.get("cache-control")).toBe("no-store");
 		expect(state.errors).toHaveLength(0);
@@ -73,7 +73,7 @@ describe("download route", () => {
 			Promise.resolve({
 				component: "cli",
 				signingMode: "adhoc",
-				url: "https://storage.example.test/signed-cli",
+				url: "https://github.com/LunarisApp/lunaris/releases/download/v1.2.3/lunaris-cli-1.2.3-universal-apple-darwin.zip",
 				version: "2.0.0",
 			}),
 		);
@@ -86,7 +86,7 @@ describe("download route", () => {
 
 		expect(response.status).toBe(307);
 		expect(response.headers.get("location")).toBe(
-			"https://storage.example.test/signed-cli",
+			"https://github.com/LunarisApp/lunaris/releases/download/v1.2.3/lunaris-cli-1.2.3-universal-apple-darwin.zip",
 		);
 	});
 
