@@ -46,8 +46,42 @@ lunaris call search_resources \
   --input '{"organizationId":"organization_123","search":"roadmap"}'
 ```
 
-Output is pretty JSON. Use `--json` for the stable
-`{ "ok", "data" | "error" }` envelope.
+## Help and output
+
+Use `lunaris --help` to explore commands and `lunaris resource create --help`
+for argument descriptions. `--timeout` is in milliseconds; `--login-timeout`
+and `--pair-timeout` are in seconds.
+
+Terminal results use indented fields and numbered lists. IDs, revisions, preview
+tokens, pagination cursors, and snapshot metadata remain visible. Empty lists
+are marked explicitly. Partial desktop snapshots produce a warning on stderr.
+
+Successful output automatically uses JSON when piped or redirected. Use `--json`
+for the stable `{ "ok", "data" | "error" }` envelope, including runtime errors:
+
+```sh
+lunaris --json workspace list | jq '.data.items'
+lunaris resource list workspace_123 --limit 20
+lunaris resource list workspace_123 --limit 20 --cursor '<nextCursor>'
+```
+
+Results go to stdout; errors go to stderr. Argument parsing errors and help use
+Clap's standard text format, including with `--json`. MCP uses its own stdio
+protocol.
+
+An explicit organization argument takes precedence over `--organization`, then
+the saved default. `call --input` requires the complete operation input and does
+not fill in organization or idempotency fields.
+
+For updates, read the current entity with `get`, then pass its revision through
+`--revision`. For deletion or member removal, run the corresponding preview
+command, review its result, and pass its token through `--preview-token`.
+Use the same `--idempotency-key` when retrying a mutation; otherwise each typed
+mutation command generates a new key.
+
+Exit codes: `0` success, `1` local/configuration errors, `2` other API errors or
+invalid arguments, `3` authentication/permission errors, `4` conflict or failed
+precondition, and `5` rate limiting.
 
 ## Verification
 
