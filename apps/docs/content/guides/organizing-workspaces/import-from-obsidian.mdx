@@ -12,10 +12,28 @@ Lunaris can create a workspace from an Obsidian vault or another folder of Markd
 1. Go to **Recent Workspaces** and select **Create**.
 2. Choose **Import from Obsidian**.
 3. Select the vault folder from your device.
-4. Review the import summary, choose the workspace name and visibility, then start the import.
+4. Review resource counts and file sizes. Choose whether to **Keep original Markdown files** (enabled by default).
+5. Choose the workspace name and visibility, then start the import.
+6. Review the results and download the full report before closing.
 
-Lunaris preserves supported folders and converts `.md` and `.markdown` notes into editable documents. It also keeps supported original files in an **Original Files** folder, including the original Markdown files.
+Lunaris preserves the folder structure for supported content. It converts `.md` and `.markdown` notes into editable rich-text resources. Attachments stay beside the notes in the working folder tree. When source retention is enabled, Markdown files are also copied into an **Original Files** folder with their original paths.
 
-Hidden folders and files—such as `.obsidian`, `.git`, and `.trash`—are skipped. Unsupported files are skipped too; the preview shows how many resources will be converted, copied, or skipped before you continue.
+Disabling source retention avoids creating a second file resource for every note and the extra source folders. The preview shows the exact resource count and the size of retained files. Converted note storage is additional and depends on the note content.
 
-Import creates a new workspace and does not change the folder on your device. Markdown formatting is converted where possible, but app-specific Obsidian syntax or extensions may not have a direct Lunaris equivalent. Review a few notes after the import completes.
+## Links and properties
+
+Wikilinks, Markdown relative links, and reference-style Markdown links become resource references. Image embeds use the imported attachment and remain available offline after import. Exact paths take precedence; short names and frontmatter aliases resolve only when unambiguous. Links inside code remain unchanged.
+
+YAML frontmatter, properties, tags, aliases, and the source path are retained in the resource's import metadata. These do not create live Obsidian queries or tag views. Invalid frontmatter remains visible as YAML code.
+
+Heading and block links open the target resource, with a warning that anchor navigation is unavailable. Note and PDF transclusions become links. Footnotes, callouts, and plugin syntax are retained where possible without their Obsidian behavior and appear in the warning report. Notes with conversion warnings retain their Markdown source in import metadata even when separate original files are disabled. A failed Markdown conversion falls back to an editable code block.
+
+## Partial imports and retry
+
+Progress shows the current path and completed resource count. **Cancel** stops between files and keeps resources already saved. Individual file failures do not stop the rest of the import.
+
+Use **Retry remaining** while the dialog is open to continue in the same workspace without duplicating completed resources. Closing the dialog ends the retry session. The downloaded report lists imported, failed, pending, and skipped paths, plus conversion warnings.
+
+Hidden folders and files—such as `.obsidian`, `.git`, and `.trash`—are excluded during discovery. Unsupported files are skipped. Counts treat an excluded hidden folder as one path, without scanning its contents.
+
+Import creates a new workspace and leaves the folder on your device unchanged. Review representative notes and the import report before removing any source files.

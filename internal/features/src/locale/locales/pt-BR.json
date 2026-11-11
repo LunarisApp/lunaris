@@ -553,7 +553,29 @@
     "noSearchResults": "Nenhum espaço de trabalho correspondente",
     "noWorkspaces": "Nenhum espaço de trabalho ainda",
     "noWorkspacesDescription": "Crie seu primeiro espaço de trabalho para começar",
-    "updated": "Atualizado"
+    "updated": "Atualizado",
+    "importKeepOriginals": "Manter arquivos Markdown originais",
+    "importCost": "{{resources}} recursos · {{source}} MB de arquivos de origem · {{retained}} MB de arquivos mantidos, mais as notas convertidas",
+    "importProgress": "{{completed}} de {{total}} recursos importados",
+    "importIncomplete": "Importação incompleta: {{remaining}} recursos restantes",
+    "importComplete": "Importação concluída",
+    "importRetryHint": "Os recursos importados estão salvos. Tente novamente aqui para continuar no mesmo espaço. Fechar encerra esta sessão de retomada.",
+    "importReportSummary": "{{issues}} recursos para revisar · {{skipped}} caminhos ignorados",
+    "importReviewReport": "Revisar relatório (primeiros 50 por seção)",
+    "importFileFailed": "Não foi possível importar. Tente novamente ou consulte o relatório baixado.",
+    "importDownloadReport": "Baixar relatório completo",
+    "importRetry": "Tentar restantes novamente",
+    "importWarning": {
+      "frontmatter": "Não foi possível analisar o frontmatter; mantido como YAML.",
+      "unresolved-link": "Destino do link não encontrado; origem mantida.",
+      "ambiguous-link": "Destino do link ambíguo; origem mantida.",
+      "anchor": "O link abre o recurso; âncoras de títulos ou blocos não são compatíveis.",
+      "transclusion": "Conteúdo incorporado convertido em link para o recurso.",
+      "unsupported-syntax": "Sintaxe do Obsidian mantida sem o comportamento do plugin.",
+      "conversion": "Falha na conversão; Markdown mantido como código.",
+      "hidden": "Caminho oculto ignorado.",
+      "unsupported": "Arquivo não compatível ignorado."
+    }
   },
   "explorer": {
     "title": "Explorador",

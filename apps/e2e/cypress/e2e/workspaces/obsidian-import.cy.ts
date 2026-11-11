@@ -33,7 +33,7 @@ function directoryHandle(
 
 function fileHandle(
   name: string,
-  contents: string,
+  contents: BlobPart,
   type: string
 ): PickerFileHandle {
   return {
@@ -48,14 +48,14 @@ describe("workspaces/obsidian import", () => {
     cy.bootstrapWorkspacesPage();
   });
 
-  it("imports nested markdown and preserves converted content after reload", () => {
+  it("preserves nested notes, links, and images after reload", () => {
     cy.window().then((win) => {
       const chapters = directoryHandle("Chapters", [
         [
           "Opening.md",
           fileHandle(
             "Opening.md",
-            "# Opening\n\nImported constellation notes.",
+            "# Opening\n\nImported constellation notes.\n\n[[Overview|Read overview]]\n\n![[star.png|80]]",
             "text/markdown"
           ),
         ],
@@ -66,8 +66,21 @@ describe("workspaces/obsidian import", () => {
           "README.md",
           fileHandle(
             "README.md",
-            "# Novel Vault\n\nWorkspace overview.",
+            "---\naliases: [Overview]\n---\n# Novel Vault\n\nWorkspace overview.",
             "text/markdown"
+          ),
+        ],
+        [
+          "star.png",
+          fileHandle(
+            "star.png",
+            Uint8Array.from(
+              atob(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a9ZkAAAAASUVORK5CYII="
+              ),
+              (character) => character.charCodeAt(0)
+            ),
+            "image/png"
           ),
         ],
       ]);
@@ -85,6 +98,12 @@ describe("workspaces/obsidian import", () => {
       "Novel Vault"
     );
     cy.get('[data-testid="workspaces-import-submit"]').click();
+    cy.contains('[role="status"]', "Import complete", {
+      timeout: 30_000,
+    }).should("be.visible");
+    cy.get('[data-testid="workspaces-import-obsidian-dialog"]')
+      .contains("button", "Close")
+      .click();
     cy.get('[data-testid="workspaces-list-item-novel-vault"]', {
       timeout: 30_000,
     }).click();
@@ -96,9 +115,20 @@ describe("workspaces/obsidian import", () => {
     cy.contains("Imported constellation notes.", { timeout: 15_000 }).should(
       "be.visible"
     );
+    cy.get('img[alt="star.png"]').should(($image) => {
+      expect(($image[0] as HTMLImageElement).naturalWidth).to.be.greaterThan(0);
+    });
     cy.reload();
     cy.contains("Imported constellation notes.", { timeout: 15_000 }).should(
       "be.visible"
     );
+    cy.get('img[alt="star.png"]').should(($image) => {
+      expect(($image[0] as HTMLImageElement).naturalWidth).to.be.greaterThan(0);
+    });
+    cy.contains(
+      'button[data-entity-reference-kind="resource"]',
+      "Read overview"
+    ).click();
+    cy.contains("Workspace overview.").should("be.visible");
   });
 });

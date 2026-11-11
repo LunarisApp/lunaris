@@ -9,5 +9,10 @@
   "version": "1.0.0",
   "api": "^0.9.0",
   "optionalDependencies": { "lunaris.exporter": "^0.0.1" },
-  "permissions": ["content.read", "content.write", "network.https"]
+  "permissions": [
+    "content.read",
+    "content.write",
+    "files.read",
+    "network.https"
+  ]
 }

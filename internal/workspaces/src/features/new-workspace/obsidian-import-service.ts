@@ -1,11 +1,15 @@
-import { BlockNoteEditor } from "@blocknote/core";
-import { blocksToYDoc } from "@blocknote/core/yjs";
+import {
+  createObsidianMarkdownConverter,
+  readObsidianProperties,
+  type ImportedReference,
+  type ImportWarning,
+  type ResolveImportReference,
+} from "@extension/rich-text/import";
 import type { Database } from "@repo/data/core";
 import {
   createLocalFileWorkspaceResource,
-  FILE_ACCEPT,
   FILE_PLUGIN_ID,
-  getFileExtension,
+  getFileMediaType,
 } from "@repo/data/features/files";
 import { replaceWorkspaceExtensions } from "@repo/data/features/workspace-extensions";
 import {
@@ -13,378 +17,195 @@ import {
   createWorkspaceResource,
 } from "@repo/data/features/workspace-resources";
 import { createWorkspace } from "@repo/data/features/workspaces";
-import { b64ToUint8Array } from "@repo/data/features/yjs";
-import { log } from "evlog";
-import { applyUpdateV2, encodeStateAsUpdateV2 } from "yjs";
 import type { ResourceCapacityReservation } from "@repo/features/entitlements";
+import { createId } from "@repo/utils";
+import { log } from "evlog";
+import {
+  createObsidianImportPlan,
+  type ImportDirectory,
+  type ObsidianImportPlan,
+  type ObsidianImportStats,
+  type ImportOperation,
+} from "./obsidian-import-plan";
 import type { CreateWorkspaceDialogSchema } from "./types";
 
+export {
+  createObsidianImportPlan,
+  getImportResourceCount,
+  getImportStats,
+  isMarkdownFile,
+  isSupportedImportFile,
+} from "./obsidian-import-plan";
+export type {
+  ImportDirectory,
+  ImportEntry,
+  ImportFileEntry,
+  ImportFolderEntry,
+  ObsidianImportStats,
+} from "./obsidian-import-plan";
 export const OBSIDIAN_IMPORT_PLUGIN_IDS = [
   "lunaris.rich-text",
   FILE_PLUGIN_ID,
 ] as const;
 
-const RICH_TEXT_PLUGIN_ID = "lunaris.rich-text";
-const ORIGINAL_FILES_FOLDER_NAME = "Original Files";
-const IGNORED_NAMES = new Set([".obsidian", ".git", ".trash"]);
-const MARKDOWN_EXTENSIONS = new Set(["md", "markdown"]);
-const MIME_IMPORT_EXTENSIONS = new Set(
-  FILE_ACCEPT.split(",")
-    .filter((entry) => entry.includes("/") && !entry.startsWith("."))
-    .map((entry) => getFileExtension(entry, ""))
-    .filter(Boolean)
-);
-const SUPPORTED_IMPORT_EXTENSIONS = new Set(
-  [
-    ...FILE_ACCEPT.split(",")
-      .filter((entry) => entry.startsWith("."))
-      .map((entry) => entry.slice(1).toLowerCase()),
-    ...MIME_IMPORT_EXTENSIONS,
-  ].filter(Boolean)
-);
-
-export interface ImportDirectory {
-  children: ImportEntry[];
-  name: string;
+export interface ImportFileResult {
+  error?: string;
+  kind: ImportOperation["kind"];
+  path: string;
+  status: "imported" | "failed";
+  warnings: ImportWarning[];
 }
-
-export type ImportEntry = ImportFileEntry | ImportFolderEntry;
-
-export interface ImportFileEntry {
-  file: File;
-  kind: "file";
-  name: string;
+export interface ObsidianImportSession {
+  aliases: Map<string, Set<string>>;
+  completedCount: number;
+  extensionsEnabled: boolean;
+  indexed: Set<string>;
+  plan: ObsidianImportPlan;
+  resourceIds: Map<string, string>;
+  results: Map<string, ImportFileResult>;
+  storageIds: Map<string, string>;
+  workspaceId?: string;
 }
-
-export interface ImportFolderEntry {
-  children: ImportEntry[];
-  kind: "folder";
-  name: string;
+export interface ObsidianImportProgress {
+  completed: number;
+  path: string;
+  total: number;
 }
-
-export interface ObsidianImportStats {
-  convertedMarkdownCount: number;
-  folderCount: number;
-  originalFileCount: number;
-  skippedCount: number;
-}
-
-interface ImportAccumulator {
-  convertedMarkdownCount: number;
-  folderCount: number;
-  originalFileCount: number;
-  skippedCount: number;
-}
-
-function updateToBase64(update: Uint8Array) {
-  const output: string[] = [];
-  for (const byte of update) {
-    output.push(String.fromCharCode(byte));
-  }
-  return btoa(output.join(""));
-}
-
-function getExtension(name: string) {
-  return name.split(".").pop()?.toLowerCase() ?? "";
-}
-
-function stripMarkdownExtension(name: string) {
-  return name.replace(/\.(md|markdown)$/i, "");
-}
-
-function isIgnoredName(name: string) {
-  return name.startsWith(".") || IGNORED_NAMES.has(name.toLowerCase());
-}
-
-export function isMarkdownFile(name: string) {
-  return MARKDOWN_EXTENSIONS.has(getExtension(name));
-}
-
-export function isSupportedImportFile(entry: ImportFileEntry) {
-  const nameExtension = getExtension(entry.name);
-  const mediaExtension = getFileExtension(entry.file.type, "");
-  return (
-    isMarkdownFile(entry.name) ||
-    SUPPORTED_IMPORT_EXTENSIONS.has(nameExtension) ||
-    SUPPORTED_IMPORT_EXTENSIONS.has(mediaExtension)
-  );
-}
-
-export function getImportStats(
-  directory: ImportDirectory
-): ObsidianImportStats {
-  const stats: ImportAccumulator = {
-    convertedMarkdownCount: 0,
-    folderCount: 0,
-    originalFileCount: 0,
-    skippedCount: 0,
+export function createObsidianImportSession(
+  plan: ObsidianImportPlan
+): ObsidianImportSession {
+  return {
+    plan,
+    completedCount: 0,
+    extensionsEnabled: false,
+    resourceIds: new Map(
+      plan.operations.map((operation) => [operation.key, createId("res")])
+    ),
+    storageIds: new Map(),
+    results: new Map(),
+    aliases: new Map(),
+    indexed: new Set(),
   };
-  countFilesAndSkipped(directory.children, stats);
-  stats.folderCount =
-    countWorkingFolders(directory.children) +
-    (hasMarkdownDocuments(directory.children)
-      ? 1 + countMarkdownFolders(directory.children)
-      : 0);
-  return stats;
+}
+export function getRemainingImportCount(session: ObsidianImportSession) {
+  return session.plan.resourceCount - session.completedCount;
 }
 
-function getCreatedResourceCount(stats: ImportAccumulator) {
-  return (
-    stats.convertedMarkdownCount + stats.folderCount + stats.originalFileCount
+function normalizePath(path: string) {
+  const parts: string[] = [];
+  for (const part of path.split("/")) {
+    if (part === "..") {
+      if (!parts.length) {
+        return null;
+      }
+      parts.pop();
+    } else if (part && part !== ".") {
+      parts.push(part);
+    }
+  }
+  return parts.join("/");
+}
+function withoutExtension(path: string) {
+  return path.replace(/\.(md|markdown)$/i, "");
+}
+function addIndex(index: Map<string, Set<string>>, key: string, path: string) {
+  const paths = index.get(key) ?? new Set<string>();
+  paths.add(path);
+  index.set(key, paths);
+}
+
+export function createImportLinkResolver(session: ObsidianImportSession) {
+  const byPath = new Map(
+    session.plan.operations
+      .filter(
+        (operation) => operation.kind === "note" || operation.kind === "file"
+      )
+      .map((operation) => [operation.path, operation])
   );
-}
-
-export function getImportResourceCount(directory: ImportDirectory) {
-  return getCreatedResourceCount(getImportStats(directory));
-}
-
-function countFilesAndSkipped(
-  entries: ImportEntry[],
-  stats: ImportAccumulator
-) {
-  for (const entry of entries) {
-    if (isIgnoredName(entry.name)) {
-      stats.skippedCount += 1;
-      continue;
-    }
-
-    if (entry.kind === "folder") {
-      countFilesAndSkipped(entry.children, stats);
-      continue;
-    }
-
-    if (!isSupportedImportFile(entry)) {
-      stats.skippedCount += 1;
-      continue;
-    }
-
-    if (isMarkdownFile(entry.name)) {
-      stats.convertedMarkdownCount += 1;
-    }
-    stats.originalFileCount += 1;
-  }
-}
-
-function countMarkdownFolders(entries: ImportEntry[]): number {
-  let count = 0;
-  for (const entry of entries) {
-    if (isIgnoredName(entry.name) || entry.kind !== "folder") {
-      continue;
-    }
-    if (hasMarkdownDocuments(entry.children)) {
-      count += 1 + countMarkdownFolders(entry.children);
+  const names = new Map<string, Set<string>>();
+  const notePaths = new Map<string, Set<string>>();
+  for (const operation of byPath.values()) {
+    const basename = operation.path.split("/").at(-1)!;
+    addIndex(names, basename, operation.path);
+    if (operation.kind === "note") {
+      addIndex(names, withoutExtension(basename), operation.path);
+      addIndex(notePaths, withoutExtension(operation.path), operation.path);
     }
   }
-  return count;
-}
-
-function countWorkingFolders(entries: ImportEntry[]): number {
-  let count = 0;
-  for (const entry of entries) {
-    if (isIgnoredName(entry.name) || entry.kind !== "folder") {
-      continue;
-    }
-    if (hasSupportedWorkingEntries(entry.children)) {
-      count += 1 + countWorkingFolders(entry.children);
-    }
-  }
-  return count;
-}
-
-export async function createMarkdownRichTextUpdate(markdown: string) {
-  const editor = BlockNoteEditor.create();
-  try {
-    const blocks = editor.tryParseMarkdownToBlocks(markdown);
-    const doc = blocksToYDoc(editor, blocks, "");
-    return updateToBase64(encodeStateAsUpdateV2(doc));
-  } finally {
-    editor._tiptapEditor?.destroy();
-  }
-}
-
-async function createImportedMarkdownItem(params: {
-  db: Database;
-  entry: ImportFileEntry;
-  onItemCreated: () => void;
-  parentId: string | null;
-  position: number;
-  workspaceId: string;
-}) {
-  const { db, entry, onItemCreated, parentId, position, workspaceId } = params;
-  const updateB64 = await createMarkdownRichTextUpdate(await entry.file.text());
-  await createWorkspaceResource({
-    db,
-    name: stripMarkdownExtension(entry.name),
-    parentId,
-    resourceTypeId: RICH_TEXT_PLUGIN_ID,
-    schemaVersion: 1,
-    position,
-    workspaceId,
-    storage: {
-      content: {
-        kind: "yjs",
-        initialize: (doc) => applyUpdateV2(doc, b64ToUint8Array(updateB64)),
-      },
-    },
-  });
-  onItemCreated();
-}
-
-function hasSupportedWorkingEntries(entries: ImportEntry[]): boolean {
-  return entries.some((entry) => {
-    if (isIgnoredName(entry.name)) {
-      return false;
-    }
-    if (entry.kind === "folder") {
-      return hasSupportedWorkingEntries(entry.children);
-    }
-    return isSupportedImportFile(entry);
-  });
-}
-
-function hasMarkdownDocuments(entries: ImportEntry[]): boolean {
-  return entries.some((entry) => {
-    if (isIgnoredName(entry.name)) {
-      return false;
-    }
-    if (entry.kind === "folder") {
-      return hasMarkdownDocuments(entry.children);
-    }
-    return isMarkdownFile(entry.name);
-  });
-}
-
-async function importWorkingEntries(params: {
-  db: Database;
-  entries: ImportEntry[];
-  parentId: string | null;
-  workspaceId: string;
-  stats: ImportAccumulator;
-  startPosition?: number;
-}) {
-  const {
-    db,
-    entries,
-    parentId,
-    workspaceId,
-    stats,
-    startPosition = 0,
-  } = params;
-  let position = startPosition;
-
-  for (const entry of entries) {
-    if (isIgnoredName(entry.name)) {
-      stats.skippedCount += 1;
-      continue;
-    }
-
-    if (entry.kind === "folder") {
-      if (!hasSupportedWorkingEntries(entry.children)) {
-        continue;
+  return (sourcePath: string): ResolveImportReference =>
+    (rawTarget, wiki) => {
+      const rawPath = rawTarget.split(/[?#]/)[0]!;
+      let target: string;
+      try {
+        target = decodeURIComponent(rawPath);
+      } catch {
+        target = rawPath;
       }
-      const folderId = await createWorkspaceFolder({
-        db,
-        name: entry.name,
-        parentId,
-        position,
-        workspaceId,
-      });
-      stats.folderCount += 1;
-      position += 1;
-      await importWorkingEntries({
-        db,
-        entries: entry.children,
-        parentId: folderId,
-        workspaceId,
-        stats,
-      });
-      continue;
-    }
-
-    if (!isSupportedImportFile(entry)) {
-      stats.skippedCount += 1;
-      continue;
-    }
-
-    if (isMarkdownFile(entry.name)) {
-      await createImportedMarkdownItem({
-        db,
-        entry,
-        onItemCreated: () => {
-          stats.convertedMarkdownCount += 1;
-        },
-        parentId,
-        position,
-        workspaceId,
-      });
-    } else {
-      await createLocalFileWorkspaceResource({
-        db,
-        file: entry.file,
-        parentId,
-        position,
-        workspaceId,
-      });
-      stats.originalFileCount += 1;
-    }
-    position += 1;
-  }
-
-  return position;
-}
-
-async function importMarkdownSourceEntries(params: {
-  db: Database;
-  entries: ImportEntry[];
-  parentId: string;
-  workspaceId: string;
-  stats: ImportAccumulator;
-}) {
-  const { db, entries, parentId, workspaceId, stats } = params;
-  let position = 0;
-
-  for (const entry of entries) {
-    if (isIgnoredName(entry.name)) {
-      continue;
-    }
-
-    if (entry.kind === "folder") {
-      if (!hasMarkdownDocuments(entry.children)) {
-        continue;
+      const parent = sourcePath.includes("/")
+        ? sourcePath.slice(0, sourcePath.lastIndexOf("/"))
+        : "";
+      const relative = normalizePath(`${parent ? `${parent}/` : ""}${target}`);
+      const root = normalizePath(target);
+      const candidates = target
+        ? target.startsWith("/")
+          ? [root]
+          : wiki
+            ? [root, relative]
+            : [relative, root]
+        : [sourcePath];
+      let operation: ImportOperation | undefined;
+      for (const path of candidates) {
+        if (path === null) {
+          continue;
+        }
+        operation = byPath.get(path);
+        if (!operation) {
+          const matches = notePaths.get(path);
+          if (matches && matches.size > 1) {
+            return { warning: "ambiguous-link" };
+          }
+          if (matches?.size === 1) {
+            operation = byPath.get([...matches][0]!);
+          }
+        }
+        if (operation) {
+          break;
+        }
       }
-      const folderId = await createWorkspaceFolder({
-        db,
-        name: entry.name,
-        parentId,
-        position,
-        workspaceId,
-      });
-      stats.folderCount += 1;
-      position += 1;
-      await importMarkdownSourceEntries({
-        db,
-        entries: entry.children,
-        parentId: folderId,
-        workspaceId,
-        stats,
-      });
-      continue;
-    }
-
-    if (!isMarkdownFile(entry.name)) {
-      continue;
-    }
-
-    await createLocalFileWorkspaceResource({
-      db,
-      file: entry.file,
-      parentId,
-      position,
-      workspaceId,
-    });
-    stats.originalFileCount += 1;
-    position += 1;
-  }
+      if (!operation && wiki) {
+        const matches = new Set([
+          ...(names.get(target) ?? []),
+          ...(session.aliases.get(target) ?? []),
+        ]);
+        if (matches.size === 1) {
+          operation = byPath.get([...matches][0]!);
+        } else if (matches.size > 1) {
+          return { warning: "ambiguous-link" };
+        }
+      }
+      if (!operation) {
+        return { warning: "unresolved-link" };
+      }
+      // Never commit a note with an attachment reference that cannot yet resolve.
+      if (
+        operation.kind === "file" &&
+        session.results.get(operation.key)?.status !== "imported"
+      ) {
+        throw new Error(`Attachment has not been imported: ${operation.path}`);
+      }
+      const reference: ImportedReference = {
+        resourceId: session.resourceIds.get(operation.key)!,
+        workspaceId: session.workspaceId!,
+        name: operation.name,
+        image:
+          operation.kind === "file" &&
+          getFileMediaType(operation.file!.type, operation.name).startsWith(
+            "image/"
+          ),
+        storageId: session.storageIds.get(operation.key),
+      };
+      return { reference };
+    };
 }
 
 export async function importObsidianWorkspace(params: {
@@ -392,65 +213,203 @@ export async function importObsidianWorkspace(params: {
   data: CreateWorkspaceDialogSchema;
   db: Database;
   directory: ImportDirectory;
+  session?: ObsidianImportSession;
   resourceCapacityReservation: ResourceCapacityReservation;
+  signal?: AbortSignal;
+  onProgress?: (progress: ObsidianImportProgress) => void;
 }) {
-  const { allExtensionIds, data, db, directory, resourceCapacityReservation } =
-    params;
-  const stats: ImportAccumulator = {
-    convertedMarkdownCount: 0,
-    folderCount: 0,
-    originalFileCount: 0,
-    skippedCount: 0,
-  };
-
+  const {
+    allExtensionIds,
+    data,
+    db,
+    resourceCapacityReservation,
+    signal,
+    onProgress,
+  } = params;
+  const session =
+    params.session ??
+    createObsidianImportSession(createObsidianImportPlan(params.directory));
+  let created = 0;
+  let converter: ReturnType<typeof createObsidianMarkdownConverter> | undefined;
+  const progress = (path: string) =>
+    onProgress?.({
+      path,
+      completed: session.plan.resourceCount - getRemainingImportCount(session),
+      total: session.plan.resourceCount,
+    });
+  const yieldToBrowser = () =>
+    new Promise<void>((resolve) => setTimeout(resolve, 0));
   try {
-    const workspaceId = await createWorkspace({ db, ...data });
-    const enabledExtensions = OBSIDIAN_IMPORT_PLUGIN_IDS.filter((pluginId) =>
-      allExtensionIds.includes(pluginId)
-    );
-    await replaceWorkspaceExtensions({
-      db,
-      enabledExtensionIds: enabledExtensions,
-      knownExtensionIds: allExtensionIds,
-      workspaceId,
-    });
-
-    const nextRootPosition = await importWorkingEntries({
-      db,
-      entries: directory.children,
-      parentId: null,
-      workspaceId,
-      stats,
-    });
-
-    if (hasMarkdownDocuments(directory.children)) {
-      const originalsFolderId = await createWorkspaceFolder({
+    signal?.throwIfAborted();
+    session.workspaceId ??= await createWorkspace({ db, ...data });
+    const workspaceId = session.workspaceId;
+    if (!session.extensionsEnabled) {
+      await replaceWorkspaceExtensions({
         db,
-        name: ORIGINAL_FILES_FOLDER_NAME,
-        parentId: null,
-        position: nextRootPosition,
+        enabledExtensionIds: OBSIDIAN_IMPORT_PLUGIN_IDS.filter((id) =>
+          allExtensionIds.includes(id)
+        ),
+        knownExtensionIds: allExtensionIds,
         workspaceId,
       });
-      stats.folderCount += 1;
-      await importMarkdownSourceEntries({
-        db,
-        entries: directory.children,
-        parentId: originalsFolderId,
-        workspaceId,
-        stats,
-      });
+      session.extensionsEnabled = true;
     }
-
+    // Index aliases before any conversion, including forward references. Keep file
+    // contents on disk; only properties needed for lookup stay in memory.
+    for (const operation of session.plan.operations) {
+      if (signal?.aborted) {
+        break;
+      }
+      if (operation.kind !== "note" || session.indexed.has(operation.key)) {
+        continue;
+      }
+      progress(operation.path);
+      try {
+        const { aliases } = readObsidianProperties(
+          await operation.file!.text()
+        );
+        for (const alias of aliases) {
+          addIndex(session.aliases, alias, operation.path);
+        }
+        session.indexed.add(operation.key);
+      } catch {
+        /* The per-file import below reports read failures and remains retryable. */
+      }
+      await yieldToBrowser();
+    }
+    const resolve = createImportLinkResolver(session);
+    // Parents first, then sources/attachments, then notes. A conversion failure
+    // cannot prevent retaining its original file.
+    const ordered = [
+      ...session.plan.operations.filter(
+        (operation) => operation.kind === "folder"
+      ),
+      ...session.plan.operations.filter(
+        (operation) => operation.kind === "file" || operation.kind === "source"
+      ),
+      ...session.plan.operations.filter(
+        (operation) => operation.kind === "note"
+      ),
+    ];
+    for (const operation of ordered) {
+      if (signal?.aborted) {
+        break;
+      }
+      if (session.results.get(operation.key)?.status === "imported") {
+        continue;
+      }
+      progress(operation.path);
+      try {
+        if (
+          operation.parentKey &&
+          session.results.get(operation.parentKey)?.status !== "imported"
+        ) {
+          throw new Error("Parent folder has not been imported");
+        }
+        const parentId = operation.parentKey
+          ? session.resourceIds.get(operation.parentKey)!
+          : null;
+        const common = {
+          db,
+          workspaceId,
+          parentId,
+          position: operation.position,
+        };
+        let warnings: ImportWarning[] = [];
+        if (operation.kind === "folder") {
+          session.resourceIds.set(
+            operation.key,
+            await createWorkspaceFolder({ ...common, name: operation.name })
+          );
+        } else if (operation.kind === "note") {
+          converter ??= createObsidianMarkdownConverter();
+          const source = await operation.file!.text();
+          const converted = converter.convert(source, resolve(operation.path));
+          warnings = converted.warnings;
+          await createWorkspaceResource({
+            ...common,
+            id: session.resourceIds.get(operation.key)!,
+            name: operation.name,
+            resourceTypeId: "lunaris.rich-text",
+            schemaVersion: 1,
+            storage: {
+              content: { kind: "yjs", initialize: converted.initialize },
+              obsidian: {
+                kind: "key-value",
+                initialize: () => ({
+                  sourcePath: operation.path,
+                  properties: converted.metadata.properties,
+                  aliases: converted.metadata.aliases,
+                  tags: converted.metadata.tags,
+                  frontmatter: converted.metadata.frontmatter,
+                  warnings,
+                  ...(warnings.length ? { source } : {}),
+                }),
+              },
+            },
+          });
+        } else {
+          const file = await createLocalFileWorkspaceResource({
+            ...common,
+            id: session.resourceIds.get(operation.key)!,
+            file: operation.file!,
+          });
+          session.storageIds.set(operation.key, file.storageId);
+        }
+        session.results.set(operation.key, {
+          path: operation.path,
+          kind: operation.kind,
+          status: "imported",
+          warnings,
+        });
+        session.completedCount++;
+        created++;
+      } catch (error) {
+        session.results.set(operation.key, {
+          path: operation.path,
+          kind: operation.kind,
+          status: "failed",
+          warnings: [],
+          error: error instanceof Error ? error.message : "Import failed",
+        });
+      }
+      progress(operation.path);
+      await yieldToBrowser();
+    }
+    const stats: ObsidianImportStats = {
+      convertedMarkdownCount: 0,
+      folderCount: 0,
+      originalFileCount: 0,
+      skippedCount: session.plan.skipped.length,
+    };
+    for (const result of session.results.values()) {
+      if (result.status !== "imported") {
+        continue;
+      }
+      if (result.kind === "note") {
+        stats.convertedMarkdownCount++;
+      } else if (result.kind === "folder") {
+        stats.folderCount++;
+      } else {
+        stats.originalFileCount++;
+      }
+    }
+    const complete = getRemainingImportCount(session) === 0;
     log.info({
       tag: "Workspace",
-      msg: "obsidian import completed",
-      workspace: { id: workspaceId, stats },
+      msg: "obsidian import finished",
+      workspace: { id: workspaceId, stats, complete },
     });
-    resourceCapacityReservation.commit();
-    return { workspaceId, stats };
-  } catch (error) {
-    resourceCapacityReservation.commit(getCreatedResourceCount(stats));
+    return {
+      workspaceId,
+      stats,
+      session,
+      complete,
+      cancelled: !!signal?.aborted,
+    };
+  } finally {
+    converter?.destroy();
+    resourceCapacityReservation.commit(created);
     resourceCapacityReservation.rollback();
-    throw error;
   }
 }

@@ -673,7 +673,29 @@
     "noSearchResults": "No matching workspaces",
     "noWorkspaces": "No workspaces yet",
     "noWorkspacesDescription": "Create your first workspace to get started",
-    "updated": "Updated"
+    "updated": "Updated",
+    "importKeepOriginals": "Keep original Markdown files",
+    "importCost": "{{resources}} resources · {{source}} MB source files · {{retained}} MB retained files, plus converted notes",
+    "importProgress": "Imported {{completed}} of {{total}} resources",
+    "importIncomplete": "Import incomplete: {{remaining}} resources remaining",
+    "importComplete": "Import complete",
+    "importRetryHint": "Imported resources are saved. Retry here to continue in the same workspace. Closing ends this retry session.",
+    "importReportSummary": "{{issues}} resources need review · {{skipped}} paths skipped",
+    "importReviewReport": "Review import report (first 50 per section)",
+    "importFileFailed": "Could not import. Retry or see the downloaded report.",
+    "importDownloadReport": "Download full report",
+    "importRetry": "Retry remaining",
+    "importWarning": {
+      "frontmatter": "Frontmatter could not be parsed; preserved as YAML.",
+      "unresolved-link": "Link target was not found; source retained.",
+      "ambiguous-link": "Link target is ambiguous; source retained.",
+      "anchor": "Link opens the resource; heading or block anchors are not supported.",
+      "transclusion": "Embed converted to a resource link.",
+      "unsupported-syntax": "Obsidian-specific syntax retained without plugin behavior.",
+      "conversion": "Conversion failed; Markdown preserved as code.",
+      "hidden": "Hidden path skipped.",
+      "unsupported": "Unsupported file skipped."
+    }
   },
   "explorer": {
     "title": "Explorer",

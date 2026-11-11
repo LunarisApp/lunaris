@@ -22,6 +22,13 @@ export const MIME_TO_EXTENSION: Record<string, string> = {
 };
 
 const EXTENSION_TO_MIME: Record<string, string> = {
+  ...Object.fromEntries(
+    Object.entries(MIME_TO_EXTENSION).map(([mime, extension]) => [
+      extension,
+      mime,
+    ])
+  ),
+  jpeg: "image/jpeg",
   json: "application/json",
   markdown: "text/markdown",
   md: "text/markdown",

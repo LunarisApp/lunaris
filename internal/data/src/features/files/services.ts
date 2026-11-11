@@ -402,6 +402,7 @@ export async function createFileWorkspaceResource(params: {
 export async function createLocalFileWorkspaceResource(params: {
   db: DatabaseOrTx;
   file: File;
+  id?: string;
   parentId: string | null;
   position?: number;
   workspaceId: string;
@@ -428,50 +429,55 @@ export async function createLocalFileWorkspaceResource(params: {
   const data = file;
   const size = await storage.saveFile(localUri, data);
 
-  const result = await createWorkspaceResource({
-    db,
-    storage: { content: { kind: "file" } },
-    name: file.name,
-    parentId,
-    resourceTypeId: pluginId,
-    position,
-    workspaceId,
-  });
-  const metadata: FileMetadata = {
-    attachmentId,
-    fileExtension,
-    filename: file.name,
-    mediaType,
-    size,
-    uploadedAt: new Date().toISOString(),
-  };
-  const attachmentMetaData = serializeAttachmentMetadata(metadata, workspaceId);
-
-  await Promise.all([
-    db.execute(
-      `INSERT INTO ${ATTACHMENTS_TABLE} (id, filename, local_uri, timestamp, size, media_type, state, has_synced, meta_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
+  try {
+    return await ensureTx(db, async (tx) => {
+      const result = await createWorkspaceResource({
+        db: tx,
+        ...(params.id ? { id: params.id } : {}),
+        storage: { content: { kind: "file" } },
+        name: file.name,
+        parentId,
+        resourceTypeId: pluginId,
+        position,
+        workspaceId,
+      });
+      const metadata: FileMetadata = {
         attachmentId,
-        attachmentFilename,
-        localUri,
-        Date.now(),
-        size,
+        fileExtension,
+        filename: file.name,
         mediaType,
-        AttachmentState.QUEUED_UPLOAD,
-        0,
-        attachmentMetaData,
-      ]
-    ),
-    setFileStorageMetadata({
-      backingId: attachmentId,
-      db,
-      metadata: { ...metadata, fileId: metadata.attachmentId },
-      workspaceId,
-      storageId: result.storage.content!.storageId,
-    }),
-  ]);
-
-  return { attachmentId, id: result.id, name: file.name };
+        size,
+        uploadedAt: new Date().toISOString(),
+      };
+      await tx.execute(
+        `INSERT INTO ${ATTACHMENTS_TABLE} (id, filename, local_uri, timestamp, size, media_type, state, has_synced, meta_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          attachmentId,
+          attachmentFilename,
+          localUri,
+          Date.now(),
+          size,
+          mediaType,
+          AttachmentState.QUEUED_UPLOAD,
+          0,
+          serializeAttachmentMetadata(metadata, workspaceId),
+        ]
+      );
+      const storageId = result.storage.content!.storageId;
+      await setFileStorageMetadata({
+        backingId: attachmentId,
+        db: tx,
+        metadata: { ...metadata, fileId: attachmentId },
+        workspaceId,
+        storageId,
+      });
+      return { attachmentId, id: result.id, name: file.name, storageId };
+    });
+  } catch (error) {
+    // SQLite rolls back the resource and attachment together. Blob storage is separate.
+    await storage.deleteFile(localUri).catch(() => undefined);
+    throw error;
+  }
 }
 
 export async function getFileMetadata(params: {
