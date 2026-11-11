@@ -69,6 +69,10 @@ describe("extension import boundaries", () => {
         ...Object.keys(packageJson.dependencies ?? {}),
         ...Object.keys(packageJson.peerDependencies ?? {}),
       ]);
+      const declaredTypePackages = new Set([
+        ...declaredPackages,
+        ...Object.keys(packageJson.devDependencies ?? {}),
+      ]);
       const files = listSourceFiles(sourceRoot);
       const violations = privateDependencies.map(
         (name) => `${extensionDir}/package.json: ${name}`
@@ -87,6 +91,8 @@ describe("extension import boundaries", () => {
             !specifier ||
             isAllowedImport({
               declaredPackages,
+              declaredTypePackages,
+              typeOnly: /^(?:import|export)\s+type\s/.test(match[0]),
               importer: absoluteFile,
               extensionDir,
               sourceRoot,
@@ -102,6 +108,38 @@ describe("extension import boundaries", () => {
       expect(violations).toEqual([]);
     });
   }
+
+  it.each([
+    ['import type { Root } from "mdast";', true],
+    ['export type { Root } from "mdast";', true],
+    ['import { Root } from "mdast";', false],
+    ['import("mdast");', false],
+    ['import type { Missing } from "undeclared";', false],
+    ['import type { Value } from "@scope/example";', true],
+    ['import type { Value } from "@repo/data";', false],
+    ['import type { Value } from "@extension/file";', false],
+  ])(
+    "checks declared types separately from runtime imports: %s",
+    (source, allowed) => {
+      const match = [...source.matchAll(importPattern)][0]!;
+      expect(
+        isAllowedImport({
+          declaredPackages: new Set(),
+          declaredTypePackages: new Set([
+            "@types/mdast",
+            "@types/scope__example",
+            "@types/repo__data",
+            "@types/extension__file",
+          ]),
+          typeOnly: /^(?:import|export)\s+type\s/.test(match[0]),
+          importer: resolve(extensionsRoot, "rich-text/src/example.ts"),
+          extensionDir: "rich-text",
+          sourceRoot: resolve(extensionsRoot, "rich-text/src"),
+          specifier: match[1] ?? match[2]!,
+        })
+      ).toBe(allowed);
+    }
+  );
 
   it("public packages do not import private packages", () => {
     const sdkSource = resolve(repoRoot, "packages/plugin-sdk/src");
@@ -159,6 +197,8 @@ function findForbiddenRepoReferences(sourceRoot: string): string[] {
 
 function isAllowedImport(input: {
   declaredPackages: Set<string>;
+  declaredTypePackages: Set<string>;
+  typeOnly: boolean;
   importer: string;
   extensionDir: string;
   sourceRoot: string;
@@ -192,7 +232,15 @@ function isAllowedImport(input: {
     return false;
   }
 
-  return declaredPackages.has(packageNameFromSpecifier(specifier));
+  const packageName = packageNameFromSpecifier(specifier);
+  const typePackageName = packageName.startsWith("@")
+    ? packageName.slice(1).replace("/", "__")
+    : packageName;
+  return (
+    declaredPackages.has(packageName) ||
+    (input.typeOnly &&
+      input.declaredTypePackages.has(`@types/${typePackageName}`))
+  );
 }
 
 function listSourceFiles(dir: string, prefix = ""): string[] {

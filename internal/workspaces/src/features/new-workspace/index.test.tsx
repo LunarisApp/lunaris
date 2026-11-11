@@ -31,6 +31,7 @@ const {
   replaceWorkspaceExtensionsMock,
   reserveResourceCapacityMock,
   toastErrorMock,
+  downloadUrlMock,
   useWorkspaceSlugCollisionMock,
 } = vi.hoisted(() => ({
   installWorkspaceExtensionMock: vi.fn(),
@@ -43,7 +44,12 @@ const {
   replaceWorkspaceExtensionsMock: vi.fn(),
   reserveResourceCapacityMock: vi.fn(),
   toastErrorMock: vi.fn(),
+  downloadUrlMock: vi.fn(),
   useWorkspaceSlugCollisionMock: vi.fn(),
+}));
+
+vi.mock("@repo/platform", () => ({
+  usePlatform: () => ({ downloads: { downloadUrl: downloadUrlMock } }),
 }));
 
 vi.mock("@repo/features/entitlements", () => {
@@ -292,46 +298,48 @@ vi.mock("react-i18next", () => ({
       }
 
       return (
-        {
-          "common.comingSoon": "Coming soon",
-          "workspaces.browseTemplates": "Browse templates",
-          "workspaces.chooseFolder": "Choose folder",
-          "workspaces.createEmpty": "Create empty",
-          "workspaces.createEmptyDescription": "Start from a blank workspace",
-          "workspaces.createWorkspace": "Create Workspace",
-          "workspaces.creating": "Creating...",
-          "workspaces.importFailed": "Import failed",
-          "errors.reason.entitlements.resourceLimit.desc":
-            "Upgrade to add more items",
-          "workspaces.importFolder": "Folder",
-          "workspaces.importFromObsidian": "Import from Obsidian",
-          "workspaces.importFromObsidianDescription":
-            "Import a Markdown folder",
-          "workspaces.importWorkspace": "Import Workspace",
-          "workspaces.importing": "Importing...",
-          "workspaces.noFolderSelected": "No folder selected",
-          "workspaces.workspaceName": "Name",
-          "workspaces.workspaceNamePlaceholder": "My Workspace",
-          "workspaces.workspaceVisibility": "Visibility",
-          "workspaces.workspaceVisibility.shared": "Shared",
-          "workspaces.workspaceVisibility.shared.description":
-            "All members can access this workspace.",
-          "workspaces.workspaceVisibility.private": "Private",
-          "workspaces.workspaceVisibility.private.description":
-            "Synced to the cloud and accessible only to you.",
-          "workspaces.workspaceVisibility.local": "Local",
-          "workspaces.workspaceVisibility.local.description":
-            "Files remain only on this device.",
-          "workspaces.workspaceVisibilityDescription":
-            "Choose who can access this workspace.",
-          "workspaces.workspaceVisibilityLocked":
-            "Cloud sync is not available for this account. New workspaces stay local.",
-          "workspaces.workspaceSlug": "Slug",
-          "workspaces.workspaceSlugPlaceholder": "my-workspace",
-          "workspaces.workspaceSlugTaken":
-            "Slug already exists in this organization",
-        } as Record<string, string>
-      )[key];
+        (
+          {
+            "common.comingSoon": "Coming soon",
+            "workspaces.browseTemplates": "Browse templates",
+            "workspaces.chooseFolder": "Choose folder",
+            "workspaces.createEmpty": "Create empty",
+            "workspaces.createEmptyDescription": "Start from a blank workspace",
+            "workspaces.createWorkspace": "Create Workspace",
+            "workspaces.creating": "Creating...",
+            "workspaces.importFailed": "Import failed",
+            "errors.reason.entitlements.resourceLimit.desc":
+              "Upgrade to add more items",
+            "workspaces.importFolder": "Folder",
+            "workspaces.importFromObsidian": "Import from Obsidian",
+            "workspaces.importFromObsidianDescription":
+              "Import a Markdown folder",
+            "workspaces.importWorkspace": "Import Workspace",
+            "workspaces.importing": "Importing...",
+            "workspaces.noFolderSelected": "No folder selected",
+            "workspaces.workspaceName": "Name",
+            "workspaces.workspaceNamePlaceholder": "My Workspace",
+            "workspaces.workspaceVisibility": "Visibility",
+            "workspaces.workspaceVisibility.shared": "Shared",
+            "workspaces.workspaceVisibility.shared.description":
+              "All members can access this workspace.",
+            "workspaces.workspaceVisibility.private": "Private",
+            "workspaces.workspaceVisibility.private.description":
+              "Synced to the cloud and accessible only to you.",
+            "workspaces.workspaceVisibility.local": "Local",
+            "workspaces.workspaceVisibility.local.description":
+              "Files remain only on this device.",
+            "workspaces.workspaceVisibilityDescription":
+              "Choose who can access this workspace.",
+            "workspaces.workspaceVisibilityLocked":
+              "Cloud sync is not available for this account. New workspaces stay local.",
+            "workspaces.workspaceSlug": "Slug",
+            "workspaces.workspaceSlugPlaceholder": "my-workspace",
+            "workspaces.workspaceSlugTaken":
+              "Slug already exists in this organization",
+          } as Record<string, string>
+        )[key] ?? key
+      );
     },
   }),
 }));
@@ -382,14 +390,26 @@ vi.mock("sonner", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  importObsidianWorkspaceMock.mockResolvedValue({
-    workspaceId: "workspace_import",
-    stats: {
-      convertedMarkdownCount: 1,
-      folderCount: 1,
-      originalFileCount: 2,
-      skippedCount: 0,
-    },
+  importObsidianWorkspaceMock.mockImplementation(async ({ session }) => {
+    session.workspaceId = "workspace_import";
+    session.completedCount = session.plan.resourceCount;
+    for (const operation of session.plan.operations) {
+      session.results.set(operation.key, {
+        path: operation.path,
+        kind: operation.kind,
+        status: "imported",
+        warnings: [],
+      });
+    }
+    return {
+      workspaceId: "workspace_import",
+      stats: {
+        convertedMarkdownCount: 1,
+        folderCount: 1,
+        originalFileCount: 2,
+        skippedCount: 0,
+      },
+    };
   });
   reserveResourceCapacityMock.mockResolvedValue({
     commit: resourceCapacityCommitMock,
@@ -475,24 +495,26 @@ describe("ImportObsidianWorkspaceDialog", () => {
     await user.click(screen.getByRole("button", { name: "Import Workspace" }));
 
     await waitFor(() => {
-      expect(importObsidianWorkspaceMock).toHaveBeenCalledWith({
-        allExtensionIds: expect.arrayContaining([
-          "lunaris.rich-text",
-          "lunaris.file",
-        ]),
-        data: {
-          name: "My Vault",
-          organizationId: "org_1",
-          slug: "my-vault",
-          visibility: "shared",
-        },
-        db: {},
-        directory: expect.objectContaining({ name: "My Vault" }),
-        resourceCapacityReservation: {
-          commit: resourceCapacityCommitMock,
-          rollback: resourceCapacityRollbackMock,
-        },
-      });
+      expect(importObsidianWorkspaceMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allExtensionIds: expect.arrayContaining([
+            "lunaris.rich-text",
+            "lunaris.file",
+          ]),
+          data: {
+            name: "My Vault",
+            organizationId: "org_1",
+            slug: "my-vault",
+            visibility: "shared",
+          },
+          db: {},
+          directory: expect.objectContaining({ name: "My Vault" }),
+          resourceCapacityReservation: {
+            commit: resourceCapacityCommitMock,
+            rollback: resourceCapacityRollbackMock,
+          },
+        })
+      );
       expect(reserveResourceCapacityMock).toHaveBeenCalledWith(3);
       expect(posthogCaptureMock).toHaveBeenCalledWith("workspace_created", {
         template: "obsidian-import",
@@ -503,6 +525,132 @@ describe("ImportObsidianWorkspaceDialog", () => {
         visibility: "shared",
       });
     });
+  });
+
+  it("previews lower capacity when original files are disabled", async () => {
+    const user = userEvent.setup();
+    render(
+      <ImportObsidianWorkspaceDialog
+        onOpenChange={vi.fn()}
+        open
+        orgId="org_1"
+      />
+    );
+    await user.click(screen.getByRole("button", { name: "Choose folder" }));
+    await user.click(
+      screen.getByRole("checkbox", { name: "workspaces.importKeepOriginals" })
+    );
+    await user.click(screen.getByRole("button", { name: "Import Workspace" }));
+    await waitFor(() =>
+      expect(reserveResourceCapacityMock).toHaveBeenCalledWith(1)
+    );
+    expect(
+      importObsidianWorkspaceMock.mock.calls[0]?.[0].session.plan.keepOriginals
+    ).toBe(false);
+  });
+
+  it("cancels while capacity is pending without starting an import", async () => {
+    const user = userEvent.setup();
+    const pending = Promise.withResolvers<{
+      commit: typeof resourceCapacityCommitMock;
+      rollback: typeof resourceCapacityRollbackMock;
+    }>();
+    reserveResourceCapacityMock.mockReturnValueOnce(pending.promise);
+    render(
+      <ImportObsidianWorkspaceDialog
+        onOpenChange={vi.fn()}
+        open
+        orgId="org_1"
+      />
+    );
+    await user.click(screen.getByRole("button", { name: "Choose folder" }));
+    await user.click(screen.getByRole("button", { name: "Import Workspace" }));
+    await user.click(screen.getByRole("button", { name: "common.cancel" }));
+    await act(async () => {
+      pending.resolve({
+        commit: resourceCapacityCommitMock,
+        rollback: resourceCapacityRollbackMock,
+      });
+    });
+    expect(importObsidianWorkspaceMock).not.toHaveBeenCalled();
+    expect(resourceCapacityRollbackMock).toHaveBeenCalledOnce();
+    expect(resourceCapacityCommitMock).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("button", { name: "Import Workspace" })
+    ).toHaveProperty("disabled", false);
+  });
+
+  it("downloads the import report through the platform", async () => {
+    const user = userEvent.setup();
+    render(
+      <ImportObsidianWorkspaceDialog
+        onOpenChange={vi.fn()}
+        open
+        orgId="org_1"
+      />
+    );
+    await user.click(screen.getByRole("button", { name: "Choose folder" }));
+    await user.click(screen.getByRole("button", { name: "Import Workspace" }));
+    await user.click(
+      await screen.findByRole("button", {
+        name: "workspaces.importDownloadReport",
+      })
+    );
+    expect(downloadUrlMock).toHaveBeenCalledWith(
+      expect.stringMatching(/^blob:/),
+      "obsidian-import-report.json"
+    );
+  });
+
+  it("keeps partial imports open and retries their remaining capacity despite their own slug collision", async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    importObsidianWorkspaceMock.mockImplementationOnce(async ({ session }) => {
+      session.workspaceId = "workspace_import";
+      session.completedCount = 1;
+      const operation = session.plan.operations[0];
+      session.results.set(operation.key, {
+        path: operation.path,
+        kind: operation.kind,
+        status: "imported",
+        warnings: [],
+      });
+      useWorkspaceSlugCollisionMock.mockReturnValue({ hasCollision: true });
+      return {
+        workspaceId: "workspace_import",
+        stats: {
+          convertedMarkdownCount: 1,
+          folderCount: 0,
+          originalFileCount: 0,
+          skippedCount: 0,
+        },
+      };
+    });
+    render(
+      <ImportObsidianWorkspaceDialog
+        onOpenChange={onOpenChange}
+        open
+        orgId="org_1"
+      />
+    );
+    await user.click(screen.getByRole("button", { name: "Choose folder" }));
+    await user.click(screen.getByRole("button", { name: "Import Workspace" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "workspaces.importRetry" })
+      ).toBeTruthy()
+    );
+    expect(onOpenChange).not.toHaveBeenCalled();
+    await user.click(
+      screen.getByRole("button", { name: "workspaces.importRetry" })
+    );
+    await waitFor(() =>
+      expect(reserveResourceCapacityMock).toHaveBeenLastCalledWith(2)
+    );
+    expect(
+      importObsidianWorkspaceMock.mock.calls[1]?.[0].session.workspaceId
+    ).toBe("workspace_import");
+    expect(posthogCaptureMock).toHaveBeenCalledTimes(1);
   });
 
   it("preflights item capacity before importing", async () => {

@@ -5,11 +5,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   createWorkspaceResourceMock,
   saveFileMock,
+  deleteFileMock,
   setFileStorageMetadataMock,
   storageInitializeMock,
 } = vi.hoisted(() => ({
   createWorkspaceResourceMock: vi.fn(),
   saveFileMock: vi.fn(),
+  deleteFileMock: vi.fn(),
   setFileStorageMetadataMock: vi.fn(),
   storageInitializeMock: vi.fn(),
 }));
@@ -22,6 +24,10 @@ vi.mock("../../storage/indexeddb-file-storage", () => ({
 
     getLocalUri(filename: string) {
       return `indexeddb://lunaris-files-workspace_1/files/${filename}`;
+    }
+
+    async deleteFile(localUri: string) {
+      return deleteFileMock(localUri);
     }
 
     async saveFile(localUri: string, data: ArrayBuffer) {
@@ -76,6 +82,7 @@ describe("createLocalFileWorkspaceResource", () => {
       attachmentId: "att_seeded",
       id: "item_file",
       name: "customers-10000.csv",
+      storageId: "file:item_file",
     });
     expect(createWorkspaceResourceMock).toHaveBeenCalledWith({
       db: { execute },
@@ -116,5 +123,49 @@ describe("createLocalFileWorkspaceResource", () => {
       workspaceId: "workspace_1",
       storageId: "file:item_file",
     });
+  });
+  it("rolls back database writes and removes the blob when metadata fails", async () => {
+    const execute = vi.fn().mockResolvedValue(undefined);
+    const tx = { execute };
+    const rollback = vi.fn();
+    const db = {
+      writeTransaction: vi.fn(
+        async (
+          callback: (transaction: {
+            execute: typeof execute;
+          }) => Promise<unknown>
+        ) => {
+          try {
+            return await callback(tx);
+          } catch (error) {
+            rollback();
+            throw error;
+          }
+        }
+      ),
+    };
+    deleteFileMock.mockResolvedValue(undefined);
+    setFileStorageMetadataMock.mockRejectedValueOnce(
+      new Error("metadata failed")
+    );
+    await expect(
+      createLocalFileWorkspaceResource({
+        db: db as never,
+        file: new File(["data"], "note.md"),
+        parentId: null,
+        workspaceId: "workspace_1",
+      })
+    ).rejects.toThrow("metadata failed");
+    expect(db.writeTransaction).toHaveBeenCalledOnce();
+    expect(createWorkspaceResourceMock).toHaveBeenCalledWith(
+      expect.objectContaining({ db: tx })
+    );
+    expect(setFileStorageMetadataMock).toHaveBeenCalledWith(
+      expect.objectContaining({ db: tx })
+    );
+    expect(rollback).toHaveBeenCalledOnce();
+    expect(deleteFileMock).toHaveBeenCalledWith(
+      expect.stringContaining("att_seeded.md")
+    );
   });
 });

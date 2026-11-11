@@ -1,4 +1,8 @@
-import type { ImportDirectory, ImportEntry } from "./obsidian-import-service";
+import {
+  isIgnoredName,
+  type ImportDirectory,
+  type ImportEntry,
+} from "./obsidian-import-plan";
 
 interface NativeFileHandle {
   getFile: () => Promise<File>;
@@ -35,23 +39,33 @@ function sortEntries(entries: ImportEntry[]) {
 async function directoryHandleToImportDirectory(
   handle: NativeDirectoryHandle
 ): Promise<ImportDirectory> {
-  return {
-    name: handle.name,
-    children: sortEntries(await readDirectoryEntries(handle)),
-  };
+  const skippedPaths: string[] = [];
+  const children = sortEntries(
+    await readDirectoryEntries(handle, skippedPaths)
+  );
+  return { name: handle.name, children, skippedPaths };
 }
 
 async function readDirectoryEntries(
-  handle: NativeDirectoryHandle
+  handle: NativeDirectoryHandle,
+  skippedPaths: string[],
+  parentPath = ""
 ): Promise<ImportEntry[]> {
   const entries: ImportEntry[] = [];
 
   for await (const [, child] of handle.entries()) {
+    const path = parentPath ? `${parentPath}/${child.name}` : child.name;
+    if (isIgnoredName(child.name)) {
+      skippedPaths.push(path);
+      continue;
+    }
     if (child.kind === "directory") {
       entries.push({
         kind: "folder",
         name: child.name,
-        children: sortEntries(await readDirectoryEntries(child)),
+        children: sortEntries(
+          await readDirectoryEntries(child, skippedPaths, path)
+        ),
       });
       continue;
     }
@@ -75,6 +89,17 @@ function addFileToTree(root: ImportDirectory, file: WebkitDirectoryFile) {
   }
 
   root.name = root.name || parts[0] || "Imported Workspace";
+  const ignoredIndex = parts.findIndex(
+    (part, index) => index > 0 && isIgnoredName(part)
+  );
+  if (ignoredIndex >= 0) {
+    const path = parts.slice(1, ignoredIndex + 1).join("/");
+    root.skippedPaths ??= [];
+    if (!root.skippedPaths.includes(path)) {
+      root.skippedPaths.push(path);
+    }
+    return;
+  }
   let children = root.children;
 
   for (const folderName of parts.slice(1, -1)) {
@@ -106,20 +131,33 @@ function fileListToImportDirectory(files: FileList): ImportDirectory | null {
   if (root.children.length === 0) {
     return null;
   }
-  root.children = sortEntries(root.children);
+  function sortTree(entries: ImportEntry[]) {
+    sortEntries(entries);
+    for (const entry of entries) {
+      if (entry.kind === "folder") {
+        sortTree(entry.children);
+      }
+    }
+  }
+  sortTree(root.children);
   return {
     name: root.name || "Imported Workspace",
     children: root.children,
+    skippedPaths: root.skippedPaths,
   };
 }
 
 function pickWithFileInput(input: HTMLInputElement) {
   return new Promise<ImportDirectory | null>((resolve) => {
     input.value = "";
-    input.onchange = () => {
-      resolve(input.files ? fileListToImportDirectory(input.files) : null);
+    const finish = (directory: ImportDirectory | null) => {
       input.onchange = null;
+      input.oncancel = null;
+      resolve(directory);
     };
+    input.onchange = () =>
+      finish(input.files ? fileListToImportDirectory(input.files) : null);
+    input.oncancel = () => finish(null);
     input.click();
   });
 }
