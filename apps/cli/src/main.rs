@@ -68,6 +68,21 @@ async fn main() {
 
 async fn run(cli: &Cli) -> Result<Outcome, AppError> {
     match &cli.command {
+        Command::Call { list: true, .. } => {
+            let manifest = lunaris_agent_mcp::AgentManifest::embedded()?;
+            let operations: Vec<Value> = manifest
+                .tools
+                .iter()
+                .map(|tool| {
+                    json!({
+                        "name": tool.name,
+                        "description": tool.description,
+                        "scope": tool.scope,
+                    })
+                })
+                .collect();
+            Ok(Outcome::Value(json!(operations)))
+        }
         Command::Auth { command } => auth(cli, command).await,
         Command::Server { command } => server(cli, command).await,
         Command::Mcp {
@@ -358,4 +373,26 @@ fn hostname() -> String {
     std::env::var("HOSTNAME")
         .or_else(|_| std::env::var("COMPUTERNAME"))
         .unwrap_or_else(|_| "computer".into())
+}
+
+#[cfg(test)]
+mod command_tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn operation_discovery_does_not_resolve_a_server() {
+        let cli = Cli::try_parse_from(["lunaris", "--server", "missing-server", "call", "--list"])
+            .unwrap();
+        let Ok(Outcome::Value(value)) = run(&cli).await else {
+            panic!("operation discovery should work without a configured server");
+        };
+        let tools = lunaris_agent_mcp::AgentManifest::embedded().unwrap().tools;
+        let listed = value.as_array().unwrap();
+        assert_eq!(listed.len(), tools.len());
+        for (entry, tool) in listed.iter().zip(tools) {
+            assert_eq!(entry["name"], tool.name);
+            assert_eq!(entry["description"], tool.description);
+            assert_eq!(entry["scope"], tool.scope);
+        }
+    }
 }

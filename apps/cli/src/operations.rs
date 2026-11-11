@@ -5,7 +5,7 @@ use serde_json::{Map, Number, Value};
 
 use crate::args::{
     Command, FileCommand, KeyValueStorageCommand, OrganizationCommand, PageArgs, ResourceCommand,
-    Visibility, WorkspaceCommand, YjsStorageCommand,
+    StorageCommand, Visibility, WorkspaceCommand, YjsStorageCommand,
 };
 
 pub struct OperationCall {
@@ -49,15 +49,25 @@ pub fn from_command(
         Command::Organization { command } => organization_operation(command, &context).map(Some),
         Command::Workspace { command } => workspace_operation(command, &context).map(Some),
         Command::Resource { command } => resource_operation(command, &context).map(Some),
+        Command::Storage { command } => match command {
+            StorageCommand::Yjs { command } => yjs_storage_operation(command, &context).map(Some),
+            StorageCommand::Kv { command } => {
+                key_value_storage_operation(command, &context).map(Some)
+            }
+            StorageCommand::File { command } => file_operation(command, &context).map(Some),
+        },
         Command::YjsStorage { command } => yjs_storage_operation(command, &context).map(Some),
         Command::KeyValueStorage { command } => {
             key_value_storage_operation(command, &context).map(Some)
         }
         Command::File { command } => file_operation(command, &context).map(Some),
         Command::Call {
-            operation: name,
-            input,
+            operation: Some(name),
+            input: Some(input),
+            list: false,
         } => raw_operation(name, input).map(Some),
+        Command::Call { list: true, .. } => Ok(None),
+        Command::Call { .. } => Err("Provide an operation and --input, or use call --list.".into()),
         Command::Auth { .. } | Command::Server { .. } | Command::Mcp { .. } => Ok(None),
     }
 }
@@ -137,19 +147,27 @@ fn organization_operation(
         OrganizationCommand::RemoveMember {
             member_id,
             organization_id,
+            preview,
             preview_token,
-        } => operation(
-            "remove_organization_member",
-            object([
+        } => {
+            let mut input = object([
                 (
                     "organizationId",
                     context.organization(organization_id)?.into(),
                 ),
                 ("memberId", member_id.clone().into()),
-                ("previewToken", preview_token.clone().into()),
-                ("idempotencyKey", context.idempotency_key()?.into()),
-            ]),
-        ),
+            ]);
+            if *preview {
+                operation("preview_remove_organization_member", input)
+            } else {
+                input.insert(
+                    "previewToken".into(),
+                    required_preview_token(preview_token)?.into(),
+                );
+                input.insert("idempotencyKey".into(), context.idempotency_key()?.into());
+                operation("remove_organization_member", input)
+            }
+        }
     })
 }
 
@@ -225,12 +243,20 @@ fn workspace_operation(
         WorkspaceCommand::Delete {
             workspace_id,
             organization_id,
+            preview,
             preview_token,
         } => {
             let mut input = workspace_input(workspace_id, context.organization(organization_id)?);
-            input.insert("previewToken".into(), preview_token.clone().into());
-            input.insert("idempotencyKey".into(), context.idempotency_key()?.into());
-            operation("delete_workspace", input)
+            if *preview {
+                operation("preview_delete_workspace", input)
+            } else {
+                input.insert(
+                    "previewToken".into(),
+                    required_preview_token(preview_token)?.into(),
+                );
+                input.insert("idempotencyKey".into(), context.idempotency_key()?.into());
+                operation("delete_workspace", input)
+            }
         }
     })
 }
@@ -351,6 +377,7 @@ fn resource_operation(
             workspace_id,
             resource_id,
             organization_id,
+            preview,
             preview_token,
         } => {
             let mut input = resource_input(
@@ -358,9 +385,16 @@ fn resource_operation(
                 resource_id,
                 context.organization(organization_id)?,
             );
-            input.insert("previewToken".into(), preview_token.clone().into());
-            input.insert("idempotencyKey".into(), context.idempotency_key()?.into());
-            operation("delete_resource", input)
+            if *preview {
+                operation("preview_delete_resource", input)
+            } else {
+                input.insert(
+                    "previewToken".into(),
+                    required_preview_token(preview_token)?.into(),
+                );
+                input.insert("idempotencyKey".into(), context.idempotency_key()?.into());
+                operation("delete_resource", input)
+            }
         }
     })
 }
@@ -433,6 +467,12 @@ fn file_operation(
             input.insert("storageId".into(), storage_id.clone().into());
             operation("get_file_download_url", input)
         }
+    })
+}
+
+fn required_preview_token(token: &Option<String>) -> Result<&str, String> {
+    token.as_deref().ok_or_else(|| {
+        "Use --preview to review the action, then --preview-token to apply it.".into()
     })
 }
 
@@ -541,6 +581,178 @@ fn object<const N: usize>(values: [(&str, Value); N]) -> Map<String, Value> {
 mod tests {
     use super::*;
 
+    fn parse_call(arguments: &[&str]) -> OperationCall {
+        use clap::Parser;
+        let cli = crate::args::Cli::try_parse_from(
+            ["lunaris", "--organization", "org"]
+                .into_iter()
+                .chain(arguments.iter().copied()),
+        )
+        .unwrap();
+        from_command(
+            &cli.command,
+            cli.organization.as_deref(),
+            None,
+            Some("request-key"),
+        )
+        .unwrap()
+        .unwrap()
+    }
+
+    #[test]
+    fn scoped_commands_route_to_existing_contracts() {
+        for (arguments, operation, target_key, target) in [
+            (
+                vec!["resource", "get", "resource", "--workspace", "workspace"],
+                "get_resource",
+                "resourceId",
+                "resource",
+            ),
+            (
+                vec!["resource", "list", "--workspace", "workspace"],
+                "list_resources",
+                "workspaceId",
+                "workspace",
+            ),
+            (
+                vec![
+                    "storage",
+                    "yjs",
+                    "json",
+                    "storage",
+                    "--workspace",
+                    "workspace",
+                ],
+                "get_yjs_storage_json",
+                "storageId",
+                "storage",
+            ),
+            (
+                vec![
+                    "storage",
+                    "yjs",
+                    "state",
+                    "storage",
+                    "--workspace",
+                    "workspace",
+                    "--state-vector",
+                    "vector",
+                ],
+                "get_yjs_storage_state",
+                "stateVectorB64",
+                "vector",
+            ),
+            (
+                vec![
+                    "storage",
+                    "kv",
+                    "list",
+                    "storage",
+                    "--workspace",
+                    "workspace",
+                ],
+                "list_key_value_storage",
+                "storageId",
+                "storage",
+            ),
+            (
+                vec![
+                    "storage",
+                    "file",
+                    "download-url",
+                    "storage",
+                    "--workspace",
+                    "workspace",
+                ],
+                "get_file_download_url",
+                "storageId",
+                "storage",
+            ),
+        ] {
+            let call = parse_call(&arguments);
+            assert_eq!(call.name, operation);
+            assert_eq!(call.input[target_key], target);
+            assert_eq!(call.input["organizationId"], "org");
+            assert_eq!(call.input["workspaceId"], "workspace");
+        }
+    }
+
+    #[test]
+    fn previews_never_include_mutation_fields() {
+        for (arguments, preview_operation, mutation_operation) in [
+            (
+                vec!["workspace", "delete", "workspace"],
+                "preview_delete_workspace",
+                "delete_workspace",
+            ),
+            (
+                vec!["resource", "delete", "resource", "--workspace", "workspace"],
+                "preview_delete_resource",
+                "delete_resource",
+            ),
+            (
+                vec!["organization", "remove-member", "member"],
+                "preview_remove_organization_member",
+                "remove_organization_member",
+            ),
+        ] {
+            let mut preview_args = arguments.clone();
+            preview_args.push("--preview");
+            let preview = parse_call(&preview_args);
+            assert_eq!(preview.name, preview_operation);
+            assert!(!preview.input.contains_key("idempotencyKey"));
+            assert!(!preview.input.contains_key("previewToken"));
+            let mut mutation_args = arguments;
+            mutation_args.extend(["--preview-token", "token"]);
+            let mutation = parse_call(&mutation_args);
+            assert_eq!(mutation.name, mutation_operation);
+            assert_eq!(mutation.input["previewToken"], "token");
+            assert_eq!(mutation.input["idempotencyKey"], "request-key");
+            for (key, value) in preview.input {
+                assert_eq!(mutation.input[&key], value);
+            }
+        }
+    }
+
+    #[test]
+    fn legacy_names_and_search_flag_keep_the_same_operations() {
+        for (old, new) in [
+            (
+                vec!["yjs-storage", "json", "s", "--workspace", "w"],
+                vec!["storage", "yjs", "json", "s", "--workspace", "w"],
+            ),
+            (
+                vec!["key-value-storage", "list", "s", "--workspace", "w"],
+                vec!["storage", "kv", "list", "s", "--workspace", "w"],
+            ),
+            (
+                vec!["file", "download-url", "s", "--workspace", "w"],
+                vec!["storage", "file", "download-url", "s", "--workspace", "w"],
+            ),
+            (
+                vec!["resource", "search", "text", "--workspace-id", "w"],
+                vec!["resource", "search", "text", "--workspace", "w"],
+            ),
+            (
+                vec!["workspace", "preview-delete", "w"],
+                vec!["workspace", "delete", "w", "--preview"],
+            ),
+            (
+                vec!["resource", "preview-delete", "r", "--workspace", "w"],
+                vec!["resource", "delete", "r", "--workspace", "w", "--preview"],
+            ),
+            (
+                vec!["organization", "preview-remove-member", "m"],
+                vec!["organization", "remove-member", "m", "--preview"],
+            ),
+        ] {
+            let old = parse_call(&old);
+            let new = parse_call(&new);
+            assert_eq!(old.name, new.name);
+            assert_eq!(old.input, new.input);
+        }
+    }
+
     #[test]
     fn command_organization_overrides_global_and_configured_organizations() {
         let command = Command::Workspace {
@@ -565,8 +777,9 @@ mod tests {
     #[test]
     fn raw_operation_requires_an_object() {
         let command = Command::Call {
-            operation: "get_workspace".into(),
-            input: "[]".into(),
+            operation: Some("get_workspace".into()),
+            input: Some("[]".into()),
+            list: false,
         };
 
         assert_eq!(
