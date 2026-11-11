@@ -177,29 +177,17 @@ for (const name of ["RELEASE_APP_ID", "CORE_CONFIGURATION_REVISION"]) {
     blockers.push(`Missing repository variable ${name}`);
   }
 }
-for (const name of ["production", "staging", "release"]) {
+for (const name of ["production", "release"]) {
   if (!environments.some((entry) => entry.name === name)) {
     blockers.push(`Missing GitHub environment ${name}`);
   }
 }
-for (const name of ["production", "staging"]) {
+for (const name of ["production"]) {
   const details = environmentDetails.find((entry) => entry.name === name);
   if (!details) {
     continue;
   }
-  const required =
-    name === "staging"
-      ? [
-          "RAILWAY_STAGING_TARGETS",
-          ...[
-            "PROJECT_ID",
-            "ENVIRONMENT_ID",
-            "API_SERVICE_ID",
-            "COMPACT_SERVICE_ID",
-            "REPLICATION_SERVICE_ID",
-          ].map((key) => `STAGING_POWERSYNC_${key}`),
-        ]
-      : ["RAILWAY_RELEASE_TARGETS"];
+  const required = ["RAILWAY_RELEASE_TARGETS"];
   for (const key of required) {
     if (!(details.variableNames.includes(key) || value(key))) {
       blockers.push(`Missing ${name} variable ${key}`);
@@ -400,7 +388,7 @@ for (const pr of prs.filter(
   }
 }
 for (const environment of environmentDetails.filter((entry) =>
-  ["production", "staging", "release"].includes(entry.name)
+  ["production", "release"].includes(entry.name)
 )) {
   const path = `environments/${environment.name}`;
   // GitHub PUT can reset omitted protection fields; carry existing values explicitly.
@@ -480,7 +468,7 @@ writeFileSync(
   `${JSON.stringify({ repository, settings: get(""), rules: pages("rulesets?includes_parents=true&per_page=100"), at: new Date().toISOString() }, null, 2)}\n`,
   { mode: 0o600 }
 );
-// Publication stays paused until isolated staging/native rehearsal and npm trust are attested.
+// Publication stays paused until isolated release/native rehearsal and npm trust are attested.
 if (process.env.RELEASE_REHEARSAL_VERIFIED !== "true") {
   throw new Error(
     "Settings migrated; publication paused. Verify isolated release rehearsal and npm trust, then rerun with RELEASE_REHEARSAL_VERIFIED=true"

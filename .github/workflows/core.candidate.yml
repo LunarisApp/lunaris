@@ -4,7 +4,7 @@ on:
     branches: [ main ]
 permissions:
   contents: read
-  deployments: write
+  deployments: read
   packages: write
 jobs:
   build:
@@ -66,41 +66,17 @@ jobs:
       images: ${{ needs.build.outputs.images }}
       shard: ${{ matrix.shard }}
       shards: 3
-  stage:
+  certify:
     needs: [ build, test ]
     if: needs.build.outputs.enabled == 'true'
     runs-on: ubuntu-latest
-    environment: staging
-    concurrency:
-      group: core-staging
-      cancel-in-progress: false
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_RELEASE_TOKEN }}
-      RAILWAY_RELEASE_TARGETS: ${{ vars.RAILWAY_STAGING_TARGETS }}
-      POWERSYNC_API_SERVICE_ID: ${{ vars.STAGING_POWERSYNC_API_SERVICE_ID }}
-      POWERSYNC_COMPACT_SERVICE_ID: ${{ vars.STAGING_POWERSYNC_COMPACT_SERVICE_ID }}
-      POWERSYNC_ENVIRONMENT_ID: ${{ vars.STAGING_POWERSYNC_ENVIRONMENT_ID }}
-      POWERSYNC_PROJECT_ID: ${{ vars.STAGING_POWERSYNC_PROJECT_ID }}
-      POWERSYNC_REPLICATION_SERVICE_ID: ${{ vars.STAGING_POWERSYNC_REPLICATION_SERVICE_ID }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-bun
-      - run: bun install --frozen-lockfile
-        env:
-          CYPRESS_INSTALL_BINARY: 0
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: core-images
           path: artifacts
-      - run: npm install --global @railway/cli@5.26.4
-      - run: bun tooling/delivery/core.ts stage
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: core-candidate
-          path: |
-            artifacts/candidate.json
-            artifacts/staging.json
+          path: artifacts/candidate.json
           retention-days: 30

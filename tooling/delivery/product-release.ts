@@ -22,13 +22,11 @@ import {
 } from "./product";
 import { git, output, run, summary } from "../release/automation/process";
 import {
-  github,
   lastSuccess,
   statuses,
   deployments,
   createDeployment,
   setStatus,
-  type Deployment,
 } from "./github";
 
 const mode = process.argv[2];
@@ -112,15 +110,6 @@ if (mode === "reserve") {
   const candidate = JSON.parse(
     readFileSync("artifacts/candidate.json", "utf8")
   );
-  const staging = JSON.parse(readFileSync("artifacts/staging.json", "utf8"));
-  const stage = await github<Deployment>(`deployments/${staging.deploymentId}`);
-  if (
-    stage.environment !== "staging/core" ||
-    (await statuses(stage.id))[0]?.state !== "success" ||
-    JSON.stringify(stage.payload) !== JSON.stringify(candidate)
-  ) {
-    throw new Error("Staging evidence mismatch");
-  }
   const current = await lastSuccess("production/core");
   if (current) {
     git("merge-base", "--is-ancestor", current.sha, candidate.sha);
@@ -224,7 +213,10 @@ if (mode === "reserve") {
     schemaVersion: 1,
     version,
     candidate,
-    stagingDeploymentId: staging.deploymentId,
+    // Preserve legacy evidence when resuming an existing immutable reservation.
+    ...(old?.stagingDeploymentId
+      ? { stagingDeploymentId: old.stagingDeploymentId }
+      : {}),
   });
   if (old) {
     assertSamePlan(old, plan);

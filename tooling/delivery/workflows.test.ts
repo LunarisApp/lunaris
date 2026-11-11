@@ -25,21 +25,16 @@ test("independent sites have no core release dependency and never cancel active 
   expect(job.concurrency["cancel-in-progress"]).toBe(false);
   expect(job.concurrency.group).toContain("matrix.component");
 });
-test("candidate stage waits for all image tests and protects the shared staging stack", () => {
-  const { jobs } = workflow("core.candidate");
+test("candidate certification waits for all image tests without deploying", () => {
+  const { jobs, permissions } = workflow("core.candidate");
   expect(jobs.test.strategy.matrix.shard).toEqual([0, 1, 2]);
   expect(jobs.test.with.shards).toBe(3);
-  expect(jobs.stage.needs).toEqual(["build", "test"]);
-  expect(jobs.stage.concurrency).toEqual({
-    group: "core-staging",
-    "cancel-in-progress": false,
-  });
-  expect(jobs.stage.env.POWERSYNC_PROJECT_ID).toContain(
-    "STAGING_POWERSYNC_PROJECT_ID"
-  );
-  expect(jobs.stage.env.RAILWAY_RELEASE_TARGETS).toContain(
-    "RAILWAY_STAGING_TARGETS"
-  );
+  expect(jobs.certify.needs).toEqual(["build", "test"]);
+  expect(jobs.certify.environment).toBeUndefined();
+  expect(jobs.certify.steps.at(-1).with.name).toBe("core-candidate");
+  expect(jobs.certify.steps.at(-1).with.path).toBe("artifacts/candidate.json");
+  expect(permissions.deployments).toBe("read");
+  expect(Object.keys(jobs)).toEqual(["build", "test", "certify"]);
   expect(workflow("e2e").concurrency.group).toContain("inputs.shard");
 });
 test("production uses trusted tooling and resolves evidence before source checkout", () => {

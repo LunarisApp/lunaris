@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       candidate_run_id:
-        description: Successful private staging candidate run ID
+        description: Successful Core - Candidate run ID
         required: true
         type: string
       version:

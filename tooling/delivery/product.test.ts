@@ -31,7 +31,6 @@ test("stable versions reject prereleases, leading zeros, unsafe numbers and regr
 const plan = productPlanSchema.parse({
   schemaVersion: 1,
   version: "1.0.0",
-  stagingDeploymentId: 1,
   candidate: {
     schemaVersion: 1,
     sha: "a".repeat(40),
@@ -48,10 +47,13 @@ const plan = productPlanSchema.parse({
     configurationRevision: "1",
   },
 });
-test("reservations bind version, source and staging evidence", () => {
+test("reservations bind version, source and candidate evidence", () => {
   expect(() => assertSamePlan(plan, structuredClone(plan))).not.toThrow();
   expect(() =>
-    assertSamePlan(plan, { ...plan, stagingDeploymentId: 2 })
+    assertSamePlan(plan, {
+      ...plan,
+      candidate: { ...plan.candidate, runId: "2" },
+    })
   ).toThrow();
   expect(() => assertSamePlan(plan, { ...plan, version: "1.0.1" })).toThrow();
 });
@@ -88,4 +90,10 @@ test("desktop receipts accept only their platform installer and version", () => 
       assetReceiptSchema.safeParse({ ...receipt, group: "desktop" }).success
     ).toBe(false);
   }
+});
+
+test("historical release plans retain staging evidence for recovery", () => {
+  const legacy = productPlanSchema.parse({ ...plan, stagingDeploymentId: 1 });
+  expect(legacy.stagingDeploymentId).toBe(1);
+  expect(() => assertSamePlan(legacy, structuredClone(legacy))).not.toThrow();
 });

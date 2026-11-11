@@ -40,7 +40,8 @@ export const productPlanSchema = z
     schemaVersion: z.literal(1),
     version: z.string().regex(stableVersion),
     candidate: candidateSchema,
-    stagingDeploymentId: z.number().int().positive(),
+    // Compatibility with release plans reserved before staging was retired.
+    stagingDeploymentId: z.number().int().positive().optional(),
   })
   .strict();
 export type ProductPlan = z.infer<typeof productPlanSchema>;
@@ -107,7 +108,7 @@ export const assetReceiptSchema = z
 export function assertSamePlan(existing: ProductPlan, candidate: ProductPlan) {
   if (JSON.stringify(existing) !== JSON.stringify(candidate)) {
     throw new Error(
-      "Release already reserved for different source, version or staging evidence"
+      "Release already reserved for different source, version or candidate evidence"
     );
   }
 }

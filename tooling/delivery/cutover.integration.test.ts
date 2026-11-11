@@ -50,7 +50,7 @@ function fixture() {
         source: "fixture/repo",
       },
     ],
-    environments: ["production", "staging", "release"].map((name) => ({
+    environments: ["production", "release"].map((name) => ({
       name,
       protection_rules: [],
       deployment_branch_policy: {
@@ -64,7 +64,7 @@ function fixture() {
       "HOMEBREW_TAP_TOKEN",
     ].map((name) => ({ name })),
     policies: Object.fromEntries(
-      ["production", "staging", "release"].map((name) => [
+      ["production", "release"].map((name) => [
         name,
         [{ id: 1, name: "next", type: "branch" }],
       ])
@@ -176,11 +176,13 @@ test("preview snapshots paginated settings without values or mutations", () => {
 test("missing prerequisites leave publication disabled before any settings writes", () => {
   const f = fixture();
   const state = f.state();
-  state.environments = state.environments.filter((e) => e.name !== "staging");
+  state.environments = state.environments.filter(
+    (e) => e.name !== "production"
+  );
   f.set(state);
   const result = f.run(true);
   expect(result.status).not.toBe(0);
-  expect(result.stderr).toContain("Missing GitHub environment staging");
+  expect(result.stderr).toContain("Missing GitHub environment production");
   expect(
     f
       .state()
