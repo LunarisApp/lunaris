@@ -202,13 +202,7 @@ for (const name of ["production"]) {
     blockers.push(`Missing ${name} RAILWAY_RELEASE_TOKEN`);
   }
 }
-for (const name of [
-  "RELEASE_APP_PRIVATE_KEY",
-  "RELEASES_S3_ACCESS_KEY_ID",
-  "RELEASES_S3_SECRET_ACCESS_KEY",
-  "RELEASES_S3_REGION",
-  "RELEASES_S3_BUCKET",
-]) {
+for (const name of ["RELEASE_APP_PRIVATE_KEY"]) {
   if (
     !(
       secretNames.includes(name) ||

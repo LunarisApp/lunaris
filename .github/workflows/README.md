@@ -167,7 +167,7 @@ in separate jobs enabled only by the stable release caller.
 product version. Windows and Linux installers have separate immutable receipts,
 join the same draft GitHub product release, and must succeed before hosted
 promotion. All desktop installers publish exclusively as GitHub release assets;
-final release checksums cover every platform. CLI S3 publication stays enabled.
+final release checksums cover every platform. CLI archives publish as GitHub Release assets.
 Homebrew remains macOS-only, with desktop downloads resolved from GitHub Releases.
 
 Windows/Linux installers are currently unsigned. macOS retains universal DMG,
