@@ -15,9 +15,10 @@ Never enable two deployment owners for one Railway service.
   changes remain pending. Sites do not wait for stable releases.
 - **Core - Candidate** builds private EE API/web images when core, native, or
   self-hosted inputs change. Unchanged hosted images reuse tested digests. Three
-  Cypress shards test candidate images; successful candidates deploy isolated
-  staging and retain source, digests, sync/configuration revisions, and staging
-  evidence for 30 days.
+  Cypress shards test candidate images; successful candidates retain source,
+  digests, and sync/configuration revisions for 30 days. Candidate certification
+  requires no persistent staging environment. Image reuse compares against the
+  last successful production deployment.
 - **Release Stable** runs manually on main. Supply successful candidate run ID;
   optional version overrides next product patch. Initial version exceeds the
   highest historical product-component version, excluding SDK/UI.
@@ -41,7 +42,7 @@ introduced solely for generated release metadata.
 
 ## Recovery
 
-Stable reserves version, source, candidate and staging evidence in immutable
+Stable reserves version, source and candidate evidence in immutable
 `release-plan.json` on a draft GitHub Release. All stable runs serialize. A retry
 with same candidate resumes reserved version; another candidate/version is refused
 until incomplete publication is resolved. Re-dispatching a completed candidate
@@ -75,32 +76,15 @@ sync changes compatible with installed/offline clients.
 
 ## GitHub migration
 
-First provision isolated Railway staging with its own database, Redis, storage,
-PowerSync, API and web. Configure private GHCR reads for hosted EE images in
-staging/production. Disable provider auto-updates and duplicate GitHub autodeploys.
-Production must not share staging state.
+Configure private GHCR reads for hosted EE images in production. Disable provider
+auto-updates and duplicate GitHub autodeploys.
 
-Keep staging out of the public region directory. Hosted web images load public
-configuration at container startup, so the Staging Web service can override
-region discovery without rebuilding the image. Set these Railway runtime variables:
-
-```text
-VITE_REGION_DIRECTORY_URL=/regions.json
-VITE_REGION_DIRECTORY_JSON={"schemaVersion":1,"regions":[{"regionId":"staging","displayName":"Staging","status":"available","manifestUrl":"https://lunaris-staging-api.up.railway.app/v1/manifest"}]}
-```
-
-The web server exposes this directory at `/regions.json` and its URL at
-`/runtime-config.json`; both responses use `Cache-Control: no-store`.
-The directory must use the versioned discovery object (`schemaVersion` and
-`regions`), not the legacy inline array. Verify both endpoints and the linked
-manifest after deployment. Production keeps the public directory URL.
-
-Required GitHub environments: `staging`, `production`, `release`. Configure
-`RAILWAY_STAGING_TARGETS` / `RAILWAY_RELEASE_TARGETS` using existing destination
-schema and environment-scoped `RAILWAY_RELEASE_TOKEN`. Staging requires its own
-`STAGING_POWERSYNC_{PROJECT_ID,ENVIRONMENT_ID,API_SERVICE_ID,COMPACT_SERVICE_ID,REPLICATION_SERVICE_ID}`.
-Retain production `POWERSYNC_*`. Set repository `CORE_CONFIGURATION_REVISION`
-and increment it when runtime settings/destinations need recertification.
+Required GitHub environments: `production`, `release`. Configure
+`RAILWAY_RELEASE_TARGETS` using the existing destination schema and
+production-scoped `RAILWAY_RELEASE_TOKEN`. Retain production `POWERSYNC_*`.
+Set repository `CORE_CONFIGURATION_REVISION` and increment it when runtime
+settings/destinations need recertification. Staging targets, credentials, and
+PowerSync variables are no longer used by delivery workflows.
 
 Configure native S3 credentials used by existing release scripts. Homebrew is
 optional: add `HOMEBREW_TAP_TOKEN` to the `release` environment when tap updates
@@ -136,7 +120,7 @@ npm version PRs without bypassing checks. Unrelated rules/settings remain intact
 Inherited active rules require explicit review rather than automatic modification.
 Every changed policy is read back; failures retain paused publication.
 
-Settings alone do not prove staging or publication. Complete isolated release
+Settings alone do not prove candidate certification or publication. Complete isolated release
 rehearsal and verify npm trust; rerun with `RELEASE_REHEARSAL_VERIFIED=true` only
 when that evidence exists. This enables delivery workflows last. Keep original snapshots and
 historical release records for recovery.

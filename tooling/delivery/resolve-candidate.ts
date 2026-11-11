@@ -50,19 +50,7 @@ if (rollbackId) {
     JSON.parse(readFileSync("artifacts/candidate.json", "utf8"))
   );
   assertCandidateRun(candidate, info);
-  const staged: unknown = JSON.parse(
-    readFileSync("artifacts/staging.json", "utf8")
-  );
-  if (
-    !staged ||
-    typeof staged !== "object" ||
-    !("deploymentId" in staged) ||
-    !Number.isSafeInteger(staged.deploymentId)
-  ) {
-    throw new Error("Invalid staging receipt");
-  }
   verifyTrunk(candidate.sha);
   output("sha", candidate.sha);
-  output("staging", String(staged.deploymentId));
   output("mode", "promote");
 }

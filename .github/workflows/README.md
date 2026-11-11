@@ -4,7 +4,7 @@ See [trunk delivery and stable releases](../../docs/procedures/independent-deliv
 for current architecture, migration, credentials and recovery.
 
 - CI gates feature PRs with affected checks and CodeQL.
-- Core - Candidate certifies private staging images after main merges.
+- Core - Candidate certifies private images through three Cypress shards after main merges.
 - Release Stable selects a candidate, builds all installable outputs, promotes
   hosted digests, and publishes one product release.
 - Native - Build stable artifacts is reusable by the stable coordinator.

@@ -62,10 +62,6 @@ function fixture() {
     JSON.stringify(candidate)
   );
   writeFileSync(
-    join(root, "artifacts/staging.json"),
-    JSON.stringify({ deploymentId: 1 })
-  );
-  writeFileSync(
     join(root, "bin/git"),
     `#!${process.execPath}
 import{readFileSync}from'node:fs';const a=process.argv.slice(2);if(a[0]==='rev-parse')console.log('${sha}');else if(a[0]==='tag')console.log(JSON.parse(readFileSync(process.env.FIXTURE_STATE,'utf8')).tags.join('\\n'));
@@ -78,7 +74,7 @@ import{readFileSync}from'node:fs';const a=process.argv.slice(2);if(a[0]==='rev-p
 if(u.includes('/statuses')){const id=u.split('/deployments/')[1].split('/')[0];if(options.method==='POST'){s.reservationState=JSON.parse(options.body).state;s.reservationStates[id]=s.reservationState;}v=[{state:id==='1'||id==='999'?'success':s.reservationStates[id]??s.reservationState}];}
 else if(u.includes('/deployments?'))v=u.includes('release%2Fproduct')?s.reservations:s.productionReady?[{id:999,environment:'production/core',payload:s.candidate,sha:s.candidate.sha}]:[];
 else if(u.endsWith('/deployments')&&options.method==='POST'){v={id:s.reservations.length+2,...JSON.parse(options.body)};s.reservations.push(v);}
-else if(u.includes('/deployments/1'))v={id:1,environment:'staging/core',payload:s.candidate,sha:s.candidate.sha};else throw new Error('Unexpected fetch '+u);
+else throw new Error('Unexpected fetch '+u);
 writeFileSync(process.env.FIXTURE_STATE,JSON.stringify(s));return Response.json(v);};`
   );
   writeFileSync(
@@ -152,6 +148,21 @@ test("stable reservation chooses next version once and resumes without another t
   expect(
     f.state().calls.filter((c) => c.includes("release create"))
   ).toHaveLength(1);
+});
+test("legacy reservations resume without staging receipts or live staging", () => {
+  const f = fixture();
+  expect(f.run("reserve").status).toBe(0);
+  const state = f.state();
+  const reservation = state.reservations[0]!;
+  const legacy = { ...(reservation.payload as object), stagingDeploymentId: 1 };
+  reservation.payload = legacy;
+  state.files["v0.9.1/release-plan.json"] =
+    `${JSON.stringify(legacy, null, 2)}\n`;
+  f.set(state);
+  const result = f.run("reserve");
+  expect(result.stderr).toBe("");
+  expect(result.status).toBe(0);
+  expect(f.state().reservations).toHaveLength(1);
 });
 test("unfinished product release rejects another candidate and explicit version", () => {
   const f = fixture();

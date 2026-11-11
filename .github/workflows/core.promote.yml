@@ -36,7 +36,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.resolve.outputs.sha }}
-      staging: ${{ steps.resolve.outputs.staging }}
       mode: ${{ steps.resolve.outputs.mode }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -63,7 +62,6 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       CORE_TARGET: ${{ inputs.target }}
-      STAGING_DEPLOYMENT_ID: ${{ needs.resolve.outputs.staging }}
       ROLLBACK_DEPLOYMENT_ID: ${{ inputs.rollback_deployment_id }}
       CORE_CONFIGURATION_REVISION: ${{ vars.CORE_CONFIGURATION_REVISION }}
       RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_RELEASE_TOKEN }}

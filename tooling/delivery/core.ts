@@ -47,7 +47,7 @@ if (mode === "plan") {
   if (!configurationRevision) {
     throw new Error("CORE_CONFIGURATION_REVISION required");
   }
-  const previous = recordCandidate(await lastSuccess("staging/core"));
+  const previous = recordCandidate(await lastSuccess("production/core"));
   const affected = previous
     ? affectedComponents(changedFiles(previous.sha, sha))
     : ["api", "web"];
@@ -142,26 +142,6 @@ if (mode === "plan") {
     "images",
     JSON.stringify({ api: candidate.api.image, web: candidate.web.image })
   );
-} else if (mode === "stage") {
-  const candidate = readCandidate();
-  verifyTrunk(candidate.sha);
-  if (candidate.sha !== sha || candidate.runId !== process.env.GITHUB_RUN_ID) {
-    throw new Error("Staging candidate source mismatch");
-  }
-  const state = await readCoreState("staging");
-  for (const baseline of [state.current, ...state.pending]) {
-    if (baseline) {
-      git("merge-base", "--is-ancestor", baseline.sha, candidate.sha);
-    }
-  }
-  const deploymentId = await deployCore(
-    candidate,
-    "staging",
-    "core",
-    state.current,
-    needsSyncRecovery(state, candidate)
-  );
-  writeFileSync("artifacts/staging.json", JSON.stringify({ deploymentId }));
 } else if (mode === "promote" || mode === "rollback") {
   const target = process.env.CORE_TARGET;
   if (target !== "api" && target !== "web" && target !== "core") {
@@ -179,17 +159,6 @@ if (mode === "plan") {
       if (baseline) {
         git("merge-base", "--is-ancestor", baseline.sha, candidate.sha);
       }
-    }
-    const stage = await github<Deployment>(
-      `deployments/${process.env.STAGING_DEPLOYMENT_ID}`
-    );
-    if (
-      stage.environment !== "staging/core" ||
-      JSON.stringify(candidateSchema.parse(stage.payload)) !==
-        JSON.stringify(candidate) ||
-      (await statuses(stage.id))[0]?.state !== "success"
-    ) {
-      throw new Error("Staging candidate was not successfully deployed");
     }
   } else {
     const record = await github<Deployment>(
@@ -224,5 +193,5 @@ if (mode === "plan") {
     needsSyncRecovery(state, candidate)
   );
 } else {
-  throw new Error("Expected plan, images, stage, promote or rollback");
+  throw new Error("Expected plan, images, promote or rollback");
 }
