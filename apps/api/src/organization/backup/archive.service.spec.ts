@@ -76,13 +76,13 @@ function makeStorage(
         key: objectKey,
         lastModified: Date.now(),
         size: FILE_BYTES.byteLength,
-        type: "text/html",
+        contentType: "text/html",
       };
       yield {
         key: "files/org_1/private-workspace/secret.txt",
         lastModified: Date.now(),
         size: FILE_BYTES.byteLength,
-        type: "text/plain",
+        contentType: "text/plain",
       };
     },
     async putObjectStream(_key: string, body: ReadableStream<Uint8Array>) {

@@ -1,4 +1,4 @@
-import { memoryAdapter } from "better-auth/adapters/memory";
+import { type MemoryDB, memoryAdapter } from "better-auth/adapters/memory";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { adoptAnonymousOrganizationOnLink } from "./anonymous-account-link";
 import {
@@ -624,6 +624,73 @@ describe("signup policy", () => {
       ).resolves.toBeUndefined();
       expect(auth.options.emailAndPassword?.disableSignUp).toBe(false);
     }
+  });
+});
+
+describe("signup organization", () => {
+  it("creates one personal organization before caching the signup session", async () => {
+    const database: MemoryDB = {
+      oauthResource: [],
+      user: [],
+      account: [],
+      session: [],
+      verification: [],
+      organization: [],
+      member: [],
+    };
+    const cache = new Map<string, string>();
+    const auth = createAuth({} as never, {
+      frontendUrl: "http://localhost:8080",
+      backendUrl: "http://localhost:8080",
+      disableEmailVerification: true,
+      database: memoryAdapter(database),
+    });
+    auth.options.secondaryStorage = {
+      get: (key) => Promise.resolve(cache.get(key) ?? null),
+      getAndDelete: (key) => {
+        const value = cache.get(key) ?? null;
+        cache.delete(key);
+        return Promise.resolve(value);
+      },
+      increment: (key) => {
+        const value = Number(cache.get(key) ?? 0) + 1;
+        cache.set(key, String(value));
+        return Promise.resolve(value);
+      },
+      set: (key, value) => {
+        cache.set(key, value);
+        return Promise.resolve();
+      },
+      delete: (key) => {
+        cache.delete(key);
+        return Promise.resolve();
+      },
+    };
+    const response = await auth.handler(
+      new Request("http://localhost:8080/auth/sign-up/email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "http://localhost:8080",
+        },
+        body: JSON.stringify({
+          name: "Self-host smoke",
+          email: "signup@example.com",
+          password: "Self-host-smoke-1234",
+        }),
+      })
+    );
+    expect(response.status).toBe(200);
+    const { token } = await response.json();
+    const cached = JSON.parse(cache.get(token)!);
+    expect(database.organization).toHaveLength(1);
+    expect(database.member).toHaveLength(1);
+    expect(cached.session.activeOrganizationId).toBe(
+      database.organization![0].id
+    );
+    expect(database.session![0]).toMatchObject({
+      activeOrganizationId: cached.session.activeOrganizationId,
+    });
   });
 });
 

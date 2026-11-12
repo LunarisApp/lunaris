@@ -1,3 +1,7 @@
+/**
+ * Sandbox handshake tests need iframe windows, disabled by default in Happy DOM 21.
+ * @vitest-environment-options {"settings":{"enableIframePageLoading":true}}
+ */
 import { render, waitFor } from "@testing-library/react";
 import { PLUGIN_SANDBOX_PROTOCOL_VERSION } from "@lunarisapp/plugin-sdk";
 import {

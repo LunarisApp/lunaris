@@ -3,6 +3,7 @@ import { oauthProvider } from "@better-auth/oauth-provider";
 import { getTableColumns } from "drizzle-orm";
 import { getTableConfig } from "drizzle-orm/pg-core";
 import {
+  account,
   authSchema,
   oauthClientResource,
   oauthResource,
@@ -13,6 +14,32 @@ import {
 } from "./auth.entity";
 
 describe("passkey auth schema", () => {
+  it("accepts provider-keyed accounts without a historical issuer", async () => {
+    const columns = getTableColumns(account);
+    const config = getTableConfig(account);
+    const identityIndex = config.indexes.find(
+      (index) => index.config.name === "account_providerId_accountId_uidx"
+    );
+    expect(columns.issuer.notNull).toBe(false);
+    expect(identityIndex?.config.unique).toBe(true);
+    expect(
+      identityIndex?.config.columns.map((column) =>
+        "name" in column ? column.name : undefined
+      )
+    ).toEqual(["provider_id", "account_id"]);
+    expect(config.indexes.map((index) => index.config.name)).not.toContain(
+      "account_issuer_accountId_uidx"
+    );
+    const migration = await Bun.file(
+      new URL(
+        "../../drizzle/0056_account_provider_identity.sql",
+        import.meta.url
+      )
+    ).text();
+    expect(migration).toContain('ALTER COLUMN "issuer" DROP NOT NULL');
+    expect(migration).not.toMatch(/DROP COLUMN|TRUNCATE|DELETE FROM/);
+  });
+
   it("provides every field required by the installed OAuth provider", () => {
     const provider = oauthProvider({
       loginPage: "/auth",

@@ -356,6 +356,31 @@ export function buildSelfHostedCookieOptions(backendUrl: string) {
   };
 }
 
+async function ensureUserOrganization(
+  adapter: ReturnType<typeof getOrgAdapter>,
+  userId: string
+) {
+  const [existing] = await adapter.listOrganizations(userId);
+  if (existing) {
+    return existing;
+  }
+  const organization = await adapter.createOrganization({
+    organization: {
+      name: "Personal",
+      slug: crypto.randomBytes(4).toString("hex"),
+      isPersonal: true,
+      createdAt: new Date(),
+    },
+  });
+  await adapter.createMember({
+    organizationId: organization.id,
+    userId,
+    role: "owner",
+    createdAt: new Date(),
+  });
+  return organization;
+}
+
 export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
   const sendEmail = createEmailSender(options.resend ?? null, options);
   const emailVerificationDisabled = options.disableEmailVerification === true;
@@ -494,7 +519,6 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
       }),
     },
     account: {
-      identityStrategy: "provider-id",
       accountLinking: {
         enabled: true,
         trustedProviders: ["google"],
@@ -841,22 +865,7 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
               return;
             }
             const adapter = getOrgAdapter(ctx.context);
-            const name = "Personal";
-            const slug = crypto.randomBytes(4).toString("hex");
-            const org = await adapter.createOrganization({
-              organization: {
-                name,
-                slug,
-                isPersonal: true,
-                createdAt: new Date(),
-              },
-            });
-            await adapter.createMember({
-              organizationId: org.id,
-              userId: user.id,
-              role: "owner",
-              createdAt: new Date(),
-            });
+            const org = await ensureUserOrganization(adapter, user.id);
             // Fix race condition: session may already exist without
             // activeOrganizationId because session.create.before runs
             // before this hook completes during signup.
@@ -881,11 +890,12 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
               return;
             }
             const adapter = getOrgAdapter(ctx.context);
-            const orgs = await adapter.listOrganizations(session.userId);
-            const firstOrg = orgs[0];
-            if (!firstOrg) {
-              return;
-            }
+            // Better Auth defers user.create.after until signup commits. Provision
+            // membership here so the session and its caches start with an organization.
+            const firstOrg = await ensureUserOrganization(
+              adapter,
+              session.userId
+            );
             return {
               data: { ...session, activeOrganizationId: firstOrg.id },
             };

@@ -6,7 +6,7 @@ import { DatabaseService } from "@app/db";
 import { StorageService } from "@app/storage";
 import { Injectable } from "@nestjs/common";
 import * as archiver from "archiver";
-import type { StoredFile } from "files-sdk";
+import type { FileInfo } from "files-sdk";
 import type { PoolClient } from "pg";
 import QueryStream from "pg-query-stream";
 
@@ -258,10 +258,10 @@ export class ArchiveService {
       client.release();
       client = null;
 
-      const objects: (StoredFile & { archiveKey: string })[] = [];
+      const objects: (FileInfo & { archiveKey: string })[] = [];
       const prefix = `files/${params.organizationId}/`;
       const sources = new Set(referencedFiles.values());
-      const available = new Map<string, StoredFile>();
+      const available = new Map<string, FileInfo>();
       for await (const object of this.storage.listObjects(prefix)) {
         if (sources.has(object.key)) {
           available.set(object.key, object);
@@ -317,7 +317,7 @@ export class ArchiveService {
             ? new Date(object.lastModified)
             : snapshotStartedAt,
           name: path,
-          store: shouldStoreWithoutCompression(object.type),
+          store: shouldStoreWithoutCompression(object.contentType),
         });
         await finished(hashed);
         if (currentObjectBytes !== object.size) {
