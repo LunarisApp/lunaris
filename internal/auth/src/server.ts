@@ -494,7 +494,6 @@ export function createAuth(db: DrizzleDb, options: CreateAuthOptions): Auth {
       }),
     },
     account: {
-      identityStrategy: "provider-id",
       accountLinking: {
         enabled: true,
         trustedProviders: ["google"],
