@@ -24,6 +24,7 @@ describe("PWA navigation routing", () => {
     "/auth/verify-email?callbackURL=%2F&token=test",
     "/auth/reset-password/reset-token",
     "/v1/manifest",
+    "/api/__e2e_reset__",
     "/sync/stream",
     "/lunaris/file",
     "/.well-known/lunaris-servers",
