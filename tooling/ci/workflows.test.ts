@@ -285,3 +285,9 @@ test("Bun fallback preserves the pinned version and verifies installation", () =
   expect(verify.if).toBeUndefined();
   expect(verify.run).toBe('test "$(bun --version)" = "$BUN_VERSION"');
 });
+
+test("Rust CI uses the available macOS Intel runner pool", () => {
+  const { jobs } = workflow("ci");
+  expect(jobs["agent-rust"]["runs-on"]).toBe("macos-15-intel");
+  expect(jobs["desktop-mcp"]["runs-on"]).toBe("macos-15-intel");
+});

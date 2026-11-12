@@ -74,12 +74,14 @@ const deletePowerSyncDb = () =>
 
 // Unload the application before changing its session or deleting databases.
 // Visiting /auth can redirect back into the app and reopen workers mid-reset.
+// The /api prefix bypasses the PWA navigation fallback, including candidate builds.
 const visitBlankPage = () => {
-  cy.intercept("GET", "/__e2e_reset__", {
+  cy.intercept("GET", "/api/__e2e_reset__", {
     headers: { "content-type": "text/html" },
     body: "<!doctype html><html><body></body></html>",
   });
-  cy.visit("/__e2e_reset__");
+  cy.visit("/api/__e2e_reset__");
+  cy.get("body").should("be.empty");
 };
 
 const clearPowerSyncDb = () => {

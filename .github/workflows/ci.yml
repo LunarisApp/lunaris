@@ -180,8 +180,9 @@ jobs:
   agent-rust:
     needs: changes
     if: needs.changes.outputs.agent-rust == 'true'
-    name: Agent Rust (macos-15)
-    runs-on: macos-15
+    name: Agent Rust (macos-15-intel)
+    # Use the Intel pool: arm64 capacity can abandon jobs before they start.
+    runs-on: macos-15-intel
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -215,7 +216,7 @@ jobs:
     if: needs.changes.outputs.desktop-mcp == 'true'
     name: Desktop MCP (macos-15-intel)
     # Keep this smoke test off the capacity-constrained macOS arm64 pool.
-    # Agent Rust still covers arm64 on macos-15.
+    # Native release builds retain arm64 coverage.
     runs-on: macos-15-intel
 
     steps:
