@@ -18,7 +18,7 @@ import {
   type OnModuleInit,
 } from "@nestjs/common";
 import { log } from "evlog";
-import { Files, type StoredFile, type UploadProgress } from "files-sdk";
+import { Files, type FileInfo, type UploadProgress } from "files-sdk";
 import { type S3Adapter, s3 } from "files-sdk/s3";
 import { StorageConfig } from "./storage.config";
 
@@ -126,7 +126,7 @@ export class StorageService implements OnModuleInit, OnModuleDestroy {
     return file.stream();
   }
 
-  async *listObjects(prefix: string): AsyncGenerator<StoredFile> {
+  async *listObjects(prefix: string): AsyncGenerator<FileInfo> {
     for await (const file of this.files.listAll({ prefix, limit: 500 })) {
       yield file;
     }

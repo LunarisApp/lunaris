@@ -17,6 +17,12 @@
       "https://raw.githubusercontent.com/guseggert/duke-sheets/fec1cd04dbefa5eb65a41d29399ca4a7edc220f2/LICENSE"
     ]
   },
+  "@dukelib/sheets-wasm@0.1.24": {
+    "file": "upstream/guseggert-duke-sheets-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/guseggert/duke-sheets/fec1cd04dbefa5eb65a41d29399ca4a7edc220f2/LICENSE"
+    ]
+  },
   "@extend-ai/react-docx@0.12.2": {
     "file": "upstream/extend-hq-react-docx-LICENSE.txt",
     "sources": [
@@ -225,6 +231,12 @@
     "file": "upstream/glincker-thesvg-LICENSE.txt",
     "sources": [
       "https://raw.githubusercontent.com/glincker/thesvg/402dcbdba4711f2e088fa8018f6d7ae52e22b3dc/LICENSE"
+    ]
+  },
+  "@thesvg/react@4.0.5": {
+    "file": "upstream/glincker-thesvg-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/glincker/thesvg/74d199f8fe60263a6edb49233a295c6a69ddcaae/LICENSE"
     ]
   },
   "@uiw/react-json-view@2.0.0-alpha.43": {

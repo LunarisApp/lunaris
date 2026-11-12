@@ -10,7 +10,7 @@
   "dependencies": {
     "@lunarisapp/plugin-sdk": "workspace:*",
     "cordis": "4.0.0-rc.12",
-    "semver": "^7.8.5"
+    "semver": "^7.8.6"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

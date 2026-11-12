@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { InternalServerErrorException } from "@nestjs/common";
 import { Test, type TestingModule } from "@nestjs/testing";
+import type { FileInfo } from "files-sdk";
 import { StorageConfig } from "./storage.config";
 import { StorageService } from "./storage.service";
 
@@ -10,6 +11,9 @@ const mockRawClient = { config: {}, send: mockSend, destroy: mockDestroy };
 const mockUpload = mock(() => Promise.resolve({ key: "test-key" }));
 const mockDownload = mock(() => Promise.resolve({ key: "test-key" }));
 const mockDelete = mock(() => Promise.resolve());
+const mockListAll = mock(async function* (_options: unknown) {
+  yield { key: "files/test-key", size: 4, contentType: "text/plain" };
+});
 const mockUrl = mock(() => Promise.resolve("https://signed-url.example.com"));
 const mockSignedUploadUrl = mock(() =>
   Promise.resolve({
@@ -35,6 +39,7 @@ mock.module("files-sdk", () => ({
     upload = mockUpload;
     download = mockDownload;
     delete = mockDelete;
+    listAll = mockListAll;
     url = mockUrl;
     signedUploadUrl = mockSignedUploadUrl;
     constructor(public readonly options: unknown) {}
@@ -65,6 +70,7 @@ describe("StorageService", () => {
       url: "https://signed-upload.example.com",
     });
     mockS3.mockClear();
+    mockListAll.mockClear();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -150,6 +156,18 @@ describe("StorageService", () => {
       await service.getObject("test-key");
       expect(mockDownload).toHaveBeenCalledWith("test-key");
     });
+  });
+
+  it("lists object metadata without downloading bodies", async () => {
+    const objects: FileInfo[] = [];
+    for await (const object of service.listObjects("files/")) {
+      objects.push(object);
+    }
+    expect(objects).toEqual([
+      { key: "files/test-key", size: 4, contentType: "text/plain" },
+    ]);
+    expect(mockListAll).toHaveBeenCalledWith({ prefix: "files/", limit: 500 });
+    expect(mockDownload).not.toHaveBeenCalled();
   });
 
   describe("deleteObject", () => {

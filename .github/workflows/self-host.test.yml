@@ -42,7 +42,7 @@ jobs:
         env:
           CYPRESS_INSTALL_BINARY: 0
       - uses: ./.github/actions/buildkit-runtime
-      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Build and test isolated deployment
         run: bash tooling/self-host/test-stack.sh
       - name: Test external TLS proxy
