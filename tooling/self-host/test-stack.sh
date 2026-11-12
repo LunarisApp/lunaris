@@ -37,7 +37,7 @@ curl -fsS -c "$work/cookies" -H "Origin: $origin" -H "X-Forwarded-For: 198.51.10
   -d "{\"name\":\"Self-host smoke\",\"email\":\"$email\",\"password\":\"Self-host-smoke-1234\"}" \
   "$origin/auth/sign-up/email" > "$work/signup.json"
 curl -fsS -b "$work/cookies" "$origin/auth/get-session" | \
-  python3 -c 'import json,sys; v=json.load(sys.stdin); assert v["user"]["email"].startswith("self-host-"); assert v["session"]["ipAddress"] != "198.51.100.123"'
+  python3 -c 'import json,sys; v=json.load(sys.stdin); assert v["user"]["email"].startswith("self-host-"); assert v["session"]["ipAddress"] != "198.51.100.123"; assert v["session"]["activeOrganizationId"]'
 
 # Write and edit a real resource through authenticated API before upgrading.
 workspace_id=$(curl -fsS -b "$work/cookies" -H "Origin: $origin" \
