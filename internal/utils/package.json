@@ -8,9 +8,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "evlog": "^2.34.0",
+    "evlog": "^2.35.1",
     "nanoid": "^6.0.2",
-    "posthog-js": "^1.444.0"
+    "posthog-js": "^1.447.3"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
