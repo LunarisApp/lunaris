@@ -1,5 +1,15 @@
 # @lunarisapp/ui
 
+## 0.0.10
+
+### Patch Changes
+
+- [#126](https://github.com/LunarisApp/lunaris/pull/126) [`d3631f5`](https://github.com/LunarisApp/lunaris/commit/d3631f5c831e570bf12514c73a005b39e534abfe) Thanks [@MrLightful](https://github.com/MrLightful)! - Refresh shared dependencies and the workspace lockfile, including semver and UI resizable panel updates.
+
+- [#110](https://github.com/LunarisApp/lunaris/pull/110) [`5bef75d`](https://github.com/LunarisApp/lunaris/commit/5bef75d1c7a076a523ab0eca9dbaa516b465bed5) Thanks [@MrLightful](https://github.com/MrLightful)! - Refresh the shared dependency lockfile after removing landing-only S3 release download dependencies.
+
+- [#112](https://github.com/LunarisApp/lunaris/pull/112) [`8a9b283`](https://github.com/LunarisApp/lunaris/commit/8a9b2836ebda642ab86344b716f477f30ba6d85c) Thanks [@MrLightful](https://github.com/MrLightful)! - Refresh the shared workspace lockfile for the Markdown and YAML dependencies used by the Obsidian importer.
+
 ## 0.0.9
 
 ### Patch Changes
