@@ -89,6 +89,12 @@ test("stable release stages every artifact before production and finalizes after
 test("native builders retain signing and durable receipts; product artifact releases exclude npm", () => {
   const { jobs } = workflow("native.build");
   for (const name of ["build-cli", "build-desktop"]) {
+    expect(jobs[name]["runs-on"]).toBe("macos-15-intel");
+    expect(
+      jobs[name].steps.find((step: { uses?: string }) =>
+        step.uses?.startsWith("dtolnay/rust-toolchain@")
+      ).with.targets
+    ).toBe("aarch64-apple-darwin,x86_64-apple-darwin");
     expect(
       jobs[name].steps.some((step: { run?: string }) =>
         step.run?.includes("product-version.ts")
