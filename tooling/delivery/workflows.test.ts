@@ -96,6 +96,13 @@ test("native builders retain signing and durable receipts; product artifact rele
     ).toBe(true);
     expect(jobs[name].steps.at(-1).run).toContain("product-release.ts upload");
     expect(jobs[name].permissions.contents).toBe("write");
+    expect(jobs[name].environment).toBe("release");
+    expect(
+      jobs[name].steps.find(
+        (step: { name?: string }) =>
+          step.name === "Clean up Apple signing credentials"
+      ).if
+    ).toBe("always()");
   }
   expect(
     workflow("artifacts.prepare").jobs.version.strategy.matrix.family
@@ -177,8 +184,8 @@ test("desktop installers build on native runners in CI and stable releases", () 
   expect(
     workflow("native.build").jobs["build-desktop"].steps.find(
       (step: { name?: string }) => step.name === "Configure ad-hoc signing"
-    ).if
-  ).toContain("mode == 'adhoc'");
+    )
+  ).toBeUndefined();
 });
 
 test("draft release restores have write access without elevating PR build tokens", () => {
@@ -273,4 +280,18 @@ test("stable checks updater keys before reserving a release or building artifact
   expect(steps[signing].env.TAURI_SIGNING_PRIVATE_KEY).toContain(
     "secrets.TAURI_SIGNING_PRIVATE_KEY"
   );
+});
+
+test("stable releases validate Apple credentials before reserving a version", () => {
+  const steps = workflow("release.stable").jobs.reserve.steps;
+  const signing = steps.findIndex(
+    (step: { run?: string }) =>
+      step.run === "bun tooling/release/signing-mode.ts"
+  );
+  const reserve = steps.findIndex(
+    (step: { id?: string }) => step.id === "reserve"
+  );
+  expect(signing).toBeGreaterThanOrEqual(0);
+  expect(signing).toBeLessThan(reserve);
+  expect(workflow("native.build").jobs.signing.environment).toBe("release");
 });
