@@ -18,6 +18,7 @@ env:
   MACOSX_DEPLOYMENT_TARGET: "13.0"
 jobs:
   signing:
+    environment: release
     name: Select signing mode
     runs-on: ubuntu-latest
     outputs:
@@ -40,6 +41,7 @@ jobs:
         run: bun tooling/release/signing-mode.ts
 
   build-cli:
+    environment: release
     name: Build CLI
     needs: signing
     runs-on: macos-15
@@ -67,6 +69,13 @@ jobs:
       - uses: ./.github/actions/setup-bun
       - id: restore
         run: bun install --frozen-lockfile --ignore-scripts && bun .delivery-tools/tooling/delivery/product-release.ts restore dist
+      - name: Reject cached ad-hoc release assets
+        shell: bash
+        run: |
+          if find dist -type f -name '*-adhoc.*' -print -quit | grep -q .; then
+            echo 'Cached ad-hoc artifacts cannot be published as signed. Reserve a fresh release version.' >&2
+            exit 1
+          fi
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         if: steps.restore.outputs.cached != 'true'
         with:
@@ -120,11 +129,7 @@ jobs:
         env:
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
         run: |
-          if [ "$LUNARIS_SIGNING_MODE" = "signed" ]; then
-            codesign --force --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" dist/lunaris
-          else
-            codesign --force --sign - dist/lunaris
-          fi
+          codesign --force --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" dist/lunaris
           codesign --verify --strict --verbose=2 dist/lunaris
       - name: Smoke test final CLI
         if: steps.restore.outputs.cached != 'true'
@@ -136,11 +141,7 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
         run: |
-          if [ "$LUNARIS_SIGNING_MODE" = "signed" ]; then
-            asset="lunaris-cli-${VERSION}-universal-apple-darwin.zip"
-          else
-            asset="lunaris-cli-${VERSION}-universal-apple-darwin-adhoc.zip"
-          fi
+          asset="lunaris-cli-${VERSION}-universal-apple-darwin.zip"
           package_dir="dist/lunaris-cli-${VERSION}"
           mkdir -p "$package_dir"
           cp dist/lunaris "$package_dir/lunaris"
@@ -180,10 +181,20 @@ jobs:
             dist/*.zip
             dist/SHA256SUMS
           if-no-files-found: error
+      - name: Clean up Apple signing credentials
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/release.keychain-db" ]; then
+            security delete-keychain "$RUNNER_TEMP/release.keychain-db"
+          fi
+          rm -f "$RUNNER_TEMP/apple-certificate.p12" "$RUNNER_TEMP"/AuthKey_*.p8
+
       - name: Persist immutable product assets
         run: bun .delivery-tools/tooling/delivery/product-release.ts upload dist
 
   build-desktop:
+    environment: release
     name: Build Desktop
     needs: signing
     runs-on: macos-15
@@ -213,6 +224,13 @@ jobs:
       - uses: ./.github/actions/setup-bun
       - id: restore
         run: bun install --frozen-lockfile --ignore-scripts && bun .delivery-tools/tooling/delivery/product-release.ts restore dist
+      - name: Reject cached ad-hoc release assets
+        shell: bash
+        run: |
+          if find dist -type f -name '*-adhoc.*' -print -quit | grep -q .; then
+            echo 'Cached ad-hoc artifacts cannot be published as signed. Reserve a fresh release version.' >&2
+            exit 1
+          fi
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         if: steps.restore.outputs.cached != 'true'
         with:
@@ -240,9 +258,6 @@ jobs:
         run: bun run --cwd apps/desktop build:agent
       - run: cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml
         if: steps.restore.outputs.cached != 'true'
-      - name: Configure ad-hoc signing
-        if: steps.restore.outputs.cached != 'true' && needs.signing.outputs.mode == 'adhoc'
-        run: echo "APPLE_SIGNING_IDENTITY=-" >> "$GITHUB_ENV"
       - name: Configure Developer ID signing
         if: steps.restore.outputs.cached != 'true' && needs.signing.outputs.mode == 'signed'
         env:
@@ -294,6 +309,11 @@ jobs:
           binary="$app_path/Contents/MacOS/lunaris-desktop"
           lipo -info "$binary"
           codesign --verify --deep --strict --verbose=2 "$app_path"
+          sidecar="$app_path/Contents/MacOS/lunaris-agent"
+          codesign --verify --strict --verbose=2 "$sidecar"
+          codesign --display --entitlements - --xml "$sidecar" > "$RUNNER_TEMP/agent-entitlements.plist"
+          /usr/libexec/PlistBuddy -c 'Print :com.apple.security.cs.allow-jit' "$RUNNER_TEMP/agent-entitlements.plist" | grep -qx true
+          bun tooling/delivery/agent-work-smoke.ts "$sidecar"
           bun tooling/mcp-smoke.ts "$binary" lunaris-desktop
 
           "$binary" > "$RUNNER_TEMP/desktop-launch.log" 2>&1 &
@@ -330,6 +350,15 @@ jobs:
             dist/*.sig
             dist/SHA256SUMS
           if-no-files-found: error
+
+      - name: Clean up Apple signing credentials
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/release.keychain-db" ]; then
+            security delete-keychain "$RUNNER_TEMP/release.keychain-db"
+          fi
+          rm -f "$RUNNER_TEMP/apple-certificate.p12" "$RUNNER_TEMP"/AuthKey_*.p8
 
       - name: Persist immutable product assets
         run: bun .delivery-tools/tooling/delivery/product-release.ts upload dist

@@ -98,6 +98,30 @@ upgrade first.
 
 ### Configure release signing
 
+Stable macOS releases require Developer ID signing and notarization. Configure
+these GitHub Actions secrets at repository level or in the `release` environment:
+
+- `APPLE_CERTIFICATE`: base64-encoded Developer ID Application `.p12`, including its private key.
+- `APPLE_CERTIFICATE_PASSWORD`: password protecting the `.p12` export.
+- `APPLE_SIGNING_IDENTITY`: full `Developer ID Application: Publisher (TEAMID)` identity.
+- `APPLE_API_ISSUER`: App Store Connect team API key issuer ID.
+- `APPLE_API_KEY`: App Store Connect API key ID.
+- `APPLE_API_PRIVATE_KEY`: complete downloaded `.p8` private key contents.
+
+Follow [Apple's Developer ID certificate instructions](https://developer.apple.com/help/account/certificates/create-developer-id-certificates/)
+and [Tauri's notarization setup](https://v2.tauri.app/distribute/sign/macos/#notarization).
+Apple credentials are checked before version reservation and again by native
+builders. Missing credentials or an ad-hoc identity fail the release. Native
+signing jobs use the `release` environment and delete temporary credentials and
+keychains even when a build fails.
+
+The macOS entitlements enable JIT for the compiled Bun sidecar. Release checks
+inspect its final signature and request Agent Work status without logging in.
+The app and DMG must pass Gatekeeper and stapling validation. Use a fresh release
+version when moving from ad-hoc signing: native jobs reject cached ad-hoc assets.
+
+Updater signing requires its own persistent key:
+
 Generate a persistent signing key using the
 [Tauri updater instructions](https://v2.tauri.app/plugin/updater/):
 

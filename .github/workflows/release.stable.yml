@@ -47,6 +47,15 @@ jobs:
           token: ${{ steps.app.outputs.token }}
       - uses: ./.github/actions/setup-bun
       - run: bun install --frozen-lockfile
+      - name: Require Apple signing before reserving version
+        run: bun tooling/release/signing-mode.ts
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
       - name: Validate desktop updater signing before reserving version
         run: bun tooling/delivery/desktop-updater-config.ts
         env:
