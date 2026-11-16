@@ -59,6 +59,13 @@ producer run's Actions artifacts. Existing differing bytes are never overwritten
 Do not delete recovery assets or rerun after artifact retention expires without
 reviewing incomplete publication.
 
+If macOS jobs fail before starting with “The job was not acquired by Runner of
+type hosted”, inspect the run annotations for runner capacity errors. Universal
+CLI and Desktop builds use `macos-15-intel` and compile both Intel and Apple
+Silicon targets. After a workflow fix merges, dispatch **Release Stable** from
+`main` with the original candidate run ID and reserved version. A rerun of the
+old failed run retains its original workflow revision and runner labels.
+
 Hosted service attempts use GitHub deployment records with Railway deployment IDs.
 Retries reuse successful destinations and reconcile known pending provider runs.
 Unknown provider outcomes block replay. After inspecting Railway, use:

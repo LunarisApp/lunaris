@@ -44,7 +44,8 @@ jobs:
     environment: release
     name: Build CLI
     needs: signing
-    runs-on: macos-15
+    # Keep universal builds off the capacity-constrained hosted ARM64 pool.
+    runs-on: macos-15-intel
     permissions:
       contents: write
       actions: read
@@ -197,7 +198,8 @@ jobs:
     environment: release
     name: Build Desktop
     needs: signing
-    runs-on: macos-15
+    # Both Rust targets and Bun sidecars cross-compile on the Intel runner.
+    runs-on: macos-15-intel
     permissions:
       contents: write
       actions: read
