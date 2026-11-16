@@ -177,3 +177,37 @@ test("agent skills and guidance do not require npm releases", () => {
     npmReleaseTargets([...agentFiles, "internal/utils/src/time.ts"], workspaces)
   ).toEqual(["@lunarisapp/plugin-sdk", "@lunarisapp/ui"]);
 });
+
+test("macOS signing and sidecar smoke checks do not require npm releases", () => {
+  const workspaces = [
+    { name: "@lunarisapp/ui", path: "packages/ui", dependencies: [] },
+    {
+      name: "@lunarisapp/plugin-sdk",
+      path: "packages/plugin-sdk",
+      dependencies: [],
+    },
+    {
+      name: "desktop",
+      path: "apps/desktop",
+      dependencies: ["@lunarisapp/ui", "@lunarisapp/plugin-sdk"],
+    },
+  ];
+  expect(
+    npmReleaseTargets(
+      [
+        ".github/workflows/native.build.yml",
+        ".github/workflows/release.stable.yml",
+        "apps/desktop/src-tauri/tauri.conf.json",
+        "apps/desktop/src-tauri/Entitlements.plist",
+        "tooling/release/signing-mode.ts",
+        "tooling/delivery/agent-work-smoke.ts",
+        "tooling/delivery/agent-work-smoke.test.ts",
+      ],
+      workspaces
+    )
+  ).toEqual([]);
+  expect(npmReleaseTargets(["tooling/shared-build.ts"], workspaces)).toEqual([
+    "@lunarisapp/plugin-sdk",
+    "@lunarisapp/ui",
+  ]);
+});

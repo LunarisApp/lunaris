@@ -313,7 +313,7 @@ jobs:
           codesign --verify --strict --verbose=2 "$sidecar"
           codesign --display --entitlements - --xml "$sidecar" > "$RUNNER_TEMP/agent-entitlements.plist"
           /usr/libexec/PlistBuddy -c 'Print :com.apple.security.cs.allow-jit' "$RUNNER_TEMP/agent-entitlements.plist" | grep -qx true
-          bun tooling/agent-work-smoke.ts "$sidecar"
+          bun tooling/delivery/agent-work-smoke.ts "$sidecar"
           bun tooling/mcp-smoke.ts "$binary" lunaris-desktop
 
           "$binary" > "$RUNNER_TEMP/desktop-launch.log" 2>&1 &

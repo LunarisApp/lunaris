@@ -75,7 +75,7 @@ export async function runAgentWorkSmoke(binary: string): Promise<void> {
 if (import.meta.main) {
   const binary = process.argv[2];
   if (!binary) {
-    throw new Error("Usage: bun tooling/agent-work-smoke.ts <binary>");
+    throw new Error("Usage: bun tooling/delivery/agent-work-smoke.ts <binary>");
   }
   await runAgentWorkSmoke(binary);
 }
