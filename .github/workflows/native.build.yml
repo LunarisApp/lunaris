@@ -298,6 +298,22 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: bun run --cwd apps/desktop tauri:build -- --target universal-apple-darwin --bundles app,dmg --config ../../artifacts/desktop-updater.conf.json
+      - name: Notarize Desktop disk image
+        if: steps.restore.outputs.cached != 'true' && needs.signing.outputs.mode == 'signed'
+        env:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+        run: |
+          # Tauri notarizes the app before creating and signing the disk image.
+          # Submit the final DMG separately so its own Gatekeeper assessment passes.
+          dmg_path="$(find target/universal-apple-darwin/release/bundle/dmg -maxdepth 1 -name '*.dmg' -print -quit)"
+          test -n "$dmg_path"
+          xcrun notarytool submit "$dmg_path" \
+            --key "$APPLE_API_KEY_PATH" \
+            --key-id "$APPLE_API_KEY" \
+            --issuer "$APPLE_API_ISSUER" \
+            --wait
+          xcrun stapler staple "$dmg_path"
       - name: Verify Desktop bundle
         if: steps.restore.outputs.cached != 'true'
         shell: bash

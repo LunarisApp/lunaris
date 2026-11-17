@@ -129,6 +129,31 @@ test("CLI notarization verifies the executable without app-only Gatekeeper asses
   expect(notarize.run).not.toContain("spctl");
 });
 
+test("macOS notarizes and staples the final DMG before verification and packaging", () => {
+  const { steps } = workflow("native.build").jobs["build-desktop"];
+  const index = (name: string) =>
+    steps.findIndex((step: { name?: string }) => step.name === name);
+  const notarize = index("Notarize Desktop disk image");
+  expect(notarize).toBeGreaterThan(index("Build universal Desktop app"));
+  expect(notarize).toBeLessThan(index("Verify Desktop bundle"));
+  expect(index("Verify Desktop bundle")).toBeLessThan(
+    index("Package verified Desktop artifacts")
+  );
+  const step = steps[notarize];
+  expect(step.if).toBe(
+    "steps.restore.outputs.cached != 'true' && needs.signing.outputs.mode == 'signed'"
+  );
+  expect(step.run).toContain('xcrun notarytool submit "$dmg_path"');
+  expect(step.run).toContain('--key "$APPLE_API_KEY_PATH"');
+  expect(step.run).toContain('--key-id "$APPLE_API_KEY"');
+  expect(step.run).toContain('--issuer "$APPLE_API_ISSUER"');
+  expect(step.run).toContain("--wait");
+  expect(step.run).toContain('xcrun stapler staple "$dmg_path"');
+  expect(step.run.indexOf("--wait")).toBeLessThan(
+    step.run.indexOf("xcrun stapler staple")
+  );
+});
+
 test("macOS release builds plugin SDK before compiling the agent sidecar", () => {
   const { steps } = workflow("native.build").jobs["build-desktop"];
   const sdk = steps.findIndex(
