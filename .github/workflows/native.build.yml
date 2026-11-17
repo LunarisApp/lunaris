@@ -172,7 +172,8 @@ jobs:
             --key-id "$APPLE_API_KEY" \
             --issuer "$APPLE_API_ISSUER" \
             --wait
-          spctl --assess --type execute --verbose=2 dist/lunaris
+          # Gatekeeper app assessment rejects standalone command-line executables.
+          codesign --verify --strict --check-notarization --verbose=2 dist/lunaris
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: steps.restore.outputs.cached != 'true'
         with:

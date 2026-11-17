@@ -116,6 +116,19 @@ test("native builders retain signing and durable receipts; product artifact rele
   expect(workflow("artifacts.publish").jobs["self-hosted"]).toBeUndefined();
 });
 
+test("CLI notarization verifies the executable without app-only Gatekeeper assessment", () => {
+  const { steps } = workflow("native.build").jobs["build-cli"];
+  const notarize = steps.find(
+    (step: { name?: string }) => step.name === "Notarize CLI archive"
+  );
+  expect(notarize.run).toContain('xcrun notarytool submit "dist/$asset"');
+  expect(notarize.run).toContain("--wait");
+  expect(notarize.run).toContain(
+    "codesign --verify --strict --check-notarization --verbose=2 dist/lunaris"
+  );
+  expect(notarize.run).not.toContain("spctl");
+});
+
 test("macOS release builds plugin SDK before compiling the agent sidecar", () => {
   const { steps } = workflow("native.build").jobs["build-desktop"];
   const sdk = steps.findIndex(
