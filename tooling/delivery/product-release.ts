@@ -397,7 +397,13 @@ if (mode === "reserve") {
       receipt.version !== proposed.version ||
       receipt.sourceCommit !== proposed.sourceCommit ||
       receipt.group !== group ||
-      JSON.stringify(receipt.assets) !== JSON.stringify(proposed.assets)
+      receipt.assets.length !== proposed.assets.length ||
+      receipt.assets.some(
+        (asset) =>
+          !proposed.assets.some(
+            (item) => item.name === asset.name && item.sha256 === asset.sha256
+          )
+      )
     ) {
       throw new Error("Existing artifact receipt differs");
     }
