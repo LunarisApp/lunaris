@@ -280,6 +280,33 @@ test("restore rejects corrupt remote bytes", () => {
   expect(f.run("restore", "0.9.1").stderr).toContain("Checksum mismatch");
 });
 
+test("artifact retries preserve receipts regardless of directory entry order", () => {
+  const f = fixture();
+  expect(f.run("reserve").status).toBe(0);
+  const names = desktopAssetNames("0.9.1", "desktop-linux");
+  for (const name of [names.update, names.signature, names.installer]) {
+    writeFileSync(join(f.root, "dist", name), `bytes for ${name}`);
+  }
+  expect(f.run("upload", "0.9.1", "desktop-linux").status).toBe(0);
+  const state = f.state();
+  const receiptPath = "v0.9.1/desktop-linux-receipt.json";
+  const receipt = JSON.parse(state.files[receiptPath]!);
+  receipt.assets.reverse();
+  const original = `${JSON.stringify(receipt, null, 2)}\n`;
+  state.files[receiptPath] = original;
+  f.set(state);
+
+  const retry = f.run("upload", "0.9.1", "desktop-linux");
+  expect(retry.stderr).toBe("");
+  expect(retry.status).toBe(0);
+  expect(f.state().files[receiptPath]).toBe(original);
+
+  rmSync(join(f.root, "dist", names.signature));
+  expect(f.run("upload", "0.9.1", "desktop-linux").stderr).toContain(
+    "Incomplete or unexpected product assets"
+  );
+});
+
 test("reservation survives outage between immutable tag and draft creation", () => {
   const f = fixture();
   const state = f.state();
