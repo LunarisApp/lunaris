@@ -123,7 +123,7 @@ for (const slug of ["rich-text", "kanban", "file"]) {
 		longDescription: manifest.longDescription,
 		keywords: manifest.keywords ?? [],
 		permissions: manifest.permissions,
-		repository: `https://github.com/LunarisApp/lunaris/tree/next/extensions/${slug}`,
+		repository: `https://github.com/LunarisApp/lunaris/tree/main/extensions/${slug}`,
 		website: manifest.website,
 		screenshots: [{ ...screenshot, alt: `${manifest.name} in Lunaris` }],
 	});
