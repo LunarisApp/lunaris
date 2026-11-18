@@ -113,6 +113,34 @@ export default async function DownloadsPage({
 							</a>
 						</section>
 					))}
+					<section
+						id="cli"
+						aria-labelledby="cli-heading"
+						className="grid scroll-mt-24 gap-5 py-7 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-8 sm:py-8"
+					>
+						<div className="flex items-start gap-5">
+							<PlatformIcon
+								platform="macos"
+								className="mt-0.5 size-7 text-olive-950 dark:text-olive-100"
+							/>
+							<div>
+								<h2
+									id="cli-heading"
+									className="text-lg/7 font-medium text-olive-950 dark:text-olive-100"
+								>
+									Lunaris CLI
+								</h2>
+								<p className="mt-1 text-sm/6 text-olive-600 dark:text-olive-400">
+									macOS · Homebrew
+								</p>
+							</div>
+						</div>
+						<pre className="min-w-0 rounded-lg bg-olive-950/5 px-4 py-3 text-xs/6 whitespace-pre-wrap text-olive-950 dark:bg-white/5 dark:text-olive-100">
+							<code className="select-all">
+								brew install --formula lunarisapp/tap/lunaris
+							</code>
+						</pre>
+					</section>
 				</div>
 				<p className="mt-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm/6 text-olive-600 dark:text-olive-400">
 					{copy.browser}

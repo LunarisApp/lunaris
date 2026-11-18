@@ -228,6 +228,9 @@ export default async function LocaleLayout({
 									<FooterLink href={localePath(locale, "/self-hosted")}>
 										{source.label}
 									</FooterLink>
+									<FooterLink href={localePath(locale, "/downloads#cli")}>
+										CLI
+									</FooterLink>
 									<FooterLink href={GITHUB_URL}>GitHub</FooterLink>
 									<FooterLink href={DOCS_URL}>{dict.nav.docs}</FooterLink>
 									<FooterLink href={localePath(locale, "/pricing")}>
