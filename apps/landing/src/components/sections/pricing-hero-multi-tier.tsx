@@ -97,7 +97,7 @@ export function PricingHeroMultiTier<T extends string>({
 				<Container className="flex flex-col gap-12 sm:gap-14">
 					<div className="flex flex-col items-center gap-6">
 						{eyebrow}
-						<Heading>{headline}</Heading>
+						<Heading className="text-center">{headline}</Heading>
 						<Text
 							className="flex max-w-xl flex-col gap-4 text-center"
 							size="lg"
