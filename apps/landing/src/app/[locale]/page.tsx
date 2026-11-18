@@ -5,20 +5,12 @@ import { DesktopDownload } from "@/components/downloads/desktop-download";
 import { Container } from "@/components/elements/container";
 import { DemoVideo } from "@/components/elements/demo-video";
 import { ArrowNarrowRightIcon } from "@/components/icons/arrow-narrow-right-icon";
-import { HomeFeaturePrototype } from "@/components/sections/home-feature-prototype";
+import { HomeFeatures } from "@/components/sections/home-features";
 import { homepageCopy } from "@/data/homepage";
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localePath } from "@/i18n/locale-path";
 
-/*
- * THESIS: A shared home for small-team knowledge, with extensions and offline access.
- * OWN-WORLD: Existing olive paper, Instrument Serif claims, Inter explanations, pill actions.
- * STORY: Understand notes and knowledge bases; see the real workspace; start free.
- * FIRST VIEWPORT: Centered claim, one-sentence subtitle and actions below, wide product tour.
- * FORM: Product-led editorial cover; surface candidate 7; seed cde4d312.
- * FINISH: Verify desktop/mobile, interactions, accessibility, and recorded design guidance.
- */
 export async function generateMetadata({
 	params,
 }: {
@@ -43,22 +35,22 @@ export default async function Page({
 		<>
 			<section
 				aria-labelledby="home-heading"
-				className="pt-12 pb-16 sm:pt-20 sm:pb-20 lg:pt-24"
+				className="pb-16 sm:pb-20 lg:pb-24"
 				id="hero"
 			>
-				<Container>
-					<div className="mx-auto max-w-4xl text-center">
+				<div className="lunar-cover dark">
+					<Container>
 						<h1
-							className="max-w-4xl font-display text-[clamp(3.25rem,7vw,6rem)] leading-[0.98] tracking-tight text-balance text-olive-950 dark:text-olive-100"
+							className="max-w-[18ch] font-hero text-[clamp(3.35rem,7.1vw,6rem)] leading-[0.94] tracking-[-0.035em] text-balance text-white"
 							id="home-heading"
 						>
 							{copy.headline}{" "}
-							<span className="block text-olive-600 italic dark:text-olive-400">
+							<span className="block text-neutral-200 italic">
 								{copy.headlineEnd}
 							</span>
 						</h1>
-						<div className="mx-auto mt-6 max-w-2xl">
-							<p className="text-base/7 text-balance text-olive-700 sm:text-lg/8 dark:text-olive-300">
+						<div className="mt-4 max-w-lg">
+							<p className="text-base/6 text-pretty text-neutral-200 sm:text-lg/7">
 								{copy.description}
 							</p>
 							<DesktopDownload
@@ -73,7 +65,7 @@ export default async function Page({
 										destination: "web",
 										location: "home_hero",
 									}}
-									className="min-h-12 gap-3 px-6 focus-visible:outline-2 focus-visible:outline-offset-4"
+									className="min-h-11 gap-2 px-4 focus-visible:outline-2 focus-visible:outline-offset-4 sm:px-5"
 									href="https://web.lunaris.app"
 									size="lg"
 								>
@@ -82,13 +74,13 @@ export default async function Page({
 								</TrackedButtonLink>
 							</DesktopDownload>
 						</div>
-					</div>
-					<div className="mt-12 scroll-mt-28 sm:mt-16" id="workspace-demo">
+					</Container>
+				</div>
+				<Container>
+					<div className="relative -mt-6 sm:-mt-10" id="workspace-demo">
 						<DemoVideo
 							autoPlay={false}
 							chapters={copy.chapters}
-							upcomingChapter={copy.upcomingChapter}
-							chapterDescriptions={copy.chapterDescriptions}
 							chapterNavigationLabel={copy.tour}
 							description={dict.accessibility.demoVideoDescription}
 							label={dict.accessibility.demoVideo}
@@ -97,24 +89,21 @@ export default async function Page({
 				</Container>
 			</section>
 
-			<HomeFeaturePrototype locale={locale} dictionary={dict} />
+			<HomeFeatures locale={locale} dictionary={dict} />
 
 			<section
 				aria-labelledby="faq-heading"
-				className="py-14 sm:py-20"
+				className="py-16 sm:py-24"
 				id="faqs"
 			>
 				<Container className="grid gap-8 lg:grid-cols-[1fr_1.3fr] lg:gap-20">
 					<div>
 						<h2
-							className="font-display text-3xl/9 tracking-tight text-balance text-olive-950 sm:text-4xl/11 dark:text-olive-100"
+							className="max-w-[12ch] font-display text-5xl/none tracking-tight text-balance text-olive-950 sm:text-6xl/none dark:text-olive-100"
 							id="faq-heading"
 						>
 							{copy.faqTitle}
 						</h2>
-						<p className="mt-3 text-sm/7 text-olive-700 dark:text-olive-300">
-							{copy.faqDescription}
-						</p>
 						<Link
 							className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm/6 font-medium text-olive-950 underline-offset-4 hover:underline dark:text-olive-100"
 							href={localePath(locale, "/pricing")}
@@ -126,11 +115,11 @@ export default async function Page({
 					<div className="divide-y divide-olive-950/15 border-y border-olive-950/15 dark:divide-white/20 dark:border-white/20">
 						{copy.faqs.map((faq) => (
 							<details className="group" key={faq.title}>
-								<summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-4 text-sm/7 font-medium text-olive-950 [&::-webkit-details-marker]:hidden dark:text-olive-100">
+								<summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-4 text-base/7 font-medium text-olive-950 [&::-webkit-details-marker]:hidden dark:text-olive-100">
 									{faq.title}
 									<svg
 										aria-hidden="true"
-										className="size-4 shrink-0"
+										className="size-7 shrink-0 p-1.5"
 										fill="none"
 										stroke="currentColor"
 										strokeLinecap="round"
@@ -152,17 +141,17 @@ export default async function Page({
 
 			<section
 				aria-labelledby="closing-heading"
-				className="bg-olive-900 py-16 sm:py-24 dark:bg-olive-800"
+				className="border-t border-olive-950/10 py-16 text-olive-950 dark:border-white/10 dark:text-white sm:py-24"
 			>
 				<Container className="flex flex-col items-start justify-between gap-7 lg:flex-row lg:items-center lg:gap-12">
 					<div>
 						<h2
-							className="max-w-2xl font-display text-4xl/11 tracking-tight text-balance text-olive-100 sm:text-5xl/13"
+							className="max-w-[18ch] font-display text-5xl/none tracking-tight text-balance sm:text-7xl/none"
 							id="closing-heading"
 						>
 							{copy.closingTitle}
 						</h2>
-						<p className="mt-3 text-sm/7 text-olive-300">
+						<p className="mt-4 max-w-md text-base/7">
 							{copy.closingDescription}
 						</p>
 					</div>
@@ -173,7 +162,7 @@ export default async function Page({
 							location: "home_bottom",
 						}}
 						className="min-h-12 w-full gap-3 px-6 sm:w-auto"
-						color="light"
+						color="dark/light"
 						href="https://web.lunaris.app"
 						size="lg"
 					>

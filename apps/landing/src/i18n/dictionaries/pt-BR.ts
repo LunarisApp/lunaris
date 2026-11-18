@@ -23,6 +23,10 @@ const ptBR = {
 		footerNavigation: "Navegação do rodapé",
 	},
 	nav: {
+		product: "Produto",
+		developers: "Desenvolvedores",
+		productTour: "Tour do produto",
+		extensionsSdk: "SDK de extensões",
 		downloads: "Downloads",
 		pricing: "Preços",
 		docs: "Documentação",

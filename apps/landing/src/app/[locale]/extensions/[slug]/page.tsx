@@ -1,3 +1,4 @@
+import { Heading } from "@/components/elements/heading";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,16 +51,14 @@ export default async function ExtensionDetailsPage({ params }: Props) {
 				<ArrowNarrowRightIcon className="rotate-180" />
 				{copy.allExtensions}
 			</Link>
-			<header className="mt-6 flex items-start gap-4 sm:gap-5">
+			<header className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:gap-5">
 				<ExtensionIcon
 					className="size-16 rounded-2xl sm:size-20"
 					id={slug}
 					src={extension.iconUrl}
 				/>
 				<div className="min-w-0">
-					<h1 className="text-2xl/8 font-semibold tracking-tight text-olive-950 sm:text-3xl/9 dark:text-olive-100">
-						{extension.name}
-					</h1>
+					<Heading>{extension.name}</Heading>
 					<p className="mt-2 max-w-2xl text-base/7 text-pretty text-olive-700 dark:text-olive-300">
 						{description?.description ?? extension.description}
 					</p>

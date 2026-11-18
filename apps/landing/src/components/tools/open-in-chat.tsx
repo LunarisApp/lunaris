@@ -262,7 +262,11 @@ export function OpenInChat({
 							target="_blank"
 						>
 							<span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-olive-950/10 bg-white text-olive-950 dark:border-white/10 dark:bg-white/8 dark:text-white">
-								<provider.Icon aria-hidden="true" className="size-4" />
+								<provider.Icon
+									variant="mono"
+									aria-hidden="true"
+									className="size-4"
+								/>
 							</span>
 							<span className="flex-1">{provider.label}</span>
 							<ExternalLinkIcon />

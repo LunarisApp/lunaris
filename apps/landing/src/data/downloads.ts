@@ -6,10 +6,14 @@ type DownloadsCopy = {
 	windows: string;
 	linux: string;
 	browser: string;
+	copyCommand: string;
+	manualCopy: string;
 };
 
 export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 	en: {
+		copyCommand: "Copy Homebrew command",
+		manualCopy: "Select the command and copy it manually.",
 		subtitle: "Your workspace, at home on your desktop.",
 		mac: "Apple Silicon & Intel · macOS 13 or later",
 		windows: "64-bit Intel & AMD",
@@ -17,6 +21,8 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 		browser: "Prefer your browser?",
 	},
 	es: {
+		copyCommand: "Copiar el comando de Homebrew",
+		manualCopy: "Selecciona el comando y cópialo manualmente.",
 		subtitle: "Tu espacio de trabajo, en tu escritorio.",
 		mac: "Apple Silicon e Intel · macOS 13 o posterior",
 		windows: "Intel y AMD de 64 bits",
@@ -24,6 +30,8 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 		browser: "¿Prefieres el navegador?",
 	},
 	fr: {
+		copyCommand: "Copier la commande Homebrew",
+		manualCopy: "Sélectionnez la commande et copiez-la manuellement.",
 		subtitle: "Votre espace de travail, sur votre ordinateur.",
 		mac: "Apple Silicon et Intel · macOS 13 ou version ultérieure",
 		windows: "Intel et AMD 64 bits",
@@ -31,6 +39,8 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 		browser: "Vous préférez votre navigateur ?",
 	},
 	de: {
+		copyCommand: "Homebrew-Befehl kopieren",
+		manualCopy: "Wähle den Befehl aus und kopiere ihn manuell.",
 		subtitle: "Dein Workspace, zu Hause auf deinem Desktop.",
 		mac: "Apple Silicon & Intel · macOS 13 oder neuer",
 		windows: "Intel & AMD mit 64 Bit",
@@ -38,6 +48,8 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 		browser: "Lieber im Browser?",
 	},
 	"pt-BR": {
+		copyCommand: "Copiar comando do Homebrew",
+		manualCopy: "Selecione o comando e copie-o manualmente.",
 		subtitle: "Seu espaço de trabalho, no seu computador.",
 		mac: "Apple Silicon e Intel · macOS 13 ou posterior",
 		windows: "Intel e AMD de 64 bits",

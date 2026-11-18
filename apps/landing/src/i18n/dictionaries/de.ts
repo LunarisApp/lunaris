@@ -23,6 +23,10 @@ const de = {
 		footerNavigation: "Fußzeilennavigation",
 	},
 	nav: {
+		product: "Produkt",
+		developers: "Entwickler",
+		productTour: "Produktrundgang",
+		extensionsSdk: "Erweiterungs-SDK",
 		downloads: "Downloads",
 		pricing: "Preise",
 		docs: "Dokumentation",

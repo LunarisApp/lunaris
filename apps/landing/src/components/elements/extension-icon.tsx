@@ -58,7 +58,7 @@ export function ExtensionIcon({
 	return (
 		<Image
 			alt=""
-			className={classes}
+			className={clsx(classes, "bg-white")}
 			height={72}
 			onError={() => setFailedUrl(sourceUrl)}
 			src={source}

@@ -31,7 +31,7 @@ export function Plan({
 	return (
 		<div
 			className={clsx(
-				"flex flex-col justify-between gap-7 rounded-xl bg-olive-950/2.5 p-6 ring-1 ring-olive-950/10 sm:items-start dark:bg-white/5 dark:ring-white/10",
+				"flex flex-col justify-between gap-7 rounded-xl border border-olive-950/15 p-6 sm:items-start dark:border-white/15",
 				className,
 			)}
 		>
@@ -92,7 +92,7 @@ export function PricingHeroMultiTier<T extends string>({
 	footer?: ReactNode;
 } & ComponentProps<"section">) {
 	return (
-		<section className={clsx("pt-16 pb-20 sm:pt-20", className)} {...props}>
+		<section className={clsx("py-12 sm:py-20", className)} {...props}>
 			<ElTabGroup>
 				<Container className="flex flex-col gap-12 sm:gap-14">
 					<div className="flex flex-col items-center gap-6">

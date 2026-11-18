@@ -303,7 +303,7 @@ export function McpSetup({
 											"inline-flex size-8 shrink-0 items-center justify-center rounded-lg",
 											item.id === "cursor" && "bg-[#171717] p-1.5",
 											item.id === "codex" && "bg-white p-1.5",
-											item.id === "claude" && "bg-[#f5eee9] p-1.5",
+											item.id === "claude" && "bg-white p-1.5 text-black",
 											item.id === "mcp" && "bg-olive-700 p-1.5 text-white",
 										)}
 									>

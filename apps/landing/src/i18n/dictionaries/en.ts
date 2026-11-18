@@ -21,6 +21,10 @@ const en = {
 		footerNavigation: "Footer navigation",
 	},
 	nav: {
+		product: "Product",
+		developers: "Developers",
+		productTour: "Product tour",
+		extensionsSdk: "Extensions SDK",
 		downloads: "Downloads",
 		pricing: "Pricing",
 		docs: "Documentation",

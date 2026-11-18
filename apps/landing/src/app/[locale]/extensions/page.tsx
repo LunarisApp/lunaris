@@ -1,3 +1,4 @@
+import { Heading } from "@/components/elements/heading";
 import type { Metadata } from "next";
 import { Container } from "@/components/elements/container";
 import { ExtensionCatalog } from "@/components/sections/extension-catalog";
@@ -31,12 +32,10 @@ export default async function ExtensionsPage({ params }: Props) {
 	const textLink =
 		"inline-flex min-h-11 items-center text-sm/6 font-medium text-olive-700 underline-offset-4 hover:underline dark:text-olive-300";
 	return (
-		<Container className="pt-10 pb-14 sm:pt-14 sm:pb-20">
+		<Container className="py-12 sm:py-20">
 			<header className="mb-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
 				<div>
-					<h1 className="font-display text-5xl/13 tracking-tight text-olive-950 dark:text-olive-100">
-						{copy.nav}
-					</h1>
+					<Heading>{copy.nav}</Heading>
 					<p className="mt-3 max-w-xl text-base/7 text-pretty text-olive-700 dark:text-olive-300">
 						{copy.description}
 					</p>

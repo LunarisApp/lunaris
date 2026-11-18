@@ -87,7 +87,7 @@ export function DemoForm({ copy }: { copy: Dictionary["demoPage"]["form"] }) {
 				className="mx-auto flex w-full max-w-xl flex-col items-center gap-3 rounded-2xl bg-olive-950/5 p-8 text-center dark:bg-white/5"
 				role="status"
 			>
-				<h2 className="font-['Instrument_Serif'] text-3xl text-olive-950 dark:text-white">
+				<h2 className="text-3xl text-olive-950 dark:text-white">
 					{copy.successTitle}
 				</h2>
 				<p className="text-sm/6 text-olive-950/70 dark:text-white/70">

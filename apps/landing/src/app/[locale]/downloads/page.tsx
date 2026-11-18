@@ -1,9 +1,13 @@
+import { Heading } from "@/components/elements/heading";
 import type { Metadata } from "next";
 import Image from "next/image";
+import { HomebrewCommand } from "@/components/downloads/homebrew-command";
 import { PlatformIcon } from "@/components/downloads/platform-icon";
 import { Container } from "@/components/elements/container";
 import { downloadsCopy } from "@/data/downloads";
 import { homepageCopy } from "@/data/homepage";
+import { repositoryUrl } from "@/data/open-source";
+import { getDictionary } from "@/i18n/get-dictionary";
 import type { Locale } from "@/i18n/config";
 import { localePath } from "@/i18n/locale-path";
 import { localizedAlternates } from "@/i18n/metadata";
@@ -41,9 +45,10 @@ export default async function DownloadsPage({
 	const { locale: rawLocale } = await params;
 	const locale = rawLocale as Locale;
 	const home = homepageCopy[locale];
+	const dict = await getDictionary(locale);
 	const copy = downloadsCopy[locale];
 	return (
-		<Container className="py-14 sm:py-20">
+		<Container className="py-12 sm:py-20">
 			<div className="mx-auto max-w-2xl">
 				<header className="mb-12 flex flex-col items-center text-center sm:mb-16">
 					<Image
@@ -60,7 +65,7 @@ export default async function DownloadsPage({
 						height={48}
 						className="mb-6 hidden size-12 dark:block"
 					/>
-					<h1 className="font-display text-5xl/none tracking-tight text-balance text-olive-950 sm:text-6xl/none dark:text-olive-100">{`${home.download} Lunaris`}</h1>
+					<Heading>{`${home.download} Lunaris`}</Heading>
 					<p className="mt-5 text-base/7 text-pretty text-olive-600 dark:text-olive-400">
 						{copy.subtitle}
 					</p>
@@ -113,6 +118,40 @@ export default async function DownloadsPage({
 							</a>
 						</section>
 					))}
+					<section
+						id="cli"
+						aria-labelledby="cli-heading"
+						className="grid scroll-mt-24 gap-5 py-7 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-8 sm:py-8"
+					>
+						<div className="flex items-start gap-5">
+							<PlatformIcon
+								platform="macos"
+								className="mt-0.5 size-7 text-olive-950 dark:text-olive-100"
+							/>
+							<div>
+								<h2
+									id="cli-heading"
+									className="text-lg/7 font-medium text-olive-950 dark:text-olive-100"
+								>
+									CLI
+								</h2>
+								<p className="mt-1 text-sm/6 text-olive-600 dark:text-olive-400">
+									macOS · Homebrew ·{" "}
+									<a
+										className="underline underline-offset-4"
+										href={`${repositoryUrl}/blob/main/apps/cli/README.md`}
+									>
+										{dict.nav.docs}
+									</a>
+								</p>
+							</div>
+						</div>
+						<HomebrewCommand
+							copyLabel={copy.copyCommand}
+							copiedLabel={dict.mcpPage.setup.copied}
+							manualCopyLabel={copy.manualCopy}
+						/>
+					</section>
 				</div>
 				<p className="mt-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm/6 text-olive-600 dark:text-olive-400">
 					{copy.browser}

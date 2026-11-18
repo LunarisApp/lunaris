@@ -23,6 +23,10 @@ const fr = {
 		footerNavigation: "Navigation du pied de page",
 	},
 	nav: {
+		product: "Produit",
+		developers: "Développeurs",
+		productTour: "Visite guidée",
+		extensionsSdk: "SDK d’extensions",
 		downloads: "Téléchargements",
 		pricing: "Tarifs",
 		docs: "Documentation",

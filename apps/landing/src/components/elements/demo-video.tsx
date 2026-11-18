@@ -1,8 +1,8 @@
 "use client";
 
-import { type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
-// Chapter boundaries match the bundled 25-second workspace walkthrough.
+// Start times in the bundled workspace walkthrough, in seconds.
 const chapterStarts = [0, 6, 12] as const;
 
 export function DemoVideo({
@@ -11,18 +11,12 @@ export function DemoVideo({
 	autoPlay = true,
 	chapters,
 	chapterNavigationLabel,
-	chapterDescriptions,
-	upcomingChapter,
-	children,
 }: {
 	label: string;
 	description: string;
 	autoPlay?: boolean;
 	chapters?: readonly [string, string, string];
 	chapterNavigationLabel?: string;
-	chapterDescriptions?: readonly [string, string, string];
-	upcomingChapter?: { title: string; description: string };
-	children?: ReactNode;
 }) {
 	const descriptionId = useId();
 	const videoId = useId();
@@ -42,111 +36,77 @@ export function DemoVideo({
 			preference.removeEventListener("change", pauseForReducedMotion);
 	}, [autoPlay]);
 
-	return (
-		<figure
-			className={
+	const video = (
+		<video
+			aria-describedby={descriptionId}
+			aria-label={label}
+			className="block aspect-video w-full rounded-lg bg-black object-contain"
+			controls
+			height={720}
+			id={videoId}
+			loop={autoPlay}
+			muted
+			onTimeUpdate={
 				chapters
-					? "overflow-hidden rounded-xl bg-olive-300/60 p-1.5 dark:bg-olive-800"
+					? (event) => {
+							const time = event.currentTarget.currentTime;
+							setActiveChapter(
+								chapterStarts.findLastIndex((start) => time >= start),
+							);
+						}
 					: undefined
 			}
+			playsInline
+			poster={
+				chapters ? "/img/workspace-preview.webp" : "/video/demo-poster.jpg"
+			}
+			preload="metadata"
+			ref={ref}
+			width={1280}
 		>
-			<video
-				aria-describedby={descriptionId}
-				aria-label={label}
-				className="block aspect-video w-full rounded-lg object-contain"
-				controls
-				height={720}
-				id={videoId}
-				loop={autoPlay}
-				muted
-				onTimeUpdate={
-					chapters
-						? (event) => {
-								const time = event.currentTarget.currentTime;
-								setActiveChapter(
-									time >= chapterStarts[2]
-										? 2
-										: time >= chapterStarts[1]
-											? 1
-											: 0,
-								);
-							}
-						: undefined
-				}
-				playsInline
-				poster="/video/demo-poster.jpg"
-				preload="metadata"
-				ref={ref}
-				width={1280}
-			>
-				<source src="/video/demo.mp4" type="video/mp4" />
-			</video>
-			{chapters && (
-				<div
-					aria-label={chapterNavigationLabel}
-					className={`grid gap-1 pt-1.5 ${upcomingChapter ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-3"}`}
-					role="group"
-				>
-					{chapters.map((chapter, index) => (
-						<button
-							aria-controls={videoId}
-							aria-pressed={activeChapter === index}
-							className="group flex min-h-12 flex-col items-start justify-start gap-1 rounded-lg px-3 py-3 text-left text-xs/5 font-medium text-olive-700 transition-colors hover:bg-white/40 aria-pressed:bg-olive-100 aria-pressed:text-olive-950 sm:px-5 sm:py-4 sm:text-sm/6 motion-reduce:transition-none dark:text-olive-300 dark:hover:bg-white/10 dark:aria-pressed:bg-olive-700 dark:aria-pressed:text-olive-100"
-							key={chapter}
-							onClick={() => {
-								const video = ref.current;
-								if (!video) return;
-								video.currentTime = chapterStarts[index] ?? 0;
-								setActiveChapter(index);
-								void video.play().catch(() => {});
-							}}
-							type="button"
-						>
-							<span className="flex items-center gap-2">
-								<svg
-									aria-hidden="true"
-									className="size-3 shrink-0"
-									fill="none"
-									stroke="currentColor"
-									strokeLinejoin="round"
-									strokeWidth={1.5}
-									viewBox="0 0 12 12"
+			<source src="/video/demo.mp4" type="video/mp4" />
+		</video>
+	);
+
+	return (
+		<figure>
+			{chapters ? (
+				<>
+					{video}
+					<div
+						aria-label={chapterNavigationLabel}
+						role="group"
+						className="mt-3 grid grid-cols-3 items-stretch gap-1 border-b border-olive-950/15 pb-3 sm:flex sm:flex-wrap sm:gap-x-4 dark:border-white/15"
+					>
+						{chapters.map((chapter, index) => {
+							const start = chapterStarts[index];
+							return (
+								<button
+									aria-controls={videoId}
+									aria-pressed={activeChapter === index}
+									className="inline-flex min-h-10 cursor-pointer flex-col items-start gap-0.5 rounded-lg px-2 py-1.5 text-left text-xs/5 font-medium text-olive-700 hover:bg-olive-200 aria-pressed:bg-olive-950/7 aria-pressed:text-olive-950 sm:flex-row sm:items-center sm:gap-2 sm:rounded-full sm:px-3.5 sm:text-sm dark:text-olive-300 dark:hover:bg-white/10 dark:aria-pressed:bg-white/10 dark:aria-pressed:text-white"
+									key={chapter}
+									type="button"
+									onClick={() => {
+										const element = ref.current;
+										if (!element || start === undefined) return;
+										element.currentTime = start;
+										setActiveChapter(index);
+										void element.play().catch(() => {});
+									}}
 								>
-									<path d="m4 2 6 4-6 4V2Z" />
-								</svg>
-								{chapter}
-							</span>
-							{chapterDescriptions && (
-								<span className="hidden max-w-56 text-xs/5 font-normal text-olive-600 sm:block dark:text-olive-300">
-									{chapterDescriptions[index]}
-								</span>
-							)}
-						</button>
-					))}
-					{upcomingChapter && (
-						<div className="flex min-h-12 flex-col items-start justify-start gap-1 px-3 py-3 text-left text-xs/5 text-olive-600 sm:px-5 sm:py-4 sm:text-sm/6 dark:text-olive-300">
-							<span className="flex items-center gap-2 font-medium">
-								<svg
-									aria-hidden="true"
-									className="size-3 shrink-0"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth={1.5}
-									strokeLinecap="round"
-									viewBox="0 0 12 12"
-								>
-									<path d="M6 2v8M2 6h8" />
-								</svg>
-								{upcomingChapter.title}
-							</span>
-							<span className="hidden max-w-56 text-xs/5 sm:block">
-								{upcomingChapter.description}
-							</span>
-						</div>
-					)}
-				</div>
+									<span className="text-xs text-olive-600 tabular-nums dark:text-olive-400">
+										0:{String(start).padStart(2, "0")}
+									</span>
+									{chapter}
+								</button>
+							);
+						})}
+					</div>
+				</>
+			) : (
+				video
 			)}
-			{children}
 			<figcaption className="sr-only" id={descriptionId}>
 				{description}
 			</figcaption>

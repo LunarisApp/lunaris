@@ -1,5 +1,6 @@
 "use client";
 
+import { Heading } from "@/components/elements/heading";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { WordCounterCopy } from "@/data/word-counter-copy";
 import type { Locale } from "@/i18n/config";
@@ -664,9 +665,7 @@ export function WordCounterTool({
 	return (
 		<>
 			<header className="mx-auto mb-8 max-w-3xl text-center sm:mb-10">
-				<h1 className="text-balance font-display text-4xl/none tracking-[-0.025em] text-olive-950 sm:text-6xl dark:text-white">
-					{copy.heading}
-				</h1>
+				<Heading>{copy.heading}</Heading>
 				<p className="mt-4 inline-flex items-center gap-2 text-sm/6 font-medium text-olive-600 dark:text-olive-300">
 					<LockIcon />
 					{copy.privacy}

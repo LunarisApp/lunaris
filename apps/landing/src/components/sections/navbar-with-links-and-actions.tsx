@@ -1,161 +1,206 @@
 "use client";
 
-import { ElDialog, ElDialogPanel } from "@tailwindplus/elements/react";
-import { clsx } from "clsx/lite";
+import {
+	NavigationMenu,
+	NavigationMenuContent,
+	NavigationMenuItem,
+	NavigationMenuLink,
+	NavigationMenuList,
+	NavigationMenuTrigger,
+} from "@lunarisapp/ui/components/navigation-menu";
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
-export function NavbarLink({
-	children,
-	href,
-	className,
-	onClick,
-	...props
-}: { href: string } & Omit<ComponentProps<"a">, "href">) {
-	return (
-		<Link
-			className={clsx(
-				"group inline-flex items-center justify-between gap-2 text-3xl/10 font-medium text-olive-950 xl:text-sm/7 dark:text-white",
-				className,
-			)}
-			href={href}
-			{...props}
-			onClick={(event) => {
-				onClick?.(event);
-				if (!event.defaultPrevented)
-					event.currentTarget.closest("dialog")?.close();
-			}}
-		>
-			{children}
-			<span
-				aria-hidden="true"
-				className="inline-flex p-1.5 opacity-0 group-hover:opacity-100 xl:hidden"
-			>
-				<svg
-					aria-hidden="true"
-					className="size-6"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth={1.5}
-					viewBox="0 0 24 24"
-				>
-					<path
-						d="m8.25 4.5 7.5 7.5-7.5 7.5"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					/>
-				</svg>
-			</span>
-		</Link>
-	);
-}
+type NavLink = { href: string; label: string };
+type NavGroup = { label: string; links: NavLink[] };
 
-export function NavbarLogo({
-	className,
-	href,
-	...props
-}: { href: string } & Omit<ComponentProps<"a">, "href">) {
-	return (
-		<Link
-			href={href}
-			{...props}
-			className={clsx("inline-flex items-stretch", className)}
-		/>
-	);
-}
+const navControl =
+	"min-h-11 cursor-pointer px-3 font-medium text-olive-700 hover:text-olive-950 dark:text-olive-300 dark:hover:text-white";
 
 export function NavbarWithLinksAndActions({
-	links,
+	groups,
+	directLinks,
+	homeHref,
 	logo,
-	actions,
+	appLink,
+	settings,
 	navigationLabel,
 	openMenuLabel,
 	closeMenuLabel,
-	className,
-	...props
 }: {
-	links: ReactNode;
+	groups: NavGroup[];
+	directLinks: NavLink[];
+	homeHref: string;
 	logo: ReactNode;
-	actions: ReactNode;
+	appLink: ReactNode;
+	settings: ReactNode;
 	navigationLabel: string;
 	openMenuLabel: string;
 	closeMenuLabel: string;
-} & ComponentProps<"header">) {
+}) {
+	const [openGroup, setOpenGroup] = useState<string | null>(null);
+	const mobile = useRef<HTMLDialogElement>(null);
+
+	useEffect(() => {
+		const wide = window.matchMedia("(min-width: 64rem)");
+		function closeOnResize() {
+			if (wide.matches) mobile.current?.close();
+			else setOpenGroup(null);
+		}
+		wide.addEventListener("change", closeOnResize);
+		return () => wide.removeEventListener("change", closeOnResize);
+	}, []);
+
 	return (
 		<header
-			className={clsx(
-				"sticky top-0 z-10 bg-olive-100 dark:bg-olive-950",
-				className,
-			)}
-			{...props}
+			id="navbar"
+			className="sticky top-0 z-30 border-b border-olive-950/10 bg-olive-100/90 backdrop-blur-lg dark:border-white/10 dark:bg-olive-950/90"
 		>
-			<style>{`:root { --scroll-padding-top: 5.25rem }`}</style>
-			<nav aria-label={navigationLabel}>
-				<div className="mx-auto flex h-(--scroll-padding-top) max-w-7xl items-center gap-4 px-6 xl:grid xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:px-10">
-					<div className="flex items-center">{logo}</div>
-					<div className="flex justify-center gap-7 max-xl:hidden">{links}</div>
-					<div className="ml-auto flex items-center justify-end gap-2 xl:ml-0">
-						<div className="flex shrink-0 items-center gap-2">{actions}</div>
-
+			<nav
+				aria-label={navigationLabel}
+				className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-6 lg:h-[4.5rem] lg:px-10"
+			>
+				<Link className="inline-flex shrink-0" href={homeHref}>
+					{logo}
+				</Link>
+				<NavigationMenu
+					className="hidden flex-none lg:flex"
+					onValueChange={setOpenGroup}
+					render={<div />}
+					value={openGroup}
+				>
+					<NavigationMenuList className="gap-1">
+						{groups.map((group) => (
+							<NavigationMenuItem key={group.label} value={group.label}>
+								<NavigationMenuTrigger className={navControl}>
+									{group.label}
+								</NavigationMenuTrigger>
+								<NavigationMenuContent>
+									<ul className="w-max min-w-48 max-w-72 p-1">
+										{group.links.map((link) => (
+											<li key={link.href}>
+												<NavigationMenuLink
+													className="min-h-10 px-3"
+													closeOnClick
+													render={<Link href={link.href} />}
+												>
+													{link.label}
+												</NavigationMenuLink>
+											</li>
+										))}
+									</ul>
+								</NavigationMenuContent>
+							</NavigationMenuItem>
+						))}
+						{directLinks.map((link) => (
+							<NavigationMenuItem key={link.href}>
+								<NavigationMenuLink
+									className={navControl}
+									closeOnClick
+									render={<Link href={link.href} />}
+								>
+									{link.label}
+								</NavigationMenuLink>
+							</NavigationMenuItem>
+						))}
+					</NavigationMenuList>
+				</NavigationMenu>
+				<div className="flex items-center gap-1.5 lg:gap-2">
+					{settings}
+					<div className="ml-2 hidden lg:block">{appLink}</div>
+					<button
+						aria-label={openMenuLabel}
+						aria-haspopup="dialog"
+						aria-controls="mobile-menu"
+						className="grid size-11 place-items-center rounded-full text-olive-950 hover:bg-olive-200 lg:hidden dark:text-white dark:hover:bg-olive-800"
+						type="button"
+						onClick={() => mobile.current?.showModal()}
+					>
+						<svg
+							aria-hidden="true"
+							className="size-5"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="1.6"
+							viewBox="0 0 24 24"
+						>
+							<path d="M3 8h18M3 16h18" strokeLinecap="round" />
+						</svg>
+					</button>
+				</div>
+				<dialog
+					id="mobile-menu"
+					ref={mobile}
+					aria-label={navigationLabel}
+					className="fixed inset-0 m-0 h-dvh max-h-dvh w-full max-w-none overflow-y-auto overscroll-contain bg-olive-100 text-olive-950 backdrop:bg-olive-950/35 dark:bg-olive-950 dark:text-white"
+				>
+					<div className="flex h-16 items-center justify-between border-b border-olive-950/10 px-6 dark:border-white/10">
+						<Link
+							className="inline-flex shrink-0"
+							href={homeHref}
+							onClick={() => mobile.current?.close()}
+						>
+							{logo}
+						</Link>
 						<button
-							aria-label={openMenuLabel}
-							className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full p-1.5 text-olive-950 hover:bg-olive-950/10 xl:hidden dark:text-white dark:hover:bg-white/10"
-							command="show-modal"
-							commandfor="mobile-menu"
+							aria-label={closeMenuLabel}
+							className="grid size-11 place-items-center rounded-full hover:bg-olive-200 dark:hover:bg-olive-800"
 							type="button"
+							onClick={() => mobile.current?.close()}
 						>
 							<svg
 								aria-hidden="true"
-								className="size-6"
-								fill="currentColor"
+								className="size-5"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="1.6"
 								viewBox="0 0 24 24"
 							>
-								<path
-									clipRule="evenodd"
-									d="M3.748 8.248a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75ZM3.748 15.75a.75.75 0 0 1 .75-.751h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Z"
-									fillRule="evenodd"
-								/>
+								<path d="m6 6 12 12M18 6 6 18" strokeLinecap="round" />
 							</svg>
 						</button>
 					</div>
-				</div>
-
-				<ElDialog className="xl:hidden">
-					<dialog
-						aria-label={navigationLabel}
-						className="backdrop:bg-transparent"
-						id="mobile-menu"
-					>
-						<ElDialogPanel className="fixed inset-0 overflow-y-auto bg-olive-100 px-6 py-6 xl:px-10 dark:bg-olive-950">
-							<div className="flex justify-end">
-								<button
-									aria-label={closeMenuLabel}
-									className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full p-1.5 text-olive-950 hover:bg-olive-950/10 dark:text-white dark:hover:bg-white/10"
-									command="close"
-									commandfor="mobile-menu"
-									type="button"
-								>
-									<svg
-										aria-hidden="true"
-										className="size-6"
-										fill="none"
-										stroke="currentColor"
-										strokeWidth={1.5}
-										viewBox="0 0 24 24"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path
-											d="M6 18 18 6M6 6l12 12"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										/>
-									</svg>
-								</button>
+					<div className="mx-auto max-w-lg px-6 pb-8">
+						{groups.map((group) => (
+							<div
+								key={group.label}
+								className="grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-start gap-3 border-b border-olive-950/10 py-4 dark:border-white/10"
+							>
+								<h2 className="pt-2.5 font-display text-2xl leading-tight">
+									{group.label}
+								</h2>
+								<ul>
+									{group.links.map((link) => (
+										<li key={link.href}>
+											<Link
+												className="flex min-h-11 items-center py-1 text-sm font-medium hover:underline"
+												href={link.href}
+												onClick={() => mobile.current?.close()}
+											>
+												{link.label}
+											</Link>
+										</li>
+									))}
+								</ul>
 							</div>
-							<div className="mt-6 flex flex-col gap-6">{links}</div>
-						</ElDialogPanel>
-					</dialog>
-				</ElDialog>
+						))}
+						<div className="flex items-start justify-between gap-3 pt-4">
+							<div className="grid">
+								{directLinks.map((link) => (
+									<Link
+										key={link.href}
+										className="flex min-h-11 items-center font-display text-2xl hover:underline"
+										href={link.href}
+										onClick={() => mobile.current?.close()}
+									>
+										{link.label}
+									</Link>
+								))}
+							</div>
+							{appLink}
+						</div>
+					</div>
+				</dialog>
 			</nav>
 		</header>
 	);

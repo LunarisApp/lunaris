@@ -1,18 +1,18 @@
 ---
 name: Lunaris Marketing
-description: Editorial product storytelling on warm olive paper with weathered portals of color.
+description: Monochrome marketing pages with a lunar illustration framing the homepage demo.
 colors:
-  parchment: "oklch(98.8% 0.003 106.5)"
-  warm-paper: "oklch(96.6% 0.005 106.5)"
-  paper-shadow: "oklch(93% 0.007 106.5)"
-  sage-wash: "oklch(88% 0.011 106.6)"
-  dry-sage: "oklch(73.7% 0.021 106.9)"
-  weathered-olive: "oklch(58% 0.031 107.3)"
-  olive-bark: "oklch(46.6% 0.025 107.3)"
-  field-ink: "oklch(39.4% 0.023 107.4)"
-  deep-grove: "oklch(28.6% 0.016 107.4)"
-  press-ink: "oklch(22.8% 0.013 107.4)"
-  black-olive: "oklch(15.3% 0.006 107.1)"
+  parchment: "#f8f8f8"
+  warm-paper: "#efeeeb"
+  paper-shadow: "#eaeaea"
+  sage-wash: "#dddddd"
+  dry-sage: "#b1b1b1"
+  weathered-olive: "#888888"
+  olive-bark: "#616161"
+  field-ink: "#494949"
+  deep-grove: "#343434"
+  press-ink: "#000000"
+  black-olive: "#000000"
   clear-white: "#ffffff"
   error-red: "#dc2626"
 typography:
@@ -29,43 +29,43 @@ typography:
     lineHeight: 1
     letterSpacing: "-0.025em"
   headline-mobile:
-    fontFamily: "Instrument Serif, serif"
+    fontFamily: "DM Sans, system-ui, sans-serif"
     fontSize: "2rem"
     fontWeight: 400
     lineHeight: 1.25
     letterSpacing: "-0.025em"
   headline:
-    fontFamily: "Instrument Serif, serif"
+    fontFamily: "DM Sans, system-ui, sans-serif"
     fontSize: "3rem"
     fontWeight: 400
     lineHeight: 1.167
     letterSpacing: "-0.025em"
   body:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "DM Sans, system-ui, sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.75
     letterSpacing: "normal"
   body-large:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "DM Sans, system-ui, sans-serif"
     fontSize: "1.125rem"
     fontWeight: 400
     lineHeight: 1.778
     letterSpacing: "normal"
   control:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "DM Sans, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 500
     lineHeight: 1.75
     letterSpacing: "normal"
   label:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "DM Sans, system-ui, sans-serif"
     fontSize: "0.75rem"
     fontWeight: 600
     lineHeight: 1.667
     letterSpacing: "normal"
   wordmark:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "DM Sans, system-ui, sans-serif"
     fontSize: "1.25rem"
     fontWeight: 650
     lineHeight: 1
@@ -95,7 +95,7 @@ components:
     rounded: "{rounded.pill}"
     padding: "0.5rem 1rem"
   button-soft:
-    backgroundColor: "oklch(15.3% 0.006 107.1 / 10%)"
+    backgroundColor: "rgb(0 0 0 / 10%)"
     textColor: "{colors.black-olive}"
     typography: "{typography.control}"
     rounded: "{rounded.pill}"
@@ -113,7 +113,7 @@ components:
     rounded: "{rounded.pill}"
     padding: "0.25rem 0.75rem 0.25rem 0.25rem"
   pricing-card:
-    backgroundColor: "oklch(15.3% 0.006 107.1 / 2.5%)"
+    backgroundColor: "transparent"
     textColor: "{colors.black-olive}"
     typography: "{typography.body}"
     rounded: "{rounded.xl}"
@@ -125,14 +125,14 @@ components:
     rounded: "{rounded.2xl}"
     padding: "1.75rem"
   screenshot-frame:
-    backgroundColor: "oklch(88% 0.011 106.6 / 70%)"
+    backgroundColor: "rgb(221 221 221 / 70%)"
     rounded: "{rounded.2xl}"
     padding: "0.5rem"
   navbar:
     backgroundColor: "{colors.warm-paper}"
     textColor: "{colors.black-olive}"
     typography: "{typography.control}"
-    height: "5.25rem"
+    height: "4.5rem"
     padding: "0 1.5rem"
   faq-row:
     backgroundColor: "transparent"
@@ -145,69 +145,29 @@ components:
 
 ## Overview
 
-**Creative North Star: "The Living Manuscript"**
-
-Lunaris marketing feels like an editorial object that is still being made: refined, grounded, and quietly confident. Instrument Serif supplies an expressive publishing voice, Inter keeps evidence and actions legible, and the olive paper field gives every page a warm physical atmosphere. Large type and generous pauses persuade without shouting.
-
-Weathered wallpaper portals bring the manuscript to life. Muted, multi-hue gradients with fine grain hold product screenshots, diagrams, and feature illustrations as evidence within the story. The world rejects neon-gradient SaaS spectacle, corporate blue convention, and sterile monochrome minimalism; its color is atmospheric, tactile, and controlled.
-
-**Key Characteristics:**
-
-- Editorial serif headlines paired with precise sans-serif copy.
-- Warm olive paper across light and dark themes.
-- Pill actions and fine translucent rings rather than hard boxes.
-- Weathered gradient portals with grain, illustration, or product evidence.
-- Broad content rhythm, restrained copy widths, and strong responsive composition.
+The homepage pairs its Instrument Serif headline with a lunar landscape and a wide demo. Inner pages use DM Sans, generous gutters and thin rules to organize pricing, downloads, tools and reference material.
 
 ## Colors
 
-Printed Olive is a complete warm neutral ramp, moving from parchment to black olive. It supports both themes without switching to cold gray; wallpaper portals add muted blue, green, purple, brown, coral, gold, and teal only inside bounded feature regions.
+Marketing pages open on a pure black canvas with white headings and neutral gray supporting text. Saved light and system preferences apply across routes. Light mode uses a soft stone-white canvas (#EFEEEB) with dark text. Shared theme tokens in `src/app/globals.css` supply both palettes.
 
-### Primary
-
-- **Black Olive:** Primary calls to action, dominant light-theme text, and the dark-theme page field.
-- **Press Ink:** Primary hover state and strong supporting surfaces.
-
-### Secondary
-
-- **Sage Wash:** Soft frames, screenshot mats, and calm highlighted surfaces.
-- **Weathered Olive:** Mid-ramp supporting text and atmospheric detail.
-
-### Neutral
-
-- **Parchment:** Lightest optional section and illustration surface.
-- **Warm Paper:** Main light-theme page and sticky navigation field.
-- **Paper Shadow:** Rules, subtle fills, and soft separators.
-- **Dry Sage:** Low-emphasis decoration and disabled detail.
-- **Olive Bark:** Supporting copy where stronger contrast is needed.
-- **Field Ink:** Standard secondary text and eyebrows.
-- **Deep Grove:** Strong secondary copy and hover treatment.
-- **Clear White:** Text and translucent layers inside wallpaper portals.
-
-### State
-
-- **Error Red:** Form validation and failure messaging only.
-
-### Named Rules
-
-**The Printed Olive Rule.** Structural surfaces, navigation, copy, and calls to action stay inside the olive ramp. Multi-hue color belongs inside a wallpaper portal or a purposeful illustration.
-
-**The Portal Contrast Rule.** Content inside a wallpaper portal uses clear white, translucent white, and fine dark or light rings; it does not import the page's full olive hierarchy.
+Keep page backgrounds continuous. Use a fine divider to separate sections and outline panels. Reserve color for product artwork and meaningful states such as validation errors.
 
 ## Typography
 
-**Display Font:** Instrument Serif with generic serif fallback
+**Homepage hero font:** Instrument Serif with generic serif fallback
 
-**Body Font:** Inter with system sans-serif fallback
-**Wordmark Font:** Inter with system sans-serif fallback
+**Body Font:** DM Sans with system sans-serif fallback
+**Wordmark Font:** DM Sans with system sans-serif fallback
 
-**Character:** Instrument Serif gives headlines a literary, human cadence without ornamental excess. Inter handles long-form explanations, data, pricing, navigation, and controls. The Lunaris wordmark uses uppercase lettering at a compact 650 weight with subtly open tracking, letting the canonical mark carry the brand while the lettering stays bold, modern, and minimal.
+**Character:** Instrument Serif gives the homepage headline a literary, human cadence without ornamental excess. DM Sans handles long-form explanations, data, pricing, navigation, and controls. The Lunaris wordmark uses uppercase lettering at a compact 650 weight with subtly open tracking, letting the canonical mark carry the brand while the lettering stays bold, modern, and minimal.
 
 ### Hierarchy
 
 - **Display:** Hero claims at 3rem on small screens and 5rem from the small breakpoint, tightly tracked and balanced across lines.
+- **Inner page titles:** DM Sans at 2.25rem on mobile and 3.75rem from the small breakpoint.
 - **Headline:** Section claims at 2rem on small screens and 3rem from the small breakpoint, with generous leading and pretty wrapping.
-- **Title:** Feature and pricing headings use Inter at medium weight, usually between 1.125rem and 1.5rem.
+- **Title:** Feature and pricing headings use DM Sans at medium weight, usually between 1.125rem and 1.5rem.
 - **Body:** Standard evidence and explanation at 1rem with 1.75rem leading; hold primary prose near 40rem.
 - **Body Large:** Hero support copy at 1.125rem with 2rem leading and a tighter maximum width.
 - **Control:** Buttons and navigation at 0.875rem, medium weight, with relaxed 1.75rem line height.
@@ -215,13 +175,13 @@ Printed Olive is a complete warm neutral ramp, moving from parchment to black ol
 
 ### Named Rules
 
-**The Serif Claims Rule.** Instrument Serif makes claims; Inter explains, proves, labels, and invites action. Do not use the display face for dense data, controls, or body copy.
+Reserve Instrument Serif for the homepage hero headline. Set all other live text in DM Sans.
 
 ## Layout
 
 Pages use a centered responsive container: 42rem on small screens, 48rem at the medium breakpoint, and 80rem with 2.5rem gutters at the large breakpoint. Mobile gutters are 1.5rem. Major sections use 4rem vertical padding, while heroes add larger top and bottom space at the small breakpoint. Content alternates between narrow editorial measures and full-width product evidence rather than filling the container uniformly.
 
-The primary grid grows from one column to two at 40rem and, for feature bento compositions, to twelve columns at 64rem. Navigation is sticky at 5.25rem tall, with the brand on the left, sparse links in the middle, and app, language, and theme actions on the right. Desktop links and the app entry appear at 64rem, while smaller screens use a full-page menu. Pricing comparison collapses from a multi-column table into plan tabs below 40rem.
+The primary grid grows from one column to two at 40rem and, for feature bento compositions, to twelve columns at 64rem. The sticky header is 4rem tall on mobile and 4.5rem on desktop. The brand sits at the left and the language, theme, and app actions sit at the right. Desktop links and the app entry appear at 64rem, while smaller screens use a full-page menu. Pricing comparison collapses from a multi-column table into plan tabs below 40rem.
 
 **The Narrow Claim, Wide Proof Rule.** Keep prose constrained enough to read as editorial copy, then allow screenshots, bento grids, tables, and illustrations to use the full container as proof.
 
@@ -265,7 +225,7 @@ Components are softly tactile and assured: pill CTAs, translucent surfaces, fine
 
 ### Cards / Containers
 
-- **Pricing:** Barely tinted olive panel, broad internal padding, and modest rounding. No default shadow.
+- **Pricing:** Transparent panel with a fine border, broad internal padding, and modest rounding. No default shadow.
 - **Bento:** Full-bleed wallpaper portal with white typography, fine translucent ring, grain, and clipped artwork.
 - **Interaction:** Feature cards lift by only two pixels on hover.
 
@@ -277,15 +237,11 @@ Components are softly tactile and assured: pill CTAs, translucent surfaces, fine
 
 ### Navigation
 
-Sticky navigation uses the page's Warm Paper or Black Olive field with no shadow. The brand anchors the left edge; sparse desktop links lead to extensions, pricing, documentation, and self-hosting. A primary app entry sits beside language and theme actions. Mobile navigation expands into a full-page paper surface with large Inter links and closes when a link is followed.
+A translucent paper header and fine bottom rule keep the page visible underneath as it scrolls. Product, Developers, and Resources group related destinations. Pricing and Downloads follow the grouped menus. The full-screen mobile menu and the footer use the same groups, with comparison and legal links in the footer.
 
 ### Screenshot Frames
 
-Product tours use a flat Sage Wash mat with nested corners and optional chapter controls; the recording supplies the visual depth. Other hero screenshots may use a fine Black Olive ring and broad shadow. Smaller screenshots sit on weathered wallpaper with directional padding, one exposed edge, and a concentrated object shadow.
-
-### Wallpaper Portals
-
-Seven muted gradient families—green, blue, purple, brown, coral, gold, and teal—support feature storytelling. Every portal includes monochrome grain at low opacity and may include one soft white bloom. Gradients remain low-chroma and earthy in both themes.
+The lunar landscape backs the hero copy, with the moon visible on the right. The video spans the content column below and overlaps the lower edge of the landscape. Keep chapter controls on the paper below. Other hero screenshots may use a fine Black Olive ring and broad shadow.
 
 ### Named Rules
 
@@ -295,9 +251,9 @@ Seven muted gradient families—green, blue, purple, brown, coral, gold, and tea
 
 ### Do:
 
-- **Do** pair Instrument Serif claims with concise Inter explanation and evidence.
-- **Do** use the olive ramp for all structural light and dark theme decisions.
-- **Do** contain expressive color inside clipped, grainy wallpaper portals.
+- **Do** reserve Instrument Serif for the homepage headline.
+- **Do** use the shared neutral ramp for all structural light and dark theme decisions.
+- **Do** use whitespace and thin dividers to distinguish sections in both themes.
 - **Do** keep copy narrow and let product proof occupy the wider composition.
 - **Do** preserve visible keyboard focus, localized expansion, and motion-reduced alternatives.
 

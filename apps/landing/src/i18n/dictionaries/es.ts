@@ -23,6 +23,10 @@ const es = {
 		footerNavigation: "Navegación del pie de página",
 	},
 	nav: {
+		product: "Producto",
+		developers: "Desarrolladores",
+		productTour: "Recorrido del producto",
+		extensionsSdk: "SDK de extensiones",
 		downloads: "Descargas",
 		pricing: "Precios",
 		docs: "Documentación",

@@ -18,7 +18,10 @@ export function HeroSimpleCentered({
 	cta?: ReactNode;
 } & ComponentProps<"section">) {
 	return (
-		<section className={clsx("py-16", className)} {...props}>
+		<section
+			className={clsx("pt-12 pb-10 sm:pt-20 sm:pb-14", className)}
+			{...props}
+		>
 			<Container className="flex flex-col items-center gap-6">
 				{eyebrow}
 				<Heading className="max-w-5xl text-center">{headline}</Heading>

@@ -24,11 +24,7 @@ export default function GlobalNotFound() {
 					rel="preconnect"
 				/>
 				<link
-					href="https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap"
-					rel="stylesheet"
-				/>
-				<link
-					href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap"
+					href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,100..1000;1,100..1000&display=swap"
 					rel="stylesheet"
 				/>
 			</head>

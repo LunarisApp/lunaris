@@ -1,5 +1,6 @@
 "use client";
 
+import { Heading } from "@/components/elements/heading";
 import Image from "next/image";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
@@ -116,9 +117,7 @@ export function LocalizedNotFound({
 			<p className="mt-16 text-sm font-medium tracking-[0.16em] text-olive-600 uppercase dark:text-olive-400">
 				404
 			</p>
-			<h1 className="mt-4 font-display text-6xl/none tracking-tight sm:text-7xl">
-				{content.title}
-			</h1>
+			<Heading className="mt-4">{content.title}</Heading>
 			<p className="mt-6 max-w-md text-base/7 text-olive-700 sm:text-lg/8 dark:text-olive-300">
 				{content.body}
 			</p>
