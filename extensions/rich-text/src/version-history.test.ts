@@ -6,6 +6,47 @@ import { type Doc, encodeStateAsUpdateV2 } from "yjs";
 import { buildRichTextVersionHistory } from "./version-history";
 
 describe("buildRichTextVersionHistory", () => {
+  it("sorts sessions by displayed date descending regardless of update order", () => {
+    const doc = makeEditorDoc(["Alpha"]);
+    const nextDoc = makeEditorDoc(["Beta"]);
+    const updates = [
+      makeUpdateFromDoc({
+        id: "newest",
+        createdAt: "2026-04-19T12:00:00.000+01:00",
+        doc,
+        userId: "user_1",
+      }),
+      makeCapturedUpdate({
+        id: "oldest",
+        createdAt: "2026-04-19T09:00:00.000Z",
+        doc,
+        mutate: () => doc.getXmlFragment().delete(0, 1),
+        userId: "user_2",
+      }),
+      makeUpdateFromDoc({
+        id: "middle",
+        createdAt: "2026-04-19T10:00:00.000Z",
+        doc: nextDoc,
+        userId: "user_3",
+      }),
+    ];
+
+    const history = buildRichTextVersionHistory(updates);
+    doc.destroy();
+    nextDoc.destroy();
+
+    expect(history.map((entry) => entry.id)).toEqual([
+      "newest",
+      "middle",
+      "oldest",
+    ]);
+    expect(updates.map((update) => update.id)).toEqual([
+      "newest",
+      "oldest",
+      "middle",
+    ]);
+  });
+
   it("groups nearby updates from the same user into one session", () => {
     const history = buildRichTextVersionHistory([
       makeUpdate({
