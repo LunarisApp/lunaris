@@ -68,10 +68,21 @@ export function AppUpdateButton({
   if (!needRefresh) {
     return null;
   }
+  const label = phase
+    ? t(`appUpdate.${phase}`)
+    : requiresRestart
+      ? t("appUpdate.updateAndRestart")
+      : t("appUpdate.updateNow");
+  const accessibleLabel =
+    phase === "downloading" && progress !== undefined
+      ? `${label} ${progress}%`
+      : label;
+
   return (
     <div className="flex flex-col items-start gap-1">
       <Button
-        className={APP_UPDATE_BUTTON_CLASSNAME}
+        aria-label={accessibleLabel}
+        className={`${APP_UPDATE_BUTTON_CLASSNAME} group/app-update gap-0 transition-colors ${size === "xs" ? "max-h-6 min-h-6 px-[5px]" : "max-h-8 min-h-8 px-[7px]"}`}
         disabled={pending || Boolean(phase)}
         aria-busy={pending || Boolean(phase)}
         onClick={() => void applyUpdate()}
@@ -79,19 +90,23 @@ export function AppUpdateButton({
         variant="default"
       >
         <HugeiconsIcon icon={Refresh01Icon} />
-        {phase
-          ? t(`appUpdate.${phase}`)
-          : requiresRestart
-            ? t("appUpdate.updateAndRestart")
-            : t("appUpdate.updateNow")}
-        {phase === "downloading" && progress !== undefined
-          ? ` ${progress}%`
-          : null}
-        {!requiresRestart && (
-          <Kbd className="bg-blue-200 text-blue-800 dark:bg-blue-800/50 dark:text-blue-300">
-            {formatHotkeyDisplay("Mod+R")}
-          </Kbd>
-        )}
+        <span
+          aria-hidden="true"
+          className="grid grid-cols-[0fr] opacity-0 transition-[grid-template-columns,opacity] duration-200 ease-out group-hover/app-update:grid-cols-[1fr] group-hover/app-update:opacity-100 group-focus-visible/app-update:grid-cols-[1fr] group-focus-visible/app-update:opacity-100 group-aria-busy/app-update:grid-cols-[1fr] group-aria-busy/app-update:opacity-100 motion-reduce:transition-none"
+        >
+          <span className="min-w-0 overflow-hidden">
+            <span
+              className={`flex items-center ${size === "xs" ? "gap-1 pl-1" : "gap-1.5 pl-1.5"}`}
+            >
+              <span>{accessibleLabel}</span>
+              {!requiresRestart && (
+                <Kbd className="bg-blue-200 text-blue-800 dark:bg-blue-800/50 dark:text-blue-300">
+                  {formatHotkeyDisplay("Mod+R")}
+                </Kbd>
+              )}
+            </span>
+          </span>
+        </span>
       </Button>
       {failed || actionFailed ? (
         <span className="text-destructive text-xs" role="alert">

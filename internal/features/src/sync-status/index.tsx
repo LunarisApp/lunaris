@@ -31,7 +31,7 @@ import {
 import { useStatus } from "@repo/data/features/sync-status";
 import { useOnlineStatus } from "@repo/platform";
 import type { ComponentProps, ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { useAuth } from "../auth/context";
@@ -79,18 +79,37 @@ function ResponsiveCard({
   );
 }
 
+// WebViews may keep reporting online while the sync transport cannot connect.
+const CONNECTION_GRACE_MS = 10_000;
+
 export default function SyncStatusIndicator() {
   const syncAccess = useSyncAccess();
   const { blocked, lastClientErrorStatus } = useSyncBlockerState();
   const status = useStatus();
   const networkOnline = useOnlineStatus();
+  const [connectionGraceElapsed, setConnectionGraceElapsed] = useState(false);
+  const awaitingConnection =
+    syncAccess === "cloud" && networkOnline && !status.connected;
+
+  useEffect(() => {
+    if (!awaitingConnection) {
+      setConnectionGraceElapsed(false);
+      return;
+    }
+
+    const timer = setTimeout(
+      () => setConnectionGraceElapsed(true),
+      CONNECTION_GRACE_MS
+    );
+    return () => clearTimeout(timer);
+  }, [awaitingConnection]);
 
   const descriptor = resolveSyncStatus({
     syncAccess,
     blocked,
     lastClientErrorStatus,
     connected: status.connected,
-    connecting: status.connecting,
+    connecting: status.connecting && !connectionGraceElapsed,
     lastSyncedAt: status.lastSyncedAt,
     networkOnline,
     uploadError: status.dataFlowStatus?.uploadError,
