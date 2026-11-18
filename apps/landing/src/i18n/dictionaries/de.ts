@@ -365,6 +365,9 @@ const de = {
 		headline: "Bringen Sie Ihren Organisation ins Gespräch.",
 		setup: {
 			harnessLabel: "MCP-Client auswählen",
+			connectionLabel: "Wo möchtest du dich verbinden?",
+			cloudName: "Cloud",
+			manualCopy: "Wähle den Konfigurationstext aus und kopiere ihn manuell.",
 			regionLabel: "Datenregion auswählen",
 			desktopName: "Desktop-App",
 			desktopDescription:

@@ -111,6 +111,7 @@ export default async function Page({
 		<>
 			{/* Hero */}
 			<PricingHeroMultiTier
+				comparisonLabel={ct.heading}
 				footer={
 					<div className="space-y-2 text-center text-sm/6 text-olive-700 dark:text-olive-400">
 						<p>{dict.pricingPage.billingNote}</p>

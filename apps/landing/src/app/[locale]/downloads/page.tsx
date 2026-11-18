@@ -69,6 +69,27 @@ export default async function DownloadsPage({
 					<p className="mt-5 text-base/7 text-pretty text-olive-600 dark:text-olive-400">
 						{copy.subtitle}
 					</p>
+					<p className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm/6 text-olive-600 dark:text-olive-400">
+						{copy.browser}
+						<a
+							href="https://web.lunaris.app"
+							className="inline-flex min-h-11 items-center gap-1.5 font-medium text-olive-950 underline underline-offset-4 hover:text-olive-600 dark:text-olive-100 dark:hover:text-white"
+						>
+							{home.open}
+							<svg
+								aria-hidden="true"
+								className="size-3.5"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth={1.5}
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								viewBox="0 0 16 16"
+							>
+								<path d="M4 12 12 4M4 4h8v8" />
+							</svg>
+						</a>
+					</p>
 				</header>
 				<div className="divide-y divide-olive-950/15 border-y border-olive-950/15 dark:divide-white/15 dark:border-white/15">
 					{installers.map(({ target, name, format, description }) => (
@@ -153,27 +174,6 @@ export default async function DownloadsPage({
 						/>
 					</section>
 				</div>
-				<p className="mt-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm/6 text-olive-600 dark:text-olive-400">
-					{copy.browser}
-					<a
-						href="https://web.lunaris.app"
-						className="inline-flex min-h-11 items-center gap-1.5 font-medium text-olive-950 underline underline-offset-4 hover:text-olive-600 dark:text-olive-100 dark:hover:text-white"
-					>
-						{home.open}
-						<svg
-							aria-hidden="true"
-							className="size-3.5"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth={1.5}
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							viewBox="0 0 16 16"
-						>
-							<path d="M4 12 12 4M4 4h8v8" />
-						</svg>
-					</a>
-				</p>
 			</div>
 		</Container>
 	);

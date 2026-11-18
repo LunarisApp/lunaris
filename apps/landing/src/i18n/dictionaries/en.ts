@@ -358,6 +358,9 @@ const en = {
 		headline: "Bring your organization into the conversation.",
 		setup: {
 			harnessLabel: "Choose your MCP client",
+			connectionLabel: "Where do you want to connect?",
+			cloudName: "Cloud",
+			manualCopy: "Select the setup text and copy it manually.",
 			regionLabel: "Choose your data region",
 			desktopName: "Desktop app",
 			desktopDescription: "Includes your workspaces with local visibility.",

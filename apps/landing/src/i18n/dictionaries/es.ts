@@ -360,6 +360,9 @@ const es = {
 		headline: "Lleva tu organización a la conversación.",
 		setup: {
 			harnessLabel: "Elige tu cliente MCP",
+			connectionLabel: "¿Dónde quieres conectarte?",
+			cloudName: "Nube",
+			manualCopy: "Selecciona el texto de configuración y cópialo manualmente.",
 			regionLabel: "Elige tu región de datos",
 			desktopName: "Aplicación de escritorio",
 			desktopDescription:

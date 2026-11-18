@@ -360,6 +360,9 @@ const ptBR = {
 		headline: "Traga seu organização para a conversa.",
 		setup: {
 			harnessLabel: "Escolha seu cliente MCP",
+			connectionLabel: "Onde você quer se conectar?",
+			cloudName: "Nuvem",
+			manualCopy: "Selecione o texto de configuração e copie-o manualmente.",
 			regionLabel: "Escolha sua região de dados",
 			desktopName: "Aplicativo para desktop",
 			desktopDescription:

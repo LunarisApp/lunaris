@@ -363,6 +363,10 @@ const fr = {
 		headline: "Invitez votre organisation dans la conversation.",
 		setup: {
 			harnessLabel: "Choisissez votre client MCP",
+			connectionLabel: "Où souhaitez-vous vous connecter ?",
+			cloudName: "Cloud",
+			manualCopy:
+				"Sélectionnez le texte de configuration et copiez-le manuellement.",
 			regionLabel: "Choisissez votre région de données",
 			desktopName: "Application de bureau",
 			desktopDescription:
