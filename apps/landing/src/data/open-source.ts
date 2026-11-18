@@ -1,7 +1,7 @@
 import type { Locale } from "@/i18n/config";
 
 export const repositoryUrl = "https://github.com/LunarisApp/lunaris";
-export const selfHostingGuideUrl = `${repositoryUrl}/blob/next/infra/self-host/README.md`;
+export const selfHostingGuideUrl = `${repositoryUrl}/blob/main/infra/self-host/README.md`;
 export const selfHostCommand =
 	"curl -fsSL https://lunaris.app/install.sh | bash";
 

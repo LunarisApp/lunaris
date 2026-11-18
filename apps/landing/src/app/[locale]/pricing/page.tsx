@@ -135,7 +135,7 @@ export default async function Page({
 			/>
 			<Container className="pb-12">
 				<section className="border-y border-olive-950/10 py-8 dark:border-white/10">
-					<h2 className="text-xl font-medium">
+					<h2 className="text-xl font-medium text-olive-950 dark:text-white">
 						{openSourceCopy[locale].selfHostHeadline}
 					</h2>
 					<p className="mt-3 max-w-3xl text-base/7 text-olive-700 dark:text-olive-300">
