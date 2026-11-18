@@ -7,28 +7,33 @@ import { buildRichTextVersionHistory } from "./version-history";
 
 describe("buildRichTextVersionHistory", () => {
   it("sorts sessions by displayed date descending regardless of update order", () => {
+    const doc = makeEditorDoc(["Alpha"]);
+    const nextDoc = makeEditorDoc(["Beta"]);
     const updates = [
-      makeUpdate({
+      makeUpdateFromDoc({
         id: "newest",
         createdAt: "2026-04-19T12:00:00.000+01:00",
-        lines: ["Newest"],
+        doc,
         userId: "user_1",
       }),
-      makeUpdate({
+      makeCapturedUpdate({
         id: "oldest",
         createdAt: "2026-04-19T09:00:00.000Z",
-        lines: ["Oldest"],
+        doc,
+        mutate: () => doc.getXmlFragment().delete(0, 1),
         userId: "user_2",
       }),
-      makeUpdate({
+      makeUpdateFromDoc({
         id: "middle",
         createdAt: "2026-04-19T10:00:00.000Z",
-        lines: ["Middle"],
+        doc: nextDoc,
         userId: "user_3",
       }),
     ];
 
     const history = buildRichTextVersionHistory(updates);
+    doc.destroy();
+    nextDoc.destroy();
 
     expect(history.map((entry) => entry.id)).toEqual([
       "newest",
