@@ -5,7 +5,7 @@ or developing to include [enterprise features](../../ee/README.md), subject to
 the [EE license](../../ee/LICENSE).
 
 Backend for Lunaris workspaces, resources, collaboration, and account management.
-Built with NestJS, Fastify, PostgreSQL, and Drizzle; integrates Better Auth,
+Built with NestJS with the Node HTTP adapter, PostgreSQL, and Drizzle; integrates Better Auth,
 PowerSync, Yjs, Polar billing, and Resend email.
 
 ## Local development

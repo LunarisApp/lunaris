@@ -1,5 +1,5 @@
 import { ForbiddenException, type CsrfProtectionOptions } from "@nestjs/common";
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { NestNodeApplication, NodeRequest } from "@nestjs/platform-node";
 import type { AppConfig } from "../app.config";
 
 export class OriginRejectedException extends ForbiddenException {
@@ -12,8 +12,8 @@ type OriginConfig = Pick<
   AppConfig,
   "url" | "frontendUrl" | "desktopAppOrigins" | "nodeEnv"
 >;
-const conflictingDesktopOrigins = new WeakSet<FastifyRequest>();
-export function markConflictingDesktopOrigin(request: FastifyRequest) {
+const conflictingDesktopOrigins = new WeakSet<NodeRequest>();
+export function markConflictingDesktopOrigin(request: NodeRequest) {
   conflictingDesktopOrigins.add(request);
 }
 
@@ -42,20 +42,22 @@ export function isSerializedOrigin(origin: string): boolean {
   }
 }
 
-export function registerOriginValidation(app: FastifyInstance) {
-  app.addHook("onRequest", (request, _reply, done) => {
-    const origin = request.headers.origin;
-    if (
-      !SAFE_METHODS.has(request.method) &&
-      (conflictingDesktopOrigins.has(request) ||
-        (origin !== undefined &&
-          (typeof origin !== "string" || !isSerializedOrigin(origin))))
-    ) {
-      done(new OriginRejectedException());
-      return;
+export function registerOriginValidation(app: NestNodeApplication) {
+  app.use(
+    (request: NodeRequest, _reply: unknown, done: (error?: Error) => void) => {
+      const origin = request.headers.origin;
+      if (
+        !SAFE_METHODS.has(request.method ?? "GET") &&
+        (conflictingDesktopOrigins.has(request) ||
+          (origin !== undefined &&
+            (typeof origin !== "string" || !isSerializedOrigin(origin))))
+      ) {
+        done(new OriginRejectedException());
+        return;
+      }
+      done();
     }
-    done();
-  });
+  );
 }
 
 export function getCsrfProtectionOptions(
@@ -75,7 +77,7 @@ export function getCsrfProtectionOptions(
     trustedOrigins: [
       ...new Set(origins.filter((origin) => origin !== "lunaris://")),
     ],
-    exclude: (request: FastifyRequest) => {
+    exclude: (request: NodeRequest) => {
       const origin = request.headers.origin;
       if (origin === "lunaris://") {
         return config.desktopAppOrigins.includes(origin);

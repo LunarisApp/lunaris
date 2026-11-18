@@ -18,7 +18,7 @@ import {
 } from "@repo/auth/server";
 import { AuthService, type UserSession } from "@thallesp/nestjs-better-auth";
 import { useLogger } from "evlog/nestjs";
-import type { FastifyRequest } from "fastify";
+import type { NodeRequest } from "@nestjs/platform-node";
 import { AppConfig } from "../../../app.config";
 import { routeAuditAction } from "../../../audit/recording/audit.actions";
 import { recordComplianceAudit } from "../../../audit/recording/audit-log";
@@ -53,7 +53,7 @@ type AgentAuth = Auth & {
   };
 };
 
-export type AgentRequest = FastifyRequest & {
+export type AgentRequest = NodeRequest & {
   agentPrincipal?: AgentPrincipal;
   auditActor?: { id: string; type: "api" | "user" };
   session?: UserSession;

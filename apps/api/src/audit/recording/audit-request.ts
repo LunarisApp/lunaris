@@ -1,10 +1,10 @@
 import type { ExecutionContext } from "@nestjs/common";
 import type { AuditActor, AuditInput } from "evlog";
-import type { FastifyRequest } from "fastify";
+import type { NodeRequest } from "@nestjs/platform-node";
 import type { AgentPrincipal } from "../../agents/control/access/agent-principal";
 import { type AuditActionName, AuditActions } from "./audit.actions";
 
-type AuditRequest = FastifyRequest & {
+type AuditRequest = NodeRequest & {
   agentPrincipal?: AgentPrincipal;
   auditActor?: AuditActor;
   body?: unknown;
@@ -72,7 +72,8 @@ export function auditInputForRequest(
       ? actor.id
       : undefined) ??
     tenantId ??
-    request.url;
+    request.url ??
+    "/";
 
   return action({
     actor,

@@ -1,3 +1,9 @@
+import type {
+  NestNodeApplication,
+  NodeRequest,
+  NodeResponse,
+} from "@nestjs/platform-node";
+
 export const CONTENT_SECURITY_POLICY_PARTS = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -21,17 +27,6 @@ export const PERMISSIONS_POLICY = [
 ].join(", ");
 
 export const STRICT_TRANSPORT_SECURITY = "max-age=31536000; includeSubDomains";
-
-type HeaderReply = {
-  header: (name: string, value: string) => unknown;
-};
-
-type HeaderApp = {
-  addHook: (
-    name: "onRequest",
-    hook: (_request: unknown, reply: HeaderReply, done: () => void) => void
-  ) => unknown;
-};
 
 export function getSecurityHeadersConfig(isProduction: boolean) {
   return {
@@ -73,9 +68,9 @@ export function getSecurityHeadersConfig(isProduction: boolean) {
   };
 }
 
-export function registerPermissionsPolicyHeader(app: HeaderApp) {
-  app.addHook("onRequest", (_request, reply, done) => {
-    reply.header("Permissions-Policy", PERMISSIONS_POLICY);
+export function registerPermissionsPolicyHeader(app: NestNodeApplication) {
+  app.use((_request: NodeRequest, reply: NodeResponse, done: () => void) => {
+    reply.setHeader("Permissions-Policy", PERMISSIONS_POLICY);
     done();
   });
 }

@@ -1,8 +1,6 @@
+import { injectHttp } from "../test/inject-http";
 import { afterEach, describe, expect, it } from "bun:test";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { NodeAdapter, type NestNodeApplication } from "@nestjs/platform-node";
 import { Test } from "@nestjs/testing";
 import {
   CORS_METHODS,
@@ -11,7 +9,7 @@ import {
   normalizeOrigin,
 } from "./cors.config";
 
-const apps: NestFastifyApplication[] = [];
+const apps: NestNodeApplication[] = [];
 const productionConfig = {
   desktopAppOrigins: [
     "lunaris://",
@@ -33,7 +31,7 @@ describe("CORS config", () => {
   it("allows DELETE preflight from the configured production frontend", async () => {
     const app = await createApp(productionConfig);
 
-    const response = await app.inject({
+    const response = await injectHttp(app, {
       headers: {
         "access-control-request-headers": "x-csrf-token",
         "access-control-request-method": "DELETE",
@@ -73,7 +71,7 @@ describe("CORS config", () => {
 
   it("allows desktop transport headers in production preflight", async () => {
     const app = await createApp(productionConfig);
-    const response = await app.inject({
+    const response = await injectHttp(app, {
       headers: {
         "access-control-request-headers": "tauri-origin,x-tauri-cookie",
         "access-control-request-method": "POST",
@@ -117,12 +115,12 @@ describe("CORS config", () => {
 
 async function createApp(appConfig: typeof productionConfig) {
   const moduleRef = await Test.createTestingModule({}).compile();
-  const app = moduleRef.createNestApplication<NestFastifyApplication>(
-    new FastifyAdapter()
+  const app = moduleRef.createNestApplication<NestNodeApplication>(
+    new NodeAdapter()
   );
   app.enableCors(getCorsConfig(appConfig));
   await app.init();
-  await app.getHttpAdapter().getInstance().ready();
+
   apps.push(app);
   return app;
 }

@@ -2,7 +2,7 @@ import { ArgumentsHost, Catch, ForbiddenException } from "@nestjs/common";
 import { BaseExceptionFilter } from "@nestjs/core";
 import { createLogger } from "evlog";
 import { useLogger } from "evlog/nestjs";
-import type { FastifyReply, FastifyRequest } from "fastify";
+import type { NodeResponse } from "@nestjs/platform-node";
 import { OriginRejectedException } from "./origin-protection";
 
 const NATIVE_CSRF_MESSAGES = new Set([
@@ -21,9 +21,8 @@ export class OriginExceptionFilter extends BaseExceptionFilter<ForbiddenExceptio
     ) {
       return super.catch(exception, host);
     }
-    const request = host.switchToHttp().getRequest<FastifyRequest>();
-    const reply = host.switchToHttp().getResponse<FastifyReply>();
-    let requestId = request.id;
+    const reply = host.switchToHttp().getResponse<NodeResponse>();
+    let requestId: string = crypto.randomUUID();
     // Never infer an actor or tenant before authentication, or log credentials.
     try {
       const logger = useLogger();

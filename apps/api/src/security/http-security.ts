@@ -1,4 +1,4 @@
-import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { NestNodeApplication } from "@nestjs/platform-node";
 import type { AppConfig } from "../app.config";
 import { getCorsConfig } from "../cors.config";
 import { registerDesktopCookieBridge } from "../desktop-auth.config";
@@ -12,16 +12,15 @@ import {
 } from "./origin-protection";
 
 export function configureHttpSecurity(
-  app: NestFastifyApplication,
+  app: NestNodeApplication,
   config: AppConfig
 ) {
-  const fastify = app.getHttpAdapter().getInstance();
+  registerDesktopCookieBridge(app, config);
+  registerPermissionsPolicyHeader(app);
   app.enableCors(getCorsConfig(config));
-  registerDesktopCookieBridge(fastify, config);
-  registerPermissionsPolicyHeader(fastify);
   app.useSecurityHeaders(
     getSecurityHeadersConfig(config.nodeEnv === "production")
   );
   app.enableCsrfProtection(getCsrfProtectionOptions(config));
-  registerOriginValidation(fastify);
+  registerOriginValidation(app);
 }

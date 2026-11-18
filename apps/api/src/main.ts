@@ -6,9 +6,11 @@ import { EvlogLogger } from "@app/utils/evlog-logger";
 import { VersioningType } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+  NodeAdapter,
+  NestNodeApplication,
+  type NodeRequest,
+  type NodeResponse,
+} from "@nestjs/platform-node";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { log } from "evlog";
 import { configureHttpSecurity } from "./security/http-security";
@@ -18,22 +20,11 @@ import { AppModule } from "./app.module";
 async function bootstrap() {
   // trustProxy: true makes request.protocol / request.ip honor
   // x-forwarded-* headers. Required behind any TLS-terminating proxy so
-  // Fastify, Better Auth, CSRF, and cookie `secure` flags all agree on
+  // NodeAdapter, Better Auth, CSRF, and cookie `secure` flags all agree on
   // the real client scheme and address. Keep this enabled on Railway and
   // any equivalent PaaS. Disable only for direct-public deployments.
-  const adapter = new FastifyAdapter({ trustProxy: true });
-  adapter.getInstance().addHook("onSend", async (request, reply, payload) => {
-    if (request.url.split("?")[0] === "/v1/health") {
-      reply.header(
-        "X-Lunaris-Commit",
-        process.env.LUNARIS_BUILD_SHA ??
-          process.env.RAILWAY_GIT_COMMIT_SHA ??
-          "local"
-      );
-    }
-    return payload;
-  });
-  const app = await NestFactory.create<NestFastifyApplication>(
+  const adapter = new NodeAdapter({ trustProxy: true });
+  const app = await NestFactory.create<NestNodeApplication>(
     AppModule,
     adapter,
     {
@@ -41,6 +32,17 @@ async function bootstrap() {
       bodyParser: false, // Disabled so better-auth can parse its own requests
     }
   );
+  app.use((request: NodeRequest, reply: NodeResponse, next: () => void) => {
+    if (request.url?.split("?")[0] === "/v1/health") {
+      reply.setHeader(
+        "X-Lunaris-Commit",
+        process.env.LUNARIS_BUILD_SHA ??
+          process.env.RAILWAY_GIT_COMMIT_SHA ??
+          "local"
+      );
+    }
+    next();
+  });
   const appConfig = app.get(AppConfig);
   app.enableShutdownHooks();
 
@@ -69,6 +71,11 @@ async function bootstrap() {
     http: { swaggerPath: `/${swaggerPath}` },
     message: "Swagger endpoint ready",
   });
+
+  // Preserve Fastify's timeouts, including keep-alive for reverse proxies.
+  const server = app.getHttpServer();
+  server.keepAliveTimeout = 72_000;
+  server.requestTimeout = 0;
 
   const port = process.env.PORT ?? 3000;
   const host = process.env.API_BIND_ADDRESS ?? "0.0.0.0";
