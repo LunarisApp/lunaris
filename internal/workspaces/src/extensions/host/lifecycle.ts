@@ -52,8 +52,15 @@ interface I18nInstance {
 
 interface LocaleLanguageState {
   base: Record<string, unknown>;
-  plugins: Map<string, Record<string, unknown>>;
+  plugins: Map<symbol, Record<string, unknown>>;
 }
+
+// Hosts share the application i18n instance. Keep every active registration
+// together so disposing one host cannot erase another host's translations.
+const localeStatesByInstance = new WeakMap<
+  I18nInstance,
+  Map<string, LocaleLanguageState>
+>();
 
 export interface InitializePluginsDeps {
   gridLayoutRegister: GridLayoutRegisterFn;
@@ -266,10 +273,8 @@ export function createPluginLifecycle({
 }: {
   plugins: PluginRegistry;
 }): PluginLifecycle {
-  const localeStates = new Map<string, LocaleLanguageState>();
-
   function rebuildLanguage(language: string, i18n: I18nInstance): void {
-    const state = localeStates.get(language);
+    const state = localeStatesByInstance.get(i18n)?.get(language);
     if (!state) {
       return;
     }
@@ -297,6 +302,11 @@ export function createPluginLifecycle({
     locales: PreparedPluginActivation["locales"],
     i18n: I18nInstance
   ): () => void {
+    const localeStates =
+      localeStatesByInstance.get(i18n) ??
+      new Map<string, LocaleLanguageState>();
+    localeStatesByInstance.set(i18n, localeStates);
+    const registration = Symbol(pluginId);
     const removeLocales = (languages: readonly string[]): unknown[] => {
       const errors: unknown[] = [];
       for (const language of languages) {
@@ -304,7 +314,7 @@ export function createPluginLifecycle({
         if (!state) {
           continue;
         }
-        state.plugins.delete(pluginId);
+        state.plugins.delete(registration);
         try {
           rebuildLanguage(language, i18n);
         } catch (error) {
@@ -325,7 +335,7 @@ export function createPluginLifecycle({
           base: cloneBundle(i18n.getResourceBundle(language, "translation")),
           plugins: new Map(),
         };
-        state.plugins.set(pluginId, cloneBundle(locales[language]));
+        state.plugins.set(registration, cloneBundle(locales[language]));
         localeStates.set(language, state);
         registered.push(language);
         rebuildLanguage(language, i18n);

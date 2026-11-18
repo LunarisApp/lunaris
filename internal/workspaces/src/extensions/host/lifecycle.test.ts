@@ -537,6 +537,51 @@ describe("Cordis-backed extension lifecycle", () => {
     expect(bundles.get("en")).toEqual({ base: "Base" });
   });
 
+  it("preserves locales owned by other hosts sharing the same i18n instance", async () => {
+    const bundles = new Map<string, Record<string, unknown>>([
+      ["en", { base: "Base" }],
+      ["de", { base: "Basis" }],
+    ]);
+    const i18n = {
+      addResourceBundle: (
+        language: string,
+        _namespace: string,
+        resources: Record<string, unknown>
+      ) => {
+        bundles.set(language, { ...bundles.get(language), ...resources });
+      },
+      getResourceBundle: (language: string) => bundles.get(language),
+      removeResourceBundle: (language: string) => {
+        bundles.delete(language);
+      },
+    };
+    const otherHost = createPluginLifecycle({ plugins: new PluginRegistry() });
+    const value = definePlugin({
+      manifest: plugin("acme.shared").manifest,
+      activate({ contributions }) {
+        contributions.locales({
+          en: { groupBy: "Group by" },
+          de: { groupBy: "Gruppieren nach" },
+        });
+      },
+    });
+    const lifecycleDeps = { ...deps(), i18n };
+
+    await lifecycle.initializePlugins([value], lifecycleDeps);
+    await otherHost.initializePlugins([value], lifecycleDeps);
+    await lifecycle.disablePlugin(value.manifest.id);
+
+    expect(bundles.get("en")).toEqual({ base: "Base", groupBy: "Group by" });
+    expect(bundles.get("de")).toEqual({
+      base: "Basis",
+      groupBy: "Gruppieren nach",
+    });
+
+    await otherHost.disablePlugin(value.manifest.id);
+    expect(bundles.get("en")).toEqual({ base: "Base" });
+    expect(bundles.get("de")).toEqual({ base: "Basis" });
+  });
+
   it("reports reload failures and unregisters stale grid entries first", async () => {
     const broken = definePlugin({
       manifest: {
