@@ -1,8 +1,8 @@
 // @vitest-environment node
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SessionManager } from "@mariozechner/pi-coding-agent";
 import { runtimeEventSchema } from "./protocol";
 import { AgentWorkRuntime } from "./runtime";
@@ -10,13 +10,28 @@ import { resourceToolDefinitions, resolveResourceTool } from "./tools";
 
 const directories: string[] = [];
 afterEach(() => {
+  vi.unstubAllGlobals();
   for (const directory of directories.splice(0)) {
     rmSync(directory, { recursive: true, force: true });
   }
 });
-function setup() {
+function setup(authenticated = false) {
   const directory = mkdtempSync(join(tmpdir(), "lunaris-agent-test-"));
   directories.push(directory);
+  if (authenticated) {
+    writeFileSync(
+      join(directory, "auth.json"),
+      JSON.stringify({
+        "openai-codex": {
+          type: "oauth",
+          access: "test-token",
+          refresh: "test-refresh",
+          expires: Date.now() + 3_600_000,
+          accountId: "test-account",
+        },
+      })
+    );
+  }
   const events: Record<string, unknown>[] = [];
   return {
     directory,
@@ -28,6 +43,79 @@ function setup() {
 }
 
 describe("Pi runtime", () => {
+  it("loads account models absent from the SDK and uses their priority", async () => {
+    const fetchModels = vi.fn().mockResolvedValue(
+      Response.json({
+        models: [
+          {
+            slug: "gpt-5.4",
+            display_name: "GPT-5.4",
+            visibility: "list",
+            priority: 2,
+          },
+          {
+            slug: "hidden",
+            display_name: "Hidden",
+            visibility: "hide",
+            priority: 0,
+          },
+          {
+            slug: "gpt-6",
+            display_name: "GPT-6",
+            visibility: "list",
+            priority: 1,
+          },
+        ],
+      })
+    );
+    vi.stubGlobal("fetch", fetchModels);
+    const { runtime, events } = setup(true);
+    await runtime.handle({ type: "status", id: "status" });
+    expect(events.at(-1)).toEqual({ type: "response", id: "status" });
+    expect(fetchModels).toHaveBeenCalledWith(
+      "https://chatgpt.com/backend-api/codex/models?client_version=0.0.1",
+      expect.objectContaining({
+        headers: {
+          Authorization: "Bearer test-token",
+          "ChatGPT-Account-Id": "test-account",
+        },
+      })
+    );
+    await runtime.handle({ type: "new_session", id: "new" });
+    expect(events.at(-1)).toEqual({ type: "response", id: "new" });
+    expect(events.at(-2)).toMatchObject({
+      state: {
+        modelId: "gpt-6",
+        models: [
+          { id: "gpt-6", name: "GPT-6" },
+          { id: "gpt-5.4", name: "GPT-5.4" },
+        ],
+      },
+    });
+    await runtime.handle({
+      type: "prompt",
+      id: "bad-model",
+      text: "hello",
+      modelId: "gpt-5.5",
+    });
+    expect(events.at(-1)).toMatchObject({
+      error: "Choose an available ChatGPT model",
+    });
+    await runtime.handle({ type: "logout", id: "logout" });
+    expect(events.at(-2)).toMatchObject({ state: { modelId: "", models: [] } });
+  });
+  it("reports catalog failures without advertising the bundled models", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(null, { status: 503 }))
+    );
+    const { runtime, events } = setup(true);
+    await runtime.handle({ type: "status", id: "status" });
+    expect(events.at(-1)).toMatchObject({
+      error: "Could not load ChatGPT models (503). Try again.",
+    });
+    expect(events.at(-2)).toMatchObject({ state: { modelId: "", models: [] } });
+  });
   it("starts disconnected and creates a session without invoking a provider", async () => {
     const { runtime, events } = setup();
     await runtime.handle({ type: "new_session", id: "new" });
