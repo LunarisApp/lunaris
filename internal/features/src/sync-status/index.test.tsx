@@ -204,6 +204,7 @@ function defaults() {
 
 describe("SyncStatusIndicator", () => {
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -290,6 +291,40 @@ describe("SyncStatusIndicator", () => {
     ).toBeNull();
     expect(screen.queryByText("You Are Offline")).toBeNull();
     expect(screen.queryByTestId("sync-icon")).toBeNull();
+  });
+
+  it("shows offline after prolonged connecting when the WebView reports online", () => {
+    vi.useFakeTimers();
+    defaults();
+    vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
+    setStatus({ connected: false, connecting: true });
+
+    const { rerender } = render(<SyncStatusIndicator />);
+    expect(screen.queryByTestId("sync-icon")).toBeNull();
+
+    act(() => vi.advanceTimersByTime(9999));
+    expect(screen.queryByText("You Are Offline")).toBeNull();
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.getByText("You Are Offline")).toBeTruthy();
+
+    // A retry must not hide the warning again.
+    setStatus({ connected: false, connecting: false });
+    rerender(<SyncStatusIndicator />);
+    setStatus({ connected: false, connecting: true });
+    rerender(<SyncStatusIndicator />);
+    expect(screen.getByText("You Are Offline")).toBeTruthy();
+
+    setStatus({ connected: true });
+    rerender(<SyncStatusIndicator />);
+    expect(screen.getByText("Cloud sync connected")).toBeTruthy();
+    expect(screen.queryByText("You Are Offline")).toBeNull();
+
+    // A later connection attempt gets its own grace period.
+    setStatus({ connected: false, connecting: true });
+    rerender(<SyncStatusIndicator />);
+    expect(screen.queryByTestId("sync-icon")).toBeNull();
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(screen.getByText("You Are Offline")).toBeTruthy();
   });
 
   it("renders blocked-auth variant with a Sign In CTA when last error was 401", async () => {
