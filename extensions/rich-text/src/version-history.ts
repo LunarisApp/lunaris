@@ -83,7 +83,9 @@ export function buildRichTextVersionHistory(
         });
       }
 
-      return entries.reverse();
+      return entries.sort(
+        (a, b) => Date.parse(b.endedAt) - Date.parse(a.endedAt)
+      );
     } finally {
       currentDoc.destroy();
     }
