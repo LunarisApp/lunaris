@@ -1,0 +1,16 @@
+diff --git a/dist/authorize-BzDrbYtI.mjs b/dist/authorize-BzDrbYtI.mjs
+--- a/dist/authorize-BzDrbYtI.mjs
++++ b/dist/authorize-BzDrbYtI.mjs
+@@ -8499,7 +8499,11 @@
+ 		path = opts.postLogin?.page;
+ 	} else if (type === "consent") path = opts.consentPage;
+ 	else if (type === "create") path = opts.signup?.page ?? opts.loginPage;
+-	return handleRedirect(ctx, `${options?.page ?? path}?${queryParams}`);
++	const page = options?.page ?? path;
++	const hashIndex = page.indexOf("#");
++	const base = hashIndex === -1 ? page : page.slice(0, hashIndex);
++	const hash = hashIndex === -1 ? "" : page.slice(hashIndex);
++	return handleRedirect(ctx, `${base}${base.includes("?") ? "&" : "?"}${queryParams}${hash}`);
+ }
+ async function signParams(ctx, opts, flags) {
+ 	const issuedAt = Date.now();

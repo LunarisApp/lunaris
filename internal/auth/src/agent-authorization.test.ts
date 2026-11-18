@@ -11,7 +11,7 @@ import {
 } from "./agent-authorization";
 
 const resource = "http://localhost:3000/mcp";
-async function fixture() {
+async function fixture(consentPage = "/consent") {
   const db = {
     user: [],
     session: [],
@@ -41,7 +41,7 @@ async function fixture() {
       mcp({
         resource,
         loginPage: "/login",
-        consentPage: "/consent",
+        consentPage,
         scopes: ["openid", "offline_access", "organization:read"],
         allowDynamicClientRegistration: true,
         allowUnauthenticatedClientRegistration: true,
@@ -251,8 +251,12 @@ describe("OAuth agent device authorization", () => {
     expect(refreshed.status).not.toBe(200);
     expect(db.oauthRefreshToken).toHaveLength(0);
   });
-  it("preserves signed browser PKCE consent and rejects tampered details", async () => {
-    const { auth, cookie, clientId, call } = await fixture();
+  it.each([
+    "/consent",
+    "/consent?issuer=http%3A%2F%2Flocalhost%3A3000",
+    "/consent?issuer=http%3A%2F%2Flocalhost%3A3000#review",
+  ])("preserves signed PKCE consent at %s", async (consentPage) => {
+    const { auth, cookie, clientId, call } = await fixture(consentPage);
     const verifier = "a".repeat(64);
     const query = new URLSearchParams({
       client_id: clientId,
@@ -270,10 +274,20 @@ describe("OAuth agent device authorization", () => {
       })
     );
     expect(response.status).toBe(302);
-    const oauth_query = new URL(
+    const consentUrl = new URL(
       response.headers.get("location")!,
       "http://localhost:3000"
-    ).search.slice(1);
+    );
+    const configuredUrl = new URL(consentPage, "http://localhost:3000");
+    expect(consentUrl.pathname).toBe(configuredUrl.pathname);
+    expect(consentUrl.hash).toBe(configuredUrl.hash);
+    expect(consentUrl.searchParams.get("issuer")).toBe(
+      configuredUrl.searchParams.get("issuer")
+    );
+    expect(consentUrl.searchParams.get("response_type")).toBe("code");
+    // Match the frontend: routing parameters are outside the signed OAuth query.
+    consentUrl.searchParams.delete("issuer");
+    const oauth_query = consentUrl.search.slice(1);
     const details = await call("/agent/authorization", { oauth_query }, true);
     expect(details.status, JSON.stringify(details.data)).toBe(200);
     expect(details.data.clientId).toBe(clientId);
