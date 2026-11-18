@@ -1,3 +1,5 @@
+import { API_BODY_PARSER_OPTIONS } from "../../libs/auth/src/body-parser.config";
+import { injectHttp } from "../inject-http";
 import { standardSchemaConverter } from "../../libs/utils/src/openapi-schema";
 import { AuditEventsQueryDto } from "@repo/ee-audit/server/schema";
 import { SchemaSerializerInterceptor } from "../../libs/utils/src/schema-serializer.interceptor";
@@ -19,10 +21,7 @@ import {
   APP_PIPE,
   NestFactory,
 } from "@nestjs/core";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { NodeAdapter, type NestNodeApplication } from "@nestjs/platform-node";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AllowAnonymous, AuthModule } from "@thallesp/nestjs-better-auth";
 import { betterAuth } from "better-auth";
@@ -59,7 +58,7 @@ const origins = {
   ],
   nodeEnv: "production",
 } as AppConfig;
-const apps: NestFastifyApplication[] = [];
+const apps: NestNodeApplication[] = [];
 
 @AllowAnonymous()
 @Controller("native")
@@ -133,6 +132,8 @@ async function createApp(nodeEnv = "production") {
     imports: [
       EvlogModule.forRoot({}),
       AuthModule.forRoot({
+        disableTrustedOriginsCors: true,
+        bodyParser: API_BODY_PARSER_OPTIONS,
         auth: betterAuth({
           secret: "native-runtime-test-secret-at-least-32-characters",
           baseURL: "http://api.example",
@@ -150,9 +151,9 @@ async function createApp(nodeEnv = "production") {
     ],
   })
   class RuntimeModule {}
-  const app = await NestFactory.create<NestFastifyApplication>(
+  const app = await NestFactory.create<NestNodeApplication>(
     RuntimeModule,
-    new FastifyAdapter({ trustProxy: true }),
+    new NodeAdapter({ trustProxy: true }),
     { logger: false, bodyParser: false }
   );
   apps.push(app);
@@ -164,7 +165,7 @@ async function createApp(nodeEnv = "production") {
     })
   );
   await app.init();
-  await app.getHttpAdapter().getInstance().ready();
+
   return app;
 }
 
@@ -185,7 +186,7 @@ describe("Nest 12 native runtime", () => {
       { origin: "http://api.example", host: "api.example" },
       { "sec-fetch-site": "same-origin" },
     ]) {
-      const response = await app.inject({
+      const response = await injectHttp(app, {
         method: "POST",
         url: "/v1/native",
         headers,
@@ -206,7 +207,7 @@ describe("Nest 12 native runtime", () => {
       { origin: "null" },
       { "tauri-origin": "null" },
       { "tauri-origin": "lunaris://invalid/path" },
-      { origin: "https://app.example ", "sec-fetch-site": "same-origin" },
+      { origin: "https://app.exa mple", "sec-fetch-site": "same-origin" },
       {
         origin: "https://evil.example",
         host: "api.example",
@@ -217,7 +218,7 @@ describe("Nest 12 native runtime", () => {
       { origin: "https://evil.example", authorization: "Bearer unverified" },
       { origin: "http://localhost:5173" },
     ]) {
-      const response = await app.inject({
+      const response = await injectHttp(app, {
         method: "POST",
         url: "/v1/native",
         headers,
@@ -251,7 +252,7 @@ describe("Nest 12 native runtime", () => {
 
   it("allows local development, preflight and safe routes", async () => {
     const app = await createApp("development");
-    const mutation = await app.inject({
+    const mutation = await injectHttp(app, {
       method: "POST",
       url: "/v1/native",
       headers: { origin: "http://localhost:5173" },
@@ -259,7 +260,7 @@ describe("Nest 12 native runtime", () => {
     });
     expect(mutation.statusCode).toBe(200);
     expect(mutation.headers["strict-transport-security"]).toBeUndefined();
-    const preflight = await app.inject({
+    const preflight = await injectHttp(app, {
       method: "OPTIONS",
       url: "/v1/native",
       headers: {
@@ -268,19 +269,54 @@ describe("Nest 12 native runtime", () => {
       },
     });
     expect(preflight.statusCode).toBe(204);
+    expect(preflight.headers["permissions-policy"]).toBe(PERMISSIONS_POLICY);
     expect(preflight.headers["access-control-allow-origin"]).toBe(
       "https://app.example"
     );
     expect(
-      (await app.inject({ method: "GET", url: "/v1/native/nullable" })).json<{
+      (
+        await injectHttp(app, {
+          method: "GET",
+          url: "/v1/native/nullable",
+        })
+      ).json<{
         item: null;
       }>()
     ).toEqual({ item: null });
   });
 
+  it("preserves the 1 MiB limit for JSON and form API requests", async () => {
+    const app = await createApp();
+    const padding = "x".repeat(128 * 1024);
+    for (const input of [
+      {
+        headers: { "content-type": "application/json" },
+        payload: { count: 2, padding },
+      },
+      {
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        payload: `count=2&padding=${padding}`,
+      },
+    ]) {
+      const response = await injectHttp(app, {
+        method: "POST",
+        url: "/v1/native",
+        ...input,
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({ count: 2 });
+    }
+    const oversized = await injectHttp(app, {
+      method: "POST",
+      url: "/v1/native",
+      payload: { padding: "x".repeat(1024 * 1024) },
+    });
+    expect(oversized.statusCode).toBe(413);
+  });
+
   it("preserves validation errors and native OpenAPI request/response schemas", async () => {
     const app = await createApp();
-    const invalid = await app.inject({
+    const invalid = await injectHttp(app, {
       method: "POST",
       url: "/v1/native",
       payload: { count: -1 },
@@ -291,56 +327,104 @@ describe("Nest 12 native runtime", () => {
       message: "Validation failed",
     });
     expect(invalid.body).not.toContain("count");
-    const spec = (await app.inject({ method: "GET", url: "/api-json" })).json();
-    const array = await app.inject({ method: "GET", url: "/v1/native/array" });
+    const spec = (
+      await injectHttp(app, {
+        method: "GET",
+        url: "/api-json",
+      })
+    ).json();
+    const array = await injectHttp(app, {
+      method: "GET",
+      url: "/v1/native/array",
+    });
     expect(array.json<unknown>()).toEqual([{ count: 3 }]);
-    const invalidOutput = await app.inject({
+    const invalidOutput = await injectHttp(app, {
       method: "GET",
       url: "/v1/native/invalid",
     });
     expect(invalidOutput.statusCode).toBe(500);
     expect(invalidOutput.body).not.toContain("private-invalid-value");
     for (const shape of ["null", "primitive", "array", "undefined"]) {
-      const response = await app.inject({
+      const response = await injectHttp(app, {
         method: "GET",
         url: `/v1/native/invalid-shape?shape=${shape}`,
       });
       expect(response.statusCode).toBe(500);
       expect(response.body).not.toContain("private-invalid-value");
     }
-    const nullableRoot = await app.inject({
+    const nullableRoot = await injectHttp(app, {
       method: "GET",
       url: "/v1/native/root-nullable",
     });
     expect(nullableRoot.statusCode).toBe(200);
 
-    const from = spec.paths["/v1/native/dates"].get.parameters.find(
-      (parameter: { name: string }) => parameter.name === "from"
-    );
-    expect(from.schema).toMatchObject({ type: "string", format: "date-time" });
-    expect(spec.paths["/v1/native"].post.operationId).toBe("nativeMutation");
+    expect(spec).toMatchObject({
+      paths: {
+        "/v1/native/dates": {
+          get: {
+            parameters: expect.arrayContaining([
+              expect.objectContaining({
+                name: "from",
+                schema: expect.objectContaining({
+                  type: "string",
+                  format: "date-time",
+                }),
+              }),
+            ]),
+          },
+        },
+        "/v1/native": {
+          post: {
+            operationId: "nativeMutation",
+            requestBody: {
+              content: {
+                "application/json": {
+                  schema: { properties: { count: expect.any(Object) } },
+                },
+              },
+            },
+            responses: {
+              "200": {
+                content: {
+                  "application/json": {
+                    schema: { properties: { count: { type: "number" } } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
     expect(
-      spec.paths["/v1/native"].post.requestBody.content["application/json"]
-        .schema.properties.count
-    ).toBeDefined();
+      (
+        await injectHttp(app, {
+          method: "GET",
+          url: "/api",
+        })
+      ).statusCode
+    ).toBe(200);
     expect(
-      spec.paths["/v1/native"].post.responses["200"].content["application/json"]
-        .schema.properties.count.type
-    ).toBe("number");
-    expect((await app.inject({ method: "GET", url: "/api" })).statusCode).toBe(
-      200
-    );
-    expect(
-      (await app.inject({ method: "GET", url: "/v1/security/csrf" })).statusCode
+      (
+        await injectHttp(app, {
+          method: "GET",
+          url: "/v1/security/csrf",
+        })
+      ).statusCode
     ).toBe(404);
   });
 
   it("runs actual Better Auth signup, session cookies, protected routes and logout", async () => {
     const app = await createApp();
     expect(
-      (await app.inject({ method: "GET", url: "/v1/private" })).statusCode
+      (
+        await injectHttp(app, {
+          method: "GET",
+          url: "/v1/private",
+        })
+      ).statusCode
     ).toBe(401);
-    const signup = await app.inject({
+    const signup = await injectHttp(app, {
       method: "POST",
       url: "/api/auth/sign-up/email",
       headers: { origin: "https://app.example" },
@@ -351,13 +435,13 @@ describe("Nest 12 native runtime", () => {
       },
     });
     expect(signup.statusCode).toBe(200);
-    const cookies = signup.cookies
-      .map(({ name, value }) => `${name}=${value}`)
+    const cookies = (signup.headers["set-cookie"] as string[])
+      .map((cookie) => cookie.split(";")[0])
       .join("; ");
     expect(cookies).toContain("session_token");
     expect(
       (
-        await app.inject({
+        await injectHttp(app, {
           method: "GET",
           url: "/v1/private",
           headers: { cookie: cookies },
@@ -367,7 +451,7 @@ describe("Nest 12 native runtime", () => {
     // Rust PowerSync uses authenticated reqwest requests without browser headers.
     expect(
       (
-        await app.inject({
+        await injectHttp(app, {
           method: "POST",
           url: "/v1/private",
           headers: { cookie: cookies },
@@ -375,13 +459,13 @@ describe("Nest 12 native runtime", () => {
         })
       ).statusCode
     ).toBe(201);
-    const desktop = await app.inject({
+    const desktop = await injectHttp(app, {
       method: "GET",
       url: "/v1/private",
       headers: { "tauri-origin": "lunaris://", "x-tauri-cookie": cookies },
     });
     expect(desktop.statusCode).toBe(200);
-    const logout = await app.inject({
+    const logout = await injectHttp(app, {
       method: "POST",
       url: "/api/auth/sign-out",
       headers: { origin: "https://app.example", cookie: cookies },
@@ -389,12 +473,18 @@ describe("Nest 12 native runtime", () => {
     });
     expect(logout.statusCode).toBe(200);
     expect(
-      logout.cookies.some(
-        (cookie) => cookie.name.includes("session_token") && cookie.maxAge === 0
+      (logout.headers["set-cookie"] as string[]).some(
+        (cookie) =>
+          cookie.includes("session_token=") && cookie.includes("Max-Age=0")
       )
     ).toBe(true);
     expect(
-      (await app.inject({ method: "GET", url: "/v1/private" })).statusCode
+      (
+        await injectHttp(app, {
+          method: "GET",
+          url: "/v1/private",
+        })
+      ).statusCode
     ).toBe(401);
   });
 });

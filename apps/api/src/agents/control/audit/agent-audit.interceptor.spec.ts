@@ -32,7 +32,6 @@ describe("AgentAuditInterceptor", () => {
         credentialId: "key-1",
         kind: "apiKey",
       },
-      id: "request-1",
       params: { workspaceId: "workspace-1", organizationId: "organization-1" },
     };
 
@@ -49,7 +48,7 @@ describe("AgentAuditInterceptor", () => {
         actorId: "user-1",
         clientId: "key-1",
         operation: "create_workspace",
-        requestId: "request-1",
+        requestId: mockEvlogLogger.getContext().requestId,
         status: "success",
         targetId: "workspace-1",
         organizationId: "organization-1",

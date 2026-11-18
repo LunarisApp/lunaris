@@ -17,7 +17,7 @@ import { agentScopeSchema } from "@repo/agent-contracts";
 import { type Auth, resolveAgentAuthorization } from "@repo/auth/server";
 import { AuthService } from "@thallesp/nestjs-better-auth";
 import { useLogger } from "evlog/nestjs";
-import type { FastifyReply, FastifyRequest } from "fastify";
+import type { NodeResponse, NodeRequest } from "@nestjs/platform-node";
 import type { PostHog } from "posthog-node";
 import {
   bearerToken,
@@ -47,7 +47,7 @@ export class McpController {
   ) {}
 
   @All("mcp")
-  async handleMcp(@Req() request: FastifyRequest, @Res() reply: FastifyReply) {
+  async handleMcp(@Req() request: NodeRequest, @Res() reply: NodeResponse) {
     if (
       !isMcpOriginAllowed(
         firstHeader(request.headers.origin),
@@ -114,7 +114,7 @@ export class McpController {
   }
 
   @Get(".well-known/oauth-protected-resource/mcp")
-  async protectedResource(@Res() reply: FastifyReply) {
+  async protectedResource(@Res() reply: NodeResponse) {
     const metadata = await oauthProviderResourceClient(this.auth.instance)
       .getActions()
       .getProtectedResourceMetadata({
@@ -129,8 +129,8 @@ export class McpController {
     ".well-known/oauth-authorization-server/auth",
   ])
   async authorizationServer(
-    @Req() request: FastifyRequest,
-    @Res() reply: FastifyReply
+    @Req() request: NodeRequest,
+    @Res() reply: NodeResponse
   ) {
     const handler = oauthProviderAuthServerMetadata(this.auth.instance);
     const response = await handler(
@@ -163,7 +163,7 @@ export function isMcpOriginAllowed(
 }
 
 export async function toWebRequest(
-  request: FastifyRequest,
+  request: NodeRequest,
   fallbackOrigin: string
 ) {
   const headers = new Headers();
@@ -176,16 +176,19 @@ export async function toWebRequest(
       headers.set(key, String(value));
     }
   }
-  const method = request.method.toUpperCase();
+  const method = (request.method ?? "GET").toUpperCase();
   const body = ["GET", "HEAD"].includes(method)
     ? undefined
-    : serializeFastifyBody(request.body);
+    : serializeRequestBody(request.body);
   headers.delete("content-length");
   const origin = fallbackOrigin.replace(/\/$/, "");
-  return new Request(new URL(request.url, origin), { body, headers, method });
+  return new Request(
+    new URL(request.originalUrl ?? request.url ?? "/", origin),
+    { body, headers, method }
+  );
 }
 
-function serializeFastifyBody(body: unknown): BodyInit | undefined {
+function serializeRequestBody(body: unknown): BodyInit | undefined {
   if (body === undefined || body === null) {
     return undefined;
   }
@@ -198,18 +201,18 @@ function serializeFastifyBody(body: unknown): BodyInit | undefined {
   return JSON.stringify(body);
 }
 
-async function sendWebResponse(reply: FastifyReply, response: Response) {
+async function sendWebResponse(reply: NodeResponse, response: Response) {
   reply.status(response.status);
   response.headers.forEach((value, key) => {
-    reply.header(key, value);
+    reply.set(key, value);
   });
   return reply.send(Buffer.from(await response.arrayBuffer()));
 }
 
-function unauthorized(reply: FastifyReply, resource: string) {
+function unauthorized(reply: NodeResponse, resource: string) {
   return reply
     .status(HttpStatus.UNAUTHORIZED)
-    .header(
+    .set(
       "WWW-Authenticate",
       `Bearer resource_metadata="${resource.replace(/\/mcp$/, "/.well-known/oauth-protected-resource/mcp")}"`
     )

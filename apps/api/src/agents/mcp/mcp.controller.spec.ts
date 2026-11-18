@@ -41,7 +41,7 @@ describe("isMcpOriginAllowed", () => {
     expect(isMcpOriginAllowed("null", backendUrl, frontendUrl)).toBe(false);
   });
 
-  it("forwards Fastify's parsed MCP request body", async () => {
+  it("forwards the parsed MCP request body", async () => {
     const request = {
       body: { id: 1, jsonrpc: "2.0", method: "initialize" },
       headers: {
@@ -49,7 +49,6 @@ describe("isMcpOriginAllowed", () => {
         "content-type": "application/json",
       },
       method: "POST",
-      raw: { toArray: () => Promise.resolve([]) },
       url: "/mcp",
     } as never;
 

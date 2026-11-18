@@ -6,14 +6,14 @@ import {
 import { Reflector } from "@nestjs/core";
 import type { AppPermission } from "@repo/auth/permissions";
 import type { UserSession } from "@thallesp/nestjs-better-auth";
-import type { FastifyRequest } from "fastify";
+import type { NodeRequest } from "@nestjs/platform-node";
 import {
   DEFER_PERMISSION_METADATA,
   PERMISSION_METADATA,
 } from "./permission.decorator";
 import { PermissionService } from "./permission.service";
 
-type AuthenticatedRequest = FastifyRequest & {
+type AuthenticatedRequest = NodeRequest & {
   params?: { workspaceId?: string };
   session?: UserSession;
 };

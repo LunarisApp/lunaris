@@ -1,10 +1,12 @@
+import { injectHttp } from "../test/inject-http";
 import { afterEach, describe, expect, it } from "bun:test";
 import { Module } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+  NodeAdapter,
+  type NestNodeApplication,
+  type NodeResponse,
+} from "@nestjs/platform-node";
 import {
   CONTENT_SECURITY_POLICY_PARTS,
   getSecurityHeadersConfig,
@@ -15,7 +17,7 @@ import {
 
 @Module({})
 class TestModule {}
-const apps: NestFastifyApplication[] = [];
+const apps: NestNodeApplication[] = [];
 
 afterEach(async () => {
   while (apps.length > 0) {
@@ -28,7 +30,7 @@ describe("helmet security headers", () => {
   it("sets headers on missing routes", async () => {
     const app = await createApp({ isProduction: true });
 
-    const response = await app.inject({
+    const response = await injectHttp(app, {
       method: "GET",
       url: "/missing",
     });
@@ -47,11 +49,8 @@ describe("helmet security headers", () => {
 
   it("keeps swagger-compatible html responses working", async () => {
     const app = await createApp({ isProduction: true });
-    app.get("/api", (_request, reply) =>
-      reply.type("text/html").send("<html></html>")
-    );
 
-    const response = await app.inject({
+    const response = await injectHttp(app, {
       method: "GET",
       url: "/api",
     });
@@ -66,7 +65,7 @@ describe("helmet security headers", () => {
   it("skips hsts outside production", async () => {
     const app = await createApp({ isProduction: false });
 
-    const response = await app.inject({
+    const response = await injectHttp(app, {
       method: "GET",
       url: "/missing",
     });
@@ -76,17 +75,21 @@ describe("helmet security headers", () => {
 });
 
 async function createApp(options: { isProduction: boolean }) {
-  const nest = await NestFactory.create<NestFastifyApplication>(
+  const nest = await NestFactory.create<NestNodeApplication>(
     TestModule,
-    new FastifyAdapter(),
+    new NodeAdapter(),
     { logger: false }
   );
-  const app = nest.getHttpAdapter().getInstance();
-  registerPermissionsPolicyHeader(app);
+  registerPermissionsPolicyHeader(nest);
   nest.useSecurityHeaders(getSecurityHeadersConfig(options.isProduction));
+  nest
+    .getHttpAdapter()
+    .get("/api", (_request: unknown, reply: NodeResponse) =>
+      reply.type("text/html").send("<html></html>")
+    );
   await nest.init();
   apps.push(nest);
-  return app;
+  return nest;
 }
 
 function assertCsp(csp: string | string[] | undefined) {

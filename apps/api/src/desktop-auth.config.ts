@@ -2,7 +2,7 @@ import {
   markConflictingDesktopOrigin,
   isSerializedOrigin,
 } from "./security/origin-protection";
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { NestNodeApplication, NodeRequest } from "@nestjs/platform-node";
 import type { AppConfig } from "./app.config";
 import { normalizeOrigin } from "./cors.config";
 
@@ -44,10 +44,7 @@ export function isAllowedDesktopCookieOrigin(
   return config.nodeEnv !== "production" && isLocalDevelopmentOrigin(origin);
 }
 
-function bridgeDesktopCookie(
-  request: FastifyRequest,
-  config: DesktopAuthConfig
-) {
+function bridgeDesktopCookie(request: NodeRequest, config: DesktopAuthConfig) {
   const cookie = request.headers[DESKTOP_COOKIE_HEADER];
   const webOrigin = request.headers.origin;
   const tauriOrigin = request.headers[DESKTOP_ORIGIN_HEADER];
@@ -88,10 +85,10 @@ function bridgeDesktopCookie(
 }
 
 export function registerDesktopCookieBridge(
-  app: FastifyInstance,
+  app: NestNodeApplication,
   config: DesktopAuthConfig
 ) {
-  app.addHook("onRequest", (request, _reply, done) => {
+  app.use((request: NodeRequest, _reply: unknown, done: () => void) => {
     bridgeDesktopCookie(request, config);
     done();
   });

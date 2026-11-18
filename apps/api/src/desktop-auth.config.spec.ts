@@ -1,5 +1,14 @@
+import { injectHttp } from "../test/inject-http";
 import { afterEach, describe, expect, it } from "bun:test";
-import Fastify, { type FastifyInstance } from "fastify";
+import {
+  NodeAdapter,
+  type NestNodeApplication,
+  type NodeRequest,
+  type NodeResponse,
+} from "@nestjs/platform-node";
+import { Module } from "@nestjs/common";
+import { NestFactory } from "@nestjs/core";
+
 import {
   DESKTOP_COOKIE_HEADER,
   DESKTOP_ORIGIN_HEADER,
@@ -7,7 +16,10 @@ import {
   registerDesktopCookieBridge,
 } from "./desktop-auth.config";
 
-const apps: FastifyInstance[] = [];
+@Module({})
+class TestModule {}
+
+const apps: NestNodeApplication[] = [];
 const productionConfig = {
   desktopAppOrigins: [
     "lunaris://",
@@ -29,6 +41,9 @@ describe("desktop auth cookie bridge", () => {
       isAllowedDesktopCookieOrigin("tauri://localhost", productionConfig)
     ).toBe(true);
     expect(
+      isAllowedDesktopCookieOrigin("tauri://localhost ", productionConfig)
+    ).toBe(false);
+    expect(
       isAllowedDesktopCookieOrigin("https://web.lunaris.app", productionConfig)
     ).toBe(false);
     expect(
@@ -41,7 +56,7 @@ describe("desktop auth cookie bridge", () => {
 
   it("authenticates GET requests with bridged desktop cookies", async () => {
     const app = await createApp();
-    const response = await app.inject({
+    const response = await injectHttp(app, {
       headers: {
         [DESKTOP_COOKIE_HEADER]: "lunaris.session_token=desktop-session",
         origin: "tauri://localhost",
@@ -58,7 +73,7 @@ describe("desktop auth cookie bridge", () => {
 
   it("normalizes an approved Tauri origin header", async () => {
     const app = await createApp();
-    const response = await app.inject({
+    const response = await injectHttp(app, {
       headers: {
         [DESKTOP_COOKIE_HEADER]: "lunaris.session_token=desktop-session",
         [DESKTOP_ORIGIN_HEADER]: "lunaris://",
@@ -75,7 +90,7 @@ describe("desktop auth cookie bridge", () => {
 
   it("rejects conflicting browser and Tauri origins", async () => {
     const app = await createApp();
-    const response = await app.inject({
+    const response = await injectHttp(app, {
       headers: {
         [DESKTOP_COOKIE_HEADER]: "lunaris.session_token=desktop-session",
         [DESKTOP_ORIGIN_HEADER]: "lunaris://",
@@ -92,7 +107,7 @@ describe("desktop auth cookie bridge", () => {
 
   it("ignores smuggled cookies from untrusted origins", async () => {
     const app = await createApp();
-    const response = await app.inject({
+    const response = await injectHttp(app, {
       headers: {
         [DESKTOP_COOKIE_HEADER]: "lunaris.session_token=stolen-session",
         origin: "https://evil.example",
@@ -106,42 +121,51 @@ describe("desktop auth cookie bridge", () => {
 });
 
 async function createApp() {
-  const app = Fastify();
+  const app = await NestFactory.create<NestNodeApplication>(
+    TestModule,
+    new NodeAdapter(),
+    { logger: false }
+  );
+  const router = app.getHttpAdapter().getInstance();
   registerDesktopCookieBridge(app, productionConfig);
-  app.get("/cookies", (request) => ({
-    ...(request.headers.cookie?.match(
-      /(?:^|;\s*)lunaris\.session_token=([^;]+)/
-    )?.[1]
-      ? {
-          session: request.headers.cookie?.match(
-            /(?:^|;\s*)lunaris\.session_token=([^;]+)/
-          )?.[1],
-        }
-      : {}),
-  }));
-  app.get("/authenticated", (request, reply) => {
+  router.get("/cookies", (request: NodeRequest, reply: NodeResponse) =>
+    reply.send({
+      ...(request.headers.cookie?.match(
+        /(?:^|;\s*)lunaris\.session_token=([^;]+)/
+      )?.[1]
+        ? {
+            session: request.headers.cookie?.match(
+              /(?:^|;\s*)lunaris\.session_token=([^;]+)/
+            )?.[1],
+          }
+        : {}),
+    })
+  );
+  router.get("/authenticated", (request: NodeRequest, reply: NodeResponse) => {
     if (
       request.headers.cookie?.match(
         /(?:^|;\s*)lunaris\.session_token=([^;]+)/
       )?.[1] !== "desktop-session"
     ) {
-      return reply.code(401).send({ error: "unauthorized" });
+      return reply.status(401).send({ error: "unauthorized" });
     }
-    return { userId: "desktop-user" };
+    return reply.send({ userId: "desktop-user" });
   });
-  app.get("/request", (request) => ({
-    origin: request.headers.origin,
-    ...(request.headers.cookie?.match(
-      /(?:^|;\s*)lunaris\.session_token=([^;]+)/
-    )?.[1]
-      ? {
-          session: request.headers.cookie?.match(
-            /(?:^|;\s*)lunaris\.session_token=([^;]+)/
-          )?.[1],
-        }
-      : {}),
-  }));
-  await app.ready();
+  router.get("/request", (request: NodeRequest, reply: NodeResponse) =>
+    reply.send({
+      origin: request.headers.origin,
+      ...(request.headers.cookie?.match(
+        /(?:^|;\s*)lunaris\.session_token=([^;]+)/
+      )?.[1]
+        ? {
+            session: request.headers.cookie?.match(
+              /(?:^|;\s*)lunaris\.session_token=([^;]+)/
+            )?.[1],
+          }
+        : {}),
+    })
+  );
+  await app.init();
   apps.push(app);
   return app;
 }

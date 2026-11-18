@@ -8,7 +8,7 @@ import {
 } from "@nestjs/common";
 import { permission } from "@repo/auth/permissions";
 import { Session, type UserSession } from "@thallesp/nestjs-better-auth";
-import type { FastifyReply } from "fastify";
+import type { NodeResponse } from "@nestjs/platform-node";
 import { RequirePermission } from "../security/permissions/permission.decorator";
 import { UserDataAccessService } from "../workspaces/core/user-data-access.service";
 import { PresenceAccessService } from "./presence-access.service";
@@ -28,9 +28,9 @@ export class PresenceController {
     @Session() session: UserSession,
     @Param("workspaceId") workspaceId: string,
     @Param("storageId") storageId: string,
-    @Res({ passthrough: true }) reply: FastifyReply
+    @Res({ passthrough: true }) reply: NodeResponse
   ) {
-    reply.header("Cache-Control", "no-store");
+    reply.set("Cache-Control", "no-store");
     const principal = await this.access.requireOrganization(session);
     const identity = await this.presence.authorize({
       ...principal,
@@ -47,7 +47,7 @@ export class PresenceController {
     @Param("workspaceId") workspaceId: string,
     @Param("resourceId") resourceId: string,
     @Body() body: { extensionId?: string; channel?: string },
-    @Res({ passthrough: true }) reply: FastifyReply
+    @Res({ passthrough: true }) reply: NodeResponse
   ) {
     if (
       body?.channel !== undefined &&
@@ -55,7 +55,7 @@ export class PresenceController {
     ) {
       throw new BadRequestException("Invalid presence channel");
     }
-    reply.header("Cache-Control", "no-store");
+    reply.set("Cache-Control", "no-store");
     const principal = await this.access.requireOrganization(session);
     const identity = await this.presence.authorize({
       ...principal,

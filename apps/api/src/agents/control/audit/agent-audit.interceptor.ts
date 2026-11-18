@@ -81,6 +81,7 @@ export class AgentAuditInterceptor implements NestInterceptor {
       workspaceId?: string;
       organizationId?: string;
     };
+    const requestId = useLogger().getContext().requestId;
     return this.safety.audit({
       actorId: principal.actorId,
       clientId:
@@ -92,7 +93,7 @@ export class AgentAuditInterceptor implements NestInterceptor {
       durationMs: Math.round(performance.now() - startedAt),
       errorCode: status === "failure" ? agentErrorCode(error) : undefined,
       operation,
-      requestId: request.id,
+      requestId: typeof requestId === "string" ? requestId : undefined,
       status,
       targetId: params.resourceId ?? params.workspaceId ?? params.memberId,
       organizationId: params.organizationId,

@@ -25,6 +25,7 @@ import {
 } from "../../../src/entitlements";
 import { workspacesDb } from "../../../src/workspaces/core/workspaces.entity";
 import { AuthConfig } from "./auth.config";
+import { API_BODY_PARSER_OPTIONS } from "./body-parser.config";
 import { AuthIdentifyMiddleware } from "./auth-identify.middleware";
 import { canDisableEmailVerification } from "./flag.utils";
 
@@ -63,6 +64,9 @@ import { canDisableEmailVerification } from "./flag.utils";
           ? polarConfig.values
           : undefined;
         return {
+          // HTTP security owns CORS for browser and desktop origins.
+          disableTrustedOriginsCors: true,
+          bodyParser: API_BODY_PARSER_OPTIONS,
           auth: createAuth(dbService.db, {
             database: capacityAdapter(
               dbService,
