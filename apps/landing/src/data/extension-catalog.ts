@@ -61,7 +61,7 @@ export const extensionCatalog: readonly CatalogExtension[] = [
 		keywords: ["files", "attachments", "preview", "documents"],
 		permissions: ["content.read", "content.write", "files.read", "files.write"],
 		repository:
-			"https://github.com/LunarisApp/lunaris/tree/next/extensions/file",
+			"https://github.com/LunarisApp/lunaris/tree/main/extensions/file",
 		website: "https://lunaris.app",
 		screenshots: [
 			{
@@ -86,7 +86,7 @@ export const extensionCatalog: readonly CatalogExtension[] = [
 		keywords: ["kanban", "tasks", "workspace-management", "workflow"],
 		permissions: ["content.read", "content.write", "network.https"],
 		repository:
-			"https://github.com/LunarisApp/lunaris/tree/next/extensions/kanban",
+			"https://github.com/LunarisApp/lunaris/tree/main/extensions/kanban",
 		website: "https://lunaris.app",
 		screenshots: [
 			{
@@ -148,7 +148,7 @@ export const extensionCatalog: readonly CatalogExtension[] = [
 		keywords: ["rich-text", "editor", "documents", "writing"],
 		permissions: ["content.read", "content.write", "network.https"],
 		repository:
-			"https://github.com/LunarisApp/lunaris/tree/next/extensions/rich-text",
+			"https://github.com/LunarisApp/lunaris/tree/main/extensions/rich-text",
 		website: "https://lunaris.app",
 		screenshots: [
 			{
