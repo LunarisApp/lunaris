@@ -32,7 +32,7 @@ sha2 = "0.11"
 tauri = { version = "2", features = [] }
 tauri-plugin-deep-link = "2"
 tauri-plugin-http = "2"
-tauri-plugin-powersync = "0.1.0"
+tauri-plugin-powersync = "0.2.0"
 tauri-plugin-shell = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
