@@ -6,9 +6,8 @@
   }
 
   @supports (backdrop-filter: blur(1px)) {
-    @media (forced-colors: none) and (
-        not (prefers-reduced-transparency: reduce)
-      ) {
+    /* Some WebKit versions reject a negated unknown media feature. */
+    &:where(:not([data-reduce-transparency] *)) {
       --muted: --alpha(--theme(--color-foreground) / 10%);
       --muted-foreground: color-mix(
         in srgb,
@@ -27,6 +26,14 @@
 
       @variant dark {
         --glass-brightness: 0.64;
+      }
+
+      @media (forced-colors: active), (prefers-reduced-transparency: reduce) {
+        --muted: inherit;
+        --muted-foreground: inherit;
+        background-image: none;
+        backdrop-filter: none;
+        @apply bg-popover;
       }
     }
   }

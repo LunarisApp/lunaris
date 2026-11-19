@@ -5,6 +5,7 @@ mod auth_store;
 pub mod desktop_mcp;
 mod extension_cache;
 mod native_sync;
+mod reduced_transparency;
 mod updater;
 
 use tauri::Manager;
@@ -31,6 +32,8 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            reduced_transparency::observe(app.handle().clone());
             std::fs::create_dir_all(app.path().app_data_dir()?)?;
             let broker = agent_broker::AgentBroker::new(app.handle().clone())?;
             app.manage(broker.clone());
@@ -42,6 +45,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            reduced_transparency::desktop_reduce_transparency,
             updater::desktop_updater_enabled,
             agent_work::agent_work_start,
             agent_work::agent_work_send,
