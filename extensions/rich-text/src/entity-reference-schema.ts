@@ -2,6 +2,7 @@ import {
   BlockNoteSchema,
   createInlineContentSpec,
   defaultInlineContentSpecs,
+  defaultStyleSpecs,
 } from "@blocknote/core";
 
 export const ENTITY_REFERENCE_TYPE = "entityReference";
@@ -40,9 +41,33 @@ const HeadlessEntityReferenceInlineSpec = createInlineContentSpec(
   }
 );
 
+const codeStyle = defaultStyleSpecs.code;
+
+export const richTextStyles = {
+  code: {
+    ...codeStyle,
+    implementation: {
+      // Preserve inline code combined with other styles in existing resources.
+      mark: codeStyle.implementation.mark.extend({ excludes: "code" }),
+      render: (
+        _value: string,
+        editor: Parameters<typeof codeStyle.implementation.render>[1]
+      ) => codeStyle.implementation.render(undefined, editor),
+      toExternalHTML: (
+        _value: string,
+        editor: Parameters<typeof codeStyle.implementation.render>[1]
+      ) =>
+        (
+          codeStyle.implementation.toExternalHTML ??
+          codeStyle.implementation.render
+        )(undefined, editor),
+    },
+  },
+};
+
 export const richTextHeadlessSchema = BlockNoteSchema.create({
   inlineContentSpecs: {
     ...defaultInlineContentSpecs,
     [ENTITY_REFERENCE_TYPE]: HeadlessEntityReferenceInlineSpec,
   },
-});
+}).extend({ styleSpecs: richTextStyles });

@@ -1,0 +1,38 @@
+diff --git a/dist/emoji-data.js b/dist/emoji-data.js
+index fd46dd43b31a2bfbbef5afcd829296a626c842e4..d3fa4fa5cbb27e9f513228591b860cb03abeedee 100644
+--- a/dist/emoji-data.js
++++ b/dist/emoji-data.js
+@@ -16,27 +16,9 @@
+ // src/emoji-data/frimousse/common.ts
++// Keep emoji dictionaries for the app locales so they all fit in the PWA offline cache.
+ var n = {
+-	ar: () => import("./ar-DPJDxCQI.js"),
+-	de: () => import("./de-CakHBokE.js"),
++    de: () => import("./de-CakHBokE.js"),
+-	en: () => import("./en-BGdzE27X.js"),
++    en: () => import("./en-BGdzE27X.js"),
+-	es: () => import("./es-VeBX6MEG.js"),
++    es: () => import("./es-VeBX6MEG.js"),
+-	fa: () => import("./fa-Dt7EYtKf.js"),
+-	fr: () => import("./fr-DUhhjxrJ.js"),
++    fr: () => import("./fr-DUhhjxrJ.js"),
+-	he: () => import("./he-BShJg1dK.js"),
+-	hr: () => import("./hr-BXtyqmwg.js"),
+-	is: () => import("./is-2Fb-0w_j.js"),
+-	it: () => import("./it-CiZtVb3Y.js"),
+-	ja: () => import("./ja-CsxD3kEL.js"),
+-	ko: () => import("./ko-It6g03Cy.js"),
+-	nb: () => import("./nb-CLao87La.js"),
+-	nl: () => import("./nl-JQSo8dht.js"),
+-	pl: () => import("./pl-DEMBgHEP.js"),
+-	pt: () => import("./pt-CBCdYAax.js"),
+-	ru: () => import("./ru-BQk_9Q-L.js"),
+-	sk: () => import("./sk-kgB2DtDL.js"),
+-	tr: () => import("./tr-DkcSXX8f.js"),
+-	uk: () => import("./uk-Bib-e6bV.js"),
+-	uz: () => import("./uz-B2jaKhJb.js"),
+-	vi: () => import("./vi-V_GFRxE8.js"),
+-	zh: () => import("./zh-jglyCmjs.js"),
+-	"zh-hant": () => import("./zh-hant-2ZrAkFnC.js")
++    pt: () => import("./pt-CBCdYAax.js")
+ }, r = {

@@ -45,7 +45,11 @@ describe("BlockNote block compilation", () => {
         {
           type: "paragraph",
           content: [
-            { type: "text", text: "Latest saved edit", styles: { bold: true } },
+            {
+              type: "text",
+              text: "Latest saved edit",
+              styles: { bold: true, code: true },
+            },
             { type: "entityReference", props: { name: "Linked resource" } },
           ],
         },
@@ -58,6 +62,11 @@ describe("BlockNote block compilation", () => {
       const reader = context([btoa(String.fromCharCode(...bytes))]);
       const result = await compileBlockNoteBlocks(reader, "resource-1");
       expect(result[0]?.content).toEqual(editor.document[0]?.content);
+      expect(result[0]?.content).toContainEqual({
+        type: "text",
+        text: "Latest saved edit",
+        styles: { bold: true, code: true },
+      });
       expect(reader.getYjsStorageUpdates).toHaveBeenCalledWith({
         kind: "yjs",
         storageId: "storage-1",
