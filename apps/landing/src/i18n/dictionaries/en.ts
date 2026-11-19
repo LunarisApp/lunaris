@@ -21,6 +21,21 @@ const en = {
 		footerNavigation: "Footer navigation",
 	},
 	nav: {
+		menu: {
+			tour: "See a workspace in action.",
+			extensions: "Find tools for your workspace.",
+			mcp: "Connect your AI tools to Lunaris.",
+			cli: "Work from the command line.",
+			sdk: "Build your own extensions.",
+			hosting: "Run Community Edition on your server.",
+			docs: "Read the guides and reference.",
+			contact: "Request a demo for your team.",
+			security: "Security",
+		},
+		product: "Product",
+		developers: "Developers",
+		productTour: "Product tour",
+		extensionsSdk: "Extensions SDK",
 		downloads: "Downloads",
 		pricing: "Pricing",
 		docs: "Documentation",
@@ -212,6 +227,7 @@ const en = {
 		headline: "Start free. Upgrade each organization as it grows.",
 		subheadline:
 			"Create a synced organization without payment details. Every organization has its own plan, so you only upgrade the ones that need more items or members.",
+		billingPeriod: "Billing period",
 		options: { monthly: "Monthly", yearly: "Yearly (Save 20%)" },
 		labels: {
 			perMemberMonth: "/member/mo",
@@ -354,6 +370,9 @@ const en = {
 		headline: "Bring your organization into the conversation.",
 		setup: {
 			harnessLabel: "Choose your MCP client",
+			connectionLabel: "Where do you want to connect?",
+			cloudName: "Cloud",
+			manualCopy: "Select the setup text and copy it manually.",
 			regionLabel: "Choose your data region",
 			desktopName: "Desktop app",
 			desktopDescription: "Includes your workspaces with local visibility.",

@@ -364,6 +364,7 @@
     "hintClose": "Fermer"
   },
   "commands": {
+    "createResource": "Créer {{type}}",
     "newResource": "Nouvelle ressource",
     "toggleSidebar": "Afficher/masquer la barre latérale",
     "zoomIn": "Zoom avant",
@@ -485,7 +486,7 @@
     "interestError": "Votre demande n’a pas pu être envoyée. Veuillez réessayer."
   },
   "workspaces": {
-    "recentWorkspaces": "Espaces de travail récents",
+    "recentWorkspaces": "Récents",
     "workspaceCount_one": "{{count}} espace de travail",
     "workspaceCount_other": "{{count}} espaces de travail",
     "createWorkspace": "Créer un espace de travail",
@@ -580,6 +581,8 @@
   "explorer": {
     "title": "Explorateur",
     "addResource": "Ajouter une ressource",
+    "searchResourceTypes": "Rechercher un type de ressource…",
+    "noMatchingTypes": "Aucun type de ressource correspondant.",
     "addFolder": "Ajouter un dossier",
     "addFile": "Ajouter un fichier",
     "collapseAll": "Tout réduire",

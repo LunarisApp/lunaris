@@ -280,6 +280,7 @@ function validateTooling(
     attwArgs.push(
       "--exclude-entrypoints",
       "@lunarisapp/ui/globals.css",
+      "@lunarisapp/ui/overlays.css",
       "@lunarisapp/ui/workbench.css"
     );
   }

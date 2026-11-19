@@ -1,161 +1,299 @@
 "use client";
 
-import { ElDialog, ElDialogPanel } from "@tailwindplus/elements/react";
-import { clsx } from "clsx/lite";
+import {
+	NavigationMenu,
+	NavigationMenuContent,
+	NavigationMenuItem,
+	NavigationMenuLink,
+	NavigationMenuList,
+	NavigationMenuTrigger,
+} from "@lunarisapp/ui/components/navigation-menu";
+import { Icon } from "@lunarisapp/ui/components/icon";
+import {
+	ArrowDown01Icon,
+	BookOpen01Icon,
+	ComputerTerminal01Icon,
+	DashboardSquare01Icon,
+	HugeiconsIcon,
+	PlaySquareIcon,
+	ServerStack01Icon,
+	SourceCodeIcon,
+	Mail01Icon,
+} from "@lunarisapp/ui/icons";
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import { McpIcon } from "@/components/icons/harness-icons";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
-export function NavbarLink({
-	children,
-	href,
-	className,
-	onClick,
-	...props
-}: { href: string } & Omit<ComponentProps<"a">, "href">) {
-	return (
-		<Link
-			className={clsx(
-				"group inline-flex items-center justify-between gap-2 text-3xl/10 font-medium text-olive-950 xl:text-sm/7 dark:text-white",
-				className,
-			)}
-			href={href}
-			{...props}
-			onClick={(event) => {
-				onClick?.(event);
-				if (!event.defaultPrevented)
-					event.currentTarget.closest("dialog")?.close();
-			}}
-		>
-			{children}
-			<span
-				aria-hidden="true"
-				className="inline-flex p-1.5 opacity-0 group-hover:opacity-100 xl:hidden"
+type NavLink = { href: string; label: string };
+const icons = {
+	tour: PlaySquareIcon,
+	extensions: DashboardSquare01Icon,
+	mcp: <McpIcon variant="mono" />,
+	cli: ComputerTerminal01Icon,
+	sdk: SourceCodeIcon,
+	hosting: ServerStack01Icon,
+	docs: BookOpen01Icon,
+	contact: Mail01Icon,
+};
+
+export type NavGroup = {
+	label: string;
+	links: (NavLink & { icon: keyof typeof icons; description: string })[];
+	related: { label: string; links: NavLink[] };
+};
+
+function MenuPanel({
+	group,
+	closeMobile,
+}: {
+	group: NavGroup;
+	closeMobile?: () => void;
+}) {
+	function panelLink(link: NavLink, className: string, children: ReactNode) {
+		return closeMobile ? (
+			<Link href={link.href} onClick={closeMobile} className={className}>
+				{children}
+			</Link>
+		) : (
+			<NavigationMenuLink
+				closeOnClick
+				render={<Link href={link.href} />}
+				className={className}
 			>
-				<svg
-					aria-hidden="true"
-					className="size-6"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth={1.5}
-					viewBox="0 0 24 24"
-				>
-					<path
-						d="m8.25 4.5 7.5 7.5-7.5 7.5"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					/>
-				</svg>
-			</span>
-		</Link>
+				{children}
+			</NavigationMenuLink>
+		);
+	}
+
+	return (
+		<div className="grid lg:w-[35rem] lg:grid-cols-[1.55fr_1fr]">
+			<ul className="pb-2 lg:p-3">
+				{group.links.map((link) => (
+					<li key={link.href}>
+						{panelLink(
+							link,
+							"flex items-start gap-3 rounded-md px-2 py-3 hover:bg-muted focus-visible:bg-muted lg:px-3",
+							<>
+								<span aria-hidden="true" className="mt-0.5 flex shrink-0">
+									<Icon
+										icon={icons[link.icon]}
+										strokeWidth={1.6}
+										className="size-5"
+									/>
+								</span>
+								<span>
+									<span className="block text-base/5 font-semibold">
+										{link.label}
+									</span>
+									<span className="mt-1 block text-sm/5 text-olive-600 dark:text-olive-400">
+										{link.description}
+									</span>
+								</span>
+							</>,
+						)}
+					</li>
+				))}
+			</ul>
+			<div className="border-t border-current/10 py-3 lg:rounded-r-lg lg:border-t-0 lg:border-l lg:bg-olive-950/[.025] lg:p-4 dark:lg:bg-white/[.045]">
+				<h3 className="px-2 pb-1 text-xs/5 font-medium text-olive-600 dark:text-olive-400">
+					{group.related.label}
+				</h3>
+				<ul>
+					{group.related.links.map((link) => (
+						<li key={link.href}>
+							{panelLink(
+								link,
+								"flex min-h-11 items-center rounded-md px-2 text-sm font-medium hover:bg-muted focus-visible:bg-muted lg:min-h-9",
+								link.label,
+							)}
+						</li>
+					))}
+				</ul>
+			</div>
+		</div>
 	);
 }
 
-export function NavbarLogo({
-	className,
-	href,
-	...props
-}: { href: string } & Omit<ComponentProps<"a">, "href">) {
-	return (
-		<Link
-			href={href}
-			{...props}
-			className={clsx("inline-flex items-stretch", className)}
-		/>
-	);
-}
+const navControl =
+	"min-h-11 cursor-pointer px-3 font-medium text-olive-700 hover:text-olive-950 dark:text-olive-300 dark:hover:text-white";
 
 export function NavbarWithLinksAndActions({
-	links,
+	groups,
+	directLinks,
+	homeHref,
 	logo,
-	actions,
+	appLink,
+	settings,
+	skipLabel,
 	navigationLabel,
 	openMenuLabel,
 	closeMenuLabel,
-	className,
-	...props
 }: {
-	links: ReactNode;
+	groups: NavGroup[];
+	directLinks: NavLink[];
+	homeHref: string;
 	logo: ReactNode;
-	actions: ReactNode;
+	appLink: ReactNode;
+	settings: ReactNode;
+	skipLabel: string;
 	navigationLabel: string;
 	openMenuLabel: string;
 	closeMenuLabel: string;
-} & ComponentProps<"header">) {
+}) {
+	const [openGroup, setOpenGroup] = useState<string | null>(null);
+	const mobile = useRef<HTMLDialogElement>(null);
+
+	useEffect(() => {
+		const wide = window.matchMedia("(min-width: 64rem)");
+		function closeOnResize() {
+			if (wide.matches) mobile.current?.close();
+			else setOpenGroup(null);
+		}
+		wide.addEventListener("change", closeOnResize);
+		return () => wide.removeEventListener("change", closeOnResize);
+	}, []);
+
 	return (
 		<header
-			className={clsx(
-				"sticky top-0 z-10 bg-olive-100 dark:bg-olive-950",
-				className,
-			)}
-			{...props}
+			id="navbar"
+			className="sticky top-0 z-30 border-b border-olive-950/10 bg-olive-100/90 backdrop-blur-lg dark:border-white/10 dark:bg-olive-950/90"
 		>
-			<style>{`:root { --scroll-padding-top: 5.25rem }`}</style>
-			<nav aria-label={navigationLabel}>
-				<div className="mx-auto flex h-(--scroll-padding-top) max-w-7xl items-center gap-4 px-6 xl:grid xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:px-10">
-					<div className="flex items-center">{logo}</div>
-					<div className="flex justify-center gap-7 max-xl:hidden">{links}</div>
-					<div className="ml-auto flex items-center justify-end gap-2 xl:ml-0">
-						<div className="flex shrink-0 items-center gap-2">{actions}</div>
-
+			<a
+				className="fixed top-3 left-3 z-50 -translate-y-24 rounded-full bg-olive-950 px-4 py-2 text-sm/6 font-medium text-white shadow-lg transition focus:translate-y-0 focus:outline-2 focus:outline-offset-2 focus:outline-olive-600 motion-reduce:transition-none dark:bg-olive-100 dark:text-olive-950"
+				href="#main-content"
+			>
+				{skipLabel}
+			</a>
+			<nav
+				aria-label={navigationLabel}
+				className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-6 lg:h-[4.5rem] lg:px-10"
+			>
+				<Link className="inline-flex shrink-0" href={homeHref}>
+					{logo}
+				</Link>
+				<NavigationMenu
+					className="hidden flex-none lg:flex"
+					onValueChange={setOpenGroup}
+					render={<div />}
+					value={openGroup}
+				>
+					<NavigationMenuList className="gap-1">
+						{groups.map((group) => (
+							<NavigationMenuItem key={group.label} value={group.label}>
+								<NavigationMenuTrigger className={navControl}>
+									{group.label}
+								</NavigationMenuTrigger>
+								<NavigationMenuContent className="p-0">
+									<MenuPanel group={group} />
+								</NavigationMenuContent>
+							</NavigationMenuItem>
+						))}
+						{directLinks.map((link) => (
+							<NavigationMenuItem key={link.href}>
+								<NavigationMenuLink
+									className={navControl}
+									closeOnClick
+									render={<Link href={link.href} />}
+								>
+									{link.label}
+								</NavigationMenuLink>
+							</NavigationMenuItem>
+						))}
+					</NavigationMenuList>
+				</NavigationMenu>
+				<div className="flex items-center gap-1.5 lg:gap-2">
+					{settings}
+					<div className="ml-2 hidden lg:block">{appLink}</div>
+					<button
+						aria-label={openMenuLabel}
+						aria-haspopup="dialog"
+						aria-controls="mobile-menu"
+						className="grid size-11 place-items-center rounded-full text-olive-950 hover:bg-olive-200 lg:hidden dark:text-white dark:hover:bg-olive-800"
+						type="button"
+						onClick={() => mobile.current?.showModal()}
+					>
+						<svg
+							aria-hidden="true"
+							className="size-5"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="1.6"
+							viewBox="0 0 24 24"
+						>
+							<path d="M3 8h18M3 16h18" strokeLinecap="round" />
+						</svg>
+					</button>
+				</div>
+				<dialog
+					id="mobile-menu"
+					ref={mobile}
+					aria-label={navigationLabel}
+					className="fixed inset-0 m-0 h-dvh max-h-dvh w-full max-w-none overflow-y-auto overscroll-contain bg-olive-100 text-olive-950 backdrop:bg-olive-950/35 dark:bg-olive-950 dark:text-white"
+				>
+					<div className="flex h-16 items-center justify-between border-b border-olive-950/10 px-6 dark:border-white/10">
+						<Link
+							className="inline-flex shrink-0"
+							href={homeHref}
+							onClick={() => mobile.current?.close()}
+						>
+							{logo}
+						</Link>
 						<button
-							aria-label={openMenuLabel}
-							className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full p-1.5 text-olive-950 hover:bg-olive-950/10 xl:hidden dark:text-white dark:hover:bg-white/10"
-							command="show-modal"
-							commandfor="mobile-menu"
+							aria-label={closeMenuLabel}
+							className="grid size-11 place-items-center rounded-full hover:bg-olive-200 dark:hover:bg-olive-800"
 							type="button"
+							onClick={() => mobile.current?.close()}
 						>
 							<svg
 								aria-hidden="true"
-								className="size-6"
-								fill="currentColor"
+								className="size-5"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="1.6"
 								viewBox="0 0 24 24"
 							>
-								<path
-									clipRule="evenodd"
-									d="M3.748 8.248a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75ZM3.748 15.75a.75.75 0 0 1 .75-.751h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Z"
-									fillRule="evenodd"
-								/>
+								<path d="m6 6 12 12M18 6 6 18" strokeLinecap="round" />
 							</svg>
 						</button>
 					</div>
-				</div>
-
-				<ElDialog className="xl:hidden">
-					<dialog
-						aria-label={navigationLabel}
-						className="backdrop:bg-transparent"
-						id="mobile-menu"
-					>
-						<ElDialogPanel className="fixed inset-0 overflow-y-auto bg-olive-100 px-6 py-6 xl:px-10 dark:bg-olive-950">
-							<div className="flex justify-end">
-								<button
-									aria-label={closeMenuLabel}
-									className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full p-1.5 text-olive-950 hover:bg-olive-950/10 dark:text-white dark:hover:bg-white/10"
-									command="close"
-									commandfor="mobile-menu"
-									type="button"
-								>
-									<svg
+					<div className="mx-auto max-w-lg px-6 pb-8">
+						{groups.map((group) => (
+							<details
+								key={group.label}
+								name="mobile-navigation"
+								className="group border-b border-current/10"
+							>
+								<summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-3 text-xl font-medium [&::-webkit-details-marker]:hidden">
+									{group.label}
+									<HugeiconsIcon
 										aria-hidden="true"
-										className="size-6"
-										fill="none"
-										stroke="currentColor"
-										strokeWidth={1.5}
-										viewBox="0 0 24 24"
-										xmlns="http://www.w3.org/2000/svg"
+										icon={ArrowDown01Icon}
+										className="size-4 group-open:rotate-180"
+									/>
+								</summary>
+								<MenuPanel
+									group={group}
+									closeMobile={() => mobile.current?.close()}
+								/>
+							</details>
+						))}
+						<div className="flex items-start justify-between gap-3 pt-4">
+							<div className="grid">
+								{directLinks.map((link) => (
+									<Link
+										key={link.href}
+										className="flex min-h-11 items-center font-display text-2xl hover:underline"
+										href={link.href}
+										onClick={() => mobile.current?.close()}
 									>
-										<path
-											d="M6 18 18 6M6 6l12 12"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										/>
-									</svg>
-								</button>
+										{link.label}
+									</Link>
+								))}
 							</div>
-							<div className="mt-6 flex flex-col gap-6">{links}</div>
-						</ElDialogPanel>
-					</dialog>
-				</ElDialog>
+							{appLink}
+						</div>
+					</div>
+				</dialog>
 			</nav>
 		</header>
 	);

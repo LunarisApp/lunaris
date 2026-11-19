@@ -27,7 +27,7 @@ export function MobileHeader({
       <div className="flex min-h-16 items-center gap-2 py-2">
         {!!backTo && (
           <Button
-            className="size-11 shrink-0 rounded-xl active:bg-muted"
+            className="touch-target"
             nativeButton={false}
             render={<Link to={backTo} />}
             size="icon"

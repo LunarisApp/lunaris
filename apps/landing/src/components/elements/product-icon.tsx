@@ -35,19 +35,11 @@ export function ProductIcon({
 			</>
 		);
 	}
-	if (name === "notion") {
-		return (
-			<Notion
-				aria-hidden="true"
-				className={clsx(iconClassName, "text-black")}
-			/>
-		);
-	}
-
 	const Icon = {
 		linear: Linear,
+		notion: Notion,
 		obsidian: Obsidian,
 	}[name];
 
-	return <Icon aria-hidden="true" className={iconClassName} />;
+	return <Icon variant="mono" aria-hidden="true" className={iconClassName} />;
 }

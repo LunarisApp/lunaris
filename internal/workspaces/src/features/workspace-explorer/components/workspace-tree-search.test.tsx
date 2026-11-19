@@ -1,12 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (k: string) => k }),
-}));
-
-vi.mock("@lunarisapp/ui/hooks/use-mobile", () => ({
-  useIsMobile: () => false,
 }));
 
 import { WorkspaceTreeSearch } from "./workspace-tree-search";
@@ -22,11 +19,19 @@ describe("WorkspaceTreeSearch", () => {
     expect(screen.getByLabelText("explorer.clearSearch")).toBeTruthy();
   });
 
-  it("clear button fires onChange('')", () => {
+  it("clears from the keyboard and returns focus to the search field", async () => {
+    const user = userEvent.setup();
     const onChange = vi.fn();
     render(<WorkspaceTreeSearch onChange={onChange} value="q" />);
-    fireEvent.click(screen.getByLabelText("explorer.clearSearch"));
+    const input = screen.getByRole("combobox");
+    input.focus();
+    await user.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "explorer.clearSearch" })
+    );
+    await user.keyboard("{Enter}");
     expect(onChange).toHaveBeenCalledWith("");
+    expect(document.activeElement).toBe(input);
   });
 
   it("propagates typed value via onChange", () => {

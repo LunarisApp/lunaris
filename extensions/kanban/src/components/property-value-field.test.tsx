@@ -332,7 +332,7 @@ describe("PropertyValueField", () => {
       />
     );
     const status = screen.getByRole("combobox", { name: "Status" });
-    expect(status.className).toContain("h-8!");
+    expect(status.getAttribute("data-size")).toBe("default");
     expect(status.querySelector('[data-slot="badge"]')).toBeNull();
     expect(status.querySelector("svg")).toBeTruthy();
 

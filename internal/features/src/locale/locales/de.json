@@ -364,6 +364,7 @@
     "hintClose": "Schließen"
   },
   "commands": {
+    "createResource": "{{type}} erstellen",
     "newResource": "Neue Ressource",
     "toggleSidebar": "Seitenleiste ein-/ausblenden",
     "zoomIn": "Vergrößern",
@@ -485,7 +486,7 @@
     "interestError": "Ihre Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
   },
   "workspaces": {
-    "recentWorkspaces": "Letzte Arbeitsbereiche",
+    "recentWorkspaces": "Zuletzt verwendet",
     "workspaceCount_one": "{{count}} Arbeitsbereich",
     "workspaceCount_other": "{{count}} Arbeitsbereiche",
     "createWorkspace": "Arbeitsbereich erstellen",
@@ -580,6 +581,8 @@
   "explorer": {
     "title": "Explorer",
     "addResource": "Ressource hinzufügen",
+    "searchResourceTypes": "Ressourcentypen suchen…",
+    "noMatchingTypes": "Keine passenden Ressourcentypen.",
     "addFolder": "Ordner hinzufügen",
     "addFile": "Datei hinzufügen",
     "collapseAll": "Alle einklappen",

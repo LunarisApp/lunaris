@@ -30,7 +30,7 @@ export default async function Page({
 	const dict = await getDictionary(locale as Locale);
 
 	return (
-		<section aria-labelledby="video-heading" className="py-10 sm:py-16">
+		<section aria-labelledby="video-heading" className="py-12 sm:py-20">
 			<Container className="flex flex-col gap-8">
 				<Heading id="video-heading" className="text-center">
 					{dict.accessibility.demoVideo}

@@ -557,10 +557,7 @@ function Identifier({ id, type }: { id: string | null; type: string | null }) {
   return (
     <div className="flex min-w-0 max-w-full items-center gap-2">
       {!!type && (
-        <Badge
-          className="h-5 bg-muted/35 text-[10px] text-muted-foreground uppercase tracking-wide"
-          variant="outline"
-        >
+        <Badge className="uppercase tracking-wide" variant="outline">
           {type}
         </Badge>
       )}
@@ -577,25 +574,14 @@ function Identifier({ id, type }: { id: string | null; type: string | null }) {
 function OutcomeBadge({ outcome }: { outcome: AuditOutcome }) {
   const { t } = useTranslation();
   const label = t(`organization.audit.${outcome}`);
-  const style = {
-    denied:
-      "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-    failure: "border-destructive/25 bg-destructive/10 text-destructive",
-    success:
-      "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  }[outcome];
-  const dot = {
-    denied: "bg-amber-500",
-    failure: "bg-destructive",
-    success: "bg-emerald-500",
-  }[outcome];
+  const variants = {
+    denied: "warning",
+    failure: "destructive",
+    success: "success",
+  } as const;
   return (
-    <Badge
-      className={`max-w-full gap-1.5 ${style}`}
-      title={label}
-      variant="outline"
-    >
-      <span aria-hidden="true" className={`size-1.5 rounded-full ${dot}`} />
+    <Badge className="max-w-full" title={label} variant={variants[outcome]}>
+      <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
       <span className="truncate">{label}</span>
     </Badge>
   );

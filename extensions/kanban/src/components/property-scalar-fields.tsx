@@ -11,7 +11,6 @@ import { useTranslation } from "react-i18next";
 import { formatPropertyDate } from "../property-codec";
 import type { PropertyValue } from "../types";
 import {
-  composerInputClassName,
   PropertyFieldButton,
   type PropertyFieldAppearance,
   metadataInputClassName,
@@ -49,7 +48,7 @@ export function DateField({
           <PropertyFieldButton
             appearance={appearance}
             aria-label={propertyName}
-            className={cn("h-7 min-w-28 justify-start", className)}
+            className={cn(appearance !== "composer" && "min-w-28", className)}
           />
         }
       >
@@ -158,9 +157,8 @@ export function DraftField({
           aria-invalid={invalid}
           aria-label={propertyName}
           className={cn(
-            "h-7 min-w-28 max-w-64",
-            appearance === "composer" && composerInputClassName,
-            appearance === "composer" && "pl-8!",
+            "max-w-64",
+            appearance === "composer" ? "pl-8" : "h-7 min-w-28",
             appearance === "metadata" && metadataInputClassName,
             className
           )}

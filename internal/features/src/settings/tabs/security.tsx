@@ -128,9 +128,8 @@ export function PasswordSection(props: PasswordSectionProps) {
         </p>
       </div>
       <Button
-        className="h-11 w-full shrink-0 lg:h-8 lg:w-auto"
+        className="max-lg:touch-target w-full lg:w-auto"
         onClick={() => setDialogOpen(true)}
-        size="sm"
         type="button"
         variant="outline"
       >
@@ -199,8 +198,7 @@ export function TwoFactorSection({ enabled }: { enabled: boolean }) {
             <DropdownMenuTrigger
               render={
                 <Button
-                  className="h-11 w-full lg:h-8 lg:w-auto"
-                  size="sm"
+                  className="max-lg:touch-target w-full lg:w-auto"
                   type="button"
                   variant="outline"
                 />
@@ -230,10 +228,9 @@ export function TwoFactorSection({ enabled }: { enabled: boolean }) {
           </DropdownMenu>
         ) : (
           <Button
-            className="h-11 w-full lg:h-8 lg:w-auto"
+            className="max-lg:touch-target w-full lg:w-auto"
             data-testid="settings-security-two-factor-enable"
             onClick={() => setSetupOpen(true)}
-            size="sm"
             type="button"
           >
             {t("settings.security.setUpTwoFactor")}
@@ -381,7 +378,7 @@ export function GoogleAccountSection({
               aria-hidden="true"
               className={
                 googleAccount
-                  ? "size-1.5 rounded-full bg-emerald-500"
+                  ? "size-1.5 rounded-full bg-success"
                   : "size-1.5 rounded-full bg-muted-foreground/50"
               }
             />
@@ -392,10 +389,9 @@ export function GoogleAccountSection({
           {googleAccount ? (
             <Button
               aria-busy={action === "disconnect"}
-              className="h-11 w-full lg:h-8 lg:w-auto"
+              className="max-lg:touch-target w-full lg:w-auto"
               disabled={loading || action !== null || isDisconnectBlocked}
               onClick={handleDisconnect}
-              size="sm"
               variant="outline"
             >
               {action === "disconnect"
@@ -405,10 +401,9 @@ export function GoogleAccountSection({
           ) : (
             <Button
               aria-busy={action === "connect"}
-              className="h-11 w-full lg:h-8 lg:w-auto"
+              className="max-lg:touch-target w-full lg:w-auto"
               disabled={loading || action !== null}
               onClick={handleConnect}
-              size="sm"
               variant="outline"
             >
               {action === "connect"
@@ -541,17 +536,15 @@ function ActiveSessionsSection() {
           </p>
           {needsReauthentication ? (
             <Button
-              className="h-11 w-full lg:h-8 lg:w-auto"
+              className="max-lg:touch-target w-full lg:w-auto"
               onClick={handleReauthenticate}
-              size="sm"
             >
               {t("settings.security.signInAgain")}
             </Button>
           ) : sessionsQuery.isError ? (
             <Button
-              className="h-11 w-full lg:h-8 lg:w-auto"
+              className="max-lg:touch-target w-full lg:w-auto"
               onClick={() => void sessionsQuery.refetch()}
-              size="sm"
               variant="outline"
             >
               {t("common.retry")}
@@ -611,10 +604,9 @@ function ActiveSessionsSection() {
         {otherSessions.length > 0 ? (
           <Button
             aria-busy={revokingAll}
-            className="h-11 w-full lg:h-8 lg:w-auto"
+            className="max-lg:touch-target w-full lg:w-auto"
             disabled={revokingAll}
             onClick={handleRevokeAll}
-            size="sm"
             variant="destructive"
           >
             {revokingAll
@@ -674,13 +666,10 @@ function ActiveSessionsSection() {
                 </div>
               </div>
               {isCurrent ? (
-                <Badge
-                  className="self-start border-emerald-600/20 bg-emerald-500/10 text-emerald-700 lg:self-auto dark:text-emerald-400"
-                  variant="outline"
-                >
+                <Badge className="self-start lg:self-auto" variant="success">
                   <span
                     aria-hidden="true"
-                    className="size-1.5 rounded-full bg-emerald-500"
+                    className="size-1.5 rounded-full bg-success"
                   />
                   {t("settings.security.thisDevice")}
                 </Badge>
@@ -688,10 +677,9 @@ function ActiveSessionsSection() {
                 <Button
                   aria-labelledby={`session-revoke-label-${session.id} session-name-${session.id}`}
                   aria-busy={revokingId === session.token}
-                  className="h-11 w-full lg:h-8 lg:w-auto"
+                  className="max-lg:touch-target w-full lg:w-auto"
                   disabled={revokingId === session.token}
                   onClick={() => handleRevoke(session.token)}
-                  size="sm"
                   variant="destructive"
                 >
                   <span id={`session-revoke-label-${session.id}`}>
@@ -776,9 +764,8 @@ export function SecurityContent() {
                   </p>
                   {accountsQuery.isError ? (
                     <Button
-                      className="h-11 w-full lg:h-8 lg:w-auto"
+                      className="max-lg:touch-target w-full lg:w-auto"
                       onClick={() => void accountsQuery.refetch()}
-                      size="sm"
                       variant="outline"
                     >
                       {t("common.retry")}

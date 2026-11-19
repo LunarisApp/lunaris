@@ -1,3 +1,4 @@
+import { Heading } from "@/components/elements/heading";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,23 +51,51 @@ export default async function ExtensionDetailsPage({ params }: Props) {
 				<ArrowNarrowRightIcon className="rotate-180" />
 				{copy.allExtensions}
 			</Link>
-			<header className="mt-6 flex items-start gap-4 sm:gap-5">
+			<header className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:gap-5">
 				<ExtensionIcon
 					className="size-16 rounded-2xl sm:size-20"
 					id={slug}
 					src={extension.iconUrl}
 				/>
 				<div className="min-w-0">
-					<h1 className="text-2xl/8 font-semibold tracking-tight text-olive-950 sm:text-3xl/9 dark:text-olive-100">
-						{extension.name}
-					</h1>
+					<Heading>{extension.name}</Heading>
 					<p className="mt-2 max-w-2xl text-base/7 text-pretty text-olive-700 dark:text-olive-300">
 						{description?.description ?? extension.description}
 					</p>
 				</div>
 			</header>
-			<div className="mt-8 grid items-start gap-8 border-t border-olive-950/15 pt-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-12 dark:border-white/20">
-				<div className="min-w-0 space-y-8">
+			<div className="mt-8 grid items-start gap-8 border-t border-olive-950/15 pt-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:grid-rows-[auto_1fr] lg:gap-x-12 dark:border-white/20">
+				<section
+					aria-labelledby="install-heading"
+					className="lg:col-start-2 lg:row-start-1 rounded-xl bg-olive-200/50 p-5 dark:bg-white/5"
+				>
+					<h2
+						className="text-base/7 font-semibold text-olive-950 dark:text-olive-100"
+						id="install-heading"
+					>
+						{copy.installTitle}
+					</h2>
+					<p className="mt-2 text-sm/6 text-olive-700 dark:text-olive-300">
+						{extension.builtIn ? copy.builtInNote : copy.catalogNote}
+					</p>
+					<TrackedButtonLink
+						analyticsProperties={{
+							cta: "open_web_app",
+							destination: "web",
+							location: "extension_details",
+							extension: extension.id,
+						}}
+						className="mt-5 min-h-11 w-full gap-2"
+						href="https://web.lunaris.app"
+					>
+						{copy.open}
+						<ArrowNarrowRightIcon />
+					</TrackedButtonLink>
+					<a className={`${textLink} mt-2`} href={extensionDocsUrl}>
+						{copy.manage}
+					</a>
+				</section>
+				<div className="min-w-0 space-y-8 lg:col-start-1 lg:row-start-1 lg:row-span-2">
 					{extension.screenshots.length > 0 && (
 						<section aria-labelledby="screenshots-heading">
 							<h2
@@ -125,36 +154,6 @@ export default async function ExtensionDetailsPage({ params }: Props) {
 					</section>
 				</div>
 				<aside className="space-y-7 lg:sticky lg:top-28">
-					<section
-						aria-labelledby="install-heading"
-						className="rounded-xl bg-olive-200/50 p-5 dark:bg-white/5"
-					>
-						<h2
-							className="text-base/7 font-semibold text-olive-950 dark:text-olive-100"
-							id="install-heading"
-						>
-							{copy.installTitle}
-						</h2>
-						<p className="mt-2 text-sm/6 text-olive-700 dark:text-olive-300">
-							{extension.builtIn ? copy.builtInNote : copy.catalogNote}
-						</p>
-						<TrackedButtonLink
-							analyticsProperties={{
-								cta: "open_web_app",
-								destination: "web",
-								location: "extension_details",
-								extension: extension.id,
-							}}
-							className="mt-5 min-h-11 w-full gap-2"
-							href="https://web.lunaris.app"
-						>
-							{copy.open}
-							<ArrowNarrowRightIcon />
-						</TrackedButtonLink>
-						<a className={`${textLink} mt-2`} href={extensionDocsUrl}>
-							{copy.manage}
-						</a>
-					</section>
 					<section aria-labelledby="details-heading">
 						<h2
 							className="text-base/7 font-semibold text-olive-950 dark:text-olive-100"

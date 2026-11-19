@@ -64,10 +64,7 @@ export default async function SelfHostedPage({ params }: Props) {
 							<li>{copy.domain}</li>
 						</ul>
 					</section>
-					<section
-						aria-labelledby="install"
-						className="min-w-0 rounded-2xl bg-olive-950/3 p-5 sm:p-8 dark:bg-white/5"
-					>
+					<section className="min-w-0 rounded-2xl bg-olive-950/3 p-5 sm:p-8 dark:bg-white/5">
 						<h2
 							className="scroll-mt-6 font-display text-3xl/9 text-balance"
 							id="install"

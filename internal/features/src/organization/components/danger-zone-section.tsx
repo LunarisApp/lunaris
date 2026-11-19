@@ -190,9 +190,8 @@ export function DangerZoneSection({
         </div>
         <Button
           disabled={pending}
-          className="h-11 w-full shrink-0 lg:h-8 lg:w-auto"
+          className="max-lg:touch-target w-full lg:w-auto"
           onClick={beginDeletion}
-          size="sm"
           variant="destructive"
         >
           {t("organization.deleteOrganization")}

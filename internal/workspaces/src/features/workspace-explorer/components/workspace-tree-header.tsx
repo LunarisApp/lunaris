@@ -1,13 +1,5 @@
 "use client";
 
-import type { ResourceTypeDefinition } from "@lunarisapp/plugin-sdk";
-import { Icon } from "@lunarisapp/ui/components/icon";
-import {
-  ResponsiveDropdownMenu,
-  ResponsiveDropdownMenuContent,
-  ResponsiveDropdownMenuItem,
-  ResponsiveDropdownMenuTrigger,
-} from "@lunarisapp/ui/blocks/responsive-dropdown-menu";
 import { Badge } from "@lunarisapp/ui/components/badge";
 import { Button } from "@lunarisapp/ui/components/button";
 import {
@@ -29,14 +21,14 @@ import type { WorkspaceResourceEntity } from "@repo/data/features/workspace-reso
 import type { HTMLAttributes, KeyboardEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useAnyPermission } from "@repo/features/permissions";
-import { useNavigateToResource, useStartRenamingItem } from "../store";
+import { useStartRenamingItem } from "../store";
 import { VIRTUAL_ROOT_ID } from "../constants";
-import { useAvailableResources } from "../hooks/use-available-resources";
 import { useWorkspaceResourceCreation } from "../hooks/use-workspace-resource-creation";
 import { WorkspaceTreeSearch } from "./workspace-tree-search";
 
 interface WorkspaceTreeHeaderProps extends HTMLAttributes<HTMLDivElement> {
   mobileActions?: ReactNode;
+  onAddResource: (parentId: string) => void;
   onCollapseAll?: () => void;
   onSearchChange: (value: string) => void;
   onSearchKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
@@ -47,6 +39,7 @@ interface WorkspaceTreeHeaderProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export function WorkspaceTreeHeader({
+  onAddResource,
   mobileActions,
   onCollapseAll,
   tree,
@@ -58,9 +51,7 @@ export function WorkspaceTreeHeader({
   ...props
 }: WorkspaceTreeHeaderProps) {
   const { t } = useTranslation();
-  const { canCreate, createFolder, createResource } =
-    useWorkspaceResourceCreation();
-  const navigateToResource = useNavigateToResource();
+  const { canCreate, createFolder } = useWorkspaceResourceCreation();
   const startRenamingResource = useStartRenamingItem();
   const canMutate = useAnyPermission([
     permission.content.write,
@@ -80,23 +71,6 @@ export function WorkspaceTreeHeader({
     return VIRTUAL_ROOT_ID;
   };
 
-  const handleAddItem = async (resource: ResourceTypeDefinition) => {
-    const parentId = getTargetParentId();
-    const result = await createResource(parentId, resource);
-    if (!result) {
-      return;
-    }
-
-    // PowerSync query results can lag the completed write. Queue both actions
-    // until the new resource is available to the tree and its renderer.
-    navigateToResource(result.resourceId);
-    if (!result.name) {
-      startRenamingResource(result.resourceId);
-    }
-  };
-
-  const resources = useAvailableResources();
-
   const handleAddFolder = async () => {
     const parentId = getTargetParentId();
     const newId = await createFolder(parentId);
@@ -108,10 +82,8 @@ export function WorkspaceTreeHeader({
   };
 
   const isMobile = useIsMobile();
-  const buttonSize = isMobile ? "icon-lg" : "sm";
-  const buttonClass = isMobile
-    ? "size-11 rounded-xl [&_svg]:size-5"
-    : undefined;
+  const buttonSize = isMobile ? "icon" : "icon-sm";
+  const buttonClass = isMobile ? "touch-target" : undefined;
 
   return (
     <div
@@ -124,7 +96,7 @@ export function WorkspaceTreeHeader({
       {...props}
     >
       {isMobile && mobileActions ? (
-        <div className="flex flex-wrap items-center gap-1 [&_button]:size-11 [&_button]:rounded-xl">
+        <div className="[&_button]:touch-target flex flex-wrap items-center gap-1">
           {mobileActions}
         </div>
       ) : null}
@@ -149,36 +121,23 @@ export function WorkspaceTreeHeader({
           <Badge variant="outline">{t("permissions.readOnlyTitle")}</Badge>
         )}
         {!!canCreate && (
-          <ResponsiveDropdownMenu>
-            <ResponsiveDropdownMenuTrigger
-              aria-label={t("explorer.addFile")}
+          <Tooltip>
+            <TooltipTrigger
               render={
                 <Button
-                  className={cn(
-                    buttonClass,
-                    isMobile &&
-                      "bg-primary text-primary-foreground hover:bg-primary/90"
-                  )}
+                  aria-haspopup="dialog"
+                  aria-label={t("explorer.addFile")}
+                  className={buttonClass}
+                  onClick={() => onAddResource(getTargetParentId())}
                   size={buttonSize}
-                  variant="ghost"
+                  variant={isMobile ? "default" : "ghost"}
                 />
               }
             >
               <HugeiconsIcon icon={FileAddIcon} />
-              <span className="sr-only">{t("explorer.addFile")}</span>
-            </ResponsiveDropdownMenuTrigger>
-            <ResponsiveDropdownMenuContent>
-              {resources.map((resource) => (
-                <ResponsiveDropdownMenuItem
-                  key={resource.resourceTypeId}
-                  onClick={() => handleAddItem(resource)}
-                >
-                  <Icon className="size-4" icon={resource.icon} />
-                  {resource.name}
-                </ResponsiveDropdownMenuItem>
-              ))}
-            </ResponsiveDropdownMenuContent>
-          </ResponsiveDropdownMenu>
+            </TooltipTrigger>
+            <TooltipContent>{t("explorer.addFile")}</TooltipContent>
+          </Tooltip>
         )}
         {!!canCreate && (
           <Tooltip>

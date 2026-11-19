@@ -14,7 +14,7 @@ export type ResolvedTheme = "light" | "dark";
 
 const STORAGE_KEY = "lunaris-theme";
 const THEME_CHANGE_EVENT = "lunaris-theme-change";
-let fallbackTheme: Theme = "system";
+let fallbackTheme: Theme | null = null;
 
 type ThemeContextValue = {
 	theme: Theme;
@@ -33,7 +33,7 @@ function applyTheme(theme: Theme, systemDark: boolean): ResolvedTheme {
 	return resolved;
 }
 
-function readStoredTheme(): Theme {
+function readStoredTheme(): Theme | null {
 	try {
 		const v = localStorage.getItem(STORAGE_KEY);
 		if (v === "light" || v === "dark" || v === "system") return v;
@@ -61,8 +61,8 @@ function readSystemTheme() {
 	return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-function readServerTheme(): Theme {
-	return "system";
+function readServerTheme() {
+	return null;
 }
 
 function readServerSystemTheme() {
@@ -70,11 +70,12 @@ function readServerSystemTheme() {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-	const theme = useSyncExternalStore(
+	const storedTheme = useSyncExternalStore(
 		subscribeToTheme,
 		readStoredTheme,
 		readServerTheme,
 	);
+	const theme = storedTheme ?? "dark";
 	const systemDark = useSyncExternalStore(
 		subscribeToSystemTheme,
 		readSystemTheme,

@@ -15,7 +15,8 @@ export type CommandActions = Partial<Record<CommandId, () => void>>;
 export function buildCommandSearchResults(
   query: string,
   actions: CommandActions,
-  t: (key: string) => string
+  t: (key: string) => string,
+  resourceCommands: readonly CommandSearchResult[] = []
 ): CommandSearchResult[] {
   const parsedQuery = parseSearchQuery(query);
   if (hasScopedSearchTerms(parsedQuery)) {
@@ -23,7 +24,7 @@ export function buildCommandSearchResults(
   }
   const terms = getSearchTerms(parsedQuery, null);
 
-  return Object.values(COMMANDS).flatMap((definition) => {
+  const commands = Object.values(COMMANDS).flatMap((definition) => {
     const action = actions[definition.id];
     if (!action) {
       return [];
@@ -48,4 +49,10 @@ export function buildCommandSearchResults(
       action,
     };
   });
+  return [
+    ...commands,
+    ...resourceCommands.filter((command) =>
+      matchesSearchTerms([command.label, command.searchAlias ?? ""], terms)
+    ),
+  ];
 }

@@ -11,7 +11,7 @@ export function EmailSummary({ email }: { email: string }) {
     <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/50 px-3 py-2">
       <span className="min-w-0 truncate text-sm">{email}</span>
       <Button
-        className="h-auto shrink-0 p-0"
+        className="h-auto p-0"
         nativeButton={false}
         render={<Link state={{ email }} to={pathWithRedirect("/auth")} />}
         variant="link"

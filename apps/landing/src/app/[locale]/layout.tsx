@@ -14,8 +14,7 @@ import {
 	FooterLink,
 } from "@/components/sections/footer";
 import {
-	NavbarLink,
-	NavbarLogo,
+	type NavGroup,
 	NavbarWithLinksAndActions,
 } from "@/components/sections/navbar-with-links-and-actions";
 import { ThemeProvider } from "@/components/theme/theme-provider";
@@ -28,14 +27,15 @@ import { brandIcons, localizedAlternates } from "@/i18n/metadata";
 import { legalDocumentPaths } from "@/lib/legal-document-links";
 
 import { openSourceCopy, repositoryUrl } from "@/data/open-source";
-import { extensionsCopy } from "@/data/extensions";
+import { extensionQuickstartUrl, extensionsCopy } from "@/data/extensions";
 import { homepageCopy } from "@/data/homepage";
 
 const DOCS_URL = "https://docs.lunaris.app";
-const GITHUB_URL = repositoryUrl;
 const LINKEDIN_URL = "https://www.linkedin.com/company/lunarisapp";
 const TRUST_CENTER_URL = "https://trust.lunaris.app";
 const X_URL = "https://x.com/lunarisapp";
+
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
 	return locales.map((locale) => ({ locale }));
@@ -70,6 +70,99 @@ export default async function LocaleLayout({
 	const dict = await getDictionary(locale);
 	const source = openSourceCopy[locale];
 	const home = homepageCopy[locale];
+	const menu = dict.nav.menu;
+	const comparisons = {
+		label: dict.footer.compare,
+		links: [
+			{
+				label: dict.footer.linearComparison,
+				href: localePath(locale, "/compare/linear"),
+			},
+			{
+				label: dict.footer.obsidianComparison,
+				href: localePath(locale, "/compare/obsidian"),
+			},
+			{
+				label: dict.footer.notionComparison,
+				href: localePath(locale, "/compare/notion"),
+			},
+		],
+	};
+	const documentation = { label: dict.nav.docs, href: DOCS_URL };
+	const contact = {
+		label: dict.footer.contact,
+		href: localePath(locale, "/demo"),
+	};
+	const trust = { label: dict.footer.trustCenter, href: TRUST_CENTER_URL };
+	const subprocessors = {
+		label: dict.footer.subprocessors,
+		href: "/subprocessors",
+	};
+	const wordCounter = {
+		label: dict.footer.wordCounter,
+		href: localePath(locale, "/tools/word-counter"),
+	};
+	const github = { label: "GitHub", href: repositoryUrl };
+	const product: NavGroup = {
+		label: dict.nav.product,
+		links: [
+			{
+				label: dict.nav.productTour,
+				href: localePath(locale, "/watch"),
+				icon: "tour",
+				description: menu.tour,
+			},
+			{
+				label: extensionsCopy[locale].nav,
+				href: localePath(locale, "/extensions"),
+				icon: "extensions",
+				description: menu.extensions,
+			},
+			{
+				label: dict.nav.mcp,
+				href: localePath(locale, "/mcp"),
+				icon: "mcp",
+				description: menu.mcp,
+			},
+		],
+		related: comparisons,
+	};
+	const developers: NavGroup = {
+		label: dict.nav.developers,
+		links: [
+			{
+				label: "CLI",
+				href: localePath(locale, "/downloads#cli"),
+				icon: "cli",
+				description: menu.cli,
+			},
+			{
+				label: dict.nav.extensionsSdk,
+				href: extensionQuickstartUrl,
+				icon: "sdk",
+				description: menu.sdk,
+			},
+			{
+				label: source.label,
+				href: localePath(locale, "/self-hosted"),
+				icon: "hosting",
+				description: menu.hosting,
+			},
+		],
+		related: { label: dict.footer.resources, links: [documentation, github] },
+	};
+	const resources: NavGroup = {
+		label: dict.footer.resources,
+		links: [
+			{ ...documentation, icon: "docs", description: menu.docs },
+			{ ...contact, icon: "contact", description: menu.contact },
+		],
+		related: { label: menu.security, links: [trust, subprocessors] },
+	};
+	const directLinks = [
+		{ label: dict.nav.pricing, href: localePath(locale, "/pricing") },
+		{ label: dict.nav.downloads, href: localePath(locale, "/downloads") },
+	];
 
 	return (
 		<html lang={locale} suppressHydrationWarning>
@@ -86,35 +179,32 @@ export default async function LocaleLayout({
 					rel="stylesheet"
 				/>
 				<link
-					href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+					href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,100..1000;1,100..1000&display=swap"
 					rel="stylesheet"
 				/>
 			</head>
 			<body>
 				<ProboCookieBanner />
 				<ThemeProvider>
-					<a
-						className="fixed top-3 left-3 z-50 -translate-y-24 rounded-full bg-olive-950 px-4 py-2 text-sm/6 font-medium text-white shadow-lg transition focus:translate-y-0 focus:outline-2 focus:outline-offset-2 focus:outline-olive-600 motion-reduce:transition-none dark:bg-olive-100 dark:text-olive-950"
-						href="#main-content"
-					>
-						{dict.accessibility.skipToContent}
-					</a>
 					<NavbarWithLinksAndActions
-						actions={
+						skipLabel={dict.accessibility.skipToContent}
+						groups={[product, developers, resources]}
+						directLinks={directLinks}
+						appLink={
+							<TrackedButtonLink
+								analyticsProperties={{
+									cta: "open_web_app",
+									destination: "web",
+									location: "navbar",
+								}}
+								className="min-h-11 px-5"
+								href="https://web.lunaris.app"
+							>
+								{home.open}
+							</TrackedButtonLink>
+						}
+						settings={
 							<>
-								<div className="hidden xl:block">
-									<TrackedButtonLink
-										analyticsProperties={{
-											cta: "open_web_app",
-											destination: "web",
-											location: "navbar",
-										}}
-										className="min-h-11 px-5"
-										href="https://web.lunaris.app"
-									>
-										{home.open}
-									</TrackedButtonLink>
-								</div>
 								<LanguageSwitcher
 									currentLocale={locale}
 									label={dict.accessibility.switchLanguage}
@@ -129,49 +219,30 @@ export default async function LocaleLayout({
 								/>
 							</>
 						}
-						id="navbar"
 						openMenuLabel={dict.accessibility.openMenu}
 						closeMenuLabel={dict.accessibility.closeMenu}
 						navigationLabel={dict.accessibility.primaryNavigation}
-						links={
-							<>
-								<NavbarLink href={localePath(locale, "/extensions")}>
-									{extensionsCopy[locale].nav}
-								</NavbarLink>
-								<NavbarLink href={localePath(locale, "/pricing")}>
-									{dict.nav.pricing}
-								</NavbarLink>
-								<NavbarLink href={localePath(locale, "/downloads")}>
-									{dict.nav.downloads}
-								</NavbarLink>
-								<NavbarLink href={DOCS_URL}>{dict.nav.docs}</NavbarLink>
-								<NavbarLink href={localePath(locale, "/self-hosted")}>
-									{source.label}
-								</NavbarLink>
-							</>
-						}
+						homeHref={localePath(locale, "/")}
 						logo={
-							<NavbarLogo href={localePath(locale, "/")}>
-								<span className="inline-flex items-center gap-2.5">
-									<Image
-										alt=""
-										className="size-8 shrink-0 dark:hidden"
-										height={32}
-										src="/img/lunaris-mark-light.svg"
-										width={32}
-									/>
-									<Image
-										alt=""
-										className="hidden size-8 shrink-0 dark:block"
-										height={32}
-										src="/img/lunaris-mark-dark.svg"
-										width={32}
-									/>
-									<span className="font-wordmark text-xl/none font-[650] tracking-[0.04em] text-olive-950 uppercase dark:text-white">
-										Lunaris
-									</span>
+							<span className="inline-flex items-center gap-2.5">
+								<Image
+									alt=""
+									className="size-8 shrink-0 dark:hidden"
+									height={32}
+									src="/img/lunaris-mark-light.svg"
+									width={32}
+								/>
+								<Image
+									alt=""
+									className="hidden size-8 shrink-0 dark:block"
+									height={32}
+									src="/img/lunaris-mark-dark.svg"
+									width={32}
+								/>
+								<span className="font-wordmark text-xl/none font-[650] tracking-[0.04em] text-olive-950 uppercase dark:text-white">
+									Lunaris
 								</span>
-							</NavbarLogo>
+							</span>
 						}
 					/>
 
@@ -180,19 +251,19 @@ export default async function LocaleLayout({
 					</Main>
 
 					<Footer
-						cta={null}
 						fineprint={
-							<div className="flex flex-col items-start gap-3">
+							<div className="flex items-center justify-between gap-6">
 								<span>{dict.footer.fineprint}</span>
 								<div className="flex items-center gap-3">
 									<a
 										aria-label="GitHub"
 										className="transition-colors hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-600 dark:hover:text-white"
-										href={GITHUB_URL}
+										href={repositoryUrl}
 									>
 										<Github
+											variant="mono"
 											aria-hidden="true"
-											className="size-5 [&_path]:fill-current"
+											className="size-5"
 										/>
 									</a>
 									<a
@@ -210,10 +281,7 @@ export default async function LocaleLayout({
 										className="transition-colors hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-600 dark:hover:text-white"
 										href={X_URL}
 									>
-										<X
-											aria-hidden="true"
-											className="size-5 [&_path]:fill-current"
-										/>
+										<X variant="mono" aria-hidden="true" className="size-5" />
 									</a>
 								</div>
 							</div>
@@ -221,44 +289,28 @@ export default async function LocaleLayout({
 						id="footer"
 						links={
 							<>
-								<FooterCategory title={dict.footer.resources}>
-									<FooterLink href={localePath(locale, "/extensions")}>
-										{extensionsCopy[locale].nav}
-									</FooterLink>
-									<FooterLink href={localePath(locale, "/self-hosted")}>
-										{source.label}
-									</FooterLink>
-									<FooterLink href={localePath(locale, "/downloads#cli")}>
-										CLI
-									</FooterLink>
-									<FooterLink href={GITHUB_URL}>GitHub</FooterLink>
-									<FooterLink href={DOCS_URL}>{dict.nav.docs}</FooterLink>
-									<FooterLink href={localePath(locale, "/pricing")}>
-										{dict.nav.pricing}
-									</FooterLink>
-									<FooterLink href={localePath(locale, "/mcp")}>
-										{dict.footer.mcp}
-									</FooterLink>
-									<FooterLink href={localePath(locale, "/demo")}>
-										{dict.footer.contact}
-									</FooterLink>
-								</FooterCategory>
-								<FooterCategory title={dict.footer.compare}>
-									<FooterLink href={localePath(locale, "/compare/linear")}>
-										{dict.footer.linearComparison}
-									</FooterLink>
-									<FooterLink href={localePath(locale, "/compare/obsidian")}>
-										{dict.footer.obsidianComparison}
-									</FooterLink>
-									<FooterLink href={localePath(locale, "/compare/notion")}>
-										{dict.footer.notionComparison}
-									</FooterLink>
-								</FooterCategory>
-								<FooterCategory title={dict.footer.tool}>
-									<FooterLink href={localePath(locale, "/tools/word-counter")}>
-										{dict.footer.wordCounter}
-									</FooterLink>
-								</FooterCategory>
+								{[
+									product,
+									{ ...developers, links: [...developers.links, github] },
+									comparisons,
+									{
+										...resources,
+										links: [
+											...directLinks,
+											documentation,
+											wordCounter,
+											contact,
+										],
+									},
+								].map((group) => (
+									<FooterCategory key={group.label} title={group.label}>
+										{group.links.map((link) => (
+											<FooterLink key={link.href} href={link.href}>
+												{link.label}
+											</FooterLink>
+										))}
+									</FooterCategory>
+								))}
 								<FooterCategory title={dict.footer.legal}>
 									<FooterLink href={legalDocumentPaths.privacy}>
 										{dict.footer.privacyPolicy}
@@ -272,10 +324,10 @@ export default async function LocaleLayout({
 									<FooterLink href={legalDocumentPaths.terms}>
 										{dict.footer.termsOfService}
 									</FooterLink>
-									<FooterLink href="/subprocessors">
+									<FooterLink href={subprocessors.href}>
 										{dict.footer.subprocessors}
 									</FooterLink>
-									<FooterLink href={TRUST_CENTER_URL}>
+									<FooterLink href={trust.href}>
 										{dict.footer.trustCenter}
 									</FooterLink>
 								</FooterCategory>

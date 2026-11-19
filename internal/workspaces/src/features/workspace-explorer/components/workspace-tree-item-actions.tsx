@@ -1,7 +1,3 @@
-import type {
-  ResourceTypeDefinition,
-  PluginIconSource,
-} from "@lunarisapp/plugin-sdk";
 import { Icon } from "@lunarisapp/ui/components/icon";
 import {
   ContextMenuContent,
@@ -9,7 +5,8 @@ import {
 } from "@lunarisapp/ui/components/context-menu";
 import {
   Drawer,
-  DrawerClose,
+  DrawerMenuItem,
+  DrawerTitle,
   DrawerContent,
   DrawerTrigger,
 } from "@lunarisapp/ui/components/drawer";
@@ -19,16 +16,18 @@ import {
   Delete02Icon,
   Edit02Icon,
   FolderAddIcon,
+  FileAddIcon,
   HugeiconsIcon,
   Link02Icon,
   MoreVerticalIcon,
 } from "@lunarisapp/ui/icons";
 import type { WorkspaceResourceEntity } from "@repo/data/features/workspace-resources";
-import type { ReactNode } from "react";
+import { Button } from "@lunarisapp/ui/components/button";
+import { Separator } from "@lunarisapp/ui/components/separator";
 import { useTranslation } from "react-i18next";
 import {
   AddFolderMenuItem,
-  AddItemSubmenu,
+  AddResourceMenuItem,
   CopyPathMenuItem,
   CopyUrlMenuItem,
   DeleteMenuItem,
@@ -43,12 +42,11 @@ interface WorkspaceTreeItemActionsProps {
   canUpdate: boolean;
   item: ItemInstance<WorkspaceResourceEntity>;
   onAddFolder: () => void;
-  onAddItem: (resource: ResourceTypeDefinition) => void;
+  onAddResource: () => void;
   onCopyPath: () => void;
   onCopyUrl: () => void;
   onDelete: () => void;
   onDuplicate: () => void;
-  resources: ResourceTypeDefinition[];
 }
 
 export function MobileWorkspaceTreeItemActions({
@@ -57,9 +55,8 @@ export function MobileWorkspaceTreeItemActions({
   canDuplicate,
   canUpdate,
   item,
-  resources,
   onAddFolder,
-  onAddItem,
+  onAddResource,
   onCopyPath,
   onCopyUrl,
   onDelete,
@@ -72,60 +69,60 @@ export function MobileWorkspaceTreeItemActions({
     <Drawer>
       <DrawerTrigger
         render={
-          <button
-            className="flex size-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring active:bg-accent"
+          <Button
+            className="touch-target text-muted-foreground"
+            size="icon"
+            variant="ghost"
             onClick={(event) => event.stopPropagation()}
             type="button"
           >
             <HugeiconsIcon className="size-4" icon={MoreVerticalIcon} />
             <span className="sr-only">{t("common.actions")}</span>
-          </button>
+          </Button>
         }
       />
-      <DrawerContent>
+      <DrawerContent aria-describedby={undefined}>
+        <DrawerTitle className="sr-only">{t("common.actions")}</DrawerTitle>
         <div className="flex flex-col gap-0.5 px-2 py-4">
           {!!(isFolderItem && canCreate) && (
             <>
-              {resources.map((resource) => (
-                <DrawerMenuItem
-                  icon={resource.icon}
-                  key={resource.resourceTypeId}
-                  onClick={() => onAddItem(resource)}
-                >
-                  {resource.name}
-                </DrawerMenuItem>
-              ))}
-              <DrawerMenuItem icon={FolderAddIcon} onClick={onAddFolder}>
+              <DrawerMenuItem aria-haspopup="dialog" onClick={onAddResource}>
+                <Icon icon={FileAddIcon} />
+                {t("explorer.addResource")}
+              </DrawerMenuItem>
+              <DrawerMenuItem onClick={onAddFolder}>
+                <Icon icon={FolderAddIcon} />
                 {t("explorer.addFolder")}
               </DrawerMenuItem>
-              <DrawerMenuSeparator />
+              <Separator className="my-1" />
             </>
           )}
-          <DrawerMenuItem icon={Copy01Icon} onClick={onCopyPath}>
+          <DrawerMenuItem onClick={onCopyPath}>
+            <Icon icon={Copy01Icon} />
             {t("explorer.copyPath")}
           </DrawerMenuItem>
-          <DrawerMenuItem icon={Link02Icon} onClick={onCopyUrl}>
+          <DrawerMenuItem onClick={onCopyUrl}>
+            <Icon icon={Link02Icon} />
             {t("explorer.copyUrl")}
           </DrawerMenuItem>
-          <DrawerMenuSeparator />
+          <Separator className="my-1" />
           {!!canDuplicate && (
-            <DrawerMenuItem icon={Copy01Icon} onClick={onDuplicate}>
+            <DrawerMenuItem onClick={onDuplicate}>
+              <Icon icon={Copy01Icon} />
               {t("common.duplicate")}
             </DrawerMenuItem>
           )}
           {!!canUpdate && (
-            <DrawerMenuItem icon={Edit02Icon} onClick={item.startRenaming}>
+            <DrawerMenuItem onClick={item.startRenaming}>
+              <Icon icon={Edit02Icon} />
               {t("common.rename")}
             </DrawerMenuItem>
           )}
           {!!canDelete && (
             <>
-              <DrawerMenuSeparator />
-              <DrawerMenuItem
-                destructive
-                icon={Delete02Icon}
-                onClick={onDelete}
-              >
+              <Separator className="my-1" />
+              <DrawerMenuItem variant="destructive" onClick={onDelete}>
+                <Icon icon={Delete02Icon} />
                 {t("common.delete")}
               </DrawerMenuItem>
             </>
@@ -136,37 +133,6 @@ export function MobileWorkspaceTreeItemActions({
   );
 }
 
-function DrawerMenuSeparator() {
-  return <hr className="my-1 h-px border-0 bg-border" />;
-}
-
-function DrawerMenuItem({
-  children,
-  destructive,
-  icon,
-  onClick,
-}: {
-  children: ReactNode;
-  destructive?: boolean;
-  icon: PluginIconSource;
-  onClick: () => void;
-}) {
-  return (
-    <DrawerClose
-      render={
-        <button
-          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors active:bg-accent ${destructive ? "text-destructive" : ""}`}
-          onClick={onClick}
-          type="button"
-        >
-          <Icon className="size-5" icon={icon} />
-          {children}
-        </button>
-      }
-    />
-  );
-}
-
 export function WorkspaceTreeItemContextMenuContent({
   canCreate,
   canDelete,
@@ -174,12 +140,11 @@ export function WorkspaceTreeItemContextMenuContent({
   canUpdate,
   item,
   onAddFolder,
-  onAddItem,
+  onAddResource,
   onCopyPath,
   onCopyUrl,
   onDelete,
   onDuplicate,
-  resources,
 }: WorkspaceTreeItemActionsProps) {
   const isFolderItem = item.isFolder();
 
@@ -187,7 +152,7 @@ export function WorkspaceTreeItemContextMenuContent({
     <ContextMenuContent>
       {!!(isFolderItem && canCreate) && (
         <>
-          <AddItemSubmenu resources={resources} onAddItem={onAddItem} />
+          <AddResourceMenuItem onAddResource={onAddResource} />
           <AddFolderMenuItem onAddFolder={onAddFolder} />
           <ContextMenuSeparator />
         </>

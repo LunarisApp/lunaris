@@ -272,10 +272,9 @@ export function PasskeySection() {
           </p>
         </div>
         <Button
-          className="h-11 w-full shrink-0 active:scale-[0.98] lg:h-8 lg:w-auto"
+          className="max-lg:touch-target w-full lg:w-auto"
           disabled={!canRegister || passkeysQuery.isPending}
           onClick={() => setAddOpen(true)}
-          size="sm"
           type="button"
         >
           {t("settings.security.addPasskey")}
@@ -360,7 +359,7 @@ export function PasskeySection() {
                 </div>
                 <Button
                   aria-labelledby={`passkey-remove-label-${passkey.id} passkey-name-${passkey.id}`}
-                  className="w-full active:scale-[0.98] sm:w-auto"
+                  className="w-full sm:w-auto"
                   onClick={() => setRemoveTarget(passkey)}
                   size="sm"
                   type="button"

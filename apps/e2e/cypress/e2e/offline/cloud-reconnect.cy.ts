@@ -60,7 +60,7 @@ describe("registered-user offline cloud sync", () => {
       cy.get('[data-testid="workspaces-list-item-cloud-offline"]').click();
       cy.location("pathname").then(() => {
         cy.get('button[aria-label="Add file"]').click();
-        cy.contains('[role="menuitem"]', "Rich Text").click();
+        cy.contains('[role="option"]', "Rich Text").click();
         typeYjsText(documentBodySelector, "Online opening");
         waitForServiceWorkerControl();
 

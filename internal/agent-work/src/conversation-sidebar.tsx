@@ -1,3 +1,8 @@
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@lunarisapp/ui/components/input-group";
 import { Button } from "@lunarisapp/ui/components/button";
 import {
   Add01Icon,
@@ -43,7 +48,7 @@ export function ConversationSidebar({
     <div className="flex h-full min-h-0 flex-col bg-background text-foreground">
       <div className="px-2 pt-2">
         <Button
-          className="h-8 w-full justify-start gap-2 text-xs"
+          className="w-full justify-start"
           disabled={!runtimeReady || busy}
           onClick={onNew}
           variant="ghost"
@@ -52,17 +57,18 @@ export function ConversationSidebar({
           {t("agentWork.newConversation")}
         </Button>
         {state.sessions.length > 0 && (
-          <div className="mt-3 flex items-center gap-2 rounded-md px-2 text-muted-foreground focus-within:bg-background focus-within:ring-2 focus-within:ring-ring">
-            <HugeiconsIcon className="size-3.5 shrink-0" icon={Search01Icon} />
-            <input
+          <InputGroup className="mt-3">
+            <InputGroupAddon>
+              <HugeiconsIcon icon={Search01Icon} />
+            </InputGroupAddon>
+            <InputGroupInput
               aria-label={t("agentWork.searchConversations")}
-              className="h-8 w-full min-w-0 bg-transparent text-foreground text-xs outline-none placeholder:text-muted-foreground"
               onChange={(event) => setSearch(event.target.value)}
               placeholder={t("agentWork.searchConversations")}
               type="search"
               value={search}
             />
-          </div>
+          </InputGroup>
         )}
       </div>
       <nav
@@ -82,9 +88,10 @@ export function ConversationSidebar({
           sessions.map((item) => {
             const updated = new Date(item.updatedAt);
             return (
-              <button
+              <Button
+                variant="ghost"
                 aria-current={state.sessionId === item.id ? "page" : undefined}
-                className="group mb-1 flex w-full items-center gap-2 rounded-md px-2 py-2 text-start outline-none transition-colors hover:bg-sidebar-accent/70 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 aria-[current=page]:bg-sidebar-accent"
+                className="group mb-1 w-full justify-start text-start"
                 disabled={!runtimeReady || busy}
                 key={item.id}
                 onClick={() => onOpen(item.id)}
@@ -108,7 +115,7 @@ export function ConversationSidebar({
                     </time>
                   )}
                 </span>
-              </button>
+              </Button>
             );
           })
         ) : (
@@ -132,7 +139,7 @@ export function ConversationSidebar({
             >
               <span
                 aria-hidden="true"
-                className="size-1.5 shrink-0 rounded-full bg-emerald-500"
+                className="size-1.5 shrink-0 rounded-full bg-success"
               />
               <span className="truncate">{t("agentWork.connected")}</span>
             </span>
@@ -145,7 +152,7 @@ export function ConversationSidebar({
           title={t(
             state.authenticated ? "agentWork.disconnect" : "agentWork.connect"
           )}
-          className="shrink-0 text-xs"
+          className="text-xs"
           disabled={!runtimeReady || busy}
           onClick={onConnect}
           size={state.authenticated ? "icon-sm" : "sm"}

@@ -1,45 +1,49 @@
 ---
 name: Lunaris Application
-description: Quiet, focused organization UI with warm neutrals and bounded moments of color.
+description: Compact writing and workspace tools with DM Sans, warm paper surfaces, and a black dark theme.
 colors:
-  clear-paper: "oklch(1 0 0)"
-  pale-paper: "oklch(0.985 0.001 106.423)"
-  soft-stone: "oklch(0.97 0.001 106.424)"
-  hairline-stone: "oklch(0.923 0.003 48.717)"
-  focus-stone: "oklch(0.709 0.01 56.259)"
-  muted-ink: "oklch(0.553 0.013 58.071)"
-  deep-ink: "oklch(0.216 0.006 56.043)"
-  warm-ink: "oklch(0.147 0.004 49.25)"
-  night-stone: "oklch(0.268 0.007 34.298)"
+  canvas: "#efeeeb"
+  surface: "#faf9f7"
+  soft-stone: "#e5e4e1"
+  hairline-stone: "#d3d2cf"
+  field-stroke: "#888784"
+  muted-ink: "#616161"
+  ink: "#000000"
+  inverse-ink: "#f8f8f8"
+  night-surface: "#141414"
+  night-popover: "#1c1c1c"
+  night-muted: "#292929"
+  night-text-secondary: "#b1b1b1"
+  night-border: "#343434"
   signal-red: "oklch(0.577 0.245 27.325)"
   signal-red-night: "oklch(0.704 0.191 22.216)"
 typography:
   headline:
-    fontFamily: "Nunito Sans Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.5rem"
-    fontWeight: 600
-    lineHeight: 1.333
-    letterSpacing: "normal"
+    fontFamily: "DM Sans Variable, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "clamp(1.5rem, 1.25rem + 1vw, 2rem)"
+    fontWeight: 550
+    lineHeight: 1.15
+    letterSpacing: "-0.04em"
   title:
-    fontFamily: "Nunito Sans Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 600
-    lineHeight: 1.556
-    letterSpacing: "normal"
+    fontFamily: "DM Sans Variable, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.375rem"
+    fontWeight: 550
+    lineHeight: 1.25
+    letterSpacing: "-0.03em"
   body:
-    fontFamily: "Nunito Sans Variable, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "DM Sans Variable, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.429
     letterSpacing: "normal"
   control:
-    fontFamily: "Nunito Sans Variable, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "DM Sans Variable, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 500
     lineHeight: 1.25
     letterSpacing: "normal"
   label:
-    fontFamily: "Nunito Sans Variable, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "DM Sans Variable, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.75rem"
     fontWeight: 500
     lineHeight: 1.333
@@ -62,63 +66,63 @@ spacing:
   2xl: "2rem"
 components:
   button-primary:
-    backgroundColor: "{colors.deep-ink}"
-    textColor: "{colors.pale-paper}"
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.inverse-ink}"
     typography: "{typography.control}"
     rounded: "{rounded.lg}"
-    padding: "0.25rem 0.625rem"
+    padding: "0 1rem"
     height: "2rem"
   button-outline:
-    backgroundColor: "{colors.clear-paper}"
-    textColor: "{colors.warm-ink}"
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
     typography: "{typography.control}"
     rounded: "{rounded.lg}"
     padding: "0.25rem 0.625rem"
     height: "2rem"
   button-ghost:
     backgroundColor: "transparent"
-    textColor: "{colors.warm-ink}"
+    textColor: "{colors.ink}"
     typography: "{typography.control}"
     rounded: "{rounded.lg}"
     padding: "0.25rem 0.625rem"
     height: "2rem"
   input-default:
-    backgroundColor: "{colors.clear-paper}"
-    textColor: "{colors.warm-ink}"
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
     typography: "{typography.body}"
     rounded: "{rounded.lg}"
     padding: "0.25rem 0.625rem"
     height: "2rem"
   badge-default:
-    backgroundColor: "{colors.deep-ink}"
-    textColor: "{colors.pale-paper}"
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.inverse-ink}"
     typography: "{typography.label}"
     rounded: "{rounded.pill}"
     padding: "0.125rem 0.5rem"
     height: "1.25rem"
   card-default:
-    backgroundColor: "{colors.clear-paper}"
-    textColor: "{colors.warm-ink}"
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
     typography: "{typography.body}"
     rounded: "{rounded.xl}"
     padding: "1rem"
   tab-active:
-    backgroundColor: "{colors.clear-paper}"
-    textColor: "{colors.warm-ink}"
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
     typography: "{typography.control}"
     rounded: "{rounded.md}"
     padding: "0.125rem 0.375rem"
     height: "2rem"
   sidebar-item:
     backgroundColor: "transparent"
-    textColor: "{colors.warm-ink}"
+    textColor: "{colors.ink}"
     typography: "{typography.body}"
     rounded: "{rounded.md}"
     padding: "0.5rem"
     height: "2rem"
   dialog-default:
-    backgroundColor: "{colors.clear-paper}"
-    textColor: "{colors.warm-ink}"
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
     typography: "{typography.body}"
     rounded: "{rounded.xl}"
     padding: "1rem"
@@ -131,36 +135,34 @@ components:
 
 **Creative North Star: "Quiet Workbench"**
 
-Lunaris treats the interface as a dependable work surface: calm enough for long writing sessions, compact enough for complex workspaces, and precise enough for team workflows. Warm paper-and-ink neutrals keep attention on documents and tools. Hierarchy comes from spacing, weight, and tonal contrast before scale or decoration.
+The app borrows the landing page’s DM Sans typography, warm paper canvas, and black dark theme. In the workbench, spacing and type distinguish the current resource from navigation and tools. A slightly raised surface identifies each resizable panel.
 
-Color and imagery enter as bounded portals rather than ambient chrome. Auth, onboarding, announcements, and other meaningful moments may use colorful or stylized imagery, while the operational organization stays neutral and focused. The result should feel minimal without becoming sterile, and approachable without becoming soft or toy-like.
+The sign-in screen pairs the landing page’s lunar landscape with a compact form. The editor gives that space back to the resource.
 
 **Key Characteristics:**
 
-- Warm monochrome foundations in both light and dark themes.
-- Compact controls with clear state changes and generous focus visibility.
-- Rounded, bordered surfaces with restrained elevation.
-- Dense desktop organizations that simplify into direct mobile hierarchies.
-- Colorful imagery contained within deliberate, clipped portal regions.
+- Warm paper and black canvases with distinct reading surfaces.
+- Compact controls with visible keyboard focus.
+- Canvas gutters separate workbench panels. A soft shadow lifts floating menus above the workspace.
+- A responsive workspace layout with direct navigation on small screens.
+- Color for artwork, status, charts, and user content.
 
 ## Colors
 
-The Paper & Ink palette uses near-white paper surfaces, warm charcoal ink, and quiet stone layers; strong color remains functional or deliberately contained.
+The app follows the device appearance on first use. A saved Light or Dark selection takes precedence until the user selects System again.
 
-### Primary
+`packages/ui/src/globals.css` owns the semantic colors, font, and surface styles for both shells. Use role classes such as `bg-background`, `bg-card`, `border-input`, and `text-muted-foreground` in feature code. System UI shown before styles load uses the same canvas colors.
 
-- **Deep Ink:** Primary actions, selected controls, progress, and high-emphasis inverse surfaces.
-
-### Neutral
-
-- **Clear Paper:** Main light-theme canvas and card surface.
-- **Pale Paper:** Sidebar and inverse foreground where a softer white avoids glare.
-- **Soft Stone:** Muted fills, hover states, secondary controls, and grouped tabs.
-- **Hairline Stone:** Borders, dividers, input strokes, and low-contrast rings.
-- **Focus Stone:** Focus indication and emphasized interactive boundaries.
-- **Muted Ink:** Supporting copy, placeholders, timestamps, and inactive navigation.
-- **Warm Ink:** Main text and dark-theme canvas.
-- **Night Stone:** Raised dark-theme surfaces and muted interactive states.
+| Role | Light | Dark |
+| --- | --- | --- |
+| App canvas and sidebar | Canvas | Ink |
+| Panel, card, and field | Surface | Night Surface |
+| Floating menu or dialog | Surface | Night Popover |
+| Text and primary action | Ink | Inverse Ink |
+| Supporting text and focus ring | Muted Ink | Night Text Secondary |
+| Hover, selection, secondary action | Soft Stone | Night Muted |
+| Divider | Hairline Stone | Night Border |
+| Field boundary | Field Stroke | Muted Ink |
 
 ### State
 
@@ -172,28 +174,22 @@ The Paper & Ink palette uses near-white paper surfaces, warm charcoal ink, and q
 
 ## Typography
 
-**Display Font:** Nunito Sans Variable with system sans-serif fallbacks
-
-**Body Font:** Nunito Sans Variable with system sans-serif fallbacks
-**Accessible Reading Font:** OpenDyslexic with Verdana and humanist sans-serif fallbacks
-
-**Character:** A single friendly grotesk keeps dense product UI cohesive and readable. Weight changes carry most hierarchy; the optional OpenDyslexic family changes reading mechanics without changing layout intent.
+DM Sans Variable is self-hosted by the UI package. The app also supports the user’s serif or OpenDyslexic reading preference and larger font sizes.
 
 ### Hierarchy
 
-- **Headline:** Compact page titles, key empty states, and major settings surfaces.
-- **Title:** Section headings, failure states, and strong card headings.
-- **Body:** Default interface copy, descriptions, menus, and document-adjacent UI.
-- **Control:** Buttons, tabs, compact navigation, and interactive labels.
-- **Label:** Metadata, status, supporting navigation, and dense utility text.
+- Use `app-page-title` for sign-in, Recent, and settings page headings.
+- Use `app-panel-title` for New Tab, extension management, and workspace settings inside the workbench.
+- Set control labels and body copy at 0.875rem. Use 0.75rem for timestamps and supporting metadata.
+- Pair the app mark with `app-wordmark` where there is room for the Lunaris name. The workbench toolbar uses the mark alone.
 
 ### Named Rules
 
-**The Quiet Hierarchy Rule.** Inside the application, increase weight and spacing before increasing type size. Operational page titles stop at the established headline role; marketing-scale display type does not enter the organization.
+**The Quiet Hierarchy Rule.** Use the page and panel title roles to distinguish a top-level destination from a tool within a workspace.
 
 ## Layout
 
-Lunaris uses two related spatial models. Workspace and settings indexes sit in centered columns up to 56rem with 1rem mobile gutters, expanding to 1.5rem gutters and 3rem vertical breathing room on desktop. Editor organizations fill the viewport and prioritize resizable panels, hierarchy navigation, compact headers, and uninterrupted document area.
+Lunaris uses two related spatial models. The Recent page sits in a centered column up to 56rem wide, with 1rem mobile gutters and 1.5rem desktop gutters. Settings pairs a navigation sidebar with a scrolling content area. The workbench fills the viewport with a resource explorer and resizable resource views.
 
 Spacing follows a 0.25rem base rhythm, with 0.5rem, 0.75rem, and 1rem doing most component work. Workspace cards move from one column to two at 40rem and three at 64rem. Desktop navigation changes at 48rem: persistent side structures collapse into sheets, horizontal selectors, or direct mobile hierarchy pages. Standard sidebars are 16rem expanded, 3rem icon-only, and 18rem as mobile sheets.
 
@@ -201,7 +197,7 @@ Spacing follows a 0.25rem base rhythm, with 0.5rem, 0.75rem, and 1rem doing most
 
 ## Elevation & Depth
 
-The system is flat by default. Hairline borders, subtle rings, and tonal surface shifts create most separation. Small shadows appear on selected tabs, hoverable workspace cards, inset shells, menus, and floating surfaces; medium and large shadows are reserved for overlays and transient layers. Backdrops use a light black veil with subtle blur rather than an opaque wall.
+The system is flat by default. Hairline borders and tonal shifts separate static surfaces. Selected tabs and hoverable workspace cards use a small shadow. Floating controls share a neutral translucent fill, backdrop blur, and soft shadow. Modal backdrops dim the surrounding workspace.
 
 ### Shadow Vocabulary
 
@@ -215,9 +211,9 @@ The system is flat by default. Hairline borders, subtle rings, and tonal surface
 
 ## Shapes
 
-The base form is a gently rounded rectangle. Compact controls use the medium-to-large radius steps; cards and dialogs use the extra-large step; badges, avatars, switches, and status dots use pills or circles. Hairline borders keep rounded surfaces precise. The flowing Lunaris mark remains a brand asset, not a shape motif to repeat across controls.
+The base form is a gently rounded rectangle. Compact controls use the medium-to-large radius steps; cards and dialogs use the extra-large step; badges, avatars, switches, and status dots use pills or circles. Hairline borders keep rounded surfaces precise.
 
-**The Radius Ladder Rule.** Match radius to scale and role: tighter for dense navigation, standard for controls, broader for containers, full only for inherently pill-shaped or circular elements.
+**The Radius Ladder Rule.** Use a tight radius on dense navigation, standard corners on controls, and broader corners on panels.
 
 ## Components
 
@@ -226,7 +222,7 @@ Components feel compact, rounded, and quietly tactile. State changes use muted f
 ### Buttons
 
 - **Shape:** Standard rounded control with transparent border allocation to prevent state shifts.
-- **Primary:** Deep Ink fill with Pale Paper text; use for the clearest action in a local decision.
+- **Primary:** Inverse text on a solid primary fill. Default and large primary buttons use the same corner radius as outline buttons.
 - **Secondary / Outline:** Soft Stone fill or a Hairline Stone border for lower-emphasis actions.
 - **Ghost:** Transparent at rest, gaining a muted fill on hover or expanded state.
 - **Interaction:** A visible three-pixel focus halo, reduced opacity when disabled, and a one-pixel active press.
@@ -234,32 +230,32 @@ Components feel compact, rounded, and quietly tactile. State changes use muted f
 ### Badges
 
 - **Style:** Fully rounded, compact labels using the label role.
-- **State:** Deep Ink for default emphasis, Soft Stone for secondary context, outline for neutral metadata, and Signal Red only for destructive meaning.
+- **State:** Ink for default emphasis, Soft Stone for secondary context, outline for neutral metadata, and Signal Red for errors and destructive actions. Use the shared success and warning variants for positive status and cautions. Pair each status color with a label or accessible name.
 
 ### Cards / Containers
 
 - **Corner Style:** Broad but controlled extra-large rounding.
-- **Background:** Paper surfaces with warm ink text; muted footers may use a half-strength stone fill.
+- **Background:** Use the shared Card or the `app-surface` utility for a raised panel with a single border ring.
 - **Shadow Strategy:** Ring first. Add Ambient Low only for hover, selection, or inset separation.
 - **Internal Padding:** One standard section step, reduced for compact cards.
 
 ### Inputs / Fields
 
-- **Style:** Compact transparent field with Hairline Stone border and standard control rounding.
-- **Focus:** Border shifts to Focus Stone with a three-pixel half-strength halo.
+- **Style:** A card-colored field with a dedicated input stroke and standard control rounding.
+- **Focus:** The input stroke takes the focus ring color with a three-pixel half-strength halo.
 - **Error / Disabled:** Signal Red owns invalid state; disabled fields use muted fill and half opacity.
 
 ### Navigation
 
-Sidebars use Pale Paper, compact icon-and-label rows, muted hover and active fills, and medium rounding. Expanded navigation is 16rem wide and may collapse to a 3rem icon rail. Below the desktop breakpoint, navigation becomes an 18rem sheet or a direct mobile hierarchy rather than a squeezed desktop sidebar.
+Sidebars share the canvas color and use compact icon-and-label rows, muted hover and active fills, and medium rounding. Expanded navigation is 16rem wide and may collapse to a 3rem icon rail. Below the desktop breakpoint, navigation becomes an 18rem sheet or a direct mobile hierarchy rather than a squeezed desktop sidebar.
 
 ### Dialogs and Overlays
 
-Dialogs use Paper popover surfaces, extra-large rounding, a subtle outline, compact headers, and muted bordered footers. Open and close transitions are fast fades and small scale changes. Destructive confirmation remains visually explicit without flooding the whole dialog red.
+Search, menus, tooltips, dialogs, and mobile drawers share the `app-overlay-surface` treatment. Apply it once to the floating container so its content can reveal the same blurred backdrop. Reduced transparency uses a solid theme surface. Forced colors adds a system-colored edge. Dialogs retain extra-large corners, compact headers, and muted footers.
 
 ### Image Portals
 
-Colorful or stylized artwork may occupy a clearly bounded, clipped region in auth, onboarding, announcements, and similarly meaningful moments. The surrounding controls remain neutral, ensuring imagery feels like a welcome change in atmosphere rather than persistent decoration.
+Sign-in uses an offline WebP crop of the landing page’s lunar landscape. It fills the left pane on desktop and a shallow horizontal band on mobile. The welcome banner on the Recent page uses the original abstract artwork as a centered, full-width background, with a 50% black overlay behind white text.
 
 ### Named Rules
 

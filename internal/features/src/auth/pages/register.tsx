@@ -220,7 +220,7 @@ export function RegisterForm({
           <FieldError errors={[errors.password]} id="register-password-error" />
         </Field>
         <Button
-          className="h-11 w-full"
+          className="touch-target w-full"
           data-testid="auth-register-submit"
           disabled={isSubmitting}
           type="submit"

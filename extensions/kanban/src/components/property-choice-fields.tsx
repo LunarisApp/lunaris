@@ -14,7 +14,6 @@ import { cn } from "@lunarisapp/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import type { ChoicePropertyDefinition, PropertyValue } from "../types";
 import {
-  composerSelectTriggerClassName,
   PropertyFieldButton,
   type PropertyFieldAppearance,
   metadataSelectTriggerClassName,
@@ -63,12 +62,14 @@ export function SelectPropertyField({
       <SelectTrigger
         aria-label={property.name}
         className={cn(
-          "min-w-28 max-w-56",
-          appearance === "composer" && composerSelectTriggerClassName,
+          "max-w-56",
+          appearance === "composer"
+            ? "min-w-0 [&>svg:last-child]:hidden"
+            : "min-w-28",
           appearance === "metadata" && metadataSelectTriggerClassName,
           className
         )}
-        size="sm"
+        size={appearance === "composer" ? "default" : "sm"}
       >
         {appearance === "composer" ? <PropertyTypeIcon type="select" /> : null}
         <SelectValue
@@ -156,7 +157,8 @@ export function MultiSelectPropertyField({
             appearance={appearance}
             aria-label={property.name}
             className={cn(
-              "h-auto min-h-7 min-w-28 max-w-64 justify-start px-2 py-1",
+              "max-w-64",
+              appearance !== "composer" && "h-auto min-h-7 min-w-28 py-1",
               className
             )}
           />

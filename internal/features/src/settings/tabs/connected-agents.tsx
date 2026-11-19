@@ -169,8 +169,7 @@ function ConnectedAgentsContent({
                 </div>
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-11 sm:h-8"
+                  className="max-sm:touch-target"
                   disabled={revoke.isPending}
                   aria-busy={revoke.isPending && revoke.variables === grant.id}
                   aria-label={t("auth.agentAuthorization.revokeNamed", {

@@ -34,14 +34,7 @@ export function CurrentPlanSummary({
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <p className="font-bold text-4xl tracking-tight">{details.name}</p>
           <Badge
-            className={
-              details.badgeVariant === "active"
-                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                : ""
-            }
-            variant={
-              details.badgeVariant === "active" ? "secondary" : "outline"
-            }
+            variant={details.badgeVariant === "active" ? "success" : "outline"}
           >
             {details.badge}
           </Badge>
@@ -54,10 +47,9 @@ export function CurrentPlanSummary({
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           {!!manage && (
             <Button
-              className="@lg/billing:h-8 h-11"
+              className="@max-lg/billing:touch-target"
               disabled={actionsDisabled || manageLoading}
               onClick={manage}
-              size="sm"
               variant="outline"
             >
               {manageLoading

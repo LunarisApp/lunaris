@@ -237,8 +237,7 @@ export function AgentAccessSection() {
                               manager.approve(request.requestId)
                             )
                           }
-                          className="h-11 sm:h-8"
-                          size="sm"
+                          className="max-sm:touch-target"
                         >
                           <span id={`agent-approve-label-${request.requestId}`}>
                             {t("settings.agents.agentAccess.approve")}
@@ -282,8 +281,7 @@ export function AgentAccessSection() {
                           onClick={() =>
                             void update(() => manager.revoke(grant.clientId))
                           }
-                          className="h-11 sm:h-8"
-                          size="sm"
+                          className="max-sm:touch-target"
                           variant="outline"
                         >
                           <span id={`agent-revoke-label-${grant.clientId}`}>
@@ -334,7 +332,7 @@ export function AgentAccessSection() {
                 value={mcpAccess}
               >
                 <SelectTrigger
-                  className="data-[size=default]:h-11 sm:data-[size=default]:h-8"
+                  className="max-sm:touch-target"
                   id="agent-mcp-access"
                 >
                   <SelectValue />
@@ -377,9 +375,8 @@ export function AgentAccessSection() {
                 </div>
                 <div className="space-y-3">
                   <Button
-                    className="h-11 w-full sm:h-8 sm:w-auto"
+                    className="max-sm:touch-target w-full sm:w-auto"
                     onClick={() => void copyCommand()}
-                    size="sm"
                     variant="outline"
                   >
                     <span aria-live="polite">

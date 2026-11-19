@@ -33,7 +33,7 @@ export default async function McpPage({
 	const dict = await getDictionary(locale);
 
 	return (
-		<section className="pt-14 pb-16 sm:pt-20 sm:pb-24">
+		<section className="py-12 sm:py-20">
 			<Container>
 				<div className="mx-auto max-w-4xl text-center">
 					<Heading className="text-balance">{dict.mcpPage.headline}</Heading>

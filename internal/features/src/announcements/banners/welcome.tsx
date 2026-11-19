@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../auth/context";
-import abstractBg from "../assets/abstract_bg.webp";
+import announcementArt from "../assets/abstract_bg.webp";
 
 export function WelcomeBanner() {
   const { t } = useTranslation();
@@ -18,16 +18,16 @@ export function WelcomeBanner() {
 
   return (
     <div
-      className="relative flex h-40 w-full flex-col justify-center overflow-hidden rounded-lg bg-center bg-cover px-8"
-      style={{ backgroundImage: `url(${abstractBg})` }}
+      className="relative flex h-40 w-full flex-col justify-center gap-1 overflow-hidden rounded-xl border bg-black bg-center bg-cover px-4 text-white sm:px-8"
+      style={{ backgroundImage: `url(${announcementArt})` }}
     >
-      <div className="absolute inset-0 bg-black/50" />
-      <p className="relative font-semibold text-white text-xl">
+      <div aria-hidden="true" className="absolute inset-0 bg-black/50" />
+      <p className="relative line-clamp-2 font-medium text-lg leading-tight tracking-tight sm:text-xl">
         {hasName
           ? t("announcements.welcomeTitle", { name: user.name })
           : t("announcements.welcomeTitleGeneric")}
       </p>
-      <p className="relative mt-1 text-sm text-white/70">{subtitle}</p>
+      <p className="relative text-sm">{subtitle}</p>
     </div>
   );
 }

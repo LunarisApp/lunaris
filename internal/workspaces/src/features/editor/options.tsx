@@ -167,7 +167,7 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
         <ResponsiveDropdownMenuTrigger
           render={
             <Button
-              className="size-11 shrink-0 rounded-xl active:bg-muted md:size-8 md:rounded-lg md:bg-transparent"
+              className="max-md:touch-target"
               size="icon"
               variant="ghost"
             />

@@ -31,7 +31,7 @@ export function Plan({
 	return (
 		<div
 			className={clsx(
-				"flex flex-col justify-between gap-7 rounded-xl bg-olive-950/2.5 p-6 ring-1 ring-olive-950/10 sm:items-start dark:bg-white/5 dark:ring-white/10",
+				"flex flex-col gap-5 rounded-xl border border-olive-950/15 p-6 sm:items-start dark:border-white/15",
 				className,
 			)}
 		>
@@ -57,19 +57,19 @@ export function Plan({
 						</span>
 					)}
 				</p>
-				<div className="mt-5 flex min-h-12 flex-col gap-4 text-sm/6 text-olive-700 dark:text-olive-400">
+				<div className="mt-4 flex sm:min-h-12 flex-col gap-4 text-sm/6 text-olive-700 dark:text-olive-400">
 					{subheadline}
 				</div>
-				<ul className="mt-5 space-y-2.5 text-sm/6 text-olive-700 dark:text-olive-400">
-					{features.map((feature) => (
-						<li className="flex gap-3" key={String(feature)}>
-							<CheckmarkIcon className="h-lh shrink-0 stroke-olive-600 dark:stroke-olive-300" />
-							<p>{feature}</p>
-						</li>
-					))}
-				</ul>
 			</div>
 			{cta}
+			<ul className="w-full border-t border-olive-950/10 pt-5 dark:border-white/10 space-y-2.5 text-sm/6 text-olive-700 dark:text-olive-400">
+				{features.map((feature) => (
+					<li className="flex gap-3" key={String(feature)}>
+						<CheckmarkIcon className="h-lh shrink-0 stroke-olive-600 dark:stroke-olive-300" />
+						<p>{feature}</p>
+					</li>
+				))}
+			</ul>
 		</div>
 	);
 }
@@ -79,6 +79,8 @@ export function PricingHeroMultiTier<T extends string>({
 	headline,
 	subheadline,
 	options,
+	billingPeriodLabel,
+	comparisonLabel,
 	plans,
 	footer,
 	className,
@@ -88,11 +90,13 @@ export function PricingHeroMultiTier<T extends string>({
 	headline: ReactNode;
 	subheadline: ReactNode;
 	options: readonly T[];
+	billingPeriodLabel: string;
+	comparisonLabel: string;
 	plans: Record<T, ReactNode>;
 	footer?: ReactNode;
 } & ComponentProps<"section">) {
 	return (
-		<section className={clsx("pt-16 pb-20 sm:pt-20", className)} {...props}>
+		<section className={clsx("py-12 sm:py-20", className)} {...props}>
 			<ElTabGroup>
 				<Container className="flex flex-col gap-12 sm:gap-14">
 					<div className="flex flex-col items-center gap-6">
@@ -104,17 +108,28 @@ export function PricingHeroMultiTier<T extends string>({
 						>
 							{subheadline}
 						</Text>
-						<ElTabList className="flex items-center gap-1 rounded-full bg-olive-950/5 p-1 ring-1 ring-olive-950/5 dark:bg-white/5 dark:ring-white/10">
-							{options.map((option) => (
-								<button
-									className="rounded-full px-4 py-1 text-sm/7 font-medium text-olive-700 transition-colors hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive-700 aria-selected:bg-olive-950 aria-selected:text-white dark:text-olive-300 dark:hover:text-white dark:focus-visible:outline-olive-200 dark:aria-selected:bg-olive-200 dark:aria-selected:text-olive-950"
-									key={option}
-									type="button"
-								>
-									{option}
-								</button>
-							))}
-						</ElTabList>
+						<div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
+							<ElTabList
+								aria-label={billingPeriodLabel}
+								className="flex items-center gap-1 rounded-full bg-olive-950/5 p-1 ring-1 ring-olive-950/5 dark:bg-white/5 dark:ring-white/10"
+							>
+								{options.map((option) => (
+									<button
+										className="rounded-full px-4 py-1 text-sm/7 font-medium text-olive-700 aria-[selected=false]:hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive-700 aria-selected:bg-olive-950 aria-selected:text-white dark:text-olive-300 dark:aria-[selected=false]:hover:text-white dark:focus-visible:outline-olive-200 dark:aria-selected:bg-olive-200 dark:aria-selected:text-olive-950"
+										key={option}
+										type="button"
+									>
+										{option}
+									</button>
+								))}
+							</ElTabList>
+							<a
+								href="#compare-plans"
+								className="inline-flex min-h-11 items-center rounded-sm text-sm font-medium underline underline-offset-4 focus-visible:outline-2"
+							>
+								{comparisonLabel}
+							</a>
+						</div>
 					</div>
 					<ElTabPanels>
 						{options.map((option) => (

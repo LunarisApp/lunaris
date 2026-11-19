@@ -15,8 +15,9 @@ vi.mock("@lunarisapp/ui/components/context-menu", () => ({
 
 vi.mock("@lunarisapp/ui/components/drawer", () => ({
   Drawer: ({ children }: { children: ReactNode }) => <>{children}</>,
-  DrawerClose: ({ children }: { children: ReactNode }) => <>{children}</>,
+  DrawerMenuItem: ({ children }: { children: ReactNode }) => <>{children}</>,
   DrawerContent: ({ children }: { children: ReactNode }) => <>{children}</>,
+  DrawerTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
   DrawerTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
@@ -25,6 +26,7 @@ vi.mock("@lunarisapp/ui/icons", () => ({
   Delete02Icon: {},
   Edit02Icon: {},
   FolderAddIcon: {},
+  FileAddIcon: {},
   HugeiconsIcon: () => null,
   Link02Icon: {},
   MoreVerticalIcon: {},
@@ -36,7 +38,7 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("./context-menu-config", () => ({
   AddFolderMenuItem: () => null,
-  AddItemSubmenu: () => null,
+  AddResourceMenuItem: () => null,
   CopyPathMenuItem: () => null,
   CopyUrlMenuItem: () => null,
   DeleteMenuItem: () => null,
@@ -60,10 +62,9 @@ function renderActions(isFolder: boolean) {
       canDelete
       canDuplicate={false}
       canUpdate
-      resources={[]}
       item={makeItem(isFolder)}
       onAddFolder={vi.fn()}
-      onAddItem={vi.fn()}
+      onAddResource={vi.fn()}
       onCopyPath={vi.fn()}
       onCopyUrl={vi.fn()}
       onDelete={vi.fn()}

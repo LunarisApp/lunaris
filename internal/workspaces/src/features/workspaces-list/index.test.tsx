@@ -34,7 +34,7 @@ vi.mock("react-i18next", () => ({
         "workspaces.noWorkspacesDescription":
           "Create your first workspace to get started",
         "workspaces.noSearchResults": "No matching workspaces",
-        "workspaces.recentWorkspaces": "Recent Workspaces",
+        "workspaces.recentWorkspaces": "Recent",
       })[key] ?? key,
   }),
 }));
@@ -312,9 +312,7 @@ describe("WorkspacesList", () => {
     expect(screen.getByTestId("workspaces-list-item-atlas").dataset.view).toBe(
       "list"
     );
-    expect(
-      screen.getByRole("list", { name: "Recent Workspaces" })
-    ).toBeTruthy();
+    expect(screen.getByRole("list", { name: "Recent" })).toBeTruthy();
   });
 
   it("does not sync workspace content on hover", () => {

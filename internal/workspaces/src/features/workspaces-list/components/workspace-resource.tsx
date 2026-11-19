@@ -94,8 +94,8 @@ export function WorkspaceResource({
     </Badge>
   );
   const workspaceAvatar = (
-    <Avatar aria-hidden="true" className="size-9 rounded-lg after:rounded-lg">
-      <AvatarFallback className="rounded-lg bg-primary/10 font-semibold text-primary">
+    <Avatar aria-hidden="true" className="size-9 rounded-lg">
+      <AvatarFallback className="font-semibold text-foreground">
         {getInitials(workspaceName)}
       </AvatarFallback>
     </Avatar>
@@ -119,21 +119,21 @@ export function WorkspaceResource({
     <>
       {view === "grid" ? (
         <article
-          className="group relative flex flex-col rounded-xl bg-card ring-1 ring-foreground/10 transition-[box-shadow] hover:shadow-sm hover:ring-foreground/20"
+          className="app-surface group relative flex flex-col transition-shadow hover:shadow-sm hover:ring-muted-foreground/60"
           role="listitem"
         >
           <Link
-            className="flex flex-1 flex-col rounded-xl p-4 pr-12 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            className="flex min-h-40 flex-1 flex-col rounded-xl p-5 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
             data-testid={`workspaces-list-item-${workspace.slug}`}
             onFocus={activateWorkspace}
             onPointerDown={activateWorkspace}
             to={workspaceHref}
           >
-            <div className="flex min-w-0 items-center gap-3">
+            <div className="flex min-w-0 flex-col items-start gap-3">
               {workspaceAvatar}
-              <div className="min-w-0">
+              <div className="w-full min-w-0">
                 <div
-                  className="truncate font-semibold text-base"
+                  className="truncate font-semibold text-base tracking-tight"
                   data-testid="workspaces-list-item-name"
                 >
                   {workspaceName}

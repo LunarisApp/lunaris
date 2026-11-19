@@ -66,7 +66,7 @@ describe("organization/members", () => {
         }).click();
         cy.intercept("POST", "**/v1/sync/ingest").as("memberWriteSync");
         cy.get('button[aria-label="Add file"]').click();
-        cy.contains('[role="menuitem"]', "Rich Text").click();
+        cy.contains('[role="option"]', "Rich Text").click();
         cy.wait("@memberWriteSync", { timeout: 30_000 })
           .its("response.statusCode")
           .should("eq", 200);

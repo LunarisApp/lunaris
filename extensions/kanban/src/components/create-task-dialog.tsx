@@ -226,7 +226,7 @@ export function CreateTaskDialog({
                   return (
                     <PropertyValueField
                       appearance="composer"
-                      className="max-w-48!"
+                      className="max-w-48"
                       disabled={isCreating}
                       emptyLabel={property.name}
                       key={property.id}

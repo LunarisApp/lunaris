@@ -1,32 +1,50 @@
 @import "tailwindcss";
+@import "@lunarisapp/ui/overlays.css";
+
+@source "../../node_modules/@lunarisapp/ui/dist/components/navigation-menu.js";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-	--font-display: "Instrument Serif", serif;
-	--font-sans: "Inter", system-ui, sans-serif;
-	--font-wordmark: "Inter", system-ui, sans-serif;
+	--color-popover: var(--color-olive-50);
+	--color-popover-foreground: var(--color-olive-800);
+	--color-foreground: var(--color-olive-950);
+	--color-muted: var(--color-olive-200);
+	--color-ring: var(--color-olive-600);
 
-	--color-olive-50: oklch(98.8% 0.003 106.5);
-	--color-olive-100: oklch(96.6% 0.005 106.5);
-	--color-olive-200: oklch(93% 0.007 106.5);
-	--color-olive-300: oklch(88% 0.011 106.6);
-	--color-olive-400: oklch(73.7% 0.021 106.9);
-	--color-olive-500: oklch(58% 0.031 107.3);
-	--color-olive-600: oklch(46.6% 0.025 107.3);
-	--color-olive-700: oklch(39.4% 0.023 107.4);
-	--color-olive-800: oklch(28.6% 0.016 107.4);
-	--color-olive-900: oklch(22.8% 0.013 107.4);
-	--color-olive-950: oklch(15.3% 0.006 107.1);
+	--font-hero: "Instrument Serif", serif;
+	--font-sans: "DM Sans", system-ui, sans-serif;
+	--font-display: var(--font-sans);
+	--font-wordmark: var(--font-sans);
+	--font-mono: var(--font-sans);
+
+	--color-olive-50: #f8f8f8;
+	--color-olive-100: #f8f8f8;
+	--color-olive-200: #eaeaea;
+	--color-olive-300: #dddddd;
+	--color-olive-400: #b1b1b1;
+	--color-olive-500: #888888;
+	--color-olive-600: #616161;
+	--color-olive-700: #494949;
+	--color-olive-800: #343434;
+	--color-olive-900: #000;
+	--color-olive-950: #000;
 }
 
 @layer base {
 	html {
-		--scroll-padding-top: 0;
+		--scroll-padding-top: 4.5rem;
+		color: var(--color-foreground);
+		color-scheme: light;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 		scroll-padding-top: var(--scroll-padding-top);
 		background-color: var(--color-olive-100);
+	}
+
+	html:not(.dark) {
+		--color-olive-100: #efeeeb;
+		--color-olive-50: var(--color-olive-100);
 	}
 
 	:where(
@@ -43,6 +61,12 @@
 	}
 
 	html.dark {
+		color-scheme: dark;
+		--color-popover: var(--color-olive-900);
+		--color-popover-foreground: var(--color-olive-100);
+		--color-foreground: var(--color-olive-50);
+		--color-muted: var(--color-olive-800);
+		--color-ring: var(--color-olive-400);
 		background-color: var(--color-olive-950);
 	}
 }
@@ -50,5 +74,226 @@
 @layer components {
 	.probo-settings-item:has(probo-settings-link:not(:defined)) {
 		display: none;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.extension-scene[data-playing="true"] {
+			.extension-module {
+				transform-box: fill-box;
+				transform-origin: center;
+				animation: extension-dock 0.75s cubic-bezier(0.25, 0.7, 0.3, 1) both;
+			}
+			.extension-board {
+				animation:
+					extension-open 0.28s 0.48s ease-out both,
+					extension-close 0.16s 2s ease-in forwards;
+			}
+			.extension-sheet-module {
+				animation-delay: 1.65s;
+			}
+			.extension-sheet {
+				animation:
+					extension-open 0.28s 2.16s ease-out both,
+					extension-close 0.16s 3.65s ease-in forwards;
+			}
+			.extension-cell {
+				animation: extension-open 0.22s 2.65s ease-out both;
+			}
+			.extension-dashboard-module {
+				animation-delay: 3.3s;
+			}
+			.extension-dashboard {
+				animation: extension-open 0.28s 3.81s ease-out both;
+			}
+			.extension-bar {
+				transform-origin: 0 168px;
+				animation: extension-grow 0.55s 3.95s cubic-bezier(0.18, 0.85, 0.3, 1)
+					both;
+			}
+			.extension-task {
+				transform-box: fill-box;
+				transform-origin: center;
+				animation: extension-complete 0.65s 0.8s ease-in-out both;
+			}
+			.extension-check {
+				animation: extension-open 0.16s 1.38s ease-out both;
+			}
+		}
+	}
+
+	@keyframes extension-dock {
+		from {
+			opacity: 0;
+			translate: -56px 0;
+			transform: translateY(14px) rotate(-19deg) scale(1.2);
+		}
+		40% {
+			opacity: 1;
+			transform: translateY(-12px) rotate(-8deg) scale(1.08);
+		}
+		to {
+			opacity: 1;
+			translate: 0 0;
+			transform: none;
+		}
+	}
+	@keyframes extension-close {
+		from {
+			opacity: 1;
+		}
+		to {
+			opacity: 0;
+		}
+	}
+	@keyframes extension-grow {
+		from {
+			transform: scaleY(0.05);
+		}
+		to {
+			transform: none;
+		}
+	}
+	@keyframes extension-open {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+	@keyframes extension-complete {
+		from {
+			translate: -88px 0;
+			transform: none;
+		}
+		45% {
+			transform: translateY(-12px) rotate(4deg);
+		}
+		to {
+			translate: 0 0;
+			transform: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.workspace-artwork[data-visible="true"] {
+			.storage-page {
+				animation: file-into-folder 0.85s cubic-bezier(0.22, 0.8, 0.25, 1) both;
+			}
+			.storage-route,
+			.enterprise-check {
+				stroke-dasharray: 1;
+				animation: draw-route 0.65s 0.5s ease-in-out both;
+			}
+			.storage-endpoint,
+			.enterprise-seal {
+				transform-box: fill-box;
+				transform-origin: center;
+				animation: mark-access 0.35s 0.95s ease-out both;
+			}
+			.enterprise-badge {
+				transform-box: fill-box;
+				transform-origin: center top;
+				animation: issue-badge 0.8s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+			}
+			.enterprise-seal {
+				animation-delay: 0.55s;
+			}
+			.enterprise-check {
+				animation-delay: 0.75s;
+				animation-duration: 0.32s;
+			}
+		}
+	}
+	@keyframes file-into-folder {
+		from {
+			opacity: 0;
+			transform: translate(10px, -30px);
+		}
+		35% {
+			opacity: 1;
+		}
+		to {
+			transform: none;
+		}
+	}
+	@keyframes draw-route {
+		from {
+			stroke-dashoffset: 1;
+		}
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+	@keyframes issue-badge {
+		from {
+			opacity: 0;
+			transform: translate(-10px, -15px) rotate(-9deg);
+		}
+		65% {
+			opacity: 1;
+			transform: rotate(2deg);
+		}
+		to {
+			transform: none;
+		}
+	}
+	@keyframes mark-access {
+		from {
+			opacity: 0;
+			transform: scale(1.22);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	.lunar-cover {
+		position: relative;
+		isolation: isolate;
+		padding-block: clamp(2.5rem, 5vw, 5rem) clamp(4rem, 6vw, 6rem);
+		background:
+			linear-gradient(
+				68deg,
+				rgb(0 0 0 / 76%),
+				rgb(0 0 0 / 36%) 32%,
+				transparent 62%
+			),
+			#000 url("/img/lunar-landscape.webp") right top / cover no-repeat;
+	}
+
+	.lunar-cover::before {
+		content: "";
+		position: absolute;
+		z-index: -1;
+		inset: auto 0 0;
+		height: clamp(5rem, 10vw, 9rem);
+		pointer-events: none;
+		backdrop-filter: blur(8px);
+		background: linear-gradient(to bottom, transparent, var(--color-olive-100));
+		mask-image: linear-gradient(to bottom, transparent, black 85%);
+	}
+
+	html.dark .lunar-cover::before {
+		background: linear-gradient(to bottom, transparent, var(--color-olive-950));
+	}
+
+	@media (width < 48rem) {
+		.lunar-cover {
+			padding-top: 6.5rem;
+			background:
+				linear-gradient(to bottom, transparent 2rem, #000 10rem),
+				#000 url("/img/lunar-landscape.webp") right top / auto 12rem no-repeat;
+		}
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	[data-slot="navigation-menu"] *,
+	[data-side]:has([data-slot="navigation-menu-content"]),
+	[data-side]:has([data-slot="navigation-menu-content"]) * {
+		transition-duration: 0s;
+		animation-duration: 0s;
 	}
 }

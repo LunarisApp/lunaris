@@ -39,7 +39,7 @@ export function WorkspacesSortControl({
           render={
             <Button
               aria-label={t("workspaces.sortBy")}
-              className="size-11 rounded-lg"
+              className="touch-target"
               data-testid="workspaces-sort"
               size="icon"
               variant="outline"
@@ -52,7 +52,6 @@ export function WorkspacesSortControl({
           {sortOptions.map((option) => (
             <ResponsiveDropdownMenuItem
               aria-pressed={value === option.value}
-              className="min-h-12 rounded-xl text-base"
               data-testid={`workspaces-sort-${option.value}`}
               key={option.value}
               onClick={() => onChange(option.value)}

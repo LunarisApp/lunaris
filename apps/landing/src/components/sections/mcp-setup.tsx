@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from "clsx/lite";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	ClaudeIcon,
 	CodexIcon,
@@ -9,45 +9,15 @@ import {
 	McpIcon,
 } from "@/components/icons/harness-icons";
 import type { DataRegion } from "@/data/regions";
+import type { Dictionary } from "@/i18n/dictionaries/types";
 import { captureLandingEvent } from "@/lib/posthog";
 
-type McpCopy = {
-	harnessLabel: string;
-	regionLabel: string;
-	desktopName: string;
-	desktopDescription: string;
-	desktopAuthNote: string;
-	desktopDataNote: string;
-	genericName: string;
-	comingSoon: string;
-	available: string;
-	commandLabel: string;
-	configLabel: string;
-	detailsLabel: string;
-	copy: string;
-	copied: string;
-	authNote: string;
-	dataNote: string;
-};
+type McpCopy = Dictionary["mcpPage"]["setup"];
 
 type HarnessId = "mcp" | "claude" | "codex" | "cursor";
 
-type DesktopMcpRegion = {
-	readonly regionId: "desktop";
-	readonly displayName: string;
-	readonly description: string;
-	readonly status: "available";
-	readonly transport: "stdio";
-};
-
-type McpRegion = DataRegion | DesktopMcpRegion;
-
 const desktopMcpCommand = "/Applications/Lunaris.app/Contents/MacOS/Lunaris";
 const desktopMcpArguments = ["mcp", "serve", "--access", "read"] as const;
-
-function isDesktopMcpRegion(region: McpRegion): region is DesktopMcpRegion {
-	return "transport" in region && region.transport === "stdio";
-}
 
 function mcpUrl(region: DataRegion) {
 	if (region.status === "planned") return "";
@@ -87,10 +57,7 @@ args: ${argumentsList}`;
 	);
 }
 
-function setupSnippet(harness: HarnessId, region: McpRegion) {
-	if (isDesktopMcpRegion(region)) return localSetupSnippet(harness);
-
-	const url = mcpUrl(region);
+function cloudSetupSnippet(harness: HarnessId, url: string) {
 	if (harness === "mcp") return `transport: http\nurl: ${url}`;
 	if (harness === "claude")
 		return `claude mcp add --transport http lunaris ${url}`;
@@ -149,6 +116,52 @@ function CopyIcon({ copied }: { copied: boolean }) {
 	);
 }
 
+function CopySetup({
+	copy,
+	snippet,
+	harness,
+	regionId,
+}: {
+	copy: McpCopy;
+	snippet: string;
+	harness: HarnessId;
+	regionId: string;
+}) {
+	const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
+	useEffect(() => {
+		if (status !== "copied") return;
+		const timeout = window.setTimeout(() => setStatus("idle"), 1800);
+		return () => window.clearTimeout(timeout);
+	}, [status]);
+	async function copySnippet() {
+		try {
+			await navigator.clipboard.writeText(snippet);
+		} catch {
+			setStatus("failed");
+			return;
+		}
+		setStatus("copied");
+		captureLandingEvent("mcp_setup_copied", { harness, region: regionId });
+	}
+	return (
+		<div className="max-w-[60%] text-right">
+			<button
+				className="inline-flex min-h-10 items-center gap-2 rounded-full bg-white/8 px-3.5 py-1.5 text-sm font-medium text-white ring-1 ring-white/15 transition hover:bg-white/14 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+				onClick={copySnippet}
+				type="button"
+			>
+				<CopyIcon copied={status === "copied"} />
+				<span aria-live="polite">
+					{status === "copied" ? copy.copied : copy.copy}
+				</span>
+			</button>
+			<p role="status" className="text-xs/5">
+				{status === "failed" ? copy.manualCopy : ""}
+			</p>
+		</div>
+	);
+}
+
 export function McpSetup({
 	regions,
 	copy,
@@ -156,20 +169,7 @@ export function McpSetup({
 	regions: readonly DataRegion[];
 	copy: McpCopy;
 }) {
-	const desktopRegion = {
-		regionId: "desktop",
-		displayName: copy.desktopName,
-		description: copy.desktopDescription,
-		status: "available",
-		transport: "stdio",
-	} as const satisfies DesktopMcpRegion;
-	const mcpRegions: readonly McpRegion[] = [
-		...regions.slice(0, 1),
-		desktopRegion,
-		...regions.slice(1),
-	];
-	const defaultRegion =
-		mcpRegions.find((region) => region.status === "available") ?? mcpRegions[0];
+	const defaultRegion = regions.find((region) => region.status === "available");
 	const harnesses = [
 		{
 			id: "mcp",
@@ -182,31 +182,20 @@ export function McpSetup({
 	] as const;
 	const [harness, setHarness] = useState<HarnessId>("mcp");
 	const [regionId, setRegionId] = useState(defaultRegion?.regionId ?? "");
-	const [copied, setCopied] = useState(false);
-
-	const region =
-		mcpRegions.find((item) => item.regionId === regionId) ?? defaultRegion;
-	const endpoint = region && !isDesktopMcpRegion(region) ? mcpUrl(region) : "";
-	const snippet = useMemo(
-		() => (region ? setupSnippet(harness, region) : ""),
-		[harness, region],
+	const [connection, setConnection] = useState<"cloud" | "desktop">(
+		defaultRegion ? "cloud" : "desktop",
 	);
-	const cursorDeeplink = useMemo(
-		() => (endpoint ? cursorInstallUrl(endpoint) : ""),
-		[endpoint],
+	const desktop = connection === "desktop";
+	const region = regions.find(
+		(item) => item.regionId === regionId && item.status === "available",
 	);
+	const endpoint = !desktop && region ? mcpUrl(region) : "";
+	const snippet = desktop
+		? localSetupSnippet(harness)
+		: cloudSetupSnippet(harness, endpoint);
+	const cursorDeeplink = endpoint ? cursorInstallUrl(endpoint) : "";
 	const isConfig = harness === "cursor";
 	const isGeneric = harness === "mcp";
-
-	async function copySnippet() {
-		await navigator.clipboard.writeText(snippet);
-		captureLandingEvent("mcp_setup_copied", {
-			harness,
-			region: region?.regionId ?? null,
-		});
-		setCopied(true);
-		window.setTimeout(() => setCopied(false), 1800);
-	}
 
 	return (
 		<div className="grid overflow-hidden rounded-3xl bg-white/60 shadow-[0_24px_80px_-48px_rgba(20,20,17,0.45)] ring-1 ring-olive-950/10 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] dark:bg-white/5 dark:shadow-black/30 dark:ring-white/15">
@@ -216,59 +205,47 @@ export function McpSetup({
 						<span className="inline-flex size-6 items-center justify-center rounded-full bg-olive-700 text-xs text-white dark:bg-olive-200 dark:text-olive-950">
 							1
 						</span>
-						{copy.regionLabel}
+						{copy.connectionLabel}
 					</legend>
-					<div className="mt-5 flex flex-col gap-3">
-						{mcpRegions.map((item) => {
-							const selectable = item.status === "available";
-							const selected = regionId === item.regionId;
-							return (
-								<button
-									aria-pressed={selected}
-									className={clsx(
-										"flex min-h-14 items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive-700 dark:focus-visible:outline-olive-200",
-										selected && selectable
-											? "border-olive-950 bg-olive-950/5 dark:border-olive-200 dark:bg-white/10"
-											: "border-olive-950/10 bg-white/40 dark:border-white/15 dark:bg-white/5",
-										selectable
-											? "hover:border-olive-950/25 dark:hover:border-white/25"
-											: "cursor-not-allowed opacity-55",
-									)}
-									disabled={!selectable}
-									key={item.regionId}
-									onClick={() => {
-										setRegionId(item.regionId);
-										setCopied(false);
-									}}
-									type="button"
-								>
-									<span className="flex items-center gap-3">
-										<span
-											className={clsx(
-												"size-2 rounded-full",
-												selectable
-													? "bg-emerald-500 ring-4 ring-emerald-500/10"
-													: "bg-olive-400",
-											)}
-										/>
-										<span>
-											<span className="block text-sm font-medium text-olive-950 dark:text-white">
-												{item.displayName}
-											</span>
-											<span className="block text-xs text-olive-600 dark:text-olive-400">
-												{isDesktopMcpRegion(item)
-													? item.description
-													: item.regionId.toUpperCase()}
-											</span>
-										</span>
-									</span>
-									<span className="rounded-full bg-olive-950/5 px-2.5 py-1 text-xs font-medium text-olive-700 dark:bg-white/10 dark:text-olive-200">
-										{selectable ? copy.available : copy.comingSoon}
-									</span>
-								</button>
-							);
-						})}
+					<div className="mt-4 grid grid-cols-2 gap-1 rounded-lg bg-olive-950/5 p-1 dark:bg-white/5">
+						{(["cloud", "desktop"] as const).map((target) => (
+							<button
+								type="button"
+								key={target}
+								aria-pressed={connection === target}
+								disabled={target === "cloud" && !defaultRegion}
+								onClick={() => setConnection(target)}
+								className="min-h-11 rounded-md px-2 text-sm font-medium aria-pressed:bg-olive-950 aria-pressed:text-white disabled:opacity-50 focus-visible:outline-2 dark:text-olive-200 dark:aria-pressed:bg-olive-200 dark:aria-pressed:text-black"
+							>
+								{target === "desktop" ? copy.desktopName : copy.cloudName}
+							</button>
+						))}
 					</div>
+					{desktop ? (
+						<p className="mt-4 text-sm/6 text-olive-700 dark:text-olive-300">
+							{copy.desktopDescription}
+						</p>
+					) : (
+						<label className="mt-4 flex flex-col gap-2 text-sm font-medium text-olive-950 dark:text-olive-100">
+							{copy.regionLabel}
+							<select
+								className="min-h-11 w-full rounded-lg border border-olive-950/15 bg-olive-100 px-3 dark:border-white/20 dark:bg-black"
+								value={regionId}
+								onChange={(event) => setRegionId(event.target.value)}
+							>
+								{regions.map((item) => (
+									<option
+										key={item.regionId}
+										value={item.regionId}
+										disabled={item.status !== "available"}
+									>
+										{item.displayName}
+										{item.status === "planned" ? ` · ${copy.comingSoon}` : ""}
+									</option>
+								))}
+							</select>
+						</label>
+					)}
 				</fieldset>
 
 				<fieldset>
@@ -294,7 +271,6 @@ export function McpSetup({
 									key={item.id}
 									onClick={() => {
 										setHarness(item.id);
-										setCopied(false);
 									}}
 									type="button"
 								>
@@ -303,7 +279,7 @@ export function McpSetup({
 											"inline-flex size-8 shrink-0 items-center justify-center rounded-lg",
 											item.id === "cursor" && "bg-[#171717] p-1.5",
 											item.id === "codex" && "bg-white p-1.5",
-											item.id === "claude" && "bg-[#f5eee9] p-1.5",
+											item.id === "claude" && "bg-white p-1.5 text-black",
 											item.id === "mcp" && "bg-olive-700 p-1.5 text-white",
 										)}
 									>
@@ -329,7 +305,7 @@ export function McpSetup({
 						</p>
 						<p className="mt-1 text-sm text-olive-300">
 							{isGeneric
-								? region && isDesktopMcpRegion(region)
+								? desktop
 									? "stdio"
 									: "HTTP"
 								: isConfig
@@ -339,17 +315,16 @@ export function McpSetup({
 									: "~ terminal"}
 						</p>
 					</div>
-					<button
-						className="inline-flex min-h-10 items-center gap-2 rounded-full bg-white/8 px-3.5 py-1.5 text-sm font-medium text-white ring-1 ring-white/15 transition hover:bg-white/14 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-						onClick={copySnippet}
-						type="button"
-					>
-						<CopyIcon copied={copied} />
-						<span aria-live="polite">{copied ? copy.copied : copy.copy}</span>
-					</button>
+					<CopySetup
+						key={snippet}
+						copy={copy}
+						snippet={snippet}
+						harness={harness}
+						regionId={desktop ? "desktop" : regionId}
+					/>
 				</div>
 
-				<pre className="mt-8 max-w-full whitespace-pre-wrap break-words rounded-xl bg-white/7 p-4 text-xs/6 text-olive-100 ring-1 ring-white/12 sm:mt-10 sm:break-normal sm:p-5 sm:text-sm/7 dark:bg-black/15 dark:ring-white/15">
+				<pre className="mt-8 max-w-full select-all whitespace-pre-wrap break-words rounded-xl bg-white/7 p-4 text-xs/6 text-olive-100 ring-1 ring-white/12 sm:mt-10 sm:break-normal sm:p-5 sm:text-sm/7 dark:bg-black/15 dark:ring-white/15">
 					<code>{snippet}</code>
 				</pre>
 
@@ -390,9 +365,7 @@ export function McpSetup({
 							/>
 						</svg>
 						<p className="text-sm/6 text-olive-300">
-							{region && isDesktopMcpRegion(region)
-								? copy.desktopAuthNote
-								: copy.authNote}
+							{desktop ? copy.desktopAuthNote : copy.authNote}
 						</p>
 					</div>
 					<div className="flex gap-3">
@@ -416,9 +389,7 @@ export function McpSetup({
 							/>
 						</svg>
 						<p className="text-sm/6 text-olive-300">
-							{region && isDesktopMcpRegion(region)
-								? copy.desktopDataNote
-								: copy.dataNote}
+							{desktop ? copy.desktopDataNote : copy.dataNote}
 						</p>
 					</div>
 				</div>

@@ -739,7 +739,7 @@ function PDFViewerPageNumberControl({
       {isEditing ? (
         <Input
           aria-label="Page number"
-          className="mx-1 w-14 min-w-14 rounded-md [&_[data-slot=input]]:text-center"
+          className="mx-1 w-14 shrink-0 text-center"
           inputMode="numeric"
           onBlur={() => setIsEditing(false)}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
@@ -760,7 +760,6 @@ function PDFViewerPageNumberControl({
       ) : (
         <Button
           aria-label={`Current page ${displayPage}. Edit page number`}
-          className="font-normal"
           disabled={controlsDisabled || !numPages}
           onClick={() => {
             setDraftPage(String(displayPage));
@@ -1169,7 +1168,7 @@ function PDFViewerToolbar({
               onValueChange={(value) => onZoomChange(Number(value))}
               value={String(currentZoomLevel)}
             >
-              <SelectTrigger className="w-[84px] min-w-[84px]" size="sm">
+              <SelectTrigger className="w-21 shrink-0" size="sm">
                 <SelectValue placeholder="Zoom">
                   {Math.round(currentZoomLevel * 100)}%
                 </SelectValue>

@@ -25,7 +25,7 @@ export function FocusModeOverlay() {
     <div
       className={cn(
         "pointer-events-none fixed top-6 left-1/2 z-50 -translate-x-1/2",
-        "rounded-full bg-popover px-4 py-2 text-popover-foreground text-sm shadow-lg",
+        "app-overlay-surface rounded-full px-4 py-2 text-sm",
         "transition-opacity duration-300",
         visible ? "opacity-100" : "opacity-0"
       )}

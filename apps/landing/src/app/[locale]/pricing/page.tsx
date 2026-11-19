@@ -79,7 +79,7 @@ export default async function Page({
 				price={
 					showOriginal ? (
 						<>
-							<s className="text-base/6 font-normal text-olive-500 dark:text-olive-500">
+							<s className="text-base/6 font-normal text-olive-600 dark:text-olive-400">
 								{plan.originalYearlyPrice}
 							</s>{" "}
 							{plan.price[key]}
@@ -111,6 +111,8 @@ export default async function Page({
 		<>
 			{/* Hero */}
 			<PricingHeroMultiTier
+				billingPeriodLabel={dict.pricingPage.billingPeriod}
+				comparisonLabel={ct.heading}
 				footer={
 					<div className="space-y-2 text-center text-sm/6 text-olive-700 dark:text-olive-400">
 						<p>{dict.pricingPage.billingNote}</p>

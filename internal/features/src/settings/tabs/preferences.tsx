@@ -25,42 +25,36 @@ import { useLocale } from "../../locale/context";
 import { SUPPORTED_LOCALES } from "../../locale/i18n";
 import type { CookieSettingsLinkProps } from "../types";
 
-function ThemePreviewLines({ lineClass }: { lineClass: string }) {
+function WorkspacePreview() {
   return (
-    <div className="space-y-1.5 p-2">
-      <div className={`h-1.5 w-3/4 rounded-full ${lineClass}`} />
-      <div className={`h-1.5 w-1/2 rounded-full ${lineClass}`} />
-      <div className={`h-1.5 w-2/3 rounded-full ${lineClass}`} />
+    <div className="flex size-full gap-1 bg-background p-1">
+      <div className="w-1/4 space-y-1 p-1">
+        <div className="h-1 w-1/2 rounded-full bg-foreground" />
+        <div className="h-1 rounded-full bg-muted-foreground/40" />
+        <div className="h-1 w-3/4 rounded-full bg-muted-foreground/40" />
+      </div>
+      <div className="flex-1 space-y-1 rounded-sm border bg-card p-1.5">
+        <div className="h-1 w-2/3 rounded-full bg-foreground/75" />
+        <div className="h-1 w-4/5 rounded-full bg-muted" />
+      </div>
     </div>
   );
 }
 
 function ThemePreview({ mode }: { mode: "system" | "light" | "dark" }) {
-  if (mode === "system") {
-    return (
-      <div className="relative h-12 w-full overflow-hidden rounded-md border border-border/50">
-        <div
-          className="absolute inset-0 bg-white"
-          style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }}
-        >
-          <ThemePreviewLines lineClass="bg-zinc-200" />
-        </div>
-        <div
-          className="absolute inset-0 bg-zinc-800"
-          style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
-        >
-          <ThemePreviewLines lineClass="bg-zinc-600" />
-        </div>
-      </div>
-    );
-  }
-
-  const bg = mode === "dark" ? "bg-zinc-800" : "bg-white";
-  const line = mode === "dark" ? "bg-zinc-600" : "bg-zinc-200";
-
   return (
-    <div className={`h-12 w-full rounded-md border border-border/50 ${bg}`}>
-      <ThemePreviewLines lineClass={line} />
+    <div
+      aria-hidden="true"
+      className="relative h-12 w-full overflow-hidden rounded-md border"
+    >
+      <div className={mode === "dark" ? "dark h-full" : "light h-full"}>
+        <WorkspacePreview />
+      </div>
+      {mode === "system" && (
+        <div className="dark absolute inset-0 [clip-path:polygon(85%_0,100%_0,100%_100%,15%_100%)]">
+          <WorkspacePreview />
+        </div>
+      )}
     </div>
   );
 }
@@ -93,7 +87,7 @@ function ThemePicker({
         <div className="grid grid-cols-3 gap-3">
           {themes.map((opt) => (
             <label
-              className="flex-1 cursor-pointer"
+              className="min-w-0 cursor-pointer"
               data-testid={`settings-preferences-theme-${opt.id}`}
               htmlFor={`settings-theme-${opt.id}`}
               key={opt.id}

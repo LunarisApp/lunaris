@@ -24,17 +24,22 @@ type SearchDialogStoreInstance = ReturnType<typeof createSearchDialogStore>;
 const createSearchDialogStore = () =>
   createStore<SearchDialogStore>((set) => ({
     // State
+    createResourceInContext: null,
     isOpen: false,
     query: "",
     category: "all" as SearchCategory,
 
     // Actions
-    open: () => set({ isOpen: true }),
-    close: () => set({ isOpen: false, query: "" }),
+    open: () => set({ isOpen: true, query: "", createResourceInContext: null }),
+    openResourceCommands: (create) =>
+      set({ isOpen: true, query: "", createResourceInContext: create }),
+    close: () =>
+      set({ isOpen: false, query: "", createResourceInContext: null }),
     toggle: () =>
       set((state) => ({
         isOpen: !state.isOpen,
-        query: state.isOpen ? "" : state.query,
+        query: "",
+        createResourceInContext: null,
       })),
     setQuery: (query) => set({ query }),
     setCategory: (category) => set({ category }),

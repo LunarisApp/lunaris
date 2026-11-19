@@ -7685,6 +7685,10 @@
       "runtime": "./dist/globals.css"
     },
     {
+      "entrypoint": "./overlays.css",
+      "runtime": "./dist/overlays.css"
+    },
+    {
       "entrypoint": "./icons",
       "runtime": "./dist/icons.js",
       "symbols": [
@@ -22901,6 +22905,7 @@
         "DrawerDescription",
         "DrawerFooter",
         "DrawerHeader",
+        "DrawerMenuItem",
         "DrawerOverlay",
         "DrawerPortal",
         "DrawerSwipeHandle",
@@ -23163,6 +23168,7 @@
         "InputGroup",
         "InputGroupAddon",
         "InputGroupButton",
+        "InputGroupClearButton",
         "InputGroupInput",
         "InputGroupText",
         "InputGroupTextarea"

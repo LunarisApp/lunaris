@@ -23,6 +23,21 @@ const de = {
 		footerNavigation: "Fußzeilennavigation",
 	},
 	nav: {
+		menu: {
+			tour: "Einen Workspace in Aktion sehen.",
+			extensions: "Werkzeuge für deinen Workspace finden.",
+			mcp: "KI-Tools mit Lunaris verbinden.",
+			cli: "Über die Kommandozeile arbeiten.",
+			sdk: "Eigene Erweiterungen entwickeln.",
+			hosting: "Die Community Edition selbst betreiben.",
+			docs: "Anleitungen und Referenzen lesen.",
+			contact: "Eine Demo für dein Team anfragen.",
+			security: "Sicherheit",
+		},
+		product: "Produkt",
+		developers: "Entwickler",
+		productTour: "Produktrundgang",
+		extensionsSdk: "Erweiterungs-SDK",
 		downloads: "Downloads",
 		pricing: "Preise",
 		docs: "Dokumentation",
@@ -219,6 +234,7 @@ const de = {
 		headline: "Kostenlos starten. Organisationen einzeln erweitern.",
 		subheadline:
 			"Erstellen Sie ohne Zahlungsdaten einen synchronisierten Organisation. Jeder Organisation hat seinen eigenen Plan – Sie erweitern nur, wo mehr Elemente oder Mitglieder nötig sind.",
+		billingPeriod: "Abrechnungszeitraum",
 		options: { monthly: "Monatlich", yearly: "Jährlich (20% sparen)" },
 		labels: {
 			perMemberMonth: "/Mitglied/Monat",
@@ -361,6 +377,9 @@ const de = {
 		headline: "Bringen Sie Ihren Organisation ins Gespräch.",
 		setup: {
 			harnessLabel: "MCP-Client auswählen",
+			connectionLabel: "Wo möchtest du dich verbinden?",
+			cloudName: "Cloud",
+			manualCopy: "Wähle den Konfigurationstext aus und kopiere ihn manuell.",
 			regionLabel: "Datenregion auswählen",
 			desktopName: "Desktop-App",
 			desktopDescription:

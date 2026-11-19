@@ -41,9 +41,6 @@ export function useAppUpdate() {
   return useContext(AppUpdateContext);
 }
 
-const APP_UPDATE_BUTTON_CLASSNAME =
-  "bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/40";
-
 export function AppUpdateButton({
   size = "default",
 }: {
@@ -82,12 +79,12 @@ export function AppUpdateButton({
     <div className="flex flex-col items-start gap-1">
       <Button
         aria-label={accessibleLabel}
-        className={`${APP_UPDATE_BUTTON_CLASSNAME} group/app-update gap-0 transition-colors ${size === "xs" ? "max-h-6 min-h-6 px-[5px]" : "max-h-8 min-h-8 px-[7px]"}`}
+        className={`group/app-update gap-0 ${size === "xs" ? "px-[5px]" : "px-[7px]"}`}
         disabled={pending || Boolean(phase)}
         aria-busy={pending || Boolean(phase)}
         onClick={() => void applyUpdate()}
         size={size}
-        variant="default"
+        variant="secondary"
       >
         <HugeiconsIcon icon={Refresh01Icon} />
         <span
@@ -99,11 +96,7 @@ export function AppUpdateButton({
               className={`flex items-center ${size === "xs" ? "gap-1 pl-1" : "gap-1.5 pl-1.5"}`}
             >
               <span>{accessibleLabel}</span>
-              {!requiresRestart && (
-                <Kbd className="bg-blue-200 text-blue-800 dark:bg-blue-800/50 dark:text-blue-300">
-                  {formatHotkeyDisplay("Mod+R")}
-                </Kbd>
-              )}
+              {!requiresRestart && <Kbd>{formatHotkeyDisplay("Mod+R")}</Kbd>}
             </span>
           </span>
         </span>

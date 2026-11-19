@@ -61,7 +61,7 @@
 }
 
 .entity-reference-suggestion {
-  @apply w-[min(20rem,calc(100vw-1.5rem))] overflow-hidden rounded-lg bg-popover text-popover-foreground shadow-[0_12px_32px_-16px_oklch(0_0_0/0.28),0_2px_8px_-5px_oklch(0_0_0/0.16)];
+  @apply w-[min(20rem,calc(100vw-1.5rem))] overflow-hidden rounded-lg app-overlay-surface;
 }
 
 .entity-reference-suggestion__header {

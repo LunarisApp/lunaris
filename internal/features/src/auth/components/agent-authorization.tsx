@@ -206,7 +206,7 @@ function AuthorizationAccount({
           >
             <SelectTrigger
               id="authorization-account"
-              className="min-h-11 w-full"
+              className="touch-target w-full"
             >
               <SelectValue />
             </SelectTrigger>
@@ -239,7 +239,7 @@ function AuthorizationAccount({
         ) : null}
         <Button
           variant="outline"
-          className="min-h-11 w-full"
+          className="touch-target w-full"
           disabled={pending || deciding}
           onClick={() => void signOut()}
         >
@@ -390,7 +390,10 @@ export function AgentAuthorizationReview({
               label: org.name,
             }))}
           >
-            <SelectTrigger id="agent-organizations" className="min-h-11 w-full">
+            <SelectTrigger
+              id="agent-organizations"
+              className="touch-target w-full"
+            >
               <SelectValue
                 placeholder={t("auth.agentAuthorization.selectOrganizations")}
               />
@@ -452,14 +455,14 @@ export function AgentAuthorizationReview({
         ) : null}
         <div className="flex gap-2">
           <Button
-            className="min-h-11 flex-1"
+            className="touch-target flex-1"
             disabled={pending || !selected.length}
             onClick={() => void decide(true)}
           >
             {t("auth.agentConsentAllow")}
           </Button>
           <Button
-            className="min-h-11 flex-1"
+            className="touch-target flex-1"
             disabled={pending}
             variant="outline"
             onClick={() => void decide(false)}

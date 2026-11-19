@@ -1,9 +1,10 @@
 "use client";
 
+import { Separator } from "@lunarisapp/ui/components/separator";
 import { Button } from "@lunarisapp/ui/components/button";
 import {
   Drawer,
-  DrawerClose,
+  DrawerMenuItem,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
@@ -28,9 +29,6 @@ interface MobileUserMenuProps {
   onLogout?: () => void;
 }
 
-const userMenuAvatarClass =
-  "cursor-pointer rounded-lg after:rounded-lg [&_[data-slot=avatar-fallback]]:rounded-lg [&_[data-slot=avatar-image]]:rounded-lg";
-
 function MenuItem({
   children,
   destructive,
@@ -45,19 +43,14 @@ function MenuItem({
   trailing?: ReactNode;
 }) {
   return (
-    <DrawerClose
-      render={
-        <button
-          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors active:bg-accent ${destructive ? "text-destructive" : ""}`}
-          onClick={onClick}
-          type="button"
-        >
-          <HugeiconsIcon className="size-5" icon={icon} />
-          <span className="flex-1">{children}</span>
-          {trailing}
-        </button>
-      }
-    />
+    <DrawerMenuItem
+      onClick={onClick}
+      variant={destructive ? "destructive" : "default"}
+    >
+      <HugeiconsIcon icon={icon} />
+      <span className="flex-1">{children}</span>
+      {trailing}
+    </DrawerMenuItem>
   );
 }
 
@@ -94,20 +87,17 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
         render={
           <Button
             aria-label={t("auth.accounts")}
-            className="size-11 rounded-xl p-0"
+            className="touch-target"
             size="icon"
             variant="ghost"
           >
-            <UserAvatar
-              className="size-full rounded-xl after:rounded-xl [&_[data-slot=avatar-fallback]]:rounded-xl [&_[data-slot=avatar-image]]:rounded-xl"
-              user={user}
-            />
+            <UserAvatar className="size-full rounded-[inherit]" user={user} />
           </Button>
         }
       />
       <DrawerContent aria-describedby={undefined}>
         <DrawerHeader className="flex-row items-center gap-3 pb-4">
-          <UserAvatar className={userMenuAvatarClass} size="lg" user={user} />
+          <UserAvatar className="rounded-lg" size="lg" user={user} />
           <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
             <DrawerTitle className="truncate text-left">
               {user?.name || user?.email || t("common.user")}
@@ -126,29 +116,23 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
             </p>
           ) : null}
           {otherAccounts.map((account) => (
-            <DrawerClose
+            <DrawerMenuItem
+              disabled={isSwitching}
               key={account.user.id}
-              render={
-                <button
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors active:bg-accent disabled:opacity-60"
-                  disabled={isSwitching}
-                  onClick={() => void switchAccount(account)}
-                  type="button"
-                >
-                  <UserAvatar size="sm" user={account.user} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate">
-                      {account.user.name || account.user.email}
-                    </span>
-                    {account.user.name ? (
-                      <span className="block truncate text-muted-foreground text-xs">
-                        {account.user.email}
-                      </span>
-                    ) : null}
+              onClick={() => void switchAccount(account)}
+            >
+              <UserAvatar size="sm" user={account.user} />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate">
+                  {account.user.name || account.user.email}
+                </span>
+                {account.user.name ? (
+                  <span className="block truncate text-muted-foreground text-xs">
+                    {account.user.email}
                   </span>
-                </button>
-              }
-            />
+                ) : null}
+              </span>
+            </DrawerMenuItem>
           ))}
           {accountListStatus === "ready" ? null : (
             <div
@@ -176,7 +160,7 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
           <MenuItem icon={Add01Icon} onClick={addAccount}>
             {t("auth.addAccount")}
           </MenuItem>
-          <div className="my-1 h-px bg-border" />
+          <Separator className="my-1" />
           <MenuItem icon={Settings01Icon} onClick={settings.open}>
             {t("common.settings")}
           </MenuItem>
@@ -186,7 +170,7 @@ export function MobileUserMenu({ onLogout }: MobileUserMenuProps) {
           >
             {t("helpCenter.needHelp")}
           </MenuItem>
-          <div className="my-1 h-px bg-border" />
+          <Separator className="my-1" />
           <MenuItem
             destructive
             icon={Logout03Icon}

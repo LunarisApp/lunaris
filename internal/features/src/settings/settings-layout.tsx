@@ -1,5 +1,6 @@
 "use client";
 
+import { LunarisMark } from "../brand";
 import { Separator } from "@lunarisapp/ui/components/separator";
 import {
   Sidebar,
@@ -141,27 +142,8 @@ export function SettingsLayout({
             className="flex h-12 items-center gap-2.5 rounded-md px-2 outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
             to={backTo}
           >
-            <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden">
-              <img
-                alt=""
-                className="size-7 shrink-0 dark:hidden"
-                draggable={false}
-                height={28}
-                src="/favicon-light.svg"
-                width={28}
-              />
-              <img
-                alt=""
-                className="hidden size-7 shrink-0 dark:block"
-                draggable={false}
-                height={28}
-                src="/favicon-dark.svg"
-                width={28}
-              />
-            </span>
-            <span className="font-[650] text-base/none uppercase tracking-[0.04em]">
-              Lunaris
-            </span>
+            <LunarisMark />
+            <span className="app-wordmark text-base/none">Lunaris</span>
           </Link>
           <SidebarMenu>
             <SidebarMenuItem>
@@ -196,13 +178,13 @@ export function SettingsLayout({
         id="settings-content"
         tabIndex={-1}
       >
-        <header className="flex min-h-20 shrink-0 items-center gap-3 border-b px-4 py-3 md:px-6">
+        <header className="flex min-h-20 shrink-0 items-center gap-3 border-b px-4 py-5 sm:px-6 md:px-8 lg:px-10">
           <SidebarTrigger className="md:hidden" />
           <Separator className="h-8 md:hidden" orientation="vertical" />
           <div className="min-w-0">
-            <h1 className="truncate font-semibold text-xl">{contentTitle}</h1>
+            <h1 className="app-page-title break-words">{contentTitle}</h1>
             {contentDescription ? (
-              <p className="truncate text-muted-foreground text-sm">
+              <p className="mt-1 text-muted-foreground text-sm">
                 {contentDescription}
               </p>
             ) : null}

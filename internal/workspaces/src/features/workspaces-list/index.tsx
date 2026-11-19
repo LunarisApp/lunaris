@@ -161,7 +161,7 @@ export function WorkspacesList({
           className={cn(
             view === "grid"
               ? "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
-              : "overflow-hidden rounded-xl ring-1 ring-foreground/10"
+              : "app-surface overflow-hidden"
           )}
           data-testid="workspaces-list-skeleton"
           role="status"
@@ -170,7 +170,7 @@ export function WorkspacesList({
             <div
               className={cn(
                 view === "grid"
-                  ? "flex flex-col rounded-xl p-4 ring-1 ring-foreground/10"
+                  ? "app-surface flex min-h-40 flex-col gap-4 p-5"
                   : "grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-3 py-2 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_7rem_9rem_auto] sm:gap-4 sm:px-4"
               )}
               // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder list
@@ -254,7 +254,7 @@ export function WorkspacesList({
         className={
           view === "grid"
             ? "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
-            : "overflow-hidden rounded-xl ring-1 ring-foreground/10"
+            : "app-surface overflow-hidden"
         }
         data-testid="workspaces-list"
         data-view={view}

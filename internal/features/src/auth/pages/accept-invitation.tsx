@@ -172,7 +172,7 @@ export default function AcceptInvitationPage() {
         title={t("auth.acceptInvitation")}
       >
         <Button
-          className="w-full"
+          className="touch-target w-full"
           onClick={handleSwitchAccount}
           type="button"
           variant="outline"
@@ -190,7 +190,7 @@ export default function AcceptInvitationPage() {
         title={t("auth.acceptInvitation")}
       >
         <Button
-          className="w-full"
+          className="touch-target w-full"
           nativeButton={false}
           render={<Link to={verifyEmailPath} />}
         >
@@ -224,7 +224,7 @@ export default function AcceptInvitationPage() {
     >
       <div className="flex flex-col gap-4">
         <Button
-          className="w-full"
+          className="touch-target w-full"
           data-testid="auth-accept-invitation"
           disabled={accepting}
           onClick={handleAccept}
@@ -233,7 +233,7 @@ export default function AcceptInvitationPage() {
           {t("auth.acceptInvitationCta")}
         </Button>
         <Button
-          className="w-full"
+          className="touch-target w-full"
           data-testid="auth-accept-invitation-switch-account"
           onClick={handleSwitchAccount}
           type="button"

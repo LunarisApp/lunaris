@@ -61,7 +61,7 @@ describe("ExtensionViewLaunchers", () => {
     ]);
   });
 
-  it("matches the active leading navigation button style", () => {
+  it("marks the active extension launcher as pressed", () => {
     useOrganizationViewStateMock.mockReturnValue({
       activeViewInstanceId: "view:acme.assistant",
     });
@@ -69,16 +69,14 @@ describe("ExtensionViewLaunchers", () => {
     render(<ExtensionViewLaunchers />);
 
     const launcher = screen.getByRole("button", { name: "Assistant" });
-    expect(launcher.className).toContain("bg-sidebar-accent");
-    expect(launcher.className).toContain("text-sidebar-accent-foreground");
+    expect(launcher.getAttribute("aria-pressed")).toBe("true");
   });
 
   it("opens a view from its static launcher", () => {
     render(<ExtensionViewLaunchers />);
 
     const launcher = screen.getByRole("button", { name: "Assistant" });
-    expect(launcher.className).toContain("hover:bg-muted");
-    expect(launcher.className).not.toContain("border-border");
+    expect(launcher.getAttribute("aria-pressed")).toBe("false");
     fireEvent.click(launcher);
 
     expect(openViewMock).toHaveBeenCalledWith({

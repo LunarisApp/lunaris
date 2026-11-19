@@ -55,7 +55,7 @@ function CommandDialog({
       </DialogHeader>
       <DialogContent
         className={cn(
-          "top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0",
+          "top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0 *:data-[slot=command]:bg-transparent",
           className
         )}
         showCloseButton={showCloseButton}
@@ -74,17 +74,17 @@ function CommandInput({
   endAdornment?: ReactNode;
 }) {
   return (
-    <div className="p-1 pb-0" data-slot="command-input-wrapper">
-      <InputGroup className="h-8! rounded-lg! border-input/30 bg-input/30 shadow-none! *:data-[slot=input-group-addon]:pl-2!">
+    <div className="px-1 pt-1 pb-2" data-slot="command-input-wrapper">
+      <InputGroup className="h-10 rounded-sm border-input/30 bg-input/30">
         <CommandPrimitive.Input
           className={cn(
-            "w-full text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+            "h-full min-w-0 flex-1 pr-3 text-sm outline-hidden placeholder:text-popover-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
           data-slot="command-input"
           {...props}
         />
-        <InputGroupAddon>
+        <InputGroupAddon className="pl-3">
           <HugeiconsIcon
             className="size-4 shrink-0 opacity-50"
             icon={SearchIcon}
@@ -92,7 +92,10 @@ function CommandInput({
           />
         </InputGroupAddon>
         {!!endAdornment && (
-          <InputGroupAddon align="inline-end" className="pr-1.5!">
+          <InputGroupAddon
+            align="inline-end"
+            className="shrink-0 pr-1.5 has-[>button]:mr-0"
+          >
             {endAdornment}
           </InputGroupAddon>
         )}

@@ -1,71 +1,55 @@
 .grid-layout-theme {
-  --dv-paneview-active-outline-color: dodgerblue;
-  --dv-tabs-and-actions-container-font-size: 0.8125rem; /* 13px */
-  --dv-tabs-and-actions-container-height: 2.1875rem; /* 35px */
-  --dv-drag-over-border-color: transparent;
-  --dv-tabs-container-scrollbar-color: #888;
-  --dv-icon-hover-background-color: rgba(90, 93, 94, 0.31);
+  --dv-paneview-active-outline-color: var(--ring);
+  --dv-tabs-and-actions-container-font-size: 0.8125rem;
+  --dv-tabs-and-actions-container-height: 2.1875rem;
+  --dv-tab-font-size: 0.75rem;
+  --dv-drag-over-border-color: var(--ring);
+  --dv-drag-over-border: 2px solid var(--ring);
+  --dv-drag-over-background-color: color-mix(
+    in srgb,
+    var(--primary) 8%,
+    transparent
+  );
+  --dv-tabs-container-scrollbar-color: var(--input);
+  --dv-icon-hover-background-color: var(--accent);
   --dv-overlay-z-index: 999;
-
   --dv-tab-margin: 0;
   --dv-sash-color: transparent;
+  --dv-active-sash-color: var(--ring);
   --dv-active-sash-transition-duration: 0.1s;
   --dv-active-sash-transition-delay: 0.5s;
-
-  --dv-tab-font-size: 0.75rem; /* 12px */
   --dv-border-radius: var(--radius);
-
-  --dv-drag-over-border: 2px solid oklch(from var(--primary) l c h);
-  --dv-drag-over-background-color: "";
-  --dv-tabs-and-actions-container-background-color: oklch(
-    from var(--background) l c h
+  --dv-group-view-background-color: var(--card);
+  --dv-tabs-and-actions-container-background-color: var(
+    --dv-group-view-background-color
   );
-
-  --dv-activegroup-visiblepanel-tab-background-color: oklch(
-    from var(--accent) l c h
+  --dv-activegroup-visiblepanel-tab-background-color: var(--muted);
+  --dv-inactivegroup-visiblepanel-tab-background-color: color-mix(
+    in srgb,
+    var(--muted) 60%,
+    var(--card)
   );
-  --dv-activegroup-hiddenpanel-tab-background-color: oklch(
-    from var(--secondary) l c h
-  );
-  --dv-inactivegroup-visiblepanel-tab-background-color: oklch(
-    from var(--accent) l c h
-  );
-  --dv-inactivegroup-hiddenpanel-tab-background-color: oklch(
-    from var(--secondary) l c h
-  );
-
+  --dv-activegroup-hiddenpanel-tab-background-color: transparent;
+  --dv-inactivegroup-hiddenpanel-tab-background-color: transparent;
+  --dv-activegroup-visiblepanel-tab-color: var(--foreground);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--foreground);
+  --dv-activegroup-hiddenpanel-tab-color: var(--muted-foreground);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--muted-foreground);
   --dv-tab-divider-color: transparent;
-
-  --dv-activegroup-visiblepanel-tab-color: oklch(from var(--foreground) l c h);
-  --dv-activegroup-hiddenpanel-tab-color: color-mix(
-    in oklch,
-    var(--foreground) 80%,
-    var(--secondary)
-  );
-  --dv-inactivegroup-visiblepanel-tab-color: oklch(
-    from var(--foreground) l c h
-  );
-  --dv-inactivegroup-hiddenpanel-tab-color: color-mix(
-    in oklch,
-    var(--foreground) 80%,
-    var(--secondary)
-  );
-
   --dv-separator-border: transparent;
-  --dv-paneview-header-border-color: oklch(from var(--border) l c h);
-
-  --dv-active-sash-color: oklch(from var(--primary) l c h);
-  --dv-floating-box-shadow: 8px 8px 8px 0px rgba(0, 0, 0, 0.5);
+  --dv-paneview-header-border-color: var(--border);
+  --dv-floating-box-shadow: 0 8px 24px rgb(0 0 0 / 16%);
 
   box-sizing: border-box;
 }
 
 .grid-layout-theme.focus-mode {
   --dv-border-radius: 0px;
-  --dv-group-view-background-color: transparent;
-  --dv-tabs-and-actions-container-background-color: oklch(
-    from var(--background) l c h
-  );
+  --dv-group-view-background-color: var(--background);
+}
+
+.grid-layout-theme .dv-dockview {
+  background-color: var(--background);
 }
 
 .grid-layout-theme .dv-resize-container:has(> .dv-groupview) {
@@ -114,6 +98,7 @@
 }
 
 .grid-layout-theme .dv-groupview {
+  overflow: hidden;
   border-radius: var(--dv-border-radius);
 }
 
@@ -122,14 +107,20 @@
 }
 
 .grid-layout-theme .dv-groupview .dv-content-container {
-  background-color: var(--dv-tabs-and-actions-container-background-color);
-}
-
-.grid-layout-theme .dv-resize-container .dv-groupview {
-  border: 2px solid oklch(from var(--background) l c h);
+  background-color: var(--dv-group-view-background-color);
 }
 
 .grid-layout-theme .dv-tab:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: -2px;
+}
+
+@media (forced-colors: active) {
+  .grid-layout-theme:not(.focus-mode) .dv-groupview {
+    border: 1px solid CanvasText;
+  }
+
+  .grid-layout-theme .dv-tab.dv-active-tab {
+    border-block-end: 2px solid Highlight;
+  }
 }

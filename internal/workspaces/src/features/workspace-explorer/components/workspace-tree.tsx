@@ -15,6 +15,7 @@ import { useIsMobile } from "@lunarisapp/ui/hooks/use-mobile";
 import { cn } from "@lunarisapp/ui/lib/utils";
 import type { WorkspaceResourceEntity } from "@repo/data/features/workspace-resources";
 import { useWorkspaceStorageSlots } from "@repo/data/features/workspace-storage-slots";
+import { useSearchDialogStore } from "../../search/hooks/useSearchDialog";
 import { useCurrentWorkspace } from "../../workspace";
 import { usePreloadViewport } from "../hooks/use-preload-viewport";
 import type { YjsPreloadTarget } from "../hooks/use-preload-visible-resource";
@@ -35,16 +36,20 @@ import { useTranslation } from "react-i18next";
 import { useStableInitialLoading } from "@repo/features/sync-status";
 import { useOrganizationNavigation } from "../../organization-navigation";
 import { TREE_INDENT, VIRTUAL_ROOT_ID } from "../constants";
-import { useAvailableResources } from "../hooks/use-available-resources";
 import { useDeleteKeyboardShortcut } from "../hooks/use-delete-keyboard-shortcut";
 import { useResourceClipboardShortcuts } from "../hooks/use-resource-clipboard-shortcuts";
 import { useFilteredResources } from "../hooks/use-filtered-resources";
 import { useWorkspaceResourceCreation } from "../hooks/use-workspace-resource-creation";
 import { useWorkspaceTree } from "../hooks/use-workspace-tree";
 import { useRenameKeyboardShortcut } from "../hooks/use-rename-keyboard-shortcut";
-import { useWorkspaceResources, useRegisterTree } from "../store";
+import {
+  useWorkspaceResources,
+  useRegisterTree,
+  useNavigateToResource,
+  useStartRenamingItem,
+} from "../store";
 import { getDeleteDescriptionI18n } from "../utils";
-import { AddFolderMenuItem, AddItemSubmenu } from "./context-menu-config";
+import { AddFolderMenuItem, AddResourceMenuItem } from "./context-menu-config";
 import { WorkspaceTreeEmpty } from "./workspace-tree-empty";
 import { WorkspaceTreeFlatList } from "./workspace-tree-flat-list";
 import { WorkspaceTreeHeader } from "./workspace-tree-header";
@@ -76,23 +81,33 @@ export function WorkspaceExplorerTree({
     [openResource]
   );
 
-  const openResourceById = useCallback(
-    (
-      resourceId: string,
-      resourceTypeId: string,
-      title = "",
-      schemaVersion = 1
-    ) => {
-      openResource({ resourceId, resourceTypeId, title, schemaVersion });
-    },
-    [openResource]
-  );
-
   const { tree } = useWorkspaceTree({ onOpenResource: handleOpenResource });
   const { canCreate, createFolder, createResource } =
     useWorkspaceResourceCreation();
   const registerTree = useRegisterTree();
-  const resources = useAvailableResources();
+  const openResourceCommands = useSearchDialogStore(
+    (state) => state.openResourceCommands
+  );
+  const navigateToResource = useNavigateToResource();
+  const startRenamingResource = useStartRenamingItem();
+
+  const handleAddResource = (parentId: string) => {
+    openResourceCommands(async (type) => {
+      const result = await createResource(parentId, type);
+      if (!result) {
+        return;
+      }
+      if (parentId !== VIRTUAL_ROOT_ID) {
+        tree.getItemInstance(parentId).expand();
+      }
+      // The tree can receive the PowerSync update after the write completes.
+      navigateToResource(result.resourceId);
+      if (!result.name) {
+        startRenamingResource(result.resourceId);
+      }
+    });
+  };
+
   const items = useWorkspaceResources();
   const { showSkeleton, showEmpty } = useStableInitialLoading({
     dataEmpty: items.length === 0,
@@ -261,6 +276,7 @@ export function WorkspaceExplorerTree({
           <WorkspaceTreeItem
             item={item}
             key={item.getId()}
+            onAddResource={handleAddResource}
             observePreload={observePreload}
             yjsStorage={yjsStorageByResource.get(item.getId())}
           />
@@ -290,6 +306,7 @@ export function WorkspaceExplorerTree({
     >
       <WorkspaceTreeHeader
         mobileActions={footerActions}
+        onAddResource={handleAddResource}
         onCollapseAll={() => tree.collapseAll()}
         onSearchChange={setSearchQuery}
         onSearchKeyDown={handleSearchKeyDown}
@@ -343,31 +360,8 @@ export function WorkspaceExplorerTree({
           </ContextMenuTrigger>
           {!!canCreate && (
             <ContextMenuContent>
-              <AddItemSubmenu
-                resources={resources}
-                onAddItem={async (resource) => {
-                  const resourceTypeId = resource.resourceTypeId;
-                  const result = await createResource(
-                    VIRTUAL_ROOT_ID,
-                    resource
-                  );
-                  if (!result) {
-                    return;
-                  }
-                  if (!result.name) {
-                    setTimeout(
-                      () =>
-                        tree.getItemInstance(result.resourceId).startRenaming(),
-                      0
-                    );
-                  }
-                  openResourceById(
-                    result.resourceId,
-                    resourceTypeId,
-                    result.name,
-                    resource.schema.currentVersion
-                  );
-                }}
+              <AddResourceMenuItem
+                onAddResource={() => handleAddResource(VIRTUAL_ROOT_ID)}
               />
               <AddFolderMenuItem
                 onAddFolder={async () => {

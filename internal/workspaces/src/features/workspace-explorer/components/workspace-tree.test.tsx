@@ -1,5 +1,6 @@
 /** @vitest-environment happy-dom */
 
+import type { CreateResourceCommand } from "../../search/types";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { MouseEventHandler, ReactNode, RefObject } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -22,11 +23,14 @@ const useDeleteKeyboardShortcutMock = vi.fn((_args: TreeHotkeyArgs) => ({
 const useRenameKeyboardShortcutMock = vi.fn((_args: TreeHotkeyArgs) => {});
 const useResourceClipboardShortcutsMock = vi.fn((_args: TreeHotkeyArgs) => {});
 const addItemMock = vi.fn();
+const navigateToResourceMock = vi.fn();
+const startRenamingResourceMock = vi.fn();
 const openResourceMock = vi.fn();
 const registerTreeMock = vi.fn();
+const expand = vi.fn();
 const tree = {
   collapseAll: vi.fn(),
-  getItemInstance: vi.fn(),
+  getItemInstance: vi.fn(() => ({ expand })),
   getItems: () => [{ getId: () => "item-1" }],
   setSelectedItems: vi.fn(),
 };
@@ -83,8 +87,14 @@ vi.mock("../../organization-navigation", () => ({
   }),
 }));
 
-vi.mock("../hooks/use-available-resources", () => ({
-  useAvailableResources: () => [],
+vi.mock("../../search/hooks/useSearchDialog", () => ({
+  useSearchDialogStore: () => (create: CreateResourceCommand) =>
+    create({
+      resourceTypeId: "lunaris.file",
+      name: "File",
+      icon: [],
+      schema: { currentVersion: 1 },
+    } as Parameters<CreateResourceCommand>[0]),
 }));
 
 vi.mock("../hooks/use-delete-keyboard-shortcut", () => ({
@@ -135,6 +145,8 @@ vi.mock("../store", () => ({
   useWorkspaceResources: () => [{ id: "item-1" }],
   useWorkspaceTrashMap: () => new Map(),
   useRegisterTree: () => registerTreeMock,
+  useStartRenamingItem: () => startRenamingResourceMock,
+  useNavigateToResource: () => navigateToResourceMock,
 }));
 
 vi.mock("../utils", () => ({
@@ -146,24 +158,9 @@ vi.mock("../utils", () => ({
 
 vi.mock("./context-menu-config", () => ({
   AddFolderMenuItem: () => null,
-  AddItemSubmenu: ({
-    onAddItem,
-  }: {
-    onAddItem: (resource: {
-      resourceTypeId: string;
-      schema: { currentVersion: number };
-    }) => Promise<void>;
-  }) => (
-    <button
-      onClick={() =>
-        onAddItem({
-          resourceTypeId: "lunaris.file",
-          schema: { currentVersion: 1 },
-        })
-      }
-      type="button"
-    >
-      add file
+  AddResourceMenuItem: ({ onAddResource }: { onAddResource: () => void }) => (
+    <button onClick={onAddResource} type="button">
+      add resource
     </button>
   ),
 }));
@@ -189,8 +186,16 @@ vi.mock("./workspace-tree-header", () => ({
 }));
 
 vi.mock("./workspace-tree-item", () => ({
-  WorkspaceTreeItem: ({ item }: { item: { getId: () => string } }) => (
-    <div data-testid={`tree-item-${item.getId()}`} />
+  WorkspaceTreeItem: ({
+    item,
+    onAddResource,
+  }: {
+    item: { getId: () => string };
+    onAddResource: (parentId: string) => void;
+  }) => (
+    <button type="button" onClick={() => onAddResource(item.getId())}>
+      add inside folder
+    </button>
   ),
 }));
 
@@ -202,8 +207,11 @@ import { WorkspaceExplorerTree } from "./workspace-tree";
 
 describe("WorkspaceExplorerTree", () => {
   beforeEach(() => {
+    expand.mockClear();
     addItemMock.mockReset();
     openResourceMock.mockReset();
+    navigateToResourceMock.mockReset();
+    startRenamingResourceMock.mockReset();
     stableLoadingState.showEmpty = false;
     stableLoadingState.showSkeleton = false;
   });
@@ -281,7 +289,22 @@ describe("WorkspaceExplorerTree", () => {
     expect(deleteArgs?.target.current).toBeNull();
   });
 
-  it("opens newly uploaded files with the created item name", async () => {
+  it("adds inside the chosen folder, expands it, and starts renaming an untitled resource", async () => {
+    addItemMock.mockResolvedValue({ resourceId: "new-resource", name: "" });
+    render(<WorkspaceExplorerTree />);
+    fireEvent.click(screen.getByRole("button", { name: "add inside folder" }));
+    await waitFor(() =>
+      expect(startRenamingResourceMock).toHaveBeenCalledWith("new-resource")
+    );
+    expect(addItemMock).toHaveBeenCalledWith(
+      "item-1",
+      expect.objectContaining({ name: "File" })
+    );
+    expect(tree.getItemInstance).toHaveBeenCalledWith("item-1");
+    expect(expand).toHaveBeenCalledOnce();
+  });
+
+  it("creates an uploaded resource at the root and opens it without renaming", async () => {
     addItemMock.mockResolvedValue({
       resourceId: "item-file",
       name: "notes.txt",
@@ -289,15 +312,15 @@ describe("WorkspaceExplorerTree", () => {
 
     render(<WorkspaceExplorerTree />);
 
-    fireEvent.click(screen.getByRole("button", { name: "add file" }));
+    fireEvent.click(screen.getByRole("button", { name: "add resource" }));
 
     await waitFor(() => {
-      expect(openResourceMock).toHaveBeenCalledWith({
-        resourceId: "item-file",
-        resourceTypeId: "lunaris.file",
-        schemaVersion: 1,
-        title: "notes.txt",
-      });
+      expect(addItemMock).toHaveBeenCalledWith(
+        "__root__",
+        expect.objectContaining({ resourceTypeId: "lunaris.file" })
+      );
+      expect(navigateToResourceMock).toHaveBeenCalledWith("item-file");
+      expect(startRenamingResourceMock).not.toHaveBeenCalled();
     });
   });
 });

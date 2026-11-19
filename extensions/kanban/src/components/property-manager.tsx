@@ -340,7 +340,7 @@ function PropertyEditor({
                   "extensions.catalog.lunaris.kanban.reorderProperty",
                   { name }
                 )}
-                className="shrink-0 text-muted-foreground"
+                className="text-muted-foreground"
                 size="icon-sm"
                 variant="ghost"
               />
@@ -363,7 +363,7 @@ function PropertyEditor({
             <Input
               aria-label={b("propertyName")}
               autoFocus
-              className="h-8 min-w-0 flex-1 text-sm"
+              className="flex-1 text-sm"
               onBlur={commitName}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => {
@@ -459,7 +459,7 @@ function PropertyEditor({
             <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-1.5 border-border/50 border-t pt-2">
               <Input
                 aria-label={b("newOptionName")}
-                className="h-8 min-w-0 text-xs"
+                className="text-xs"
                 onChange={(e) => setNewOptionName(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -598,7 +598,7 @@ function OptionRow({
               name: option.name,
             })}
             autoFocus
-            className="h-8 min-w-0 flex-1 text-xs"
+            className="flex-1 text-xs"
             onBlur={commitRename}
             onChange={(e) => setEditName(e.target.value)}
             onKeyDown={(e) => {

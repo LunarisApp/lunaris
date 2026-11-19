@@ -63,6 +63,18 @@ export function KeybindingsContent() {
   return (
     <div className="space-y-10" data-testid="settings-panel-keybindings">
       <div className="space-y-4">
+        {platformKind === "web" ? (
+          <Alert role="note" variant="warning">
+            <HugeiconsIcon aria-hidden="true" icon={Alert02Icon} />
+            <AlertTitle>
+              {t("settings.keybindings.browserConflictTitle")}
+            </AlertTitle>
+            <AlertDescription>
+              {t("settings.keybindings.browserConflictDescription")}
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         <div className="flex justify-end pb-1">
           <AlertDialog
             onOpenChange={setResetConfirmOpen}
@@ -72,7 +84,7 @@ export function KeybindingsContent() {
               disabled={!hasOverrides}
               render={
                 <Button
-                  className="w-full shrink-0 sm:w-auto"
+                  className="w-full sm:w-auto"
                   data-testid="keybindings-reset-all"
                   disabled={!hasOverrides}
                   size="sm"
@@ -103,18 +115,6 @@ export function KeybindingsContent() {
             </AlertDialogContent>
           </AlertDialog>
         </div>
-
-        {platformKind === "web" ? (
-          <Alert role="note" variant="warning">
-            <HugeiconsIcon aria-hidden="true" icon={Alert02Icon} />
-            <AlertTitle>
-              {t("settings.keybindings.browserConflictTitle")}
-            </AlertTitle>
-            <AlertDescription>
-              {t("settings.keybindings.browserConflictDescription")}
-            </AlertDescription>
-          </Alert>
-        ) : null}
       </div>
 
       {CATEGORY_ORDER.map((category) => {

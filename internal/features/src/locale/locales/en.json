@@ -481,6 +481,7 @@
     "hintClose": "Close"
   },
   "commands": {
+    "createResource": "Create {{type}}",
     "newResource": "New Resource",
     "toggleSidebar": "Toggle Sidebar",
     "zoomIn": "Zoom In",
@@ -605,7 +606,7 @@
     "interestError": "We couldn't send your request. Please try again."
   },
   "workspaces": {
-    "recentWorkspaces": "Recent Workspaces",
+    "recentWorkspaces": "Recent",
     "workspaceCount_one": "{{count}} workspace",
     "workspaceCount_other": "{{count}} workspaces",
     "createWorkspace": "Create Workspace",
@@ -700,6 +701,8 @@
   "explorer": {
     "title": "Explorer",
     "addResource": "Add Resource",
+    "searchResourceTypes": "Search resource types…",
+    "noMatchingTypes": "No matching resource types.",
     "addFolder": "Add Folder",
     "addFile": "Add file",
     "collapseAll": "Collapse all",

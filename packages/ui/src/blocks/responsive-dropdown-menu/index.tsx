@@ -2,7 +2,7 @@
 
 import {
   Drawer,
-  DrawerClose,
+  DrawerMenuItem,
   DrawerContent,
   DrawerTitle,
   DrawerTrigger,
@@ -15,6 +15,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@lunarisapp/ui/components/dropdown-menu";
+import { Separator } from "@lunarisapp/ui/components/separator";
 import { useIsMobile } from "@lunarisapp/ui/hooks/use-mobile";
 import { cn } from "@lunarisapp/ui/lib/utils";
 import {
@@ -113,34 +114,38 @@ function ResponsiveDropdownMenuItem({
 
   if (isMobile) {
     // Menu items render a div; mobile drawers render a native button.
-    // Consumers use shared DOM props; menu-only handle/render props stay on desktop.
+    // Drawers use native button focus and don't have a highlighted menu item.
     const {
       render: _render,
       nativeButton: _nativeButton,
-      closeOnClick: _closeOnClick,
+      label: _typeaheadLabel,
+      closeOnClick = true,
+      disabled = false,
+      inset,
+      style,
       ...buttonProps
     } = props;
-    const { onClick, disabled, ...rest } =
-      buttonProps as unknown as ComponentProps<"button">;
+    const state = { disabled, highlighted: false };
+    const nativeProps = buttonProps as unknown as ComponentProps<"button">;
     return (
-      <DrawerClose
-        render={
-          <button
-            className={cn(
-              "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors active:bg-accent [&_svg:not([class*='size-'])]:size-5 [&_svg]:shrink-0",
-              variant === "destructive" && "text-destructive",
-              disabled && "pointer-events-none opacity-50",
-              className
-            )}
-            disabled={disabled}
-            onClick={onClick}
-            type="button"
-            {...rest}
-          >
-            {children}
-          </button>
+      <DrawerMenuItem
+        {...nativeProps}
+        className={
+          typeof className === "function" ? className(state) : className
         }
-      />
+        data-inset={inset || undefined}
+        disabled={disabled}
+        onClick={(event) => {
+          nativeProps.onClick?.(event);
+          if (!closeOnClick) {
+            event.preventBaseUIHandler();
+          }
+        }}
+        style={typeof style === "function" ? style(state) : style}
+        variant={variant}
+      >
+        {children}
+      </DrawerMenuItem>
     );
   }
 
@@ -158,7 +163,7 @@ function ResponsiveDropdownMenuSeparator({
   const isMobile = useContext(IsMobileContext);
 
   if (isMobile) {
-    return <div className={cn("my-1 h-px bg-border", className)} />;
+    return <Separator className={cn("my-1", className)} />;
   }
 
   return <DropdownMenuSeparator className={className} {...props} />;

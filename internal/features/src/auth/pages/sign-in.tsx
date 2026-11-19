@@ -181,7 +181,7 @@ function AuthForm({ onAnonymousSessionCreated }: SignInPageProps) {
                 aria-invalid={!!errors.email}
                 autoComplete="username webauthn"
                 autoFocus
-                className="h-11 pr-12"
+                className="touch-target pr-12"
                 data-testid="auth-entry-email"
                 disabled={formDisabled}
                 id="auth-email"
@@ -200,7 +200,7 @@ function AuthForm({ onAnonymousSessionCreated }: SignInPageProps) {
               ) : null}
               <Button
                 aria-label={t("auth.continueWithEmail")}
-                className="absolute top-1 right-1 size-9"
+                className="absolute top-1 right-1"
                 data-testid="auth-entry-email-submit"
                 disabled={formDisabled || !isValid}
                 size="icon-lg"
@@ -235,7 +235,7 @@ function AuthForm({ onAnonymousSessionCreated }: SignInPageProps) {
             <Separator className="flex-1" />
           </div>
           <Button
-            className="h-11 w-full"
+            className="touch-target w-full"
             data-testid="auth-entry-guest"
             disabled={formDisabled}
             onClick={handleContinueAsGuest}

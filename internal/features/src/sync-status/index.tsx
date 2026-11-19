@@ -221,9 +221,8 @@ function SyncStatusContent({
 }
 
 const TONE_CLASSES = {
-  warning:
-    "text-amber-700 hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300",
-  danger: "text-destructive hover:text-destructive/80",
+  warning: "text-warning hover:text-warning",
+  danger: "text-destructive hover:text-destructive",
 } as const;
 
 type Tone = keyof typeof TONE_CLASSES;
@@ -247,11 +246,7 @@ export function StatusTrigger({
   return (
     <Button
       {...rest}
-      className={cn(
-        "transition-colors duration-200",
-        TONE_CLASSES[tone],
-        className
-      )}
+      className={cn(TONE_CLASSES[tone], className)}
       size="icon-sm"
       variant="link"
     >
@@ -277,15 +272,12 @@ function InlineActionStatus({
   return (
     <Button
       aria-label={srLabel}
-      className={cn(
-        "h-7 gap-1 px-2 font-medium text-xs transition-colors duration-200",
-        TONE_CLASSES[tone]
-      )}
+      className={TONE_CLASSES[tone]}
       onClick={onClick}
       size="sm"
       variant="ghost"
     >
-      <HugeiconsIcon className="h-3.5 w-3.5" icon={icon} strokeWidth={2} />
+      <HugeiconsIcon icon={icon} strokeWidth={2} />
       <span>{label}</span>
     </Button>
   );

@@ -605,8 +605,7 @@ export function WorkbookTableHeaderMenu({
           <Button
             {...triggerProps}
             aria-label="Column menu"
-            className={cn("size-6 rounded-sm", triggerProps.className)}
-            size="icon-sm"
+            size="icon-xs"
             type="button"
             variant="ghost"
           />
@@ -959,7 +958,7 @@ function WorkbookToolbar({
             >
               <SelectTrigger
                 aria-label="Zoom level"
-                className="w-[84px] min-w-[84px]"
+                className="w-21 shrink-0"
                 size="sm"
               >
                 <SelectValue>{currentZoom}%</SelectValue>
@@ -1348,7 +1347,7 @@ const WorkbookSheetTabsInner = React.memo(function WorkbookSheetTabsInner({
       previewUrl
         ? createPortal(
             <div
-              className="pointer-events-none fixed z-40 translate-y-0 overflow-hidden rounded-lg border bg-background/95 opacity-100 shadow-xl backdrop-blur-md transition-[opacity,transform] duration-100"
+              className="app-overlay-surface pointer-events-none fixed z-40 translate-y-0 overflow-hidden rounded-lg opacity-100 transition-[opacity,transform] duration-100"
               style={{
                 left: previewPosition.left,
                 top: previewPosition.top,

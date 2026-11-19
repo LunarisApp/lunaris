@@ -1,4 +1,7 @@
-import type { PluginIconSource } from "@lunarisapp/plugin-sdk";
+import type {
+  PluginIconSource,
+  ResourceTypeDefinition,
+} from "@lunarisapp/plugin-sdk";
 
 /** Search result categories */
 export type SearchCategory =
@@ -38,6 +41,7 @@ export interface WorkspaceSearchResult extends SearchResult {
 /** Command search result */
 export interface CommandSearchResult extends SearchResult {
   action: () => void;
+  searchAlias?: string;
   shortcut?: string;
   type: "command";
 }
@@ -48,9 +52,12 @@ export type SearchResultItem =
   | ResourceSearchResult
   | CommandSearchResult;
 
+export type CreateResourceCommand = (resource: ResourceTypeDefinition) => void;
+
 /** Search dialog state */
 export interface SearchDialogState {
   category: SearchCategory;
+  createResourceInContext: CreateResourceCommand | null;
   isOpen: boolean;
   query: string;
 }
@@ -59,6 +66,7 @@ export interface SearchDialogState {
 export interface SearchDialogActions {
   close: () => void;
   open: () => void;
+  openResourceCommands: (create: CreateResourceCommand) => void;
   setCategory: (category: SearchCategory) => void;
   setQuery: (query: string) => void;
   toggle: () => void;

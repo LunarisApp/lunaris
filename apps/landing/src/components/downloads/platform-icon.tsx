@@ -5,7 +5,7 @@ import type { DesktopPlatform } from "@/lib/desktop-platform";
 
 const icons = {
 	macos: <Apple variant="mono" focusable="false" />,
-	windows: <Windows focusable="false" />,
+	windows: <Windows className="[&_path]:fill-current" focusable="false" />,
 	linux: <Linux variant="mono" focusable="false" />,
 };
 
@@ -19,7 +19,7 @@ export function PlatformIcon({
 	return (
 		<span
 			aria-hidden="true"
-			className={`${className} inline-flex shrink-0 [&>svg]:size-full [&_path]:fill-current`}
+			className={`${className} inline-flex shrink-0 [&>svg]:size-full`}
 		>
 			{icons[platform]}
 		</span>

@@ -6,7 +6,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@lunarisapp/ui/components/card";
-import { Input } from "@lunarisapp/ui/components/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@lunarisapp/ui/components/input-group";
 import {
   BookOpen01Icon,
   Briefcase01Icon,
@@ -15,7 +19,6 @@ import {
   More01Icon,
   QuillWrite01Icon,
 } from "@lunarisapp/ui/icons";
-import { cn } from "@lunarisapp/ui/lib/utils";
 import posthog from "posthog-js";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -143,20 +146,14 @@ function OnboardingContent({
               <legend className="sr-only">{t("auth.onboarding.title")}</legend>
               <div className="grid grid-cols-2 gap-3">
                 {PRESET_OPTIONS.map(({ value, labelKey, icon }) => (
-                  <button
+                  <Button
                     aria-pressed={selected === value}
-                    className={cn(
-                      "flex flex-col items-center gap-2 rounded-lg border p-4 font-medium text-sm transition-colors",
-                      "hover:bg-accent hover:text-accent-foreground",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      selected === value
-                        ? "border-primary bg-primary/5 text-primary ring-1 ring-primary"
-                        : "border-border text-muted-foreground"
-                    )}
+                    className="h-auto flex-col gap-2 whitespace-normal p-4"
                     data-testid={`auth-onboarding-${value}`}
                     key={value}
                     onClick={() => handleSelectPreset(value)}
                     type="button"
+                    variant={selected === value ? "default" : "outline"}
                   >
                     <HugeiconsIcon
                       aria-hidden="true"
@@ -165,35 +162,23 @@ function OnboardingContent({
                       strokeWidth={2}
                     />
                     {t(labelKey)}
-                  </button>
+                  </Button>
                 ))}
               </div>
-              <label
-                className={cn(
-                  "flex items-center gap-3 rounded-lg border p-3 transition-colors",
-                  "has-[:focus-visible]:border-ring has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
-                  selected === "other"
-                    ? "border-primary ring-1 ring-primary"
-                    : "border-border"
-                )}
-                htmlFor="auth-onboarding-other"
+              <InputGroup
+                className="h-12 data-selected:border-primary"
+                data-selected={selected === "other" || undefined}
               >
-                <HugeiconsIcon
-                  aria-hidden="true"
-                  className={cn(
-                    "size-5 shrink-0",
-                    selected === "other"
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  )}
-                  icon={More01Icon}
-                  strokeWidth={2}
-                />
-                <span className="sr-only">
-                  {t("auth.onboarding.purposeOther")}
-                </span>
-                <Input
-                  className="border-none shadow-none focus-visible:ring-0"
+                <InputGroupAddon>
+                  <HugeiconsIcon
+                    aria-hidden="true"
+                    icon={More01Icon}
+                    strokeWidth={2}
+                  />
+                </InputGroupAddon>
+                <InputGroupInput
+                  aria-label={t("auth.onboarding.purposeOther")}
+                  className="h-full"
                   data-testid="auth-onboarding-other"
                   id="auth-onboarding-other"
                   onChange={(e) => setOtherText(e.target.value)}
@@ -201,10 +186,10 @@ function OnboardingContent({
                   placeholder={t("auth.onboarding.otherPlaceholder")}
                   value={otherText}
                 />
-              </label>
+              </InputGroup>
             </fieldset>
             <Button
-              className="h-11 w-full"
+              className="touch-target w-full"
               data-testid="auth-onboarding-continue"
               disabled={!canContinue}
               onClick={handleContinue}

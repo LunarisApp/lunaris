@@ -118,7 +118,8 @@ export function ResourceField({
             appearance={appearance}
             aria-label={propertyName}
             className={cn(
-              "h-7 min-w-28 max-w-64 justify-start px-2",
+              "max-w-64",
+              appearance !== "composer" && "min-w-28",
               className,
               appearance === "metadata" && value && "shrink"
             )}
@@ -226,7 +227,7 @@ export function ResourceField({
           render={
             <Button
               aria-label={openLabel}
-              className="shrink-0 text-muted-foreground"
+              className="text-muted-foreground"
               onClick={openResource}
               size="icon-sm"
               variant="ghost"

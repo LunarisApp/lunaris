@@ -61,8 +61,8 @@ export default async function WordCounterPage({
 				type="application/ld+json"
 			/>
 
-			<section className="px-2 pt-4 pb-8 sm:pt-6 sm:pb-12">
-				<Container className="px-2 sm:px-6 lg:px-10">
+			<section className="pt-8 pb-12 sm:pt-12 sm:pb-20">
+				<Container>
 					<WordCounterTool copy={copy} locale={locale} />
 				</Container>
 			</section>

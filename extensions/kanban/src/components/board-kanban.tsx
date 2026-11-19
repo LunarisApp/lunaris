@@ -170,11 +170,11 @@ function TaskCard({
               render={
                 <Button
                   aria-label={actionsLabel}
-                  className="mt-1 mr-1 size-9 shrink-0 text-muted-foreground sm:opacity-0 sm:group-hover/task:opacity-100 sm:group-focus-within/task:opacity-100"
+                  className="mt-1 mr-1 text-muted-foreground sm:opacity-0 sm:group-hover/task:opacity-100 sm:group-focus-within/task:opacity-100"
                   onKeyDown={(event) => event.stopPropagation()}
                   onMouseDown={(event) => event.stopPropagation()}
                   onTouchStart={(event) => event.stopPropagation()}
-                  size="icon-sm"
+                  size="icon-lg"
                   variant="ghost"
                 >
                   <HugeiconsIcon
@@ -296,9 +296,9 @@ function ColumnView({
   const addTaskButton = readOnly ? null : (
     <Button
       aria-label={addTaskLabel}
-      className="size-9 shrink-0 text-muted-foreground"
+      className="text-muted-foreground"
       onClick={() => onAddTask?.(colId)}
-      size="icon-sm"
+      size="icon-lg"
       title={addTaskLabel}
       variant="ghost"
     >
@@ -397,7 +397,7 @@ function ColumnView({
           ))}
           {!readOnly && (
             <Button
-              className="w-full shrink-0 justify-start text-muted-foreground"
+              className="w-full justify-start text-muted-foreground"
               onClick={() => onAddTask?.(colId)}
               size="sm"
               variant="ghost"

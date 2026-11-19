@@ -288,7 +288,7 @@ export function OrganizationDeletionGate({
         {!!query.data?.canRestore && (
           <div className="mt-6">
             <Button
-              className="h-11 w-full sm:w-auto"
+              className="touch-target w-full sm:w-auto"
               aria-busy={restoreBusy}
               disabled={
                 restore.isPending ||

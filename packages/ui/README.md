@@ -38,7 +38,13 @@ There is no root barrel export. Import through the explicit subpaths in
 | `/lib/utils` | `cn()` class-name helper |
 | `/icons`, `/brand-icons` | Icon exports |
 | `/globals.css` | Application theme and component styles |
+| `/overlays.css` | Floating-surface utilities for Tailwind themes that supply their own colors |
 | `/workbench.css` | Workbench-specific styles |
+
+Menus, popovers, dialogs, and drawers apply the shared glass surface automatically.
+For a custom floating control, apply `app-overlay-surface` to its outer container.
+The utility is included in `/globals.css`. It uses the popover theme colors and
+falls back to a solid fill when blur is unavailable or transparency is reduced.
 
 Import only exported paths; package-local test helpers and source paths are
 not part of the public API. For Lunaris extensions, start with the

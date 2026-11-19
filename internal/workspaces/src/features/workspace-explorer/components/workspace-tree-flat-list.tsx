@@ -168,9 +168,7 @@ export function WorkspaceTreeFlatList({
                 className={cn(
                   "flex w-full items-center gap-2 rounded-sm text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&_svg]:pointer-events-none [&_svg]:shrink-0",
                   rowPadding,
-                  isActive
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-background"
+                  isActive && "bg-accent text-accent-foreground"
                 )}
                 onClick={() => {
                   if (!item.resource_type_id) {

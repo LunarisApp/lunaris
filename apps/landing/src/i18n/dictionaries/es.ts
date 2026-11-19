@@ -23,6 +23,21 @@ const es = {
 		footerNavigation: "Navegación del pie de página",
 	},
 	nav: {
+		menu: {
+			tour: "Ve un espacio de trabajo en acción.",
+			extensions: "Encuentra herramientas para tu espacio.",
+			mcp: "Conecta tus herramientas de IA a Lunaris.",
+			cli: "Trabaja desde la línea de comandos.",
+			sdk: "Crea tus propias extensiones.",
+			hosting: "Aloja Community Edition en tu servidor.",
+			docs: "Consulta las guías y la referencia.",
+			contact: "Solicita una demo para tu equipo.",
+			security: "Seguridad",
+		},
+		product: "Producto",
+		developers: "Desarrolladores",
+		productTour: "Recorrido del producto",
+		extensionsSdk: "SDK de extensiones",
 		downloads: "Descargas",
 		pricing: "Precios",
 		docs: "Documentación",
@@ -214,6 +229,7 @@ const es = {
 		headline: "Empieza gratis. Mejora cada espacio cuando crezca.",
 		subheadline:
 			"Crea un espacio sincronizado sin datos de pago. Cada espacio tiene su propio plan, así que solo mejoras los que necesitan más elementos o miembros.",
+		billingPeriod: "Periodo de facturación",
 		options: { monthly: "Mensual", yearly: "Anual (Ahorra 20%)" },
 		labels: {
 			perMemberMonth: "/miembro/mes",
@@ -356,6 +372,9 @@ const es = {
 		headline: "Lleva tu organización a la conversación.",
 		setup: {
 			harnessLabel: "Elige tu cliente MCP",
+			connectionLabel: "¿Dónde quieres conectarte?",
+			cloudName: "Nube",
+			manualCopy: "Selecciona el texto de configuración y cópialo manualmente.",
 			regionLabel: "Elige tu región de datos",
 			desktopName: "Aplicación de escritorio",
 			desktopDescription:

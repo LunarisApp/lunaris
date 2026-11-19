@@ -1,11 +1,6 @@
-import type { ResourceTypeDefinition } from "@lunarisapp/plugin-sdk";
-import { Icon } from "@lunarisapp/ui/components/icon";
 import {
   ContextMenuItem,
   ContextMenuShortcut,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
 } from "@lunarisapp/ui/components/context-menu";
 import {
   Copy01Icon,
@@ -19,33 +14,17 @@ import {
 import { useTranslation } from "react-i18next";
 import { formatHotkeyDisplay } from "@repo/features/hotkeys";
 
-// --- Add Resource Submenu ---
-
-export interface AddItemSubmenuProps {
-  onAddItem: (resource: ResourceTypeDefinition) => void;
-  resources: ResourceTypeDefinition[];
-}
-
-export function AddItemSubmenu({ resources, onAddItem }: AddItemSubmenuProps) {
+export function AddResourceMenuItem({
+  onAddResource,
+}: {
+  onAddResource: () => void;
+}) {
   const { t } = useTranslation();
   return (
-    <ContextMenuSub>
-      <ContextMenuSubTrigger>
-        <HugeiconsIcon icon={FileAddIcon} />
-        {t("explorer.addResource")}
-      </ContextMenuSubTrigger>
-      <ContextMenuSubContent>
-        {resources.map((resource) => (
-          <ContextMenuItem
-            key={resource.resourceTypeId}
-            onClick={() => onAddItem(resource)}
-          >
-            <Icon className="size-4" icon={resource.icon} />
-            {resource.name}
-          </ContextMenuItem>
-        ))}
-      </ContextMenuSubContent>
-    </ContextMenuSub>
+    <ContextMenuItem aria-haspopup="dialog" onClick={onAddResource}>
+      <HugeiconsIcon icon={FileAddIcon} />
+      {t("explorer.addResource")}
+    </ContextMenuItem>
   );
 }
 
