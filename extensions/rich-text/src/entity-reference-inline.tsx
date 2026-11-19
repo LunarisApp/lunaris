@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 import {
   ENTITY_REFERENCE_TYPE,
   entityReferenceInlineConfig,
+  richTextStyles,
 } from "./entity-reference-schema";
 
 export interface EntityReferenceInlineProps {
@@ -165,7 +166,7 @@ export const richTextSchema = BlockNoteSchema.create({
     ...defaultInlineContentSpecs,
     [ENTITY_REFERENCE_TYPE]: EntityReferenceInlineSpec,
   },
-});
+}).extend({ styleSpecs: richTextStyles });
 
 export type RichTextEditorController = typeof richTextSchema.BlockNoteEditor;
 

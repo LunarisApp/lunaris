@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "lib0": "^0.2.120",
-    "@blocknote/core": "0.52.1",
+    "@blocknote/core": "0.57.0",
     "@extension/file": "workspace:*",
     "@extension/kanban": "workspace:*",
     "@extension/rich-text": "workspace:*",
@@ -24,7 +24,7 @@
     "@repo/platform": "workspace:*",
     "@repo/plugin-runtime": "workspace:*",
     "@repo/utils": "workspace:*",
-    "@tanstack/react-hotkeys": "^0.26.0",
+    "@tanstack/react-hotkeys": "^0.27.0",
     "@tanstack/react-query": "^5.107.1",
     "@tanstack/react-virtual": "^3.14.25",
     "@uiw/react-json-view": "^2.0.0-alpha.43",
