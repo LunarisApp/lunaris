@@ -10,7 +10,7 @@
   "dependencies": {
     "evlog": "^2.35.1",
     "nanoid": "^6.0.2",
-    "posthog-js": "^1.447.3"
+    "posthog-js": "^1.450.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

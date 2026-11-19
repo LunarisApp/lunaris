@@ -18,14 +18,14 @@
 		"@probo/cookie-banner": "^0.22.0",
 		"@repo/utils": "workspace:*",
 		"@tailwindplus/elements": "1.0.22",
-		"@thesvg/react": "^4.0.4",
+		"@thesvg/react": "^4.0.12",
 		"clsx": "^2.1.1",
 		"evlog": "^2.35.1",
-		"next": "^16.4.3",
-		"posthog-js": "^1.447.3",
+		"next": "^16.4.6",
+		"posthog-js": "^1.450.0",
 		"react": "^19.3.1",
 		"react-dom": "^19.3.1",
-		"resend": "^6.37.0",
+		"resend": "^6.38.1",
 		"tailwindcss": "^4.3.3"
 	},
 	"devDependencies": {
