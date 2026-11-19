@@ -1,5 +1,19 @@
 # @lunarisapp/plugin-sdk
 
+## 0.12.8
+
+### Patch Changes
+
+- [#155](https://github.com/LunarisApp/lunaris/pull/155) [`f2fa3ee`](https://github.com/LunarisApp/lunaris/commit/f2fa3eeeb7fb0171d926f2d6a5647992e94f8049) Thanks [@MrLightful](https://github.com/MrLightful)! - Refresh workspace dependencies, including SDK file type detection and UI form, panel, and icon dependencies.
+
+- [#157](https://github.com/LunarisApp/lunaris/pull/157) [`055cc5a`](https://github.com/LunarisApp/lunaris/commit/055cc5a8e938c868110d4cccc1b5619c36229a44) Thanks [@MrLightful](https://github.com/MrLightful)! - Refresh the shared dependency lockfile used to build the SDK and UI packages.
+
+- [#134](https://github.com/LunarisApp/lunaris/pull/134) [`b872a8e`](https://github.com/LunarisApp/lunaris/commit/b872a8ecaba5e9280bb14c7bbaf0ffc14b2aefff) Thanks [@MrLightful](https://github.com/MrLightful)! - Refresh the shared workspace lockfile after migrating the API to Nest's Node HTTP adapter.
+
+- [#137](https://github.com/LunarisApp/lunaris/pull/137) [`6820c40`](https://github.com/LunarisApp/lunaris/commit/6820c40fa7796ad5392854ccaabcd83e31888435) Thanks [@MrLightful](https://github.com/MrLightful)! - Update shared dependency patch configuration to preserve region routing in agent OAuth consent URLs.
+
+- [#154](https://github.com/LunarisApp/lunaris/pull/154) [`1e3f383`](https://github.com/LunarisApp/lunaris/commit/1e3f38323a70c7284792a64864b12e1e12e07837) Thanks [@MrLightful](https://github.com/MrLightful)! - Synchronize the plugin SDK version in the workspace lockfile with its package manifest.
+
 ## 0.12.7
 
 ### Patch Changes
