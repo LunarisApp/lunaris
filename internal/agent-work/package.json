@@ -22,7 +22,7 @@
     "dockview": "^8.9.0",
     "dockview-react": "^8.9.0",
     "@repo/data": "workspace:*",
-    "@powersync/react": "2.0.0",
+    "@powersync/react": "2.2.1",
     "@lunarisapp/plugin-sdk": "workspace:*"
   },
   "peerDependencies": {
