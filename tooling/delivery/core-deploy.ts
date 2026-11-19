@@ -16,16 +16,28 @@ import {
   waitForDeployment,
   type Destination,
 } from "./railway";
-import type { Candidate, CoreTarget } from "./candidate";
+import type {
+  Candidate,
+  CoreDeployment,
+  CoreTarget,
+  ImageDeployment,
+} from "./candidate";
 import { run, summary } from "../release/automation/process";
-import { publicRuntimeConfigSchema } from "../../internal/app-shell/src/runtime-config";
+import {
+  buildRevisionHeader,
+  buildVersionHeader,
+  publicRuntimeConfigSchema,
+} from "../../internal/app-shell/src/runtime-config";
 
 export async function deployImage(
   component: "api" | "web",
   image: Candidate["api"],
   destination: Destination,
-  environment: string
+  environment: string,
+  webVersion?: string
 ) {
+  const expectedVersion =
+    component === "web" ? (webVersion ?? null) : undefined;
   const recordEnvironment = `${environment}/${component}/${destination.service}`;
   const previousRecord = (await deployments(recordEnvironment))[0];
   if (previousRecord) {
@@ -40,7 +52,13 @@ export async function deployImage(
         );
       }
       try {
-        await waitForDeployment(destination, providerId, previousRecord.sha);
+        const previous = previousRecord.payload as ImageDeployment;
+        await waitForDeployment(
+          destination,
+          providerId,
+          previousRecord.sha,
+          component === "web" ? (previous.webVersion ?? null) : undefined
+        );
         await setStatus(previousRecord.id, "success", `railway:${providerId}`);
       } catch (error) {
         if (error instanceof TerminalDeploymentError) {
@@ -56,12 +74,14 @@ export async function deployImage(
     }
   }
   const successful = await lastSuccess(recordEnvironment);
+  const deployed = successful?.payload as ImageDeployment | undefined;
   if (
     successful?.sha === image.sha &&
-    (successful.payload as { image?: string }).image === image.image
+    deployed?.image === image.image &&
+    deployed.webVersion === webVersion
   ) {
     try {
-      await verifyHealth(destination, image.sha);
+      await verifyHealth(destination, image.sha, expectedVersion);
       return;
     } catch {
       // A failed composition or manual recovery may have replaced this image.
@@ -80,6 +100,7 @@ export async function deployImage(
   ) as { id: string }[];
   const record = await createDeployment(recordEnvironment, image.sha, {
     image: image.image,
+    webVersion,
   });
   await setStatus(
     record.id,
@@ -101,6 +122,9 @@ export async function deployImage(
           },
           variables: {
             LUNARIS_BUILD_SHA: { value: image.sha },
+            ...(component === "web"
+              ? { LUNARIS_BUILD_VERSION: { value: webVersion ?? "" } }
+              : {}),
             LUNARIS_DELIVERY_ATTEMPT: { value: String(record.id) },
           },
           deploy: {
@@ -138,7 +162,7 @@ export async function deployImage(
       );
     }
     await setStatus(record.id, "in_progress", `railway:${id}`);
-    await waitForDeployment(destination, id, image.sha);
+    await waitForDeployment(destination, id, image.sha, expectedVersion);
     await setStatus(record.id, "success", `railway:${id}`);
   } catch (error) {
     await setStatus(
@@ -153,7 +177,7 @@ export async function deployImage(
 }
 
 export async function deployCore(
-  candidate: Candidate,
+  candidate: CoreDeployment,
   environment: "staging" | "production",
   target: CoreTarget,
   previous: Candidate | undefined,
@@ -174,7 +198,9 @@ export async function deployCore(
     );
   } else if (target === "api") {
     await settle(
-      web.map((destination) => verifyWeb(destination, candidate.web.sha))
+      web.map((destination) =>
+        verifyWeb(destination, candidate.web.sha, candidate.webVersion)
+      )
     );
   }
   if (updateSync) {
@@ -218,11 +244,19 @@ export async function deployCore(
     }
     await settle(
       (target === "api" ? [] : web).map(async (destination) => {
-        await deployImage("web", candidate.web, destination, environment);
+        await deployImage(
+          "web",
+          candidate.web,
+          destination,
+          environment,
+          candidate.webVersion
+        );
       })
     );
     await settle(
-      web.map((destination) => verifyWeb(destination, candidate.web.sha))
+      web.map((destination) =>
+        verifyWeb(destination, candidate.web.sha, candidate.webVersion)
+      )
     );
     await setStatus(record.id, "success", `${target} verified`);
     summary(
@@ -235,8 +269,12 @@ export async function deployCore(
   }
 }
 
-async function verifyWeb(destination: Destination, sha: string) {
-  await verifyHealth(destination, sha);
+async function verifyWeb(
+  destination: Destination,
+  sha: string,
+  webVersion?: string
+) {
+  await verifyHealth(destination, sha, webVersion ?? null);
   const origin = new URL(destination.healthUrl).origin;
   const config = await fetch(`${origin}/runtime-config.json`, {
     cache: "no-store",
@@ -245,6 +283,8 @@ async function verifyWeb(destination: Destination, sha: string) {
   if (
     !(
       config.ok &&
+      config.headers.get(buildVersionHeader) === (webVersion ?? null) &&
+      (!webVersion || config.headers.get(buildRevisionHeader) === sha) &&
       publicRuntimeConfigSchema.parse(await config.json()).REGION_DIRECTORY_URL
     )
   ) {

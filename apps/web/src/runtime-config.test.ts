@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  getRuntimeBuildVersion,
   publicConfigFromEnvironment,
   setPublicRuntimeConfig,
 } from "@repo/app-shell/runtime-config";
@@ -9,8 +10,20 @@ const config = {
   REGION_DIRECTORY_URL: "/regions.json",
   POSTHOG_KEY: "public-key",
 };
+const revision = "a".repeat(40);
+function responseForRevision(commit: string, version?: string) {
+  const headers = new Headers({ "X-Lunaris-Commit": commit });
+  if (version) {
+    headers.set("X-Lunaris-Version", version);
+  }
+  return Response.json(config, { headers });
+}
+beforeEach(() => {
+  vi.stubGlobal("__BUILD_REVISION__", revision);
+});
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   setPublicRuntimeConfig();
 });
 describe("web runtime configuration", () => {
@@ -45,6 +58,43 @@ describe("web runtime configuration", () => {
       "lunaris.public-runtime-config.v1",
       JSON.stringify(config)
     );
+  });
+  it("keeps the version for the current bundle through server updates and offline startup", async () => {
+    const cache = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => cache.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        cache.set(key, value);
+      },
+    };
+    const request = vi.fn();
+    const newerRevision = "b".repeat(40);
+    request.mockResolvedValueOnce(responseForRevision(newerRevision, "1.2.4"));
+    await loadRuntimeConfig({ request, storage });
+    expect(getRuntimeBuildVersion()).toBeUndefined();
+
+    request.mockResolvedValueOnce(responseForRevision(revision, "1.2.3"));
+    await loadRuntimeConfig({ request, storage });
+    expect(getRuntimeBuildVersion()).toBe("1.2.3");
+    expect(cache.get("lunaris.public-runtime-config.v1")).toBe(
+      JSON.stringify(config)
+    );
+
+    setPublicRuntimeConfig();
+    request.mockResolvedValueOnce(responseForRevision(newerRevision, "1.2.4"));
+    await loadRuntimeConfig({ request, storage });
+    expect(getRuntimeBuildVersion()).toBe("1.2.3");
+
+    setPublicRuntimeConfig();
+    request.mockRejectedValueOnce(new TypeError("offline"));
+    await loadRuntimeConfig({ request, storage });
+    expect(getRuntimeBuildVersion()).toBe("1.2.3");
+
+    request.mockResolvedValueOnce(responseForRevision(revision));
+    await loadRuntimeConfig({ request, storage });
+    request.mockRejectedValueOnce(new TypeError("offline"));
+    await loadRuntimeConfig({ request, storage });
+    expect(getRuntimeBuildVersion()).toBeUndefined();
   });
   it("returning users can boot offline with last validated settings", async () => {
     const request = vi.fn().mockRejectedValue(new TypeError("offline"));

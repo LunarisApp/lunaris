@@ -10,7 +10,9 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { Candidate } from "./candidate";
 import { desktopAssetNames } from "./desktop-updater";
+import type { ProductPlan } from "./product";
 
 const roots: string[] = [];
 afterEach(() => {
@@ -25,12 +27,16 @@ function fixture() {
   mkdirSync(join(root, "artifacts"));
   mkdirSync(join(root, "dist"));
   const sha = "a".repeat(40);
-  const candidate = {
+  const candidate: Candidate = {
     schemaVersion: 1,
     sha,
     runId: "100",
     api: { sha, image: `ghcr.io/example/api@sha256:${"b".repeat(64)}` },
-    web: { sha, image: `ghcr.io/example/web@sha256:${"c".repeat(64)}` },
+    web: {
+      sha,
+      image: `ghcr.io/example/web@sha256:${"c".repeat(64)}`,
+      supportsReleaseVersion: true,
+    },
     syncRevision: "d".repeat(64),
     configurationRevision: "1",
   };
@@ -54,6 +60,7 @@ function fixture() {
     reservationStates: {} as Record<string, string>,
     failCreate: false,
     productionReady: false,
+    productionWebVersion: undefined as string | undefined,
   };
   const statePath = join(root, "state.json");
   writeFileSync(statePath, JSON.stringify(initial));
@@ -72,7 +79,7 @@ import{readFileSync}from'node:fs';const a=process.argv.slice(2);if(a[0]==='rev-p
     join(root, "preload.ts"),
     `import{readFileSync,writeFileSync}from'node:fs';globalThis.fetch=async(input,options={})=>{const s=JSON.parse(readFileSync(process.env.FIXTURE_STATE,'utf8'));const u=String(input);let v;
 if(u.includes('/statuses')){const id=u.split('/deployments/')[1].split('/')[0];if(options.method==='POST'){s.reservationState=JSON.parse(options.body).state;s.reservationStates[id]=s.reservationState;}v=[{state:id==='1'||id==='999'?'success':s.reservationStates[id]??s.reservationState}];}
-else if(u.includes('/deployments?'))v=u.includes('release%2Fproduct')?s.reservations:s.productionReady?[{id:999,environment:'production/core',payload:s.candidate,sha:s.candidate.sha}]:[];
+else if(u.includes('/deployments?'))v=u.includes('release%2Fproduct')?s.reservations:s.productionReady?[{id:999,environment:'production/core',payload:{...s.candidate,webVersion:s.productionWebVersion},sha:s.candidate.sha}]:[];
 else if(u.endsWith('/deployments')&&options.method==='POST'){v={id:s.reservations.length+2,...JSON.parse(options.body)};s.reservations.push(v);}
 else throw new Error('Unexpected fetch '+u);
 writeFileSync(process.env.FIXTURE_STATE,JSON.stringify(s));return Response.json(v);};`
@@ -138,6 +145,24 @@ writeFileSync(process.env.FIXTURE_STATE,JSON.stringify(s));if(result!==undefined
       ),
   };
 }
+function legacyReservation(f: ReturnType<typeof fixture>) {
+  const state = f.state();
+  const reservation = state.reservations[0]!;
+  delete state.candidate.web.supportsReleaseVersion;
+  const legacy = {
+    ...(reservation.payload as ProductPlan),
+    candidate: state.candidate,
+    stagingDeploymentId: 1,
+  };
+  reservation.payload = legacy;
+  state.files["v0.9.1/release-plan.json"] =
+    `${JSON.stringify(legacy, null, 2)}\n`;
+  writeFileSync(
+    join(f.root, "artifacts/candidate.json"),
+    JSON.stringify(state.candidate)
+  );
+  return state;
+}
 test("stable reservation chooses next version once and resumes without another tag", () => {
   const f = fixture();
   expect(f.run("reserve").status).toBe(0);
@@ -149,16 +174,25 @@ test("stable reservation chooses next version once and resumes without another t
     f.state().calls.filter((c) => c.includes("release create"))
   ).toHaveLength(1);
 });
+test("a pre-version web image cannot create a new release reservation", () => {
+  const f = fixture();
+  const candidate = f.candidate;
+  delete candidate.web.supportsReleaseVersion;
+  writeFileSync(
+    join(f.root, "artifacts/candidate.json"),
+    JSON.stringify(candidate)
+  );
+  const result = f.run("reserve");
+  expect(result.stderr).toContain("Select a newer certified candidate");
+  const state = f.state();
+  expect(state.reservations).toHaveLength(0);
+  expect(state.releases).toHaveLength(0);
+  expect(state.tags).toEqual(["desktop@0.9.0"]);
+});
 test("legacy reservations resume without staging receipts or live staging", () => {
   const f = fixture();
   expect(f.run("reserve").status).toBe(0);
-  const state = f.state();
-  const reservation = state.reservations[0]!;
-  const legacy = { ...(reservation.payload as object), stagingDeploymentId: 1 };
-  reservation.payload = legacy;
-  state.files["v0.9.1/release-plan.json"] =
-    `${JSON.stringify(legacy, null, 2)}\n`;
-  f.set(state);
+  f.set(legacyReservation(f));
   const result = f.run("reserve");
   expect(result.stderr).toBe("");
   expect(result.status).toBe(0);
@@ -382,6 +416,13 @@ test("finalization publishes complete updater metadata before making the release
   }
   const state = f.state();
   state.productionReady = true;
+  state.productionWebVersion = "0.9.2";
+  f.set(state);
+  expect(f.run("finalize", "0.9.1").stderr).toContain(
+    "Product candidate not deployed successfully"
+  );
+  expect(f.state().releases[0]!.draft).toBe(true);
+  state.productionWebVersion = "0.9.1";
   f.set(state);
   const result = f.run("finalize", "0.9.1");
   expect(result.stderr).toBe("");
@@ -430,7 +471,7 @@ test.each([false, true])(
   (mixed) => {
     const f = fixture();
     expect(f.run("reserve").status).toBe(0);
-    const state = f.state();
+    const state = legacyReservation(f);
     for (const group of [
       "cli",
       "desktop",

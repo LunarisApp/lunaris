@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+export const buildVersionHeader = "X-Lunaris-Version";
+export const buildRevisionHeader = "X-Lunaris-Commit";
+
 const url = z.string().url().optional();
 export const publicRuntimeConfigSchema = z
   .object({
@@ -26,11 +29,18 @@ export type PublicRuntimeConfig = z.infer<typeof publicRuntimeConfigSchema>;
 const runtime = globalThis as typeof globalThis & {
   __LUNARIS_RUNTIME_CONFIG__?: PublicRuntimeConfig;
 };
+let runtimeBuildVersion: string | undefined;
+
 export const getPublicRuntimeConfig = () => runtime.__LUNARIS_RUNTIME_CONFIG__;
-export function setPublicRuntimeConfig(config?: PublicRuntimeConfig) {
+export const getRuntimeBuildVersion = () => runtimeBuildVersion;
+export function setPublicRuntimeConfig(
+  config?: PublicRuntimeConfig,
+  buildVersion?: string
+) {
   runtime.__LUNARIS_RUNTIME_CONFIG__ = config
     ? publicRuntimeConfigSchema.parse(config)
     : undefined;
+  runtimeBuildVersion = buildVersion;
 }
 
 /** Explicit allowlist: never serialize process.env into a browser response. */

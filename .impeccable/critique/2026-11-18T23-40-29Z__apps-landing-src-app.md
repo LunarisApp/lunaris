@@ -2,7 +2,7 @@
 target: All landing pages
 total_score: 27
 max_score: 40
-na_heuristics: 
+na_heuristics:
 p0_count: 0
 p1_count: 0
 timestamp: 2026-11-18T23-40-29Z

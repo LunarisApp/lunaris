@@ -9,7 +9,7 @@ import {
   SessionManager,
   SettingsManager,
 } from "@mariozechner/pi-coding-agent";
-import { getModels } from "@mariozechner/pi-ai";
+import { openaiCodexOAuthProvider } from "@mariozechner/pi-ai/oauth";
 import { Type } from "@sinclair/typebox";
 import type { AgentWorkMessage, AgentWorkState } from "@repo/platform";
 import * as z from "zod";
@@ -34,10 +34,10 @@ export class AgentWorkRuntime {
   private session?: AgentSession;
   private summaries: AgentWorkState["sessions"] = [];
   private busy = false;
-  private selectedModel =
-    getModels(provider).find((model) => model.id === "gpt-5.5")?.id ??
-    getModels(provider).at(-1)?.id ??
-    "";
+  private selectedModel = "";
+  private models: NonNullable<
+    Parameters<ModelRegistry["registerProvider"]>[1]["models"]
+  > = [];
   private pendingTools = new Map<string, PendingTool>();
   private authInput?: PendingTool;
   private publishTimer?: ReturnType<typeof setTimeout>;
@@ -68,16 +68,88 @@ export class AgentWorkRuntime {
   }
 
   private publish() {
+    const sessionModel = this.session?.model?.id;
     const state: AgentWorkState = {
       authenticated: this.auth.has(provider),
       busy: this.busy,
-      modelId: this.session?.model?.id ?? this.selectedModel,
-      models: getModels(provider).map(({ id, name }) => ({ id, name })),
+      modelId: this.models.some((model) => model.id === sessionModel)
+        ? (sessionModel ?? this.selectedModel)
+        : this.selectedModel,
+      models: this.models.map(({ id, name }) => ({ id, name })),
       sessionId: this.session?.sessionManager.getSessionId() ?? null,
       sessions: this.summaries,
       messages: this.messages(),
     };
     this.emit({ type: "state", state });
+  }
+
+  private async refreshModels() {
+    if (!this.auth.has(provider)) {
+      this.models = [];
+      this.selectedModel = "";
+      return;
+    }
+    const token = await this.auth.getApiKey(provider);
+    const credential = this.auth.get(provider);
+    if (
+      !token ||
+      credential?.type !== "oauth" ||
+      typeof credential.accountId !== "string"
+    ) {
+      throw new Error("Connect your ChatGPT account first");
+    }
+    const response = await fetch(
+      "https://chatgpt.com/backend-api/codex/models?client_version=0.0.1",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "ChatGPT-Account-Id": credential.accountId,
+        },
+        signal: AbortSignal.timeout(15_000),
+      }
+    );
+    if (!response.ok) {
+      throw new Error(
+        `Could not load ChatGPT models (${response.status}). Try again.`
+      );
+    }
+    const catalog = z
+      .object({
+        models: z.array(
+          z.object({
+            slug: z.string().min(1),
+            display_name: z.string().min(1),
+            visibility: z.string(),
+            priority: z.number(),
+            context_window: z.number().positive().nullish(),
+            input_modalities: z
+              .array(z.enum(["text", "image"]))
+              .default(["text"]),
+          })
+        ),
+      })
+      .parse(await response.json());
+    this.models = catalog.models
+      .filter((model) => model.visibility === "list")
+      .sort((a, b) => a.priority - b.priority)
+      .map((model) => ({
+        id: model.slug,
+        name: model.display_name,
+        reasoning: true,
+        input: model.input_modalities,
+        contextWindow: model.context_window ?? 272_000,
+        maxTokens: Math.min(model.context_window ?? 128_000, 128_000),
+        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      }));
+    this.registry.registerProvider(provider, {
+      oauth: openaiCodexOAuthProvider,
+      api: "openai-codex-responses",
+      baseUrl: "https://chatgpt.com/backend-api",
+      models: this.models,
+    });
+    if (!this.models.some((model) => model.id === this.selectedModel)) {
+      this.selectedModel = this.models[0]?.id ?? "";
+    }
   }
 
   private schedulePublish() {
@@ -105,6 +177,9 @@ export class AgentWorkRuntime {
   private async createSession(
     manager = SessionManager.create(this.directory, this.sessionsDirectory)
   ) {
+    if (this.auth.has(provider) && !this.models.length) {
+      await this.refreshModels();
+    }
     this.session?.dispose();
     this.streamingMessage = undefined;
     const settingsManager = SettingsManager.inMemory({
@@ -126,7 +201,10 @@ export class AgentWorkRuntime {
     const restored = manager.buildSessionContext().model;
     const model = this.registry.find(
       provider,
-      restored?.provider === provider ? restored.modelId : this.selectedModel
+      restored?.provider === provider &&
+        this.models.some((entry) => entry.id === restored.modelId)
+        ? restored.modelId
+        : this.selectedModel
     );
     const { session } = await createAgentSession({
       cwd: this.directory,
@@ -260,6 +338,7 @@ export class AgentWorkRuntime {
           break;
         case "status":
           await this.refreshSessions();
+          await this.refreshModels();
           break;
         default:
           if (this.busy) {
@@ -305,6 +384,7 @@ export class AgentWorkRuntime {
                 "Paste the redirect URL if the browser does not finish signing in."
               ),
           });
+          await this.refreshModels();
         } finally {
           clearTimeout(timeout);
           this.authInput = undefined;
@@ -314,6 +394,7 @@ export class AgentWorkRuntime {
       }
       case "logout":
         this.auth.logout(provider);
+        await this.refreshModels();
         break;
       case "new_session":
         await this.createSession();
@@ -343,7 +424,12 @@ export class AgentWorkRuntime {
         if (!this.auth.has(provider)) {
           throw new Error("Connect your ChatGPT account first");
         }
-        const model = this.registry.find(provider, modelId);
+        if (!this.models.length) {
+          await this.refreshModels();
+        }
+        const model = this.models.some((entry) => entry.id === modelId)
+          ? this.registry.find(provider, modelId)
+          : undefined;
         if (!model) {
           throw new Error("Choose an available ChatGPT model");
         }

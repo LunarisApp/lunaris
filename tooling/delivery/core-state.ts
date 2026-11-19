@@ -1,9 +1,13 @@
-import { candidateSchema, type Candidate } from "./candidate";
+import {
+  coreDeploymentSchema,
+  type Candidate,
+  type CoreDeployment,
+} from "./candidate";
 import { deployments, statuses } from "./github";
 
 export interface CoreState {
-  current?: Candidate;
-  pending: Candidate[];
+  current?: CoreDeployment;
+  pending: CoreDeployment[];
 }
 
 /** Retain every incomplete composition since the last verified deployment. */
@@ -12,7 +16,7 @@ export async function readCoreState(
 ): Promise<CoreState> {
   const state: CoreState = { pending: [] };
   for (const record of await deployments(`${environment}/core`)) {
-    const candidate = candidateSchema.parse(record.payload);
+    const candidate = coreDeploymentSchema.parse(record.payload);
     if ((await statuses(record.id))[0]?.state === "success") {
       state.current = candidate;
       break;

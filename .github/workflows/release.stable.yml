@@ -119,6 +119,7 @@ jobs:
       candidate_run_id: ${{ inputs.candidate_run_id }}
       target: core
       stable_release: true
+      version: ${{ needs.reserve.outputs.version }}
     secrets: inherit
   distribute:
     needs: [ reserve, native, hosted ]
