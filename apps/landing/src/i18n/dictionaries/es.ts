@@ -23,6 +23,17 @@ const es = {
 		footerNavigation: "Navegación del pie de página",
 	},
 	nav: {
+		menu: {
+			tour: "Ve un espacio de trabajo en acción.",
+			extensions: "Encuentra herramientas para tu espacio.",
+			mcp: "Conecta tus herramientas de IA a Lunaris.",
+			cli: "Trabaja desde la línea de comandos.",
+			sdk: "Crea tus propias extensiones.",
+			hosting: "Aloja Community Edition en tu servidor.",
+			docs: "Consulta las guías y la referencia.",
+			contact: "Solicita una demo para tu equipo.",
+			security: "Seguridad",
+		},
 		product: "Producto",
 		developers: "Desarrolladores",
 		productTour: "Recorrido del producto",

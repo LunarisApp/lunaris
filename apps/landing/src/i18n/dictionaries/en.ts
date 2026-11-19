@@ -21,6 +21,17 @@ const en = {
 		footerNavigation: "Footer navigation",
 	},
 	nav: {
+		menu: {
+			tour: "See a workspace in action.",
+			extensions: "Find tools for your workspace.",
+			mcp: "Connect your AI tools to Lunaris.",
+			cli: "Work from the command line.",
+			sdk: "Build your own extensions.",
+			hosting: "Run Community Edition on your server.",
+			docs: "Read the guides and reference.",
+			contact: "Request a demo for your team.",
+			security: "Security",
+		},
 		product: "Product",
 		developers: "Developers",
 		productTour: "Product tour",

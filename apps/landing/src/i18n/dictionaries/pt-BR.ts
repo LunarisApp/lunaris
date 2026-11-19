@@ -23,6 +23,17 @@ const ptBR = {
 		footerNavigation: "Navegação do rodapé",
 	},
 	nav: {
+		menu: {
+			tour: "Veja um espaço de trabalho em ação.",
+			extensions: "Encontre ferramentas para seu espaço.",
+			mcp: "Conecte suas ferramentas de IA ao Lunaris.",
+			cli: "Trabalhe pela linha de comando.",
+			sdk: "Crie suas próprias extensões.",
+			hosting: "Hospede a Community Edition no seu servidor.",
+			docs: "Consulte os guias e a referência.",
+			contact: "Solicite uma demonstração para sua equipe.",
+			security: "Segurança",
+		},
 		product: "Produto",
 		developers: "Desenvolvedores",
 		productTour: "Tour do produto",

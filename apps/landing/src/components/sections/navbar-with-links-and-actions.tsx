@@ -8,11 +8,111 @@ import {
 	NavigationMenuList,
 	NavigationMenuTrigger,
 } from "@lunarisapp/ui/components/navigation-menu";
+import { Icon } from "@lunarisapp/ui/components/icon";
+import {
+	ArrowDown01Icon,
+	BookOpen01Icon,
+	ComputerTerminal01Icon,
+	DashboardSquare01Icon,
+	HugeiconsIcon,
+	PlaySquareIcon,
+	ServerStack01Icon,
+	SourceCodeIcon,
+	Mail01Icon,
+} from "@lunarisapp/ui/icons";
 import Link from "next/link";
+import { McpIcon } from "@/components/icons/harness-icons";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 type NavLink = { href: string; label: string };
-type NavGroup = { label: string; links: NavLink[] };
+const icons = {
+	tour: PlaySquareIcon,
+	extensions: DashboardSquare01Icon,
+	mcp: <McpIcon variant="mono" />,
+	cli: ComputerTerminal01Icon,
+	sdk: SourceCodeIcon,
+	hosting: ServerStack01Icon,
+	docs: BookOpen01Icon,
+	contact: Mail01Icon,
+};
+
+export type NavGroup = {
+	label: string;
+	links: (NavLink & { icon: keyof typeof icons; description: string })[];
+	related: { label: string; links: NavLink[] };
+};
+
+function MenuPanel({
+	group,
+	closeMobile,
+}: {
+	group: NavGroup;
+	closeMobile?: () => void;
+}) {
+	function panelLink(link: NavLink, className: string, children: ReactNode) {
+		return closeMobile ? (
+			<Link href={link.href} onClick={closeMobile} className={className}>
+				{children}
+			</Link>
+		) : (
+			<NavigationMenuLink
+				closeOnClick
+				render={<Link href={link.href} />}
+				className={className}
+			>
+				{children}
+			</NavigationMenuLink>
+		);
+	}
+
+	return (
+		<div className="grid lg:w-[35rem] lg:grid-cols-[1.55fr_1fr]">
+			<ul className="pb-2 lg:p-3">
+				{group.links.map((link) => (
+					<li key={link.href}>
+						{panelLink(
+							link,
+							"flex items-start gap-3 rounded-md px-2 py-3 hover:bg-muted focus-visible:bg-muted lg:px-3",
+							<>
+								<span aria-hidden="true" className="mt-0.5 flex shrink-0">
+									<Icon
+										icon={icons[link.icon]}
+										strokeWidth={1.6}
+										className="size-5"
+									/>
+								</span>
+								<span>
+									<span className="block text-base/5 font-semibold">
+										{link.label}
+									</span>
+									<span className="mt-1 block text-sm/5 text-olive-600 dark:text-olive-400">
+										{link.description}
+									</span>
+								</span>
+							</>,
+						)}
+					</li>
+				))}
+			</ul>
+			<div className="border-t border-current/10 py-3 lg:rounded-r-lg lg:border-t-0 lg:border-l lg:bg-olive-950/[.025] lg:p-4 dark:lg:bg-white/[.045]">
+				<h3 className="px-2 pb-1 text-xs/5 font-medium text-olive-600 dark:text-olive-400">
+					{group.related.label}
+				</h3>
+				<ul>
+					{group.related.links.map((link) => (
+						<li key={link.href}>
+							{panelLink(
+								link,
+								"flex min-h-11 items-center rounded-md px-2 text-sm font-medium hover:bg-muted focus-visible:bg-muted lg:min-h-9",
+								link.label,
+							)}
+						</li>
+					))}
+				</ul>
+			</div>
+		</div>
+	);
+}
 
 const navControl =
 	"min-h-11 cursor-pointer px-3 font-medium text-olive-700 hover:text-olive-950 dark:text-olive-300 dark:hover:text-white";
@@ -75,20 +175,8 @@ export function NavbarWithLinksAndActions({
 								<NavigationMenuTrigger className={navControl}>
 									{group.label}
 								</NavigationMenuTrigger>
-								<NavigationMenuContent>
-									<ul className="w-max min-w-48 max-w-72 p-1">
-										{group.links.map((link) => (
-											<li key={link.href}>
-												<NavigationMenuLink
-													className="min-h-10 px-3"
-													closeOnClick
-													render={<Link href={link.href} />}
-												>
-													{link.label}
-												</NavigationMenuLink>
-											</li>
-										))}
-									</ul>
+								<NavigationMenuContent className="p-0">
+									<MenuPanel group={group} />
 								</NavigationMenuContent>
 							</NavigationMenuItem>
 						))}
@@ -162,27 +250,24 @@ export function NavbarWithLinksAndActions({
 					</div>
 					<div className="mx-auto max-w-lg px-6 pb-8">
 						{groups.map((group) => (
-							<div
+							<details
 								key={group.label}
-								className="grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-start gap-3 border-b border-olive-950/10 py-4 dark:border-white/10"
+								name="mobile-navigation"
+								className="group border-b border-current/10"
 							>
-								<h2 className="pt-2.5 font-display text-2xl leading-tight">
+								<summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-3 text-xl font-medium [&::-webkit-details-marker]:hidden">
 									{group.label}
-								</h2>
-								<ul>
-									{group.links.map((link) => (
-										<li key={link.href}>
-											<Link
-												className="flex min-h-11 items-center py-1 text-sm font-medium hover:underline"
-												href={link.href}
-												onClick={() => mobile.current?.close()}
-											>
-												{link.label}
-											</Link>
-										</li>
-									))}
-								</ul>
-							</div>
+									<HugeiconsIcon
+										aria-hidden="true"
+										icon={ArrowDown01Icon}
+										className="size-4 group-open:rotate-180"
+									/>
+								</summary>
+								<MenuPanel
+									group={group}
+									closeMobile={() => mobile.current?.close()}
+								/>
+							</details>
 						))}
 						<div className="flex items-start justify-between gap-3 pt-4">
 							<div className="grid">

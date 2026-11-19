@@ -13,7 +13,10 @@ import {
 	FooterCookieSettingsLink,
 	FooterLink,
 } from "@/components/sections/footer";
-import { NavbarWithLinksAndActions } from "@/components/sections/navbar-with-links-and-actions";
+import {
+	type NavGroup,
+	NavbarWithLinksAndActions,
+} from "@/components/sections/navbar-with-links-and-actions";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ThemeScript } from "@/components/theme/theme-script";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
@@ -65,35 +68,94 @@ export default async function LocaleLayout({
 	const dict = await getDictionary(locale);
 	const source = openSourceCopy[locale];
 	const home = homepageCopy[locale];
-	const product = {
+	const menu = dict.nav.menu;
+	const comparisons = {
+		label: dict.footer.compare,
+		links: [
+			{
+				label: dict.footer.linearComparison,
+				href: localePath(locale, "/compare/linear"),
+			},
+			{
+				label: dict.footer.obsidianComparison,
+				href: localePath(locale, "/compare/obsidian"),
+			},
+			{
+				label: dict.footer.notionComparison,
+				href: localePath(locale, "/compare/notion"),
+			},
+		],
+	};
+	const documentation = { label: dict.nav.docs, href: DOCS_URL };
+	const contact = {
+		label: dict.footer.contact,
+		href: localePath(locale, "/demo"),
+	};
+	const trust = { label: dict.footer.trustCenter, href: TRUST_CENTER_URL };
+	const subprocessors = {
+		label: dict.footer.subprocessors,
+		href: "/subprocessors",
+	};
+	const wordCounter = {
+		label: dict.footer.wordCounter,
+		href: localePath(locale, "/tools/word-counter"),
+	};
+	const github = { label: "GitHub", href: repositoryUrl };
+	const product: NavGroup = {
 		label: dict.nav.product,
 		links: [
-			{ label: dict.nav.productTour, href: localePath(locale, "/watch") },
+			{
+				label: dict.nav.productTour,
+				href: localePath(locale, "/watch"),
+				icon: "tour",
+				description: menu.tour,
+			},
 			{
 				label: extensionsCopy[locale].nav,
 				href: localePath(locale, "/extensions"),
+				icon: "extensions",
+				description: menu.extensions,
+			},
+			{
+				label: dict.nav.mcp,
+				href: localePath(locale, "/mcp"),
+				icon: "mcp",
+				description: menu.mcp,
 			},
 		],
+		related: comparisons,
 	};
-	const developers = {
+	const developers: NavGroup = {
 		label: dict.nav.developers,
 		links: [
-			{ label: "CLI", href: localePath(locale, "/downloads#cli") },
-			{ label: dict.nav.mcp, href: localePath(locale, "/mcp") },
-			{ label: dict.nav.extensionsSdk, href: extensionQuickstartUrl },
-			{ label: source.label, href: localePath(locale, "/self-hosted") },
+			{
+				label: "CLI",
+				href: localePath(locale, "/downloads#cli"),
+				icon: "cli",
+				description: menu.cli,
+			},
+			{
+				label: dict.nav.extensionsSdk,
+				href: extensionQuickstartUrl,
+				icon: "sdk",
+				description: menu.sdk,
+			},
+			{
+				label: source.label,
+				href: localePath(locale, "/self-hosted"),
+				icon: "hosting",
+				description: menu.hosting,
+			},
 		],
+		related: { label: dict.footer.resources, links: [documentation, github] },
 	};
-	const resources = {
+	const resources: NavGroup = {
 		label: dict.footer.resources,
 		links: [
-			{ label: dict.nav.docs, href: DOCS_URL },
-			{
-				label: dict.footer.wordCounter,
-				href: localePath(locale, "/tools/word-counter"),
-			},
-			{ label: dict.footer.contact, href: localePath(locale, "/demo") },
+			{ ...documentation, icon: "docs", description: menu.docs },
+			{ ...contact, icon: "contact", description: menu.contact },
 		],
+		related: { label: menu.security, links: [trust, subprocessors] },
 	};
 	const directLinks = [
 		{ label: dict.nav.pricing, href: localePath(locale, "/pricing") },
@@ -231,9 +293,18 @@ export default async function LocaleLayout({
 						links={
 							<>
 								{[
-									{ ...product, links: [...product.links, ...directLinks] },
-									developers,
-									resources,
+									product,
+									{ ...developers, links: [...developers.links, github] },
+									comparisons,
+									{
+										...resources,
+										links: [
+											...directLinks,
+											documentation,
+											wordCounter,
+											contact,
+										],
+									},
 								].map((group) => (
 									<FooterCategory key={group.label} title={group.label}>
 										{group.links.map((link) => (
@@ -243,17 +314,6 @@ export default async function LocaleLayout({
 										))}
 									</FooterCategory>
 								))}
-								<FooterCategory title={dict.footer.compare}>
-									<FooterLink href={localePath(locale, "/compare/linear")}>
-										{dict.footer.linearComparison}
-									</FooterLink>
-									<FooterLink href={localePath(locale, "/compare/obsidian")}>
-										{dict.footer.obsidianComparison}
-									</FooterLink>
-									<FooterLink href={localePath(locale, "/compare/notion")}>
-										{dict.footer.notionComparison}
-									</FooterLink>
-								</FooterCategory>
 								<FooterCategory title={dict.footer.legal}>
 									<FooterLink href={legalDocumentPaths.privacy}>
 										{dict.footer.privacyPolicy}
@@ -267,10 +327,10 @@ export default async function LocaleLayout({
 									<FooterLink href={legalDocumentPaths.terms}>
 										{dict.footer.termsOfService}
 									</FooterLink>
-									<FooterLink href="/subprocessors">
+									<FooterLink href={subprocessors.href}>
 										{dict.footer.subprocessors}
 									</FooterLink>
-									<FooterLink href={TRUST_CENTER_URL}>
+									<FooterLink href={trust.href}>
 										{dict.footer.trustCenter}
 									</FooterLink>
 								</FooterCategory>

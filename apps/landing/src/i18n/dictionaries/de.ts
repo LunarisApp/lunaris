@@ -23,6 +23,17 @@ const de = {
 		footerNavigation: "Fußzeilennavigation",
 	},
 	nav: {
+		menu: {
+			tour: "Einen Workspace in Aktion sehen.",
+			extensions: "Werkzeuge für deinen Workspace finden.",
+			mcp: "KI-Tools mit Lunaris verbinden.",
+			cli: "Über die Kommandozeile arbeiten.",
+			sdk: "Eigene Erweiterungen entwickeln.",
+			hosting: "Die Community Edition selbst betreiben.",
+			docs: "Anleitungen und Referenzen lesen.",
+			contact: "Eine Demo für dein Team anfragen.",
+			security: "Sicherheit",
+		},
 		product: "Produkt",
 		developers: "Entwickler",
 		productTour: "Produktrundgang",
