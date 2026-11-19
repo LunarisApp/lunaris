@@ -19,7 +19,16 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     >
-    <meta name="theme-color" content="#fbfaf7">
+    <meta
+      name="theme-color"
+      content="#efeeeb"
+      media="(prefers-color-scheme: light)"
+    >
+    <meta
+      name="theme-color"
+      content="#000000"
+      media="(prefers-color-scheme: dark)"
+    >
     <title>Lunaris</title>
     <style>
     html,
@@ -29,35 +38,27 @@
       margin: 0;
     }
 
+    :root {
+      color-scheme: light dark;
+    }
+
     .lunaris-initial-loader {
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100dvh;
-      color: #25231f;
-      background: #fbfaf7;
+      color: light-dark(#000, #f8f8f8);
+      background: light-dark(#efeeeb, #000);
     }
 
     .lunaris-initial-spinner {
       box-sizing: border-box;
       width: 2rem;
       height: 2rem;
-      border: 3px solid rgb(37 35 31 / 20%);
+      border: 3px solid color-mix(in srgb, currentColor 20%, transparent);
       border-top-color: currentColor;
       border-radius: 9999px;
       animation: lunaris-initial-spin 0.8s linear infinite;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .lunaris-initial-loader {
-        color: #eeece7;
-        background: #191817;
-      }
-
-      .lunaris-initial-spinner {
-        border-color: rgb(238 236 231 / 20%);
-        border-top-color: currentColor;
-      }
     }
 
     @media (prefers-reduced-motion: reduce) {

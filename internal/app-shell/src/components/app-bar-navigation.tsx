@@ -1,3 +1,4 @@
+import { LunarisMark } from "@repo/features/brand";
 import { FEATURE } from "@repo/auth/entitlements";
 import { useFeatureAccess } from "@repo/features/entitlements";
 import { Button } from "@lunarisapp/ui/components/button";
@@ -119,22 +120,7 @@ export function AppLogo() {
       className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       to="/"
     >
-      <img
-        alt=""
-        className="size-7 shrink-0 dark:hidden"
-        draggable={false}
-        height={28}
-        src="/favicon-light.svg"
-        width={28}
-      />
-      <img
-        alt=""
-        className="hidden size-7 shrink-0 dark:block"
-        draggable={false}
-        height={28}
-        src="/favicon-dark.svg"
-        width={28}
-      />
+      <LunarisMark />
     </Link>
   );
 }

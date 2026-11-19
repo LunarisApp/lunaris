@@ -1,3 +1,4 @@
+import { LunarisMark } from "@repo/features/brand";
 import { WorkspacesSortControl } from "../features/workspaces-list/components/workspaces-sort-control";
 import { HomeSearchProvider } from "../features/search/components/home-search";
 import { SearchButton } from "../features/search/components/search-button";
@@ -154,26 +155,11 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
         data-testid="workspaces-page"
       >
         <div className="flex flex-col gap-4 md:gap-6">
-          <header className="flex items-center justify-between gap-2 px-0 md:flex-wrap md:gap-x-3 md:gap-y-2 md:px-2">
+          <header className="flex items-center justify-between gap-2 border-b pb-4 md:flex-wrap md:gap-x-3 md:gap-y-2 md:pb-6">
             <div className="flex shrink-0 items-center gap-2">
               <div className="inline-flex items-center gap-2.5">
-                <img
-                  alt=""
-                  className="size-8 shrink-0 dark:hidden"
-                  draggable={false}
-                  height={32}
-                  src="/favicon-light.svg"
-                  width={32}
-                />
-                <img
-                  alt=""
-                  className="hidden size-8 shrink-0 dark:block"
-                  draggable={false}
-                  height={32}
-                  src="/favicon-dark.svg"
-                  width={32}
-                />
-                <span className="sr-only font-[650] text-xl/none uppercase tracking-[0.04em] md:not-sr-only">
+                <LunarisMark className="size-8" />
+                <span className="app-wordmark sr-only text-xl/none md:not-sr-only">
                   Lunaris
                 </span>
               </div>
@@ -225,7 +211,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
             id="main-content"
             tabIndex={-1}
           >
-            <h1 className="font-semibold text-lg" id="workspaces-heading">
+            <h1 className="app-page-title" id="workspaces-heading">
               {t("workspaces.recentWorkspaces")}
             </h1>
             {!canReadWorkspaces && (
@@ -262,7 +248,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                   }
                 >
                   <SearchButton
-                    className="h-11 min-w-0 flex-1 justify-start rounded-xl bg-muted/50 text-base text-muted-foreground shadow-none md:h-8 md:rounded-lg md:bg-background md:text-sm"
+                    className="h-11 min-w-0 flex-1 justify-start text-base text-muted-foreground md:h-8 md:text-sm"
                     data-testid="workspaces-search"
                   />
                 </HomeSearchProvider>
@@ -328,7 +314,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                   trigger={
                     <Button
                       aria-label={t("common.create")}
-                      className="size-11 shrink-0 rounded-lg p-0 md:h-8 md:w-auto md:px-2.5"
+                      className="size-11 p-0 md:h-8 md:w-auto md:px-4"
                       data-testid="workspaces-create-launcher-header"
                     >
                       <HugeiconsIcon aria-hidden="true" icon={FolderAddIcon} />

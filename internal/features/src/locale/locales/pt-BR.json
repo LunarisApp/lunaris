@@ -485,7 +485,7 @@
     "interestError": "Não foi possível enviar sua solicitação. Tente novamente."
   },
   "workspaces": {
-    "recentWorkspaces": "Espaços de trabalho recentes",
+    "recentWorkspaces": "Recentes",
     "workspaceCount_one": "{{count}} espaço de trabalho",
     "workspaceCount_other": "{{count}} espaços de trabalho",
     "createWorkspace": "Criar espaço de trabalho",

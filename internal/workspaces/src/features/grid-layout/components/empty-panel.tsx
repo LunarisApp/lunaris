@@ -44,10 +44,10 @@ function LauncherCardContent({
 }) {
   return (
     <>
-      <span className="flex size-10 items-center justify-center rounded-xl border bg-background text-foreground transition-transform duration-200 group-hover/button:-translate-y-0.5">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
         <HugeiconsIcon className="size-5" icon={icon} />
       </span>
-      <span className="space-y-1">
+      <span className="min-w-0 space-y-1">
         <span className="block font-medium text-foreground">{title}</span>
         <span className="block text-muted-foreground text-xs leading-relaxed">
           {description}
@@ -57,8 +57,8 @@ function LauncherCardContent({
   );
 }
 
-const launcherCardClassName =
-  "h-auto min-h-32 w-full flex-col items-start justify-between gap-5 whitespace-normal rounded-2xl border-border/80 bg-card p-5 text-left hover:border-foreground/20 hover:bg-muted/40 active:scale-[0.99] @min-[480px]:min-h-36";
+const launcherRowClassName =
+  "h-auto min-h-16 w-full justify-start gap-4 whitespace-normal px-3 py-3 text-left focus-visible:z-10";
 
 export function GridLayoutEmptyPanel({ api }: IDockviewPanelProps) {
   const { t } = useTranslation();
@@ -134,12 +134,12 @@ export function GridLayoutEmptyPanel({ api }: IDockviewPanelProps) {
   };
 
   return (
-    <div className="@container h-full overflow-y-auto bg-background">
-      <div className="mx-auto flex min-h-full w-full max-w-2xl items-center @min-[480px]:px-8 px-5 py-10">
+    <div className="@container h-full overflow-y-auto bg-card">
+      <div className="mx-auto flex min-h-full w-full max-w-xl items-center @min-[480px]:px-8 px-5 py-10">
         <div className="w-full">
           <div className="mb-6 max-w-md space-y-1.5">
             <div className="flex items-center gap-2">
-              <h1 className="font-semibold text-xl tracking-tight">
+              <h1 className="app-panel-title">
                 {t("gridLayout.emptyPanel.heading")}
               </h1>
               {!canCreate && (
@@ -153,19 +153,13 @@ export function GridLayoutEmptyPanel({ api }: IDockviewPanelProps) {
             </p>
           </div>
 
-          <div
-            aria-busy={isPending}
-            className="grid @min-[480px]:grid-cols-2 grid-cols-1 gap-3"
-          >
+          <div aria-busy={isPending} className="grid gap-1 border-y py-2">
             {canCreate && (
               <ResponsiveDropdownMenu>
                 <ResponsiveDropdownMenuTrigger
                   disabled={isPending || resources.length === 0}
                   render={
-                    <Button
-                      className={`${launcherCardClassName} @min-[480px]:col-span-2`}
-                      variant="outline"
-                    />
+                    <Button className={launcherRowClassName} variant="ghost" />
                   }
                 >
                   <LauncherCardContent
@@ -198,10 +192,10 @@ export function GridLayoutEmptyPanel({ api }: IDockviewPanelProps) {
 
             {canCreate && (
               <Button
-                className={launcherCardClassName}
+                className={launcherRowClassName}
                 disabled={isPending}
                 onClick={handleCreateFolder}
-                variant="outline"
+                variant="ghost"
               >
                 <LauncherCardContent
                   description={t(
@@ -214,10 +208,10 @@ export function GridLayoutEmptyPanel({ api }: IDockviewPanelProps) {
             )}
 
             <Button
-              className={launcherCardClassName}
+              className={launcherRowClassName}
               disabled={isPending}
               onClick={handleExploreExtensions}
-              variant="outline"
+              variant="ghost"
             >
               <LauncherCardContent
                 description={t(

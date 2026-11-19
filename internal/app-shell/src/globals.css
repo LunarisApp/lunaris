@@ -1,5 +1,4 @@
 @import "@lunarisapp/ui/globals.css";
-@import "@fontsource-variable/nunito-sans";
 @import "@fontsource/opendyslexic";
 
 /* Include every private application and first-party extension consumer. */
@@ -10,9 +9,6 @@
 @source "../../../internal/agent-work/node_modules/streamdown/dist/*.js";
 
 :root {
-  --font-sans:
-    "Nunito Sans Variable", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-dyslexic:
     "OpenDyslexic", "Verdana", "Tahoma", "Trebuchet MS", "Helvetica Neue",
     sans-serif;

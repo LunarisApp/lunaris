@@ -45,7 +45,7 @@ export function GridLayoutGroupControls({
       >
         <HugeiconsIcon icon={PlusSignIcon} />
       </TooltipTrigger>
-      <TooltipContent className="flex items-center gap-3">
+      <TooltipContent className="flex items-center gap-3" side="bottom">
         <span>{t("gridLayout.emptyPanel.add")}</span>
         <Kbd>{newTabShortcut}</Kbd>
       </TooltipContent>

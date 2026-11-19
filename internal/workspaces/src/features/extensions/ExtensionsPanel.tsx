@@ -1105,7 +1105,7 @@ export function ExtensionsPanel() {
 
   return (
     <div className="@container flex h-full w-full flex-col gap-5 overflow-y-auto p-6">
-      <h1 className="font-semibold text-xl">{t("extensions.title")}</h1>
+      <h1 className="app-panel-title">{t("extensions.title")}</h1>
       {!canWrite && (
         <Alert>
           <AlertTitle>{t("permissions.readOnlyTitle")}</AlertTitle>

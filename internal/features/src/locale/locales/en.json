@@ -605,7 +605,7 @@
     "interestError": "We couldn't send your request. Please try again."
   },
   "workspaces": {
-    "recentWorkspaces": "Recent Workspaces",
+    "recentWorkspaces": "Recent",
     "workspaceCount_one": "{{count}} workspace",
     "workspaceCount_other": "{{count}} workspaces",
     "createWorkspace": "Create Workspace",

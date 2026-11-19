@@ -148,9 +148,7 @@ export function WorkspaceSettingsPanel() {
     >
       <div className="mx-auto max-w-3xl pb-8">
         <div className="space-y-1 pb-6">
-          <h1 className="font-semibold text-xl">
-            {t("workspaces.settingsTitle")}
-          </h1>
+          <h1 className="app-panel-title">{t("workspaces.settingsTitle")}</h1>
           <p className="text-muted-foreground text-sm">
             {t("workspaces.settingsDescription")}
           </p>

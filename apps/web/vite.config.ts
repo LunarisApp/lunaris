@@ -55,8 +55,8 @@ export default defineConfig({
         display: "standalone",
         start_url: "/",
         scope: "/",
-        theme_color: "#fbfaf7",
-        background_color: "#fbfaf7",
+        theme_color: "#efeeeb",
+        background_color: "#efeeeb",
         icons: [
           {
             src: "/pwa-192x192.png",

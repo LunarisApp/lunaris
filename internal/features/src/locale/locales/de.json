@@ -485,7 +485,7 @@
     "interestError": "Ihre Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
   },
   "workspaces": {
-    "recentWorkspaces": "Letzte Arbeitsbereiche",
+    "recentWorkspaces": "Zuletzt verwendet",
     "workspaceCount_one": "{{count}} Arbeitsbereich",
     "workspaceCount_other": "{{count}} Arbeitsbereiche",
     "createWorkspace": "Arbeitsbereich erstellen",

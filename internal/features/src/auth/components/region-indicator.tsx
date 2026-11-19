@@ -15,7 +15,7 @@ export function RegionIndicator() {
         variant: "ghost",
         size: "sm",
         className:
-          "absolute top-3 right-3 z-10 h-7 gap-1.5 px-2 font-medium text-[11px] text-muted-foreground uppercase tracking-wide",
+          "gap-1.5 text-muted-foreground text-xs uppercase tracking-wide",
       })}
       to={pathWithRegion("/auth")}
     >

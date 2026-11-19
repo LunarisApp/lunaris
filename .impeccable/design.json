@@ -1,12 +1,82 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-12T06:55:33Z",
+  "generatedAt": "2026-11-19T07:09:38Z",
   "title": "Design System: Lunaris Application",
   "extensions": {
     "colorMeta": {
-      "clear-paper": {
+      "canvas": {
         "role": "neutral",
-        "displayName": "Clear Paper",
+        "displayName": "Canvas",
+        "tonalRamp": [
+          "oklch(0.15 0.004 91)",
+          "oklch(0.25 0.004 91)",
+          "oklch(0.35 0.004 91)",
+          "oklch(0.45 0.004 91)",
+          "oklch(0.55 0.004 91)",
+          "oklch(0.65 0.004 91)",
+          "oklch(0.8 0.004 91)",
+          "oklch(0.95 0.004 91)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "tonalRamp": [
+          "oklch(0.15 0.003 85)",
+          "oklch(0.25 0.003 85)",
+          "oklch(0.35 0.003 85)",
+          "oklch(0.45 0.003 85)",
+          "oklch(0.55 0.003 85)",
+          "oklch(0.65 0.003 85)",
+          "oklch(0.8 0.003 85)",
+          "oklch(0.95 0.003 85)"
+        ]
+      },
+      "soft-stone": {
+        "role": "neutral",
+        "displayName": "Soft Stone",
+        "tonalRamp": [
+          "oklch(0.15 0.004 91)",
+          "oklch(0.25 0.004 91)",
+          "oklch(0.35 0.004 91)",
+          "oklch(0.45 0.004 91)",
+          "oklch(0.55 0.004 91)",
+          "oklch(0.65 0.004 91)",
+          "oklch(0.8 0.004 91)",
+          "oklch(0.95 0.004 91)"
+        ]
+      },
+      "hairline-stone": {
+        "role": "neutral",
+        "displayName": "Hairline Stone",
+        "tonalRamp": [
+          "oklch(0.15 0.004 91)",
+          "oklch(0.25 0.004 91)",
+          "oklch(0.35 0.004 91)",
+          "oklch(0.45 0.004 91)",
+          "oklch(0.55 0.004 91)",
+          "oklch(0.65 0.004 91)",
+          "oklch(0.8 0.004 91)",
+          "oklch(0.95 0.004 91)"
+        ]
+      },
+      "field-stroke": {
+        "role": "neutral",
+        "displayName": "Field Stroke",
+        "tonalRamp": [
+          "oklch(0.15 0.005 91)",
+          "oklch(0.25 0.005 91)",
+          "oklch(0.35 0.005 91)",
+          "oklch(0.45 0.005 91)",
+          "oklch(0.55 0.005 91)",
+          "oklch(0.65 0.005 91)",
+          "oklch(0.8 0.005 91)",
+          "oklch(0.95 0.005 91)"
+        ]
+      },
+      "muted-ink": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
         "tonalRamp": [
           "oklch(0.15 0 0)",
           "oklch(0.25 0 0)",
@@ -18,116 +88,102 @@
           "oklch(0.95 0 0)"
         ]
       },
-      "pale-paper": {
-        "role": "neutral",
-        "displayName": "Pale Paper",
-        "tonalRamp": [
-          "oklch(0.15 0.001 106.423)",
-          "oklch(0.25 0.001 106.423)",
-          "oklch(0.35 0.001 106.423)",
-          "oklch(0.45 0.001 106.423)",
-          "oklch(0.55 0.001 106.423)",
-          "oklch(0.65 0.001 106.423)",
-          "oklch(0.8 0.001 106.423)",
-          "oklch(0.95 0.001 106.423)"
-        ]
-      },
-      "soft-stone": {
-        "role": "neutral",
-        "displayName": "Soft Stone",
-        "tonalRamp": [
-          "oklch(0.15 0.001 106.424)",
-          "oklch(0.25 0.001 106.424)",
-          "oklch(0.35 0.001 106.424)",
-          "oklch(0.45 0.001 106.424)",
-          "oklch(0.55 0.001 106.424)",
-          "oklch(0.65 0.001 106.424)",
-          "oklch(0.8 0.001 106.424)",
-          "oklch(0.95 0.001 106.424)"
-        ]
-      },
-      "hairline-stone": {
-        "role": "neutral",
-        "displayName": "Hairline Stone",
-        "tonalRamp": [
-          "oklch(0.15 0.003 48.717)",
-          "oklch(0.25 0.003 48.717)",
-          "oklch(0.35 0.003 48.717)",
-          "oklch(0.45 0.003 48.717)",
-          "oklch(0.55 0.003 48.717)",
-          "oklch(0.65 0.003 48.717)",
-          "oklch(0.8 0.003 48.717)",
-          "oklch(0.95 0.003 48.717)"
-        ]
-      },
-      "focus-stone": {
-        "role": "neutral",
-        "displayName": "Focus Stone",
-        "tonalRamp": [
-          "oklch(0.15 0.01 56.259)",
-          "oklch(0.25 0.01 56.259)",
-          "oklch(0.35 0.01 56.259)",
-          "oklch(0.45 0.01 56.259)",
-          "oklch(0.55 0.01 56.259)",
-          "oklch(0.65 0.01 56.259)",
-          "oklch(0.8 0.01 56.259)",
-          "oklch(0.95 0.01 56.259)"
-        ]
-      },
-      "muted-ink": {
-        "role": "neutral",
-        "displayName": "Muted Ink",
-        "tonalRamp": [
-          "oklch(0.15 0.013 58.071)",
-          "oklch(0.25 0.013 58.071)",
-          "oklch(0.35 0.013 58.071)",
-          "oklch(0.45 0.013 58.071)",
-          "oklch(0.55 0.013 58.071)",
-          "oklch(0.65 0.013 58.071)",
-          "oklch(0.8 0.013 58.071)",
-          "oklch(0.95 0.013 58.071)"
-        ]
-      },
-      "deep-ink": {
+      "ink": {
         "role": "primary",
-        "displayName": "Deep Ink",
+        "displayName": "Ink",
         "tonalRamp": [
-          "oklch(0.15 0.006 56.043)",
-          "oklch(0.25 0.006 56.043)",
-          "oklch(0.35 0.006 56.043)",
-          "oklch(0.45 0.006 56.043)",
-          "oklch(0.55 0.006 56.043)",
-          "oklch(0.65 0.006 56.043)",
-          "oklch(0.8 0.006 56.043)",
-          "oklch(0.95 0.006 56.043)"
+          "oklch(0.15 0 0)",
+          "oklch(0.25 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.8 0 0)",
+          "oklch(0.95 0 0)"
         ]
       },
-      "warm-ink": {
+      "inverse-ink": {
         "role": "neutral",
-        "displayName": "Warm Ink",
+        "displayName": "Inverse Ink",
         "tonalRamp": [
-          "oklch(0.15 0.004 49.25)",
-          "oklch(0.25 0.004 49.25)",
-          "oklch(0.35 0.004 49.25)",
-          "oklch(0.45 0.004 49.25)",
-          "oklch(0.55 0.004 49.25)",
-          "oklch(0.65 0.004 49.25)",
-          "oklch(0.8 0.004 49.25)",
-          "oklch(0.95 0.004 49.25)"
+          "oklch(0.15 0 0)",
+          "oklch(0.25 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.8 0 0)",
+          "oklch(0.95 0 0)"
         ]
       },
-      "night-stone": {
+      "night-surface": {
         "role": "neutral",
-        "displayName": "Night Stone",
+        "displayName": "Night Surface",
         "tonalRamp": [
-          "oklch(0.15 0.007 34.298)",
-          "oklch(0.25 0.007 34.298)",
-          "oklch(0.35 0.007 34.298)",
-          "oklch(0.45 0.007 34.298)",
-          "oklch(0.55 0.007 34.298)",
-          "oklch(0.65 0.007 34.298)",
-          "oklch(0.8 0.007 34.298)",
-          "oklch(0.95 0.007 34.298)"
+          "oklch(0.15 0 0)",
+          "oklch(0.25 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.8 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "night-popover": {
+        "role": "neutral",
+        "displayName": "Night Popover",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.25 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.8 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "night-muted": {
+        "role": "neutral",
+        "displayName": "Night Muted",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.25 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.8 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "night-text-secondary": {
+        "role": "neutral",
+        "displayName": "Night Text Secondary",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.25 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.8 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "night-border": {
+        "role": "neutral",
+        "displayName": "Night Border",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.25 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.8 0 0)",
+          "oklch(0.95 0 0)"
         ]
       },
       "signal-red": {
@@ -255,7 +311,7 @@
       "refersTo": "button-primary",
       "description": "Compact high-emphasis action with a quiet pressed response.",
       "html": "<button class=\"ds-btn-primary\">Save changes</button>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 2rem; padding: 0.25rem 0.625rem; border: 1px solid transparent; border-radius: var(--radius, 0.625rem); background: var(--primary); color: var(--primary-foreground); font: 500 0.875rem/1.25 var(--font-sans, sans-serif); white-space: nowrap; transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { opacity: 0.8; } .ds-btn-primary:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); } .ds-btn-primary:active { transform: translateY(1px); }"
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 2rem; padding: 0 1rem; border: 1px solid transparent; border-radius: var(--radius, 0.625rem); background: var(--primary); color: var(--primary-foreground); font: 500 0.875rem/1.25 var(--font-sans, sans-serif); white-space: nowrap; transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { opacity: 0.8; } .ds-btn-primary:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); } .ds-btn-primary:active { transform: translateY(1px); }"
     },
     {
       "name": "Outline Button",
@@ -263,7 +319,7 @@
       "refersTo": "button-outline",
       "description": "Neutral secondary action that gains a muted surface on interaction.",
       "html": "<button class=\"ds-btn-outline\">Cancel</button>",
-      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; height: 2rem; padding: 0.25rem 0.625rem; border: 1px solid var(--border); border-radius: var(--radius, 0.625rem); background: var(--background); color: var(--foreground); font: 500 0.875rem/1.25 var(--font-sans, sans-serif); transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-outline:hover { background: var(--muted); } .ds-btn-outline:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); } .ds-btn-outline:active { transform: translateY(1px); }"
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; height: 2rem; padding: 0.25rem 0.625rem; border: 1px solid var(--border); border-radius: var(--radius, 0.625rem); background: var(--card); color: var(--foreground); font: 500 0.875rem/1.25 var(--font-sans, sans-serif); transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-outline:hover { background: var(--muted); } .ds-btn-outline:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); } .ds-btn-outline:active { transform: translateY(1px); }"
     },
     {
       "name": "Ghost Button",
@@ -277,9 +333,9 @@
       "name": "Text Input",
       "kind": "input",
       "refersTo": "input-default",
-      "description": "Compact transparent field with a strong accessible focus boundary.",
+      "description": "Compact field with a dedicated input stroke and visible keyboard focus.",
       "html": "<input class=\"ds-input\" placeholder=\"Workspace name\" />",
-      "css": ".ds-input { box-sizing: border-box; width: 100%; height: 2rem; padding: 0.25rem 0.625rem; border: 1px solid var(--input); border-radius: var(--radius, 0.625rem); background: transparent; color: var(--foreground); font: 400 0.875rem/1.429 var(--font-sans, sans-serif); transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-input::placeholder { color: var(--muted-foreground); } .ds-input:hover { border-color: var(--ring); } .ds-input:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
+      "css": ".ds-input { box-sizing: border-box; width: 100%; height: 2rem; padding: 0.25rem 0.625rem; border: 1px solid var(--input); border-radius: var(--radius, 0.625rem); background: var(--card); color: var(--foreground); font: 400 0.875rem/1.429 var(--font-sans, sans-serif); transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-input::placeholder { color: var(--muted-foreground); } .ds-input:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
     },
     {
       "name": "Default Badge",
@@ -295,7 +351,7 @@
       "refersTo": "card-default",
       "description": "Paper surface separated primarily by a hairline ring.",
       "html": "<section class=\"ds-card\"><h3>Workspace notes</h3><p>Last edited a few minutes ago</p></section>",
-      "css": ".ds-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 1rem; border-radius: calc(var(--radius, 0.625rem) + 0.25rem); background: var(--card); color: var(--card-foreground); box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent); font-family: var(--font-sans, sans-serif); } .ds-card h3 { margin: 0; font-size: 1rem; line-height: 1.375; font-weight: 500; } .ds-card p { margin: 0; color: var(--muted-foreground); font-size: 0.875rem; line-height: 1.429; } .ds-card:hover { box-shadow: 0 0 0 1px color-mix(in oklch, var(--ring) 50%, transparent), 0 1px 3px rgb(0 0 0 / 0.1); } .ds-card:focus-within { box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
+      "css": ".ds-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 1rem; border-radius: calc(var(--radius, 0.625rem) + 0.25rem); background: var(--card); color: var(--card-foreground); box-shadow: 0 0 0 1px var(--border); font-family: var(--font-sans, sans-serif); } .ds-card h3 { margin: 0; font-size: 1rem; line-height: 1.375; font-weight: 500; } .ds-card p { margin: 0; color: var(--muted-foreground); font-size: 0.875rem; line-height: 1.429; } .ds-card:hover { box-shadow: 0 0 0 1px color-mix(in oklch, var(--ring) 50%, transparent), 0 1px 3px rgb(0 0 0 / 0.1); } .ds-card:focus-within { box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
     },
     {
       "name": "Tab Group",
@@ -319,18 +375,18 @@
       "refersTo": "dialog-default",
       "description": "Compact paper overlay with restrained blur, ring, and fast motion.",
       "html": "<div class=\"ds-dialog-stage\"><section class=\"ds-dialog\" role=\"dialog\" aria-labelledby=\"ds-dialog-title\"><h2 id=\"ds-dialog-title\">Rename workspace</h2><p>Choose a clear name for this organization.</p><input class=\"ds-dialog-input\" value=\"Workspace notes\" /></section></div>",
-      "css": ".ds-dialog-stage { display: grid; place-items: center; padding: 2rem; background: rgb(0 0 0 / 0.1); backdrop-filter: blur(4px); } .ds-dialog { box-sizing: border-box; width: min(24rem, calc(100% - 2rem)); padding: 1rem; border-radius: calc(var(--radius, 0.625rem) + 0.25rem); background: var(--popover); color: var(--popover-foreground); box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent), 0 10px 15px -3px rgb(0 0 0 / 0.1); font-family: var(--font-sans, sans-serif); } .ds-dialog h2 { margin: 0 0 0.5rem; font-size: 1rem; line-height: 1; font-weight: 500; } .ds-dialog p { margin: 0 0 1rem; color: var(--muted-foreground); font-size: 0.875rem; line-height: 1.429; } .ds-dialog-input { box-sizing: border-box; width: 100%; height: 2rem; padding: 0.25rem 0.625rem; border: 1px solid var(--input); border-radius: var(--radius, 0.625rem); background: transparent; color: var(--foreground); } .ds-dialog-input:hover { border-color: var(--ring); } .ds-dialog-input:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
+      "css": ".ds-dialog-stage { display: grid; place-items: center; padding: 2rem; background: rgb(0 0 0 / 0.1); backdrop-filter: blur(4px); } .ds-dialog { box-sizing: border-box; width: min(24rem, calc(100% - 2rem)); padding: 1rem; border-radius: calc(var(--radius, 0.625rem) + 0.25rem); background: var(--popover); color: var(--popover-foreground); box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent), 0 10px 15px -3px rgb(0 0 0 / 0.1); font-family: var(--font-sans, sans-serif); } .ds-dialog h2 { margin: 0 0 0.5rem; font-size: 1rem; line-height: 1; font-weight: 500; } .ds-dialog p { margin: 0 0 1rem; color: var(--muted-foreground); font-size: 0.875rem; line-height: 1.429; } .ds-dialog-input { box-sizing: border-box; width: 100%; height: 2rem; padding: 0.25rem 0.625rem; border: 1px solid var(--input); border-radius: var(--radius, 0.625rem); background: var(--card); color: var(--foreground); } .ds-dialog-input:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
     }
   ],
   "narrative": {
     "northStar": "Quiet Workbench",
-    "overview": "Lunaris treats the interface as a dependable work surface: calm enough for long writing sessions, compact enough for complex workspaces, and precise enough for team workflows. Warm paper-and-ink neutrals keep attention on documents and tools. Hierarchy comes from spacing, weight, and tonal contrast before scale or decoration.\n\nColor and imagery enter as bounded portals rather than ambient chrome. Auth, onboarding, announcements, and other meaningful moments may use colorful or stylized imagery, while the operational organization stays neutral and focused. The result should feel minimal without becoming sterile, and approachable without becoming soft or toy-like.",
+    "overview": "The app borrows the landing page’s DM Sans typography, warm paper canvas, and black dark theme. In the workbench, spacing and type distinguish the current resource from navigation and tools. A slightly raised surface identifies each resizable panel.\n\nThe sign-in screen pairs the landing page’s lunar landscape with a compact form. The editor gives that space back to the resource.",
     "keyCharacteristics": [
-      "Warm monochrome foundations in both light and dark themes.",
-      "Compact controls with clear state changes and generous focus visibility.",
-      "Rounded, bordered surfaces with restrained elevation.",
-      "Dense desktop organizations that simplify into direct mobile hierarchies.",
-      "Colorful imagery contained within deliberate, clipped portal regions."
+      "Warm paper and black canvases with distinct reading surfaces.",
+      "Compact controls with visible keyboard focus.",
+      "Thin neutral borders around panels and floating menus.",
+      "A responsive workspace layout with direct navigation on small screens.",
+      "Color for artwork, status, charts, and user content."
     ],
     "rules": [
       {
@@ -340,7 +396,7 @@
       },
       {
         "name": "Quiet Hierarchy",
-        "body": "Inside the application, increase weight and spacing before increasing type size. Operational page titles stop at the established headline role; marketing-scale display type does not enter the organization.",
+        "body": "Use the page and panel title roles to distinguish a top-level destination from a tool within a workspace.",
         "section": "typography"
       },
       {
@@ -355,7 +411,7 @@
       },
       {
         "name": "Radius Ladder",
-        "body": "Match radius to scale and role: tighter for dense navigation, standard for controls, broader for containers, full only for inherently pill-shaped or circular elements.",
+        "body": "Use a tight radius on dense navigation, standard corners on controls, and broader corners on panels.",
         "section": "shapes"
       },
       {

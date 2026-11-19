@@ -227,7 +227,7 @@ export function WorkspaceTreeItem({
           item={item}
           key={item.getId()}
           render={
-            <div className="flex min-h-14 items-center rounded-xl bg-background py-1 text-base active:bg-accent">
+            <div className="flex min-h-14 items-center rounded-xl py-1 text-base active:bg-accent">
               <span className="min-w-0 flex-1">{treeItemContent}</span>
               <MobileWorkspaceTreeItemActions
                 canCreate={canCreate}
