@@ -115,7 +115,11 @@ else console.log("{}");
   const sha = execFileSync("git", ["rev-parse", "HEAD"], {
     encoding: "utf8",
   }).trim();
-  const health = { sha, responses: [] as (string | Response | Error)[] };
+  const health = {
+    sha,
+    version: "",
+    responses: [] as (string | Response | Error)[],
+  };
   const fetchMock = spyOn(globalThis, "fetch").mockImplementation((async (
     input: Parameters<typeof fetch>[0],
     options?: Parameters<typeof fetch>[1]
@@ -131,6 +135,11 @@ else console.log("{}");
       const { variables } = JSON.parse(String(options?.body));
       expect(variables.environmentId).toBe(id);
       const source = variables.patch.services[id].source;
+      const buildVersion =
+        variables.patch.services[id].variables?.LUNARIS_BUILD_VERSION;
+      if (buildVersion) {
+        health.version = buildVersion.value;
+      }
       // Model a service inherited from a repo deployment, then merge the patch.
       expect({
         repo: "fixture/repo",
@@ -152,8 +161,14 @@ else console.log("{}");
       });
     }
     if (url.hostname === "fixture.test") {
+      const versionHeaders: Record<string, string> = health.version
+        ? { "X-Lunaris-Version": health.version }
+        : {};
       if (url.pathname === "/runtime-config.json") {
-        return Response.json({ REGION_DIRECTORY_URL: "/regions.json" });
+        return Response.json(
+          { REGION_DIRECTORY_URL: "/regions.json" },
+          { headers: { "X-Lunaris-Commit": health.sha, ...versionHeaders } }
+        );
       }
       if (url.pathname === "/") {
         return new Response('<div id="root"></div>');
@@ -166,7 +181,7 @@ else console.log("{}");
         return response;
       }
       return new Response("ok", {
-        headers: { "X-Lunaris-Commit": response },
+        headers: { "X-Lunaris-Commit": response, ...versionHeaders },
       });
     }
     const path = url.pathname.replace("/repos/fixture/repo/", "");
@@ -330,6 +345,38 @@ test("image retries preserve successful region records", async () => {
   expect((await lastSuccess(`staging/api/${f.destination.service}`))?.sha).toBe(
     f.sha
   );
+});
+
+test("web releases reuse the image digest and restore the prior version on rollback", async () => {
+  const f = fixture();
+  process.env.FIXTURE_IMAGE = "true";
+  process.env.RAILWAY_RELEASE_TARGETS = JSON.stringify({
+    api: [f.destination],
+    web: [f.destination],
+  });
+  const candidate: Candidate = {
+    schemaVersion: 1,
+    sha: f.sha,
+    runId: "1",
+    configurationRevision: "v1",
+    syncRevision: "a".repeat(64),
+    api: { sha: f.sha, image: `ghcr.io/fixture/api@sha256:${"a".repeat(64)}` },
+    web: { sha: f.sha, image: `ghcr.io/fixture/web@sha256:${"a".repeat(64)}` },
+  };
+  for (const webVersion of ["1.2.3", "1.2.3", "1.2.4", "1.2.3", undefined]) {
+    await deployCore(
+      { ...candidate, webVersion },
+      "production",
+      "web",
+      candidate
+    );
+    expect(f.health.version).toBe(webVersion ?? "");
+    expect((await lastSuccess("production/core"))?.payload).toEqual({
+      ...candidate,
+      webVersion,
+    });
+  }
+  expect(f.edits()).toHaveLength(4);
 });
 
 test("environment patches reject HTTP and GraphQL failures", async () => {

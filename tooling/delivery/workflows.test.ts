@@ -77,6 +77,10 @@ test("stable release stages every artifact before production and finalizes after
   expect(jobs.hosted.needs).toEqual(["reserve", "native", "self-hosted"]);
   expect(jobs.finalize.needs).toEqual(["reserve", "hosted", "distribute"]);
   expect(jobs.hosted.with.stable_release).toBe(true);
+  expect(jobs.hosted.with.version).toBe(jobs.native.with.version);
+  expect(workflow("core.promote").jobs.promote.env.PRODUCT_VERSION).toContain(
+    "inputs.version"
+  );
   expect(workflow("core.promote").jobs.resolve.if).toContain(
     "inputs.stable_release"
   );

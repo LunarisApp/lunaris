@@ -21,6 +21,7 @@ import {
   type ProductPlan,
 } from "./product";
 import { git, output, run, summary } from "../release/automation/process";
+import { candidateSchema, coreDeploymentSchema } from "./candidate";
 import {
   lastSuccess,
   statuses,
@@ -107,8 +108,8 @@ function verifySource(plan: ProductPlan) {
   }
 }
 if (mode === "reserve") {
-  const candidate = JSON.parse(
-    readFileSync("artifacts/candidate.json", "utf8")
+  const candidate = candidateSchema.parse(
+    JSON.parse(readFileSync("artifacts/candidate.json", "utf8"))
   );
   const current = await lastSuccess("production/core");
   if (current) {
@@ -152,6 +153,23 @@ if (mode === "reserve") {
     : pending[0]
       ? readPlan(pending[0].tag_name)
       : undefined;
+  const completed = releases.find(
+    (item) =>
+      !item.draft &&
+      item.assets.some((asset) => asset.name === "release-plan.json") &&
+      (!process.env.PRODUCT_VERSION ||
+        item.tag_name === `v${process.env.PRODUCT_VERSION}`) &&
+      readPlan(item.tag_name).candidate.runId === candidate.runId
+  );
+  if (
+    !candidate.web.supportsReleaseVersion &&
+    old?.candidate.runId !== candidate.runId &&
+    !completed
+  ) {
+    throw new Error(
+      "This candidate's web image predates release version reporting. Select a newer certified candidate."
+    );
+  }
   // A failed initial upload can leave an empty draft bound to an obsolete candidate.
   // Retire only that unused reservation; immutable tags still consume their version.
   if (
@@ -175,14 +193,6 @@ if (mode === "reserve") {
     }
   }
   // Re-dispatch of an already completed candidate is a no-op, never another version.
-  const completed = releases.find(
-    (item) =>
-      !item.draft &&
-      item.assets.some((asset) => asset.name === "release-plan.json") &&
-      (!process.env.PRODUCT_VERSION ||
-        item.tag_name === `v${process.env.PRODUCT_VERSION}`) &&
-      readPlan(item.tag_name).candidate.runId === candidate.runId
-  );
   if (completed && (!old || old.candidate.runId === candidate.runId)) {
     if (reservation) {
       await setStatus(
@@ -419,9 +429,16 @@ if (mode === "reserve") {
   const plan = readPlan(tag);
   verifySource(plan);
   const deployed = await lastSuccess("production/core");
+  const { webVersion, ...candidate } = deployed
+    ? coreDeploymentSchema.parse(deployed.payload)
+    : {};
+  const expectedWebVersion = plan.candidate.web.supportsReleaseVersion
+    ? plan.version
+    : undefined;
   if (
     !deployed ||
-    JSON.stringify(deployed.payload) !== JSON.stringify(plan.candidate)
+    webVersion !== expectedWebVersion ||
+    JSON.stringify(candidate) !== JSON.stringify(plan.candidate)
   ) {
     throw new Error("Product candidate not deployed successfully");
   }

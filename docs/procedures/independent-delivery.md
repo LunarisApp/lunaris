@@ -22,6 +22,8 @@ Never enable two deployment owners for one Railway service.
 - **Release Stable** runs manually on main. Supply successful candidate run ID;
   optional version overrides next product patch. Initial version exceeds the
   highest historical product-component version, excluding SDK/UI.
+  New reservations require a candidate whose web image supports release version
+  reporting. Existing reservations can resume with their original candidate.
 - Every stable builds CLI, desktop, and CE self-hosted outputs from selected
   candidate source. Native builds retain signing/notarization policy. CE runs
   installer checks on AMD64/ARM64 before pushing digest-pinned images.

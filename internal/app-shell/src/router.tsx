@@ -28,16 +28,13 @@ import { OrganizationScopeGate } from "./components/organization-scope-gate";
 import env from "./config";
 import { useLogout } from "@repo/features/auth/use-logout";
 import { type AppRuntime, useAppRuntime } from "./runtime";
+import { getRuntimeBuildVersion } from "./runtime-config";
 import type { Shell } from "./types";
 import { createEnabledAppToolRoutes } from "./app-tools";
 
 interface AppRouterProps {
   runtime?: AppRuntime;
   shell: Shell;
-}
-
-function AppBuildVersion() {
-  return <BuildVersion version={__BUILD_VERSION__} />;
 }
 
 function IndexRedirect({ initialLocationKey }: { initialLocationKey: string }) {
@@ -177,10 +174,12 @@ const lazyAuthPage = (page: keyof typeof AUTH_PAGE_LOADERS) => async () => ({
 
 const createAppRouter = (shell: Shell, runtime?: RoutingRuntime) => {
   const initialLocationKey = window.history.state?.key ?? "default";
+  const buildVersion = getRuntimeBuildVersion() ?? __BUILD_VERSION__;
+  const buildVersionLabel = <BuildVersion version={buildVersion} />;
   const toolRoutes = createEnabledAppToolRoutes({
     AppBarLeading: WorkspacesAppBarLeading,
     AppBarTrailing: WorkspacesAppBarTrailing,
-    buildVersion: __BUILD_VERSION__,
+    buildVersion,
     shell,
   });
 
@@ -258,7 +257,7 @@ const createAppRouter = (shell: Shell, runtime?: RoutingRuntime) => {
             );
             return {
               Component: () => (
-                <OnboardingPage buildVersion={<AppBuildVersion />} />
+                <OnboardingPage buildVersion={buildVersionLabel} />
               ),
             };
           },
@@ -290,7 +289,7 @@ const createAppRouter = (shell: Shell, runtime?: RoutingRuntime) => {
                     return {
                       Component: () => (
                         <SettingsPage
-                          buildVersion={<AppBuildVersion />}
+                          buildVersion={buildVersionLabel}
                           shell={shell}
                         />
                       ),

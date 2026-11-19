@@ -8,6 +8,10 @@ import {
   RailwayPackagingError,
 } from "../release/automation/railway-upload";
 import { z } from "zod";
+import {
+  buildRevisionHeader,
+  buildVersionHeader,
+} from "../../internal/app-shell/src/runtime-config";
 
 export const destinationSchema = z.object({
   project: z.string().uuid(),
@@ -105,17 +109,25 @@ export async function patchEnvironment(
   }
 }
 
-export async function verifyHealth(destination: Destination, sha?: string) {
+export async function verifyHealth(
+  destination: Destination,
+  sha?: string,
+  version?: string | null
+) {
   const response = await fetch(destination.healthUrl, {
     signal: AbortSignal.timeout(30_000),
     cache: "no-store",
   });
-  if (
-    !response.ok ||
-    (sha && response.headers.get("X-Lunaris-Commit") !== sha)
-  ) {
+  const actualRevision = response.headers.get(buildRevisionHeader);
+  if (!response.ok || (sha && actualRevision !== sha)) {
     throw new Error(
-      `Health/revision check failed for ${destination.healthUrl}: status ${response.status}, expected ${sha ?? "any revision"}, received ${response.headers.get("X-Lunaris-Commit") ?? "missing revision"}`
+      `Health/revision check failed for ${destination.healthUrl}: status ${response.status}, expected ${sha ?? "any revision"}, received ${actualRevision ?? "missing revision"}`
+    );
+  }
+  const actualVersion = response.headers.get(buildVersionHeader);
+  if (version !== undefined && version !== actualVersion) {
+    throw new Error(
+      `Release version check failed for ${destination.healthUrl}: expected ${version ?? "no version"}, received ${actualVersion ?? "no version"}`
     );
   }
 }
@@ -125,7 +137,8 @@ export class TerminalDeploymentError extends Error {}
 export async function waitForDeployment(
   destination: Destination,
   id: string,
-  sha?: string
+  sha?: string,
+  version?: string | null
 ) {
   // Site image builds/uploads can consume most of the old 30-minute window.
   for (let attempt = 0; attempt < 360; attempt++) {
@@ -147,7 +160,7 @@ export async function waitForDeployment(
       // Public routing can still serve the previous replica after Railway succeeds.
       for (let healthAttempt = 0; healthAttempt < 12; healthAttempt++) {
         try {
-          await verifyHealth(destination, sha);
+          await verifyHealth(destination, sha, version);
           return;
         } catch (error) {
           if (healthAttempt === 11) {

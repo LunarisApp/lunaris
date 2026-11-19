@@ -1,5 +1,9 @@
 import { readFileSync } from "node:fs";
-import { assertCandidateRun, candidateSchema } from "./candidate";
+import {
+  assertCandidateRun,
+  candidateSchema,
+  coreDeploymentSchema,
+} from "./candidate";
 import { github, statuses, verifyTrunk, type Deployment } from "./github";
 import { output, run } from "../release/automation/process";
 
@@ -16,7 +20,7 @@ if (rollbackId) {
   ) {
     throw new Error("Expected successful production deployment");
   }
-  const candidate = candidateSchema.parse(record.payload);
+  const candidate = coreDeploymentSchema.parse(record.payload);
   await Bun.write("artifacts/candidate.json", JSON.stringify(candidate));
   verifyTrunk(candidate.sha);
   output("sha", candidate.sha);

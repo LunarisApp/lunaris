@@ -12,6 +12,10 @@ import { NETWORK_ONLY_DISCOVERY_URLS } from "./scripts/pwa-build-assertions";
 
 // https://vite.dev/config/
 const notices = distributionNotices({ serviceWorker: true });
+const buildRevision =
+  process.env.LUNARIS_BUILD_SHA ??
+  process.env.RAILWAY_GIT_COMMIT_SHA ??
+  "local";
 
 export default defineConfig({
   build: {
@@ -153,12 +157,9 @@ export default defineConfig({
 
   define: {
     __RUNTIME_CONFIG__: process.env.LUNARIS_RUNTIME_CONFIG === "true",
+    __BUILD_REVISION__: JSON.stringify(buildRevision),
     __BUILD_VERSION__: JSON.stringify(
-      (
-        process.env.LUNARIS_BUILD_SHA ??
-        process.env.RAILWAY_GIT_COMMIT_SHA ??
-        "local"
-      ).slice(0, 7)
+      process.env.LUNARIS_BUILD_VERSION || buildRevision.slice(0, 7)
     ),
     // @react-pdf/renderer requires Buffer in browser
     "global.Buffer": "globalThis.Buffer",
