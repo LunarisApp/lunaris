@@ -20,11 +20,15 @@ export function ExtensionTip({
 }) {
 	const [open, setOpen] = useState(false);
 	const panelId = useId();
+	const trigger = useRef<HTMLButtonElement>(null);
 	const root = useRef<HTMLDivElement>(null);
 	useEffect(() => {
 		if (!open) return;
 		const dismiss = (event: KeyboardEvent) => {
-			if (event.key === "Escape") setOpen(false);
+			if (event.key !== "Escape") return;
+			if (root.current?.contains(document.activeElement))
+				trigger.current?.focus();
+			setOpen(false);
 		};
 		const outside = (event: PointerEvent) => {
 			if (event.target instanceof Node && !root.current?.contains(event.target))
@@ -59,7 +63,8 @@ export function ExtensionTip({
 		>
 			<button
 				aria-expanded={open}
-				aria-controls={panelId}
+				aria-controls={open ? panelId : undefined}
+				ref={trigger}
 				type="button"
 				className="flex w-full cursor-pointer flex-col items-center gap-2 rounded-xl py-2 text-center text-[0.8125rem]/5 font-medium transition-colors hover:bg-olive-200 aria-expanded:bg-olive-200 motion-reduce:transition-none dark:hover:bg-olive-800 dark:aria-expanded:bg-olive-800"
 				onFocus={() => setOpen(true)}

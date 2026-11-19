@@ -673,7 +673,7 @@ export function WordCounterTool({
 					className={`grid lg:grid-cols-[minmax(0,1fr)_19rem] xl:grid-cols-[minmax(0,1fr)_21rem] ${isFullscreen ? "flex-1" : ""}`}
 				>
 					<div className="flex min-w-0 flex-1 flex-col">
-						<div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-olive-950/10 px-4 py-2 sm:gap-3 sm:px-6 dark:border-white/10">
+						<div className="relative grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-olive-950/10 px-4 py-2 sm:gap-3 sm:px-6 dark:border-white/10">
 							<label
 								className="text-sm/6 font-medium text-olive-800 dark:text-olive-200"
 								htmlFor="word-counter-text"
@@ -809,7 +809,7 @@ export function WordCounterTool({
 				</div>
 				<div className="flex flex-col gap-3 border-t border-olive-950/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 dark:border-white/10">
 					<p className="text-xs/5 text-olive-600 dark:text-olive-400">
-						Powered by our open-source{" "}
+						{copy.attribution}{" "}
 						<a
 							className="font-medium text-olive-800 underline decoration-olive-400/50 underline-offset-4 transition hover:text-olive-950 hover:decoration-olive-600 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-600 dark:text-olive-200 dark:decoration-olive-500/60 dark:hover:text-white"
 							href="https://github.com/LunarisApp/text-tools"

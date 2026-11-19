@@ -62,6 +62,7 @@ export type WordCounterCopy = {
 		topWords: string;
 		words: string;
 	};
+	attribution: string;
 	privacy: string;
 	readability: {
 		bands: BandCopy;
@@ -82,6 +83,7 @@ const en: WordCounterCopy = {
 		description:
 			"Count words and characters, estimate reading time, and check readability. Free, instant, and processed privately in your browser.",
 	},
+	attribution: "Powered by our open-source library",
 	privacy: "Your text stays on this device",
 	editor: {
 		analysisUnavailable: "Analysis is unavailable. Your text is safe.",
@@ -181,6 +183,7 @@ const es: WordCounterCopy = {
 		description:
 			"Cuenta palabras y caracteres, calcula el tiempo de lectura y revisa la legibilidad. Gratis, instantáneo y privado.",
 	},
+	attribution: "Con la biblioteca de código abierto",
 	privacy: "Tu texto permanece en este dispositivo",
 	editor: {
 		analysisUnavailable:
@@ -283,6 +286,7 @@ const fr: WordCounterCopy = {
 		description:
 			"Comptez mots et caractères, estimez le temps de lecture et vérifiez la lisibilité. Gratuit, instantané et privé.",
 	},
+	attribution: "Avec la bibliothèque open source",
 	privacy: "Votre texte reste sur cet appareil",
 	editor: {
 		analysisUnavailable:
@@ -387,6 +391,7 @@ const de: WordCounterCopy = {
 		description:
 			"Wörter und Zeichen zählen, Lesezeit schätzen und Lesbarkeit prüfen. Kostenlos, sofort und privat im Browser.",
 	},
+	attribution: "Mit der Open-Source-Bibliothek",
 	privacy: "Ihr Text bleibt auf diesem Gerät",
 	editor: {
 		analysisUnavailable:
@@ -489,6 +494,7 @@ const ptBR: WordCounterCopy = {
 		description:
 			"Conte palavras e caracteres, estime o tempo de leitura e verifique a legibilidade. Grátis, instantâneo e privado.",
 	},
+	attribution: "Com a biblioteca de código aberto",
 	privacy: "Seu texto permanece neste dispositivo",
 	editor: {
 		analysisUnavailable: "A análise está indisponível. Seu texto está seguro.",

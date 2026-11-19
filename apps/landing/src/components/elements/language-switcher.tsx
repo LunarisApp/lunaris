@@ -94,7 +94,11 @@ export function LanguageSwitcher({
 									? "font-medium text-olive-950 dark:text-white"
 									: "text-olive-700 hover:text-olive-950 dark:text-olive-400 dark:hover:text-white"
 							}`}
-							href={switchLocalePath(currentLocale, locale, currentPath)}
+							href={
+								switchLocalePath(currentLocale, locale, currentPath) +
+								window.location.search +
+								window.location.hash
+							}
 							key={locale}
 							onClick={() => setOpen(false)}
 						>

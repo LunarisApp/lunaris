@@ -35,6 +35,8 @@ const LINKEDIN_URL = "https://www.linkedin.com/company/lunarisapp";
 const TRUST_CENTER_URL = "https://trust.lunaris.app";
 const X_URL = "https://x.com/lunarisapp";
 
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
 	return locales.map((locale) => ({ locale }));
 }

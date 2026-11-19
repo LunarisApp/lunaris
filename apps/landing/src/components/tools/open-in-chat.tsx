@@ -169,6 +169,7 @@ export function OpenInChat({
 		index: number,
 	) {
 		if (event.key === "Tab") {
+			triggerRef.current?.focus();
 			setOpen(false);
 			return;
 		}
@@ -193,7 +194,7 @@ export function OpenInChat({
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: Blur bubbles from the menu controls; this wrapper is not an interactive target.
 		<div
-			className="group relative rounded-full"
+			className="group rounded-full sm:relative"
 			onBlur={(event) => {
 				if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
 			}}
@@ -201,7 +202,7 @@ export function OpenInChat({
 		>
 			<button
 				aria-label={label}
-				aria-controls={menuId}
+				aria-controls={open && !exceedsUrlLimit ? menuId : undefined}
 				aria-describedby={
 					exceedsUrlLimit && !tooltipDismissed ? tooltipId : undefined
 				}
@@ -228,7 +229,7 @@ export function OpenInChat({
 
 			{exceedsUrlLimit && !tooltipDismissed && (
 				<div
-					className="invisible absolute top-full right-0 z-40 w-max max-w-64 pt-2 opacity-0 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 motion-reduce:transition-none"
+					className="invisible absolute inset-x-4 top-full z-40 max-w-64 sm:right-0 sm:left-auto sm:w-max pt-2 opacity-0 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 motion-reduce:transition-none"
 					id={tooltipId}
 					role="tooltip"
 				>
@@ -241,7 +242,7 @@ export function OpenInChat({
 			{open && !exceedsUrlLimit && (
 				<div
 					aria-labelledby={triggerId}
-					className="absolute top-full right-0 z-30 mt-1 w-52 rounded-xl border border-olive-950/10 bg-olive-50 p-1.5 shadow-[0_18px_50px_-20px_rgba(22,25,18,0.65)] dark:border-white/10 dark:bg-olive-900 dark:shadow-black/60"
+					className="absolute inset-x-4 top-full z-30 mt-1 sm:right-0 sm:left-auto sm:w-52 rounded-xl border border-olive-950/10 bg-olive-50 p-1.5 shadow-[0_18px_50px_-20px_rgba(22,25,18,0.65)] dark:border-white/10 dark:bg-olive-900 dark:shadow-black/60"
 					id={menuId}
 					role="menu"
 				>
