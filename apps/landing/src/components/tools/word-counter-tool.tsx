@@ -1033,7 +1033,7 @@ export function WordCounterTool({
 					</div>
 				</section>
 
-				<aside className="flex flex-col gap-5 py-7 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex flex-col gap-5 py-7 sm:flex-row sm:items-center sm:justify-between">
 					<div>
 						<p className="font-display text-2xl/8 text-olive-950 dark:text-white">
 							{copy.cta.title}
@@ -1056,7 +1056,7 @@ export function WordCounterTool({
 						{copy.cta.open}
 						<ArrowIcon />
 					</a>
-				</aside>
+				</div>
 			</div>
 
 			<p

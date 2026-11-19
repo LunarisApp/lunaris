@@ -229,6 +229,7 @@ const es = {
 		headline: "Empieza gratis. Mejora cada espacio cuando crezca.",
 		subheadline:
 			"Crea un espacio sincronizado sin datos de pago. Cada espacio tiene su propio plan, así que solo mejoras los que necesitan más elementos o miembros.",
+		billingPeriod: "Periodo de facturación",
 		options: { monthly: "Mensual", yearly: "Anual (Ahorra 20%)" },
 		labels: {
 			perMemberMonth: "/miembro/mes",

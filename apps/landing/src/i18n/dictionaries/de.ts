@@ -234,6 +234,7 @@ const de = {
 		headline: "Kostenlos starten. Organisationen einzeln erweitern.",
 		subheadline:
 			"Erstellen Sie ohne Zahlungsdaten einen synchronisierten Organisation. Jeder Organisation hat seinen eigenen Plan – Sie erweitern nur, wo mehr Elemente oder Mitglieder nötig sind.",
+		billingPeriod: "Abrechnungszeitraum",
 		options: { monthly: "Monatlich", yearly: "Jährlich (20% sparen)" },
 		labels: {
 			perMemberMonth: "/Mitglied/Monat",

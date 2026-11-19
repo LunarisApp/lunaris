@@ -229,6 +229,7 @@ const ptBR = {
 		headline: "Comece grátis. Atualize cada espaço quando ele crescer.",
 		subheadline:
 			"Crie um espaço sincronizado sem dados de pagamento. Cada espaço tem seu próprio plano, então você só atualiza os que precisam de mais itens ou membros.",
+		billingPeriod: "Período de cobrança",
 		options: { monthly: "Mensal", yearly: "Anual (Economize 20%)" },
 		labels: {
 			perMemberMonth: "/membro/mês",

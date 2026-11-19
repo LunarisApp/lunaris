@@ -227,6 +227,7 @@ const en = {
 		headline: "Start free. Upgrade each organization as it grows.",
 		subheadline:
 			"Create a synced organization without payment details. Every organization has its own plan, so you only upgrade the ones that need more items or members.",
+		billingPeriod: "Billing period",
 		options: { monthly: "Monthly", yearly: "Yearly (Save 20%)" },
 		labels: {
 			perMemberMonth: "/member/mo",

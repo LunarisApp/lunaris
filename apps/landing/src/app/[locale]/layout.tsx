@@ -184,13 +184,8 @@ export default async function LocaleLayout({
 			<body>
 				<ProboCookieBanner />
 				<ThemeProvider>
-					<a
-						className="fixed top-3 left-3 z-50 -translate-y-24 rounded-full bg-olive-950 px-4 py-2 text-sm/6 font-medium text-white shadow-lg transition focus:translate-y-0 focus:outline-2 focus:outline-offset-2 focus:outline-olive-600 motion-reduce:transition-none dark:bg-olive-100 dark:text-olive-950"
-						href="#main-content"
-					>
-						{dict.accessibility.skipToContent}
-					</a>
 					<NavbarWithLinksAndActions
+						skipLabel={dict.accessibility.skipToContent}
 						groups={[product, developers, resources]}
 						directLinks={directLinks}
 						appLink={

@@ -232,6 +232,7 @@ const fr = {
 		headline: "Commencez gratuitement. Évoluez espace par espace.",
 		subheadline:
 			"Créez un espace synchronisé sans moyen de paiement. Chaque espace a son propre plan : faites évoluer uniquement ceux qui ont besoin de plus d'éléments ou de membres.",
+		billingPeriod: "Période de facturation",
 		options: { monthly: "Mensuel", yearly: "Annuel (Économisez 20%)" },
 		labels: {
 			perMemberMonth: "/membre/mois",

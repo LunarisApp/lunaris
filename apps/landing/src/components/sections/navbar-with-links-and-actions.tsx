@@ -124,6 +124,7 @@ export function NavbarWithLinksAndActions({
 	logo,
 	appLink,
 	settings,
+	skipLabel,
 	navigationLabel,
 	openMenuLabel,
 	closeMenuLabel,
@@ -134,6 +135,7 @@ export function NavbarWithLinksAndActions({
 	logo: ReactNode;
 	appLink: ReactNode;
 	settings: ReactNode;
+	skipLabel: string;
 	navigationLabel: string;
 	openMenuLabel: string;
 	closeMenuLabel: string;
@@ -156,6 +158,12 @@ export function NavbarWithLinksAndActions({
 			id="navbar"
 			className="sticky top-0 z-30 border-b border-olive-950/10 bg-olive-100/90 backdrop-blur-lg dark:border-white/10 dark:bg-olive-950/90"
 		>
+			<a
+				className="fixed top-3 left-3 z-50 -translate-y-24 rounded-full bg-olive-950 px-4 py-2 text-sm/6 font-medium text-white shadow-lg transition focus:translate-y-0 focus:outline-2 focus:outline-offset-2 focus:outline-olive-600 motion-reduce:transition-none dark:bg-olive-100 dark:text-olive-950"
+				href="#main-content"
+			>
+				{skipLabel}
+			</a>
 			<nav
 				aria-label={navigationLabel}
 				className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-6 lg:h-[4.5rem] lg:px-10"

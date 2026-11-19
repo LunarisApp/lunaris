@@ -79,6 +79,7 @@ export function PricingHeroMultiTier<T extends string>({
 	headline,
 	subheadline,
 	options,
+	billingPeriodLabel,
 	comparisonLabel,
 	plans,
 	footer,
@@ -89,6 +90,7 @@ export function PricingHeroMultiTier<T extends string>({
 	headline: ReactNode;
 	subheadline: ReactNode;
 	options: readonly T[];
+	billingPeriodLabel: string;
 	comparisonLabel: string;
 	plans: Record<T, ReactNode>;
 	footer?: ReactNode;
@@ -107,10 +109,13 @@ export function PricingHeroMultiTier<T extends string>({
 							{subheadline}
 						</Text>
 						<div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
-							<ElTabList className="flex items-center gap-1 rounded-full bg-olive-950/5 p-1 ring-1 ring-olive-950/5 dark:bg-white/5 dark:ring-white/10">
+							<ElTabList
+								aria-label={billingPeriodLabel}
+								className="flex items-center gap-1 rounded-full bg-olive-950/5 p-1 ring-1 ring-olive-950/5 dark:bg-white/5 dark:ring-white/10"
+							>
 								{options.map((option) => (
 									<button
-										className="rounded-full px-4 py-1 text-sm/7 font-medium text-olive-700 transition-colors hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive-700 aria-selected:bg-olive-950 aria-selected:text-white dark:text-olive-300 dark:hover:text-white dark:focus-visible:outline-olive-200 dark:aria-selected:bg-olive-200 dark:aria-selected:text-olive-950"
+										className="rounded-full px-4 py-1 text-sm/7 font-medium text-olive-700 aria-[selected=false]:hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive-700 aria-selected:bg-olive-950 aria-selected:text-white dark:text-olive-300 dark:aria-[selected=false]:hover:text-white dark:focus-visible:outline-olive-200 dark:aria-selected:bg-olive-200 dark:aria-selected:text-olive-950"
 										key={option}
 										type="button"
 									>

@@ -36,7 +36,7 @@ function FeatureGroup<Plan extends string>({
 				<th
 					className="border-y border-olive-950/10 bg-olive-950/2.5 px-4 pt-10 pb-3 font-semibold text-olive-950 first:border-t-0 dark:border-white/10 dark:bg-white/2.5 dark:text-white"
 					colSpan={plans.length + 1}
-					scope="colgroup"
+					scope="rowgroup"
 				>
 					{group.title}
 				</th>
@@ -91,7 +91,7 @@ export function PlanComparisonTable<const Plan extends string>({
 	...props
 }: {
 	plans: Plan[];
-	heading: ReactNode;
+	heading: string;
 	includedLabel: string;
 	notIncludedLabel: string;
 	features: {
@@ -145,10 +145,13 @@ export function PlanComparisonTable<const Plan extends string>({
 
 				<div className="sm:hidden">
 					<ElTabGroup>
-						<ElTabList className="grid grid-cols-2 gap-1 rounded-xl bg-olive-950/5 p-1 ring-1 ring-olive-950/5 dark:bg-white/5 dark:ring-white/10">
+						<ElTabList
+							aria-label={heading}
+							className="grid grid-cols-2 gap-1 rounded-xl bg-olive-950/5 p-1 ring-1 ring-olive-950/5 dark:bg-white/5 dark:ring-white/10"
+						>
 							{plans.map((plan) => (
 								<button
-									className="rounded-lg px-3 py-2 text-sm/5 font-medium text-olive-600 transition-colors hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive-700 aria-selected:bg-olive-950 aria-selected:text-white dark:text-olive-400 dark:hover:text-white dark:focus-visible:outline-olive-200 dark:aria-selected:bg-olive-200 dark:aria-selected:text-olive-950"
+									className="rounded-lg px-3 py-2 text-sm/5 font-medium text-olive-600 aria-[selected=false]:hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive-700 aria-selected:bg-olive-950 aria-selected:text-white dark:text-olive-400 dark:aria-[selected=false]:hover:text-white dark:focus-visible:outline-olive-200 dark:aria-selected:bg-olive-200 dark:aria-selected:text-olive-950"
 									key={plan}
 									type="button"
 								>
@@ -158,24 +161,26 @@ export function PlanComparisonTable<const Plan extends string>({
 						</ElTabList>
 						<ElTabPanels>
 							{plans.map((plan) => (
-								<table
-									className="mt-4 w-full border-separate border-spacing-0 overflow-hidden rounded-xl bg-white/20 text-left text-sm/5 ring-1 ring-olive-950/10 dark:bg-white/2.5 dark:ring-white/10"
-									key={plan}
-								>
-									<colgroup>
-										<col className="w-3/4" />
-										<col className="w-1/4" />
-									</colgroup>
-									{features.map((group, index) => (
-										<FeatureGroup
-											group={group}
-											includedLabel={includedLabel}
-											key={index}
-											notIncludedLabel={notIncludedLabel}
-											plans={[plan]}
-										/>
-									))}
-								</table>
+								<div key={plan}>
+									<table
+										aria-label={plan}
+										className="mt-4 w-full border-separate border-spacing-0 overflow-hidden rounded-xl bg-white/20 text-left text-sm/5 ring-1 ring-olive-950/10 dark:bg-white/2.5 dark:ring-white/10"
+									>
+										<colgroup>
+											<col className="w-3/4" />
+											<col className="w-1/4" />
+										</colgroup>
+										{features.map((group, index) => (
+											<FeatureGroup
+												group={group}
+												includedLabel={includedLabel}
+												key={index}
+												notIncludedLabel={notIncludedLabel}
+												plans={[plan]}
+											/>
+										))}
+									</table>
+								</div>
 							))}
 						</ElTabPanels>
 					</ElTabGroup>
