@@ -8,10 +8,19 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { keychainStorage } from "./auth-storage";
 import { registerDesktopDeepLinks } from "./deep-link";
+import { syncReducedTransparency } from "./reduced-transparency";
 import { desktopRuntime } from "./runtime";
 import { useDesktopAppUpdate } from "./app-update";
 
 applyStoredAppearance();
+
+void syncReducedTransparency().catch((error: unknown) => {
+  log.warn({
+    action: "desktop.appearance.reduce_transparency",
+    error: serializeErrorForLog(error),
+    outcome: "failure",
+  });
+});
 
 function DesktopApp() {
   const appUpdate = useDesktopAppUpdate();

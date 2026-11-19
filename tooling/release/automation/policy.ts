@@ -100,6 +100,7 @@ export function npmReleaseTargets(
           file
         ) ||
         /(^|\/)CLAUDE\.md$/.test(file) ||
+        file === "Cargo.lock" ||
         file === "skills-lock.json" ||
         file === "tooling/licenses/about.toml" ||
         file === "tooling/ci-selection.ts" ||
