@@ -114,18 +114,34 @@ function ResponsiveDropdownMenuItem({
 
   if (isMobile) {
     // Menu items render a div; mobile drawers render a native button.
-    // Consumers use shared DOM props; menu-only handle/render props stay on desktop.
+    // Drawers use native button focus and don't have a highlighted menu item.
     const {
       render: _render,
       nativeButton: _nativeButton,
-      closeOnClick: _closeOnClick,
+      label: _typeaheadLabel,
+      closeOnClick = true,
+      disabled = false,
+      inset,
+      style,
       ...buttonProps
     } = props;
+    const state = { disabled, highlighted: false };
     const nativeProps = buttonProps as unknown as ComponentProps<"button">;
     return (
       <DrawerMenuItem
         {...nativeProps}
-        className={cn(className)}
+        className={
+          typeof className === "function" ? className(state) : className
+        }
+        data-inset={inset || undefined}
+        disabled={disabled}
+        onClick={(event) => {
+          nativeProps.onClick?.(event);
+          if (!closeOnClick) {
+            event.preventBaseUIHandler();
+          }
+        }}
+        style={typeof style === "function" ? style(state) : style}
         variant={variant}
       >
         {children}

@@ -72,10 +72,12 @@ function DrawerMenuItem({
     <DrawerPrimitive.Close
       data-slot="drawer-menu-item"
       data-variant={variant}
-      className={cn(
-        "touch-target flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-start text-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring active:bg-accent disabled:pointer-events-none disabled:opacity-50 data-[variant=destructive]:text-destructive [&_svg:not([class*='size-'])]:size-5 [&_svg]:shrink-0",
-        className
-      )}
+      className={(state) =>
+        cn(
+          "touch-target flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-start text-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring active:bg-accent disabled:pointer-events-none disabled:opacity-50 data-inset:ps-11 data-[variant=destructive]:text-destructive [&_svg:not([class*='size-'])]:size-5 [&_svg]:shrink-0",
+          typeof className === "function" ? className(state) : className
+        )
+      }
       {...props}
     />
   );
@@ -167,7 +169,7 @@ function DrawerContent({
           <DrawerPrimitive.Content
             data-slot="drawer-content"
             className={cn(
-              "flex min-h-0 flex-1 select-text flex-col overflow-hidden overscroll-contain rounded-[inherit] transition-opacity duration-300 ease-[cubic-bezier(0.45,1.005,0,1.005)] group-data-swiping/drawer-popup:select-none group-data-nested-drawer-open/drawer-popup:opacity-0 group-data-nested-drawer-swiping/drawer-popup:opacity-100"
+              "flex min-h-0 flex-1 select-text flex-col overflow-x-hidden overflow-y-auto overscroll-contain rounded-[inherit] transition-opacity duration-300 ease-[cubic-bezier(0.45,1.005,0,1.005)] group-data-swiping/drawer-popup:select-none group-data-nested-drawer-open/drawer-popup:opacity-0 group-data-nested-drawer-swiping/drawer-popup:opacity-100"
             )}
           >
             {children}

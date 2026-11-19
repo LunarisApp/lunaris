@@ -45,6 +45,14 @@ const inputGroupAddonVariants = cva(
   }
 );
 
+function focusGroupControl(element: HTMLElement) {
+  const group = element.closest('[data-slot="input-group"]');
+  const control =
+    group?.querySelector<HTMLElement>('[data-slot="input-group-control"]') ??
+    group?.querySelector<HTMLElement>('input:not([type="hidden"]), textarea');
+  control?.focus();
+}
+
 function InputGroupAddon({
   className,
   align = "inline-start",
@@ -60,7 +68,7 @@ function InputGroupAddon({
         if ((e.target as HTMLElement).closest("button")) {
           return;
         }
-        e.currentTarget.parentElement?.querySelector("input")?.focus();
+        focusGroupControl(e.currentTarget);
       }}
       {...props}
     />
@@ -124,10 +132,7 @@ function InputGroupClearButton({
         className={className}
         data-slot="input-group-clear"
         onClick={(event) => {
-          event.currentTarget
-            .closest('[data-slot="input-group"]')
-            ?.querySelector("input")
-            ?.focus();
+          focusGroupControl(event.currentTarget);
           onClear();
         }}
         size={size}

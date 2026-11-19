@@ -39,7 +39,7 @@ export function RegionSwitcher() {
         {regions.map((entry) => (
           <Button
             aria-pressed={entry.id === region.id}
-            className="h-8 justify-between px-2 text-xs"
+            className="max-md:touch-target justify-between"
             disabled={entry.status !== "active"}
             key={entry.id}
             onClick={() => setRegion(entry.id)}

@@ -6,10 +6,6 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (k: string) => k }),
 }));
 
-vi.mock("@lunarisapp/ui/hooks/use-mobile", () => ({
-  useIsMobile: () => false,
-}));
-
 import { WorkspaceTreeSearch } from "./workspace-tree-search";
 
 describe("WorkspaceTreeSearch", () => {

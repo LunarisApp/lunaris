@@ -424,7 +424,7 @@ function KanbanContent({
           title={b("deleteTask")}
         />
       )}
-      <header className="flex min-h-11 shrink-0 flex-wrap items-center gap-2 border-b bg-background px-2 py-2 sm:px-3">
+      <header className="flex min-h-11 shrink-0 flex-wrap items-center gap-2 border-b px-2 py-2 sm:px-3">
         {access.canWriteContent ? (
           <CreateTaskDialog
             boardName={board.name ?? ""}
