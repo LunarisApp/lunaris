@@ -236,8 +236,13 @@ jobs:
         run: bun run --cwd packages/plugin-sdk build
       - name: Build Agent Work sidecar
         run: bun run --cwd apps/desktop build:agent
+      - name: Fetch locked Rust dependencies
+        env:
+          CARGO_HTTP_TIMEOUT: "120"
+          CARGO_NET_RETRY: "5"
+        run: cargo fetch --locked --target x86_64-apple-darwin
       - name: Build bundled executable
-        run: cargo build --release --manifest-path apps/desktop/src-tauri/Cargo.toml --bin lunaris-desktop
+        run: cargo build --release --frozen --manifest-path apps/desktop/src-tauri/Cargo.toml --bin lunaris-desktop
       - name: Smoke test bundled executable
         run: bun tooling/mcp-smoke.ts target/release/lunaris-desktop lunaris-desktop
 
