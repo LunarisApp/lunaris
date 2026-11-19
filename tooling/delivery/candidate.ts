@@ -13,7 +13,9 @@ export const candidateSchema = z
     sha: shaSchema,
     runId: z.string().regex(/^\d+$/),
     api: imageSchema,
-    web: imageSchema,
+    web: imageSchema.extend({
+      supportsReleaseVersion: z.literal(true).optional(),
+    }),
     syncRevision: z.string().regex(/^[a-f0-9]{64}$/),
     configurationRevision: z.string().min(1),
   })
@@ -23,6 +25,10 @@ export const coreDeploymentSchema = candidateSchema.extend({
   webVersion: z.string().min(1).optional(),
 });
 export type CoreDeployment = z.infer<typeof coreDeploymentSchema>;
+export interface ImageDeployment {
+  image: string;
+  webVersion?: string;
+}
 export type CoreTarget = "api" | "web" | "core";
 
 export function resultingCandidate(

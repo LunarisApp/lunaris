@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getRuntimeBuildVersion,
   publicConfigFromEnvironment,
@@ -10,8 +10,20 @@ const config = {
   REGION_DIRECTORY_URL: "/regions.json",
   POSTHOG_KEY: "public-key",
 };
+const revision = "a".repeat(40);
+function responseForRevision(commit: string, version?: string) {
+  const headers = new Headers({ "X-Lunaris-Commit": commit });
+  if (version) {
+    headers.set("X-Lunaris-Version", version);
+  }
+  return Response.json(config, { headers });
+}
+beforeEach(() => {
+  vi.stubGlobal("__BUILD_REVISION__", revision);
+});
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   setPublicRuntimeConfig();
 });
 describe("web runtime configuration", () => {
@@ -47,7 +59,7 @@ describe("web runtime configuration", () => {
       JSON.stringify(config)
     );
   });
-  it("keeps the hosted release version available offline without changing the cached config format", async () => {
+  it("keeps the version for the current bundle through server updates and offline startup", async () => {
     const cache = new Map<string, string>();
     const storage = {
       getItem: (key: string) => cache.get(key) ?? null,
@@ -55,11 +67,13 @@ describe("web runtime configuration", () => {
         cache.set(key, value);
       },
     };
-    const request = vi
-      .fn()
-      .mockResolvedValue(
-        Response.json(config, { headers: { "X-Lunaris-Version": "1.2.3" } })
-      );
+    const request = vi.fn();
+    const newerRevision = "b".repeat(40);
+    request.mockResolvedValueOnce(responseForRevision(newerRevision, "1.2.4"));
+    await loadRuntimeConfig({ request, storage });
+    expect(getRuntimeBuildVersion()).toBeUndefined();
+
+    request.mockResolvedValueOnce(responseForRevision(revision, "1.2.3"));
     await loadRuntimeConfig({ request, storage });
     expect(getRuntimeBuildVersion()).toBe("1.2.3");
     expect(cache.get("lunaris.public-runtime-config.v1")).toBe(
@@ -67,11 +81,16 @@ describe("web runtime configuration", () => {
     );
 
     setPublicRuntimeConfig();
+    request.mockResolvedValueOnce(responseForRevision(newerRevision, "1.2.4"));
+    await loadRuntimeConfig({ request, storage });
+    expect(getRuntimeBuildVersion()).toBe("1.2.3");
+
+    setPublicRuntimeConfig();
     request.mockRejectedValueOnce(new TypeError("offline"));
     await loadRuntimeConfig({ request, storage });
     expect(getRuntimeBuildVersion()).toBe("1.2.3");
 
-    request.mockResolvedValueOnce(Response.json(config));
+    request.mockResolvedValueOnce(responseForRevision(revision));
     await loadRuntimeConfig({ request, storage });
     request.mockRejectedValueOnce(new TypeError("offline"));
     await loadRuntimeConfig({ request, storage });

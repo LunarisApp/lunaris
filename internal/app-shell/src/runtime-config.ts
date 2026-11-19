@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const buildVersionHeader = "X-Lunaris-Version";
+export const buildRevisionHeader = "X-Lunaris-Commit";
 
 const url = z.string().url().optional();
 export const publicRuntimeConfigSchema = z

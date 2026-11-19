@@ -16,14 +16,18 @@ import {
   waitForDeployment,
   type Destination,
 } from "./railway";
-import type { Candidate, CoreDeployment, CoreTarget } from "./candidate";
+import type {
+  Candidate,
+  CoreDeployment,
+  CoreTarget,
+  ImageDeployment,
+} from "./candidate";
 import { run, summary } from "../release/automation/process";
 import {
+  buildRevisionHeader,
   buildVersionHeader,
   publicRuntimeConfigSchema,
 } from "../../internal/app-shell/src/runtime-config";
-
-type ImageDeployment = { image: string; webVersion?: string };
 
 export async function deployImage(
   component: "api" | "web",
@@ -280,6 +284,7 @@ async function verifyWeb(
     !(
       config.ok &&
       config.headers.get(buildVersionHeader) === (webVersion ?? null) &&
+      (!webVersion || config.headers.get(buildRevisionHeader) === sha) &&
       publicRuntimeConfigSchema.parse(await config.json()).REGION_DIRECTORY_URL
     )
   ) {

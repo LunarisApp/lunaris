@@ -167,7 +167,7 @@ else console.log("{}");
       if (url.pathname === "/runtime-config.json") {
         return Response.json(
           { REGION_DIRECTORY_URL: "/regions.json" },
-          { headers: versionHeaders }
+          { headers: { "X-Lunaris-Commit": health.sha, ...versionHeaders } }
         );
       }
       if (url.pathname === "/") {

@@ -1,4 +1,5 @@
 import {
+  buildRevisionHeader,
   buildVersionHeader,
   publicConfigFromEnvironment,
 } from "../../internal/app-shell/src/runtime-config";
@@ -272,7 +273,7 @@ export function createHealthResponse(isHttps: boolean): Response {
     headers: {
       "Cache-Control": "no-store",
       "Content-Type": "text/plain",
-      "X-Lunaris-Commit": commitHash ?? "local",
+      [buildRevisionHeader]: commitHash ?? "local",
       ...buildVersionHeaders(),
     },
     status: 200,
@@ -302,6 +303,7 @@ export async function handleRequest(req: Request): Promise<Response> {
       Response.json(publicConfigFromEnvironment(process.env), {
         headers: {
           "Cache-Control": "no-store",
+          [buildRevisionHeader]: commitHash ?? "local",
           ...buildVersionHeaders(),
         },
       }),

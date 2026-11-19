@@ -1,3 +1,4 @@
+import type { ImageDeployment } from "./candidate";
 import { github, setStatus, type Deployment } from "./github";
 import {
   destinations,
@@ -33,7 +34,13 @@ if (!destination) {
   throw new Error("Railway destination does not match recorded deployment");
 }
 try {
-  await waitForDeployment(destination, providerId!, record.sha);
+  const image = record.payload as ImageDeployment | undefined;
+  await waitForDeployment(
+    destination,
+    providerId!,
+    record.sha,
+    component === "web" ? (image?.webVersion ?? null) : undefined
+  );
   await setStatus(record.id, "success", `railway:${providerId}`);
 } catch (error) {
   await setStatus(

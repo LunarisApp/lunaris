@@ -54,9 +54,11 @@ if (mode === "plan") {
   const affected = previous
     ? affectedComponents(changedFiles(previous.sha, sha))
     : ["api", "web"];
+  const buildWeb =
+    !previous?.web.supportsReleaseVersion || affected.includes("web");
   const coreChanged =
     affected.includes("api") ||
-    affected.includes("web") ||
+    buildWeb ||
     previous?.syncRevision !== syncRevision ||
     previous?.configurationRevision !== configurationRevision;
   output(
@@ -70,7 +72,7 @@ if (mode === "plan") {
   );
   const build = {
     api: !previous || affected.includes("api"),
-    web: !previous || affected.includes("web"),
+    web: buildWeb,
   };
   const candidate = {
     schemaVersion: 1,
@@ -136,6 +138,7 @@ if (mode === "plan") {
     planned[component] = {
       sha,
       image: `${repository}@${metadata["containerimage.digest"]}`,
+      ...(component === "web" ? { supportsReleaseVersion: true } : {}),
     };
   }
   delete (planned as Partial<typeof planned>).build;
@@ -156,10 +159,12 @@ if (mode === "plan") {
   let webVersion: string | undefined;
   if (mode === "promote") {
     candidate = readCandidate();
-    webVersion = process.env.PRODUCT_VERSION;
-    if (!(webVersion && stableVersion.test(webVersion))) {
+    const version = process.env.PRODUCT_VERSION;
+    if (!(version && stableVersion.test(version))) {
       throw new Error("Stable PRODUCT_VERSION required for promotion");
     }
+    // Already-reserved releases can still finish with their original candidate.
+    webVersion = candidate.web.supportsReleaseVersion ? version : undefined;
     const runInfo = await github<Parameters<typeof assertCandidateRun>[1]>(
       `actions/runs/${candidate.runId}`
     );

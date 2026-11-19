@@ -256,6 +256,9 @@ describe("handleRequest", () => {
     );
     expect(config.headers.get("Cache-Control")).toBe("no-store");
     expect(config.headers.get("X-Lunaris-Version")).toBe("1.2.3");
+    expect(config.headers.get("X-Lunaris-Commit")).toBe(
+      createHealthResponse(true).headers.get("X-Lunaris-Commit")
+    );
     expect(await config.json()).not.toHaveProperty("LUNARIS_BUILD_VERSION");
     expect(createHealthResponse(true).headers.get("X-Lunaris-Version")).toBe(
       "1.2.3"

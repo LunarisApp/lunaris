@@ -8,7 +8,10 @@ import {
   RailwayPackagingError,
 } from "../release/automation/railway-upload";
 import { z } from "zod";
-import { buildVersionHeader } from "../../internal/app-shell/src/runtime-config";
+import {
+  buildRevisionHeader,
+  buildVersionHeader,
+} from "../../internal/app-shell/src/runtime-config";
 
 export const destinationSchema = z.object({
   project: z.string().uuid(),
@@ -115,12 +118,10 @@ export async function verifyHealth(
     signal: AbortSignal.timeout(30_000),
     cache: "no-store",
   });
-  if (
-    !response.ok ||
-    (sha && response.headers.get("X-Lunaris-Commit") !== sha)
-  ) {
+  const actualRevision = response.headers.get(buildRevisionHeader);
+  if (!response.ok || (sha && actualRevision !== sha)) {
     throw new Error(
-      `Health/revision check failed for ${destination.healthUrl}: status ${response.status}, expected ${sha ?? "any revision"}, received ${response.headers.get("X-Lunaris-Commit") ?? "missing revision"}`
+      `Health/revision check failed for ${destination.healthUrl}: status ${response.status}, expected ${sha ?? "any revision"}, received ${actualRevision ?? "missing revision"}`
     );
   }
   const actualVersion = response.headers.get(buildVersionHeader);
