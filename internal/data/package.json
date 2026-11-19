@@ -12,9 +12,9 @@
   "dependencies": {
     "@lunarisapp/plugin-sdk": "workspace:*",
     "@journeyapps/wa-sqlite": "^2.0.10",
-    "@powersync/common": "2.0.0",
-    "@powersync/react": "2.0.0",
-    "@powersync/web": "2.1.1",
+    "@powersync/common": "2.5.0",
+    "@powersync/react": "2.2.1",
+    "@powersync/web": "2.7.0",
     "@extension/kanban": "workspace:*",
     "@extension/rich-text": "workspace:*",
     "@repo/agent-contracts": "workspace:*",

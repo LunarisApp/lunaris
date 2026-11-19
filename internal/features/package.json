@@ -15,7 +15,7 @@
     "@repo/platform": "workspace:*",
     "@lunarisapp/ui": "workspace:*",
     "@repo/utils": "workspace:*",
-    "@tanstack/react-hotkeys": "^0.26.0",
+    "@tanstack/react-hotkeys": "^0.27.0",
     "@tanstack/react-query": "^5.107.1",
     "embla-carousel-autoplay": "^8.6.0",
     "evlog": "^2.35.1",
