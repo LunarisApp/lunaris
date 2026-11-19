@@ -10,6 +10,7 @@ import {
   TreeItemLabel,
 } from "@lunarisapp/ui/components/tree";
 import { useIsMobile } from "@lunarisapp/ui/hooks/use-mobile";
+import { cn } from "@lunarisapp/ui/lib/utils";
 import { permission } from "@repo/auth/permissions";
 import type { WorkspaceResourceEntity } from "@repo/data/features/workspace-resources";
 import { usePlatform } from "@repo/platform";
@@ -172,19 +173,20 @@ export function WorkspaceTreeItem({
 
   const treeItemContent = (
     <TreeItemLabel
-      className={
-        isMobile ? "min-h-12 rounded-xl bg-transparent text-base" : undefined
-      }
+      className={cn(
+        "in-focus-visible:ring-inset",
+        isMobile && "min-h-12 rounded-xl bg-transparent text-base"
+      )}
     >
       <span
-        className="flex items-center gap-2 overflow-hidden text-nowrap"
+        className="flex min-w-0 flex-1 items-center gap-2"
         data-workspace-resource-id={item.getId()}
         data-workspace-resource-name={item.getItemName()}
         data-testid="workspace-tree-item"
         ref={preloadRef}
       >
         <WorkspaceTreeItemIcon resourceIcon={resource?.icon} item={item} />
-        <span className="min-w-0 flex-1 truncate">
+        <span className="min-w-0 flex-1">
           <WorkspaceTreeItemLabel item={item} />
         </span>
       </span>
