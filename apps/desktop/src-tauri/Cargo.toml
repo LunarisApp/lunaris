@@ -25,14 +25,14 @@ lunaris-agent-mcp = { path = "../../../crates/agent-mcp" }
 powersync = "0.1.0"
 rand = "0.10"
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
-rmcp = { version = "=3.9.0", features = ["transport-io"] }
+rmcp = { version = "=3.10.0", features = ["transport-io"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.11"
 tauri = { version = "2", features = [] }
 tauri-plugin-deep-link = "2"
 tauri-plugin-http = "2"
-tauri-plugin-powersync = "0.1.0"
+tauri-plugin-powersync = "0.2.0"
 tauri-plugin-shell = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"

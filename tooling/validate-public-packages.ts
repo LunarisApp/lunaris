@@ -10,7 +10,8 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, resolve } from "node:path";
-import ts from "typescript";
+// TypeScript 7 provides the CLI. The API report needs the TypeScript 6 JS API.
+import ts from "typescript-compiler-api";
 
 interface ExportTarget {
   import?: string;
