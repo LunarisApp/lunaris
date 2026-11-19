@@ -68,14 +68,6 @@ vi.mock("../../workspace", () => ({
   useCurrentWorkspace: () => ({ workspaceId: "workspace-1" }),
 }));
 
-vi.mock("../../organization-navigation", () => ({
-  useOrganizationNavigation: () => ({ openResource: vi.fn() }),
-}));
-
-vi.mock("../hooks/use-available-resources", () => ({
-  useAvailableResources: () => [],
-}));
-
 vi.mock("../hooks/use-preload-visible-resource", () => ({
   useYjsStorageIntentPreload,
 }));
@@ -136,6 +128,7 @@ describe("WorkspaceTreeItem", () => {
     render(
       <WorkspaceTreeItem
         item={makeItem()}
+        onAddResource={vi.fn()}
         yjsStorage={{ storageId: "storage-1", documentId: "doc-1" }}
       />
     );
@@ -153,6 +146,7 @@ describe("WorkspaceTreeItem", () => {
     render(
       <WorkspaceTreeItem
         item={makeItem()}
+        onAddResource={vi.fn()}
         yjsStorage={{ storageId: "storage-1", documentId: "doc-1" }}
       />
     );
@@ -173,6 +167,7 @@ describe("WorkspaceTreeItem", () => {
     render(
       <WorkspaceTreeItem
         item={makeItem()}
+        onAddResource={vi.fn()}
         yjsStorage={{ storageId: "storage-1", documentId: "doc-1" }}
       />
     );

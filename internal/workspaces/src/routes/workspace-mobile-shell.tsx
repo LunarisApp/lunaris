@@ -15,7 +15,7 @@ import {
   WorkspaceTrashPanel,
   WorkspaceTreeSkeleton,
 } from "@repo/workspaces/workspace-explorer";
-import { SearchProvider } from "@repo/workspaces/search";
+import { SearchDialog, SearchProvider } from "@repo/workspaces/search";
 import {
   type OpenResourceInput,
   type OpenViewInput,
@@ -430,6 +430,7 @@ function MobileBootError({
 function MobileWorkspaceContent() {
   return (
     <Suspense fallback={<MobileWorkspaceLoadingContent />}>
+      <SearchDialog includeWorkbenchCommands={false} />
       <Outlet />
     </Suspense>
   );

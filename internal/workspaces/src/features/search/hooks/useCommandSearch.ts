@@ -24,13 +24,14 @@ export interface CommandAction {
  */
 export function useCommandSearch(
   query: string,
-  actions: CommandActions
+  actions: CommandActions,
+  resourceCommands?: readonly CommandSearchResult[]
 ): CommandSearchResult[] {
   const { t } = useTranslation();
 
   return useMemo(
-    () => buildCommandSearchResults(query, actions, t),
-    [query, actions, t]
+    () => buildCommandSearchResults(query, actions, t, resourceCommands),
+    [query, actions, t, resourceCommands]
   );
 }
 

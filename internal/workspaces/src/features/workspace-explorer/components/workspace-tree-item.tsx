@@ -1,8 +1,4 @@
-import {
-  type ResourceTypeDefinition,
-  useResourceType,
-  useView,
-} from "@lunarisapp/plugin-sdk";
+import { useResourceType, useView } from "@lunarisapp/plugin-sdk";
 import { ConfirmationDialog } from "@lunarisapp/ui/blocks/confirmation-dialog";
 import {
   ContextMenu,
@@ -24,8 +20,6 @@ import { toast } from "sonner";
 import { getResourceCapacityErrorMessageKey } from "@repo/features/entitlements";
 import { usePermission } from "@repo/features/permissions";
 import { useCurrentWorkspace } from "../../workspace";
-import { useOrganizationNavigation } from "../../organization-navigation";
-import { useAvailableResources } from "../hooks/use-available-resources";
 import {
   useYjsStorageIntentPreload,
   type YjsPreloadTarget,
@@ -55,7 +49,9 @@ export function WorkspaceTreeItem({
   item,
   yjsStorage,
   observePreload,
+  onAddResource,
 }: {
+  onAddResource: (parentId: string) => void;
   item: ItemInstance<WorkspaceResourceEntity>;
   yjsStorage?: YjsPreloadTarget;
   observePreload?: ObservePreloadRow;
@@ -63,14 +59,11 @@ export function WorkspaceTreeItem({
   const { t } = useTranslation();
   const { clipboard, navigation } = usePlatform();
   const { deleteResources, duplicateResource } = useWorkspaceActions();
-  const { canCreate, createFolder, createResource } =
-    useWorkspaceResourceCreation();
+  const { canCreate, createFolder } = useWorkspaceResourceCreation();
   const canDelete = usePermission(permission.content.delete);
   const canUpdate = usePermission(permission.content.write);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[]>([]);
-  const resources = useAvailableResources();
-  const { openResource } = useOrganizationNavigation();
   const isMobile = useIsMobile();
   const resourcesMap = useWorkspaceResourcesMap();
   const { workspaceId } = useCurrentWorkspace();
@@ -177,27 +170,6 @@ export function WorkspaceTreeItem({
     }, 0);
   };
 
-  const handleAddItem = async (resource: ResourceTypeDefinition) => {
-    const resourceTypeId = resource.resourceTypeId;
-    const result = await createResource(item.getId(), resource);
-    if (!result) {
-      return;
-    }
-    item.expand();
-    if (!result.name) {
-      setTimeout(
-        () => item.getTree().getItemInstance(result.resourceId).startRenaming(),
-        0
-      );
-    }
-    openResource({
-      resourceId: result.resourceId,
-      resourceTypeId,
-      title: result.name,
-      schemaVersion: resource.schema.currentVersion,
-    });
-  };
-
   const treeItemContent = (
     <TreeItemLabel
       className={
@@ -234,10 +206,9 @@ export function WorkspaceTreeItem({
                 canDelete={canDelete}
                 canDuplicate={canDuplicate}
                 canUpdate={canUpdate}
-                resources={resources}
                 item={item}
                 onAddFolder={handleAddFolder}
-                onAddItem={handleAddItem}
+                onAddResource={() => onAddResource(item.getId())}
                 onCopyPath={handleCopyPath}
                 onCopyUrl={handleCopyUrl}
                 onDelete={handleDeleteRequest}
@@ -273,10 +244,9 @@ export function WorkspaceTreeItem({
           canDelete={canDelete}
           canDuplicate={canDuplicate}
           canUpdate={canUpdate}
-          resources={resources}
           item={item}
           onAddFolder={handleAddFolder}
-          onAddItem={handleAddItem}
+          onAddResource={() => onAddResource(item.getId())}
           onCopyPath={handleCopyPath}
           onCopyUrl={handleCopyUrl}
           onDelete={handleDeleteRequest}

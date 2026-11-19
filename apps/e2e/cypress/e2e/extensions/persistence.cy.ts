@@ -24,7 +24,7 @@ describe("extensions/persistence", () => {
           .then((workspacePath) => {
             cy.intercept("POST", "**/v1/sync/ingest").as("boardSync");
             cy.get('button[aria-label="Add file"]').click();
-            cy.contains('[role="menuitem"]', "Kanban").click();
+            cy.contains('[role="option"]', "Kanban").click();
             cy.contains("button", "Add Task", { timeout: 15_000 }).should(
               "be.visible"
             );
@@ -45,7 +45,7 @@ describe("extensions/persistence", () => {
               }
             });
             cy.get('button[aria-label="Add file"]').click();
-            cy.contains('[role="menuitem"]', "Excalidraw").click();
+            cy.contains('[role="option"]', "Excalidraw").click();
             cy.get('iframe[data-lunaris-plugin-sandbox="lunaris.excalidraw"]', {
               timeout: 30_000,
             }).should("be.visible");

@@ -23,6 +23,7 @@ describe("editor/core workflow", () => {
     cy.bootstrapWorkspacesPage();
     cy.createWorkspace({ name: "Writing Flow" });
     cy.get('[data-testid="workspaces-list-item-writing-flow"]').click();
+    cy.location("pathname").should("match", /\/writing-flow$/);
   });
 
   it("creates, renames, searches, deep-links, persists, and deletes content", () => {
@@ -32,8 +33,11 @@ describe("editor/core workflow", () => {
       "be.visible"
     );
 
-    cy.get('button[aria-label="Add file"]').click();
-    cy.contains('[role="menuitem"]', "Rich Text").click();
+    cy.contains('[data-testid="workspace-tree-item"]', "Drafts").rightclick();
+    cy.contains('[role="menuitem"]', "Add Resource").click();
+    cy.get('[data-testid="search-dialog-input"]')
+      .should("be.focused")
+      .type("rich{enter}");
     renameNewItem("Opening Scene");
     const body = "The observatory lights flickered twice.";
     typeYjsText(documentBodySelector, body);
@@ -65,11 +69,38 @@ describe("editor/core workflow", () => {
       timeout: 15_000,
     }).should("be.visible");
 
+    cy.get('button[aria-label="Search"]').click();
+    cy.get('[data-testid="search-dialog-input"]').type("create rich{enter}");
+    cy.contains('[role="dialog"] h2', /^Rename$/)
+      .closest('[role="dialog"]')
+      .find("input")
+      .should("be.focused")
+      .type("{selectall}Root note{enter}");
+    cy.contains('[data-testid="workspace-tree-item"]', "Root note").should(
+      "be.visible"
+    );
+
     cy.contains('[data-testid="workspace-tree-item"]', "Drafts").rightclick();
     cy.contains('[role="menuitem"]', "Delete").click();
     cy.get('[role="alertdialog"]').contains("button", "Continue").click();
     cy.contains('[data-testid="workspace-tree-item"]', "Drafts").should(
       "not.exist"
     );
+    cy.contains('[data-testid="workspace-tree-item"]', "Opening Scene").should(
+      "not.exist"
+    );
+    cy.contains('[data-testid="workspace-tree-item"]', "Root note").should(
+      "be.visible"
+    );
+  });
+
+  it("creates a resource from workspace search on mobile", () => {
+    cy.viewport(390, 844);
+    cy.reload();
+    cy.get('button[aria-label="Search"]').click();
+    cy.get('[data-testid="search-dialog-input"]').type("rich");
+    cy.contains('[role="option"]', /^Rich Text$/).click();
+    cy.location("pathname").should("match", /\/writing-flow\/res_[^/]+$/);
+    cy.get(documentBodySelector, { timeout: 15_000 }).should("be.visible");
   });
 });

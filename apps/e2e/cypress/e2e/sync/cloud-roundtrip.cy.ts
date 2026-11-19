@@ -7,7 +7,7 @@ const documentBodySelector =
 
 function createDocument(name: string, body: string) {
   cy.get('button[aria-label="Add file"]').click();
-  cy.contains('[role="menuitem"]', "Rich Text").click();
+  cy.contains('[role="option"]', "Rich Text").click();
   cy.get('input[aria-label="Rename resource"]').clear().type(`${name}{enter}`);
   cy.contains('[data-testid="workspace-tree-item"]', name, {
     timeout: 15_000,

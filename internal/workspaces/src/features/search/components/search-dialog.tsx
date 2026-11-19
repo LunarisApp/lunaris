@@ -39,7 +39,14 @@ import {
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import { useCurrentWorkspace } from "../../workspace";
-import { useWorkspaceResources } from "../../workspace-explorer";
+import {
+  useAvailableResources,
+  useWorkspaceResources,
+} from "../../workspace-explorer";
+import { useCreateRootResource } from "../../workspace-explorer/hooks/use-create-root-resource";
+import { permission } from "@repo/auth/permissions";
+import { usePermission } from "@repo/features/permissions";
+import type { CommandSearchResult } from "../types";
 import { useRegion } from "@repo/features/region";
 import {
   useOrganizationNavigation,
@@ -54,7 +61,10 @@ import { useResourceContentSearch } from "../hooks/useResourceContentSearch";
 import { useResourceSearch } from "../hooks/useResourceSearch";
 import { useWorkspaceSearch } from "../hooks/useWorkspaceSearch";
 import { useRecentFiles } from "../hooks/useRecentFiles";
-import { useSearchDialog } from "../hooks/useSearchDialog";
+import {
+  useSearchDialog,
+  useSearchDialogStore,
+} from "../hooks/useSearchDialog";
 import { useSearchResourceTypes } from "../hooks/useSearchResourceTypes";
 import {
   buildSearchGroups,
@@ -127,7 +137,7 @@ function highlightMatch(
 function ResultIcon({ icon }: { icon: PluginIconSource }) {
   return (
     <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-      <Icon className="size-4" icon={icon} strokeWidth={2} />
+      <Icon className="size-4" icon={icon} />
     </span>
   );
 }
@@ -176,7 +186,13 @@ function getSuggestionRank(values: string[], query: string): number {
   );
 }
 
-export function SearchDialog() {
+const NO_COMMAND_ACTIONS: CommandActions = {};
+
+export function SearchDialog({
+  includeWorkbenchCommands = true,
+}: {
+  includeWorkbenchCommands?: boolean;
+} = {}) {
   const { t } = useTranslation();
   const { workspace, workspaceId } = useCurrentWorkspace();
   const items = useWorkspaceResources();
@@ -198,6 +214,26 @@ export function SearchDialog() {
     [activeViewInstanceId, items]
   );
 
+  const canCreate = usePermission(permission.content.write);
+  const resources = useAvailableResources();
+  const createRootResource = useCreateRootResource();
+  const createInContext = useSearchDialogStore(
+    (state) => state.createResourceInContext
+  );
+  const resourceCommands = useMemo<CommandSearchResult[]>(
+    () =>
+      canCreate
+        ? resources.map((type) => ({
+            type: "command",
+            id: `cmd-create-resource-${type.resourceTypeId}`,
+            label: type.name,
+            searchAlias: t("commands.createResource", { type: type.name }),
+            icon: type.icon,
+            action: () => (createInContext ?? createRootResource)(type),
+          }))
+        : [],
+    [canCreate, resources, createInContext, createRootResource, t]
+  );
   const commandActions = useMemo(
     () =>
       createCommandActions({
@@ -224,7 +260,10 @@ export function SearchDialog() {
 
   return (
     <SearchDialogMenu
-      commandActions={commandActions}
+      commandActions={
+        includeWorkbenchCommands ? commandActions : NO_COMMAND_ACTIONS
+      }
+      resourceCommands={resourceCommands}
       workspaceId={workspaceId}
       workspaceSlug={workspace?.slug ?? ""}
       items={items}
@@ -247,12 +286,14 @@ const EMPTY_ITEMS: ReturnType<typeof useWorkspaceResources> = [];
 /** Shared palette; route adapters supply commands and local resource navigation. */
 export function SearchDialogMenu({
   commandActions,
+  resourceCommands,
   workspaceId = "",
   workspaceSlug: currentWorkspaceSlug = "",
   items = EMPTY_ITEMS,
   onOpenResource,
 }: {
   commandActions: CommandActions;
+  resourceCommands?: CommandSearchResult[];
   workspaceId?: string;
   workspaceSlug?: string;
   items?: ReturnType<typeof useWorkspaceResources>;
@@ -266,14 +307,17 @@ export function SearchDialogMenu({
   const navigate = useNavigate();
   const { pathWithRegion } = useRegion();
   const { organizationSlug } = useParams<{ organizationSlug: string }>();
-  const { isOpen, query, close, setQuery } = useSearchDialog();
+  const { isOpen, query, close, setQuery, createResourceInContext } =
+    useSearchDialog();
+  const choosingResource = Boolean(createResourceInContext);
+  const searchQuery = choosingResource ? "" : query;
   const detectedFieldCompletion = useMemo(
-    () => getSearchQueryFieldCompletion(query),
-    [query]
+    () => getSearchQueryFieldCompletion(searchQuery),
+    [searchQuery]
   );
   const valueCompletion = useMemo(
-    () => getSearchQueryValueCompletion(query),
-    [query]
+    () => getSearchQueryValueCompletion(searchQuery),
+    [searchQuery]
   );
   const fieldCompletion = valueCompletion ? null : detectedFieldCompletion;
   const fieldSuggestions = fieldCompletion?.fields ?? EMPTY_FIELD_SUGGESTIONS;
@@ -282,9 +326,9 @@ export function SearchDialogMenu({
   const isCompletingResourceValue = Boolean(
     valueCompletion && valueCompletion.field !== "workspace"
   );
-  const isQueryEmpty = !query.trim();
+  const isQueryEmpty = !(choosingResource || query.trim());
   const isShowingDefaultSuggestions = isQueryEmpty && !isCompleting;
-  const executableQuery = isCompleting ? "" : query;
+  const executableQuery = isCompleting ? "" : searchQuery;
   const workspaceResults = useWorkspaceSearch(
     isCompletingWorkspace ? valueCompletion.value : executableQuery,
     {
@@ -302,12 +346,20 @@ export function SearchDialogMenu({
     isCompletingResourceValue ? 100 : 150,
     { includeAllWhenEmpty: isCompletingResourceValue }
   );
-  const contentResults = useResourceContentSearch(executableQuery, 300, isOpen);
+  const contentResults = useResourceContentSearch(
+    executableQuery,
+    300,
+    isOpen && !choosingResource
+  );
   const resourceTypes = useSearchResourceTypes();
 
   useCommandHotkeys(commandActions);
 
-  const commandResults = useCommandSearch(executableQuery, commandActions);
+  const commandResults = useCommandSearch(
+    choosingResource ? query : executableQuery,
+    choosingResource ? NO_COMMAND_ACTIONS : commandActions,
+    resourceCommands
+  );
 
   const validResourceIds = useMemo(
     () => new Set(items.map((item) => item.id)),
@@ -317,7 +369,7 @@ export function SearchDialogMenu({
   const { recentFiles, addRecentFile } = useRecentFiles(workspaceId, {
     validResourceIds,
   });
-  const [selectedValue, setSelectedValue] = useState("");
+  const [requestedValue, setSelectedValue] = useState("");
 
   const fieldDetails = {
     workspace: {
@@ -454,11 +506,10 @@ export function SearchDialogMenu({
       }));
   }, [resourceResults, workspaceResults, resourceTypes, valueCompletion]);
 
-  const firstCompletionValue = fieldCompletion
-    ? fieldSuggestions[0]
+  const firstCompletionValue =
+    fieldCompletion && fieldSuggestions[0]
       ? `search-filter-${fieldSuggestions[0]}`
-      : ""
-    : (valueSuggestions[0]?.id ?? "");
+      : (valueSuggestions[0]?.id ?? "");
 
   useEffect(() => {
     setSelectedValue(firstCompletionValue);
@@ -467,18 +518,6 @@ export function SearchDialogMenu({
   const uniqueContentResults = useMemo(
     () => filterDuplicateContentResults(contentResults, resourceResults),
     [contentResults, resourceResults]
-  );
-
-  const highlightedResource =
-    resourceResults.find((result) => result.id === selectedValue) ??
-    uniqueContentResults.find((result) => result.id === selectedValue);
-  const highlightedRecent = recentFiles.find(
-    (file) => `recent-${file.resourceId}` === selectedValue
-  );
-  usePreloadResourceRenderer(
-    isOpen && !isCompleting
-      ? (highlightedResource?.pluginId ?? highlightedRecent?.pluginId)
-      : undefined
   );
 
   const hasResults =
@@ -516,6 +555,24 @@ export function SearchDialogMenu({
       t,
       uniqueContentResults,
     ]
+  );
+
+  const selectedValue =
+    isCompleting ||
+    groupedItems.some((group) => group.items.includes(requestedValue))
+      ? requestedValue
+      : (groupedItems[0]?.items[0] ?? "");
+
+  const highlightedResource =
+    resourceResults.find((result) => result.id === selectedValue) ??
+    uniqueContentResults.find((result) => result.id === selectedValue);
+  const highlightedRecent = recentFiles.find(
+    (file) => `recent-${file.resourceId}` === selectedValue
+  );
+  usePreloadResourceRenderer(
+    isOpen && !isCompleting
+      ? (highlightedResource?.pluginId ?? highlightedRecent?.pluginId)
+      : undefined
   );
 
   const handleWorkspaceSelect = (slug: string, isCurrent: boolean) => {
@@ -650,7 +707,7 @@ export function SearchDialogMenu({
 
   return (
     <CommandDialog
-      className="sm:max-w-2xl"
+      className="top-[min(16dvh,8rem)] sm:max-w-2xl"
       description={t("search.description")}
       onOpenChange={(open) => {
         if (!open) {
@@ -658,10 +715,16 @@ export function SearchDialogMenu({
         }
       }}
       open={isOpen}
-      title={t("search.title")}
+      title={choosingResource ? t("explorer.addResource") : t("search.title")}
     >
       <Command
         className="pb-0 *:data-[slot=command-input-wrapper]:px-2 *:data-[slot=command-input-wrapper]:pt-1 *:data-[slot=command-input-wrapper]:pb-2"
+        label={
+          choosingResource
+            ? t("explorer.searchResourceTypes")
+            : t("common.search")
+        }
+        loop
         onKeyDown={handleKeyDown}
         onValueChange={setSelectedValue}
         shouldFilter={false}
@@ -670,26 +733,34 @@ export function SearchDialogMenu({
         <CommandInput
           data-testid="search-dialog-input"
           endAdornment={
-            <Button
-              aria-controls="search-dialog-results"
-              aria-expanded={isCompleting}
-              aria-haspopup="listbox"
-              aria-label={t("search.addFilterLabel")}
-              className="text-muted-foreground"
-              size="xs"
-              variant="ghost"
-              onClick={openFieldSuggestions}
-              onMouseDown={(event) => event.preventDefault()}
-              type="button"
-            >
-              <span aria-hidden="true" className="font-mono">
-                @
-              </span>
-              <span className="hidden sm:inline">{t("search.addFilter")}</span>
-            </Button>
+            !choosingResource && (
+              <Button
+                aria-controls="search-dialog-results"
+                aria-expanded={isCompleting}
+                aria-haspopup="listbox"
+                aria-label={t("search.addFilterLabel")}
+                className="text-muted-foreground"
+                size="xs"
+                variant="ghost"
+                onClick={openFieldSuggestions}
+                onMouseDown={(event) => event.preventDefault()}
+                type="button"
+              >
+                <span aria-hidden="true" className="font-mono">
+                  @
+                </span>
+                <span className="hidden sm:inline">
+                  {t("search.addFilter")}
+                </span>
+              </Button>
+            )
           }
           onValueChange={setQuery}
-          placeholder={t("common.search")}
+          placeholder={
+            choosingResource
+              ? t("explorer.searchResourceTypes")
+              : t("common.search")
+          }
           value={query}
         />
         <CommandList
@@ -780,10 +851,16 @@ export function SearchDialogMenu({
               <span className="mx-auto mb-3 flex size-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                 <HugeiconsIcon className="size-5" icon={FileSearchIcon} />
               </span>
-              <span className="font-medium">{t("search.noResults")}</span>
-              <span className="mt-1 block text-muted-foreground text-xs">
-                {t("search.noResultsHint")}
+              <span className="font-medium">
+                {choosingResource
+                  ? t("explorer.noMatchingTypes")
+                  : t("search.noResults")}
               </span>
+              {!choosingResource && (
+                <span className="mt-1 block text-muted-foreground text-xs">
+                  {t("search.noResultsHint")}
+                </span>
+              )}
             </CommandEmpty>
           )}
           {!isCompleting && isQueryEmpty && hasRecent && (
@@ -947,7 +1024,11 @@ export function SearchDialogMenu({
               heading={
                 <GroupHeading
                   count={commandResults.length}
-                  label={t("search.groupCommands")}
+                  label={
+                    choosingResource
+                      ? t("explorer.addResource")
+                      : t("search.groupCommands")
+                  }
                 />
               }
             >
@@ -973,10 +1054,12 @@ export function SearchDialogMenu({
             <Kbd>↑↓</Kbd>
             {t("search.hintNavigate")}
           </span>
-          <span className="flex items-center gap-1">
-            <Kbd>Tab</Kbd>
-            {isCompleting ? t("search.hintComplete") : t("search.hintGroups")}
-          </span>
+          {!choosingResource && (
+            <span className="flex items-center gap-1">
+              <Kbd>Tab</Kbd>
+              {isCompleting ? t("search.hintComplete") : t("search.hintGroups")}
+            </span>
+          )}
           <span className="ml-auto flex items-center gap-1">
             <Kbd>↵</Kbd>
             {t("search.hintOpen")}

@@ -1,15 +1,8 @@
 "use client";
 
 import type { ResourceTypeDefinition } from "@lunarisapp/plugin-sdk";
-import {
-  ResponsiveDropdownMenu,
-  ResponsiveDropdownMenuContent,
-  ResponsiveDropdownMenuItem,
-  ResponsiveDropdownMenuTrigger,
-} from "@lunarisapp/ui/blocks/responsive-dropdown-menu";
 import { Badge } from "@lunarisapp/ui/components/badge";
 import { Button } from "@lunarisapp/ui/components/button";
-import { Icon } from "@lunarisapp/ui/components/icon";
 import {
   BlockGameIcon,
   FileAddIcon,
@@ -30,8 +23,9 @@ import {
   useStartRenamingItem,
   VIRTUAL_ROOT_ID,
 } from "../../workspace-explorer";
+import { useSearchDialogStore } from "../../search/hooks/useSearchDialog";
 import { useOrganizationNavigation } from "../../organization-navigation";
-import { useGridLayoutStore } from "../context";
+import { useCreateRootResource } from "../../workspace-explorer/hooks/use-create-root-resource";
 
 function LauncherCardContent({
   description,
@@ -63,12 +57,13 @@ const launcherRowClassName =
 export function GridLayoutEmptyPanel({ api }: IDockviewPanelProps) {
   const { t } = useTranslation();
   const resources = useAvailableResources();
-  const { createFolder, createResource } = useWorkspaceActions();
+  const { createFolder } = useWorkspaceActions();
   const canCreate = usePermission(permission.content.write);
   const startRenamingResource = useStartRenamingItem();
-  const { openExplorer, openResource, openTool } = useOrganizationNavigation();
-  const requestRenameResource = useGridLayoutStore(
-    (state) => state.requestRenameResource
+  const { openExplorer, openTool } = useOrganizationNavigation();
+  const createRootResource = useCreateRootResource();
+  const openResourceCommands = useSearchDialogStore(
+    (state) => state.openResourceCommands
   );
   const [isPending, setIsPending] = useState(false);
   const groupId = api.group.id;
@@ -77,31 +72,10 @@ export function GridLayoutEmptyPanel({ api }: IDockviewPanelProps) {
   const handleCreateFile = async (resource: ResourceTypeDefinition) => {
     setIsPending(true);
     try {
-      const result = await createResource(VIRTUAL_ROOT_ID, resource);
-      if (!result) {
-        return;
-      }
-
-      openResource({
-        resourceId: result.resourceId,
-        resourceTypeId: resource.resourceTypeId,
-        schemaVersion: resource.schema.currentVersion,
+      await createRootResource(resource, {
         target,
-        title: result.name || t("common.untitled"),
+        onOpened: () => api.close(),
       });
-      if (!result.name) {
-        requestRenameResource(result.resourceId);
-      }
-      api.close();
-    } catch (error) {
-      toast.error(
-        t(
-          getResourceCapacityErrorMessageKey(
-            error,
-            "gridLayout.emptyPanel.createFileError"
-          )
-        )
-      );
     } finally {
       setIsPending(false);
     }
@@ -155,39 +129,23 @@ export function GridLayoutEmptyPanel({ api }: IDockviewPanelProps) {
 
           <div aria-busy={isPending} className="grid gap-1 border-y py-2">
             {canCreate && (
-              <ResponsiveDropdownMenu>
-                <ResponsiveDropdownMenuTrigger
-                  disabled={isPending || resources.length === 0}
-                  render={
-                    <Button className={launcherRowClassName} variant="ghost" />
+              <Button
+                aria-haspopup="dialog"
+                className={launcherRowClassName}
+                disabled={isPending || resources.length === 0}
+                onClick={() => openResourceCommands(handleCreateFile)}
+                variant="ghost"
+              >
+                <LauncherCardContent
+                  description={
+                    resources.length === 0
+                      ? t("gridLayout.emptyPanel.noFileTypes")
+                      : t("gridLayout.emptyPanel.createFileDescription")
                   }
-                >
-                  <LauncherCardContent
-                    description={
-                      resources.length === 0
-                        ? t("gridLayout.emptyPanel.noFileTypes")
-                        : t("gridLayout.emptyPanel.createFileDescription")
-                    }
-                    icon={FileAddIcon}
-                    title={t("gridLayout.emptyPanel.createFile")}
-                  />
-                </ResponsiveDropdownMenuTrigger>
-                <ResponsiveDropdownMenuContent
-                  align="start"
-                  title={t("gridLayout.emptyPanel.chooseFileType")}
-                >
-                  {resources.map((resource) => (
-                    <ResponsiveDropdownMenuItem
-                      disabled={isPending}
-                      key={resource.resourceTypeId}
-                      onClick={() => handleCreateFile(resource)}
-                    >
-                      <Icon className="size-4" icon={resource.icon} />
-                      {resource.name}
-                    </ResponsiveDropdownMenuItem>
-                  ))}
-                </ResponsiveDropdownMenuContent>
-              </ResponsiveDropdownMenu>
+                  icon={FileAddIcon}
+                  title={t("gridLayout.emptyPanel.createFile")}
+                />
+              </Button>
             )}
 
             {canCreate && (

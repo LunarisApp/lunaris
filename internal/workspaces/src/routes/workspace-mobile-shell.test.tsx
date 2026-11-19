@@ -138,8 +138,8 @@ vi.mock("@repo/workspaces/workspace-explorer", () => ({
 }));
 
 vi.mock("@repo/workspaces/search", () => ({
-  useResourceContentSearch: () => [],
-  useResourceSearch: () => [],
+  SearchDialog: () => null,
+  SearchButton: () => <button type="button">Search</button>,
   SearchProvider: ({
     children,
     indexingReady,

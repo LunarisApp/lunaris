@@ -1,4 +1,3 @@
-import type { ResourceTypeDefinition } from "@lunarisapp/plugin-sdk";
 import { Icon } from "@lunarisapp/ui/components/icon";
 import {
   ContextMenuContent,
@@ -17,6 +16,7 @@ import {
   Delete02Icon,
   Edit02Icon,
   FolderAddIcon,
+  FileAddIcon,
   HugeiconsIcon,
   Link02Icon,
   MoreVerticalIcon,
@@ -27,7 +27,7 @@ import { Separator } from "@lunarisapp/ui/components/separator";
 import { useTranslation } from "react-i18next";
 import {
   AddFolderMenuItem,
-  AddItemSubmenu,
+  AddResourceMenuItem,
   CopyPathMenuItem,
   CopyUrlMenuItem,
   DeleteMenuItem,
@@ -42,12 +42,11 @@ interface WorkspaceTreeItemActionsProps {
   canUpdate: boolean;
   item: ItemInstance<WorkspaceResourceEntity>;
   onAddFolder: () => void;
-  onAddItem: (resource: ResourceTypeDefinition) => void;
+  onAddResource: () => void;
   onCopyPath: () => void;
   onCopyUrl: () => void;
   onDelete: () => void;
   onDuplicate: () => void;
-  resources: ResourceTypeDefinition[];
 }
 
 export function MobileWorkspaceTreeItemActions({
@@ -56,9 +55,8 @@ export function MobileWorkspaceTreeItemActions({
   canDuplicate,
   canUpdate,
   item,
-  resources,
   onAddFolder,
-  onAddItem,
+  onAddResource,
   onCopyPath,
   onCopyUrl,
   onDelete,
@@ -88,15 +86,10 @@ export function MobileWorkspaceTreeItemActions({
         <div className="flex flex-col gap-0.5 px-2 py-4">
           {!!(isFolderItem && canCreate) && (
             <>
-              {resources.map((resource) => (
-                <DrawerMenuItem
-                  key={resource.resourceTypeId}
-                  onClick={() => onAddItem(resource)}
-                >
-                  <Icon className="size-5" icon={resource.icon} />
-                  {resource.name}
-                </DrawerMenuItem>
-              ))}
+              <DrawerMenuItem aria-haspopup="dialog" onClick={onAddResource}>
+                <Icon icon={FileAddIcon} />
+                {t("explorer.addResource")}
+              </DrawerMenuItem>
               <DrawerMenuItem onClick={onAddFolder}>
                 <Icon icon={FolderAddIcon} />
                 {t("explorer.addFolder")}
@@ -147,12 +140,11 @@ export function WorkspaceTreeItemContextMenuContent({
   canUpdate,
   item,
   onAddFolder,
-  onAddItem,
+  onAddResource,
   onCopyPath,
   onCopyUrl,
   onDelete,
   onDuplicate,
-  resources,
 }: WorkspaceTreeItemActionsProps) {
   const isFolderItem = item.isFolder();
 
@@ -160,7 +152,7 @@ export function WorkspaceTreeItemContextMenuContent({
     <ContextMenuContent>
       {!!(isFolderItem && canCreate) && (
         <>
-          <AddItemSubmenu resources={resources} onAddItem={onAddItem} />
+          <AddResourceMenuItem onAddResource={onAddResource} />
           <AddFolderMenuItem onAddFolder={onAddFolder} />
           <ContextMenuSeparator />
         </>

@@ -364,6 +364,7 @@
     "hintClose": "Fermer"
   },
   "commands": {
+    "createResource": "Créer {{type}}",
     "newResource": "Nouvelle ressource",
     "toggleSidebar": "Afficher/masquer la barre latérale",
     "zoomIn": "Zoom avant",
@@ -580,6 +581,8 @@
   "explorer": {
     "title": "Explorateur",
     "addResource": "Ajouter une ressource",
+    "searchResourceTypes": "Rechercher un type de ressource…",
+    "noMatchingTypes": "Aucun type de ressource correspondant.",
     "addFolder": "Ajouter un dossier",
     "addFile": "Ajouter un fichier",
     "collapseAll": "Tout réduire",

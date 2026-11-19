@@ -364,6 +364,7 @@
     "hintClose": "Schließen"
   },
   "commands": {
+    "createResource": "{{type}} erstellen",
     "newResource": "Neue Ressource",
     "toggleSidebar": "Seitenleiste ein-/ausblenden",
     "zoomIn": "Vergrößern",
@@ -580,6 +581,8 @@
   "explorer": {
     "title": "Explorer",
     "addResource": "Ressource hinzufügen",
+    "searchResourceTypes": "Ressourcentypen suchen…",
+    "noMatchingTypes": "Keine passenden Ressourcentypen.",
     "addFolder": "Ordner hinzufügen",
     "addFile": "Datei hinzufügen",
     "collapseAll": "Alle einklappen",

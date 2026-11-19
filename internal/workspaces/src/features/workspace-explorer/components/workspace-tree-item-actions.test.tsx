@@ -26,6 +26,7 @@ vi.mock("@lunarisapp/ui/icons", () => ({
   Delete02Icon: {},
   Edit02Icon: {},
   FolderAddIcon: {},
+  FileAddIcon: {},
   HugeiconsIcon: () => null,
   Link02Icon: {},
   MoreVerticalIcon: {},
@@ -37,7 +38,7 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("./context-menu-config", () => ({
   AddFolderMenuItem: () => null,
-  AddItemSubmenu: () => null,
+  AddResourceMenuItem: () => null,
   CopyPathMenuItem: () => null,
   CopyUrlMenuItem: () => null,
   DeleteMenuItem: () => null,
@@ -61,10 +62,9 @@ function renderActions(isFolder: boolean) {
       canDelete
       canDuplicate={false}
       canUpdate
-      resources={[]}
       item={makeItem(isFolder)}
       onAddFolder={vi.fn()}
-      onAddItem={vi.fn()}
+      onAddResource={vi.fn()}
       onCopyPath={vi.fn()}
       onCopyUrl={vi.fn()}
       onDelete={vi.fn()}

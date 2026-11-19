@@ -71,7 +71,7 @@ describe("returning-user offline PWA", () => {
     cy.get('[data-testid="workspaces-list-item-offline-draft"]').click();
 
     cy.get('button[aria-label="Add file"]').click();
-    cy.contains('[role="menuitem"]', "Rich Text").click();
+    cy.contains('[role="option"]', "Rich Text").click();
     cy.get('input[aria-label="Rename resource"]')
       .clear()
       .type("Field Notes{enter}");
