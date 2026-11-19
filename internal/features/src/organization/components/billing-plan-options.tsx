@@ -41,7 +41,7 @@ export function UpgradeOptions({
         </h2>
         <ToggleGroup
           aria-label={t("organization.billing.choosePlanTitle")}
-          className="max-w-full flex-wrap rounded-xl bg-muted p-1"
+          className="max-w-full flex-wrap"
           onValueChange={(value) => {
             const nextInterval = value[0];
             if (
@@ -51,18 +51,18 @@ export function UpgradeOptions({
               onIntervalChange(nextInterval);
             }
           }}
-          size="sm"
-          spacing={1}
+          variant="outline"
+          spacing={0}
           value={[interval]}
         >
           <ToggleGroupItem
-            className="@lg/billing:h-8 h-11 min-w-0 whitespace-normal rounded-lg px-4 text-muted-foreground active:translate-y-px aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+            className="@max-lg/billing:touch-target min-w-0 whitespace-normal"
             value={BILLING_INTERVAL.month}
           >
             {t("organization.billing.monthlyBilling")}
           </ToggleGroupItem>
           <ToggleGroupItem
-            className="@lg/billing:h-8 h-11 min-w-0 whitespace-normal rounded-lg px-4 text-muted-foreground active:translate-y-px aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+            className="@max-lg/billing:touch-target min-w-0 whitespace-normal"
             value={BILLING_INTERVAL.year}
           >
             {t("organization.billing.annualBilling")}
@@ -110,7 +110,7 @@ export function UpgradeOptions({
                 </p>
               </div>
               <Button
-                className="mt-auto @lg/billing:h-8 h-11 w-full"
+                className="@max-lg/billing:touch-target mt-auto w-full"
                 disabled={loadingSlug !== null}
                 onClick={() => onChoose(definition)}
               >

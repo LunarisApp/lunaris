@@ -605,8 +605,7 @@ export function WorkbookTableHeaderMenu({
           <Button
             {...triggerProps}
             aria-label="Column menu"
-            className={cn("size-6 rounded-sm", triggerProps.className)}
-            size="icon-sm"
+            size="icon-xs"
             type="button"
             variant="ghost"
           />
@@ -959,7 +958,7 @@ function WorkbookToolbar({
             >
               <SelectTrigger
                 aria-label="Zoom level"
-                className="w-[84px] min-w-[84px]"
+                className="w-21 shrink-0"
                 size="sm"
               >
                 <SelectValue>{currentZoom}%</SelectValue>

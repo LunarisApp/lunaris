@@ -33,7 +33,7 @@ export function AgentsContent() {
               {t("settings.agents.signInDescription")}
             </p>
             <Button
-              className="h-11 sm:h-8"
+              className="max-sm:touch-target"
               render={<Link to="/auth" />}
               variant="outline"
             >

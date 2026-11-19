@@ -270,11 +270,11 @@ export function BillingSection({
           canReadBilling && (
             <Button
               aria-label={t("common.refresh")}
-              className="@lg/billing:size-8 size-11"
+              className="@max-lg/billing:touch-target"
               data-testid="organization-billing-refresh"
               disabled={refreshing || sessionPending || !status.isOnline}
               onClick={() => void handleRefresh()}
-              size="icon-sm"
+              size="icon"
               variant="outline"
             >
               <HugeiconsIcon

@@ -230,7 +230,7 @@ Components feel compact, rounded, and quietly tactile. State changes use muted f
 ### Badges
 
 - **Style:** Fully rounded, compact labels using the label role.
-- **State:** Ink for default emphasis, Soft Stone for secondary context, outline for neutral metadata, and Signal Red only for destructive meaning.
+- **State:** Ink for default emphasis, Soft Stone for secondary context, outline for neutral metadata, and Signal Red for errors and destructive actions. Use the shared success and warning variants for positive status and cautions. Pair each status color with a label or accessible name.
 
 ### Cards / Containers
 

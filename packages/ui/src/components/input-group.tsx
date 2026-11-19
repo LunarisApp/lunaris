@@ -4,6 +4,8 @@ import type { ComponentProps } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@lunarisapp/ui/lib/utils";
 
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@lunarisapp/ui/components/button";
 import { Input } from "@lunarisapp/ui/components/input";
 import { Textarea } from "@lunarisapp/ui/components/textarea";
@@ -104,6 +106,38 @@ function InputGroupButton({
   );
 }
 
+function InputGroupClearButton({
+  "aria-label": label,
+  className,
+  onClear,
+  size = "icon-xs",
+}: {
+  "aria-label": string;
+  className?: string;
+  onClear: () => void;
+  size?: "icon-xs" | "icon-sm";
+}) {
+  return (
+    <InputGroupAddon align="inline-end" className="py-0">
+      <InputGroupButton
+        aria-label={label}
+        className={className}
+        data-slot="input-group-clear"
+        onClick={(event) => {
+          event.currentTarget
+            .closest('[data-slot="input-group"]')
+            ?.querySelector("input")
+            ?.focus();
+          onClear();
+        }}
+        size={size}
+      >
+        <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
+      </InputGroupButton>
+    </InputGroupAddon>
+  );
+}
+
 function InputGroupText({ className, ...props }: ComponentProps<"span">) {
   return (
     <span
@@ -149,6 +183,7 @@ export {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
+  InputGroupClearButton,
   InputGroupText,
   InputGroupInput,
   InputGroupTextarea,

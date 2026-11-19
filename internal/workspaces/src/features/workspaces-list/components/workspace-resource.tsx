@@ -94,8 +94,8 @@ export function WorkspaceResource({
     </Badge>
   );
   const workspaceAvatar = (
-    <Avatar aria-hidden="true" className="size-9 rounded-lg after:rounded-lg">
-      <AvatarFallback className="rounded-lg bg-muted font-semibold text-foreground">
+    <Avatar aria-hidden="true" className="size-9 rounded-lg">
+      <AvatarFallback className="font-semibold text-foreground">
         {getInitials(workspaceName)}
       </AvatarFallback>
     </Avatar>

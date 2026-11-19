@@ -147,10 +147,7 @@ function WorkspacesAppBarTrailing() {
 
   return (
     <>
-      <HelpCenterPopover
-        className="aria-expanded:bg-sidebar-accent aria-expanded:text-sidebar-accent-foreground aria-expanded:hover:bg-sidebar-accent dark:aria-expanded:hover:bg-sidebar-accent"
-        variant="ghost"
-      />
+      <HelpCenterPopover variant="ghost" />
       <UserMenu onLogout={handleLogout} />
     </>
   );

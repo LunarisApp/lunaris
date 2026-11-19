@@ -98,7 +98,7 @@ export default function DeviceAuthorizationPage() {
               {t("auth.agentAuthorization.confirmCode")}
             </p>
             <Button
-              className="w-full"
+              className="touch-target w-full"
               type="submit"
               disabled={!code.replace(/[^a-zA-Z0-9]/g, "")}
             >

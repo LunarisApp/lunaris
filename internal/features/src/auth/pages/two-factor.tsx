@@ -146,7 +146,7 @@ export default function TwoFactorPage() {
           <span>{t("auth.trustDevice")}</span>
         </Label>
         <Button
-          className="h-11 w-full"
+          className="touch-target w-full"
           data-testid="auth-two-factor-submit"
           disabled={!validCode || submitting}
           type="submit"

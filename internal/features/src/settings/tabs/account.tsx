@@ -267,9 +267,8 @@ function DangerZoneSection() {
           </p>
         </div>
         <Button
-          className="h-11 w-full shrink-0 lg:h-8 lg:w-auto"
+          className="max-lg:touch-target w-full lg:w-auto"
           onClick={() => setOpen(true)}
-          size="sm"
           variant="destructive"
         >
           {t("settings.account.deleteAccount")}
@@ -313,7 +312,7 @@ function ClaimAccountSection() {
           <Separator className="flex-1" />
         </div>
         <Button
-          className="h-11 w-full"
+          className="touch-target w-full"
           data-testid="settings-account-claim-email"
           onClick={() => navigation.assign(pathWithRegion("/auth/register"))}
           variant="outline"

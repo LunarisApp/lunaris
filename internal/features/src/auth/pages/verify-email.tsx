@@ -119,7 +119,7 @@ export default function VerifyEmailPage() {
         data-testid="auth-verify-page"
       >
         <Button
-          className="w-full"
+          className="touch-target w-full"
           data-testid="auth-verify-resend"
           disabled={isDisabled}
           onClick={handleResend}

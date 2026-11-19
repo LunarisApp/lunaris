@@ -25,7 +25,7 @@ export function WorkspaceSettingsButton() {
         render={
           <Button
             aria-label={t("common.settings")}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground"
             data-testid="workspace-settings-trigger"
             onClick={openWorkspaceSettings}
             size="icon-sm"

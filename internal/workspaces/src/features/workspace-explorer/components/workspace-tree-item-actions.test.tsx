@@ -15,8 +15,9 @@ vi.mock("@lunarisapp/ui/components/context-menu", () => ({
 
 vi.mock("@lunarisapp/ui/components/drawer", () => ({
   Drawer: ({ children }: { children: ReactNode }) => <>{children}</>,
-  DrawerClose: ({ children }: { children: ReactNode }) => <>{children}</>,
+  DrawerMenuItem: ({ children }: { children: ReactNode }) => <>{children}</>,
   DrawerContent: ({ children }: { children: ReactNode }) => <>{children}</>,
+  DrawerTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
   DrawerTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 

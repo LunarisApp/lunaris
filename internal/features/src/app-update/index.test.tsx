@@ -27,8 +27,7 @@ describe("AppUpdateProvider", () => {
 
     const shortcut = screen.getByText(/^(⌘R|Ctrl\+R)$/);
     expect(shortcut.tagName).toBe("KBD");
-    expect(shortcut.className).toContain("bg-blue-200");
-    expect(shortcut.className).toContain("dark:bg-blue-800/50");
+    expect(shortcut.closest("button")).toBe(screen.getByRole("button"));
   });
 
   it("shows desktop progress without a browser shortcut and disables duplicate installs", () => {

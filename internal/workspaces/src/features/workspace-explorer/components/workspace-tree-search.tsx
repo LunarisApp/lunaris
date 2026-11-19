@@ -3,11 +3,11 @@
 import {
   InputGroup,
   InputGroupAddon,
-  InputGroupButton,
+  InputGroupClearButton,
   InputGroupInput,
 } from "@lunarisapp/ui/components/input-group";
 import { useIsMobile } from "@lunarisapp/ui/hooks/use-mobile";
-import { Cancel01Icon, HugeiconsIcon, SearchIcon } from "@lunarisapp/ui/icons";
+import { HugeiconsIcon, SearchIcon } from "@lunarisapp/ui/icons";
 import { cn } from "@lunarisapp/ui/lib/utils";
 import type { ChangeEvent, KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -34,13 +34,9 @@ export function WorkspaceTreeSearch({
 
   return (
     <InputGroup
-      className={cn(
-        "min-w-0 flex-1 border-input/40 bg-transparent hover:border-input dark:bg-transparent",
-        isMobile ? "h-10" : "h-7",
-        className
-      )}
+      className={cn("flex-1", isMobile ? "touch-target" : "h-7", className)}
     >
-      <InputGroupAddon align="inline-start" className="text-muted-foreground">
+      <InputGroupAddon align="inline-start">
         <HugeiconsIcon icon={SearchIcon} strokeWidth={2} />
       </InputGroupAddon>
       <InputGroupInput
@@ -49,7 +45,6 @@ export function WorkspaceTreeSearch({
         aria-expanded={value.length > 0}
         aria-haspopup="listbox"
         aria-label={t("explorer.searchPlaceholder")}
-        className="[&::-webkit-search-cancel-button]:hidden [&::-webkit-search-cancel-button]:appearance-none"
         onChange={(e: ChangeEvent<HTMLInputElement>) =>
           onChange(e.target.value)
         }
@@ -63,15 +58,12 @@ export function WorkspaceTreeSearch({
           : {})}
       />
       {value.length > 0 && (
-        <InputGroupAddon align="inline-end">
-          <InputGroupButton
-            aria-label={t("explorer.clearSearch")}
-            onClick={() => onChange("")}
-            size={isMobile ? "icon-sm" : "icon-xs"}
-          >
-            <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
-          </InputGroupButton>
-        </InputGroupAddon>
+        <InputGroupClearButton
+          aria-label={t("explorer.clearSearch")}
+          className={isMobile ? "touch-target" : undefined}
+          onClear={() => onChange("")}
+          size={isMobile ? "icon-sm" : "icon-xs"}
+        />
       )}
     </InputGroup>
   );

@@ -38,7 +38,7 @@ export function WorkspaceExplorerButton() {
       <TooltipTrigger
         render={
           <Button
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground"
             onClick={handleClick}
             size="icon-sm"
             variant="ghost"

@@ -17,15 +17,6 @@ import type { PropertyType } from "../types";
 
 export type PropertyFieldAppearance = "composer" | "control" | "metadata";
 
-export const composerButtonClassName =
-  "h-8! min-w-0! justify-start overflow-hidden border-border/70 bg-background/70 px-2.5 text-left shadow-none hover:bg-muted/50 aria-expanded:bg-muted/50";
-
-export const composerInputClassName =
-  "h-8! min-w-0! border-border/70 bg-background/70 px-2.5 shadow-none hover:bg-muted/50 focus-visible:bg-background";
-
-export const composerSelectTriggerClassName =
-  "h-8! min-w-0! border-border/70 bg-background/70 px-2.5 text-left shadow-none hover:bg-muted/50 aria-expanded:bg-muted/50 [&>svg:last-child]:hidden";
-
 export const metadataButtonClassName =
   "min-w-0 rounded-md border-transparent bg-transparent px-1.5 text-left shadow-none hover:bg-muted/60 disabled:bg-transparent disabled:opacity-100";
 
@@ -46,11 +37,12 @@ export function PropertyFieldButton({
     <Button
       {...props}
       className={cn(
-        appearance === "composer" && composerButtonClassName,
+        "justify-start",
+        appearance === "composer" && "min-w-0 overflow-hidden",
         appearance === "metadata" && metadataButtonClassName,
         className
       )}
-      size="sm"
+      size={appearance === "composer" ? "default" : "sm"}
       variant={appearance === "metadata" ? "ghost" : "outline"}
     />
   );

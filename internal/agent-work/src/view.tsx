@@ -13,6 +13,7 @@ import {
   PopoverTrigger,
 } from "@lunarisapp/ui/components/popover";
 import { Button } from "@lunarisapp/ui/components/button";
+import { Alert, AlertDescription } from "@lunarisapp/ui/components/alert";
 import { AgentLayout, type AgentLayoutHandle } from "./layout";
 import { ConversationSidebar } from "./conversation-sidebar";
 import { ArrowDown01Icon, HugeiconsIcon } from "@lunarisapp/ui/icons";
@@ -277,23 +278,26 @@ export function AgentWorkView(
             <AgentAuthForm auth={agent.auth} onRequest={agent.request} />
           )}
           {!!agent.error && (
-            <div
-              className="mt-4 space-y-2 rounded-lg border border-destructive/50 p-4"
-              role="alert"
+            <Alert
+              className="mt-4 justify-items-start gap-2"
               aria-label={t("agentWork.error")}
+              variant="destructive"
             >
-              <p className="text-sm">{agent.error}</p>
-              <Button onClick={() => void agent.reconnect()} variant="outline">
+              <AlertDescription>{agent.error}</AlertDescription>
+              <Button
+                onClick={() => void agent.reconnect()}
+                variant="secondary"
+              >
                 {t("agentWork.reconnect")}
               </Button>
-            </div>
+            </Alert>
           )}
         </div>
       </div>
       {showLatest && !empty && (
         <div className="pointer-events-none absolute inset-x-0 bottom-36 flex justify-center">
           <Button
-            className="pointer-events-auto gap-2 rounded-full"
+            className="pointer-events-auto"
             onClick={() => {
               const node = transcript.current;
               if (node) {

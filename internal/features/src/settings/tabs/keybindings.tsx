@@ -72,7 +72,7 @@ export function KeybindingsContent() {
               disabled={!hasOverrides}
               render={
                 <Button
-                  className="w-full shrink-0 sm:w-auto"
+                  className="w-full sm:w-auto"
                   data-testid="keybindings-reset-all"
                   disabled={!hasOverrides}
                   size="sm"

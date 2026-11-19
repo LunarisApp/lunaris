@@ -404,11 +404,10 @@ export function LocalDataContent() {
               </p>
             </div>
             <Button
-              className="h-11 w-full shrink-0 sm:h-8 sm:w-auto"
+              className="max-sm:touch-target w-full sm:w-auto"
               data-testid="settings-local-data-clear-queue"
               disabled={clearing || !queueStats || queueStats.count === 0}
               onClick={() => setClearQueueConfirmOpen(true)}
-              size="sm"
               variant="outline"
             >
               {clearing
@@ -431,8 +430,7 @@ export function LocalDataContent() {
                 disabled={purging}
                 render={
                   <Button
-                    className="h-11 w-full shrink-0 sm:h-8 sm:w-auto"
-                    size="sm"
+                    className="max-sm:touch-target w-full sm:w-auto"
                     variant="destructive"
                   />
                 }
@@ -708,7 +706,7 @@ function labelsForDescriptor(
       return {
         title: t("syncStatus.localOnlyAnonymousMode"),
         message: t("syncStatus.localOnlyAnonymousMessage"),
-        toneClass: "text-amber-700 dark:text-amber-400",
+        toneClass: "text-warning",
       };
     case "blocked-auth":
       return {
@@ -720,19 +718,19 @@ function labelsForDescriptor(
       return {
         title: t("syncStatus.blockedPermissionMode"),
         message: t("syncStatus.blockedPermissionMessage"),
-        toneClass: "text-amber-700 dark:text-amber-400",
+        toneClass: "text-warning",
       };
     case "blocked-generic":
       return {
         title: t("syncStatus.blockedMode"),
         message: t("syncStatus.blockedMessage"),
-        toneClass: "text-amber-700 dark:text-amber-400",
+        toneClass: "text-warning",
       };
     case "transient-error":
       return {
         title: t("syncStatus.transientErrorMode"),
         message: t("syncStatus.transientErrorMessage"),
-        toneClass: "text-amber-700 dark:text-amber-400",
+        toneClass: "text-warning",
         reason: descriptor.reason,
       };
     default: {

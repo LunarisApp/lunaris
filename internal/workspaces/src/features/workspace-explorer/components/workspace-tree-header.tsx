@@ -108,10 +108,8 @@ export function WorkspaceTreeHeader({
   };
 
   const isMobile = useIsMobile();
-  const buttonSize = isMobile ? "icon-lg" : "sm";
-  const buttonClass = isMobile
-    ? "size-11 rounded-xl [&_svg]:size-5"
-    : undefined;
+  const buttonSize = isMobile ? "icon" : "icon-sm";
+  const buttonClass = isMobile ? "touch-target" : undefined;
 
   return (
     <div
@@ -124,7 +122,7 @@ export function WorkspaceTreeHeader({
       {...props}
     >
       {isMobile && mobileActions ? (
-        <div className="flex flex-wrap items-center gap-1 [&_button]:size-11 [&_button]:rounded-xl">
+        <div className="[&_button]:touch-target flex flex-wrap items-center gap-1">
           {mobileActions}
         </div>
       ) : null}
@@ -154,13 +152,9 @@ export function WorkspaceTreeHeader({
               aria-label={t("explorer.addFile")}
               render={
                 <Button
-                  className={cn(
-                    buttonClass,
-                    isMobile &&
-                      "bg-primary text-primary-foreground hover:bg-primary/90"
-                  )}
+                  className={buttonClass}
                   size={buttonSize}
-                  variant="ghost"
+                  variant={isMobile ? "default" : "ghost"}
                 />
               }
             >

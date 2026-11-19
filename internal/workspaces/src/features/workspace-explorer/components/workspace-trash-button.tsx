@@ -31,7 +31,7 @@ export function WorkspaceTrashButton() {
         render={
           <Button
             aria-label={t("trash.title")}
-            className="relative text-muted-foreground hover:text-foreground"
+            className="relative text-muted-foreground"
             data-testid="workspace-trash-trigger"
             onClick={() => openTool({ toolId: WORKSPACE_TRASH_TOOL_ID })}
             size="icon-sm"

@@ -6,6 +6,10 @@ import {
   type PluginMentionTrigger,
 } from "@lunarisapp/plugin-sdk";
 import { Button } from "@lunarisapp/ui/components/button";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@lunarisapp/ui/components/native-select";
 import { Textarea } from "@lunarisapp/ui/components/textarea";
 import { ArrowUp01Icon, HugeiconsIcon, StopIcon } from "@lunarisapp/ui/icons";
 import type { AgentWorkState } from "@repo/platform";
@@ -255,20 +259,23 @@ export function AgentComposer({
           value={draft}
         />
         <div className="flex items-center justify-between gap-2 px-2 pt-1 pb-2">
-          <select
+          <NativeSelect
             aria-label={t("agentWork.model")}
-            className="h-8 max-w-[60%] cursor-pointer rounded-md bg-transparent px-2 text-muted-foreground text-xs outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default"
+            className="max-w-[60%]"
+            size="sm"
             disabled={!runtimeReady || busy}
             onChange={(event) => onModelChange(event.target.value)}
             value={selectedModel}
           >
-            {!models.length && <option value="">ChatGPT</option>}
+            {!models.length && (
+              <NativeSelectOption value="">ChatGPT</NativeSelectOption>
+            )}
             {models.map((item) => (
-              <option key={item.id} value={item.id}>
+              <NativeSelectOption key={item.id} value={item.id}>
                 {item.name}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
           {busy ? (
             <Button
               aria-label={t("agentWork.stop")}

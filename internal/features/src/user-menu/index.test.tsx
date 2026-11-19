@@ -102,7 +102,7 @@ describe("user menus", () => {
     const user = userEvent.setup();
     renderMenu(<UserMenu />);
 
-    await user.click(screen.getByTestId("user-menu-trigger"));
+    await user.click(screen.getByRole("button", { name: "Accounts" }));
 
     const settings = screen.getByRole("menuitem", { name: "Settings" });
     expect(settings).toBeTruthy();
@@ -118,7 +118,7 @@ describe("user menus", () => {
     const user = userEvent.setup();
     renderMenu(<MobileUserMenu />);
 
-    await user.click(screen.getByText("RV"));
+    await user.click(screen.getByRole("button", { name: "Accounts" }));
 
     expect(screen.getByRole("button", { name: "Settings" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Add account" })).toBeTruthy();
@@ -132,7 +132,7 @@ describe("user menus", () => {
     const user = userEvent.setup();
     renderMenu(<MobileUserMenu />);
 
-    await user.click(screen.getByText("RV"));
+    await user.click(screen.getByRole("button", { name: "Accounts" }));
     fireEvent.click(screen.getByRole("button", { name: "Need help?" }));
 
     expect(open).toHaveBeenCalledWith("mailto:hello@lunaris.app");

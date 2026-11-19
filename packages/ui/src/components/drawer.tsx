@@ -63,6 +63,24 @@ function DrawerClose({ ...props }: DrawerPrimitive.Close.Props) {
   return <DrawerPrimitive.Close data-slot="drawer-close" {...props} />;
 }
 
+function DrawerMenuItem({
+  className,
+  variant = "default",
+  ...props
+}: DrawerPrimitive.Close.Props & { variant?: "default" | "destructive" }) {
+  return (
+    <DrawerPrimitive.Close
+      data-slot="drawer-menu-item"
+      data-variant={variant}
+      className={cn(
+        "touch-target flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-start text-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring active:bg-accent disabled:pointer-events-none disabled:opacity-50 data-[variant=destructive]:text-destructive [&_svg:not([class*='size-'])]:size-5 [&_svg]:shrink-0",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
 function DrawerOverlay({
   className,
   ...props
@@ -213,6 +231,7 @@ export {
   DrawerSwipeHandle,
   DrawerTrigger,
   DrawerClose,
+  DrawerMenuItem,
   DrawerContent,
   DrawerHeader,
   DrawerFooter,

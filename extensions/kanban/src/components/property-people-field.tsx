@@ -76,7 +76,7 @@ export function PeopleField({
           <PropertyFieldButton
             appearance={appearance}
             aria-label={propertyName}
-            className={cn("h-7 min-w-20 justify-start", className)}
+            className={cn(appearance !== "composer" && "min-w-20", className)}
           />
         }
       >

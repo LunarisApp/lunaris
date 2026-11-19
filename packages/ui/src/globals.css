@@ -108,6 +108,19 @@
   --font-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
 }
 
+/* A custom clear action replaces the browser's search cancel button. */
+@layer components {
+  [data-slot="input-group"]:has([data-slot="input-group-clear"])
+    input[type="search"]::-webkit-search-cancel-button {
+    appearance: none;
+  }
+}
+
+@utility touch-target {
+  min-width: --spacing(11);
+  min-height: --spacing(11);
+}
+
 @utility app-page-title {
   font-size: clamp(1.5rem, 1.25rem + 1vw, 2rem);
   font-weight: 550;
@@ -151,6 +164,8 @@
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
@@ -194,6 +209,8 @@
   --border: #d3d2cf;
   --input: #888784;
   --ring: #616161;
+  --success: var(--color-emerald-800);
+  --warning: var(--color-amber-800);
   --destructive: oklch(0.577 0.245 27.325);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -214,6 +231,8 @@
   --border: #343434;
   --input: #616161;
   --ring: #b1b1b1;
+  --success: var(--color-emerald-400);
+  --warning: var(--color-amber-400);
   --destructive: oklch(0.704 0.191 22.216);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);

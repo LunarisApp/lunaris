@@ -123,7 +123,7 @@ export default function ForgotPasswordPage() {
               <FieldError errors={[errors.email]} id="forgot-email-error" />
             </Field>
             <Button
-              className="w-full"
+              className="touch-target w-full"
               data-testid="auth-forgot-submit"
               disabled={isSubmitting}
               type="submit"

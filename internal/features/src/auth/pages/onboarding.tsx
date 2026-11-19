@@ -204,7 +204,7 @@ function OnboardingContent({
               </label>
             </fieldset>
             <Button
-              className="h-11 w-full"
+              className="touch-target w-full"
               data-testid="auth-onboarding-continue"
               disabled={!canContinue}
               onClick={handleContinue}

@@ -343,7 +343,7 @@ function PptxSlideNumberControl({
       {isEditing ? (
         <Input
           aria-label="Slide number"
-          className="mx-1 w-14 min-w-14 rounded-md [&_[data-slot=input]]:text-center"
+          className="mx-1 w-14 shrink-0 text-center"
           inputMode="numeric"
           onBlur={() => setIsEditing(false)}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
@@ -362,7 +362,6 @@ function PptxSlideNumberControl({
       ) : (
         <Button
           aria-label={`Current slide ${displaySlide}. Edit slide number`}
-          className="font-normal"
           disabled={controlsDisabled || !slideCount}
           onClick={() => {
             setDraftSlide(String(displaySlide));
@@ -487,7 +486,7 @@ function PptxToolbar({
             >
               <SelectTrigger
                 aria-label="Zoom level"
-                className="w-[84px] min-w-[84px]"
+                className="w-21 shrink-0"
                 size="sm"
               >
                 <SelectValue>{Math.round(zoom)}%</SelectValue>

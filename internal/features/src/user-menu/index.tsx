@@ -29,9 +29,6 @@ interface UserMenuProps {
   side?: ComponentProps<typeof DropdownMenuContent>["side"];
 }
 
-const userMenuAvatarClass =
-  "cursor-pointer rounded-lg after:rounded-lg [&_[data-slot=avatar-fallback]]:rounded-lg [&_[data-slot=avatar-image]]:rounded-lg";
-
 export function UserMenu({
   align = "end",
   onLogout,
@@ -65,8 +62,11 @@ export function UserMenu({
     >
       <DropdownMenuTrigger
         data-testid="user-menu-trigger"
-        nativeButton={false}
-        render={<UserAvatar className={userMenuAvatarClass} user={user} />}
+        render={
+          <Button aria-label={t("auth.accounts")} size="icon" variant="ghost">
+            <UserAvatar className="size-full rounded-[inherit]" user={user} />
+          </Button>
+        }
       />
       <DropdownMenuContent align={align} className="w-64" side={side}>
         <DropdownMenuRadioGroup value={currentUserId}>
@@ -131,10 +131,7 @@ export function UserMenu({
           </DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="text-destructive focus:text-destructive"
-          onClick={onLogout}
-        >
+        <DropdownMenuItem variant="destructive" onClick={onLogout}>
           {accounts.length > 1
             ? t("auth.logoutAllAccounts")
             : t("common.logout")}

@@ -19,8 +19,8 @@ export function BillingHint({ label, hint }: { label: string; hint: string }) {
         render={
           <Button
             aria-label={label}
-            className="size-6 shrink-0 text-muted-foreground"
-            size="icon-sm"
+            className="text-muted-foreground"
+            size="icon-xs"
             variant="ghost"
           />
         }

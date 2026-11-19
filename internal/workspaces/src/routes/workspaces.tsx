@@ -4,6 +4,7 @@ import { HomeSearchProvider } from "../features/search/components/home-search";
 import { SearchButton } from "../features/search/components/search-button";
 import {
   Alert,
+  AlertAction,
   AlertDescription,
   AlertTitle,
 } from "@lunarisapp/ui/components/alert";
@@ -167,10 +168,10 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
             <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-1 md:max-w-full md:flex-initial md:gap-3">
               <AppUpdateButton />
               <div className="min-w-0">
-                <OrganizationSelector className="h-11 w-auto max-w-full md:h-8 md:max-w-64" />
+                <OrganizationSelector className="max-md:touch-target w-auto max-w-full md:max-w-64" />
               </div>
               <HelpCenterPopover
-                className="size-11 shrink-0 rounded-xl md:size-8 md:rounded-lg"
+                className="max-md:touch-target"
                 variant="secondary"
               />
               {isMobile ? (
@@ -182,25 +183,24 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
           </header>
 
           {isMobile && !bannerDismissed && (
-            <Alert variant="warning">
+            <Alert className="min-h-12 items-center" variant="warning">
               <AlertDescription>
                 {t("mobile.experienceBanner")}
               </AlertDescription>
-              <button
-                className="absolute top-1.5 right-1.5 inline-flex size-6 items-center justify-center rounded-sm opacity-70 outline-none hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                onClick={() => {
-                  localStorage.setItem("mobile-banner-dismissed", "true");
-                  setBannerDismissed(true);
-                }}
-                type="button"
-              >
-                <HugeiconsIcon
-                  aria-hidden="true"
-                  className="size-3.5"
-                  icon={Cancel01Icon}
-                />
-                <span className="sr-only">{t("common.close")}</span>
-              </button>
+              <AlertAction className="top-1/2 right-1 -translate-y-1/2">
+                <Button
+                  aria-label={t("common.close")}
+                  className="touch-target"
+                  onClick={() => {
+                    localStorage.setItem("mobile-banner-dismissed", "true");
+                    setBannerDismissed(true);
+                  }}
+                  size="icon"
+                  variant="ghost"
+                >
+                  <HugeiconsIcon aria-hidden="true" icon={Cancel01Icon} />
+                </Button>
+              </AlertAction>
             </Alert>
           )}
 
@@ -248,7 +248,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                   }
                 >
                   <SearchButton
-                    className="h-11 min-w-0 flex-1 justify-start text-base text-muted-foreground md:h-8 md:text-sm"
+                    className="max-md:touch-target min-w-0 flex-1 justify-start text-base text-muted-foreground md:text-sm"
                     data-testid="workspaces-search"
                   />
                 </HomeSearchProvider>
@@ -314,7 +314,8 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                   trigger={
                     <Button
                       aria-label={t("common.create")}
-                      className="size-11 p-0 md:h-8 md:w-auto md:px-4"
+                      className="max-md:touch-target"
+                      size={isMobile ? "icon" : "default"}
                       data-testid="workspaces-create-launcher-header"
                     >
                       <HugeiconsIcon aria-hidden="true" icon={FolderAddIcon} />

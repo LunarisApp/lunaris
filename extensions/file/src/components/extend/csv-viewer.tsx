@@ -841,7 +841,7 @@ export function CsvViewer({
               >
                 <SelectTrigger
                   aria-label="Zoom level"
-                  className="w-[84px] min-w-[84px]"
+                  className="w-21 shrink-0"
                   size="sm"
                 >
                   <SelectValue>{Math.round(zoom * 100)}%</SelectValue>

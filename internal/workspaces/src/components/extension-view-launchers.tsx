@@ -53,11 +53,6 @@ function ExtensionViewLauncher({
         render={
           <Button
             aria-pressed={activeViewInstanceId === viewInstanceId}
-            className={
-              activeViewInstanceId === viewInstanceId
-                ? "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent dark:hover:bg-sidebar-accent"
-                : undefined
-            }
             onPointerEnter={preload}
             onFocus={preload}
             onPointerDown={preload}

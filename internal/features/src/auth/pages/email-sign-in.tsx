@@ -171,7 +171,7 @@ export function EmailSignInForm({ email }: { email?: string }) {
           </div>
         )}
         <Button
-          className="h-11 w-full"
+          className="touch-target w-full"
           data-testid="auth-signin-submit"
           disabled={isSubmitting}
           type="submit"

@@ -474,7 +474,7 @@ function DocxPageNumberControl({
       {isEditing ? (
         <Input
           aria-label="Page number"
-          className="mx-1 w-14 min-w-14 rounded-md [&_[data-slot=input]]:text-center"
+          className="mx-1 w-14 shrink-0 text-center"
           inputMode="numeric"
           onBlur={() => setIsEditing(false)}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
@@ -495,7 +495,6 @@ function DocxPageNumberControl({
       ) : (
         <Button
           aria-label={`Current page ${displayPage}. Edit page number`}
-          className="font-normal"
           disabled={controlsDisabled || !pageCount}
           onClick={() => {
             setDraftPage(String(displayPage));
@@ -610,7 +609,7 @@ function DocxToolbar({
             >
               <SelectTrigger
                 aria-label="Zoom level"
-                className="w-[84px] min-w-[84px]"
+                className="w-21 shrink-0"
                 size="sm"
               >
                 <SelectValue>{Math.round(zoomScale)}%</SelectValue>

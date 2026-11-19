@@ -47,11 +47,11 @@ function OrganizationInitialAvatar({
   return (
     <Avatar
       aria-hidden="true"
-      className="rounded-md after:rounded-md"
+      className="rounded-md"
       data-testid={testId}
       size="sm"
     >
-      <AvatarFallback className="rounded-md bg-primary font-semibold text-primary-foreground">
+      <AvatarFallback className="bg-primary font-semibold text-primary-foreground">
         {getInitials(name)}
       </AvatarFallback>
     </Avatar>

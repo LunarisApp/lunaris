@@ -127,7 +127,7 @@ export default function ResetPasswordPage() {
           />
         </Field>
         <Button
-          className="w-full"
+          className="touch-target w-full"
           data-testid="auth-reset-submit"
           disabled={isSubmitting}
           type="submit"

@@ -1,7 +1,12 @@
 import { AgentWorkLauncher } from "../features/agent-work/launcher";
-import { Input } from "@lunarisapp/ui/components/input";
+import { Button } from "@lunarisapp/ui/components/button";
 import {
-  Cancel01Icon,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupClearButton,
+  InputGroupInput,
+} from "@lunarisapp/ui/components/input-group";
+import {
   File01Icon,
   FileSearchIcon,
   HugeiconsIcon,
@@ -57,8 +62,9 @@ function MobileSearchResults({ query }: { query: string }) {
   return (
     <div className="flex flex-col gap-1">
       {allResults.map((result) => (
-        <button
-          className="flex min-h-14 items-center gap-3 rounded-xl bg-background px-4 py-3 text-left text-base transition-colors focus-visible:outline-2 focus-visible:outline-ring active:bg-accent"
+        <Button
+          variant="ghost"
+          className="min-h-14 justify-start gap-3 text-start text-base"
           key={result.id}
           onClick={() => {
             if (!(result.pluginId && result.resourceId)) {
@@ -79,7 +85,7 @@ function MobileSearchResults({ query }: { query: string }) {
             icon={result.type === "resource" ? File01Icon : FileSearchIcon}
           />
           <span className="truncate">{result.label}</span>
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -115,32 +121,27 @@ export default function MobileExplorerPage() {
 
       {/* Search stays beside the resource list, above the keyboard. */}
       <div className="shrink-0 pt-4 pr-[calc(1rem+var(--safe-area-right))] pb-3 pl-[calc(1rem+var(--safe-area-left))]">
-        <div className="flex items-center gap-1">
-          <div className="relative flex-1">
-            <HugeiconsIcon
-              className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-              icon={Search01Icon}
+        <InputGroup className="h-12">
+          <InputGroupAddon>
+            <HugeiconsIcon icon={Search01Icon} />
+          </InputGroupAddon>
+          <InputGroupInput
+            aria-label={t("common.search")}
+            className="h-full"
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t("common.search")}
+            type="search"
+            value={query}
+          />
+          {query.length > 0 && (
+            <InputGroupClearButton
+              aria-label={t("explorer.clearSearch")}
+              className="touch-target"
+              onClear={() => setQuery("")}
+              size="icon-sm"
             />
-            <Input
-              aria-label={t("common.search")}
-              className="h-12 rounded-xl border-transparent bg-muted/80 pr-12 pl-10 text-base shadow-none focus-visible:border-ring [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-cancel-button]:appearance-none"
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t("common.search")}
-              type="search"
-              value={query}
-            />
-            {isSearching && (
-              <button
-                aria-label={t("explorer.clearSearch")}
-                className="absolute top-1/2 right-0 flex size-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring"
-                onClick={() => setQuery("")}
-                type="button"
-              >
-                <HugeiconsIcon className="size-4" icon={Cancel01Icon} />
-              </button>
-            )}
-          </div>
-        </div>
+          )}
+        </InputGroup>
       </div>
       <div className="flex min-h-0 flex-1 flex-col">
         {isSearching ? (

@@ -33,6 +33,7 @@ export function WorkspaceOptionsMenu({
         render={
           <Button
             aria-label={`${t("common.actions")}: ${workspaceName}`}
+            className="max-md:touch-target"
             data-testid="workspaces-options-trigger"
             size="icon-sm"
             variant="ghost"

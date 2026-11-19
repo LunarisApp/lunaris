@@ -167,7 +167,7 @@ export function BackupsSection() {
             </p>
             {canCreate && !backup && !backupQuery.isLoading && (
               <Button
-                className="h-11 w-full shrink-0 sm:h-8 sm:w-auto"
+                className="max-sm:touch-target w-full sm:w-auto"
                 disabled={createMutation.isPending}
                 onClick={() => createMutation.mutate()}
               >

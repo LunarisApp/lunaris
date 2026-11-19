@@ -2,6 +2,8 @@
 
 import type { PluginIconSource } from "@lunarisapp/plugin-sdk";
 import { usePreloadResourceRenderer } from "../../../extensions/use-preload-resource-renderer";
+import { Badge } from "@lunarisapp/ui/components/badge";
+import { Button } from "@lunarisapp/ui/components/button";
 import { Icon } from "@lunarisapp/ui/components/icon";
 import {
   Command,
@@ -83,7 +85,7 @@ function highlightMatch(
       parts.push(text.slice(offset, range.start));
       parts.push(
         <mark
-          className="rounded-sm bg-yellow-200/60 px-0.5 dark:bg-yellow-500/30"
+          className="rounded-sm bg-foreground/15 px-0.5 font-semibold text-foreground"
           key={`${range.start}-${range.end}-${index}`}
         >
           {text.slice(range.start, range.end)}
@@ -114,7 +116,7 @@ function highlightMatch(
   return (
     <>
       {before}
-      <mark className="rounded-sm bg-yellow-200/60 px-0.5 dark:bg-yellow-500/30">
+      <mark className="rounded-sm bg-foreground/15 px-0.5 font-semibold text-foreground">
         {match}
       </mark>
       {after}
@@ -122,24 +124,9 @@ function highlightMatch(
   );
 }
 
-function ResultIcon({
-  icon,
-  tone = "neutral",
-}: {
-  icon: PluginIconSource;
-  tone?: "command" | "content" | "neutral" | "workspace";
-}) {
-  const toneClassName = {
-    command: "bg-violet-500/10 text-violet-600 dark:text-violet-300",
-    content: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
-    neutral: "bg-muted text-muted-foreground",
-    workspace: "bg-blue-500/10 text-blue-600 dark:text-blue-300",
-  }[tone];
-
+function ResultIcon({ icon }: { icon: PluginIconSource }) {
   return (
-    <span
-      className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${toneClassName}`}
-    >
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
       <Icon className="size-4" icon={icon} strokeWidth={2} />
     </span>
   );
@@ -683,12 +670,14 @@ export function SearchDialogMenu({
         <CommandInput
           data-testid="search-dialog-input"
           endAdornment={
-            <button
+            <Button
               aria-controls="search-dialog-results"
               aria-expanded={isCompleting}
               aria-haspopup="listbox"
               aria-label={t("search.addFilterLabel")}
-              className="flex h-6 items-center gap-1 rounded-md px-1.5 font-medium text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="text-muted-foreground"
+              size="xs"
+              variant="ghost"
               onClick={openFieldSuggestions}
               onMouseDown={(event) => event.preventDefault()}
               type="button"
@@ -697,7 +686,7 @@ export function SearchDialogMenu({
                 @
               </span>
               <span className="hidden sm:inline">{t("search.addFilter")}</span>
-            </button>
+            </Button>
           }
           onValueChange={setQuery}
           placeholder={t("common.search")}
@@ -848,7 +837,7 @@ export function SearchDialogMenu({
                   }
                   value={result.id}
                 >
-                  <ResultIcon icon={Folder01Icon} tone="workspace" />
+                  <ResultIcon icon={Folder01Icon} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium">
                       {result.label}
@@ -858,9 +847,9 @@ export function SearchDialogMenu({
                     </span>
                   </span>
                   {!!result.isCurrent && (
-                    <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 font-medium text-[10px] text-blue-700 dark:text-blue-300">
+                    <Badge variant="secondary">
                       {t("search.currentWorkspace")}
-                    </span>
+                    </Badge>
                   )}
                 </CommandItem>
               ))}
@@ -929,7 +918,7 @@ export function SearchDialogMenu({
                   }
                   value={result.id}
                 >
-                  <ResultIcon icon={FileSearchIcon} tone="content" />
+                  <ResultIcon icon={FileSearchIcon} />
                   <div className="min-w-0 flex-1 overflow-hidden">
                     <span className="block truncate font-medium">
                       {result.label}
@@ -969,7 +958,7 @@ export function SearchDialogMenu({
                   onSelect={() => handleCommandSelect(result.id, result.action)}
                   value={result.id}
                 >
-                  <ResultIcon icon={result.icon ?? Terminal} tone="command" />
+                  <ResultIcon icon={result.icon ?? Terminal} />
                   <span className="font-medium">{result.label}</span>
                   {!!result.shortcut && (
                     <CommandShortcut>{result.shortcut}</CommandShortcut>

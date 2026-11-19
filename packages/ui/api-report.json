@@ -22901,6 +22901,7 @@
         "DrawerDescription",
         "DrawerFooter",
         "DrawerHeader",
+        "DrawerMenuItem",
         "DrawerOverlay",
         "DrawerPortal",
         "DrawerSwipeHandle",
@@ -23163,6 +23164,7 @@
         "InputGroup",
         "InputGroupAddon",
         "InputGroupButton",
+        "InputGroupClearButton",
         "InputGroupInput",
         "InputGroupText",
         "InputGroupTextarea"

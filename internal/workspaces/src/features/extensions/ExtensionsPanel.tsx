@@ -53,7 +53,7 @@ import {
 } from "@lunarisapp/ui/components/empty";
 import {
   InputGroup,
-  InputGroupButton,
+  InputGroupClearButton,
   InputGroupInput,
 } from "@lunarisapp/ui/components/input-group";
 import {
@@ -66,7 +66,6 @@ import {
 import { Skeleton } from "@lunarisapp/ui/components/skeleton";
 import {
   ArrowUpRight01Icon,
-  Cancel01Icon,
   HugeiconsIcon,
   Image01Icon,
   Search01Icon,
@@ -277,7 +276,6 @@ function ExtensionCard({
           </Button>
           {item.builtin ? (
             <Button
-              className={enabled ? "dark:text-foreground" : undefined}
               disabled={!canWrite || busy}
               onClick={() => onToggle(item.id, !enabled)}
               size="sm"
@@ -302,7 +300,6 @@ function ExtensionCard({
           ) : null}
           {!item.builtin && installedVersion && (
             <Button
-              className="dark:text-foreground"
               disabled={!canWrite || busy}
               onClick={() => onUninstall(item.id)}
               size="sm"
@@ -621,7 +618,6 @@ function ExtensionDetailsDialog({
             <div className="flex w-full items-center justify-end gap-2">
               <Badge variant="outline">{t("extensions.builtIn")}</Badge>
               <Button
-                className={enabled ? "dark:text-foreground" : undefined}
                 disabled={!canWrite || busy}
                 onClick={() => onToggle(item.id, !enabled)}
                 variant={enabled ? "destructive" : "default"}
@@ -679,7 +675,6 @@ function ExtensionDetailsDialog({
               </div>
               {!!installedVersion && (
                 <Button
-                  className="dark:text-foreground"
                   disabled={!canWrite || busy}
                   onClick={() => onUninstall(item.id)}
                   variant="destructive"
@@ -1126,16 +1121,16 @@ export function ExtensionsPanel() {
         <InputGroup className="w-full @xl:max-w-sm">
           <InputGroupInput
             aria-label={t("organization.extensions.search")}
-            className="[&::-webkit-search-cancel-button]:hidden [&::-webkit-search-cancel-button]:appearance-none"
             onChange={(event) => setSearch(event.target.value)}
             placeholder={t("extensions.searchPlaceholder")}
             type="search"
             value={search}
           />
           {!!search && (
-            <InputGroupButton onClick={() => setSearch("")}>
-              <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
-            </InputGroupButton>
+            <InputGroupClearButton
+              aria-label={t("explorer.clearSearch")}
+              onClear={() => setSearch("")}
+            />
           )}
         </InputGroup>
         <ExtensionIdeaDialog />

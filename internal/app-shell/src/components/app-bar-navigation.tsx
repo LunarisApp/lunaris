@@ -85,11 +85,6 @@ function AppToolButton({
               aria-current={active ? "page" : undefined}
               aria-keyshortcuts={hotkey}
               aria-label={label}
-              className={
-                active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent dark:hover:bg-sidebar-accent"
-                  : undefined
-              }
               size="icon"
               variant="ghost"
             />

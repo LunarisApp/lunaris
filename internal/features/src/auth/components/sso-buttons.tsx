@@ -62,7 +62,7 @@ export function SsoButtons({ disabled, onLoadingChange }: SsoButtonsProps) {
       {enabledProviders.map(({ id, labelKey, icon: Icon }) => (
         <Button
           aria-label={t(labelKey)}
-          className="relative h-11 flex-1"
+          className="touch-target relative flex-1"
           disabled={isDisabled}
           key={id}
           onClick={() => handleSocialSignIn(id)}
