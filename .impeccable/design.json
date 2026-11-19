@@ -384,7 +384,7 @@
     "keyCharacteristics": [
       "Warm paper and black canvases with distinct reading surfaces.",
       "Compact controls with visible keyboard focus.",
-      "Thin neutral borders around panels and floating menus.",
+      "Canvas gutters separate workbench panels. Floating menus use a thin neutral border.",
       "A responsive workspace layout with direct navigation on small screens.",
       "Color for artwork, status, charts, and user content."
     ],

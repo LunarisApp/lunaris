@@ -499,7 +499,7 @@ function KanbanContent({
           </ToggleGroup>
         </div>
       </header>
-      <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden overscroll-x-contain bg-muted/15">
+      <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden overscroll-x-contain">
         <Suspense fallback={<KanbanSkeleton />}>
           {viewMode === "list" ? (
             <ListView

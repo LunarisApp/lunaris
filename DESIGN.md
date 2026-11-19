@@ -143,7 +143,7 @@ The sign-in screen pairs the landing page’s lunar landscape with a compact for
 
 - Warm paper and black canvases with distinct reading surfaces.
 - Compact controls with visible keyboard focus.
-- Thin neutral borders around panels and floating menus.
+- Canvas gutters separate workbench panels. Floating menus use a thin neutral border.
 - A responsive workspace layout with direct navigation on small screens.
 - Color for artwork, status, charts, and user content.
 
@@ -161,7 +161,7 @@ The app follows the device appearance on first use. A saved Light or Dark select
 | Text and primary action | Ink | Inverse Ink |
 | Supporting text and focus ring | Muted Ink | Night Text Secondary |
 | Hover, selection, secondary action | Soft Stone | Night Muted |
-| Divider or panel boundary | Hairline Stone | Night Border |
+| Divider or menu boundary | Hairline Stone | Night Border |
 | Field boundary | Field Stroke | Muted Ink |
 
 ### State
