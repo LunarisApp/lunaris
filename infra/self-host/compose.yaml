@@ -82,7 +82,7 @@ services:
       file: ./web.${WEB_ENABLED:-true}.yaml
       service: api
     # Release packaging replaces these tags with verified multi-platform digests.
-    image: ghcr.io/lunarisapp/lunaris-api:0.0.0
+    image: ghcr.io/lunarisapp/lunaris-api:0.2.1
     restart: unless-stopped
     environment:
       PUBLIC_URL: ${PUBLIC_URL:?Run ./install.sh first}
@@ -161,7 +161,7 @@ services:
     logging: *logging
 
   web:
-    image: ghcr.io/lunarisapp/lunaris-web:0.0.0
+    image: ghcr.io/lunarisapp/lunaris-web:0.2.1
     restart: unless-stopped
     extends:
       file: ./web.${WEB_ENABLED:-true}.yaml
