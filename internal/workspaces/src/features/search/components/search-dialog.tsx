@@ -718,7 +718,7 @@ export function SearchDialogMenu({
       title={choosingResource ? t("explorer.addResource") : t("search.title")}
     >
       <Command
-        className="pb-0 *:data-[slot=command-input-wrapper]:px-2 *:data-[slot=command-input-wrapper]:pt-1 *:data-[slot=command-input-wrapper]:pb-2"
+        className="pb-0"
         label={
           choosingResource
             ? t("explorer.searchResourceTypes")
