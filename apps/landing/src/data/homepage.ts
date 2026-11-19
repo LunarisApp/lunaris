@@ -19,8 +19,6 @@ type HomepageCopy = {
 	chapters: [string, string, string];
 	ownershipTitle: string;
 	ownershipOptions: Record<"device" | "cloud" | "server", string>;
-	selfHost: string;
-	source: string;
 	faqTitle: string;
 	faqs: [Faq, Faq, Faq, Faq];
 	pricing: string;
@@ -48,13 +46,10 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		chapters: ["Capture ideas", "Plan work", "Think visually"],
 		ownershipTitle: "Your workspace. Your terms.",
 		ownershipOptions: {
-			device: "Keep your work on this device and write offline.",
-			cloud:
-				"Sync your workspace across devices and collaborate with your team.",
-			server: "Run Community Edition on infrastructure you manage.",
+			device: "Write offline.",
+			cloud: "Sync across devices and edit together.",
+			server: "Host Community Edition yourself.",
 		},
-		selfHost: "Explore self-hosting",
-		source: "View source on GitHub",
 		faqTitle: "A few things to know.",
 		faqs: [
 			{
@@ -102,13 +97,10 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		chapters: ["Captura ideas", "Planifica el trabajo", "Piensa visualmente"],
 		ownershipTitle: "Tu espacio. Tus condiciones.",
 		ownershipOptions: {
-			device: "Guarda tu trabajo en este dispositivo y escribe sin conexión.",
-			cloud:
-				"Sincroniza tu espacio entre dispositivos y colabora con tu equipo.",
-			server: "Aloja Community Edition en tu propia infraestructura.",
+			device: "Escribe sin conexión.",
+			cloud: "Sincroniza dispositivos y edita en equipo.",
+			server: "Aloja Community Edition.",
 		},
-		selfHost: "Explorar el autoalojamiento",
-		source: "Ver el código en GitHub",
 		faqTitle: "Lo que conviene saber.",
 		faqs: [
 			{
@@ -156,13 +148,10 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		chapters: ["Notez vos idées", "Planifiez le travail", "Pensez en images"],
 		ownershipTitle: "Votre espace. Vos conditions.",
 		ownershipOptions: {
-			device: "Gardez votre travail sur cet appareil et écrivez hors ligne.",
-			cloud:
-				"Synchronisez votre espace entre vos appareils et collaborez en équipe.",
-			server: "Hébergez Community Edition sur votre propre infrastructure.",
+			device: "Écrivez hors ligne.",
+			cloud: "Synchronisez vos appareils et écrivez à plusieurs.",
+			server: "Hébergez Community Edition.",
 		},
-		selfHost: "Découvrir l’auto-hébergement",
-		source: "Voir le code sur GitHub",
 		faqTitle: "Quelques repères pour commencer.",
 		faqs: [
 			{
@@ -210,13 +199,10 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		chapters: ["Ideen festhalten", "Arbeit planen", "Visuell denken"],
 		ownershipTitle: "Dein Workspace. Deine Regeln.",
 		ownershipOptions: {
-			device: "Speichere deine Arbeit auf diesem Gerät und schreibe offline.",
-			cloud:
-				"Synchronisiere deinen Workspace über mehrere Geräte und arbeite mit deinem Team zusammen.",
-			server: "Betreibe Community Edition auf deiner eigenen Infrastruktur.",
+			device: "Schreibe offline.",
+			cloud: "Synchronisiere Geräte und schreibe im Team.",
+			server: "Hoste die Community Edition selbst.",
 		},
-		selfHost: "Self-Hosting entdecken",
-		source: "Quellcode auf GitHub ansehen",
 		faqTitle: "Gut zu wissen.",
 		faqs: [
 			{
@@ -264,13 +250,10 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		chapters: ["Capture ideias", "Planeje o trabalho", "Pense visualmente"],
 		ownershipTitle: "Seu espaço. Suas condições.",
 		ownershipOptions: {
-			device: "Mantenha seu trabalho neste dispositivo e escreva offline.",
-			cloud:
-				"Sincronize seu espaço entre dispositivos e colabore com sua equipe.",
-			server: "Hospede a Community Edition na sua própria infraestrutura.",
+			device: "Escreva offline.",
+			cloud: "Sincronize dispositivos e edite em equipe.",
+			server: "Hospede a Community Edition.",
 		},
-		selfHost: "Explore a hospedagem própria",
-		source: "Veja o código no GitHub",
 		faqTitle: "Bom saber antes de começar.",
 		faqs: [
 			{

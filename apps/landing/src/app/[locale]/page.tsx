@@ -89,7 +89,7 @@ export default async function Page({
 				</Container>
 			</section>
 
-			<HomeFeatures locale={locale} dictionary={dict} />
+			<HomeFeatures locale={locale} />
 
 			<section
 				aria-labelledby="faq-heading"
