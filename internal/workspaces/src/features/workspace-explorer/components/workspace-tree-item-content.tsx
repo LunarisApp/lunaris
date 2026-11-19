@@ -83,14 +83,17 @@ export function WorkspaceTreeItemLabel({
         {...item.getRenameInputProps()}
         aria-label={t("explorer.renameResource")}
         autoFocus
-        className="-my-0.5 h-6 px-1"
+        className="-my-0.5 block h-6 px-1"
       />
     );
   }
 
   const name = item.getItemName();
-  if (!name) {
-    return <em className="text-muted-foreground">{t("common.untitled")}</em>;
-  }
-  return <>{name}</>;
+  return (
+    <span className="block truncate">
+      {name || (
+        <em className="text-muted-foreground">{t("common.untitled")}</em>
+      )}
+    </span>
+  );
 }
