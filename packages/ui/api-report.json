@@ -7685,6 +7685,10 @@
       "runtime": "./dist/globals.css"
     },
     {
+      "entrypoint": "./overlays.css",
+      "runtime": "./dist/overlays.css"
+    },
+    {
       "entrypoint": "./icons",
       "runtime": "./dist/icons.js",
       "symbols": [

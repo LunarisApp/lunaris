@@ -1347,7 +1347,7 @@ const WorkbookSheetTabsInner = React.memo(function WorkbookSheetTabsInner({
       previewUrl
         ? createPortal(
             <div
-              className="pointer-events-none fixed z-40 translate-y-0 overflow-hidden rounded-lg border bg-background/95 opacity-100 shadow-xl backdrop-blur-md transition-[opacity,transform] duration-100"
+              className="app-overlay-surface pointer-events-none fixed z-40 translate-y-0 overflow-hidden rounded-lg opacity-100 transition-[opacity,transform] duration-100"
               style={{
                 left: previewPosition.left,
                 top: previewPosition.top,

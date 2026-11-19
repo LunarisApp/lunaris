@@ -143,7 +143,7 @@ The sign-in screen pairs the landing page’s lunar landscape with a compact for
 
 - Warm paper and black canvases with distinct reading surfaces.
 - Compact controls with visible keyboard focus.
-- Canvas gutters separate workbench panels. Floating menus use a thin neutral border.
+- Canvas gutters separate workbench panels. A soft shadow lifts floating menus above the workspace.
 - A responsive workspace layout with direct navigation on small screens.
 - Color for artwork, status, charts, and user content.
 
@@ -161,7 +161,7 @@ The app follows the device appearance on first use. A saved Light or Dark select
 | Text and primary action | Ink | Inverse Ink |
 | Supporting text and focus ring | Muted Ink | Night Text Secondary |
 | Hover, selection, secondary action | Soft Stone | Night Muted |
-| Divider or menu boundary | Hairline Stone | Night Border |
+| Divider | Hairline Stone | Night Border |
 | Field boundary | Field Stroke | Muted Ink |
 
 ### State
@@ -197,7 +197,7 @@ Spacing follows a 0.25rem base rhythm, with 0.5rem, 0.75rem, and 1rem doing most
 
 ## Elevation & Depth
 
-The system is flat by default. Hairline borders, subtle rings, and tonal surface shifts create most separation. Small shadows appear on selected tabs, hoverable workspace cards, inset shells, menus, and floating surfaces; medium and large shadows are reserved for overlays and transient layers. Backdrops use a light black veil with subtle blur rather than an opaque wall.
+The system is flat by default. Hairline borders and tonal shifts separate static surfaces. Selected tabs and hoverable workspace cards use a small shadow. Floating controls share a neutral translucent fill, backdrop blur, and soft shadow. Modal backdrops dim the surrounding workspace.
 
 ### Shadow Vocabulary
 
@@ -251,7 +251,7 @@ Sidebars share the canvas color and use compact icon-and-label rows, muted hover
 
 ### Dialogs and Overlays
 
-Dialogs use Paper popover surfaces, extra-large rounding, a subtle outline, compact headers, and muted bordered footers. Open and close transitions are fast fades and small scale changes. Destructive confirmation remains visually explicit without flooding the whole dialog red.
+Search, menus, tooltips, dialogs, and mobile drawers share the `app-overlay-surface` treatment. Apply it once to the floating container so its content can reveal the same blurred backdrop. Reduced transparency uses a solid theme surface. Forced colors adds a system-colored edge. Dialogs retain extra-large corners, compact headers, and muted footers.
 
 ### Image Portals
 

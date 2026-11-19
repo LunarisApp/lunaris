@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@lunarisapp/ui/overlays.css";
 
 @source "../../node_modules/@lunarisapp/ui/dist/components/navigation-menu.js";
 

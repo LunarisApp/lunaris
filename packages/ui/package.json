@@ -82,6 +82,7 @@
       "import": "./dist/brand-icons.js"
     },
     "./globals.css": "./dist/globals.css",
+    "./overlays.css": "./dist/overlays.css",
     "./icons": {
       "types": "./dist/icons.d.ts",
       "import": "./dist/icons.js"

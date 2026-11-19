@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./overlays.css";
 @import "tw-animate-css";
 @import "@fontsource-variable/dm-sans";
 @import "@fontsource-variable/dm-sans/wght-italic.css";
@@ -114,6 +115,14 @@
     input[type="search"]::-webkit-search-cancel-button {
     appearance: none;
   }
+}
+
+/* Sonner ships unlayered popup styles. Preserve its opt-in status and inverted themes. */
+.cn-toast[data-styled="true"]:not(
+  [data-rich-colors="true"],
+  [data-invert="true"]
+) {
+  @apply app-overlay-surface not-forced-colors:border-0 focus-visible:outline-2 focus-visible:outline-ring;
 }
 
 @utility touch-target {
