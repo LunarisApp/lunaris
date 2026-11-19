@@ -1,7 +1,7 @@
 import { BlockGameIcon, HugeiconsIcon } from "@lunarisapp/ui/icons";
 import Link from "next/link";
 import { Container } from "@/components/elements/container";
-import { FeatureSymbol } from "@/components/elements/feature-symbol";
+import { WorkspaceArtwork } from "@/components/elements/workspace-artwork";
 import { ExtensionShowcase } from "@/components/elements/extension-showcase";
 import { ExtensionTip } from "@/components/elements/extension-tip";
 import { ArrowNarrowRightIcon } from "@/components/icons/arrow-narrow-right-icon";
@@ -20,7 +20,7 @@ const copy: Record<
 		explore: string;
 		device: string;
 		server: string;
-		roles: string;
+		enterpriseDescription: string;
 	}
 > = {
 	en: {
@@ -30,8 +30,9 @@ const copy: Record<
 		explore: "Explore",
 		device: "On your device",
 		server: "Your server",
-		roles: "Custom roles",
-		enterprise: "Ready for your organization.",
+		enterprise: "Manage access across your organization.",
+		enterpriseDescription:
+			"With Enterprise, give your team single sign-on (SSO), automate account provisioning with SCIM, and set permissions with custom roles.",
 	},
 	de: {
 		tools: "Platz für mehr.",
@@ -40,8 +41,9 @@ const copy: Record<
 		explore: "Entdecken",
 		device: "Auf deinem Gerät",
 		server: "Dein Server",
-		roles: "Eigene Rollen",
-		enterprise: "Bereit für deine Organisation.",
+		enterprise: "Zugriff für die ganze Organisation verwalten.",
+		enterpriseDescription:
+			"Mit Enterprise ermöglichst du die zentrale Anmeldung per SSO, automatisierst die Kontoverwaltung mit SCIM und steuerst Berechtigungen über eigene Rollen.",
 	},
 	es: {
 		tools: "Haz sitio para más.",
@@ -50,8 +52,9 @@ const copy: Record<
 		explore: "Explorar",
 		device: "En tu dispositivo",
 		server: "Tu servidor",
-		roles: "Roles personalizados",
-		enterprise: "Listo para tu organización.",
+		enterprise: "Gestiona el acceso de toda tu organización.",
+		enterpriseDescription:
+			"Con Enterprise, ofrece inicio de sesión único con SSO, automatiza la gestión de cuentas con SCIM y define permisos con roles personalizados.",
 	},
 	fr: {
 		tools: "Faites place à de nouvelles possibilités.",
@@ -60,8 +63,9 @@ const copy: Record<
 		explore: "Découvrir",
 		device: "Sur votre appareil",
 		server: "Votre serveur",
-		roles: "Rôles personnalisés",
-		enterprise: "Prêt pour votre organisation.",
+		enterprise: "Gérez les accès de votre organisation.",
+		enterpriseDescription:
+			"Avec Enterprise, proposez une connexion unique avec le SSO, automatisez la gestion des comptes avec SCIM et définissez les permissions avec des rôles personnalisés.",
 	},
 	"pt-BR": {
 		tools: "Abra espaço para mais.",
@@ -70,8 +74,9 @@ const copy: Record<
 		explore: "Explorar",
 		device: "No seu dispositivo",
 		server: "Seu servidor",
-		roles: "Funções personalizadas",
-		enterprise: "Pronto para sua organização.",
+		enterprise: "Gerencie o acesso em toda a organização.",
+		enterpriseDescription:
+			"Com o plano Enterprise, ofereça login único com SSO, automatize o provisionamento de contas com SCIM e defina permissões com funções personalizadas.",
 	},
 };
 
@@ -153,68 +158,66 @@ export function HomeFeatures({ locale }: { locale: Locale }) {
 			<section
 				aria-labelledby="ownership-heading"
 				id="your-workspace"
-				className="border-y border-olive-950/10 py-16 text-olive-950 dark:text-white sm:py-24 dark:border-white/10"
+				className="border-t border-current/10 py-14 sm:py-20"
 			>
-				<Container>
-					<h2
-						id="ownership-heading"
-						className="font-display text-4xl/none tracking-tight text-balance sm:text-5xl/none"
-					>
-						{home.ownershipTitle}
-					</h2>
-					<ul className="mt-6 grid gap-6 border-t border-current/15 py-8 sm:mt-8 sm:grid-cols-3 sm:gap-8 sm:py-10">
-						{(
-							[
-								{ kind: "device", label: text.device },
-								{ kind: "cloud", label: "Lunaris Cloud" },
-								{ kind: "server", label: text.server },
-							] as const
-						).map(({ kind, label }) => (
-							<li
-								key={kind}
-								className="grid grid-cols-[auto_1fr] items-start gap-x-4 sm:block"
-							>
-								<FeatureSymbol
-									kind={kind}
-									className="mt-1 size-6 sm:mt-0 sm:mb-4"
-								/>
-								<div>
-									<h3 className="text-xl/7 font-medium tracking-tight">
-										{label}
-									</h3>
-									<p className="mt-1 max-w-[34ch] text-base/6 text-olive-700 dark:text-olive-300">
-										{kind === "server" ? (
-											<Link
-												className="inline-flex items-center gap-2 underline-offset-4 hover:underline"
-												href={localePath(locale, "/self-hosted")}
-											>
-												{home.ownershipOptions.server}
-												<ArrowNarrowRightIcon />
-											</Link>
-										) : (
-											home.ownershipOptions[kind]
-										)}
-									</p>
+				<Container className="grid items-center gap-8 lg:grid-cols-2 lg:gap-20">
+					<div>
+						<h2
+							id="ownership-heading"
+							className="max-w-[17ch] text-balance font-display text-4xl/none tracking-tight sm:text-5xl/none"
+						>
+							{home.ownershipTitle}
+						</h2>
+						<dl className="mt-6 max-w-lg divide-y divide-current/10">
+							{(
+								[
+									["device", text.device],
+									["cloud", "Lunaris Cloud"],
+									["server", text.server],
+								] as const
+							).map(([kind, label]) => (
+								<div
+									key={kind}
+									className="grid gap-1 py-3 sm:grid-cols-[8.5rem_1fr] sm:gap-3"
+								>
+									<dt className="font-medium">{label}</dt>
+									<dd className="text-base/6 text-olive-700 dark:text-olive-300">
+										{home.ownershipOptions[kind]}
+									</dd>
 								</div>
-							</li>
-						))}
-					</ul>
-					<article className="grid items-center gap-4 border-t border-current/15 pt-8 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-8">
-						<div>
-							<h3 className="text-2xl/8 font-medium tracking-tight">
-								{text.enterprise}
-							</h3>
-							<ul className="mt-2 flex flex-wrap gap-x-4 text-sm/6 text-olive-700 dark:text-olive-300">
-								<li>SSO</li>
-								<li className="list-inside list-disc">SCIM</li>
-								<li className="list-inside list-disc">{text.roles}</li>
-							</ul>
-						</div>
-						<Link className={link} href={localePath(locale, "/pricing")}>
+							))}
+						</dl>
+					</div>
+					<WorkspaceArtwork kind="storage" />
+				</Container>
+			</section>
+			<section
+				aria-labelledby="enterprise-heading"
+				id="enterprise"
+				className="border-y border-current/10 py-14 sm:py-20"
+			>
+				<Container className="grid items-center gap-8 lg:grid-cols-2 lg:gap-20">
+					<div className="lg:col-start-2 lg:row-start-1">
+						<h2
+							id="enterprise-heading"
+							className="max-w-[19ch] text-balance font-display text-4xl/none tracking-tight sm:text-5xl/none"
+						>
+							{text.enterprise}
+						</h2>
+						<p className="mt-4 max-w-md text-pretty text-base/7 text-olive-700 dark:text-olive-300">
+							{text.enterpriseDescription}
+						</p>
+						<Link
+							className={`${link} mt-3`}
+							href={localePath(locale, "/pricing")}
+						>
 							{home.pricing}
 							<ArrowNarrowRightIcon />
 						</Link>
-					</article>
+					</div>
+					<div className="lg:col-start-1 lg:row-start-1">
+						<WorkspaceArtwork kind="enterprise" />
+					</div>
 				</Container>
 			</section>
 		</>

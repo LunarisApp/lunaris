@@ -111,11 +111,15 @@ function DataViews({ locale }: { locale: Locale }) {
 
 export function ExtensionShowcase({ locale }: { locale: Locale }) {
 	const frame = useRef<HTMLDivElement>(null);
-	const [visible, setVisible] = useState(false);
+	const [started, setStarted] = useState(false);
 	useEffect(() => {
 		if (!frame.current) return;
 		const observer = new IntersectionObserver(
-			([entry]) => setVisible(entry.isIntersecting),
+			([entry]) => {
+				if (!entry.isIntersecting) return;
+				setStarted(true);
+				observer.disconnect();
+			},
 			{ threshold: 0.5 },
 		);
 		observer.observe(frame.current);
@@ -126,7 +130,7 @@ export function ExtensionShowcase({ locale }: { locale: Locale }) {
 		<div
 			ref={frame}
 			aria-hidden="true"
-			data-playing={visible}
+			data-playing={started}
 			className="extension-scene min-w-0 overflow-hidden rounded-2xl border border-current/10 bg-olive-950/[.025] dark:bg-white/[.035]"
 		>
 			<svg
