@@ -61,7 +61,7 @@ export default async function WordCounterPage({
 				type="application/ld+json"
 			/>
 
-			<section className="py-12 sm:py-20">
+			<section className="pt-8 pb-12 sm:pt-12 sm:pb-20">
 				<Container>
 					<WordCounterTool copy={copy} locale={locale} />
 				</Container>

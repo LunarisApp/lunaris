@@ -1,6 +1,5 @@
 "use client";
 
-import { Heading } from "@/components/elements/heading";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { WordCounterCopy } from "@/data/word-counter-copy";
 import type { Locale } from "@/i18n/config";
@@ -176,23 +175,11 @@ function DisclosureIcon() {
 	);
 }
 
-function Metric({
-	label,
-	value,
-	valueClassName,
-}: {
-	label: string;
-	value: string;
-	valueClassName?: string;
-}) {
+function Metric({ label, value }: { label: string; value: string }) {
 	return (
-		<div className="grid min-w-0 py-4">
-			<dt className="order-2 text-xs/5 font-medium tracking-wide text-olive-600 uppercase dark:text-olive-400">
-				{label}
-			</dt>
-			<dd
-				className={`order-1 text-2xl/7 font-medium tabular-nums text-olive-950 transition-opacity duration-150 motion-reduce:transition-none dark:text-white ${valueClassName ?? ""}`}
-			>
+		<div className="flex min-w-0 flex-col gap-1 border-t border-white/15 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+			<dt className="text-sm/5 text-neutral-300">{label}</dt>
+			<dd className="text-base/5 font-medium tabular-nums sm:text-right">
 				{value}
 			</dd>
 		</div>
@@ -664,24 +651,26 @@ export function WordCounterTool({
 
 	return (
 		<>
-			<header className="mx-auto mb-8 max-w-3xl text-center sm:mb-10">
-				<Heading>{copy.heading}</Heading>
-				<p className="mt-4 inline-flex items-center gap-2 text-sm/6 font-medium text-olive-600 dark:text-olive-300">
+			<header className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
+				<h1 className="max-w-3xl text-3xl/tight font-medium tracking-tight text-balance sm:text-4xl/tight">
+					{copy.heading}
+				</h1>
+				<p className="inline-flex items-center gap-2 text-sm/6 font-medium text-olive-600 dark:text-olive-300">
 					<LockIcon />
 					{copy.privacy}
 				</p>
 			</header>
 
 			<div
-				className={`overflow-hidden bg-olive-50 ring-1 ring-olive-950/10 ring-inset dark:bg-olive-900 dark:ring-white/10 ${
+				className={`bg-white text-olive-950 dark:bg-neutral-900 dark:text-white ${
 					isFullscreen
-						? "flex h-screen w-screen flex-col rounded-none ring-0"
-						: "rounded-2xl"
+						? "flex h-dvh w-screen flex-col overflow-auto"
+						: "overflow-hidden rounded-2xl shadow-[0_8px_28px_-12px_rgba(0,0,0,0.22)] ring-1 ring-black/10 dark:ring-white/15"
 				}`}
 				ref={organizationRef}
 			>
 				<div
-					className={`flex flex-col ${isFullscreen ? "min-h-0 flex-1" : ""}`}
+					className={`grid lg:grid-cols-[minmax(0,1fr)_19rem] xl:grid-cols-[minmax(0,1fr)_21rem] ${isFullscreen ? "flex-1" : ""}`}
 				>
 					<div className="flex min-w-0 flex-1 flex-col">
 						<div className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-olive-950/10 px-4 py-2 sm:gap-3 sm:px-6 dark:border-white/10">
@@ -755,8 +744,8 @@ export function WordCounterTool({
 						<textarea
 							className={`w-full flex-1 bg-transparent px-5 py-6 font-sans text-base/8 text-olive-950 outline-none placeholder:text-olive-600 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-olive-700 dark:focus-visible:ring-olive-300 sm:px-7 sm:py-7 sm:text-lg/9 dark:text-white dark:placeholder:text-olive-400 ${
 								isFullscreen
-									? "min-h-0 resize-none"
-									: "min-h-[17rem] resize-y sm:min-h-[18rem]"
+									? "min-h-40 resize-none"
+									: "min-h-48 resize-y sm:min-h-72"
 							}`}
 							id="word-counter-text"
 							maxLength={MAX_TEXT_LENGTH}
@@ -791,12 +780,14 @@ export function WordCounterTool({
 						)}
 					</div>
 
-					<div className="border-t border-olive-950/10 bg-white/35 px-5 sm:px-7 dark:border-white/10 dark:bg-black/8">
-						<dl className="grid grid-cols-2 gap-x-6 [&>div:nth-child(n+3)]:border-t [&>div:nth-child(n+3)]:border-olive-950/10 sm:grid-cols-4 sm:[&>div:nth-child(n+3)]:border-t-0 dark:[&>div:nth-child(n+3)]:border-white/10">
-							<Metric
-								label={copy.metrics.words}
-								value={coreMetricValue(metrics.words)}
-							/>
+					<div className="flex flex-col justify-center bg-neutral-800 px-5 py-4 text-white sm:px-7 lg:py-6">
+						<dl className="grid grid-cols-2 gap-x-5 max-sm:[&>div:last-child]:col-span-2 sm:block">
+							<div className="col-span-2 flex items-baseline gap-3 pb-4 lg:flex-col lg:gap-2 lg:pb-6">
+								<dt className="text-sm/5 font-medium">{copy.metrics.words}</dt>
+								<dd className="order-first text-4xl/none font-medium tracking-tight tabular-nums lg:order-none lg:text-6xl/none">
+									{coreMetricValue(metrics.words)}
+								</dd>
+							</div>
 							<Metric
 								label={copy.metrics.characters}
 								value={coreMetricValue(metrics.characters)}
@@ -812,7 +803,6 @@ export function WordCounterTool({
 							<Metric
 								label={copy.metrics.readability}
 								value={readabilityValue}
-								valueClassName="text-balance text-lg/6"
 							/>
 						</dl>
 					</div>
