@@ -65,6 +65,12 @@
       "https://raw.githubusercontent.com/polarsource/polar/1a026290cece112e88f0a72bb95b45db510f1526/LICENSE"
     ]
   },
+  "@polar-sh/better-auth@2.1.4": {
+    "file": "upstream/polarsource-polar-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/polarsource/polar/469af42c01e276803f1de8a8d624eb83bc981bb1/LICENSE"
+    ]
+  },
   "@polar-sh/checkout@0.2.0": {
     "file": "upstream/polarsource-polar-LICENSE.txt",
     "sources": [
@@ -237,6 +243,12 @@
     "file": "upstream/glincker-thesvg-LICENSE.txt",
     "sources": [
       "https://raw.githubusercontent.com/glincker/thesvg/74d199f8fe60263a6edb49233a295c6a69ddcaae/LICENSE"
+    ]
+  },
+  "@thesvg/react@4.0.12": {
+    "file": "upstream/glincker-thesvg-LICENSE.txt",
+    "sources": [
+      "https://raw.githubusercontent.com/glincker/thesvg/acfad374a407141c6917a03ba68132ae62aa0ebc/LICENSE"
     ]
   },
   "@uiw/react-json-view@2.0.0-alpha.43": {

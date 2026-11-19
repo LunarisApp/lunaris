@@ -1,7 +1,7 @@
-diff --git a/dist/authorize-BzDrbYtI.mjs b/dist/authorize-BzDrbYtI.mjs
---- a/dist/authorize-BzDrbYtI.mjs
-+++ b/dist/authorize-BzDrbYtI.mjs
-@@ -8499,7 +8499,11 @@
+diff --git a/dist/authorize-BJStuGWz.mjs b/dist/authorize-BJStuGWz.mjs
+--- a/dist/authorize-BJStuGWz.mjs
++++ b/dist/authorize-BJStuGWz.mjs
+@@ -8600,7 +8600,11 @@
  		path = opts.postLogin?.page;
  	} else if (type === "consent") path = opts.consentPage;
  	else if (type === "create") path = opts.signup?.page ?? opts.loginPage;

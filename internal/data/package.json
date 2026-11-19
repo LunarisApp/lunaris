@@ -22,7 +22,7 @@
     "@repo/utils": "workspace:*",
     "@tanstack/react-query": "^5.107.1",
     "evlog": "^2.35.1",
-    "lib0": "^0.2.119",
+    "lib0": "^0.2.120",
     "slugify": "^1.6.9",
     "uuid": "^14.0.3",
     "yjs": "^13.6.33",
@@ -43,7 +43,7 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.11"
+    "vitest": "^5.1.0"
   },
   "exports": {
     "./core": "./src/core/index.ts",
