@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  getRuntimeBuildVersion,
   publicConfigFromEnvironment,
   setPublicRuntimeConfig,
 } from "@repo/app-shell/runtime-config";
@@ -45,6 +46,36 @@ describe("web runtime configuration", () => {
       "lunaris.public-runtime-config.v1",
       JSON.stringify(config)
     );
+  });
+  it("keeps the hosted release version available offline without changing the cached config format", async () => {
+    const cache = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => cache.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        cache.set(key, value);
+      },
+    };
+    const request = vi
+      .fn()
+      .mockResolvedValue(
+        Response.json(config, { headers: { "X-Lunaris-Version": "1.2.3" } })
+      );
+    await loadRuntimeConfig({ request, storage });
+    expect(getRuntimeBuildVersion()).toBe("1.2.3");
+    expect(cache.get("lunaris.public-runtime-config.v1")).toBe(
+      JSON.stringify(config)
+    );
+
+    setPublicRuntimeConfig();
+    request.mockRejectedValueOnce(new TypeError("offline"));
+    await loadRuntimeConfig({ request, storage });
+    expect(getRuntimeBuildVersion()).toBe("1.2.3");
+
+    request.mockResolvedValueOnce(Response.json(config));
+    await loadRuntimeConfig({ request, storage });
+    request.mockRejectedValueOnce(new TypeError("offline"));
+    await loadRuntimeConfig({ request, storage });
+    expect(getRuntimeBuildVersion()).toBeUndefined();
   });
   it("returning users can boot offline with last validated settings", async () => {
     const request = vi.fn().mockRejectedValue(new TypeError("offline"));

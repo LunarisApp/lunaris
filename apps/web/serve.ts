@@ -1,4 +1,7 @@
-import { publicConfigFromEnvironment } from "../../internal/app-shell/src/runtime-config";
+import {
+  buildVersionHeader,
+  publicConfigFromEnvironment,
+} from "../../internal/app-shell/src/runtime-config";
 import { normalize, resolve } from "node:path";
 import { scrubMaybe } from "@repo/utils";
 import type { DrainContext } from "evlog";
@@ -259,12 +262,18 @@ function withSecurityHeaders(response: Response, isHttps: boolean): Response {
   return response;
 }
 
+function buildVersionHeaders() {
+  const version = process.env.LUNARIS_BUILD_VERSION;
+  return version ? { [buildVersionHeader]: version } : {};
+}
+
 export function createHealthResponse(isHttps: boolean): Response {
   const response = new Response("ok\n", {
     headers: {
       "Cache-Control": "no-store",
       "Content-Type": "text/plain",
       "X-Lunaris-Commit": commitHash ?? "local",
+      ...buildVersionHeaders(),
     },
     status: 200,
   });
@@ -288,9 +297,13 @@ export async function handleRequest(req: Request): Promise<Response> {
   }
 
   if (url.pathname === "/runtime-config.json") {
+    // Cached clients can still parse the same strict configuration body.
     return withSecurityHeaders(
       Response.json(publicConfigFromEnvironment(process.env), {
-        headers: { "Cache-Control": "no-store" },
+        headers: {
+          "Cache-Control": "no-store",
+          ...buildVersionHeaders(),
+        },
       }),
       isHttps
     );

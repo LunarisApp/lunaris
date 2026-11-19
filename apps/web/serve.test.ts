@@ -8,11 +8,13 @@ import {
 } from "./serve";
 
 type TrackedEnvKey =
+  | "LUNARIS_BUILD_VERSION"
   | "NODE_ENV"
   | "VITE_POSTHOG_API_HOST"
   | "VITE_REGION_DIRECTORY_JSON";
 
 const ORIGINAL_ENV: Record<TrackedEnvKey, string | undefined> = {
+  LUNARIS_BUILD_VERSION: process.env.LUNARIS_BUILD_VERSION,
   NODE_ENV: process.env.NODE_ENV,
   VITE_POSTHOG_API_HOST: process.env.VITE_POSTHOG_API_HOST,
   VITE_REGION_DIRECTORY_JSON: process.env.VITE_REGION_DIRECTORY_JSON,
@@ -26,6 +28,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  restoreEnv("LUNARIS_BUILD_VERSION", ORIGINAL_ENV.LUNARIS_BUILD_VERSION);
   restoreEnv("NODE_ENV", ORIGINAL_ENV.NODE_ENV);
   restoreEnv("VITE_POSTHOG_API_HOST", ORIGINAL_ENV.VITE_POSTHOG_API_HOST);
   restoreEnv(
@@ -246,6 +249,19 @@ describe("createHealthResponse", () => {
 });
 
 describe("handleRequest", () => {
+  test("publishes the deployed release version through runtime config and health", async () => {
+    process.env.LUNARIS_BUILD_VERSION = "1.2.3";
+    const config = await handleRequest(
+      new Request("https://example.com/runtime-config.json")
+    );
+    expect(config.headers.get("Cache-Control")).toBe("no-store");
+    expect(config.headers.get("X-Lunaris-Version")).toBe("1.2.3");
+    expect(await config.json()).not.toHaveProperty("LUNARIS_BUILD_VERSION");
+    expect(createHealthResponse(true).headers.get("X-Lunaris-Version")).toBe(
+      "1.2.3"
+    );
+  });
+
   test("serves Railway health checks without redirecting HTTP", async () => {
     const response = await handleRequest(
       new Request("http://railway.internal/health")

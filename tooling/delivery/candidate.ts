@@ -19,6 +19,10 @@ export const candidateSchema = z
   })
   .strict();
 export type Candidate = z.infer<typeof candidateSchema>;
+export const coreDeploymentSchema = candidateSchema.extend({
+  webVersion: z.string().min(1).optional(),
+});
+export type CoreDeployment = z.infer<typeof coreDeploymentSchema>;
 export type CoreTarget = "api" | "web" | "core";
 
 export function resultingCandidate(

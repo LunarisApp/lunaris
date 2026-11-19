@@ -22,6 +22,8 @@ ARG LUNARIS_BUILD_SHA=local
 ENV LUNARIS_EDITION=${LUNARIS_EDITION} VITE_REGION_DIRECTORY_URL=/regions.json LUNARIS_RUNTIME_CONFIG=${LUNARIS_RUNTIME_CONFIG} LUNARIS_BUILD_SHA=${LUNARIS_BUILD_SHA}
 
 FROM dependencies AS build
+ARG LUNARIS_BUILD_VERSION
+ENV LUNARIS_BUILD_VERSION=${LUNARIS_BUILD_VERSION}
 RUN bun run build --filter=api --filter=web --env-mode=loose
 RUN bun tooling/editions/runtime.ts /opt/runtime
 FROM build AS runtime

@@ -1,10 +1,12 @@
 import {
+  buildVersionHeader,
   publicRuntimeConfigSchema,
   setPublicRuntimeConfig,
   type PublicRuntimeConfig,
 } from "@repo/app-shell/runtime-config";
 
 const cacheKey = "lunaris.public-runtime-config.v1";
+const versionCacheKey = "lunaris.build-version";
 
 export async function loadRuntimeConfig(options: {
   request: typeof fetch;
@@ -21,8 +23,10 @@ export async function loadRuntimeConfig(options: {
     }
   } catch (error) {
     let saved: string | null = null;
+    let buildVersion: string | undefined;
     try {
       saved = options.storage?.getItem(cacheKey) ?? null;
+      buildVersion = options.storage?.getItem(versionCacheKey) || undefined;
     } catch {
       /* Storage may be disabled. */
     }
@@ -33,7 +37,7 @@ export async function loadRuntimeConfig(options: {
     if (!config.REGION_DIRECTORY_URL) {
       throw new Error("Cached runtime region directory is required");
     }
-    setPublicRuntimeConfig(config);
+    setPublicRuntimeConfig(config, buildVersion);
     return config;
   }
   // Invalid online configuration must fail visibly, not silently use old settings.
@@ -41,9 +45,11 @@ export async function loadRuntimeConfig(options: {
   if (!config.REGION_DIRECTORY_URL) {
     throw new Error("Runtime region directory is required");
   }
-  setPublicRuntimeConfig(config);
+  const buildVersion = response.headers.get(buildVersionHeader) || undefined;
+  setPublicRuntimeConfig(config, buildVersion);
   try {
     options.storage?.setItem(cacheKey, JSON.stringify(config));
+    options.storage?.setItem(versionCacheKey, buildVersion ?? "");
   } catch {
     /* Offline caching is best effort. */
   }

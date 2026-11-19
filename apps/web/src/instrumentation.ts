@@ -1,4 +1,7 @@
-import { getPublicRuntimeConfig } from "@repo/app-shell/runtime-config";
+import {
+  getPublicRuntimeConfig,
+  getRuntimeBuildVersion,
+} from "@repo/app-shell/runtime-config";
 import { getConsent } from "@probo/cookie-banner/consent";
 import { initPostHogBrowser } from "@repo/utils/posthog-browser";
 import { createPostHogBrowserDrain } from "@repo/utils/posthog-log";
@@ -6,6 +9,7 @@ import { auditRedactPreset, initLogger } from "evlog";
 import posthog from "posthog-js";
 
 const runtime = getPublicRuntimeConfig();
+const buildVersion = getRuntimeBuildVersion() ?? __BUILD_VERSION__;
 const hasPostHogConfig = Boolean(
   (runtime?.POSTHOG_API_HOST ?? import.meta.env.VITE_POSTHOG_API_HOST) &&
     (runtime?.POSTHOG_KEY ?? import.meta.env.VITE_POSTHOG_KEY) &&
@@ -27,7 +31,7 @@ function initializePostHogWithConsent(
   posthogInitialized = initPostHogBrowser(posthog, {
     apiHost: runtime?.POSTHOG_API_HOST ?? import.meta.env.VITE_POSTHOG_API_HOST,
     appSurface: "web",
-    appVersion: __BUILD_VERSION__,
+    appVersion: buildVersion,
     cookielessMode: "on_reject",
     environment: import.meta.env.MODE,
     key: runtime?.POSTHOG_KEY ?? import.meta.env.VITE_POSTHOG_KEY,
@@ -46,7 +50,7 @@ function initializePostHogWithConsent(
       captureConsoleLogs: false,
       environment: import.meta.env.MODE,
       serviceName: "web",
-      serviceVersion: __BUILD_VERSION__,
+      serviceVersion: buildVersion,
     },
   });
 
@@ -73,7 +77,7 @@ initLogger({
   env: {
     environment: import.meta.env.MODE,
     service: "web",
-    version: __BUILD_VERSION__,
+    version: buildVersion,
   },
   pretty: import.meta.env.DEV,
   redact: auditRedactPreset,

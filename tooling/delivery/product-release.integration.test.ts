@@ -72,7 +72,7 @@ import{readFileSync}from'node:fs';const a=process.argv.slice(2);if(a[0]==='rev-p
     join(root, "preload.ts"),
     `import{readFileSync,writeFileSync}from'node:fs';globalThis.fetch=async(input,options={})=>{const s=JSON.parse(readFileSync(process.env.FIXTURE_STATE,'utf8'));const u=String(input);let v;
 if(u.includes('/statuses')){const id=u.split('/deployments/')[1].split('/')[0];if(options.method==='POST'){s.reservationState=JSON.parse(options.body).state;s.reservationStates[id]=s.reservationState;}v=[{state:id==='1'||id==='999'?'success':s.reservationStates[id]??s.reservationState}];}
-else if(u.includes('/deployments?'))v=u.includes('release%2Fproduct')?s.reservations:s.productionReady?[{id:999,environment:'production/core',payload:s.candidate,sha:s.candidate.sha}]:[];
+else if(u.includes('/deployments?'))v=u.includes('release%2Fproduct')?s.reservations:s.productionReady?[{id:999,environment:'production/core',payload:{...s.candidate,webVersion:process.env.PRODUCT_VERSION},sha:s.candidate.sha}]:[];
 else if(u.endsWith('/deployments')&&options.method==='POST'){v={id:s.reservations.length+2,...JSON.parse(options.body)};s.reservations.push(v);}
 else throw new Error('Unexpected fetch '+u);
 writeFileSync(process.env.FIXTURE_STATE,JSON.stringify(s));return Response.json(v);};`

@@ -21,6 +21,7 @@ import {
   type ProductPlan,
 } from "./product";
 import { git, output, run, summary } from "../release/automation/process";
+import { coreDeploymentSchema } from "./candidate";
 import {
   lastSuccess,
   statuses,
@@ -419,9 +420,13 @@ if (mode === "reserve") {
   const plan = readPlan(tag);
   verifySource(plan);
   const deployed = await lastSuccess("production/core");
+  const { webVersion, ...candidate } = deployed
+    ? coreDeploymentSchema.parse(deployed.payload)
+    : {};
   if (
     !deployed ||
-    JSON.stringify(deployed.payload) !== JSON.stringify(plan.candidate)
+    webVersion !== plan.version ||
+    JSON.stringify(candidate) !== JSON.stringify(plan.candidate)
   ) {
     throw new Error("Product candidate not deployed successfully");
   }

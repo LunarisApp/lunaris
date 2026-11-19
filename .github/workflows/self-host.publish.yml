@@ -101,6 +101,7 @@ jobs:
               --cache-from "type=gha,scope=self-host-community-$ARCHITECTURE" \
               --cache-to "type=gha,scope=self-host-community-$ARCHITECTURE,mode=max,ignore-error=true" \
               --platform "linux/$ARCHITECTURE" --build-arg LUNARIS_EDITION=community --build-arg "LUNARIS_BUILD_SHA=$revision" \
+              --build-arg "LUNARIS_BUILD_VERSION=$PRODUCT_VERSION" \
               --label "org.opencontainers.image.revision=$revision" \
               --label org.opencontainers.image.source=https://github.com/LunarisApp/lunaris \
               --output "type=image,name=ghcr.io/lunarisapp/lunaris-$target,push-by-digest=true,name-canonical=true,push=true" \

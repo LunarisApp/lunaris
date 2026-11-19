@@ -3,9 +3,11 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { affectedComponents, changedFiles } from "./affected";
 import {
   candidateSchema,
+  coreDeploymentSchema,
   assertCandidateRun,
   resultingCandidate,
   type Candidate,
+  type CoreDeployment,
 } from "./candidate";
 import {
   github,
@@ -15,6 +17,7 @@ import {
   type Deployment,
 } from "./github";
 import { deployCore } from "./core-deploy";
+import { stableVersion } from "./product";
 import {
   assertRollbackSafe,
   needsSyncRecovery,
@@ -34,8 +37,8 @@ const readCandidate = () =>
   candidateSchema.parse(JSON.parse(readFileSync(file, "utf8")));
 function recordCandidate(
   record: Deployment | undefined
-): Candidate | undefined {
-  return record ? candidateSchema.parse(record.payload) : undefined;
+): CoreDeployment | undefined {
+  return record ? coreDeploymentSchema.parse(record.payload) : undefined;
 }
 function save(value: unknown) {
   mkdirSync("artifacts", { recursive: true });
@@ -149,8 +152,14 @@ if (mode === "plan") {
   }
   const state = await readCoreState("production");
   const previous = state.current;
-  let candidate = readCandidate();
+  let candidate: Candidate;
+  let webVersion: string | undefined;
   if (mode === "promote") {
+    candidate = readCandidate();
+    webVersion = process.env.PRODUCT_VERSION;
+    if (!(webVersion && stableVersion.test(webVersion))) {
+      throw new Error("Stable PRODUCT_VERSION required for promotion");
+    }
     const runInfo = await github<Parameters<typeof assertCandidateRun>[1]>(
       `actions/runs/${candidate.runId}`
     );
@@ -170,8 +179,10 @@ if (mode === "plan") {
     ) {
       throw new Error("Rollback must select a successful production record");
     }
-    candidate = candidateSchema.parse(record.payload);
-    assertRollbackSafe(state, candidate);
+    const rollback = coreDeploymentSchema.parse(record.payload);
+    webVersion = rollback.webVersion;
+    candidate = rollback;
+    assertRollbackSafe(state, rollback);
   }
   verifyTrunk(candidate.sha);
   if (configurationRevision !== candidate.configurationRevision) {
@@ -186,7 +197,10 @@ if (mode === "plan") {
     throw new Error("Check out candidate SHA before promotion");
   }
   await deployCore(
-    candidate,
+    {
+      ...candidate,
+      webVersion: target === "api" ? previous?.webVersion : webVersion,
+    },
     "production",
     target,
     previous,
