@@ -64,6 +64,7 @@ describe("Pi runtime", () => {
             display_name: "GPT-6",
             visibility: "list",
             priority: 1,
+            input_modalities: ["text", "image", "audio"],
           },
         ],
       })
@@ -73,7 +74,7 @@ describe("Pi runtime", () => {
     await runtime.handle({ type: "status", id: "status" });
     expect(events.at(-1)).toEqual({ type: "response", id: "status" });
     expect(fetchModels).toHaveBeenCalledWith(
-      "https://chatgpt.com/backend-api/codex/models?client_version=0.0.1",
+      "https://chatgpt.com/backend-api/codex/models?client_version=0.170.0",
       expect.objectContaining({
         headers: {
           Authorization: "Bearer test-token",
@@ -103,6 +104,20 @@ describe("Pi runtime", () => {
     });
     await runtime.handle({ type: "logout", id: "logout" });
     expect(events.at(-2)).toMatchObject({ state: { modelId: "", models: [] } });
+  });
+  it("explains when a signed-in account has no selectable models", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({ models: [] }))
+    );
+    const { runtime, events } = setup(true);
+    await runtime.handle({ type: "status", id: "status" });
+    expect(events.at(-1)).toMatchObject({
+      error: "No ChatGPT models are available. Reconnect to try again.",
+    });
+    expect(events.at(-2)).toMatchObject({
+      state: { authenticated: true, modelId: "", models: [] },
+    });
   });
   it("reports catalog failures without advertising the bundled models", async () => {
     vi.stubGlobal(
