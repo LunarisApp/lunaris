@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { fileURLToPath } from "node:url";
+import { cliInstallMethods } from "@/data/downloads";
 import { extensionCatalog } from "@/data/extension-catalog";
 import { extensionQuickstartUrl } from "@/data/extensions";
 import {
@@ -8,7 +9,7 @@ import {
 	markdownPages,
 	markdownPath,
 } from "@/data/landing-pages";
-import { repositoryUrl } from "@/data/open-source";
+import { repositoryUrl, selfHostCommands } from "@/data/open-source";
 import { regionDirectory } from "@/data/regions";
 import { socialProfileUrls } from "@/data/social-links";
 import { docsUrl, siteUrl } from "@/i18n/metadata";
@@ -99,6 +100,22 @@ test.each(markdownPages)("Markdown companion for $path", async (page) => {
 		);
 	}
 });
+
+test.each([
+	["/downloads", cliInstallMethods.map(({ command }) => command)],
+	["/self-hosted", Object.values(selfHostCommands)],
+] as const)(
+	"%s Markdown matches the web installer commands",
+	async (path, commands) => {
+		const page = markdownPages.find((entry) => entry.path === path);
+		if (!page) throw new Error(`Missing companion for ${path}`);
+		const body = await renderLandingMarkdown(page);
+
+		for (const command of commands) {
+			expect(body).toContain(`\n${command}\n`);
+		}
+	},
+);
 
 test("pricing Markdown includes costs, limits, features, and billing terms", async () => {
 	const page = markdownPages.find(({ path }) => path === "/pricing");
