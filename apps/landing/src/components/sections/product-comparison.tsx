@@ -1,27 +1,15 @@
 import { clsx } from "clsx/lite";
-import type { ReactNode } from "react";
 import { TrackedButtonLink } from "@/components/analytics/tracked-button-link";
 import { Container } from "@/components/elements/container";
 import { Heading } from "@/components/elements/heading";
-import {
-	ProductIcon,
-	type ProductIconName,
-} from "@/components/elements/product-icon";
+import { ProductIcon } from "@/components/elements/product-icon";
 import { Text } from "@/components/elements/text";
 import { CallToActionSimpleCentered } from "@/components/sections/call-to-action-simple-centered";
 
-export type ComparisonGroup = {
-	title: string;
-	features: readonly {
-		name: string;
-		values: readonly [ReactNode, ReactNode];
-	}[];
-};
-
-export type ComparisonProduct = {
-	id: ProductIconName;
-	name: string;
-};
+import type {
+	ComparisonGroup,
+	ComparisonProduct,
+} from "@/data/product-comparisons";
 
 type ComparisonCopy = {
 	headline: string;

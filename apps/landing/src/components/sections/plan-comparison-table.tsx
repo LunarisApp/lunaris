@@ -4,29 +4,22 @@ import {
 	ElTabPanels,
 } from "@tailwindplus/elements/react";
 import { clsx } from "clsx/lite";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps } from "react";
+import type { Plan, PlanComparisonGroup } from "@/data/pricing";
 import { Container } from "../elements/container";
 import { CheckmarkIcon } from "../icons/checkmark-icon";
 import { MinusIcon } from "../icons/minus-icon";
 
-function isPlanRecord<Plan extends string>(
-	value: ReactNode | Record<Plan, ReactNode>,
-	plan: Plan,
-): value is Record<Plan, ReactNode> {
-	return typeof value === "object" && value !== null && plan in value;
-}
+type ComparisonPlan = Pick<Plan, "id" | "name">;
 
-function FeatureGroup<Plan extends string>({
+function FeatureGroup({
 	group,
 	plans,
 	includedLabel,
 	notIncludedLabel,
 }: {
-	group: {
-		title: ReactNode;
-		features: { name: ReactNode; value: ReactNode | Record<Plan, ReactNode> }[];
-	};
-	plans: Plan[];
+	group: PlanComparisonGroup;
+	plans: ComparisonPlan[];
 	includedLabel: string;
 	notIncludedLabel: string;
 }) {
@@ -42,7 +35,7 @@ function FeatureGroup<Plan extends string>({
 				</th>
 			</tr>
 			{group.features.map((feature) => (
-				<tr className="group" key={String(feature.name)}>
+				<tr className="group" key={feature.name}>
 					<th
 						className="border-t border-olive-950/5 px-4 py-4 font-normal text-olive-700 group-first:border-olive-950/10 dark:border-white/5 dark:text-olive-400 dark:group-first:border-white/10"
 						scope="row"
@@ -50,14 +43,12 @@ function FeatureGroup<Plan extends string>({
 						{feature.name}
 					</th>
 					{plans.map((plan) => {
-						const value = isPlanRecord(feature.value, plan)
-							? feature.value[plan]
-							: feature.value;
+						const value = feature.values[plan.id];
 
 						return (
 							<td
 								className="border-t border-olive-950/5 px-3 py-4 text-center text-olive-700 group-first:border-olive-950/10 dark:border-white/10 dark:text-olive-400 dark:group-first:border-white/10"
-								key={plan}
+								key={plan.id}
 							>
 								{value === true ? (
 									<>
@@ -81,7 +72,7 @@ function FeatureGroup<Plan extends string>({
 	);
 }
 
-export function PlanComparisonTable<const Plan extends string>({
+export function PlanComparisonTable({
 	plans,
 	features,
 	heading,
@@ -90,14 +81,11 @@ export function PlanComparisonTable<const Plan extends string>({
 	className,
 	...props
 }: {
-	plans: Plan[];
+	plans: ComparisonPlan[];
 	heading: string;
 	includedLabel: string;
 	notIncludedLabel: string;
-	features: {
-		title: ReactNode;
-		features: { name: ReactNode; value: ReactNode | Record<Plan, ReactNode> }[];
-	}[];
+	features: PlanComparisonGroup[];
 } & ComponentProps<"section">) {
 	return (
 		<section className={clsx("py-16", className)} {...props}>
@@ -111,7 +99,7 @@ export function PlanComparisonTable<const Plan extends string>({
 							<col className="w-2/5" />
 							{plans.map((plan) => (
 								<col
-									key={plan}
+									key={plan.id}
 									style={{ width: `calc(60% / ${plans.length})` }}
 								/>
 							))}
@@ -121,12 +109,12 @@ export function PlanComparisonTable<const Plan extends string>({
 								<th className="sticky top-(--scroll-padding-top) z-10 border-b border-olive-950/10 bg-olive-100/95 px-4 py-5 text-base/7 font-medium text-olive-950 backdrop-blur-md dark:border-white/10 dark:bg-olive-950/95 dark:text-white">
 									{heading}
 								</th>
-								{plans.map((plan, index) => (
+								{plans.map((plan) => (
 									<th
 										className="sticky top-(--scroll-padding-top) z-10 border-b border-olive-950/10 bg-olive-100/95 p-3 text-center font-semibold text-olive-950 backdrop-blur-md dark:border-white/10 dark:bg-olive-950/95 dark:text-white"
-										key={index}
+										key={plan.id}
 									>
-										{plan}
+										{plan.name}
 									</th>
 								))}
 							</tr>
@@ -152,18 +140,18 @@ export function PlanComparisonTable<const Plan extends string>({
 							{plans.map((plan) => (
 								<button
 									className="rounded-lg px-3 py-2 text-sm/5 font-medium text-olive-600 aria-[selected=false]:hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive-700 aria-selected:bg-olive-950 aria-selected:text-white dark:text-olive-400 dark:aria-[selected=false]:hover:text-white dark:focus-visible:outline-olive-200 dark:aria-selected:bg-olive-200 dark:aria-selected:text-olive-950"
-									key={plan}
+									key={plan.id}
 									type="button"
 								>
-									{plan}
+									{plan.name}
 								</button>
 							))}
 						</ElTabList>
 						<ElTabPanels>
 							{plans.map((plan) => (
-								<div key={plan}>
+								<div key={plan.id}>
 									<table
-										aria-label={plan}
+										aria-label={plan.name}
 										className="mt-4 w-full border-separate border-spacing-0 overflow-hidden rounded-xl bg-white/20 text-left text-sm/5 ring-1 ring-olive-950/10 dark:bg-white/2.5 dark:ring-white/10"
 									>
 										<colgroup>
