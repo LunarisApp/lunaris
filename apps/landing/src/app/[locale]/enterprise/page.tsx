@@ -13,6 +13,7 @@ import {
 	TrackedSoftButtonLink,
 } from "@/components/analytics/tracked-button-link";
 import { Container } from "@/components/elements/container";
+import { EnterpriseArtwork } from "@/components/elements/enterprise-artwork";
 import { ExtensionShowcase } from "@/components/elements/extension-showcase";
 import { Heading } from "@/components/elements/heading";
 import { Subheading } from "@/components/elements/subheading";
@@ -27,7 +28,6 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { localePath } from "@/i18n/locale-path";
 import { localizedAlternates } from "@/i18n/metadata";
 import { legalDocumentUrls, trustCenterUrl } from "@/lib/legal-document-links";
-import { EnterpriseArtwork } from "./enterprise-artwork";
 
 type Props = { params: Promise<{ locale: string }> };
 

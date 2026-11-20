@@ -7,6 +7,9 @@
 		display: block;
 		stroke-dasharray: 24 104;
 		stroke-dashoffset: -100;
+	}
+
+	[data-enterprise-artwork][data-visible="true"] .trace {
 		animation: trace 1.65s cubic-bezier(0.25, 0.68, 0.35, 1) 0.35s both;
 	}
 }

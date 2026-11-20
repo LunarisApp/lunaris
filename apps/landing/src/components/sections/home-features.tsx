@@ -1,9 +1,10 @@
 import { BlockGameIcon, HugeiconsIcon } from "@lunarisapp/ui/icons";
 import Link from "next/link";
 import { Container } from "@/components/elements/container";
-import { WorkspaceArtwork } from "@/components/elements/workspace-artwork";
-import { ExtensionShowcase } from "@/components/elements/extension-showcase";
+import { EnterpriseArtwork } from "@/components/elements/enterprise-artwork";
+import { ExtensionsArtwork } from "@/components/elements/extensions-artwork";
 import { ExtensionTip } from "@/components/elements/extension-tip";
+import { StorageArtwork } from "@/components/elements/storage-artwork";
 import { ArrowNarrowRightIcon } from "@/components/icons/arrow-narrow-right-icon";
 import { enterpriseCopy } from "@/data/enterprise";
 import { extensionCatalog } from "@/data/extension-catalog";
@@ -107,7 +108,7 @@ export function HomeFeatures({ locale }: { locale: Locale }) {
 						{text.toolsSubtitle}
 					</p>
 					<div className="mt-5 grid items-center gap-10 lg:grid-cols-[1.3fr_1fr] lg:gap-20">
-						<ExtensionShowcase locale={locale} />
+						<ExtensionsArtwork />
 						<article
 							id="extensions"
 							className="min-w-0 text-olive-950 dark:text-olive-100"
@@ -189,7 +190,7 @@ export function HomeFeatures({ locale }: { locale: Locale }) {
 							))}
 						</dl>
 					</div>
-					<WorkspaceArtwork kind="storage" />
+					<StorageArtwork />
 				</Container>
 			</section>
 			<section
@@ -217,7 +218,7 @@ export function HomeFeatures({ locale }: { locale: Locale }) {
 						</Link>
 					</div>
 					<div className="lg:col-start-1 lg:row-start-1">
-						<WorkspaceArtwork kind="enterprise" />
+						<EnterpriseArtwork />
 					</div>
 				</Container>
 			</section>

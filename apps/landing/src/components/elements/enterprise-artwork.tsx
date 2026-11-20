@@ -1,26 +1,16 @@
+import { EnterpriseArtworkVisibility } from "./enterprise-artwork-visibility";
 import styles from "./enterprise-artwork.module.css";
+import {
+	type Footprint,
+	IsometricArtwork,
+	type PlanePoint,
+	points,
+	project,
+} from "./isometric-artwork";
 
-type Point = readonly [x: number, y: number, height?: number];
-type Footprint = readonly [
-	left: number,
-	back: number,
-	right: number,
-	front: number,
-];
-
-const groundEdge = 156;
-const gridLines = Array.from({ length: 13 }, (_, index) => (index - 6) * 24);
 const windowBays = [0.19, 0.395, 0.6, 0.805];
 
-function project([x, y, height = 0]: Point) {
-	return [305 + (x - y) * 0.87, 236 + (x + y) * 0.43 - height];
-}
-
-function points(...vertices: Point[]) {
-	return vertices.map((vertex) => project(vertex).join(",")).join(" ");
-}
-
-function GroundTerminal({ position }: { position: Point }) {
+function GroundTerminal({ position }: { position: PlanePoint }) {
 	const [x, y] = project(position);
 
 	return (
@@ -154,73 +144,56 @@ export function EnterpriseArtwork() {
 	] as const;
 
 	return (
-		<svg
-			aria-hidden="true"
-			className="block w-full rounded-2xl border border-current/10 bg-olive-950/[.025] dark:bg-white/[.045]"
-			fill="none"
-			viewBox="0 0 610 394"
-		>
-			<g stroke="currentColor">
-				<polygon
-					points={points(
-						[-groundEdge, -groundEdge],
-						[groundEdge, -groundEdge],
-						[groundEdge, groundEdge],
-						[-groundEdge, groundEdge],
-					)}
-					strokeOpacity=".2"
-				/>
-				{gridLines.map((offset) => (
-					<g key={offset} strokeOpacity=".09">
-						<polyline
-							points={points([offset, -groundEdge], [offset, groundEdge])}
-						/>
-						<polyline
-							points={points([-groundEdge, offset], [groundEdge, offset])}
-						/>
-					</g>
-				))}
-			</g>
-
-			<g
-				stroke="currentColor"
-				strokeLinejoin="round"
-				strokeOpacity=".68"
-				strokeWidth="1.6"
-			>
+		<EnterpriseArtworkVisibility>
+			<IsometricArtwork name="enterprise">
+				<g
+					stroke="currentColor"
+					strokeLinejoin="round"
+					strokeOpacity=".68"
+					strokeWidth="1.6"
+				>
+					<polyline
+						points={points([-92, 117], [-92, 139], [26, 139], [26, 23])}
+					/>
+					<polyline points={points([110, -52], [110, 77], [26, 77])} />
+					<polyline points={points(entrance, ...approach)} />
+				</g>
+				<g stroke="currentColor" strokeDasharray="3 5" strokeOpacity=".36">
+					<polyline points={points([-134, 52], [-134, -93], [-78, -93])} />
+					<polyline points={points([50, -120], [-12, -120], [-12, -56])} />
+				</g>
+				<GroundTerminal position={[-134, 52]} />
+				<GroundTerminal position={[-78, -93]} />
+				<GroundTerminal position={[50, -120]} />
+				<GroundTerminal position={[26, 77]} />
+				<GroundTerminal position={entrance} />
 				<polyline
-					points={points([-92, 117], [-92, 139], [26, 139], [26, 23])}
+					className={styles.trace}
+					pathLength="100"
+					points={points(entrance, ...approach, [26, 23])}
+					stroke="currentColor"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					strokeWidth="2.8"
 				/>
-				<polyline points={points([110, -52], [110, 77], [26, 77])} />
-				<polyline points={points(entrance, ...approach)} />
-			</g>
-			<g stroke="currentColor" strokeDasharray="3 5" strokeOpacity=".36">
-				<polyline points={points([-134, 52], [-134, -93], [-78, -93])} />
-				<polyline points={points([50, -120], [-12, -120], [-12, -56])} />
-			</g>
-			<GroundTerminal position={[-134, 52]} />
-			<GroundTerminal position={[-78, -93]} />
-			<GroundTerminal position={[50, -120]} />
-			<GroundTerminal position={[26, 77]} />
-			<GroundTerminal position={entrance} />
-			<polyline
-				className={styles.trace}
-				pathLength="100"
-				points={points(entrance, ...approach, [26, 23])}
-				stroke="currentColor"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				strokeWidth="2.8"
-			/>
 
-			<Building footprint={[76, -117, 137, -52]} floors={4} floorHeight={21} />
-			<Building
-				footprint={[-43, -56, 45, 23]}
-				floors={5}
-				floorHeight={29}
-				headquarters
-			/>
-			<Building footprint={[-132, 57, -66, 117]} floors={2} floorHeight={25} />
-		</svg>
+				<Building
+					footprint={[76, -117, 137, -52]}
+					floors={4}
+					floorHeight={21}
+				/>
+				<Building
+					footprint={[-43, -56, 45, 23]}
+					floors={5}
+					floorHeight={29}
+					headquarters
+				/>
+				<Building
+					footprint={[-132, 57, -66, 117]}
+					floors={2}
+					floorHeight={25}
+				/>
+			</IsometricArtwork>
+		</EnterpriseArtworkVisibility>
 	);
 }
