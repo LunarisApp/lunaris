@@ -1,4 +1,6 @@
 import { SoftButtonLink } from "@/components/elements/button";
+import Link from "next/link";
+import { enterpriseCopy } from "@/data/enterprise";
 import { openSourceCopy } from "@/data/open-source";
 import { localePath } from "@/i18n/locale-path";
 import type { Metadata } from "next";
@@ -88,7 +90,19 @@ export default async function Page({
 						plan.price[key]
 					)
 				}
-				subheadline={<p>{plan.subheadline}</p>}
+				subheadline={
+					<div>
+						<p>{plan.subheadline}</p>
+						{plan.id === "enterprise" && (
+							<Link
+								className="mt-1 inline-flex min-h-11 items-center rounded-sm font-medium underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2"
+								href={localePath(locale, "/enterprise")}
+							>
+								{enterpriseCopy[locale].detailsLink}
+							</Link>
+						)}
+					</div>
+				}
 			/>
 		);
 	}

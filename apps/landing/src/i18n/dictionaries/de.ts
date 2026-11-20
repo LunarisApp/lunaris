@@ -704,7 +704,6 @@ const de = {
 		obsidianComparison: "Lunaris vs. Obsidian",
 		notionComparison: "Lunaris vs. Notion",
 		tool: "Werkzeuge",
-		wordCounter: "Wortzähler",
 		resources: "Ressourcen",
 		trustCenter: "Trust Center",
 		mcp: "MCP für Agents",

@@ -686,7 +686,6 @@ const en = {
 		obsidianComparison: "Lunaris vs Obsidian",
 		notionComparison: "Lunaris vs Notion",
 		tool: "Tools",
-		wordCounter: "Word counter",
 		resources: "Resources",
 		trustCenter: "Trust Center",
 		mcp: "MCP for agents",

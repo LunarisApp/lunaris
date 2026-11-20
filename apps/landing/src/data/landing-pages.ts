@@ -21,6 +21,13 @@ export const markdownPages = [
 		section: "Product",
 	},
 	{
+		path: "/enterprise",
+		title: "Lunaris for enterprise",
+		description:
+			"Organization access controls, regional hosting, and private extensions.",
+		section: "Product",
+	},
+	{
 		path: "/extensions",
 		title: "Extensions",
 		description:
