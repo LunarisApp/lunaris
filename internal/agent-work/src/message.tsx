@@ -1,5 +1,6 @@
 import { stripMentionContext } from "./mentions";
 import { Button } from "@lunarisapp/ui/components/button";
+import { Spinner } from "@lunarisapp/ui/components/spinner";
 import {
   AlertCircleIcon,
   ArrowDown01Icon,
@@ -72,10 +73,7 @@ export function ToolCall({
     <details className="agent-tool group min-w-0 rounded-md border border-border/70 text-xs">
       <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 rounded-md px-2.5 py-1.5 text-muted-foreground outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
         {status === "running" && !awaitingApproval ? (
-          <span
-            aria-hidden="true"
-            className="size-3 shrink-0 rounded-full border border-current border-t-transparent motion-safe:animate-spin"
-          />
+          <Spinner aria-hidden="true" className="size-3 shrink-0" />
         ) : (
           <HugeiconsIcon
             aria-hidden="true"
