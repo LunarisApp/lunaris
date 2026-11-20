@@ -1,5 +1,7 @@
 "use client";
 
+import { buttonVariants } from "@lunarisapp/ui/components/button";
+import { cn } from "@lunarisapp/ui/lib/utils";
 import { useEffect, useState } from "react";
 import { PlatformIcon } from "@/components/downloads/platform-icon";
 import type { Locale } from "@/i18n/config";
@@ -40,7 +42,10 @@ export function DesktopDownload({
 			</a>
 			{detected && (
 				<a
-					className="inline-flex min-h-11 items-center justify-center rounded-full bg-white/40 px-4 py-1.5 text-sm/7 font-medium text-olive-950 backdrop-blur-md transition-colors hover:bg-white/60 focus-visible:outline-2 focus-visible:outline-offset-4 motion-reduce:transition-none sm:px-5 dark:bg-white/8 dark:text-white dark:hover:bg-white/15 dark:focus-visible:outline-white"
+					className={cn(
+						buttonVariants({ variant: "glass" }),
+						"h-11 rounded-full px-4 text-sm/7 sm:px-5",
+					)}
 					href={localePath(locale, "/downloads")}
 				>
 					{otherPlatformsLabel}
