@@ -1,6 +1,7 @@
 import type { Locale } from "@/i18n/config";
 
 type DownloadsCopy = {
+	title: string;
 	subtitle: string;
 	mac: string;
 	windows: string;
@@ -13,6 +14,7 @@ type DownloadsCopy = {
 
 export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 	en: {
+		title: "Get Lunaris",
 		copyCommand: "Copy Homebrew command",
 		manualCopy: "Select the command and copy it manually.",
 		subtitle: "Your workspace on the web and desktop.",
@@ -23,6 +25,7 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 		browser: "Use Lunaris directly in your browser.",
 	},
 	es: {
+		title: "Consigue Lunaris",
 		copyCommand: "Copiar el comando de Homebrew",
 		manualCopy: "Selecciona el comando y cópialo manualmente.",
 		subtitle: "Tu espacio de trabajo en la web y en tu escritorio.",
@@ -33,6 +36,7 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 		browser: "Usa Lunaris directamente en tu navegador.",
 	},
 	fr: {
+		title: "Obtenez Lunaris",
 		copyCommand: "Copier la commande Homebrew",
 		manualCopy: "Sélectionnez la commande et copiez-la manuellement.",
 		subtitle: "Votre espace de travail sur le web et sur votre ordinateur.",
@@ -43,6 +47,7 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 		browser: "Utilisez Lunaris directement dans votre navigateur.",
 	},
 	de: {
+		title: "Hol dir Lunaris",
 		copyCommand: "Homebrew-Befehl kopieren",
 		manualCopy: "Wähle den Befehl aus und kopiere ihn manuell.",
 		subtitle: "Dein Workspace im Web und auf dem Desktop.",
@@ -53,6 +58,7 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 		browser: "Nutze Lunaris direkt im Browser.",
 	},
 	"pt-BR": {
+		title: "Obtenha o Lunaris",
 		copyCommand: "Copiar comando do Homebrew",
 		manualCopy: "Selecione o comando e copie-o manualmente.",
 		subtitle: "Seu espaço de trabalho na web e no seu computador.",

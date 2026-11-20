@@ -5,6 +5,7 @@ import { McpSetup } from "@/components/sections/mcp-setup";
 import { regionDirectory } from "@/data/regions";
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { localePath } from "@/i18n/locale-path";
 import { localizedAlternates } from "@/i18n/metadata";
 
 export async function generateMetadata({
@@ -41,6 +42,7 @@ export default async function McpPage({
 
 				<div className="mt-10 sm:mt-14">
 					<McpSetup
+						cliInstallHref={localePath(locale, "/downloads#cli")}
 						copy={dict.mcpPage.setup}
 						regions={regionDirectory.regions}
 					/>

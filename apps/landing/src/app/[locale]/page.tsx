@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { TrackedButtonLink } from "@/components/analytics/tracked-button-link";
 import { DesktopDownload } from "@/components/downloads/desktop-download";
 import { Container } from "@/components/elements/container";
 import { DemoVideo } from "@/components/elements/demo-video";
@@ -30,6 +29,14 @@ export default async function Page({
 	const locale = rawLocale as Locale;
 	const copy = homepageCopy[locale];
 	const dict = await getDictionary(locale);
+	const downloadCta = (
+		<DesktopDownload
+			locale={locale}
+			downloadLabel={copy.downloadFor}
+			fallbackLabel={`${copy.download} Lunaris`}
+			otherPlatformsLabel={copy.otherPlatforms}
+		/>
+	);
 
 	return (
 		<>
@@ -53,12 +60,7 @@ export default async function Page({
 							<p className="text-base/6 text-pretty text-neutral-200 sm:text-lg/7">
 								{copy.description}
 							</p>
-							<DesktopDownload
-								locale={locale}
-								downloadLabel={copy.downloadFor}
-								fallbackLabel={`${copy.download} Lunaris`}
-								otherPlatformsLabel={copy.otherPlatforms}
-							/>
+							{downloadCta}
 						</div>
 					</Container>
 				</div>
@@ -141,20 +143,7 @@ export default async function Page({
 							{copy.closingDescription}
 						</p>
 					</div>
-					<TrackedButtonLink
-						analyticsProperties={{
-							cta: "open_web_app",
-							destination: "web",
-							location: "home_bottom",
-						}}
-						className="min-h-12 w-full gap-3 px-6 sm:w-auto"
-						color="dark/light"
-						href="https://web.lunaris.app"
-						size="lg"
-					>
-						{copy.start}
-						<ArrowNarrowRightIcon />
-					</TrackedButtonLink>
+					<div className="lg:shrink-0">{downloadCta}</div>
 				</Container>
 			</section>
 		</>

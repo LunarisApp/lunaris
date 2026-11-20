@@ -37,6 +37,8 @@ const en = {
 		productTour: "Product tour",
 		extensionsSdk: "Extensions SDK",
 		downloads: "Downloads",
+		logIn: "Log in",
+		signUp: "Sign up",
 		openWebApp: "Open web app",
 		pricing: "Pricing",
 		docs: "Documentation",
@@ -375,7 +377,10 @@ const en = {
 			cloudName: "Cloud",
 			manualCopy: "Select the setup text and copy it manually.",
 			regionLabel: "Choose your data region",
-			desktopName: "Desktop app",
+			desktopName: "Desktop",
+			cliInstallLabel: "CLI installation",
+			cliDescription:
+				"Install the Lunaris CLI and run `lunaris auth login` to choose a server and sign in.",
 			desktopDescription: "Includes your workspaces with local visibility.",
 			desktopAuthNote:
 				"Keep Lunaris Desktop running and approve the pairing request in Settings → Local Data.",

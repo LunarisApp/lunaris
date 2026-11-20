@@ -1,7 +1,14 @@
 "use client";
 
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@lunarisapp/ui/components/select";
 import { clsx } from "clsx/lite";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
 	ClaudeIcon,
 	CodexIcon,
@@ -29,26 +36,30 @@ function mcpUrl(region: DataRegion) {
 	return url.toString();
 }
 
-function localSetupSnippet(harness: HarnessId) {
-	const argumentsList = desktopMcpArguments.join(" ");
+function localSetupSnippet(
+	harness: HarnessId,
+	command: string,
+	args: readonly string[],
+) {
+	const argumentsList = args.join(" ");
 
 	if (harness === "mcp") {
 		return `transport: stdio
-command: ${desktopMcpCommand}
+command: ${command}
 args: ${argumentsList}`;
 	}
 	if (harness === "claude") {
-		return `claude mcp add --transport stdio lunaris -- ${desktopMcpCommand} ${argumentsList}`;
+		return `claude mcp add --transport stdio lunaris -- ${command} ${argumentsList}`;
 	}
 	if (harness === "codex") {
-		return `codex mcp add lunaris -- ${desktopMcpCommand} ${argumentsList}`;
+		return `codex mcp add lunaris -- ${command} ${argumentsList}`;
 	}
 	return JSON.stringify(
 		{
 			mcpServers: {
 				lunaris: {
-					command: desktopMcpCommand,
-					args: desktopMcpArguments,
+					command,
+					args,
 				},
 			},
 		},
@@ -165,11 +176,22 @@ function CopySetup({
 export function McpSetup({
 	regions,
 	copy,
+	cliInstallHref,
 }: {
 	regions: readonly DataRegion[];
+	cliInstallHref: string;
 	copy: McpCopy;
 }) {
 	const defaultRegion = regions.find((region) => region.status === "available");
+	const regionSelectId = useId();
+	const regionOptions = regions.map((item) => ({
+		value: item.regionId,
+		label:
+			item.status === "planned"
+				? `${item.displayName} · ${copy.comingSoon}`
+				: item.displayName,
+		disabled: item.status !== "available",
+	}));
 	const harnesses = [
 		{
 			id: "mcp",
@@ -182,17 +204,22 @@ export function McpSetup({
 	] as const;
 	const [harness, setHarness] = useState<HarnessId>("mcp");
 	const [regionId, setRegionId] = useState(defaultRegion?.regionId ?? "");
-	const [connection, setConnection] = useState<"cloud" | "desktop">(
+	const [connection, setConnection] = useState<"cloud" | "desktop" | "cli">(
 		defaultRegion ? "cloud" : "desktop",
 	);
+	const cloud = connection === "cloud";
 	const desktop = connection === "desktop";
 	const region = regions.find(
 		(item) => item.regionId === regionId && item.status === "available",
 	);
-	const endpoint = !desktop && region ? mcpUrl(region) : "";
-	const snippet = desktop
-		? localSetupSnippet(harness)
-		: cloudSetupSnippet(harness, endpoint);
+	const endpoint = cloud && region ? mcpUrl(region) : "";
+	const snippet = cloud
+		? cloudSetupSnippet(harness, endpoint)
+		: localSetupSnippet(
+				harness,
+				desktop ? desktopMcpCommand : "lunaris",
+				desktop ? desktopMcpArguments : ["mcp", "serve"],
+			);
 	const cursorDeeplink = endpoint ? cursorInstallUrl(endpoint) : "";
 	const isConfig = harness === "cursor";
 	const isGeneric = harness === "mcp";
@@ -207,8 +234,8 @@ export function McpSetup({
 						</span>
 						{copy.connectionLabel}
 					</legend>
-					<div className="mt-4 grid grid-cols-2 gap-1 rounded-lg bg-olive-950/5 p-1 dark:bg-white/5">
-						{(["cloud", "desktop"] as const).map((target) => (
+					<div className="mt-4 grid grid-cols-3 gap-1 rounded-lg bg-olive-950/5 p-1 dark:bg-white/5">
+						{(["cloud", "desktop", "cli"] as const).map((target) => (
 							<button
 								type="button"
 								key={target}
@@ -217,34 +244,61 @@ export function McpSetup({
 								onClick={() => setConnection(target)}
 								className="min-h-11 rounded-md px-2 text-sm font-medium aria-pressed:bg-olive-950 aria-pressed:text-white disabled:opacity-50 focus-visible:outline-2 dark:text-olive-200 dark:aria-pressed:bg-olive-200 dark:aria-pressed:text-black"
 							>
-								{target === "desktop" ? copy.desktopName : copy.cloudName}
+								{
+									{
+										cloud: copy.cloudName,
+										desktop: copy.desktopName,
+										cli: "CLI",
+									}[target]
+								}
 							</button>
 						))}
 					</div>
-					{desktop ? (
+					{!cloud ? (
 						<p className="mt-4 text-sm/6 text-olive-700 dark:text-olive-300">
-							{copy.desktopDescription}
+							{desktop ? copy.desktopDescription : copy.cliDescription}
+							{connection === "cli" && (
+								<>
+									{" "}
+									<a
+										className="underline underline-offset-4"
+										href={cliInstallHref}
+									>
+										{copy.cliInstallLabel}
+									</a>
+								</>
+							)}
 						</p>
 					) : (
-						<label className="mt-4 flex flex-col gap-2 text-sm font-medium text-olive-950 dark:text-olive-100">
-							{copy.regionLabel}
-							<select
-								className="min-h-11 w-full rounded-lg border border-olive-950/15 bg-olive-100 px-3 dark:border-white/20 dark:bg-black"
+						<div className="mt-4 flex flex-col gap-2 text-sm font-medium text-olive-950 dark:text-olive-100">
+							<label htmlFor={regionSelectId}>{copy.regionLabel}</label>
+							<Select
+								items={regionOptions}
 								value={regionId}
-								onChange={(event) => setRegionId(event.target.value)}
+								onValueChange={(value) => {
+									if (value !== null) setRegionId(value);
+								}}
 							>
-								{regions.map((item) => (
-									<option
-										key={item.regionId}
-										value={item.regionId}
-										disabled={item.status !== "available"}
-									>
-										{item.displayName}
-										{item.status === "planned" ? ` · ${copy.comingSoon}` : ""}
-									</option>
-								))}
-							</select>
-						</label>
+								<SelectTrigger
+									className="min-h-11 w-full border-olive-950/15 bg-olive-100 px-3 hover:bg-olive-200 dark:border-white/20 dark:bg-black dark:hover:bg-olive-900"
+									id={regionSelectId}
+								>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent alignItemWithTrigger={false}>
+									{regionOptions.map((item) => (
+										<SelectItem
+											className="min-h-9 px-3 pr-8 data-highlighted:bg-olive-200 dark:data-highlighted:bg-olive-800"
+											disabled={item.disabled}
+											key={item.value}
+											value={item.value}
+										>
+											{item.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 					)}
 				</fieldset>
 
@@ -305,9 +359,9 @@ export function McpSetup({
 						</p>
 						<p className="mt-1 text-sm text-olive-300">
 							{isGeneric
-								? desktop
-									? "stdio"
-									: "HTTP"
+								? cloud
+									? "HTTP"
+									: "stdio"
 								: isConfig
 									? harness === "cursor"
 										? ".cursor/mcp.json"
@@ -320,7 +374,7 @@ export function McpSetup({
 						copy={copy}
 						snippet={snippet}
 						harness={harness}
-						regionId={desktop ? "desktop" : regionId}
+						regionId={cloud ? regionId : connection}
 					/>
 				</div>
 
@@ -348,51 +402,53 @@ export function McpSetup({
 					</a>
 				)}
 
-				<div className="mt-8 grid gap-5 border-t border-white/10 pt-6 sm:grid-cols-2 lg:mt-auto lg:pt-8">
-					<div className="flex gap-3">
-						<svg
-							aria-hidden="true"
-							className="mt-0.5 size-5 shrink-0 text-olive-300"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="1.5"
-							viewBox="0 0 24 24"
-						>
-							<path
-								d="M12 3.75a6 6 0 0 0-6 6v2.25H4.5v8.25h15V12H18V9.75a6 6 0 0 0-6-6Zm-4.5 8.25V9.75a4.5 4.5 0 0 1 9 0V12"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-							/>
-						</svg>
-						<p className="text-sm/6 text-olive-300">
-							{desktop ? copy.desktopAuthNote : copy.authNote}
-						</p>
+				{connection !== "cli" && (
+					<div className="mt-8 grid gap-5 border-t border-white/10 pt-6 sm:grid-cols-2 lg:mt-auto lg:pt-8">
+						<div className="flex gap-3">
+							<svg
+								aria-hidden="true"
+								className="mt-0.5 size-5 shrink-0 text-olive-300"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="1.5"
+								viewBox="0 0 24 24"
+							>
+								<path
+									d="M12 3.75a6 6 0 0 0-6 6v2.25H4.5v8.25h15V12H18V9.75a6 6 0 0 0-6-6Zm-4.5 8.25V9.75a4.5 4.5 0 0 1 9 0V12"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+							<p className="text-sm/6 text-olive-300">
+								{desktop ? copy.desktopAuthNote : copy.authNote}
+							</p>
+						</div>
+						<div className="flex gap-3">
+							<svg
+								aria-hidden="true"
+								className="mt-0.5 size-5 shrink-0 text-olive-300"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="1.5"
+								viewBox="0 0 24 24"
+							>
+								<path
+									d="M12 21s7.5-3.75 7.5-10.5V5.25L12 2.25 4.5 5.25v5.25C4.5 17.25 12 21 12 21Z"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+								<path
+									d="m9 11.5 2 2 4-4"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+							<p className="text-sm/6 text-olive-300">
+								{desktop ? copy.desktopDataNote : copy.dataNote}
+							</p>
+						</div>
 					</div>
-					<div className="flex gap-3">
-						<svg
-							aria-hidden="true"
-							className="mt-0.5 size-5 shrink-0 text-olive-300"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="1.5"
-							viewBox="0 0 24 24"
-						>
-							<path
-								d="M12 21s7.5-3.75 7.5-10.5V5.25L12 2.25 4.5 5.25v5.25C4.5 17.25 12 21 12 21Z"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-							/>
-							<path
-								d="m9 11.5 2 2 4-4"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-							/>
-						</svg>
-						<p className="text-sm/6 text-olive-300">
-							{desktop ? copy.desktopDataNote : copy.dataNote}
-						</p>
-					</div>
-				</div>
+				)}
 			</div>
 		</div>
 	);

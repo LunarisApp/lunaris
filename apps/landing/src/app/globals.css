@@ -3,6 +3,7 @@
 
 @source "../../node_modules/@lunarisapp/ui/dist/components/button.js";
 @source "../../node_modules/@lunarisapp/ui/dist/components/navigation-menu.js";
+@source "../../node_modules/@lunarisapp/ui/dist/components/select.js";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

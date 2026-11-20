@@ -82,7 +82,7 @@ export function ThemeSwitcher({ labels = defaultLabels }: { labels?: Labels }) {
 			{open && (
 				<div
 					id={panelId}
-					className="absolute right-0 z-20 mt-1 min-w-36 rounded-lg border border-olive-950/10 bg-olive-100 py-1 shadow-lg dark:border-white/10 dark:bg-olive-950"
+					className="absolute right-0 bottom-full z-20 mb-1 min-w-36 rounded-lg border border-olive-950/10 bg-olive-100 py-1 shadow-lg dark:border-white/10 dark:bg-olive-950"
 				>
 					{options.map(({ value, label, Icon }) => {
 						const active = value === theme;

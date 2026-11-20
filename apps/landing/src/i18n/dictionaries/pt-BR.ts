@@ -39,6 +39,8 @@ const ptBR = {
 		productTour: "Tour do produto",
 		extensionsSdk: "SDK de extensões",
 		downloads: "Downloads",
+		logIn: "Entrar",
+		signUp: "Criar conta",
 		openWebApp: "Abrir app web",
 		pricing: "Preços",
 		docs: "Documentação",
@@ -377,7 +379,10 @@ const ptBR = {
 			cloudName: "Nuvem",
 			manualCopy: "Selecione o texto de configuração e copie-o manualmente.",
 			regionLabel: "Escolha sua região de dados",
-			desktopName: "Aplicativo para desktop",
+			desktopName: "Desktop",
+			cliInstallLabel: "Instalação da CLI",
+			cliDescription:
+				"Instale a CLI do Lunaris e execute `lunaris auth login` para escolher um servidor e entrar.",
 			desktopDescription:
 				"Inclui seus espaços de trabalho com visibilidade local.",
 			desktopAuthNote:
