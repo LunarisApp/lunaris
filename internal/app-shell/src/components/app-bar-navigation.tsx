@@ -1,5 +1,6 @@
 import { LunarisMark } from "@repo/features/brand";
-import { useAgentWorkAccess } from "@repo/agent-work/access";
+import { FEATURE } from "@repo/auth/entitlements";
+import { useFeatureAccess } from "@repo/features/entitlements";
 import { Button } from "@lunarisapp/ui/components/button";
 import { Kbd } from "@lunarisapp/ui/components/kbd";
 import {
@@ -126,7 +127,7 @@ export function AppBarNavigation({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const agentWorkAccess = useAgentWorkAccess();
+  const agentWorkAccess = useFeatureAccess(FEATURE.agentWork);
   const homeLabel = t("common.home");
   const homeHotkey = useNavigationHotkey("open-home");
 

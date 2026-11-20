@@ -1,4 +1,5 @@
-import { useAgentWorkAccess } from "@repo/agent-work/access";
+import { FEATURE } from "@repo/auth/entitlements";
+import { useFeatureAccess } from "@repo/features/entitlements";
 import { stageAgentWorkPrompt } from "@repo/agent-work/launch";
 import { useRegion } from "@repo/features/region";
 import { usePlatform } from "@repo/platform";
@@ -8,7 +9,7 @@ export function useSearchAgentPrompt(
   organizationId: string | null | undefined,
   userId: string | undefined
 ) {
-  const { allowed, pending } = useAgentWorkAccess();
+  const { allowed, pending } = useFeatureAccess(FEATURE.agentWork);
   const platform = usePlatform();
   const navigate = useNavigate();
   const { organizationSlug } = useParams();
@@ -17,6 +18,7 @@ export function useSearchAgentPrompt(
   if (
     !allowed ||
     pending ||
+    platform.kind !== "desktop" ||
     !platform.agentWork ||
     !organizationSlug ||
     !organizationId ||

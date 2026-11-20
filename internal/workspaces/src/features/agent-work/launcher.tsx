@@ -1,4 +1,5 @@
-import { useAgentWorkAccess } from "@repo/agent-work/access";
+import { FEATURE } from "@repo/auth/entitlements";
+import { useFeatureAccess } from "@repo/features/entitlements";
 import { Button } from "@lunarisapp/ui/components/button";
 import { AiChat02Icon, HugeiconsIcon } from "@lunarisapp/ui/icons";
 import { useOrganizationNavigation } from "@repo/workspaces/organization-navigation";
@@ -8,7 +9,7 @@ import { AGENT_WORK_TOOL_ID } from "./constants";
 export function AgentWorkLauncher() {
   const { openTool } = useOrganizationNavigation();
   const { t } = useTranslation();
-  const { allowed, pending } = useAgentWorkAccess();
+  const { allowed, pending } = useFeatureAccess(FEATURE.agentWork);
   if (pending || !allowed) {
     return null;
   }

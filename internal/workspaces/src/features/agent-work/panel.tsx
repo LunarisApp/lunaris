@@ -1,4 +1,5 @@
-import { useAgentWorkAccess } from "@repo/agent-work/access";
+import { FEATURE } from "@repo/auth/entitlements";
+import { useFeatureAccess } from "@repo/features/entitlements";
 import { lazy } from "react";
 
 const LazyAgentWorkPanel = lazy(() =>
@@ -9,7 +10,7 @@ const LazyAgentWorkPanel = lazy(() =>
 
 /** Gate every entry point, including restored panels and mobile routes. */
 export function AgentWorkPanel() {
-  const { allowed, pending } = useAgentWorkAccess();
+  const { allowed, pending } = useFeatureAccess(FEATURE.agentWork);
   if (pending || !allowed) {
     return null;
   }

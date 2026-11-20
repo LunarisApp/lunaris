@@ -93,6 +93,4 @@ export interface AgentWorkManager {
     scope: AgentWorkScope,
     listener: (event: AgentWorkEvent) => void
   ): Promise<AgentWorkConnection>;
-  /** Local UI simulation with no model or tool access. */
-  readonly preview?: true;
 }
