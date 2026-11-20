@@ -5,6 +5,7 @@ import { WorkspaceArtwork } from "@/components/elements/workspace-artwork";
 import { ExtensionShowcase } from "@/components/elements/extension-showcase";
 import { ExtensionTip } from "@/components/elements/extension-tip";
 import { ArrowNarrowRightIcon } from "@/components/icons/arrow-narrow-right-icon";
+import { enterpriseCopy } from "@/data/enterprise";
 import { extensionCatalog } from "@/data/extension-catalog";
 import { extensionQuickstartUrl, extensionsCopy } from "@/data/extensions";
 import { homepageCopy } from "@/data/homepage";
@@ -209,9 +210,9 @@ export function HomeFeatures({ locale }: { locale: Locale }) {
 						</p>
 						<Link
 							className={`${link} mt-3`}
-							href={localePath(locale, "/pricing")}
+							href={localePath(locale, "/enterprise")}
 						>
-							{home.pricing}
+							{enterpriseCopy[locale].detailsLink}
 							<ArrowNarrowRightIcon />
 						</Link>
 					</div>

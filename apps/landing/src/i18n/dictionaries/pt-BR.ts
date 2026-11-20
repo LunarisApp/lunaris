@@ -694,7 +694,6 @@ const ptBR = {
 		obsidianComparison: "Lunaris vs. Obsidian",
 		notionComparison: "Lunaris vs. Notion",
 		tool: "Ferramentas",
-		wordCounter: "Contador de palavras",
 		resources: "Recursos",
 		trustCenter: "Central de confiança",
 		mcp: "MCP para agentes",

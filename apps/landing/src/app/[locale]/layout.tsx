@@ -96,11 +96,11 @@ export default async function LocaleLayout({
 		label: dict.footer.subprocessors,
 		href: legalDocumentPaths.subprocessors,
 	};
-	const wordCounter = {
-		label: dict.footer.wordCounter,
-		href: localePath(locale, "/tools/word-counter"),
-	};
 	const github = { label: "GitHub", href: repositoryUrl };
+	const enterprise = {
+		label: dict.pricing.plans.enterprise.name,
+		href: localePath(locale, "/enterprise"),
+	};
 	const product: NavGroup = {
 		label: dict.nav.product,
 		links: [
@@ -157,10 +157,14 @@ export default async function LocaleLayout({
 		],
 		related: { label: menu.security, links: [trust, subprocessors] },
 	};
-	const directLinks = [
-		{ label: dict.nav.pricing, href: localePath(locale, "/pricing") },
-		{ label: dict.nav.downloads, href: localePath(locale, "/downloads") },
-	];
+	const pricing = {
+		label: dict.nav.pricing,
+		href: localePath(locale, "/pricing"),
+	};
+	const downloads = {
+		label: dict.nav.downloads,
+		href: localePath(locale, "/downloads"),
+	};
 
 	return (
 		<html lang={locale} suppressHydrationWarning>
@@ -188,7 +192,7 @@ export default async function LocaleLayout({
 					<NavbarWithLinksAndActions
 						skipLabel={dict.accessibility.skipToContent}
 						groups={[product, developers, resources]}
-						directLinks={directLinks}
+						directLinks={[enterprise, pricing, downloads]}
 						appLink={
 							<div className="flex flex-wrap items-center gap-2">
 								<TrackedSoftButtonLink
@@ -300,16 +304,19 @@ export default async function LocaleLayout({
 						links={
 							<>
 								{[
-									product,
+									{
+										...product,
+										links: [...product.links, downloads],
+									},
 									{ ...developers, links: [...developers.links, github] },
 									comparisons,
 									{
 										...resources,
 										links: [
-											...directLinks,
+											pricing,
+											enterprise,
 											documentation,
 											{ label: "llms.txt", href: rootIndexPath },
-											wordCounter,
 											contact,
 										],
 									},

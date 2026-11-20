@@ -708,7 +708,6 @@ const fr = {
 		obsidianComparison: "Lunaris vs Obsidian",
 		notionComparison: "Lunaris vs Notion",
 		tool: "Outils",
-		wordCounter: "Compteur de mots",
 		resources: "Ressources",
 		trustCenter: "Centre de confiance",
 		mcp: "MCP pour les agents",
