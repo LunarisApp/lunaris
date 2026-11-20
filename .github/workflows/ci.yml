@@ -218,7 +218,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Build public SDK
         run: bun run --cwd packages/plugin-sdk build
-      - name: Build Agent Work sidecar
+      - name: Build Agent sidecar
         run: bun run --cwd apps/desktop build:agent
       - name: Fetch locked Rust dependencies
         env:

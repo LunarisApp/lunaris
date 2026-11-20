@@ -225,14 +225,14 @@ describe("Pi runtime", () => {
     const { runtime, events } = setup();
     await runtime.handle({ type: "prompt", id: "send", text: " " });
     expect(events).toEqual([
-      { type: "response", id: "send", error: "Invalid Agent Work command" },
+      { type: "response", id: "send", error: "Invalid Agent command" },
     ]);
   });
   it("reports malformed envelopes without inventing a request ID", async () => {
     const { runtime, events } = setup();
     await runtime.handle(null);
     expect(events).toEqual([
-      { type: "error", message: "Invalid Agent Work command" },
+      { type: "error", message: "Invalid Agent command" },
     ]);
   });
 });

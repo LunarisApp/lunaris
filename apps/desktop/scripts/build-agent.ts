@@ -28,7 +28,7 @@ await Bun.write(
 function compile(target: string) {
   const bunTarget = bunTargets[target];
   if (!bunTarget) {
-    throw new Error(`Unsupported Agent Work target: ${target}`);
+    throw new Error(`Unsupported Agent target: ${target}`);
   }
   const output = join(
     root,

@@ -1,7 +1,3 @@
-vi.mock("@repo/features/entitlements", () => ({
-  useFeatureAccess: () => ({ allowed: false, pending: false }),
-}));
-
 /** @vitest-environment happy-dom */
 
 import React, { useCallback, useState } from "react";
@@ -42,6 +38,11 @@ const {
   reloadPluginMock: vi.fn(),
 }));
 
+const featureAccess = vi.hoisted(() => ({ allowed: false, pending: false }));
+vi.mock("@repo/features/entitlements", () => ({
+  useFeatureAccess: () => featureAccess,
+}));
+
 vi.mock("evlog", () => ({
   log: {
     error: logErrorMock,
@@ -65,6 +66,7 @@ vi.mock("@repo/features/app-update", () => ({
 }));
 
 vi.mock("@repo/features/appbar", () => ({
+  useAppToolActive: () => true,
   Appbar: Object.assign(({ children }) => children ?? null, {
     Leading: ({ children }) => (
       <div data-testid="appbar-leading">{children}</div>
@@ -311,13 +313,14 @@ vi.mock("../components/skip-link", () => ({
 }));
 
 vi.mock("@lunarisapp/ui/components/button", () => ({
-  Button: () => null,
+  Button: ({ "aria-label": label }: { "aria-label"?: string }) =>
+    label ? <button aria-label={label} type="button" /> : null,
 }));
 
 vi.mock("@lunarisapp/ui/components/tooltip", () => ({
   Tooltip: ({ children }) => children ?? null,
   TooltipContent: ({ children }) => children ?? null,
-  TooltipTrigger: ({ children }) => children ?? null,
+  TooltipTrigger: ({ children, render }) => render ?? children ?? null,
 }));
 
 vi.mock("@lunarisapp/ui/icons", () => ({
@@ -490,7 +493,7 @@ describe("filterPanelWindowSession", () => {
     });
   });
 
-  it("restores legacy Agent Work windows without an installed extension", () => {
+  it("restores legacy Agent windows without an installed extension", () => {
     const session = {
       windowId: "agent-window",
       descriptor: {
@@ -504,7 +507,7 @@ describe("filterPanelWindowSession", () => {
       descriptor: {
         extensionId: "system-agent-work",
         viewId: "agent-work",
-        title: "Agent Work",
+        title: "Agent",
       },
     });
   });
@@ -1359,6 +1362,7 @@ describe("DesktopWorkspaceShell", () => {
 
   it("places app controls in the app bar and workspace status in the status bar", () => {
     mockDesktopShellEnv();
+    featureAccess.allowed = true;
 
     const AppBarLeading = () => (
       <>
@@ -1405,10 +1409,12 @@ describe("DesktopWorkspaceShell", () => {
 
     const trailing = screen.getByTestId("appbar-trailing");
     expect(
-      Array.from(trailing.children).map((element) =>
-        element.getAttribute("data-testid")
+      Array.from(trailing.children).map(
+        (element) =>
+          element.getAttribute("data-testid") ??
+          element.getAttribute("aria-label")
       )
-    ).toEqual(["help-trigger", "user-menu-trigger"]);
+    ).toEqual(["editor.agentWorkMini", "help-trigger", "user-menu-trigger"]);
   });
 
   it("provides workspace explorer data to content status bars", () => {
@@ -1948,6 +1954,7 @@ describe("DesktopWorkspaceShell", () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  featureAccess.allowed = false;
   cleanupPluginsMock.mockReset();
   cleanupPluginsMock.mockResolvedValue(undefined);
   extensionsPanelMock.mockClear();

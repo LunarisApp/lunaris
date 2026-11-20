@@ -4,10 +4,12 @@ import {
   cleanup,
   fireEvent,
   render,
+  renderHook,
   screen,
   waitFor,
 } from "@testing-library/react";
 import type { AgentWorkEvent, AgentWorkState } from "@repo/platform";
+import { AppToolVisibility } from "@repo/features/appbar";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import en from "../../features/src/locale/locales/en.json";
@@ -22,10 +24,24 @@ const runtime = vi.hoisted(() => ({
 vi.mock("./use-resource-mentions", () => ({
   useResourceMentionSearch: () => runtime.searchMentions,
 }));
-vi.mock("@repo/features/auth", () => ({ useAuth: vi.fn() }));
-vi.mock("@repo/features/api", () => ({ useApi: vi.fn() }));
+vi.mock("@repo/features/auth", () => ({
+  useAuth: () => ({
+    useSession: () => ({
+      data: {
+        user: { id: "user" },
+        session: { activeOrganizationId: "org" },
+      },
+    }),
+  }),
+}));
+vi.mock("@repo/features/api", () => ({
+  useApi: () => ({ baseUrl: "http://localhost" }),
+}));
+vi.mock("@repo/features/entitlements", () => ({
+  useFeatureAccess: () => ({ allowed: true, pending: false }),
+}));
 vi.mock("@repo/platform", () => ({
-  usePlatform: () => ({ agentWork: runtime }),
+  usePlatform: () => ({ kind: "desktop", agentWork: runtime }),
 }));
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -43,6 +59,8 @@ vi.mock("streamdown", () => ({
 }));
 import { stageAgentWorkPrompt } from "./launch";
 import { AgentWorkView } from "./view";
+import { AgentWorkSessionProvider } from "./session";
+import { useAgentWork } from "./use-agent-work";
 const scope = {
   apiUrl: "http://localhost",
   userId: "user",
@@ -101,7 +119,90 @@ const mount = (embedded = false, launchKey?: string) =>
     </StrictMode>
   );
 
-describe("Agent Work", () => {
+describe("Agent", () => {
+  it("keeps one connection and separate drafts for full Agent and Mini", async () => {
+    function Views({ full, mini }: { full: boolean; mini: boolean }) {
+      return (
+        <AgentWorkSessionProvider>
+          {full ? (
+            <AgentWorkView
+              variant="workbench"
+              AppBarLeading={() => null}
+              AppBarTrailing={() => null}
+              scope={scope}
+            />
+          ) : null}
+          {mini ? <AgentWorkView variant="panel" scope={scope} /> : null}
+        </AgentWorkSessionProvider>
+      );
+    }
+
+    const result = render(<Views full={false} mini />);
+    await waitFor(() =>
+      expect(runtime.request).toHaveBeenCalledWith({ type: "status" })
+    );
+    const miniInput = screen.getByRole<HTMLInputElement>("textbox", {
+      name: "Message the agent",
+    });
+    fireEvent.change(miniInput, { target: { value: "Mini draft" } });
+    result.rerender(<Views full mini />);
+    const inputs = await screen.findAllByRole<HTMLInputElement>("textbox", {
+      name: "Message the agent",
+    });
+    expect(inputs).toHaveLength(2);
+    const fullInput = inputs.find((input) => input !== miniInput)!;
+    expect(fullInput.value).toBe("");
+    fireEvent.change(fullInput, { target: { value: "Full draft" } });
+    expect(miniInput.value).toBe("Mini draft");
+    expect(runtime.connect).toHaveBeenCalledOnce();
+    expect(runtime.close).not.toHaveBeenCalled();
+
+    act(() => {
+      runtime.listener?.({
+        type: "state",
+        state: { ...state, sessionId: "other-conversation" },
+      });
+    });
+    expect(fullInput.value).toBe("");
+    expect(miniInput.value).toBe("");
+    act(() => runtime.listener?.({ type: "state", state }));
+    expect(fullInput.value).toBe("Full draft");
+    expect(miniInput.value).toBe("Mini draft");
+
+    result.rerender(<Views full mini={false} />);
+    expect(fullInput.value).toBe("Full draft");
+    expect(runtime.close).not.toHaveBeenCalled();
+    result.rerender(<Views full={false} mini={false} />);
+    await waitFor(() => expect(runtime.close).toHaveBeenCalledOnce());
+  });
+
+  it("waits for in-flight startup and teardown before connecting a replacement scope", async () => {
+    const startup = Promise.withResolvers<typeof runtime>();
+    const teardown = Promise.withResolvers<void>();
+    runtime.connect.mockReturnValueOnce(startup.promise);
+    runtime.close.mockReturnValueOnce(teardown.promise);
+    const view = renderHook((props) => useAgentWork(props), {
+      initialProps: scope,
+    });
+    await waitFor(() => expect(runtime.connect).toHaveBeenCalledOnce());
+    const newScope = { ...scope, organizationId: "new-org" };
+    view.rerender(newScope);
+    expect(runtime.connect).toHaveBeenCalledOnce();
+
+    await act(async () => startup.resolve(runtime));
+    expect(runtime.close).toHaveBeenCalledOnce();
+    expect(runtime.connect).toHaveBeenCalledOnce();
+    expect(runtime.request).not.toHaveBeenCalled();
+
+    await act(async () => teardown.resolve());
+    expect(runtime.connect).toHaveBeenCalledTimes(2);
+    expect(runtime.connect).toHaveBeenLastCalledWith(
+      newScope,
+      expect.any(Function)
+    );
+    expect(view.result.current.runtimeReady).toBe(true);
+  });
+
   it("submits a homepage prompt once across remounts", async () => {
     const text = "Outline the next chapter";
     const key = stageAgentWorkPrompt({ ...scope, text, submit: true });
@@ -121,6 +222,38 @@ describe("Agent Work", () => {
         ([command]) => command.type === "prompt"
       )
     ).toHaveLength(1);
+  });
+
+  it("submits a homepage prompt when the retained Agent view becomes active", async () => {
+    const agentView = (active: boolean, launchKey?: string) => (
+      <AppToolVisibility active={active}>
+        <AgentWorkView
+          variant="workbench"
+          launchKey={launchKey}
+          AppBarLeading={() => null}
+          AppBarTrailing={() => null}
+          scope={scope}
+        />
+      </AppToolVisibility>
+    );
+    const view = render(agentView(true));
+    const composer = () =>
+      screen.getByRole<HTMLTextAreaElement>("textbox", {
+        name: "Message the agent",
+      });
+    await waitFor(() => expect(composer().disabled).toBe(false));
+    fireEvent.change(composer(), { target: { value: "Saved draft" } });
+
+    const text = "Outline the next chapter";
+    const key = stageAgentWorkPrompt({ ...scope, text, submit: true });
+    const prompt = { type: "prompt", text, modelId: state.modelId };
+    view.rerender(agentView(false, key));
+    expect(runtime.request).not.toHaveBeenCalledWith(prompt);
+
+    view.rerender(agentView(true, key));
+    await waitFor(() => expect(runtime.request).toHaveBeenCalledWith(prompt));
+    expect(composer().value).toBe("Saved draft");
+    expect(runtime.connect).toHaveBeenCalledOnce();
   });
 
   it("clears approvals and sign-in UI after disconnection, then reconnects", async () => {
@@ -145,7 +278,7 @@ describe("Agent Work", () => {
     act(() =>
       runtime.listener?.({
         type: "disconnected",
-        message: "Agent Work disconnected",
+        message: "Agent disconnected",
       })
     );
     expect(composer().disabled).toBe(true);
@@ -167,7 +300,7 @@ describe("Agent Work", () => {
       runtime.listener?.({ type: "state", state });
       runtime.listener?.({
         type: "disconnected",
-        message: "Agent Work disconnected",
+        message: "Agent disconnected",
       });
     });
     mount(true);
@@ -259,6 +392,29 @@ describe("Agent Work", () => {
       })
     );
   });
+
+  it("keeps a draft edited during the first prompt with the new conversation", async () => {
+    mount(true);
+    const composer = () =>
+      screen.getByRole<HTMLTextAreaElement>("textbox", {
+        name: "Message the agent",
+      });
+    await waitFor(() => expect(composer().disabled).toBe(false));
+    const prompt = Promise.withResolvers<void>();
+    runtime.request.mockReturnValueOnce(prompt.promise);
+    fireEvent.change(composer(), { target: { value: "First message" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+    fireEvent.change(composer(), { target: { value: "Follow-up draft" } });
+    await act(async () => {
+      runtime.listener?.({
+        type: "state",
+        state: { ...state, sessionId: "new-conversation" },
+      });
+      prompt.resolve();
+    });
+    expect(composer().value).toBe("Follow-up draft");
+  });
+
   it("shows resource changes and sends the explicit approval choice", async () => {
     mount();
     await waitFor(() => expect(runtime.listener).not.toBeNull());

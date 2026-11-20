@@ -15,6 +15,7 @@ import { useIsMobile } from "@lunarisapp/ui/hooks/use-mobile";
 import { cn } from "@lunarisapp/ui/lib/utils";
 import type { WorkspaceResourceEntity } from "@repo/data/features/workspace-resources";
 import { useWorkspaceStorageSlots } from "@repo/data/features/workspace-storage-slots";
+import { useAppToolActive } from "@repo/features/appbar";
 import { useSearchDialogStore } from "../../search/hooks/useSearchDialog";
 import { useCurrentWorkspace } from "../../workspace";
 import { usePreloadViewport } from "../hooks/use-preload-viewport";
@@ -63,6 +64,7 @@ export function WorkspaceExplorerTree({
   ...props
 }: HTMLAttributes<HTMLDivElement> & { footerActions?: ReactNode }) {
   const { t } = useTranslation();
+  const appToolActive = useAppToolActive();
   const { openResource } = useOrganizationNavigation();
 
   const handleOpenResource = useCallback(
@@ -402,7 +404,7 @@ export function WorkspaceExplorerTree({
         description={deleteDialogDescription}
         onConfirm={handleConfirmDelete}
         onOpenChange={setConfirmDeleteOpen}
-        open={confirmDeleteOpen}
+        open={appToolActive && confirmDeleteOpen}
         title={t("common.areYouSure")}
       />
     </nav>

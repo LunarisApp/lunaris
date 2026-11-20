@@ -13,6 +13,7 @@ import { useIsMobile } from "@lunarisapp/ui/hooks/use-mobile";
 import { cn } from "@lunarisapp/ui/lib/utils";
 import { permission } from "@repo/auth/permissions";
 import type { WorkspaceResourceEntity } from "@repo/data/features/workspace-resources";
+import { useAppToolActive } from "@repo/features/appbar";
 import { usePlatform } from "@repo/platform";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -58,6 +59,7 @@ export function WorkspaceTreeItem({
   observePreload?: ObservePreloadRow;
 }) {
   const { t } = useTranslation();
+  const appToolActive = useAppToolActive();
   const { clipboard, navigation } = usePlatform();
   const { deleteResources, duplicateResource } = useWorkspaceActions();
   const { canCreate, createFolder } = useWorkspaceResourceCreation();
@@ -225,7 +227,7 @@ export function WorkspaceTreeItem({
           description={deleteDescription}
           onConfirm={handleConfirmDelete}
           onOpenChange={setConfirmDeleteOpen}
-          open={confirmDeleteOpen}
+          open={appToolActive && confirmDeleteOpen}
           title={t("common.areYouSure")}
         />
       </>
@@ -261,7 +263,7 @@ export function WorkspaceTreeItem({
         description={deleteDescription}
         onConfirm={handleConfirmDelete}
         onOpenChange={setConfirmDeleteOpen}
-        open={confirmDeleteOpen}
+        open={appToolActive && confirmDeleteOpen}
         title={t("common.areYouSure")}
       />
     </>

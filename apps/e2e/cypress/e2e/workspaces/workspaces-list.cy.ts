@@ -74,7 +74,7 @@ describe("workspaces/workspaces-list", () => {
     cy.get('[data-testid="workspaces-search"]').click();
     cy.get('[data-testid="workspaces-search"]').type("beac");
     cy.contains('[role="option"]', "Beacon").should("be.visible");
-    cy.contains('[role="option"]', "Ask Agent Work").should("not.exist");
+    cy.contains('[role="option"]', "Ask Agent").should("not.exist");
     cy.get('[role="option"]').filter(':contains("Atlas")').should("not.exist");
     cy.get('[data-testid="workspaces-search"]').type("{esc}");
 

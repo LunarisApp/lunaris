@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useAppToolActive } from "@repo/features/appbar";
 import { HOTKEYS, useResolvedHotkeyBinding } from "@repo/features/hotkeys";
 import { useGridLayoutStore } from "../context";
 
@@ -10,6 +11,7 @@ import { useGridLayoutStore } from "../context";
  * lets the event bubble so the tree rename handler can pick it up.
  */
 export function useRenameActiveResource() {
+  const appToolActive = useAppToolActive();
   const requestRenameActiveResource = useGridLayoutStore(
     (s) => s.requestRenameActiveResource
   );
@@ -17,6 +19,9 @@ export function useRenameActiveResource() {
   const key = useResolvedHotkeyBinding(HOTKEYS["rename-resource"]);
 
   useEffect(() => {
+    if (!appToolActive) {
+      return;
+    }
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === key) {
         const resourceId = dockviewApi?.activePanel?.params?.resourceId;
@@ -30,5 +35,5 @@ export function useRenameActiveResource() {
 
     document.addEventListener("keydown", handleKeyDown, true);
     return () => document.removeEventListener("keydown", handleKeyDown, true);
-  }, [requestRenameActiveResource, dockviewApi, key]);
+  }, [appToolActive, requestRenameActiveResource, dockviewApi, key]);
 }

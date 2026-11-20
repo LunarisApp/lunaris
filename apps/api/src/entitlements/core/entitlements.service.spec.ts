@@ -335,7 +335,7 @@ describe("EntitlementsService organization resolution", () => {
     }
   );
 
-  it("does not advertise Agent Work to anonymous users", async () => {
+  it("does not advertise Agent to anonymous users", async () => {
     const snapshot = await makeService({
       developmentPlan: PLAN.business,
       rows: [[], [{ value: 0 }]],
@@ -435,7 +435,7 @@ describe("EntitlementsService organization resolution", () => {
   });
 
   it.each(Object.values(PLAN))(
-    "gates Agent Work on %s with only the shared flag",
+    "gates Agent on %s with only the shared flag",
     async (plan) => {
       for (const enabled of [false, true]) {
         const evaluateFlags = mock(async () => ({
@@ -465,7 +465,7 @@ describe("EntitlementsService organization resolution", () => {
     }
   );
 
-  it("fails Agent Work closed without flag evaluation", async () => {
+  it("fails Agent closed without flag evaluation", async () => {
     const params = {
       feature: FEATURE.agentWork,
       organizationId: "organization-1",

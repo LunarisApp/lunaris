@@ -9,6 +9,7 @@ import {
   removeWorkspace,
 } from "@repo/data/features/workspaces";
 import { useAuth } from "@repo/features/auth/context";
+import { useAppToolActive } from "@repo/features/appbar";
 import { useCanDeleteWorkspace } from "@repo/workspaces/permissions";
 import { useRegion } from "@repo/features/region";
 import { clearRecentFilesForWorkspace } from "../../search/hooks/useRecentFiles";
@@ -38,6 +39,7 @@ export function WorkspaceResource({
   organizationSlug,
 }: WorkspaceResourceProps) {
   const { t } = useTranslation();
+  const appToolActive = useAppToolActive();
   const { pathWithRegion } = useRegion();
   const navigate = useNavigate();
   const db = usePowerSync();
@@ -233,7 +235,7 @@ export function WorkspaceResource({
           description={t("workspaces.deleteWorkspaceConfirmation")}
           onConfirm={handleDelete}
           onOpenChange={setDeleteDialogOpen}
-          open={deleteDialogOpen}
+          open={appToolActive && deleteDialogOpen}
           title={t("common.areYouSure")}
         />
       )}

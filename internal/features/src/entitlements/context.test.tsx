@@ -155,7 +155,7 @@ describe("organization entitlement snapshots", () => {
     expect(api.get).not.toHaveBeenCalled();
   });
 
-  it("uses only live snapshots for Agent Work access", async () => {
+  it("uses only live snapshots for Agent access", async () => {
     writeEntitlementSnapshot(
       "eu",
       "user-1",
@@ -183,7 +183,7 @@ describe("organization entitlement snapshots", () => {
     );
   });
 
-  it("removes Agent Work access when a live refresh fails", async () => {
+  it("removes Agent access when a live refresh fails", async () => {
     api.get.mockResolvedValue(
       makeSnapshot(PLAN.plus, "organization-1", {
         features: { "agent-work": true },

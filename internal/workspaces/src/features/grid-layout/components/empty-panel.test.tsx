@@ -173,7 +173,7 @@ describe("GridLayoutEmptyPanel", () => {
     availableResources = [documentType];
   });
 
-  it("submits an unmatched workspace search to Agent Work with Enter", async () => {
+  it("submits an unmatched workspace search to Agent with Enter", async () => {
     const user = userEvent.setup();
     renderEmptyPanel();
     await user.click(screen.getByRole("button", { name: "common.search" }));

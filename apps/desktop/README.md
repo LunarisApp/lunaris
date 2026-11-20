@@ -6,7 +6,7 @@ the [EE license](../../ee/LICENSE).
 
 Native desktop client for Lunaris, built with Tauri v2 and the shared React
 application shell. Adds native sync, OS keychain authentication, local MCP
-access, and the bundled [Agent Work runtime](agent-work/README.md).
+access, and the bundled [Agent runtime](agent-work/README.md).
 
 ## Local development
 
@@ -116,7 +116,7 @@ signing jobs use the `release` environment and delete temporary credentials and
 keychains even when a build fails.
 
 The macOS entitlements enable JIT for the compiled Bun sidecar. Release checks
-inspect its final signature and request Agent Work status without logging in.
+inspect its final signature and request Agent status without logging in.
 The app and DMG must pass Gatekeeper and stapling validation. Use a fresh release
 version when moving from ad-hoc signing: native jobs reject cached ad-hoc assets.
 

@@ -58,7 +58,12 @@ export function createWorkspaceRoutes({
             return {
               Component: () => (
                 <WorkspacesEntry initialLocationKey={initialLocationKey}>
-                  <WorkspacesPage shell={shell} />
+                  <WorkspacesPage
+                    AppBarLeading={
+                      shell === "desktop" ? AppBarLeading : undefined
+                    }
+                    shell={shell}
+                  />
                 </WorkspacesEntry>
               ),
             };

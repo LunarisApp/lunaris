@@ -1211,7 +1211,7 @@ describe("GridLayoutStore", () => {
     expect(result.current.panels[0]?.params?.viewId).toBe("extensions");
   });
 
-  it("opens Agent Work Mini on the right without replacing resource panels", () => {
+  it("opens Agent Mini on the right without replacing resource panels", () => {
     const { result } = renderHook(() => useGridLayoutStoreState(), {
       wrapper: Wrapper,
     });
@@ -1231,7 +1231,7 @@ describe("GridLayoutStore", () => {
         toolId: "agent-work",
         pluginId: "system-agent-work",
         renderer: "agent-work",
-        title: "Agent Work",
+        title: "Agent",
         target: { direction: "right" },
       });
     });
@@ -1243,7 +1243,7 @@ describe("GridLayoutStore", () => {
         toolId: "agent-work",
         pluginId: "system-agent-work",
         renderer: "agent-work",
-        title: "Agent Work",
+        title: "Agent",
         target: { direction: "right" },
       });
     });
@@ -1281,7 +1281,7 @@ describe("GridLayoutStore", () => {
         toolId: "agent-work",
         pluginId: "system-agent-work",
         renderer: "agent-work",
-        title: "Agent Work Mini",
+        title: "Agent Mini",
       };
       const plugin = {
         pluginId: "test",

@@ -5,6 +5,7 @@ import {
   WORKSPACE_INDEX_SYNC_STREAMS,
 } from "@repo/data/features/workspaces";
 import { LoaderView } from "@repo/features/loading";
+import { useAppToolActive } from "@repo/features/appbar";
 import { useAllPermissions } from "@repo/features/permissions";
 import { useRegionClients } from "@repo/features/region";
 import { type ReactNode, useEffect, useState } from "react";
@@ -94,6 +95,7 @@ function AvailableWorkspace({
   organizationSlug: string;
   saved: NonNullable<ReturnType<typeof readLastWorkspace>>;
 }) {
+  const appToolActive = useAppToolActive();
   const syncAccess = useSyncAccess();
   const query = useWorkspacesQuery({
     id: saved.workspaceId,
@@ -119,7 +121,7 @@ function AvailableWorkspace({
   if (finished || showList) {
     return children;
   }
-  if (pending) {
+  if (pending || !appToolActive) {
     return <LoaderView />;
   }
   if (!workspace?.slug) {

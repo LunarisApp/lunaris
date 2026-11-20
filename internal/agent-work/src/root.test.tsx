@@ -41,7 +41,7 @@ it.each([
   { allowed: false, pending: false },
   { allowed: true, pending: true },
 ])(
-  "blocks both presentations while access is $allowed, pending $pending",
+  "keeps navigation available while access is $allowed, pending $pending",
   (state) => {
     Object.assign(access, state);
     const { container } = render(
@@ -49,12 +49,17 @@ it.each([
         <AgentWorkRoot variant="panel" />
         <AgentWorkRoot
           variant="workbench"
-          AppBarLeading={() => null}
+          AppBarLeading={() => <button type="button">Workspaces</button>}
           AppBarTrailing={() => null}
         />
       </>
     );
-    expect(container.textContent).toBe("");
+    expect(screen.getByRole("button", { name: "Workspaces" })).toBeTruthy();
+    expect(screen.queryByText("panel")).toBeNull();
+    expect(screen.queryByText("workbench")).toBeNull();
+    expect(container.textContent).toContain(
+      state.pending ? "common.loading" : "agentWork.unavailable"
+    );
   }
 );
 

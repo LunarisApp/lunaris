@@ -1,6 +1,7 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useAppToolActive } from "@repo/features/appbar";
 import {
   createHotkeyOptions,
   HOTKEYS,
@@ -14,6 +15,7 @@ import { useGridLayoutStore } from "../context";
  */
 export function useFocusMode() {
   const { t } = useTranslation();
+  const appToolActive = useAppToolActive();
   const toggleFocusMode = useGridLayoutStore((s) => s.toggleFocusMode);
   const exitFocusMode = useGridLayoutStore((s) => s.exitFocusMode);
   const dockviewApi = useGridLayoutStore((s) => s.dockviewApi);
@@ -49,11 +51,11 @@ export function useFocusMode() {
 
   // Set data attribute on root for CSS-driven focus mode
   useEffect(() => {
-    if (isFocusMode) {
+    if (appToolActive && isFocusMode) {
       document.documentElement.setAttribute("data-focus-mode", "");
     } else {
       document.documentElement.removeAttribute("data-focus-mode");
     }
     return () => document.documentElement.removeAttribute("data-focus-mode");
-  }, [isFocusMode]);
+  }, [appToolActive, isFocusMode]);
 }

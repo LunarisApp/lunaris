@@ -163,7 +163,7 @@ describe("homepage command menu", () => {
     expect(screen.queryByRole("listbox")).toBeNull();
   });
 
-  it("completes filters and offers the typed prompt to Agent Work", async () => {
+  it("completes filters and offers the typed prompt to Agent", async () => {
     const askAgent = vi.fn();
     renderHomepage(vi.fn(), askAgent);
     const input = screen.getByRole("combobox");

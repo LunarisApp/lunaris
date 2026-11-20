@@ -23,16 +23,14 @@ export async function runAgentWorkSmoke(binary: string): Promise<void> {
     await new Promise<void>((resolve, reject) => {
       let receivedState = false;
       timer = setTimeout(
-        () => reject(new Error("Agent Work status timed out")),
+        () => reject(new Error("Agent status timed out")),
         15_000
       );
       child.once("error", reject);
       child.stdin.on("error", reject);
       child.once("close", (code) => {
         reject(
-          new Error(
-            `Agent Work exited before status completed (${code}): ${stderr}`
-          )
+          new Error(`Agent exited before status completed (${code}): ${stderr}`)
         );
       });
       lines.on("line", (line) => {
@@ -50,12 +48,12 @@ export async function runAgentWorkSmoke(binary: string): Promise<void> {
             receivedState = true;
           } else if (event.type === "response" && event.id === "smoke") {
             if (event.error || !receivedState) {
-              reject(new Error(event.error ?? "Agent Work returned no state"));
+              reject(new Error(event.error ?? "Agent returned no state"));
             } else {
               resolve();
             }
           } else if (event.type === "error") {
-            reject(new Error(`Agent Work failed: ${line}`));
+            reject(new Error(`Agent failed: ${line}`));
           }
         } catch (error) {
           reject(error);
