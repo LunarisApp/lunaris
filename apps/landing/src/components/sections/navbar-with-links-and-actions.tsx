@@ -123,7 +123,6 @@ export function NavbarWithLinksAndActions({
 	homeHref,
 	logo,
 	appLink,
-	settings,
 	skipLabel,
 	navigationLabel,
 	openMenuLabel,
@@ -134,7 +133,6 @@ export function NavbarWithLinksAndActions({
 	homeHref: string;
 	logo: ReactNode;
 	appLink: ReactNode;
-	settings: ReactNode;
 	skipLabel: string;
 	navigationLabel: string;
 	openMenuLabel: string;
@@ -202,7 +200,6 @@ export function NavbarWithLinksAndActions({
 					</NavigationMenuList>
 				</NavigationMenu>
 				<div className="flex items-center gap-1.5 lg:gap-2">
-					{settings}
 					<div className="ml-2 hidden lg:block">{appLink}</div>
 					<button
 						aria-label={openMenuLabel}

@@ -217,22 +217,6 @@ export default async function LocaleLayout({
 								</TrackedButtonLink>
 							</div>
 						}
-						settings={
-							<>
-								<LanguageSwitcher
-									currentLocale={locale}
-									label={dict.accessibility.switchLanguage}
-								/>
-								<ThemeSwitcher
-									labels={{
-										toggle: dict.accessibility.switchTheme,
-										light: dict.accessibility.lightTheme,
-										dark: dict.accessibility.darkTheme,
-										system: dict.accessibility.systemTheme,
-									}}
-								/>
-							</>
-						}
 						openMenuLabel={dict.accessibility.openMenu}
 						closeMenuLabel={dict.accessibility.closeMenu}
 						navigationLabel={dict.accessibility.primaryNavigation}
@@ -266,7 +250,7 @@ export default async function LocaleLayout({
 
 					<Footer
 						fineprint={
-							<div className="flex items-center justify-between gap-6">
+							<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
 								<span>{dict.footer.fineprint}</span>
 								<div className="flex items-center gap-3">
 									<a
@@ -297,6 +281,20 @@ export default async function LocaleLayout({
 									>
 										<X variant="mono" aria-hidden="true" className="size-5" />
 									</a>
+								</div>
+								<div className="flex items-center gap-2">
+									<LanguageSwitcher
+										currentLocale={locale}
+										label={dict.accessibility.switchLanguage}
+									/>
+									<ThemeSwitcher
+										labels={{
+											toggle: dict.accessibility.switchTheme,
+											light: dict.accessibility.lightTheme,
+											dark: dict.accessibility.darkTheme,
+											system: dict.accessibility.systemTheme,
+										}}
+									/>
 								</div>
 							</div>
 						}
