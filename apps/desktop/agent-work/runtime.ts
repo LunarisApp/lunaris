@@ -22,6 +22,8 @@ import { resourceToolDefinitions } from "./tools";
 import { projectMessages } from "./messages";
 
 const provider = "openai-codex";
+// The catalog gates models by Codex client version, independent of Lunaris releases.
+const codexCatalogClientVersion = "0.170.0";
 type PendingTool = {
   resolve: (value: unknown) => void;
   reject: (error: Error) => void;
@@ -99,7 +101,7 @@ export class AgentWorkRuntime {
       throw new Error("Connect your ChatGPT account first");
     }
     const response = await fetch(
-      "https://chatgpt.com/backend-api/codex/models?client_version=0.0.1",
+      `https://chatgpt.com/backend-api/codex/models?client_version=${codexCatalogClientVersion}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -123,8 +125,13 @@ export class AgentWorkRuntime {
             priority: z.number(),
             context_window: z.number().positive().nullish(),
             input_modalities: z
-              .array(z.enum(["text", "image"]))
-              .default(["text"]),
+              .array(z.string())
+              .default(["text"])
+              .transform((modalities) =>
+                modalities.filter(
+                  (modality) => modality === "text" || modality === "image"
+                )
+              ),
           })
         ),
       })
@@ -141,15 +148,20 @@ export class AgentWorkRuntime {
         maxTokens: Math.min(model.context_window ?? 128_000, 128_000),
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
       }));
+    if (!this.models.some((model) => model.id === this.selectedModel)) {
+      this.selectedModel = this.models[0]?.id ?? "";
+    }
+    if (!this.models.length) {
+      throw new Error(
+        "No ChatGPT models are available. Reconnect to try again."
+      );
+    }
     this.registry.registerProvider(provider, {
       oauth: openaiCodexOAuthProvider,
       api: "openai-codex-responses",
       baseUrl: "https://chatgpt.com/backend-api",
       models: this.models,
     });
-    if (!this.models.some((model) => model.id === this.selectedModel)) {
-      this.selectedModel = this.models[0]?.id ?? "";
-    }
   }
 
   private schedulePublish() {
