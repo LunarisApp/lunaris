@@ -14,6 +14,11 @@ import { posthogApiOrigin } from "./src/lib/posthog-config";
 
 const posthogOrigin = posthogApiOrigin();
 
+const markdownRewrites = markdownPages.map(({ path }) => {
+	const source = markdownPath(path);
+	return { source, destination: `/markdown${source}` };
+});
+
 const contentSecurityPolicy = [
 	"default-src 'self'",
 	"base-uri 'self'",
@@ -35,13 +40,16 @@ const nextConfig: NextConfig = {
 	},
 	poweredByHeader: false,
 	async rewrites() {
-		return markdownPages.map(({ path }) => {
-			const source = markdownPath(path);
-			return { source, destination: `/markdown${source}` };
-		});
+		return markdownRewrites;
 	},
 	async redirects() {
 		return [
+			// Redirect direct requests to the rewrite destinations to the public URLs.
+			...markdownRewrites.map(({ source, destination }) => ({
+				source: destination,
+				destination: source,
+				permanent: true,
+			})),
 			{
 				source: legalDocumentPaths.privacy,
 				destination: legalDocumentUrls.privacy,

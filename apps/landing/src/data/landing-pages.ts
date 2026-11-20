@@ -36,7 +36,8 @@ export const markdownPages = [
 	{
 		path: "/mcp",
 		title: "Connect with MCP",
-		description: "Connect an MCP client to Lunaris Cloud or Desktop.",
+		description:
+			"Connect an MCP client through Lunaris Cloud, Desktop, or CLI.",
 		section: "Product",
 	},
 	...extensionCatalog.map((extension) => ({

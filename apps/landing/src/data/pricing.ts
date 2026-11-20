@@ -2,7 +2,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/types";
 import { localePath } from "@/i18n/locale-path";
 
-type Plan = {
+export type Plan = {
 	id: "business" | "enterprise" | "free" | "plus";
 	name: string;
 	price: { monthly: string; yearly: string };
@@ -16,6 +16,14 @@ type Plan = {
 
 type PlanGroups = {
 	all: Plan[];
+};
+
+type PlanFeatureValue = string | boolean;
+type PlanFeatureValues = Record<Plan["id"], PlanFeatureValue>;
+
+export type PlanComparisonGroup = {
+	title: string;
+	features: { name: string; values: PlanFeatureValues }[];
 };
 
 export function getPlans(dict: Dictionary, locale: Locale): PlanGroups {
@@ -76,27 +84,22 @@ export function getPlans(dict: Dictionary, locale: Locale): PlanGroups {
 	};
 }
 
-export function getPlanComparison(dict: Dictionary) {
-	const { free, plus, business, enterprise } = dict.pricing.plans;
+export function getPlanComparison(dict: Dictionary): PlanComparisonGroup[] {
 	const { comparisonTable, labels, storage } = dict.pricingPage;
 	const { core, extensions, support, securityCompliance } =
 		comparisonTable.categories;
 	const { unlimited } = labels;
 
-	function byPlan<T extends string | boolean>(
-		freeValue: T,
-		plusValue: T,
-		businessValue: T,
-		enterpriseValue: T,
-	) {
-		return {
-			[free.name]: freeValue,
-			[plus.name]: plusValue,
-			[business.name]: businessValue,
-			[enterprise.name]: enterpriseValue,
-		};
+	function byPlan(
+		free: PlanFeatureValue,
+		plus: PlanFeatureValue,
+		business: PlanFeatureValue,
+		enterprise: PlanFeatureValue,
+	): PlanFeatureValues {
+		return { free, plus, business, enterprise };
 	}
 
+	const included = byPlan(true, true, true, true);
 	const businessAndEnterprise = byPlan(false, false, true, true);
 	const enterpriseOnly = byPlan(false, false, false, true);
 
@@ -104,52 +107,45 @@ export function getPlanComparison(dict: Dictionary) {
 		{
 			title: core.title,
 			features: [
-				{ name: core.features.workspaces, value: unlimited },
+				{
+					name: core.features.workspaces,
+					values: byPlan(unlimited, unlimited, unlimited, unlimited),
+				},
 				{
 					name: core.features.items,
-					value: byPlan("25", unlimited, unlimited, unlimited),
+					values: byPlan("25", unlimited, unlimited, unlimited),
 				},
 				{
 					name: core.features.members,
-					value: byPlan("3", "10", unlimited, unlimited),
+					values: byPlan("3", "10", unlimited, unlimited),
 				},
 				{
 					name: storage.poolLabel,
-					value: byPlan(
-						storage.pools.free,
-						storage.pools.plus,
-						storage.pools.business,
-						storage.pools.enterprise,
-					),
+					values: storage.pools,
 				},
 				{
 					name: storage.fileLabel,
-					value: byPlan(
-						storage.files.free,
-						storage.files.plus,
-						storage.files.business,
-						storage.files.enterprise,
-					),
+					values: storage.files,
 				},
-				{ name: core.features.cloudSync, value: true },
+				{ name: core.features.cloudSync, values: included },
 			],
 		},
 		{
 			title: extensions.title,
 			features: [
-				{ name: extensions.features.richTextEditor, value: true },
-				{ name: extensions.features.whiteboard, value: true },
-				{ name: extensions.features.kanbanBoard, value: true },
-				{ name: extensions.features.compiler, value: true },
-				{ name: extensions.features.allOther, value: businessAndEnterprise },
+				{ name: extensions.features.richTextEditor, values: included },
+				{ name: extensions.features.whiteboard, values: included },
+				{ name: extensions.features.kanbanBoard, values: included },
+				{ name: extensions.features.compiler, values: included },
+				{ name: extensions.features.allOther, values: businessAndEnterprise },
 			],
 		},
 		{
 			title: support.title,
 			features: [
-				{ name: support.features.community, value: true },
-				{ name: support.features.priority, value: businessAndEnterprise },
-				{ name: support.features.dedicated, value: enterpriseOnly },
+				{ name: support.features.community, values: included },
+				{ name: support.features.priority, values: businessAndEnterprise },
+				{ name: support.features.dedicated, values: enterpriseOnly },
 			],
 		},
 		{
@@ -157,11 +153,11 @@ export function getPlanComparison(dict: Dictionary) {
 			features: [
 				{
 					name: securityCompliance.features.customRoles,
-					value: enterpriseOnly,
+					values: enterpriseOnly,
 				},
-				{ name: securityCompliance.features.sla, value: enterpriseOnly },
-				{ name: securityCompliance.features.sso, value: enterpriseOnly },
-				{ name: securityCompliance.features.soc2, value: enterpriseOnly },
+				{ name: securityCompliance.features.sla, values: enterpriseOnly },
+				{ name: securityCompliance.features.sso, values: enterpriseOnly },
+				{ name: securityCompliance.features.soc2, values: enterpriseOnly },
 			],
 		},
 	];

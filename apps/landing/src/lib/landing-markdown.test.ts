@@ -19,11 +19,14 @@ import {
 } from "./landing-markdown";
 import { legalDocumentUrls, trustCenterUrl } from "./legal-document-links";
 
-function indexUrls(index: string) {
-	return Array.from(index.matchAll(/\]\(([^)]+)\)/g), ([, url]) => url).sort();
+function markdownLinks(markdown: string) {
+	return Array.from(
+		markdown.matchAll(/\]\(([^)]+)\)/g),
+		([, url]) => url,
+	).sort();
 }
 
-test("the root and extension indexes cover their respective pages", () => {
+test("the landing page registry covers the HTML routes", () => {
 	const pagesDirectory = fileURLToPath(
 		new URL("../app/[locale]/", import.meta.url),
 	);
@@ -33,9 +36,6 @@ test("the root and extension indexes cover their respective pages", () => {
 	);
 	const staticRoutes = routes.filter((path) => path !== "/extensions/[slug]");
 	const htmlOnlyRoutes = ["/demo", "/watch", "/tools/word-counter"];
-	const rootRoutes = staticRoutes.filter(
-		(path) => !htmlOnlyRoutes.includes(path),
-	);
 	const extensionRoutes = extensionCatalog.map(
 		({ slug }) => `/extensions/${slug}`,
 	);
@@ -43,21 +43,27 @@ test("the root and extension indexes cover their respective pages", () => {
 	expect(landingPages.map(({ path }) => path).sort()).toEqual(
 		[...staticRoutes, ...extensionRoutes].sort(),
 	);
-	expect(markdownPages.map(({ path }) => path).sort()).toEqual(
-		[...rootRoutes, ...extensionRoutes].sort(),
-	);
+	expect(
+		markdownPages.filter(({ path }) => htmlOnlyRoutes.includes(path)),
+	).toEqual([]);
+});
+
+test("the root index links to selected companions and the scoped catalog", () => {
 	const index = renderLlmsIndex();
 	expect(index).toStartWith("# Lunaris\n\n> ");
 	const socialSection = index
 		.split("## Social networks\n\n")[1]
 		?.split("\n## ")[0];
 	expect(socialSection).toContain(`[Lunaris on GitHub](${repositoryUrl})`);
-	expect(indexUrls(index)).toEqual(
+	expect(markdownLinks(index)).toEqual(
 		[
-			...rootRoutes.map((path) => `${siteUrl}${markdownPath(path)}`),
+			...markdownPages
+				.filter((page) => "section" in page && !("extension" in page))
+				.map(({ path }) => `${siteUrl}${markdownPath(path)}`),
 			`${docsUrl}/getting-started`,
 			docsUrl,
 			`${siteUrl}/downloads#cli`,
+			`${siteUrl}${extensionIndexPath}`,
 			extensionQuickstartUrl,
 			repositoryUrl,
 			...Object.values(legalDocumentUrls),
@@ -65,10 +71,15 @@ test("the root and extension indexes cover their respective pages", () => {
 			...Object.values(socialProfileUrls),
 		].sort(),
 	);
+});
+
+test("the extension index links to every extension companion", () => {
 	const catalogIndex = renderExtensionIndex();
 	expect(catalogIndex).toStartWith("# Lunaris extension catalog\n\n> ");
-	expect(indexUrls(catalogIndex)).toEqual(
-		extensionRoutes.map((path) => `${siteUrl}${markdownPath(path)}`).sort(),
+	expect(markdownLinks(catalogIndex)).toEqual(
+		extensionCatalog
+			.map(({ slug }) => `${siteUrl}${markdownPath(`/extensions/${slug}`)}`)
+			.sort(),
 	);
 });
 
@@ -76,6 +87,11 @@ test.each(markdownPages)("Markdown companion for $path", async (page) => {
 	const body = await renderLandingMarkdown(page);
 	expect(body).toStartWith("# ");
 	expect(body).toEndWith(`[View the web page](${siteUrl}${page.path})\n`);
+	const localPaths = markdownLinks(body)
+		.map((href) => new URL(href, siteUrl))
+		.filter(({ origin }) => origin === siteUrl)
+		.map(({ pathname }) => pathname.replace(/\/$/, ""));
+	expect(localPaths).not.toContain("/demo");
 	if (page.path === "/extensions") {
 		expect(body).toContain(`${siteUrl}${extensionIndexPath}`);
 		expect(body).not.toContain(
@@ -104,7 +120,6 @@ test("pricing Markdown includes costs, limits, features, and billing terms", asy
 	expect(body).toContain("Cancellation returns the organization to Free");
 	expect(body).toContain("Uploads that increase storage pause");
 	expect(body).toContain("### Enterprise\n\nCustom");
-	expect(body).not.toContain(`${siteUrl}/demo`);
 });
 
 test.each([

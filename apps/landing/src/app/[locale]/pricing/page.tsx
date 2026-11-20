@@ -157,7 +157,7 @@ export default async function Page({
 				id="compare-plans"
 				includedLabel={dict.pricingPage.labels.included}
 				notIncludedLabel={dict.pricingPage.labels.notIncluded}
-				plans={planGroups.all.map((plan) => plan.name)}
+				plans={planGroups.all}
 			/>
 			<section className="pb-16">
 				<Container>

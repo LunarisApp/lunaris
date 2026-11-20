@@ -47,6 +47,7 @@ export function renderLlmsIndex() {
 				`- [Getting started](${docsUrl}/getting-started): Set up an account and create your first workspace.`,
 				`- [Lunaris documentation](${docsUrl}): User guides, troubleshooting, and developer reference.`,
 				`- [Download the Lunaris CLI](${siteUrl}/downloads#cli): Install the CLI on macOS with Homebrew.`,
+				`- [Extension catalog](${siteUrl}${extensionIndexPath}): Browse built-in and installable extensions.`,
 				`- [Extension SDK quickstart](${extensionQuickstartUrl}): Build and test a Lunaris extension.`,
 			],
 		],
@@ -131,10 +132,10 @@ function renderPricing(dict: Dictionary) {
 	);
 	const headers = ["Feature", ...plans.map(({ name }) => name)];
 	const comparison = getPlanComparison(dict).map(({ title, features }) => {
-		const rows = features.map(({ name, value }) => [
+		const rows = features.map(({ name, values }) => [
 			name,
 			...plans.map((plan) => {
-				const cell = typeof value === "object" ? value[plan.name] : value;
+				const cell = values[plan.id];
 				if (typeof cell === "string") return cell;
 				return cell ? pricing.labels.included : pricing.labels.notIncluded;
 			}),
