@@ -39,6 +39,7 @@ const de = {
 		productTour: "Produktrundgang",
 		extensionsSdk: "Erweiterungs-SDK",
 		downloads: "Downloads",
+		openWebApp: "Web-App öffnen",
 		pricing: "Preise",
 		docs: "Dokumentation",
 		mcp: "MCP",

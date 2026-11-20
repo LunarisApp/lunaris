@@ -1,3 +1,8 @@
+import {
+	ArrowUpRight01Icon,
+	HugeiconsIcon,
+	InternetIcon,
+} from "@lunarisapp/ui/icons";
 import { Heading } from "@/components/elements/heading";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -22,6 +27,11 @@ const installers = [
 	},
 	{ target: "linux", name: "Linux", format: ".deb", description: "linux" },
 ] as const;
+
+const platformRow =
+	"grid gap-5 py-7 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-8 sm:py-8";
+const platformAction =
+	"inline-flex min-h-12 items-center justify-between gap-5 rounded-lg bg-olive-950 px-5 py-3 text-sm/6 font-medium text-white transition-colors hover:bg-olive-800 focus-visible:outline-2 focus-visible:outline-offset-4 motion-reduce:transition-none sm:w-56 dark:bg-olive-300 dark:text-olive-950 dark:hover:bg-olive-100";
 
 export async function generateMetadata({
 	params,
@@ -69,34 +79,41 @@ export default async function DownloadsPage({
 					<p className="mt-5 text-base/7 text-pretty text-olive-600 dark:text-olive-400">
 						{copy.subtitle}
 					</p>
-					<p className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm/6 text-olive-600 dark:text-olive-400">
-						{copy.browser}
-						<a
-							href="https://web.lunaris.app"
-							className="inline-flex min-h-11 items-center gap-1.5 font-medium text-olive-950 underline underline-offset-4 hover:text-olive-600 dark:text-olive-100 dark:hover:text-white"
-						>
-							{home.open}
-							<svg
-								aria-hidden="true"
-								className="size-3.5"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth={1.5}
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								viewBox="0 0 16 16"
-							>
-								<path d="M4 12 12 4M4 4h8v8" />
-							</svg>
-						</a>
-					</p>
 				</header>
 				<div className="divide-y divide-olive-950/15 border-y border-olive-950/15 dark:divide-white/15 dark:border-white/15">
+					<section aria-labelledby="web-heading" className={platformRow}>
+						<div className="flex items-start gap-5">
+							<HugeiconsIcon
+								aria-hidden="true"
+								className="mt-0.5 size-7 shrink-0 text-olive-950 dark:text-olive-100"
+								icon={InternetIcon}
+							/>
+							<div>
+								<h2
+									id="web-heading"
+									className="text-lg/7 font-medium text-olive-950 dark:text-olive-100"
+								>
+									{copy.webApp}
+								</h2>
+								<p className="mt-1 text-sm/6 text-olive-600 dark:text-olive-400">
+									{copy.browser}
+								</p>
+							</div>
+						</div>
+						<a href="https://web.lunaris.app" className={platformAction}>
+							{dict.nav.openWebApp}
+							<HugeiconsIcon
+								aria-hidden="true"
+								className="size-4 shrink-0"
+								icon={ArrowUpRight01Icon}
+							/>
+						</a>
+					</section>
 					{installers.map(({ target, name, format, description }) => (
 						<section
 							key={target}
 							aria-labelledby={`${target}-heading`}
-							className="grid gap-5 py-7 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-8 sm:py-8"
+							className={platformRow}
 						>
 							<div className="flex items-start gap-5">
 								<PlatformIcon
@@ -118,7 +135,7 @@ export default async function DownloadsPage({
 							<a
 								href={localePath(locale, `/download/${target}`)}
 								aria-label={`${home.downloadFor} ${name} (${format})`}
-								className="group inline-flex min-h-12 items-center justify-between gap-5 rounded-lg bg-olive-950 px-5 py-3 text-sm/6 font-medium text-white transition-colors hover:bg-olive-800 focus-visible:outline-2 focus-visible:outline-offset-4 motion-reduce:transition-none sm:w-56 dark:bg-olive-300 dark:text-olive-950 dark:hover:bg-olive-100"
+								className={platformAction}
 							>
 								<span>
 									{home.download}{" "}
