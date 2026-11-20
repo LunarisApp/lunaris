@@ -22789,6 +22789,21 @@
       "types": "./dist/components/checkbox.d.ts"
     },
     {
+      "entrypoint": "./components/code-block",
+      "runtime": "./dist/components/code-block.js",
+      "symbols": [
+        "CodeBlock",
+        "CodeBlockActions",
+        "CodeBlockContent",
+        "CodeBlockCopyButton",
+        "CodeBlockFooter",
+        "CodeBlockHeader",
+        "CodeBlockLine",
+        "CodeBlockTitle"
+      ],
+      "types": "./dist/components/code-block.d.ts"
+    },
+    {
       "entrypoint": "./components/collapsible",
       "runtime": "./dist/components/collapsible.js",
       "symbols": [
@@ -23646,6 +23661,21 @@
       "types": "./dist/components/tooltip.d.ts"
     },
     {
+      "entrypoint": "./components/trace",
+      "runtime": "./dist/components/trace.js",
+      "symbols": [
+        "Trace",
+        "TraceCollapsible",
+        "TraceCollapsibleContent",
+        "TraceCollapsibleTrigger",
+        "TraceDescription",
+        "TraceIcon",
+        "TraceLine",
+        "TraceTitle"
+      ],
+      "types": "./dist/components/trace.d.ts"
+    },
+    {
       "entrypoint": "./components/tree",
       "runtime": "./dist/components/tree.js",
       "symbols": [
@@ -23796,6 +23826,14 @@
       "types": "./dist/hooks/use-as-ref.d.ts"
     },
     {
+      "entrypoint": "./hooks/use-highlighted-code",
+      "runtime": "./dist/hooks/use-highlighted-code.js",
+      "symbols": [
+        "useHighlightedCode"
+      ],
+      "types": "./dist/hooks/use-highlighted-code.d.ts"
+    },
+    {
       "entrypoint": "./hooks/use-isomorphic-layout-effect",
       "runtime": "./dist/hooks/use-isomorphic-layout-effect.js",
       "symbols": [
@@ -23835,6 +23873,15 @@
         "useComposedRefs"
       ],
       "types": "./dist/lib/compose-refs.d.ts"
+    },
+    {
+      "entrypoint": "./lib/highlighter",
+      "runtime": "./dist/lib/highlighter.js",
+      "symbols": [
+        "highlightCode",
+        "loadHighlighter"
+      ],
+      "types": "./dist/lib/highlighter.d.ts"
     },
     {
       "entrypoint": "./lib/utils",

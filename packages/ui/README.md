@@ -35,6 +35,7 @@ There is no root barrel export. Import through the explicit subpaths in
 | `/components/button`, `/components/dialog`, etc. | Individual components |
 | `/blocks/confirmation-dialog`, `/blocks/rename-dialog`, etc. | Composed UI flows |
 | `/hooks/use-mobile`, etc. | Shared React hooks |
+| `/lib/highlighter`, `/hooks/use-highlighted-code` | Syntax highlighting for static and streamed code |
 | `/lib/utils` | `cn()` class-name helper |
 | `/icons`, `/brand-icons` | Icon exports |
 | `/globals.css` | Application theme and component styles |
@@ -63,7 +64,8 @@ bun run public:validate
 ```
 
 See [component conventions and accessibility tests](AGENTS.md). Add a changeset
-for public API changes.
+for public API changes. For shadcn updates, follow the
+[registry comparison and customization notes](SHADCN.md).
 
 ## License
 
