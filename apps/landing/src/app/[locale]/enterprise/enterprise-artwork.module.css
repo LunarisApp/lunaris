@@ -1,0 +1,21 @@
+.trace {
+	display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.trace {
+		display: block;
+		stroke-dasharray: 24 104;
+		stroke-dashoffset: -100;
+		animation: trace 1.65s cubic-bezier(0.25, 0.68, 0.35, 1) 0.35s both;
+	}
+}
+
+@keyframes trace {
+	from {
+		stroke-dashoffset: 24;
+	}
+	to {
+		stroke-dashoffset: -100;
+	}
+}
