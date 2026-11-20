@@ -1,4 +1,6 @@
 {
+  "title": "Lunaris Docs",
+  "description": "Guides and reference for using Lunaris.",
   "pages": [
     "index",
     "getting-started",

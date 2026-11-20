@@ -26,6 +26,12 @@ is served at `/getting-started`. Extension-author guides live under
 [`content/developers/extensions`](content/developers/extensions).
 Keep implementation details in the relevant app or package README.
 
+## Markdown for agents
+
+Fumadocs generates `/llms.txt` from the docs navigation. The index links to
+each page as Markdown, including `/index.md` for the overview. Read the entire
+site at `/llms-full.txt` or a section at a URL such as `/guides/llms-full.txt`.
+
 ## Verify and build
 
 ```sh

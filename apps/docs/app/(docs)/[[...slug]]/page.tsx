@@ -6,7 +6,7 @@ import {
 import mdxComponents from "fumadocs-ui/mdx";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { source } from "../../../lib/source";
+import { markdownUrl, source } from "../../../lib/source";
 
 type PageProps = {
   params: Promise<{ slug?: string[] }>;
@@ -29,7 +29,10 @@ export async function generateMetadata({
   return {
     title: slug?.length ? page.data.title : { absolute: page.data.title },
     description: page.data.description,
-    alternates: { canonical: page.url },
+    alternates: {
+      canonical: page.url,
+      types: { "text/markdown": markdownUrl(page.url) },
+    },
     openGraph: {
       type: "website",
       siteName: "Lunaris Docs",
@@ -72,7 +75,7 @@ export default async function Page({ params }: PageProps) {
       </DocsBody>
       {!isOverview && (
         <div>
-          <MarkdownCopyButton markdownUrl={`/api/markdown${page.url}`} />
+          <MarkdownCopyButton markdownUrl={markdownUrl(page.url)} />
         </div>
       )}
     </DocsPage>
