@@ -1,4 +1,4 @@
-# Agent Work
+# Agent
 
 One agent implementation, two UI presentations:
 
@@ -17,7 +17,7 @@ Neither presentation implements its own model provider or tool execution.
 
 ## Documents integration
 
-Agent Work is a built-in Documents tool, not an extension. The workspace host registers
+Agent is a built-in Documents tool, not an extension. The workspace host registers
 the lazy panel in `internal/workspaces/src/features/agent-work`; its launcher opens the
 `agent-work` tool. It is also available through the mobile tool route.
 
@@ -26,7 +26,7 @@ old Assistant URLs redirect to the built-in tool. New state uses the new IDs.
 
 ## Runtime
 
-Both presentations use `@repo/platform`'s Agent Work interface. Desktop provides the Pi SDK
+Both presentations use `@repo/platform`'s Agent interface. Desktop provides the Pi SDK
 sidecar in `apps/desktop/agent-work`, including ChatGPT authentication, session storage,
 Lunaris resource tools, and approval enforcement. Web uses the same unavailable-runtime
 state until a web-compatible runtime is supplied.

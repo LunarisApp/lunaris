@@ -2,7 +2,9 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { Link, MemoryRouter, Route, Routes, useLocation } from "react-router";
 import userEvent from "@testing-library/user-event";
+import { createWorkspaceRoutes } from "./index";
 import { readLastWorkspace, rememberWorkspace } from "./last-workspace";
+import type { WorkspacePageProps } from "./types";
 import { WorkspacesEntry } from "./workspaces-entry";
 
 const mocks = vi.hoisted(() => ({ query: vi.fn(), canRead: true }));
@@ -27,6 +29,10 @@ vi.mock("@repo/features/region", () => ({
       useActiveOrganization: () => ({ data: { id: "org", slug: "team" } }),
     },
   }),
+}));
+vi.mock("./workspaces", () => ({
+  default: ({ AppBarLeading }: WorkspacePageProps) =>
+    AppBarLeading ? <AppBarLeading /> : null,
 }));
 function Workspace() {
   const location = useLocation();
@@ -69,6 +75,30 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 describe("workspace startup", () => {
+  it("provides desktop tool navigation when the last workspace is unavailable", async () => {
+    mocks.query.mockReturnValue({ data: [], isLoading: false });
+    const [scope] = createWorkspaceRoutes({
+      AppBarLeading: () => <Link to="/team/agent-work">Agent</Link>,
+      AppBarTrailing: () => null,
+      buildVersion: "test",
+      shell: "desktop",
+    });
+    const lazy = scope?.children?.find((route) => route.index)?.lazy;
+    if (typeof lazy !== "function") {
+      throw new Error("Missing workspaces list route");
+    }
+    const { Component } = await lazy();
+    if (!Component) {
+      throw new Error("Missing workspaces list component");
+    }
+    render(
+      <MemoryRouter initialEntries={["/team"]}>
+        <Component />
+      </MemoryRouter>
+    );
+    expect(await screen.findByRole("link", { name: "Agent" })).toBeTruthy();
+  });
+
   it("restores saved resource using current workspace slug", async () => {
     mount();
     expect(await screen.findByText("/team/renamed/res_123")).toBeTruthy();

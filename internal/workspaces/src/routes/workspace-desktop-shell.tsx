@@ -12,7 +12,7 @@ import {
   useViews,
 } from "@lunarisapp/plugin-sdk";
 import { Button } from "@lunarisapp/ui/components/button";
-import { Appbar } from "@repo/features/appbar";
+import { Appbar, useAppToolActive } from "@repo/features/appbar";
 import {
   DEBUGGER_PLUGIN_ID,
   DEBUGGER_RENDERER,
@@ -428,6 +428,7 @@ function DesktopOrganizationNavigationBridge({
   routeSyncEnabled: boolean;
 }) {
   const { t } = useTranslation();
+  const appToolActive = useAppToolActive();
   const { panelWindows, viewport } = usePlatform();
   const location = useLocation();
   const navigate = useNavigate();
@@ -824,7 +825,13 @@ function DesktopOrganizationNavigationBridge({
 
   useEffect(() => {
     if (
-      !(routeSyncEnabled && dockviewApi && organizationSlug && workspaceSlug)
+      !(
+        appToolActive &&
+        routeSyncEnabled &&
+        dockviewApi &&
+        organizationSlug &&
+        workspaceSlug
+      )
     ) {
       return;
     }
@@ -884,6 +891,7 @@ function DesktopOrganizationNavigationBridge({
       removePanelDisposable.dispose();
     };
   }, [
+    appToolActive,
     dockviewApi,
     navigate,
     panelWindowSession,
@@ -912,6 +920,7 @@ function DesktopWorkspaceContent({
   panelWindowSession: PanelWindowSession | null;
 }) {
   const { i18n, t } = useTranslation();
+  const appToolActive = useAppToolActive();
   const { extensionAvailability, registerRuntimeReconciler, runtimeRevisions } =
     useOrganizationPluginRuntime();
   const {
@@ -1031,7 +1040,7 @@ function DesktopWorkspaceContent({
   }, [workspaceSlug]);
 
   useEffect(() => {
-    if (!(workspaceSlug && organizationSlug)) {
+    if (!(appToolActive && workspaceSlug && organizationSlug)) {
       return;
     }
 
@@ -1140,6 +1149,7 @@ function DesktopWorkspaceContent({
       }
     }
   }, [
+    appToolActive,
     bootState,
     dockviewApi,
     resourcesMap,
@@ -1221,7 +1231,6 @@ export function DesktopWorkspaceShell({
               <Appbar className="row-start-1">
                 <Appbar.Leading>
                   <AppBarLeading />
-                  <AgentWorkLauncher />
                 </Appbar.Leading>
                 <Appbar.Middle>
                   <div className="relative w-[15.6rem] max-w-full">
@@ -1233,6 +1242,7 @@ export function DesktopWorkspaceShell({
                 </Appbar.Middle>
                 <Appbar.Trailing>
                   <ExtensionViewLaunchers />
+                  <AgentWorkLauncher tooltip />
                   <AppBarTrailing />
                 </Appbar.Trailing>
               </Appbar>

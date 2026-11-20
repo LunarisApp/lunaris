@@ -2,6 +2,7 @@
 
 import type { CreateResourceCommand } from "../../search/types";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { AppToolVisibility } from "@repo/features/appbar";
 import type { MouseEventHandler, ReactNode, RefObject } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -46,7 +47,8 @@ vi.mock("@lunarisapp/ui/hooks/use-mobile", () => ({
 }));
 
 vi.mock("@lunarisapp/ui/blocks/confirmation-dialog", () => ({
-  ConfirmationDialog: () => null,
+  ConfirmationDialog: ({ open }: { open: boolean }) =>
+    open ? <div role="alertdialog" aria-label="Delete resources" /> : null,
 }));
 
 vi.mock("@lunarisapp/ui/components/context-menu", () => ({
@@ -222,6 +224,30 @@ describe("WorkspaceExplorerTree", () => {
     render(<WorkspaceExplorerTree />);
 
     expect(screen.getByText("skeleton")).toBeTruthy();
+  });
+
+  it("suspends the delete confirmation while another tool is active", () => {
+    useDeleteKeyboardShortcutMock.mockReturnValue({
+      confirmDeleteOpen: true,
+      handleConfirmDelete: vi.fn(),
+      itemsToDelete: [],
+      setConfirmDeleteOpen: vi.fn(),
+    });
+    const tree = (active: boolean) => (
+      <AppToolVisibility active={active}>
+        <WorkspaceExplorerTree />
+      </AppToolVisibility>
+    );
+    try {
+      const view = render(tree(true));
+      expect(screen.getByRole("alertdialog")).toBeTruthy();
+      view.rerender(tree(false));
+      expect(screen.queryByRole("alertdialog")).toBeNull();
+      view.rerender(tree(true));
+      expect(screen.getByRole("alertdialog")).toBeTruthy();
+    } finally {
+      useDeleteKeyboardShortcutMock.mockReset();
+    }
   });
 
   it("removes workspace tree skeleton when loading resolves", () => {

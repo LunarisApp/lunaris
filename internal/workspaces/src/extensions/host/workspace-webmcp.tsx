@@ -2,6 +2,7 @@ import { usePluginSdkRuntime } from "@lunarisapp/plugin-sdk/internal";
 import { usePowerSync } from "@repo/data/core";
 import { readWebMcpFile } from "./webmcp-files";
 import { permission } from "@repo/auth/permissions";
+import { useAppToolActive } from "@repo/features/appbar";
 import { usePermission } from "@repo/features/permissions";
 import { log } from "evlog";
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
@@ -14,6 +15,7 @@ import {
 
 /** Mounted only inside the authorized workspace runtime. No UI or polyfill. */
 export function WorkspaceWebMcp() {
+  const appToolActive = useAppToolActive();
   const { contributions, host } = usePluginSdkRuntime();
   const content = host.useLunarisContent();
   const resources = host.useWorkspaceResourcesMap();
@@ -39,6 +41,9 @@ export function WorkspaceWebMcp() {
   const version = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   useEffect(() => {
+    if (!appToolActive) {
+      return;
+    }
     const context = getWebMcpContext(document);
     if (!context) {
       return;
@@ -77,6 +82,7 @@ export function WorkspaceWebMcp() {
     });
     return () => controller.abort();
   }, [
+    appToolActive,
     canWrite,
     content,
     contributions,

@@ -13,6 +13,7 @@ import {
   renameWorkspace,
 } from "@repo/data/features/workspaces";
 import { useApi } from "@repo/features/api";
+import { useAppToolActive } from "@repo/features/appbar";
 import { useAuth } from "@repo/features/auth";
 import { usePermission } from "@repo/features/permissions";
 import { clearRecentFilesForWorkspace } from "@repo/workspaces/search";
@@ -35,6 +36,7 @@ import { useWorkspaceSettingsErrorToast } from "./use-workspace-settings-error-t
 
 export function WorkspaceSettingsPanel() {
   const { t } = useTranslation();
+  const appToolActive = useAppToolActive();
   const { workspace } = useCurrentWorkspace();
   const api = useApi();
   const auth = useAuth();
@@ -192,7 +194,7 @@ export function WorkspaceSettingsPanel() {
         description={t("workspaces.deleteWorkspaceConfirmation")}
         onConfirm={() => void deleteWorkspace()}
         onOpenChange={setDeleteDialogOpen}
-        open={deleteDialogOpen}
+        open={appToolActive && deleteDialogOpen}
         title={t("common.areYouSure")}
       />
     </div>

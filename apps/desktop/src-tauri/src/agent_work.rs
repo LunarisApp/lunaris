@@ -27,7 +27,7 @@ pub fn agent_work_start(
 ) -> Result<(), String> {
     let mut current = state.0.lock().map_err(|e| e.to_string())?;
     if current.is_some() {
-        return Err("Agent Work is already open in another window".into());
+        return Err("Agent is already open in another window".into());
     }
     let scope_hash = Sha256::digest(scope.as_bytes())
         .iter()
@@ -86,9 +86,9 @@ pub fn agent_work_send(
     message: serde_json::Value,
 ) -> Result<(), String> {
     let mut current = state.0.lock().map_err(|e| e.to_string())?;
-    let (id, child) = current.as_mut().ok_or("Agent Work is disconnected")?;
+    let (id, child) = current.as_mut().ok_or("Agent is disconnected")?;
     if *id != connection_id {
-        return Err("Agent Work connection changed".into());
+        return Err("Agent connection changed".into());
     }
     let mut bytes = serde_json::to_vec(&message).map_err(|e| e.to_string())?;
     bytes.push(b'\n');

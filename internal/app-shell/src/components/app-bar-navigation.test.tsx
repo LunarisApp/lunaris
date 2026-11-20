@@ -1,19 +1,61 @@
 /** @vitest-environment happy-dom */
 
-import {
-  fireEvent,
-  render,
-  screen,
-} from "../../../features/node_modules/@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { HotkeysProvider } from "@repo/features/hotkeys";
-import { MemoryRouter, useLocation } from "react-router";
+import { useSyncExternalStore } from "react";
+import {
+  createMemoryRouter,
+  MemoryRouter,
+  RouterProvider,
+  useLocation,
+  useParams,
+} from "react-router";
 import { describe, expect, it, vi } from "vitest";
-import { APP_TOOLS, createEnabledAppToolRoutes } from "../app-tools";
+import {
+  APP_TOOLS,
+  createEnabledAppToolRoutes,
+  type AppToolId,
+} from "../app-tools";
 import { AppBarNavigation, AppLogo } from "./app-bar-navigation";
+import { AppToolLayout } from "./app-tool-layout";
 
 const featureAccess = vi.hoisted(() => ({ allowed: true, pending: false }));
+const sessionUser = vi.hoisted(() => ({
+  id: "user",
+  listeners: new Set<() => void>(),
+  subscribe(listener: () => void) {
+    sessionUser.listeners.add(listener);
+    return () => sessionUser.listeners.delete(listener);
+  },
+  setId(id: string) {
+    sessionUser.id = id;
+    for (const listener of sessionUser.listeners) {
+      listener();
+    }
+  },
+}));
 vi.mock("@repo/features/entitlements", () => ({
   useFeatureAccess: () => featureAccess,
+}));
+
+vi.mock("@repo/features/region", () => ({
+  useRegionClients: () => ({
+    authClient: {
+      useSession: () => {
+        const id = useSyncExternalStore(
+          sessionUser.subscribe,
+          () => sessionUser.id
+        );
+        return { data: { user: { id } } };
+      },
+    },
+  }),
+}));
+
+vi.mock("@repo/agent-work/routes", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@repo/agent-work/routes")>()),
+  AgentWorkSessionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
 }));
 
 vi.mock("@repo/platform", () => ({
@@ -26,7 +68,7 @@ vi.mock("react-i18next", () => ({
       ({
         "common.comingSoon": "Coming soon",
         "common.home": "Home",
-        "editor.agentWork": "Agent Work",
+        "editor.agentWork": "Agent",
         "editor.chats": "Chats",
         "editor.navigation": "Workspace tools",
         "editor.workspaces": "Workspaces",
@@ -60,13 +102,13 @@ function renderNavigation() {
 }
 
 describe("AppBarNavigation", () => {
-  it("keeps Agent Work visible as coming soon when the shared flag is off", () => {
+  it("keeps Agent visible as coming soon when the shared flag is off", () => {
     featureAccess.allowed = false;
     const result = renderNavigation();
     expect(
       (
         screen.getByRole("button", {
-          name: "Agent Work — Coming soon",
+          name: "Agent — Coming soon",
         }) as HTMLButtonElement
       ).disabled
     ).toBe(true);
@@ -78,7 +120,7 @@ describe("AppBarNavigation", () => {
     featureAccess.allowed = true;
   });
 
-  it("declares Workspaces and Agent Work as enabled tools", () => {
+  it("declares Workspaces and Agent as enabled tools", () => {
     expect(APP_TOOLS.map(({ enabled, id }) => ({ enabled, id }))).toEqual([
       { enabled: true, id: "workspaces" },
       { enabled: true, id: "agent-work" },
@@ -138,7 +180,7 @@ describe("AppBarNavigation", () => {
       ).disabled
     ).toBe(true);
     expect(
-      (screen.getByRole("button", { name: "Agent Work" }) as HTMLButtonElement)
+      (screen.getByRole("button", { name: "Agent" }) as HTMLButtonElement)
         .disabled
     ).toBe(false);
     expect(routesForAgentWork()).toBe("agent-work");
@@ -149,5 +191,91 @@ describe("AppBarNavigation", () => {
 
     fireEvent.keyDown(document, { code: "Digit1", ctrlKey: true, key: "1" });
     expect(screen.getByTestId("location").textContent).toBe("/");
+  });
+
+  it("restores both tool views, their locations, and the visible tool's shortcuts", async () => {
+    function ToolView({ tool }: { tool: AppToolId }) {
+      const { viewId } = useParams();
+      return (
+        <>
+          <AppBarNavigation activeToolId={tool} />
+          <input aria-label={`${tool} draft`} defaultValue="" />
+          <output data-testid={`${tool}-route`}>
+            {useLocation().pathname} {viewId}
+          </output>
+        </>
+      );
+    }
+    const workspaceUrl = "/team/project/draft?filter=starred#selection";
+    const router = createMemoryRouter(
+      [
+        {
+          path: ":organizationSlug",
+          Component: AppToolLayout,
+          children: [
+            {
+              path: ":workspaceSlug/:viewId",
+              element: <ToolView tool="workspaces" />,
+            },
+            { path: "agent-work", element: <ToolView tool="agent-work" /> },
+          ],
+        },
+      ],
+      { initialEntries: [workspaceUrl] }
+    );
+    render(
+      <HotkeysProvider>
+        <RouterProvider router={router} />
+      </HotkeysProvider>
+    );
+    const workspaceDraft = screen.getByRole<HTMLInputElement>("textbox", {
+      name: "workspaces draft",
+    });
+    fireEvent.change(workspaceDraft, { target: { value: "Workspace text" } });
+    fireEvent.click(screen.getByRole("button", { name: "Agent" }));
+    const agentDraft = await screen.findByRole<HTMLInputElement>("textbox", {
+      name: "agent-work draft",
+    });
+    fireEvent.change(agentDraft, { target: { value: "Agent text" } });
+    expect(
+      screen.queryByRole("textbox", { name: "workspaces draft" })
+    ).toBeNull();
+    expect(workspaceDraft.closest("[inert]")).toBeTruthy();
+    expect(screen.getByTestId("workspaces-route").textContent).toBe(
+      "/team/project/draft draft"
+    );
+
+    fireEvent.keyDown(document, { code: "Digit2", ctrlKey: true, key: "2" });
+    expect(
+      await screen.findByRole("textbox", { name: "workspaces draft" })
+    ).toBe(workspaceDraft);
+    expect(workspaceDraft.value).toBe("Workspace text");
+    expect(router.state.location).toMatchObject({
+      pathname: "/team/project/draft",
+      search: "?filter=starred",
+      hash: "#selection",
+    });
+
+    fireEvent.keyDown(document, { code: "Digit3", ctrlKey: true, key: "3" });
+    expect(
+      await screen.findByRole("textbox", { name: "agent-work draft" })
+    ).toBe(agentDraft);
+    expect(agentDraft.value).toBe("Agent text");
+    const activeLocation = router.state.location;
+    fireEvent.keyDown(document, { code: "Digit3", ctrlKey: true, key: "3" });
+    expect(router.state.location).toBe(activeLocation);
+
+    // A different signed-in user gets a fresh tool view.
+    try {
+      act(() => sessionUser.setId("other-user"));
+      expect(
+        screen.getByRole<HTMLInputElement>("textbox", {
+          name: "agent-work draft",
+        }).value
+      ).toBe("");
+      expect(screen.queryByTestId("workspaces-route")).toBeNull();
+    } finally {
+      act(() => sessionUser.setId("user"));
+    }
   });
 });

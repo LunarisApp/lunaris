@@ -39,7 +39,7 @@ describe("organization plans", () => {
     }
   );
 
-  it("requires Agent Work approval on every plan", () => {
+  it("requires Agent approval on every plan", () => {
     for (const plan of Object.values(PLAN)) {
       expect(planHasFeature(plan, FEATURE.agentWork)).toBe(false);
       expect(resolvePlanFeatures(plan)).toEqual({ "agent-work": false });

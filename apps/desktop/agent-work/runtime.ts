@@ -312,9 +312,9 @@ export class AgentWorkRuntime {
           ? {
               type: "response",
               id: envelope.data.id,
-              error: "Invalid Agent Work command",
+              error: "Invalid Agent command",
             }
-          : { type: "error", message: "Invalid Agent Work command" }
+          : { type: "error", message: "Invalid Agent command" }
       );
       return;
     }
@@ -373,7 +373,7 @@ export class AgentWorkRuntime {
       this.emit({
         type: "response",
         id,
-        error: error instanceof Error ? error.message : "Agent Work failed",
+        error: error instanceof Error ? error.message : "Agent failed",
       });
     }
   }

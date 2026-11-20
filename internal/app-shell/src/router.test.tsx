@@ -204,7 +204,11 @@ describe("AppRouter", () => {
 
     const routes = createBrowserRouter.mock.calls[0]?.[0] as Array<{
       children?: Array<{
-        children?: Array<{ index?: boolean; path?: string }>;
+        children?: Array<{
+          children?: Array<{ index?: boolean; path?: string }>;
+          lazy?: unknown;
+          path?: string;
+        }>;
         lazy?: unknown;
         path?: string;
       }>;
@@ -217,11 +221,11 @@ describe("AppRouter", () => {
     const organizationSettings = organizationRoute.children?.find(
       (route) => route.path === "settings"
     );
-    const workspaceScope = organizationRoute.children?.find(
-      (route) =>
-        !route.path &&
+    const workspaceScope = organizationRoute.children
+      ?.flatMap((route) => route.children ?? [])
+      .find((route) =>
         route.children?.some((child) => child.path === ":workspaceSlug")
-    );
+      );
 
     expect(organizationSettings?.lazy).toBeTypeOf("function");
     expect(workspaceScope?.lazy).toBeTypeOf("function");

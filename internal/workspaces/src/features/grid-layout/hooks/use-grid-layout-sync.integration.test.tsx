@@ -99,7 +99,7 @@ function Harness({
             pluginId: "system-agent-work",
             renderer: "agent-work",
             toolId: "agent-work",
-            title: "Agent Work",
+            title: "Agent",
             target: { direction: "right" },
           })
         }
@@ -113,7 +113,7 @@ function Harness({
             pluginId: "system-agent-work",
             renderer: "agent-work",
             toolId: "agent-work",
-            title: "Agent Work",
+            title: "Agent",
           })
         }
       >
@@ -141,7 +141,7 @@ function Harness({
 }
 
 it.each([true, false])(
-  "preserves content and the Agent Work split across group sync (empty: %s)",
+  "preserves content and the Agent split across group sync (empty: %s)",
   async (empty) => {
     render(
       <GridLayoutProvider>
@@ -251,7 +251,7 @@ it.each([
           pluginId: "system-agent-work",
           renderer: "agent-work",
           toolId: "agent-work",
-          title: "Agent Work",
+          title: "Agent",
           target,
         });
       }

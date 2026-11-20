@@ -4,6 +4,7 @@ import {
   useViews,
 } from "@lunarisapp/plugin-sdk";
 import { Button } from "@lunarisapp/ui/components/button";
+import { useAppToolActive } from "@repo/features/appbar";
 import { ResourceViewLayout } from "@repo/workspaces/editor";
 import { ExtensionPlaceholder } from "@repo/workspaces/extensions";
 import { GridLayoutProvider } from "@repo/workspaces/grid-layout";
@@ -224,6 +225,7 @@ function MobileOrganizationNavigationBridge({
   children: ReactNode;
 }) {
   const { t } = useTranslation();
+  const appToolActive = useAppToolActive();
   const navigate = useNavigate();
   const views = useViews();
   const { subviewId, subviewPath, viewId, organizationSlug, workspaceSlug } =
@@ -266,7 +268,7 @@ function MobileOrganizationNavigationBridge({
         // currently looking at is one of the closed ones — otherwise a
         // background delete (e.g. deleting an unrelated item) would yank
         // them away from their active view for no reason.
-        if (!(organizationSlug && workspaceSlug)) {
+        if (!(appToolActive && organizationSlug && workspaceSlug)) {
           return;
         }
         if (
@@ -346,6 +348,7 @@ function MobileOrganizationNavigationBridge({
       },
     }),
     [
+      appToolActive,
       activeViewInstanceId,
       navigate,
       workspaceSlug,

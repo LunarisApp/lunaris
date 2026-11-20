@@ -16,6 +16,7 @@ import {
   CommandShortcut,
 } from "@lunarisapp/ui/components/command";
 import { Kbd } from "@lunarisapp/ui/components/kbd";
+import { useAppToolActive } from "@repo/features/appbar";
 import {
   File01Icon,
   FileSearchIcon,
@@ -309,6 +310,7 @@ export function SearchDialogMenu({
   const { organizationSlug } = useParams<{ organizationSlug: string }>();
   const { isOpen, query, close, setQuery, createResourceInContext } =
     useSearchDialog();
+  const appToolActive = useAppToolActive();
   const choosingResource = Boolean(createResourceInContext);
   const searchQuery = choosingResource ? "" : query;
   const detectedFieldCompletion = useMemo(
@@ -714,7 +716,7 @@ export function SearchDialogMenu({
           close();
         }
       }}
-      open={isOpen}
+      open={appToolActive && isOpen}
       title={choosingResource ? t("explorer.addResource") : t("search.title")}
     >
       <Command

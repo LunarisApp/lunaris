@@ -1,6 +1,8 @@
 import type { ComponentType } from "react";
 import type { RouteObject } from "react-router";
 
+export { AgentWorkSessionProvider } from "./session";
+
 export function createAgentWorkRoutes(options: {
   AppBarLeading: ComponentType;
   AppBarTrailing: ComponentType;

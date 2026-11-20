@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { resolveWorkspaceView } from "./workspace-deep-link";
 
-describe("Agent Work routes", () => {
+describe("Agent routes", () => {
   const context = {
     organizationSlug: "team",
     workspaceSlug: "notes",

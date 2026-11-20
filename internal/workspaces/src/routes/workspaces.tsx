@@ -24,6 +24,7 @@ import {
 import { permission } from "@repo/auth/permissions";
 import { resolveSyncAccess, SYNC_ACCESS } from "@repo/auth/sync-access";
 import { AnnouncementsBanner } from "@repo/features/announcements";
+import { Appbar, useAppToolActive } from "@repo/features/appbar";
 import { HelpCenterPopover } from "@repo/features/help-center";
 import { CreateWorkspaceLauncher } from "@repo/workspaces/new-workspace/launcher";
 import { useDefaultTemplateWorkspaceSeeder } from "@repo/workspaces/new-workspace/default-template/use-default-template-seeder";
@@ -51,7 +52,7 @@ import {
 import { log, parseError } from "evlog";
 import { useTranslation } from "react-i18next";
 import { AppUpdateButton } from "@repo/features/app-update";
-import type { WorkspaceShell } from "./types";
+import type { WorkspacePageProps } from "./types";
 import { useLogout } from "@repo/features/auth/use-logout";
 import { useOrganizationPluginRuntime } from "../extensions/organization-runtime";
 import { SkipLink } from "../components/skip-link";
@@ -71,8 +72,12 @@ const ImportObsidianWorkspaceDialog = lazy(() =>
 
 const WORKSPACES_VIEW_STORAGE_KEY = "lunaris:workspaces-view";
 
-export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
+export default function WorkspacesPage({
+  AppBarLeading,
+  shell,
+}: Pick<WorkspacePageProps, "AppBarLeading" | "shell">) {
   const { t } = useTranslation();
+  const appToolActive = useAppToolActive();
   const { authClient } = useRegionClients();
   const handleLogout = useLogout();
   const isMobile = useIsMobile();
@@ -156,14 +161,18 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
         data-testid="workspaces-page"
       >
         <div className="flex flex-col gap-4 md:gap-6">
-          <header className="flex items-center justify-between gap-2 pb-4 md:flex-wrap md:gap-x-3 md:gap-y-2 md:pb-6">
+          <Appbar className="h-auto gap-2 px-0 pb-4 md:flex-wrap md:gap-x-3 md:gap-y-2 md:pb-6">
             <div className="flex shrink-0 items-center gap-2">
-              <div className="inline-flex items-center gap-2.5">
-                <LunarisMark className="size-8" />
-                <span className="app-wordmark sr-only text-xl/none md:not-sr-only">
-                  Lunaris
-                </span>
-              </div>
+              {AppBarLeading ? (
+                <AppBarLeading />
+              ) : (
+                <div className="inline-flex items-center gap-2.5">
+                  <LunarisMark className="size-8" />
+                  <span className="app-wordmark sr-only text-xl/none md:not-sr-only">
+                    Lunaris
+                  </span>
+                </div>
+              )}
             </div>
             <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-1 md:max-w-full md:flex-initial md:gap-3">
               <AppUpdateButton />
@@ -180,7 +189,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
                 <UserMenu onLogout={handleLogout} />
               )}
             </div>
-          </header>
+          </Appbar>
 
           {isMobile && !bannerDismissed && (
             <Alert className="min-h-12 items-center" variant="warning">
@@ -360,7 +369,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
             <CreateWorkspaceDialog
               canCreateCloudWorkspaces={canCreateCloudWorkspaces}
               onOpenChange={setDialogOpen}
-              open={dialogOpen}
+              open={appToolActive && dialogOpen}
               orgId={activeOrg.id}
             />
           )}
@@ -368,7 +377,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
             <ImportObsidianWorkspaceDialog
               canCreateCloudWorkspaces={canCreateCloudWorkspaces}
               onOpenChange={setImportDialogOpen}
-              open={importDialogOpen}
+              open={appToolActive && importDialogOpen}
               orgId={activeOrg.id}
             />
           )}

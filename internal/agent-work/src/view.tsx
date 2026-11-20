@@ -17,12 +17,15 @@ import { Alert, AlertDescription } from "@lunarisapp/ui/components/alert";
 import { AgentLayout, type AgentLayoutHandle } from "./layout";
 import { ConversationSidebar } from "./conversation-sidebar";
 import { ArrowDown01Icon, HugeiconsIcon } from "@lunarisapp/ui/icons";
-import { Appbar } from "@repo/features/appbar";
+import { Appbar, useAppToolActive } from "@repo/features/appbar";
 import type { AgentWorkScope } from "@repo/platform";
 import { type ComponentType, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ToolCall, TranscriptMessage } from "./message";
-import { useAgentWork } from "./use-agent-work";
+import { useAgentWorkSession } from "./session";
+
+type Draft = { text: string; mentions: ResourceMention[] };
+const emptyDraft: Draft = { text: "", mentions: [] };
 
 export type AgentWorkPresentation =
   | { variant: "panel" }
@@ -38,17 +41,42 @@ export function AgentWorkView(
   const { scope } = props;
   const embedded = props.variant === "panel";
   const { t } = useTranslation();
-  const agent = useAgentWork(scope);
+  const agent = useAgentWorkSession(scope);
+  const active = useAppToolActive();
   const composerId = useId();
   const [pickerOpen, setPickerOpen] = useState(false);
   const { state } = agent;
-  const [draftState, setDraftState] = useState<{
-    text: string;
-    mentions: ResourceMention[];
-  }>({ text: "", mentions: [] });
+  const [drafts, setDrafts] = useState(() => new Map<string | null, Draft>());
+  const [submitting, setSubmitting] = useState(false);
+  const [startingConversation, setStartingConversation] = useState(false);
+  // Keep edits made during the first prompt with the conversation it creates.
+  if (startingConversation && !submitting) {
+    setStartingConversation(false);
+    const unassignedDraft = drafts.get(null);
+    if (state.sessionId && unassignedDraft) {
+      const next = new Map(drafts);
+      next.delete(null);
+      next.set(state.sessionId, unassignedDraft);
+      setDrafts(next);
+    }
+  }
+  const draftKey = startingConversation ? null : state.sessionId;
+  const draftState = drafts.get(draftKey) ?? emptyDraft;
+  const updateDraft = (update: (current: Draft) => Draft) => {
+    setDrafts((current) => {
+      const next = new Map(current);
+      const updated = update(current.get(draftKey) ?? emptyDraft);
+      if (updated.text) {
+        next.set(draftKey, updated);
+      } else {
+        next.delete(draftKey);
+      }
+      return next;
+    });
+  };
   const draft = draftState.text;
   const setDraft = (text: string, caret?: number) =>
-    setDraftState((current) => ({
+    updateDraft((current) => ({
       text,
       mentions: updateMentions(current.text, text, current.mentions, caret),
     }));
@@ -64,7 +92,6 @@ export function AgentWorkView(
   };
   const [showLatest, setShowLatest] = useState(false);
   const composerInput = useRef<HTMLTextAreaElement>(null);
-  const [submitting, setSubmitting] = useState(false);
   const transcript = useRef<HTMLDivElement>(null);
   const followOutput = useRef(true);
   const busy = state.busy || submitting;
@@ -74,7 +101,7 @@ export function AgentWorkView(
     empty && !agent.auth && !agent.error && !agent.approvals.length;
   const selectConversation = (id?: string) => {
     reveal("chat");
-    setDraftState({ text: "", mentions: [] });
+    updateDraft(() => emptyDraft);
     followOutput.current = true;
     setShowLatest(false);
     void agent.request(
@@ -100,18 +127,19 @@ export function AgentWorkView(
     setModel(state.modelId);
   }, [state.modelId, state.sessionId]);
   useEffect(() => {
-    if (followOutput.current && transcript.current) {
+    if (active && followOutput.current && transcript.current) {
       transcript.current.scrollTop = transcript.current.scrollHeight;
     }
-  }, [state.messages, agent.approvals]);
+  }, [active, state.messages, agent.approvals]);
 
   const send = async () => {
     const text = draft.trim();
     if (!text || busy || !state.authenticated || !agent.runtimeReady) {
       return;
     }
+    setStartingConversation(state.sessionId === null);
     setSubmitting(true);
-    setDraftState({ text: "", mentions: [] });
+    updateDraft(() => emptyDraft);
     followOutput.current = true;
     const sent = await agent.request({
       type: "prompt",
@@ -119,7 +147,7 @@ export function AgentWorkView(
       modelId: selectedModel,
     });
     if (!sent) {
-      setDraftState((current) => (current.text ? current : draftState));
+      updateDraft((current) => (current.text ? current : draftState));
     }
     setSubmitting(false);
   };
@@ -129,7 +157,7 @@ export function AgentWorkView(
       id={composerId}
       searchMentions={searchMentions}
       onMention={(mention) =>
-        setDraftState((current) => ({
+        updateDraft((current) => ({
           ...current,
           mentions: [
             ...current.mentions.filter(
@@ -208,7 +236,7 @@ export function AgentWorkView(
         }}
         ref={(node) => {
           transcript.current = node;
-          if (node && followOutput.current) {
+          if (active && node && followOutput.current) {
             node.scrollTop = node.scrollHeight;
           }
         }}
@@ -327,7 +355,7 @@ export function AgentWorkView(
         className="flex h-full min-h-0 min-w-0 flex-col text-foreground"
       >
         <header className="flex shrink-0 items-center border-b p-1.5">
-          <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+          <Popover open={active && pickerOpen} onOpenChange={setPickerOpen}>
             <PopoverTrigger
               render={
                 <Button

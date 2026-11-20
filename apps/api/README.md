@@ -56,9 +56,9 @@ review the generated SQL before applying it. Browser E2E tests live in
 
 ## Optional integrations
 
-### Agent Work
+### Agent
 
-Agent Work and Agent Work Mini share the `agent-work` PostHog boolean flag.
+Agent and Agent Mini share the `agent-work` PostHog boolean flag.
 The API evaluates it using the stable user ID and email on every plan.
 Anonymous users, missing PostHog configuration, and evaluation failures deny
 access. The [desktop Pi runtime](../desktop/agent-work/README.md) handles

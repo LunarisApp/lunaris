@@ -7,7 +7,7 @@ import { createInterface } from "node:readline";
 import metadata from "../node_modules/@mariozechner/pi-coding-agent/package.json";
 const directory = process.argv[2];
 if (!directory) {
-  throw new Error("Agent Work storage directory is required");
+  throw new Error("Agent storage directory is required");
 }
 process.umask(0o077);
 const packageDirectory = join(directory, "runtime");
