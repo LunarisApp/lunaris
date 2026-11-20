@@ -1,7 +1,7 @@
 import {
   getSearchTerms,
-  matchesSearchTerms,
-  normalizeSearchQuery,
+  getSearchMatchRank,
+  getSearchMatch,
   parseSearchQuery,
 } from "./query";
 import type { WorkspaceSearchResult } from "./types";
@@ -10,17 +10,6 @@ export interface SearchableWorkspace {
   id: string;
   name?: string | null;
   slug?: string | null;
-}
-
-function getMatchRank(value: string, query: string): number {
-  const normalized = normalizeSearchQuery(value);
-  if (normalized === query) {
-    return 0;
-  }
-  if (normalized.startsWith(query)) {
-    return 1;
-  }
-  return 2;
 }
 
 export function searchWorkspaces(
@@ -52,7 +41,7 @@ export function searchWorkspaces(
     return [];
   }
   const preserveSourceOrder = terms.length === 0;
-  const rankQuery = normalizeSearchQuery(terms[0]?.value ?? "");
+  const rankQuery = terms[0]?.value ?? "";
 
   const results = workspaces
     .flatMap((workspace) => {
@@ -61,17 +50,14 @@ export function searchWorkspaces(
       }
 
       const label = workspace.name || untitledLabel;
-      if (!matchesSearchTerms([label, workspace.slug], terms)) {
+      const match = getSearchMatch([label, workspace.slug], terms);
+      if (!match || (match === "substring" && workspaceTerms.length > 0)) {
         return [];
       }
 
-      const matchesName = normalizeSearchQuery(label).includes(rankQuery);
-      const matchesSlug = normalizeSearchQuery(workspace.slug).includes(
-        rankQuery
-      );
-
       return {
         result: {
+          ...(match === "substring" && { substringMatch: true }),
           id: `workspace-${workspace.id}`,
           isCurrent: workspace.id === currentWorkspaceId,
           label,
@@ -79,10 +65,7 @@ export function searchWorkspaces(
           slug: workspace.slug,
           type: "workspace" as const,
         },
-        rank: Math.min(
-          matchesName ? getMatchRank(label, rankQuery) : 3,
-          matchesSlug ? getMatchRank(workspace.slug, rankQuery) : 3
-        ),
+        rank: getSearchMatchRank([label, workspace.slug], rankQuery),
       };
     })
     .sort(

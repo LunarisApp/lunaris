@@ -454,6 +454,8 @@
     "groupResources": "Recursos",
     "groupContentMatches": "Coincidencias de contenido",
     "groupCommands": "Comandos",
+    "searchOrAsk": "Escribe un prompt, busca o ejecuta un comando…",
+    "askAgent": "Preguntar a Agent: «{{query}}»",
     "groupFilters": "Buscar por",
     "currentWorkspace": "Actual",
     "addFilter": "Filtro",

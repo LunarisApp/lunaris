@@ -1,3 +1,4 @@
+import { takeAgentWorkPrompt } from "./launch";
 import {
   buildMentionMessage,
   updateMentions,
@@ -19,7 +20,14 @@ import { ConversationSidebar } from "./conversation-sidebar";
 import { ArrowDown01Icon, HugeiconsIcon } from "@lunarisapp/ui/icons";
 import { Appbar, useAppToolActive } from "@repo/features/appbar";
 import type { AgentWorkScope } from "@repo/platform";
-import { type ComponentType, useEffect, useId, useRef, useState } from "react";
+import {
+  type ComponentType,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { ToolCall, TranscriptMessage } from "./message";
 import { useAgentWorkSession } from "./session";
@@ -31,6 +39,7 @@ export type AgentWorkPresentation =
   | { variant: "panel" }
   | {
       variant: "workbench";
+      launchKey?: string;
       AppBarLeading: ComponentType;
       AppBarTrailing: ComponentType;
     };
@@ -62,18 +71,21 @@ export function AgentWorkView(
   }
   const draftKey = startingConversation ? null : state.sessionId;
   const draftState = drafts.get(draftKey) ?? emptyDraft;
-  const updateDraft = (update: (current: Draft) => Draft) => {
-    setDrafts((current) => {
-      const next = new Map(current);
-      const updated = update(current.get(draftKey) ?? emptyDraft);
-      if (updated.text) {
-        next.set(draftKey, updated);
-      } else {
-        next.delete(draftKey);
-      }
-      return next;
-    });
-  };
+  const updateDraft = useCallback(
+    (update: (current: Draft) => Draft) => {
+      setDrafts((current) => {
+        const next = new Map(current);
+        const updated = update(current.get(draftKey) ?? emptyDraft);
+        if (updated.text) {
+          next.set(draftKey, updated);
+        } else {
+          next.delete(draftKey);
+        }
+        return next;
+      });
+    },
+    [draftKey]
+  );
   const draft = draftState.text;
   const setDraft = (text: string, caret?: number) =>
     updateDraft((current) => ({
@@ -151,6 +163,59 @@ export function AgentWorkView(
     }
     setSubmitting(false);
   };
+
+  const launchKey = props.variant === "workbench" ? props.launchKey : undefined;
+  const { runtimeReady, available, error, request } = agent;
+  useEffect(() => {
+    if (!(active && launchKey) || (available && !runtimeReady && !error)) {
+      return;
+    }
+    const launch = takeAgentWorkPrompt(launchKey, scope);
+    if (!launch) {
+      return;
+    }
+    let text = launch.text;
+    const mentions = (launch.attachments ?? []).map((option) => {
+      const start = text.length + 1;
+      text += ` @${option.name}`;
+      return { ...option, start, end: text.length };
+    });
+    const launchDraft = { text, mentions };
+    if (
+      !(launch.submit && runtimeReady && state.authenticated) ||
+      busy ||
+      !state.modelId
+    ) {
+      updateDraft(() => launchDraft);
+      return;
+    }
+    setStartingConversation(state.sessionId === null);
+    setSubmitting(true);
+    followOutput.current = true;
+    void request({
+      type: "prompt",
+      text: buildMentionMessage(text, mentions),
+      modelId: state.modelId,
+    }).then((sent) => {
+      if (!sent) {
+        updateDraft((current) => (current.text ? current : launchDraft));
+      }
+      setSubmitting(false);
+    });
+  }, [
+    active,
+    available,
+    busy,
+    error,
+    launchKey,
+    request,
+    runtimeReady,
+    scope,
+    state.authenticated,
+    state.modelId,
+    state.sessionId,
+    updateDraft,
+  ]);
 
   const composer = (
     <AgentComposer

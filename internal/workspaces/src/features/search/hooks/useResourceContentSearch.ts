@@ -64,7 +64,6 @@ export function useResourceContentSearch(
     () => parseSearchQuery(debouncedQuery),
     [debouncedQuery]
   );
-  const immediateQuery = useMemo(() => parseSearchQuery(query), [query]);
   const unscopedTerms = useMemo(
     () => getSearchTerms(parsedQuery, null),
     [parsedQuery]
@@ -80,12 +79,11 @@ export function useResourceContentSearch(
     () => getCloudContentWorkspaceIds(filteredResources, workspaceId),
     [filteredResources, workspaceId]
   );
-  const isSearchActive =
-    enabled &&
-    unscopedTerms.length > 0 &&
-    getSearchTerms(immediateQuery, null).length > 0;
+  const isSearchActive = enabled && unscopedTerms.length > 0;
   const shouldHydrateContent =
-    enabled && (parsedQuery.terms.length === 0 || unscopedTerms.length > 0);
+    enabled &&
+    ((parsedQuery.terms.length === 0 && !query.trim()) ||
+      unscopedTerms.length > 0);
 
   useEffect(() => {
     if (
@@ -179,19 +177,19 @@ export function useResourceContentSearch(
   );
   const stableResultRowsRef = useRef<{
     rows: SearchIndexResultRow[];
-    organizationId: string;
-  }>({ rows: [], organizationId });
+    key: string;
+  }>({ rows: [], key: "" });
+  const key = JSON.stringify([organizationId, search?.sql, search?.params]);
+
+  if (!results.isFetching) {
+    stableResultRowsRef.current = { rows: results.data ?? [], key };
+  }
 
   if (
     !isSearchActive ||
-    stableResultRowsRef.current.organizationId !== organizationId
+    query !== debouncedQuery ||
+    stableResultRowsRef.current.key !== key
   ) {
-    stableResultRowsRef.current = { rows: [], organizationId };
-  } else if (!results.isFetching) {
-    stableResultRowsRef.current.rows = results.data ?? [];
-  }
-
-  if (!isSearchActive) {
     return [];
   }
   return stableResultRowsRef.current.rows.map((row) => {

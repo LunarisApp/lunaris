@@ -21,16 +21,17 @@ import { SearchIndexCoordinator } from "../search-index-coordinator";
 
 type SearchDialogStoreInstance = ReturnType<typeof createSearchDialogStore>;
 
-const createSearchDialogStore = () =>
+const createSearchDialogStore = (inline: boolean) =>
   createStore<SearchDialogStore>((set) => ({
     // State
     createResourceInContext: null,
-    isOpen: false,
+    isOpen: inline,
     query: "",
     category: "all" as SearchCategory,
 
     // Actions
-    open: () => set({ isOpen: true, query: "", createResourceInContext: null }),
+    open: () => set({ isOpen: true, createResourceInContext: null }),
+    dismiss: () => set({ isOpen: false, createResourceInContext: null }),
     openResourceCommands: (create) =>
       set({ isOpen: true, query: "", createResourceInContext: create }),
     close: () =>
@@ -38,7 +39,7 @@ const createSearchDialogStore = () =>
     toggle: () =>
       set((state) => ({
         isOpen: !state.isOpen,
-        query: "",
+        query: inline ? state.query : "",
         createResourceInContext: null,
       })),
     setQuery: (query) => set({ query }),
@@ -51,17 +52,19 @@ const SearchDialogContext = createContext<SearchDialogStoreInstance | null>(
 
 export function SearchProvider({
   children,
+  inline = false,
   indexingReady,
   organizationId,
 }: {
   children: ReactNode;
+  inline?: boolean;
   indexingReady: boolean;
   organizationId?: string;
 }) {
   const { t } = useTranslation();
   const storeRef = useRef<SearchDialogStoreInstance | null>(null);
   if (!storeRef.current) {
-    storeRef.current = createSearchDialogStore();
+    storeRef.current = createSearchDialogStore(inline);
   }
 
   const toggle = useCallback(() => {
@@ -78,7 +81,7 @@ export function SearchProvider({
   return (
     <SearchOrganizationContext.Provider value={organizationId ?? null}>
       <SearchDialogContext.Provider value={storeRef.current}>
-        <SearchIndexCoordinator enabled={indexingReady} />
+        {!!indexingReady && <SearchIndexCoordinator />}
         {children}
       </SearchDialogContext.Provider>
     </SearchOrganizationContext.Provider>

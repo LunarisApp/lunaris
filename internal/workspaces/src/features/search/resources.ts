@@ -1,5 +1,6 @@
 import { WORKSPACE_VISIBILITY } from "@repo/auth/sync-access";
 import {
+  getSearchMatch,
   getSearchTerms,
   matchesSearchTerms,
   parseSearchQuery,
@@ -132,13 +133,16 @@ export function searchResourcesByTitle(
     return [];
   }
 
-  return resources
-    .filter(
-      (resource) =>
-        matchesResourceFilters(resource, parsedQuery) &&
-        matchesSearchTerms(resource.name ? [resource.name] : [], unscopedTerms)
-    )
-    .map((resource) => ({
+  return resources.flatMap((resource) => {
+    if (!matchesResourceFilters(resource, parsedQuery)) {
+      return [];
+    }
+    const match = getSearchMatch([resource.name], unscopedTerms);
+    if (!match) {
+      return [];
+    }
+    return {
+      ...(match === "substring" && { substringMatch: true }),
       id: resource.resourceId,
       type: "resource" as const,
       label: resource.name,
@@ -147,5 +151,6 @@ export function searchResourcesByTitle(
       workspaceId: resource.workspaceId,
       workspaceName: resource.workspaceName,
       workspaceSlug: resource.workspaceSlug,
-    }));
+    };
+  });
 }

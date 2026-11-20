@@ -119,9 +119,11 @@ describe("useResourceContentSearch hydration", () => {
   });
 
   it("hydrates only workspaces allowed by scoped filters", async () => {
-    renderHook(() =>
-      useResourceContentSearch("workspace:Beta roadmap", 0, true)
+    const { rerender } = renderHook(
+      ({ query }) => useResourceContentSearch(query, 0, Boolean(query)),
+      { initialProps: { query: "" } }
     );
+    rerender({ query: "workspace:Beta roadmap" });
 
     await waitFor(() => {
       expect(mocks.syncStream).toHaveBeenCalledOnce();
@@ -138,7 +140,11 @@ describe("useResourceContentSearch hydration", () => {
     expect(mocks.syncStream).not.toHaveBeenCalled();
   });
 
-  it("keeps settled index results while a changed query is fetching", async () => {
+  it("keeps settled results only while refreshing the same search", async () => {
+    mocks.buildSearchIndexQuery.mockImplementation(({ terms }) => ({
+      sql: "search",
+      params: [terms[0].value],
+    }));
     mocks.queryResult = {
       data: [
         {
@@ -162,11 +168,16 @@ describe("useResourceContentSearch hydration", () => {
     expect(result.current).toHaveLength(1);
 
     mocks.queryResult = { data: [], isFetching: true };
+    rerender({ query: "first" });
+    expect(result.current).toHaveLength(1);
     rerender({ query: "second" });
-
-    await waitFor(() => {
-      expect(result.current).toHaveLength(1);
-    });
+    expect(result.current).toEqual([]);
+    await waitFor(() =>
+      expect(mocks.buildSearchIndexQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ terms: [{ exact: false, value: "second" }] })
+      )
+    );
+    expect(result.current).toEqual([]);
 
     mocks.queryResult = { data: [], isFetching: false };
     rerender({ query: "second" });

@@ -9,6 +9,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import type { AgentWorkEvent, AgentWorkState } from "@repo/platform";
+import { AppToolVisibility } from "@repo/features/appbar";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import en from "../../features/src/locale/locales/en.json";
@@ -56,6 +57,7 @@ vi.mock("react-i18next", () => ({
 vi.mock("streamdown", () => ({
   Streamdown: ({ children }: { children: string }) => <div>{children}</div>,
 }));
+import { stageAgentWorkPrompt } from "./launch";
 import { AgentWorkView } from "./view";
 import { AgentWorkSessionProvider } from "./session";
 import { useAgentWork } from "./use-agent-work";
@@ -100,7 +102,7 @@ beforeEach(() => {
   });
 });
 afterEach(cleanup);
-const mount = (embedded = false) =>
+const mount = (embedded = false, launchKey?: string) =>
   render(
     <StrictMode>
       <AgentWorkView
@@ -108,6 +110,7 @@ const mount = (embedded = false) =>
           ? { variant: "panel" as const }
           : {
               variant: "workbench" as const,
+              launchKey,
               AppBarLeading: () => null,
               AppBarTrailing: () => null,
             })}
@@ -198,6 +201,59 @@ describe("Agent", () => {
       expect.any(Function)
     );
     expect(view.result.current.runtimeReady).toBe(true);
+  });
+
+  it("submits a homepage prompt once across remounts", async () => {
+    const text = "Outline the next chapter";
+    const key = stageAgentWorkPrompt({ ...scope, text, submit: true });
+    mount(false, key);
+    await waitFor(() =>
+      expect(runtime.request).toHaveBeenCalledWith({
+        type: "prompt",
+        text,
+        modelId: state.modelId,
+      })
+    );
+    cleanup();
+    mount(false, key);
+    await waitFor(() => expect(runtime.connect).toHaveBeenCalledTimes(2));
+    expect(
+      runtime.request.mock.calls.filter(
+        ([command]) => command.type === "prompt"
+      )
+    ).toHaveLength(1);
+  });
+
+  it("submits a homepage prompt when the retained Agent view becomes active", async () => {
+    const agentView = (active: boolean, launchKey?: string) => (
+      <AppToolVisibility active={active}>
+        <AgentWorkView
+          variant="workbench"
+          launchKey={launchKey}
+          AppBarLeading={() => null}
+          AppBarTrailing={() => null}
+          scope={scope}
+        />
+      </AppToolVisibility>
+    );
+    const view = render(agentView(true));
+    const composer = () =>
+      screen.getByRole<HTMLTextAreaElement>("textbox", {
+        name: "Message the agent",
+      });
+    await waitFor(() => expect(composer().disabled).toBe(false));
+    fireEvent.change(composer(), { target: { value: "Saved draft" } });
+
+    const text = "Outline the next chapter";
+    const key = stageAgentWorkPrompt({ ...scope, text, submit: true });
+    const prompt = { type: "prompt", text, modelId: state.modelId };
+    view.rerender(agentView(false, key));
+    expect(runtime.request).not.toHaveBeenCalledWith(prompt);
+
+    view.rerender(agentView(true, key));
+    await waitFor(() => expect(runtime.request).toHaveBeenCalledWith(prompt));
+    expect(composer().value).toBe("Saved draft");
+    expect(runtime.connect).toHaveBeenCalledOnce();
   });
 
   it("clears approvals and sign-in UI after disconnection, then reconnects", async () => {

@@ -462,6 +462,8 @@
     "groupResources": "Resources",
     "groupContentMatches": "Content Matches",
     "groupCommands": "Commands",
+    "searchOrAsk": "Prompt, search, or run a command…",
+    "askAgent": "Ask Agent “{{query}}”",
     "groupFilters": "Search by",
     "currentWorkspace": "Current",
     "addFilter": "Filter",
