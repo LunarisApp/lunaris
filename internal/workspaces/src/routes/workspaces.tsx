@@ -156,7 +156,7 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
         data-testid="workspaces-page"
       >
         <div className="flex flex-col gap-4 md:gap-6">
-          <header className="flex items-center justify-between gap-2 border-b pb-4 md:flex-wrap md:gap-x-3 md:gap-y-2 md:pb-6">
+          <header className="flex items-center justify-between gap-2 pb-4 md:flex-wrap md:gap-x-3 md:gap-y-2 md:pb-6">
             <div className="flex shrink-0 items-center gap-2">
               <div className="inline-flex items-center gap-2.5">
                 <LunarisMark className="size-8" />
