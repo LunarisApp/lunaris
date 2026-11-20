@@ -1,3 +1,5 @@
+export const trustCenterUrl = "https://trust.lunaris.app";
+
 export const legalDocumentAliases = {
 	privacy: "privacy-policy",
 	cookies: "cookie-policy",
@@ -12,8 +14,8 @@ export const legalDocumentPaths = {
 } as const;
 
 export const legalDocumentUrls = {
-	privacy: `https://trust.lunaris.app/documents/${legalDocumentAliases.privacy}`,
-	subprocessors: "https://trust.lunaris.app/subprocessors",
-	cookies: `https://trust.lunaris.app/documents/${legalDocumentAliases.cookies}`,
-	terms: `https://trust.lunaris.app/documents/${legalDocumentAliases.terms}`,
+	privacy: `${trustCenterUrl}/documents/${legalDocumentAliases.privacy}`,
+	subprocessors: `${trustCenterUrl}${legalDocumentPaths.subprocessors}`,
+	cookies: `${trustCenterUrl}/documents/${legalDocumentAliases.cookies}`,
+	terms: `${trustCenterUrl}/documents/${legalDocumentAliases.terms}`,
 } as const;

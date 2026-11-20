@@ -26,16 +26,13 @@ import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import { type Locale, locales } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localePath } from "@/i18n/locale-path";
-import { brandIcons, localizedAlternates } from "@/i18n/metadata";
-import { legalDocumentPaths } from "@/lib/legal-document-links";
+import { brandIcons, docsUrl, localizedAlternates } from "@/i18n/metadata";
+import { legalDocumentPaths, trustCenterUrl } from "@/lib/legal-document-links";
 
 import { openSourceCopy, repositoryUrl } from "@/data/open-source";
 import { extensionQuickstartUrl, extensionsCopy } from "@/data/extensions";
-
-const DOCS_URL = "https://docs.lunaris.app";
-const LINKEDIN_URL = "https://www.linkedin.com/company/lunarisapp";
-const TRUST_CENTER_URL = "https://trust.lunaris.app";
-const X_URL = "https://x.com/lunarisapp";
+import { rootIndexPath } from "@/data/landing-pages";
+import { socialProfileUrls } from "@/data/social-links";
 
 export const dynamicParams = false;
 
@@ -89,15 +86,15 @@ export default async function LocaleLayout({
 			},
 		],
 	};
-	const documentation = { label: dict.nav.docs, href: DOCS_URL };
+	const documentation = { label: dict.nav.docs, href: docsUrl };
 	const contact = {
 		label: dict.footer.contact,
 		href: localePath(locale, "/demo"),
 	};
-	const trust = { label: dict.footer.trustCenter, href: TRUST_CENTER_URL };
+	const trust = { label: dict.footer.trustCenter, href: trustCenterUrl };
 	const subprocessors = {
 		label: dict.footer.subprocessors,
-		href: "/subprocessors",
+		href: legalDocumentPaths.subprocessors,
 	};
 	const wordCounter = {
 		label: dict.footer.wordCounter,
@@ -169,6 +166,7 @@ export default async function LocaleLayout({
 		<html lang={locale} suppressHydrationWarning>
 			<head>
 				<ThemeScript />
+				<link href={rootIndexPath} rel="describedby" />
 				<link href="https://fonts.googleapis.com" rel="preconnect" />
 				<link
 					crossOrigin=""
@@ -267,7 +265,7 @@ export default async function LocaleLayout({
 									<a
 										aria-label="LinkedIn"
 										className="transition-colors hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-600 dark:hover:text-white"
-										href={LINKEDIN_URL}
+										href={socialProfileUrls.LinkedIn}
 									>
 										<Linkedin
 											aria-hidden="true"
@@ -277,7 +275,7 @@ export default async function LocaleLayout({
 									<a
 										aria-label="X"
 										className="transition-colors hover:text-olive-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-600 dark:hover:text-white"
-										href={X_URL}
+										href={socialProfileUrls.X}
 									>
 										<X variant="mono" aria-hidden="true" className="size-5" />
 									</a>

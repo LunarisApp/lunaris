@@ -15,7 +15,7 @@ import {
 	PricingHeroMultiTier,
 } from "@/components/sections/pricing-hero-multi-tier";
 import { getFaqs } from "@/data/faqs";
-import { getPlans } from "@/data/pricing";
+import { getPlanComparison, getPlans } from "@/data/pricing";
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localizedAlternates } from "@/i18n/metadata";
@@ -105,8 +105,6 @@ export default async function Page({
 		);
 	}
 
-	const [free, plus, business, enterprise] = planGroups.all;
-
 	return (
 		<>
 			{/* Hero */}
@@ -154,164 +152,12 @@ export default async function Page({
 			</Container>
 			{/* Plan Comparison Table */}
 			<PlanComparisonTable
-				features={[
-					{
-						title: ct.categories.core.title,
-						features: [
-							{
-								name: ct.categories.core.features.workspaces,
-								value: {
-									[free.name]: dict.pricingPage.labels.unlimited,
-									[plus.name]: dict.pricingPage.labels.unlimited,
-									[business.name]: dict.pricingPage.labels.unlimited,
-									[enterprise.name]: dict.pricingPage.labels.unlimited,
-								},
-							},
-							{
-								name: ct.categories.core.features.items,
-								value: {
-									[free.name]: "25",
-									[plus.name]: dict.pricingPage.labels.unlimited,
-									[business.name]: dict.pricingPage.labels.unlimited,
-									[enterprise.name]: dict.pricingPage.labels.unlimited,
-								},
-							},
-							{
-								name: ct.categories.core.features.members,
-								value: {
-									[free.name]: "3",
-									[plus.name]: "10",
-									[business.name]: dict.pricingPage.labels.unlimited,
-									[enterprise.name]: dict.pricingPage.labels.unlimited,
-								},
-							},
-							{
-								name: dict.pricingPage.storage.poolLabel,
-								value: {
-									[free.name]: dict.pricingPage.storage.pools.free,
-									[plus.name]: dict.pricingPage.storage.pools.plus,
-									[business.name]: dict.pricingPage.storage.pools.business,
-									[enterprise.name]: dict.pricingPage.storage.pools.enterprise,
-								},
-							},
-							{
-								name: dict.pricingPage.storage.fileLabel,
-								value: {
-									[free.name]: dict.pricingPage.storage.files.free,
-									[plus.name]: dict.pricingPage.storage.files.plus,
-									[business.name]: dict.pricingPage.storage.files.business,
-									[enterprise.name]: dict.pricingPage.storage.files.enterprise,
-								},
-							},
-							{
-								name: ct.categories.core.features.cloudSync,
-								value: {
-									[free.name]: true,
-									[plus.name]: true,
-									[business.name]: true,
-									[enterprise.name]: true,
-								},
-							},
-						],
-					},
-					{
-						title: ct.categories.extensions.title,
-						features: [
-							{
-								name: ct.categories.extensions.features.richTextEditor,
-								value: true,
-							},
-							{
-								name: ct.categories.extensions.features.whiteboard,
-								value: true,
-							},
-							{
-								name: ct.categories.extensions.features.kanbanBoard,
-								value: true,
-							},
-							{ name: ct.categories.extensions.features.compiler, value: true },
-							{
-								name: ct.categories.extensions.features.allOther,
-								value: {
-									[free.name]: false,
-									[plus.name]: false,
-									[business.name]: true,
-									[enterprise.name]: true,
-								},
-							},
-						],
-					},
-					{
-						title: ct.categories.support.title,
-						features: [
-							{ name: ct.categories.support.features.community, value: true },
-							{
-								name: ct.categories.support.features.priority,
-								value: {
-									[free.name]: false,
-									[plus.name]: false,
-									[business.name]: true,
-									[enterprise.name]: true,
-								},
-							},
-							{
-								name: ct.categories.support.features.dedicated,
-								value: {
-									[free.name]: false,
-									[plus.name]: false,
-									[business.name]: false,
-									[enterprise.name]: true,
-								},
-							},
-						],
-					},
-					{
-						title: ct.categories.securityCompliance.title,
-						features: [
-							{
-								name: ct.categories.securityCompliance.features.customRoles,
-								value: {
-									[free.name]: false,
-									[plus.name]: false,
-									[business.name]: false,
-									[enterprise.name]: true,
-								},
-							},
-							{
-								name: ct.categories.securityCompliance.features.sla,
-								value: {
-									[free.name]: false,
-									[plus.name]: false,
-									[business.name]: false,
-									[enterprise.name]: true,
-								},
-							},
-							{
-								name: ct.categories.securityCompliance.features.sso,
-								value: {
-									[free.name]: false,
-									[plus.name]: false,
-									[business.name]: false,
-									[enterprise.name]: true,
-								},
-							},
-							{
-								name: ct.categories.securityCompliance.features.soc2,
-								value: {
-									[free.name]: false,
-									[plus.name]: false,
-									[business.name]: false,
-									[enterprise.name]: true,
-								},
-							},
-						],
-					},
-				]}
+				features={getPlanComparison(dict)}
 				heading={ct.heading}
 				id="compare-plans"
 				includedLabel={dict.pricingPage.labels.included}
 				notIncludedLabel={dict.pricingPage.labels.notIncluded}
-				plans={[free.name, plus.name, business.name, enterprise.name]}
+				plans={planGroups.all.map((plan) => plan.name)}
 			/>
 			<section className="pb-16">
 				<Container>

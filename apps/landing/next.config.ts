@@ -1,5 +1,12 @@
 import type { NextConfig } from "next";
 import {
+	llmsIndexPath,
+	markdownPages,
+	markdownPath,
+} from "./src/data/landing-pages";
+import { locales } from "./src/i18n/config";
+import { localePath } from "./src/i18n/locale-path";
+import {
 	legalDocumentPaths,
 	legalDocumentUrls,
 } from "./src/lib/legal-document-links";
@@ -27,6 +34,12 @@ const nextConfig: NextConfig = {
 		globalNotFound: true,
 	},
 	poweredByHeader: false,
+	async rewrites() {
+		return markdownPages.map(({ path }) => {
+			const source = markdownPath(path);
+			return { source, destination: `/markdown${source}` };
+		});
+	},
 	async redirects() {
 		return [
 			{
@@ -143,6 +156,17 @@ const nextConfig: NextConfig = {
 					},
 				],
 			},
+			...markdownPages.flatMap(({ path }) =>
+				locales.map((locale) => ({
+					source: localePath(locale, path),
+					headers: [
+						{
+							key: "Link",
+							value: `<${markdownPath(path)}>; rel="alternate"; type="text/markdown"; hreflang="en", <${llmsIndexPath(path)}>; rel="describedby"`,
+						},
+					],
+				})),
+			),
 		];
 	},
 };

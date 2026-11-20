@@ -75,3 +75,94 @@ export function getPlans(dict: Dictionary, locale: Locale): PlanGroups {
 		all: [freePlan, plusPlan, businessPlan, enterprisePlan],
 	};
 }
+
+export function getPlanComparison(dict: Dictionary) {
+	const { free, plus, business, enterprise } = dict.pricing.plans;
+	const { comparisonTable, labels, storage } = dict.pricingPage;
+	const { core, extensions, support, securityCompliance } =
+		comparisonTable.categories;
+	const { unlimited } = labels;
+
+	function byPlan<T extends string | boolean>(
+		freeValue: T,
+		plusValue: T,
+		businessValue: T,
+		enterpriseValue: T,
+	) {
+		return {
+			[free.name]: freeValue,
+			[plus.name]: plusValue,
+			[business.name]: businessValue,
+			[enterprise.name]: enterpriseValue,
+		};
+	}
+
+	const businessAndEnterprise = byPlan(false, false, true, true);
+	const enterpriseOnly = byPlan(false, false, false, true);
+
+	return [
+		{
+			title: core.title,
+			features: [
+				{ name: core.features.workspaces, value: unlimited },
+				{
+					name: core.features.items,
+					value: byPlan("25", unlimited, unlimited, unlimited),
+				},
+				{
+					name: core.features.members,
+					value: byPlan("3", "10", unlimited, unlimited),
+				},
+				{
+					name: storage.poolLabel,
+					value: byPlan(
+						storage.pools.free,
+						storage.pools.plus,
+						storage.pools.business,
+						storage.pools.enterprise,
+					),
+				},
+				{
+					name: storage.fileLabel,
+					value: byPlan(
+						storage.files.free,
+						storage.files.plus,
+						storage.files.business,
+						storage.files.enterprise,
+					),
+				},
+				{ name: core.features.cloudSync, value: true },
+			],
+		},
+		{
+			title: extensions.title,
+			features: [
+				{ name: extensions.features.richTextEditor, value: true },
+				{ name: extensions.features.whiteboard, value: true },
+				{ name: extensions.features.kanbanBoard, value: true },
+				{ name: extensions.features.compiler, value: true },
+				{ name: extensions.features.allOther, value: businessAndEnterprise },
+			],
+		},
+		{
+			title: support.title,
+			features: [
+				{ name: support.features.community, value: true },
+				{ name: support.features.priority, value: businessAndEnterprise },
+				{ name: support.features.dedicated, value: enterpriseOnly },
+			],
+		},
+		{
+			title: securityCompliance.title,
+			features: [
+				{
+					name: securityCompliance.features.customRoles,
+					value: enterpriseOnly,
+				},
+				{ name: securityCompliance.features.sla, value: enterpriseOnly },
+				{ name: securityCompliance.features.sso, value: enterpriseOnly },
+				{ name: securityCompliance.features.soc2, value: enterpriseOnly },
+			],
+		},
+	];
+}
