@@ -1,4 +1,5 @@
 import { useViews } from "@lunarisapp/plugin-sdk";
+import { useAppToolActive } from "@repo/features/appbar";
 import { useCurrentWorkspace } from "@repo/workspaces/workspace";
 import { useWorkspaceResourcesMap } from "@repo/workspaces/workspace-explorer";
 import { useEffect, useMemo } from "react";
@@ -44,6 +45,7 @@ export function useWorkspaceBrowserTitle({
   resolution: providedResolution,
 }: UseWorkspaceBrowserTitleOptions = {}) {
   const { workspace } = useCurrentWorkspace();
+  const appToolActive = useAppToolActive();
   const resourcesMap = useWorkspaceResourcesMap();
   const views = useViews();
   const { subviewId, subviewPath, viewId, organizationSlug } = useParams<{
@@ -92,11 +94,14 @@ export function useWorkspaceBrowserTitle({
   );
 
   useEffect(() => {
+    if (!appToolActive) {
+      return;
+    }
     document.title = title;
     return () => {
       document.title = APP_TITLE;
     };
-  }, [title]);
+  }, [appToolActive, title]);
 
   return title;
 }

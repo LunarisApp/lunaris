@@ -1,20 +1,20 @@
-# Agent Work
+# Agent
 
-Agent Work runs Pi SDK in a bundled Bun sidecar. The desktop app provides a conversation sidebar, streaming chat, model selection, saved local sessions, stop, and resource-change approval.
+Agent runs Pi SDK in a bundled Bun sidecar. The desktop app provides a conversation sidebar, streaming chat, model selection, saved local sessions, stop, and resource-change approval.
 
 ## Use
 
 1. Complete [desktop setup](../README.md#local-development), then start it with
    `bun run dev:desktop` from the repository root.
-2. Open **Agent Work**, then **Connect ChatGPT**.
-3. Complete Pi's OpenAI Codex sign-in in your browser using an eligible ChatGPT subscription. If the callback cannot reach the app, paste the redirect URL into Agent Work.
+2. Open **Agent**, then **Connect ChatGPT**.
+3. Complete Pi's OpenAI Codex sign-in in your browser using an eligible ChatGPT subscription. If the callback cannot reach the app, paste the redirect URL into Agent.
 4. Ask about your Lunaris workspace resources. Inspect and approve proposed changes before they run.
 
 The web app explains that this runtime requires desktop. API keys are not required for the subscription login. Model availability and usage limits depend on the account and provider.
 
 ## Panels
 
-Agent Work has Conversations, Chat, and Activity panels. Activity shows tool
+Agent has Conversations, Chat, and Activity panels. Activity shows tool
 results and pending approvals. Mini uses one chat panel with inline approvals.
 Panel widths persist per API, user, and organization; narrow windows use tabs.
 
@@ -26,7 +26,7 @@ Panel widths persist per API, user, and organization; narrow windows use tabs.
 - Reads run automatically. Mutations require an explicit approval, claimed once to prevent duplicate clicks from repeating a write.
 - OAuth credentials and sessions stay under the OS app-data directory, in `agent-work/<scope hash>`. The scope contains API URL, user, and organization. Directories use private permissions on Unix; credentials are stored by Pi, not in the frontend or repository.
 - Prompts and resource tool results are sent to the connected model provider. Disconnect removes the stored provider credential; conversation history remains locally.
-- One Agent Work window runs at a time. Leaving the route stops its sidecar and current turn. Reopen saved conversations from the sidebar.
+- Full Agent and Agent Mini in the same window share a sidecar. Switching between Workspaces and Agent keeps the conversation and current turn running. Leaving the work area closes the sidecar. Reopen saved conversations from the sidebar.
 
 ## Build and verify
 

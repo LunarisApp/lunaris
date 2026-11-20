@@ -7,6 +7,14 @@ import {
 } from "./constants";
 
 const LEGACY_EXTENSION_ID = "lunaris.ai-chat";
+const LEGACY_PANEL_TITLES = new Map([
+  ["Agent Work", "Agent"],
+  ["Agentenarbeit", "Agent"],
+  ["Trabajo de agentes", "Agent"],
+  ["Travail des agents", "Agent"],
+  ["Trabalho de agentes", "Agent"],
+  ["Agent Work Mini", "Agent Mini"],
+]);
 
 export function isLegacyAgentWorkView(viewId: string) {
   return (
@@ -15,6 +23,13 @@ export function isLegacyAgentWorkView(viewId: string) {
 }
 
 export function migrateAgentWorkPanel<T extends AddPanel>(panel: T): T {
+  if (
+    panel.pluginId === AGENT_WORK_PANEL_ID &&
+    panel.renderer === AGENT_WORK_RENDERER
+  ) {
+    const title = LEGACY_PANEL_TITLES.get(panel.title);
+    return title ? { ...panel, title } : panel;
+  }
   if (panel.pluginId !== LEGACY_EXTENSION_ID) {
     return panel;
   }
@@ -22,7 +37,7 @@ export function migrateAgentWorkPanel<T extends AddPanel>(panel: T): T {
     ...panel,
     pluginId: AGENT_WORK_PANEL_ID,
     renderer: AGENT_WORK_RENDERER,
-    title: "Agent Work",
+    title: "Agent",
     params: {
       ...panel.params,
       pluginId: AGENT_WORK_PANEL_ID,
@@ -35,15 +50,16 @@ export function migrateAgentWorkPanel<T extends AddPanel>(panel: T): T {
 export function migrateAgentWorkDescriptor(
   descriptor: PanelWindowDescriptor
 ): PanelWindowDescriptor {
-  if (descriptor.extensionId !== LEGACY_EXTENSION_ID) {
-    return descriptor;
-  }
-  const panel = migrateAgentWorkPanel({
+  const savedPanel = {
     pluginId: descriptor.extensionId,
     renderer: descriptor.viewId,
     title: descriptor.title,
     params: descriptor.params,
-  });
+  };
+  const panel = migrateAgentWorkPanel(savedPanel);
+  if (panel === savedPanel) {
+    return descriptor;
+  }
   return {
     extensionId: panel.pluginId,
     viewId: panel.renderer,

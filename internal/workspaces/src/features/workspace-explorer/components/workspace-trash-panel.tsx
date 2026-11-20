@@ -22,6 +22,7 @@ import { useWorkspaceResourceTrashRootsQuery } from "@repo/data/features/workspa
 import { log, parseError } from "evlog";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useAppToolActive } from "@repo/features/appbar";
 import { toast } from "sonner";
 import { usePermission } from "@repo/features/permissions";
 import { useCurrentWorkspace } from "../../workspace";
@@ -30,6 +31,7 @@ import { resolveWorkspaceResourceIcon } from "../types";
 
 export function WorkspaceTrashPanel() {
   const { i18n, t } = useTranslation();
+  const appToolActive = useAppToolActive();
   const { workspaceId } = useCurrentWorkspace();
   const { data: roots } = useWorkspaceResourceTrashRootsQuery(workspaceId);
   const resourceTypes = useResourceTypes();
@@ -234,7 +236,7 @@ export function WorkspaceTrashPanel() {
         description={t("trash.purgeConfirmation", { count: selected.size })}
         onConfirm={() => void runAction("purge")}
         onOpenChange={setConfirmPurge}
-        open={confirmPurge}
+        open={appToolActive && confirmPurge}
         title={t("trash.purgeTitle")}
       />
     </section>

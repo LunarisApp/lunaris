@@ -3,7 +3,6 @@ import {
   fetch as tauriFetch,
 } from "@tauri-apps/plugin-http";
 
-const DESKTOP_ORIGIN = "lunaris://";
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
 
 export interface RegionSessionSource {
@@ -59,11 +58,13 @@ export function createDesktopFetchBridge({
     });
     headers.delete("cookie");
     headers.delete("x-tauri-cookie");
+    // Native HTTP supplies Origin from the webview. The auth plugin's
+    // custom-scheme origin conflicts with it at the API's origin check.
+    headers.delete("tauri-origin");
 
     const authCookie =
       credentials === "omit" ? "" : await session.getAuthCookie();
 
-    headers.set("tauri-origin", DESKTOP_ORIGIN);
     if (authCookie) {
       headers.set("x-tauri-cookie", authCookie);
     }

@@ -2,6 +2,7 @@ import { WorkspaceWebMcp } from "../extensions/host/workspace-webmcp";
 import { permission } from "@repo/auth/permissions";
 import { WORKSPACE_ROLE, WORKSPACE_VISIBILITY } from "@repo/auth/sync-access";
 import { useWorkspaceMemberRole } from "@repo/data/features/workspace-members";
+import { useAppToolActive } from "@repo/features/appbar";
 import { useAuth } from "@repo/features/auth/context";
 import {
   WorkspaceNotFound,
@@ -119,6 +120,7 @@ function WorkspaceInner({
 }: Required<WorkspacePageProps> & {
   bundledRegistry: WorkspacePluginRegistry;
 }) {
+  const appToolActive = useAppToolActive();
   const {
     isLoading,
     isUnavailableOffline,
@@ -202,6 +204,7 @@ function WorkspaceInner({
   ]);
 
   if (
+    appToolActive &&
     location.state?.restoredWorkspace &&
     (isUnavailableOffline ||
       !(isLoading || (workspace && (workspaceRole.isLoading || canRead))))

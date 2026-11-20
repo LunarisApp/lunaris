@@ -14,6 +14,7 @@ import type { Shell } from "./types";
 export type AppToolId = "agent-work" | "chats" | "workspaces";
 
 export interface AppToolRouteOptions {
+  AgentWorkAppBarLeading?: ComponentType;
   AppBarLeading: ComponentType;
   AppBarTrailing: ComponentType;
   buildVersion: string;
@@ -44,7 +45,11 @@ export const APP_TOOLS = [
     icon: AiArtIcon,
     id: "agent-work",
     labelKey: "editor.agentWork",
-    routes: createAgentWorkRoutes,
+    routes: (options) =>
+      createAgentWorkRoutes({
+        ...options,
+        AppBarLeading: options.AgentWorkAppBarLeading ?? options.AppBarLeading,
+      }),
   },
   {
     enabled: false,

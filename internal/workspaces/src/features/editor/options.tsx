@@ -37,6 +37,7 @@ import {
 import { permission } from "@repo/auth/permissions";
 import { usePowerSync } from "@repo/data/core";
 import { waitForYjsDocumentPersistence } from "@repo/data/features/yjs";
+import { useAppToolActive } from "@repo/features/appbar";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useGridLayoutStore } from "../grid-layout/context";
@@ -64,6 +65,7 @@ function isCommandGroup(
 export function EditorOptions({ resource }: EditorOptionsProps) {
   const resourceId = resource.resourceId;
   const { t } = useTranslation();
+  const appToolActive = useAppToolActive();
   const commands = useResourceCommands(resource).flatMap(
     ({ definition }) => definition.commands
   );
@@ -328,7 +330,7 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
             setConfirmDeleteOpen(false);
           }}
           onOpenChange={setConfirmDeleteOpen}
-          open={confirmDeleteOpen}
+          open={appToolActive && confirmDeleteOpen}
           title={t("common.areYouSure")}
         />
       )}
@@ -338,7 +340,7 @@ export function EditorOptions({ resource }: EditorOptionsProps) {
           initialName={itemName}
           onOpenChange={setRenameOpen}
           onSubmit={(newName) => renameResource(resourceId, newName)}
-          open={renameOpen}
+          open={appToolActive && renameOpen}
           submitLabel={t("common.save")}
           title={t("common.rename")}
         />

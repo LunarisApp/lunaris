@@ -12,7 +12,7 @@ const state = {
   sessions: [],
 };
 
-describe("Agent Work protocol", () => {
+describe("Agent protocol", () => {
   it("validates commands and preserves the request ID", () => {
     expect(
       runtimeCommandSchema.parse({

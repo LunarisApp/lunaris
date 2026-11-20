@@ -1,41 +1,35 @@
 import { Appbar } from "@repo/features/appbar";
-import { usePlatform } from "@repo/platform";
+import { Spinner } from "@lunarisapp/ui/components/spinner";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { FEATURE } from "@repo/auth/entitlements";
-import { useFeatureAccess } from "@repo/features/entitlements";
-import { useApi } from "@repo/features/api";
-import { useAuth } from "@repo/features/auth";
+import { useAgentWorkAccess } from "./session";
 import { AgentWorkView, type AgentWorkPresentation } from "./view";
 
 /** Both presentations use the same account scope, lifecycle, and agent implementation. */
 export function AgentWorkRoot(props: AgentWorkPresentation) {
-  const platform = usePlatform();
-  const auth = useAuth();
-  const api = useApi();
-  const { data: session } = auth.useSession();
-  const { allowed, pending } = useFeatureAccess(FEATURE.agentWork);
-  if (pending || !allowed) {
-    return null;
-  }
-  if (platform.kind === "web") {
-    return <DesktopOnly {...props} />;
-  }
-  const organizationId = session?.session.activeOrganizationId;
-  if (!(session?.user.id && organizationId)) {
-    return null;
-  }
-  const scope = {
-    userId: session.user.id,
-    organizationId,
-    apiUrl: api.baseUrl,
-  };
-  return <AgentWorkView {...props} key={JSON.stringify(scope)} scope={scope} />;
-}
-
-function DesktopOnly(props: AgentWorkPresentation) {
   const { t } = useTranslation();
-  const notice = (
-    <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-6">
+  const { allowed, kind, pending, scope } = useAgentWorkAccess();
+  if (scope) {
+    return (
+      <AgentWorkView {...props} key={JSON.stringify(scope)} scope={scope} />
+    );
+  }
+  if (pending || !allowed || kind === "desktop") {
+    return props.variant === "panel" ? null : (
+      <AgentNotice {...props}>
+        {pending || allowed ? (
+          <div role="status" className="flex items-center gap-2">
+            <Spinner aria-hidden="true" />
+            {t("common.loading")}
+          </div>
+        ) : (
+          <h2 className="font-medium text-lg">{t("agentWork.unavailable")}</h2>
+        )}
+      </AgentNotice>
+    );
+  }
+  return (
+    <AgentNotice {...props}>
       <div className="max-w-md text-center">
         <h2 className="font-medium text-lg">
           {t("agentWork.desktopOnlyTitle")}
@@ -44,6 +38,14 @@ function DesktopOnly(props: AgentWorkPresentation) {
           {t("agentWork.desktopOnly")}
         </p>
       </div>
+    </AgentNotice>
+  );
+}
+
+function AgentNotice(props: AgentWorkPresentation & { children: ReactNode }) {
+  const notice = (
+    <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-6">
+      {props.children}
     </div>
   );
   if (props.variant === "panel") {

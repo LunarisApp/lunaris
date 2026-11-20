@@ -3,6 +3,7 @@ import type {
   AgentWorkCommand,
   AgentWorkConnection,
   AgentWorkEvent,
+  AgentWorkManager,
   AgentWorkScope,
   AgentWorkState,
 } from "@repo/platform";
@@ -19,7 +20,11 @@ export const initialAgentWorkState: AgentWorkState = {
   messages: [],
 };
 
-export function useAgentWork(scope: AgentWorkScope) {
+// Native Agent accepts one connection. A replacement, even across a view
+// remount, must wait for the previous startup and teardown to finish.
+const pendingCloses = new WeakMap<AgentWorkManager, Promise<void>>();
+
+export function useAgentWork(scope?: AgentWorkScope) {
   const { agentWork } = usePlatform();
   const connection = useRef<AgentWorkConnection | null>(null);
   const [state, setState] = useState(initialAgentWorkState);
@@ -28,21 +33,21 @@ export function useAgentWork(scope: AgentWorkScope) {
   const [approvals, setApprovals] = useState<AgentWorkApproval[]>([]);
   const [auth, setAuth] = useState<Extract<AgentWorkEvent, { type: "auth" }>>();
   const [revision, setRevision] = useState(0);
-  const { apiUrl, organizationId, userId } = scope;
+  const { apiUrl, organizationId, userId } = scope ?? {};
 
   useEffect(() => {
-    if (!agentWork) {
-      return;
-    }
-    let active = true;
-    let disconnected = false;
-    let current: AgentWorkConnection | undefined;
     setRuntimeReady(false);
     setState(initialAgentWorkState);
     setApprovals([]);
     setAuth(undefined);
     setError(undefined);
-    const start = Promise.resolve().then(() =>
+    if (!(agentWork && apiUrl && organizationId && userId)) {
+      return;
+    }
+    let active = true;
+    let disconnected = false;
+    const previousClose = pendingCloses.get(agentWork) ?? Promise.resolve();
+    const start = previousClose.then(() =>
       active
         ? agentWork.connect({ apiUrl, organizationId, userId }, (event) => {
             if (!active) {
@@ -84,12 +89,7 @@ export function useAgentWork(scope: AgentWorkScope) {
     );
     void start
       .then(async (value) => {
-        if (!value) {
-          return;
-        }
-        current = value;
-        if (!active) {
-          await value.close();
+        if (!(value && active)) {
           return;
         }
         connection.current = value;
@@ -106,40 +106,46 @@ export function useAgentWork(scope: AgentWorkScope) {
     return () => {
       active = false;
       connection.current = null;
-      if (current) {
-        void current.close().catch(() => undefined);
-      }
+      const close = start
+        .then((value) => value?.close())
+        .catch(() => undefined);
+      pendingCloses.set(agentWork, close);
+      void close.then(() => {
+        if (pendingCloses.get(agentWork) === close) {
+          pendingCloses.delete(agentWork);
+        }
+      });
     };
   }, [agentWork, apiUrl, organizationId, userId, revision]);
 
   const request = useCallback(async (command: AgentWorkCommand) => {
     setError(undefined);
+    const current = connection.current;
     try {
-      if (!connection.current) {
-        throw new Error("Agent Work is not connected");
+      if (!current) {
+        throw new Error("Agent is not connected");
       }
-      await connection.current.request(command);
+      await current.request(command);
       return true;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      if (connection.current === current) {
+        setError(cause instanceof Error ? cause.message : String(cause));
+      }
       return false;
     }
   }, []);
   const resolveTool = async (id: string, approved: boolean) => {
+    const current = connection.current;
     try {
-      await connection.current?.resolveTool(id, approved);
+      await current?.resolveTool(id, approved);
     } catch (cause) {
-      setError(String(cause));
+      if (connection.current === current) {
+        setError(String(cause));
+      }
     }
   };
-  const reconnect = async () => {
-    try {
-      await connection.current?.close();
-      connection.current = null;
-      setRevision((value) => value + 1);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
-    }
+  const reconnect = () => {
+    setRevision((value) => value + 1);
   };
   return {
     available: !!agentWork,

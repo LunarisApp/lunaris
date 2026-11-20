@@ -24,6 +24,7 @@ import {
   type AppToolDefinition,
   type AppToolId,
 } from "../app-tools";
+import { useLastAppToolLocation } from "./app-tool-layout";
 
 function ShortcutTooltipContent({
   hotkey,
@@ -55,21 +56,29 @@ function AppToolButton({
   const hotkey = useNavigationHotkey(tool.hotkeyId);
   const { organizationSlug } = useParams();
   const navigate = useNavigate();
-  const target = organizationSlug
+  const lastLocation = useLastAppToolLocation(tool.id);
+  const defaultTarget = organizationSlug
     ? `/${organizationSlug}${tool.id === "agent-work" ? "/agent-work" : ""}`
     : "/";
-  useHotkey(
-    hotkey,
-    () => {
-      if (tool.enabled) {
-        void navigate(target);
-      }
-    },
-    {
-      ...createHotkeyOptions(HOTKEYS[tool.hotkeyId], t),
-      enabled: tool.enabled && tool.id === "agent-work",
+  const switchTool = () => {
+    if (!tool.enabled || active) {
+      return;
     }
-  );
+    if (lastLocation) {
+      void navigate(lastLocation, { state: lastLocation.state });
+      return;
+    }
+    void navigate(defaultTarget, {
+      state:
+        organizationSlug && tool.id === "workspaces"
+          ? { resumeLastWorkspace: true }
+          : undefined,
+    });
+  };
+  useHotkey(hotkey, switchTool, {
+    ...createHotkeyOptions(HOTKEYS[tool.hotkeyId], t),
+    enabled: tool.enabled,
+  });
   const baseLabel = t(tool.labelKey);
   const label = tool.enabled
     ? baseLabel
@@ -81,7 +90,7 @@ function AppToolButton({
         render={
           tool.enabled ? (
             <Button
-              onClick={() => void navigate(target)}
+              onClick={switchTool}
               aria-current={active ? "page" : undefined}
               aria-keyshortcuts={hotkey}
               aria-label={label}

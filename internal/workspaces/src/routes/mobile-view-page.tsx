@@ -3,6 +3,7 @@ import { AGENT_WORK_TOOL_ID } from "../features/agent-work/constants";
 import { GridLayoutPanel } from "../features/grid-layout/panel";
 import { useResourceTypes, useViews } from "@lunarisapp/plugin-sdk";
 import { Button } from "@lunarisapp/ui/components/button";
+import { useAppToolActive } from "@repo/features/appbar";
 import { MobileHeader } from "@repo/features/mobile";
 import { useCurrentWorkspace } from "@repo/workspaces/workspace";
 import { useWorkspaceResourcesMap } from "@repo/workspaces/workspace-explorer";
@@ -24,6 +25,7 @@ import { MobileResourceHeaderContext } from "../features/editor/mobile-resource-
 import { useMobileViewRegistry } from "./workspace-mobile-shell";
 
 export default function MobileViewPage() {
+  const appToolActive = useAppToolActive();
   const [headerActions, setHeaderActions] = useState<HTMLDivElement | null>(
     null
   );
@@ -73,7 +75,7 @@ export default function MobileViewPage() {
 
   // Redirects + folder focus must run in an effect, not during render.
   useEffect(() => {
-    if (!(workspaceSlug && organizationSlug)) {
+    if (!(appToolActive && workspaceSlug && organizationSlug)) {
       return;
     }
     if (resolution.kind === "redirect") {
@@ -83,7 +85,7 @@ export default function MobileViewPage() {
         replace: true,
       });
     }
-  }, [navigate, organizationSlug, workspaceSlug, resolution]);
+  }, [appToolActive, navigate, organizationSlug, workspaceSlug, resolution]);
 
   // Workspace still loading — render nothing rather than a spurious not-found
   // flash. A later render (once useCurrentWorkspace resolves) will show the

@@ -346,7 +346,7 @@
     "groupContentMatches": "Correspondances de contenu",
     "groupCommands": "Commandes",
     "searchOrAsk": "Saisir un prompt, rechercher ou lancer une commande…",
-    "askAgent": "Demander à Agent Work : « {{query}} »",
+    "askAgent": "Demander à Agent : « {{query}} »",
     "groupFilters": "Rechercher par",
     "currentWorkspace": "Actuel",
     "addFilter": "Filtre",
@@ -639,7 +639,8 @@
     "workspaces": "Espaces de travail",
     "navigation": "Outils de l’espace de travail",
     "chats": "Discussions",
-    "agentWork": "Travail des agents"
+    "agentWork": "Agent",
+    "agentWorkMini": "Agent Mini"
   },
   "syncStatus": {
     "onlineStatus": "Synchronisation cloud connectée",
@@ -1174,8 +1175,9 @@
     "skipToMessage": "Aller au message",
     "heading": "Sur quoi travaillons-nous ?",
     "description": "Lisez, rédigez et organisez vos ressources Lunaris avec votre abonnement ChatGPT. Vérifiez les modifications avant leur application.",
+    "unavailable": "Agent est indisponible pour ce compte.",
     "desktopOnlyTitle": "Disponible dans l’application de bureau",
-    "desktopOnly": "Agent Work n’est pas disponible sur le Web. La connexion avec ChatGPT nécessite l’application de bureau Lunaris. Ouvrez Lunaris sur votre ordinateur pour utiliser Agent Work.",
+    "desktopOnly": "Agent n’est pas disponible sur le Web. La connexion avec ChatGPT nécessite l’application de bureau Lunaris. Ouvrez Lunaris sur votre ordinateur pour utiliser Agent.",
     "transcript": "Conversation",
     "awaitingApproval": "En attente de votre approbation",
     "working": "En cours…",

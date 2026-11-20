@@ -20,6 +20,7 @@ import {
 } from "react-router";
 import AuthGuard from "./components/auth-guard";
 import { AppBarNavigation, AppLogo } from "./components/app-bar-navigation";
+import { AppToolLayout } from "./components/app-tool-layout";
 import { BuildVersion } from "@repo/features/build-version";
 import { RouteCriticalError } from "./components/error";
 import { PostHogPageviewTracker } from "./components/posthog-pageview";
@@ -139,7 +140,16 @@ function WorkspacesAppBarLeading() {
   );
 }
 
-function WorkspacesAppBarTrailing() {
+function AgentWorkAppBarLeading() {
+  return (
+    <>
+      <AppLogo />
+      <AppBarNavigation activeToolId="agent-work" />
+    </>
+  );
+}
+
+function AppBarTrailing() {
   const handleLogout = useLogout();
 
   return (
@@ -175,7 +185,8 @@ const createAppRouter = (shell: Shell, runtime?: RoutingRuntime) => {
   const buildVersionLabel = <BuildVersion version={buildVersion} />;
   const toolRoutes = createEnabledAppToolRoutes({
     AppBarLeading: WorkspacesAppBarLeading,
-    AppBarTrailing: WorkspacesAppBarTrailing,
+    AgentWorkAppBarLeading,
+    AppBarTrailing,
     buildVersion,
     shell,
   });
@@ -301,7 +312,7 @@ const createAppRouter = (shell: Shell, runtime?: RoutingRuntime) => {
                   path: ":organizationSlug",
                   Component: OrganizationScopeGate,
                   children: [
-                    ...toolRoutes,
+                    { Component: AppToolLayout, children: toolRoutes },
                     {
                       path: "settings",
                       lazy: async () => {

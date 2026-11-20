@@ -16,6 +16,7 @@ import {
   CommandShortcut,
 } from "@lunarisapp/ui/components/command";
 import { Kbd } from "@lunarisapp/ui/components/kbd";
+import { useAppToolActive } from "@repo/features/appbar";
 import {
   AiChat02Icon,
   File01Icon,
@@ -301,6 +302,7 @@ export function SearchDialogMenu({
   const navigate = useNavigate();
   const { pathWithRegion } = useRegion();
   const { organizationSlug } = useParams<{ organizationSlug: string }>();
+  const appToolActive = useAppToolActive();
   const {
     isOpen,
     query,
@@ -312,10 +314,10 @@ export function SearchDialogMenu({
   } = useSearchDialog();
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (inline && isOpen) {
+    if (appToolActive && inline && isOpen) {
       inputRef.current?.focus();
     }
-  }, [inline, isOpen]);
+  }, [appToolActive, inline, isOpen]);
   const choosingResource = Boolean(createResourceInContext);
   const searchQuery = choosingResource ? "" : query;
   const detectedFieldCompletion = useMemo(
@@ -334,7 +336,7 @@ export function SearchDialogMenu({
     valueCompletion && valueCompletion.field !== "workspace"
   );
   const isQueryEmpty = !(choosingResource || query.trim());
-  const resultsOpen = isOpen && !(inline && isQueryEmpty);
+  const resultsOpen = appToolActive && isOpen && !(inline && isQueryEmpty);
   const isShowingDefaultSuggestions = !inline && isQueryEmpty && !isCompleting;
   const executableQuery = isCompleting ? "" : searchQuery;
   const workspaceCandidates = useWorkspaceSearch(
@@ -1199,7 +1201,7 @@ export function SearchDialogMenu({
           close();
         }
       }}
-      open={isOpen}
+      open={appToolActive && isOpen}
       title={choosingResource ? t("explorer.addResource") : t("search.title")}
     >
       {palette}

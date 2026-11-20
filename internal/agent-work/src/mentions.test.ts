@@ -34,7 +34,7 @@ const at = (option: PluginEntityReferenceOption, start: number) => ({
   end: start + option.name.length + 1,
 });
 
-describe("Agent Work resource mentions", () => {
+describe("Agent resource mentions", () => {
   it("finds a mention at the caret", () => {
     expect(findMentionTrigger("Review @lau", 11)).toEqual({
       end: 11,

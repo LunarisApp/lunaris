@@ -27,11 +27,11 @@ describe("desktop fetch bridge", () => {
     expect(nativeFetch).not.toHaveBeenCalled();
   });
 
-  it("isolates cookies to the selected region API origin", async () => {
+  it("bridges cookies without overriding the native request origin", async () => {
     const nativeFetch = vi.fn(async (_input, init) => {
       const headers = new Headers(init?.headers);
       expect(headers.get("x-tauri-cookie")).toBe("lunaris.session_token=auth");
-      expect(headers.get("tauri-origin")).toBe("lunaris://");
+      expect(headers.has("tauri-origin")).toBe(false);
       expect(init?.maxRedirections).toBe(0);
       return new Response();
     });
@@ -52,6 +52,7 @@ describe("desktop fetch bridge", () => {
     await bridge(`${apiOrigin}/v1/account`, {
       headers: {
         Cookie: "foreign=direct",
+        "tauri-origin": "lunaris://",
         "x-tauri-cookie": "foreign=bridged",
       },
     });

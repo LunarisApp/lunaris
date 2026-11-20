@@ -77,7 +77,7 @@ export const desktopAgentWork: AgentWorkManager = {
       try {
         const bridge = resourceBridge;
         if (!bridge || scopeKey(bridge.scope) !== scopeKey(scope)) {
-          throw new Error("Workspace connection changed. Reopen Agent Work.");
+          throw new Error("Workspace connection changed. Reopen Agent.");
         }
         const { request } = resolveResourceTool(
           tool.name,
@@ -138,7 +138,7 @@ export const desktopAgentWork: AgentWorkManager = {
       }
       if (event.type === "closed") {
         const error = new Error(
-          "Agent Work disconnected. Reopen this tab to reconnect."
+          "Agent disconnected. Reopen this tab to reconnect."
         );
         disconnect(error);
         return;
@@ -146,7 +146,7 @@ export const desktopAgentWork: AgentWorkManager = {
       try {
         const parsed = runtimeEventSchema.safeParse(JSON.parse(event.data));
         if (!parsed.success) {
-          throw new Error("Invalid Agent Work event");
+          throw new Error("Invalid Agent event");
         }
         const message = parsed.data;
         if (message.type === "response") {
@@ -211,7 +211,7 @@ export const desktopAgentWork: AgentWorkManager = {
     return {
       request(command) {
         if (closed) {
-          return Promise.reject(new Error("Agent Work is disconnected"));
+          return Promise.reject(new Error("Agent is disconnected"));
         }
         const id = crypto.randomUUID();
         return new Promise<void>((resolve, reject) => {
@@ -242,7 +242,7 @@ export const desktopAgentWork: AgentWorkManager = {
       async close() {
         closed = true;
         for (const request of requests.values()) {
-          request.reject(new Error("Agent Work closed"));
+          request.reject(new Error("Agent closed"));
         }
         requests.clear();
         approvals.clear();

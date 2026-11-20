@@ -6,10 +6,10 @@ import {
 import { Button } from "@lunarisapp/ui/components/button";
 import {
   Add01Icon,
+  CancelSquareIcon,
   ChatGptIcon,
   Chat01Icon,
   HugeiconsIcon,
-  Logout03Icon,
   Search01Icon,
 } from "@lunarisapp/ui/icons";
 import type { AgentWorkState } from "@repo/platform";
@@ -45,7 +45,7 @@ export function ConversationSidebar({
     day: "numeric",
   });
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background text-foreground">
+    <div className="flex h-full min-h-0 flex-col text-foreground">
       <div className="px-2 pt-2">
         <Button
           className="w-full justify-start"
@@ -159,7 +159,7 @@ export function ConversationSidebar({
           variant={state.authenticated ? "ghost" : "outline"}
         >
           {state.authenticated ? (
-            <HugeiconsIcon aria-hidden="true" icon={Logout03Icon} />
+            <HugeiconsIcon aria-hidden="true" icon={CancelSquareIcon} />
           ) : (
             t("agentWork.connect")
           )}

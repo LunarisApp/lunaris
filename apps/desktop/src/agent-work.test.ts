@@ -45,7 +45,7 @@ beforeEach(() => {
     .mockResolvedValue({ status: 200, body: { success: true } });
 });
 
-describe("desktop Agent Work bridge", () => {
+describe("desktop Agent bridge", () => {
   it.each([
     { type: "state", state: {} },
     { type: "response", id: "invalid", error: { unexpected: true } },
@@ -57,10 +57,10 @@ describe("desktop Agent Work bridge", () => {
       const connection = await desktopAgentWork.connect(scope, listener);
       const pending = connection.request({ type: "status" });
       emit(event);
-      await expect(pending).rejects.toThrow("Invalid Agent Work event");
+      await expect(pending).rejects.toThrow("Invalid Agent event");
       expect(listener).toHaveBeenLastCalledWith({
         type: "disconnected",
-        message: "Invalid Agent Work event",
+        message: "Invalid Agent event",
       });
       expect(native.invoke).toHaveBeenCalledWith(
         "agent_work_stop",

@@ -15,7 +15,7 @@ vi.mock("@repo/workspaces/organization-navigation", () => ({
   useOrganizationNavigation: () => ({ openTool }),
 }));
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: () => "Agent Work" }),
+  useTranslation: () => ({ t: () => "Agent" }),
 }));
 vi.mock("@repo/agent-work/panel", () => ({
   AgentWorkPanel: () => <div>Mini chat</div>,
@@ -53,7 +53,7 @@ it("opens and renders the mini tool only when enabled", async () => {
       <AgentWorkPanel />
     </Suspense>
   );
-  fireEvent.click(await screen.findByRole("button", { name: "Agent Work" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Agent" }));
   expect(openTool).toHaveBeenCalledWith({
     toolId: "agent-work",
     target: { direction: "right" },

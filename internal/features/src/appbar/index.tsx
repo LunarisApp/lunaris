@@ -1,12 +1,49 @@
 import { cn } from "@lunarisapp/ui/lib/utils";
-import type { HTMLAttributes } from "react";
+import {
+  Activity,
+  createContext,
+  useContext,
+  useId,
+  type HTMLAttributes,
+  type ReactNode,
+} from "react";
+import { HotkeysProvider } from "@tanstack/react-hotkeys";
+
+const AppToolActive = createContext(true);
+
+export function useAppToolActive() {
+  return useContext(AppToolActive);
+}
+
+export function AppToolVisibility({
+  active,
+  children,
+}: {
+  active: boolean;
+  children: ReactNode;
+}) {
+  const scope = useId();
+  return (
+    <AppToolActive.Provider value={active}>
+      <HotkeysProvider scope={scope} enabled={active}>
+        {children}
+      </HotkeysProvider>
+    </AppToolActive.Provider>
+  );
+}
 
 export function Appbar({ className, ...props }: HTMLAttributes<HTMLElement>) {
+  const active = useAppToolActive();
   return (
-    <header
-      className={cn("flex h-12 items-center justify-between px-2.5", className)}
-      {...props}
-    />
+    <Activity mode={active ? "visible" : "hidden"}>
+      <header
+        className={cn(
+          "flex h-12 items-center justify-between px-2.5",
+          className
+        )}
+        {...props}
+      />
+    </Activity>
   );
 }
 
