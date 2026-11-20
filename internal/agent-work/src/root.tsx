@@ -48,7 +48,7 @@ function DesktopOnly(props: AgentWorkPresentation) {
   );
   if (props.variant === "panel") {
     return (
-      <section className="flex h-full min-h-0 flex-col bg-background text-foreground">
+      <section className="flex h-full min-h-0 flex-col text-foreground">
         {notice}
       </section>
     );
