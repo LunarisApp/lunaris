@@ -133,6 +133,29 @@ test("CLI notarization verifies the executable without app-only Gatekeeper asses
   expect(notarize.run).not.toContain("spctl");
 });
 
+test("Windows and Linux CLI packages follow candidate support", () => {
+  const { jobs } = workflow("native.build");
+  const platforms = jobs["build-cli-platforms"];
+  expect(platforms.needs).toBe("signing");
+  expect(platforms.if).toBe(
+    "needs.signing.outputs.cli_platform_archives == 'true'"
+  );
+  expect(
+    jobs.signing.steps.find(
+      (step: { id?: string }) => step.id === "cli-platforms"
+    ).run
+  ).toContain("[ -f tooling/delivery/cli-artifacts.sh ]");
+  expect(
+    platforms.strategy.matrix.include.map(
+      (entry: { target: string }) => entry.target
+    )
+  ).toEqual([
+    "x86_64-pc-windows-msvc",
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+  ]);
+});
+
 test("macOS notarizes and staples the final DMG before verification and packaging", () => {
   const { steps } = workflow("native.build").jobs["build-desktop"];
   const index = (name: string) =>

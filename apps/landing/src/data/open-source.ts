@@ -2,8 +2,11 @@ import type { Locale } from "@/i18n/config";
 
 export const repositoryUrl = "https://github.com/LunarisApp/lunaris";
 export const selfHostingGuideUrl = `${repositoryUrl}/blob/main/infra/self-host/README.md`;
-export const selfHostCommand =
-	"curl -fsSL https://lunaris.app/install.sh | bash";
+export const selfHostCommands = {
+	unix: "curl -fsSL https://lunaris.app/self-hosted/install.sh | bash",
+	windows:
+		"& ([scriptblock]::Create((Invoke-RestMethod -UseBasicParsing 'https://lunaris.app/self-hosted/install.ps1')))",
+};
 
 type OpenSourceCopy = {
 	label: string;
@@ -20,6 +23,7 @@ type OpenSourceCopy = {
 	domain: string;
 	install: string;
 	installDescription: string;
+	localRequirements: string;
 	nextStep: string;
 	operations: string;
 	operationsDescription: string;
@@ -47,6 +51,8 @@ export const openSourceCopy: Record<Locale, OpenSourceCopy> = {
 		server:
 			"Linux server (AMD64 or ARM64), at least 4 GB RAM, and disk space for your work and backups.",
 		docker: "Docker Engine, Docker Compose 2.24+, curl, and OpenSSL.",
+		localRequirements:
+			"For local use, macOS needs Docker Desktop. Windows needs WSL 2 with Docker available in its default Linux distribution.",
 		domain:
 			"A domain pointing to your server, with TCP ports 80 and 443 open for automatic HTTPS.",
 		install: "Install Community Edition",
@@ -81,6 +87,8 @@ export const openSourceCopy: Record<Locale, OpenSourceCopy> = {
 		server:
 			"Servidor Linux (AMD64 o ARM64), al menos 4 GB de RAM y espacio para tu trabajo y copias de seguridad.",
 		docker: "Docker Engine, Docker Compose 2.24+, curl y OpenSSL.",
+		localRequirements:
+			"Para el uso local, macOS necesita Docker Desktop. Windows necesita WSL 2 con Docker disponible en su distribución de Linux predeterminada.",
 		domain:
 			"Un dominio que apunte al servidor y puertos TCP 80 y 443 abiertos para HTTPS automático.",
 		install: "Instalar Community Edition",
@@ -115,6 +123,8 @@ export const openSourceCopy: Record<Locale, OpenSourceCopy> = {
 		server:
 			"Serveur Linux (AMD64 ou ARM64), au moins 4 Go de RAM et de l’espace pour votre travail et vos sauvegardes.",
 		docker: "Docker Engine, Docker Compose 2.24+, curl et OpenSSL.",
+		localRequirements:
+			"Pour une utilisation locale, macOS nécessite Docker Desktop. Windows nécessite WSL 2 avec Docker disponible dans sa distribution Linux par défaut.",
 		domain:
 			"Un domaine pointant vers votre serveur et les ports TCP 80 et 443 ouverts pour HTTPS automatique.",
 		install: "Installer Community Edition",
@@ -149,6 +159,8 @@ export const openSourceCopy: Record<Locale, OpenSourceCopy> = {
 		server:
 			"Linux-Server (AMD64 oder ARM64), mindestens 4 GB RAM und Speicherplatz für deine Arbeit und Backups.",
 		docker: "Docker Engine, Docker Compose 2.24+, curl und OpenSSL.",
+		localRequirements:
+			"Für die lokale Nutzung benötigt macOS Docker Desktop. Windows benötigt WSL 2 mit Docker in der Standard-Linux-Distribution.",
 		domain:
 			"Eine Domain, die auf deinen Server verweist, sowie offene TCP-Ports 80 und 443 für automatisches HTTPS.",
 		install: "Community Edition installieren",
@@ -183,6 +195,8 @@ export const openSourceCopy: Record<Locale, OpenSourceCopy> = {
 		server:
 			"Servidor Linux (AMD64 ou ARM64), pelo menos 4 GB de RAM e espaço para seu trabalho e backups.",
 		docker: "Docker Engine, Docker Compose 2.24+, curl e OpenSSL.",
+		localRequirements:
+			"Para uso local, o macOS precisa do Docker Desktop. O Windows precisa do WSL 2 com o Docker disponível na distribuição Linux padrão.",
 		domain:
 			"Um domínio apontando para o servidor e portas TCP 80 e 443 abertas para HTTPS automático.",
 		install: "Instalar Community Edition",

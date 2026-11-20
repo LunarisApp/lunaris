@@ -46,7 +46,7 @@ export function renderLlmsIndex() {
 			[
 				`- [Getting started](${docsUrl}/getting-started): Set up an account and create your first workspace.`,
 				`- [Lunaris documentation](${docsUrl}): User guides, troubleshooting, and developer reference.`,
-				`- [Download the Lunaris CLI](${siteUrl}/downloads#cli): Install the CLI on macOS with Homebrew.`,
+				`- [Download the Lunaris CLI](${siteUrl}/downloads#cli): Install with scripts on macOS, Linux, and Windows, or with Homebrew on macOS.`,
 				`- [Extension catalog](${siteUrl}${extensionIndexPath}): Browse built-in and installable extensions.`,
 				`- [Extension SDK quickstart](${extensionQuickstartUrl}): Build and test a Lunaris extension.`,
 			],

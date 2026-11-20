@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { candidateSchema } from "./candidate";
-import { completeDesktopAssets } from "./desktop-updater";
+import { completeDesktopAssets, desktopAssetNames } from "./desktop-updater";
 
 export const stableVersion = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 export function compareVersions(a: string, b: string): number {
@@ -45,8 +45,16 @@ export const productPlanSchema = z
   })
   .strict();
 export type ProductPlan = z.infer<typeof productPlanSchema>;
+const cliPlatformArchives = {
+  "cli-windows": "x86_64-pc-windows-msvc.zip",
+  "cli-linux": "x86_64-unknown-linux-gnu.tar.gz",
+  "cli-linux-arm64": "aarch64-unknown-linux-gnu.tar.gz",
+} as const;
 export const productGroups = [
   "cli",
+  "cli-windows",
+  "cli-linux",
+  "cli-linux-arm64",
   "desktop",
   "desktop-windows",
   "desktop-linux",
@@ -75,29 +83,38 @@ export const assetReceiptSchema = z
   .strict()
   .superRefine((receipt, context) => {
     const names = receipt.assets.map((asset) => asset.name);
-    const version = receipt.version.replaceAll(".", "\\.");
-    const legacy =
-      receipt.group === "self-hosted"
-        ? names.length === 2 &&
+    const { group, version } = receipt;
+    let valid: boolean;
+    switch (group) {
+      case "self-hosted":
+        valid =
+          names.length === 2 &&
           names.includes("install.sh") &&
-          names.includes(`lunaris-self-hosted-${receipt.version}.tar.gz`)
-        : names.length === 1 &&
-          new RegExp(
-            receipt.group === "cli"
-              ? `^lunaris-cli-${version}-universal-apple-darwin(?:-adhoc)?\\.zip$`
-              : receipt.group === "desktop-windows"
-                ? `^Lunaris-desktop-${version}-x86_64-pc-windows-msvc\\.exe$`
-                : receipt.group === "desktop-linux"
-                  ? `^Lunaris-desktop-${version}-x86_64-unknown-linux-gnu\\.deb$`
-                  : `^Lunaris-desktop-${version}-universal(?:-adhoc)?\\.dmg$`
-          ).test(names[0]!);
-    // Legacy receipts remain readable for already reserved releases.
-    const valid =
-      legacy ||
-      ((receipt.group === "desktop" ||
-        receipt.group === "desktop-windows" ||
-        receipt.group === "desktop-linux") &&
-        completeDesktopAssets(receipt.version, receipt.group, names));
+          names.includes(`lunaris-self-hosted-${version}.tar.gz`);
+        break;
+      case "cli":
+        valid =
+          names.length === 1 &&
+          [
+            `lunaris-cli-${version}-universal-apple-darwin.zip`,
+            `lunaris-cli-${version}-universal-apple-darwin-adhoc.zip`,
+          ].includes(names[0]!);
+        break;
+      case "cli-windows":
+      case "cli-linux":
+      case "cli-linux-arm64":
+        valid =
+          names.length === 1 &&
+          names[0] === `lunaris-cli-${version}-${cliPlatformArchives[group]}`;
+        break;
+      default:
+        // Legacy receipts remain readable for already reserved releases.
+        valid =
+          completeDesktopAssets(version, group, names) ||
+          (names.length === 1 &&
+            (names[0] === desktopAssetNames(version, group).installer ||
+              names[0] === desktopAssetNames(version, group, true).installer));
+    }
     if (!valid || new Set(names).size !== names.length) {
       context.addIssue({
         code: "custom",

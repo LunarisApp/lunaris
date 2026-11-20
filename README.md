@@ -46,7 +46,7 @@ with your team, or on your own server.
 Run Community Edition on your Linux server:
 
 ```sh
-curl -fsSL https://lunaris.app/install.sh | bash
+curl -fsSL https://lunaris.app/self-hosted/install.sh | bash
 ```
 
 The installer downloads prebuilt Docker images, generates secrets, and starts
@@ -67,7 +67,7 @@ containers for the web app, API, databases, sync, and file storage.
 Pass your public URL to skip the domain prompt:
 
 ```sh
-curl -fsSL https://lunaris.app/install.sh | bash -s -- https://notes.example.com
+curl -fsSL https://lunaris.app/self-hosted/install.sh | bash -s -- https://notes.example.com
 ```
 
 Append options after `bash -s --`:
@@ -79,7 +79,7 @@ Append options after `bash -s --`:
 | `--tls-mode external` | Use your HTTPS reverse proxy; serve HTTP on localhost port 8080 |
 | `--no-web` | Omit the web frontend; requires your own HTTPS proxy and backend routing |
 
-To pin a release, use `https://lunaris.app/install.sh?version=<version>`.
+To pin a release, use `https://lunaris.app/self-hosted/install.sh?version=<version>`.
 
 </details>
 

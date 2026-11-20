@@ -3,9 +3,35 @@
 Manage Lunaris workspaces and resources from your terminal, scripts, or an MCP
 client. This Rust CLI connects to Lunaris servers and the desktop app.
 
-The crate is not published to crates.io.
+## Install
+
+On macOS (Apple Silicon or Intel, macOS 13+) or Linux (glibc 2.39+, x64 or ARM64):
+
+```sh
+curl -fsSL https://lunaris.app/cli/install.sh | bash
+```
+
+The script installs to `~/.local/bin` by default. Add that directory to
+`PATH` if needed. Set `LUNARIS_INSTALL_DIR` to use another directory.
+
+On Windows (x64, or Windows 11 on Arm with x64 emulation), run in PowerShell:
+
+```powershell
+& ([scriptblock]::Create((Invoke-RestMethod -UseBasicParsing 'https://lunaris.app/cli/install.ps1')))
+```
+
+The Windows script installs to `%LOCALAPPDATA%\Lunaris\bin` and adds it to
+your user `PATH`. Both scripts verify the archive against the release checksums.
+
+On macOS with Homebrew:
+
+```sh
+brew install --formula lunarisapp/tap/lunaris
+```
 
 ## Build from source
+
+The crate is not published to crates.io.
 
 Use the Rust toolchain pinned in `rust-toolchain.toml`. Commands below run from
 the repository root; the contract tests also require Bun dependencies.

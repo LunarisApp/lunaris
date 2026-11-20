@@ -51,6 +51,11 @@ const nextConfig: NextConfig = {
 				permanent: true,
 			})),
 			{
+				source: "/install.sh",
+				destination: "/self-hosted/install.sh",
+				permanent: true,
+			},
+			{
 				source: legalDocumentPaths.privacy,
 				destination: legalDocumentUrls.privacy,
 				permanent: true,
@@ -163,6 +168,11 @@ const nextConfig: NextConfig = {
 						value: contentSecurityPolicy,
 					},
 				],
+			},
+			{
+				source:
+					"/:product(cli|self-hosted)/:installer(install\\.sh|install\\.ps1)",
+				headers: [{ key: "Content-Type", value: "text/plain; charset=utf-8" }],
 			},
 			...markdownPages.flatMap(({ path }) =>
 				locales.map((locale) => ({

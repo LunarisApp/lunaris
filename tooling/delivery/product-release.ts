@@ -443,8 +443,15 @@ if (mode === "reserve") {
     throw new Error("Product candidate not deployed successfully");
   }
   const assets = [];
+  const requiresCliPlatformArchives = existsSync(
+    "tooling/delivery/cli-artifacts.sh"
+  );
   let hasCompleteDesktopUpdates = true;
   for (const group of productGroups) {
+    // Match native.build.yml so retries keep the same asset manifest.
+    if (!requiresCliPlatformArchives && group.startsWith("cli-")) {
+      continue;
+    }
     const receipt = assetReceiptSchema.parse(
       JSON.parse(readFileSync(download(tag, `${group}-receipt.json`), "utf8"))
     );

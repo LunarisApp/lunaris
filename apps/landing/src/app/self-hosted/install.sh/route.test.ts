@@ -21,7 +21,7 @@ function dependencies() {
 test("remote installer redirects latest and pinned versions outside locale routing", async () => {
 	const state = dependencies();
 	const latest = await handleInstaller(
-		new Request("https://lunaris.app/install.sh"),
+		new Request("https://lunaris.app/self-hosted/install.sh"),
 		state,
 	);
 	expect(latest.status).toBe(307);
@@ -29,7 +29,7 @@ test("remote installer redirects latest and pinned versions outside locale routi
 		"self-hosted%401.2.3/install.sh",
 	);
 	const pinned = await handleInstaller(
-		new Request("https://lunaris.app/install.sh?version=1.0.0"),
+		new Request("https://lunaris.app/self-hosted/install.sh?version=1.0.0"),
 		{
 			...state,
 			latest: () => {
@@ -46,12 +46,14 @@ test("remote installer redirects latest and pinned versions outside locale routi
 test("invalid versions and unavailable releases fail as plain HTTP errors", async () => {
 	const state = dependencies();
 	const invalid = await handleInstaller(
-		new Request("https://lunaris.app/install.sh?version=latest%0Abad"),
+		new Request(
+			"https://lunaris.app/self-hosted/install.sh?version=latest%0Abad",
+		),
 		state,
 	);
 	expect(invalid.status).toBe(400);
 	const unavailable = await handleInstaller(
-		new Request("https://lunaris.app/install.sh"),
+		new Request("https://lunaris.app/self-hosted/install.sh"),
 		{ ...state, latest: () => Promise.reject(new Error("GitHub unavailable")) },
 	);
 	expect(unavailable.status).toBe(503);
