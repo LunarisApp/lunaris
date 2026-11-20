@@ -31,7 +31,7 @@ export function Plan({
 	return (
 		<div
 			className={clsx(
-				"flex flex-col gap-5 rounded-xl border border-olive-950/15 p-6 sm:items-start dark:border-white/15",
+				"flex flex-col gap-5 rounded-xl border border-olive-950/15 p-6 sm:row-span-3 sm:grid sm:grid-rows-subgrid sm:items-start dark:border-white/15",
 				className,
 			)}
 		>

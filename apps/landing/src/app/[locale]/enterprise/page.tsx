@@ -14,7 +14,7 @@ import {
 } from "@/components/analytics/tracked-button-link";
 import { Container } from "@/components/elements/container";
 import { EnterpriseArtwork } from "@/components/elements/enterprise-artwork";
-import { ExtensionShowcase } from "@/components/elements/extension-showcase";
+import { ExtensionsArtwork } from "@/components/elements/extensions-artwork";
 import { Heading } from "@/components/elements/heading";
 import { Subheading } from "@/components/elements/subheading";
 import { ArrowNarrowRightIcon } from "@/components/icons/arrow-narrow-right-icon";
@@ -219,7 +219,7 @@ export default async function EnterprisePage({ params }: Props) {
 						<ArrowNarrowRightIcon className="shrink-0" />
 					</a>
 				</div>
-				<ExtensionShowcase locale={locale} />
+				<ExtensionsArtwork />
 			</section>
 
 			<section
