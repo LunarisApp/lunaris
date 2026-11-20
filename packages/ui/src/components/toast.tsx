@@ -5,6 +5,7 @@ import { Toast as ToastPrimitive } from "@base-ui/react/toast";
 import { cn } from "@lunarisapp/ui/lib/utils";
 
 import { Button } from "@lunarisapp/ui/components/button";
+import { Spinner } from "@lunarisapp/ui/components/spinner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Cancel01Icon,
@@ -12,7 +13,6 @@ import {
   InformationCircleIcon,
   Alert02Icon,
   MultiplicationSignCircleIcon,
-  Loading03Icon,
 } from "@hugeicons/core-free-icons";
 
 const toast = ToastPrimitive.createToastManager();
@@ -181,14 +181,7 @@ function ToastIcon({ type }: { type: string | undefined }) {
   }
 
   if (type === "loading") {
-    icon = (
-      <HugeiconsIcon
-        icon={Loading03Icon}
-        strokeWidth={2}
-        className="animate-spin"
-        aria-hidden="true"
-      />
-    );
+    icon = <Spinner aria-hidden="true" />;
   }
 
   if (!icon) {
