@@ -1,15 +1,10 @@
-import type { NextConfig } from "next";
-import nextra from "nextra";
+import { createMDX } from "fumadocs-mdx/next";
 
-const withNextra = nextra({});
+const withMDX = createMDX({ macro: false });
 
-const nextConfig: NextConfig = {
+/** @type {import("next").NextConfig} */
+const nextConfig = {
   poweredByHeader: false,
-  turbopack: {
-    resolveAlias: {
-      "next-mdx-import-source-file": "./mdx-components.tsx",
-    },
-  },
   async headers() {
     return [
       {
@@ -37,4 +32,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextra(nextConfig);
+export default withMDX(nextConfig);

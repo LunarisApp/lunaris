@@ -93,7 +93,6 @@
   ],
   "patchedDependencies": {
     "@better-auth/oauth-provider@1.7.25": "patches/@better-auth%2Foauth-provider@1.7.25.patch",
-    "nextra-theme-docs@4.6.1": "patches/nextra-theme-docs@4.6.1.patch",
     "@blocknote/core@0.57.0": "patches/@blocknote%2Fcore@0.57.0.patch"
   }
 }

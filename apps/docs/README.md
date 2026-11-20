@@ -1,7 +1,7 @@
 # Lunaris documentation
 
 User and extension-developer documentation for [docs.lunaris.app](https://docs.lunaris.app),
-built with Next.js, Nextra, and MDX. Pagefind supplies production search.
+built with Next.js and Fumadocs. Fumadocs indexes the MDX content for search.
 
 ## Development
 
@@ -17,12 +17,14 @@ choose another port with `bun run --cwd apps/docs dev --port 3002`.
 
 ## Editing documentation
 
-Add `.mdx` pages under `content/`. Colocated `_meta.ts` files control sidebar
-labels and ordering; `mdx-components.tsx` provides MDX component integration.
+Add `.mdx` pages under `content/` with a frontmatter title and description.
+Use a single page heading in the body. Colocated `meta.json` files control
+sidebar labels and order. Add new pages to the relevant sidebar entries.
 
-Write around user tasks and observable behavior. Keep implementation details
-in the relevant app or package README. Extension-author guides belong under
+The content path sets the public URL. For example, `content/getting-started/index.mdx`
+is served at `/getting-started`. Extension-author guides live under
 [`content/developers/extensions`](content/developers/extensions).
+Keep implementation details in the relevant app or package README.
 
 ## Verify and build
 
@@ -32,8 +34,8 @@ bun run build --filter=docs
 bun run --cwd apps/docs start
 ```
 
-The build indexes pages into `public/_pagefind`. Check search in production
-mode (`start`), along with links and sidebar navigation.
+Search uses `/api/search` in development and production. Check search, links,
+and sidebar navigation after starting the site.
 
 ## License
 

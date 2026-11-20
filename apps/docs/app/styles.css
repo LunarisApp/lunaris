@@ -1,80 +1,110 @@
-:root {
-  --lunaris-border: #deddd7;
-  --lunaris-muted: #66645d;
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+@theme {
+  --font-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-fd-background: #faf9f7;
+  --color-fd-card: #efeeeb;
+  --color-fd-muted: #efeeeb;
+  --color-fd-muted-foreground: #616161;
+  --color-fd-secondary: #efeeeb;
+  --color-fd-accent: #e5e4e1;
+  --color-fd-border: #deddd8;
+  --color-fd-ring: #616161;
 }
 
 .dark {
-  --lunaris-border: #34332f;
-  --lunaris-muted: #a3a19a;
+  --color-fd-background: #141414;
+  --color-fd-card: #1c1c1c;
+  --color-fd-muted: #1c1c1c;
+  --color-fd-muted-foreground: #b1b1b1;
+  --color-fd-secondary: #1c1c1c;
+  --color-fd-accent: #292929;
+  --color-fd-border: #343434;
+  --color-fd-ring: #b1b1b1;
 }
 
-html {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.lunaris-logo {
+.docs-brand {
   display: inline-flex;
+  gap: 0.5rem;
   align-items: center;
+  font-size: 1rem;
   font-weight: 650;
   letter-spacing: -0.02em;
 }
 
-.lunaris-brand-link {
-  display: inline-flex;
-  gap: 0.5rem;
-  align-items: center;
-  color: inherit;
-  text-decoration: none;
-}
-
-.lunaris-brand-link,
-.lunaris-logo-section {
-  transition: opacity 150ms ease;
-}
-
-.lunaris-brand-link:hover,
-.lunaris-logo-section:hover {
-  opacity: 0.75;
-}
-
-.lunaris-brand-link:focus-visible,
-.lunaris-logo-section:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 0.25rem;
-  border-radius: 0.25rem;
-}
-
-.lunaris-mark {
-  flex: none;
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.lunaris-mark-dark {
-  display: none;
-}
-
-.dark .lunaris-mark-light {
-  display: none;
-}
-
-.dark .lunaris-mark-dark {
-  display: block;
-}
-
-.lunaris-logo-section {
-  padding-left: 0.5rem;
-  margin-left: 0.5rem;
+.docs-brand span {
+  padding-inline-start: 0.5rem;
   font-weight: 500;
-  color: var(--lunaris-muted);
-  text-decoration: none;
-  border-left: 1px solid var(--lunaris-border);
+  color: var(--color-fd-muted-foreground);
+  border-inline-start: 1px solid var(--color-fd-border);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .lunaris-brand-link,
-  .lunaris-logo-section {
-    transition: none;
+#nd-page .prose {
+  max-width: 72ch;
+}
+
+#nd-page .prose > h1 {
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+#nd-page .docs-overview {
+  max-width: 48rem;
+}
+
+#nd-page .docs-overview > h1 {
+  margin-bottom: 0.75rem;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+}
+
+.docs-overview > h1 + p {
+  max-width: 48ch;
+  font-size: 1.125rem;
+  color: var(--color-fd-muted-foreground);
+}
+
+.docs-overview .docs-start {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding-inline: 1rem;
+  color: var(--color-fd-primary-foreground);
+  text-decoration: none;
+  background: var(--color-fd-primary);
+  border-radius: 0.625rem;
+}
+
+.docs-overview .docs-start:hover {
+  opacity: 0.85;
+}
+
+.docs-topics {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 2rem;
+  border-top: 1px solid var(--color-fd-border);
+}
+
+.docs-topics section {
+  padding-block: 1rem;
+  border-bottom: 1px solid var(--color-fd-border);
+}
+
+.docs-topics section > :is(h3, p) {
+  margin: 0;
+}
+
+.docs-topics section p {
+  margin-top: 0.35rem;
+  font-size: 0.9375rem;
+  color: var(--color-fd-muted-foreground);
+}
+
+@media (min-width: 720px) {
+  .docs-topics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

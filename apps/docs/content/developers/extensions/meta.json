@@ -1,0 +1,12 @@
+{
+  "title": "Extensions",
+  "pages": [
+    "quickstart",
+    "contracts",
+    "resources-and-views",
+    "storage-and-migrations",
+    "host-capabilities",
+    "testing",
+    "publishing"
+  ]
+}
