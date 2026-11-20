@@ -1,7 +1,12 @@
 "use client";
 
-import type { PluginIconSource } from "@lunarisapp/plugin-sdk";
+import {
+  entityReferenceKey,
+  type PluginEntityReferenceOption,
+  type PluginIconSource,
+} from "@lunarisapp/plugin-sdk";
 import { usePreloadResourceRenderer } from "../../../extensions/use-preload-resource-renderer";
+import { AttachmentPicker, type AttachmentSearch } from "./attachment-picker";
 import { Badge } from "@lunarisapp/ui/components/badge";
 import { Button } from "@lunarisapp/ui/components/button";
 import { Icon } from "@lunarisapp/ui/components/icon";
@@ -17,6 +22,10 @@ import {
 } from "@lunarisapp/ui/components/command";
 import { Kbd } from "@lunarisapp/ui/components/kbd";
 import {
+  Add01Icon,
+  ArrowUp01Icon,
+  Cancel01Icon,
+  AiChat02Icon,
   File01Icon,
   FileSearchIcon,
   Folder01Icon,
@@ -34,6 +43,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
@@ -186,6 +196,12 @@ function getSuggestionRank(values: string[], query: string): number {
   );
 }
 
+function handleToolbarKey(event: KeyboardEvent<HTMLButtonElement>) {
+  if (event.key === "Enter") {
+    event.stopPropagation();
+  }
+}
+
 const NO_COMMAND_ACTIONS: CommandActions = {};
 
 export function SearchDialog({
@@ -285,6 +301,9 @@ const EMPTY_ITEMS: ReturnType<typeof useWorkspaceResources> = [];
 
 /** Shared palette; route adapters supply commands and local resource navigation. */
 export function SearchDialogMenu({
+  inline = false,
+  searchAttachments,
+  onAskAgent,
   commandActions,
   resourceCommands,
   workspaceId = "",
@@ -292,6 +311,12 @@ export function SearchDialogMenu({
   items = EMPTY_ITEMS,
   onOpenResource,
 }: {
+  inline?: boolean;
+  searchAttachments?: AttachmentSearch;
+  onAskAgent?: (
+    text: string,
+    attachments: PluginEntityReferenceOption[]
+  ) => void;
   commandActions: CommandActions;
   resourceCommands?: CommandSearchResult[];
   workspaceId?: string;
@@ -307,8 +332,14 @@ export function SearchDialogMenu({
   const navigate = useNavigate();
   const { pathWithRegion } = useRegion();
   const { organizationSlug } = useParams<{ organizationSlug: string }>();
-  const { isOpen, query, close, setQuery, createResourceInContext } =
+  const { isOpen, query, open, close, setQuery, createResourceInContext } =
     useSearchDialog();
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (inline && isOpen) {
+      inputRef.current?.focus();
+    }
+  }, [inline, isOpen]);
   const choosingResource = Boolean(createResourceInContext);
   const searchQuery = choosingResource ? "" : query;
   const detectedFieldCompletion = useMemo(
@@ -327,13 +358,14 @@ export function SearchDialogMenu({
     valueCompletion && valueCompletion.field !== "workspace"
   );
   const isQueryEmpty = !(choosingResource || query.trim());
-  const isShowingDefaultSuggestions = isQueryEmpty && !isCompleting;
+  const resultsOpen = isOpen && !(inline && isQueryEmpty);
+  const isShowingDefaultSuggestions = !inline && isQueryEmpty && !isCompleting;
   const executableQuery = isCompleting ? "" : searchQuery;
   const workspaceResults = useWorkspaceSearch(
     isCompletingWorkspace ? valueCompletion.value : executableQuery,
     {
       excludeCurrentWorkspace: isShowingDefaultSuggestions,
-      includeAllWhenEmpty: isCompletingWorkspace || isQueryEmpty,
+      includeAllWhenEmpty: isCompletingWorkspace || isShowingDefaultSuggestions,
       limit: isShowingDefaultSuggestions
         ? DEFAULT_WORKSPACE_SUGGESTION_LIMIT
         : undefined,
@@ -361,6 +393,7 @@ export function SearchDialogMenu({
     resourceCommands
   );
 
+  const showAgentResult = !!onAskAgent && !!query.trim() && !isCompleting;
   const validResourceIds = useMemo(
     () => new Set(items.map((item) => item.id)),
     [items]
@@ -528,8 +561,8 @@ export function SearchDialogMenu({
   const hasRecent = recentFiles.length > 0;
 
   const groupedItems = useMemo(
-    () =>
-      buildSearchGroups({
+    () => [
+      ...buildSearchGroups({
         commandResults,
         resourceResults,
         hasRecent,
@@ -545,10 +578,15 @@ export function SearchDialogMenu({
         recentFiles,
         uniqueContentResults,
       }),
+      ...(showAgentResult
+        ? [{ name: t("editor.agentWork"), items: ["ask-agent-work"] }]
+        : []),
+    ],
     [
       commandResults,
       resourceResults,
       hasRecent,
+      showAgentResult,
       isQueryEmpty,
       workspaceResults,
       recentFiles,
@@ -570,7 +608,7 @@ export function SearchDialogMenu({
     (file) => `recent-${file.resourceId}` === selectedValue
   );
   usePreloadResourceRenderer(
-    isOpen && !isCompleting
+    resultsOpen && !isCompleting
       ? (highlightedResource?.pluginId ?? highlightedRecent?.pluginId)
       : undefined
   );
@@ -621,6 +659,7 @@ export function SearchDialogMenu({
       if (!fieldCompletion) {
         return;
       }
+      inputRef.current?.focus();
       setQuery(completeSearchQueryField(query, fieldCompletion, field));
     },
     [fieldCompletion, query, setQuery]
@@ -631,6 +670,7 @@ export function SearchDialogMenu({
       if (!valueCompletion) {
         return;
       }
+      inputRef.current?.focus();
       setQuery(completeSearchQueryValue(query, valueCompletion, value));
     },
     [query, setQuery, valueCompletion]
@@ -681,6 +721,11 @@ export function SearchDialogMenu({
         return;
       }
 
+      // Let keyboard focus leave the inline results and reach the composer controls.
+      const boundary = e.shiftKey ? groupedItems[0] : groupedItems.at(-1);
+      if (inline && boundary?.items.includes(selectedValue)) {
+        return;
+      }
       e.preventDefault();
 
       const nextValue = getNextGroupItemValue(
@@ -698,12 +743,523 @@ export function SearchDialogMenu({
       fieldCompletion,
       fieldSuggestions,
       groupedItems,
+      inline,
       isCompleting,
       selectedValue,
       valueCompletion,
       valueSuggestions,
     ]
   );
+
+  const [attachments, setAttachments] = useState<PluginEntityReferenceOption[]>(
+    []
+  );
+  const [picking, setPicking] = useState(false);
+  const composer = inline && !!onAskAgent && !choosingResource;
+  const submitPrompt = () => {
+    if (!(onAskAgent && query.trim())) {
+      return;
+    }
+    onAskAgent(query.trim(), attachments);
+    setAttachments([]);
+    close();
+  };
+  const finishPicking = () => {
+    setPicking(false);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
+  const filterButton = (
+    <Button
+      aria-expanded={isCompleting}
+      aria-haspopup="listbox"
+      aria-label={t("search.addFilterLabel")}
+      className="text-muted-foreground"
+      size="xs"
+      variant="ghost"
+      onClick={() => {
+        if (!isOpen) {
+          open();
+        }
+        inputRef.current?.focus();
+        openFieldSuggestions();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          event.stopPropagation();
+        }
+      }}
+      onMouseDown={(event) => event.preventDefault()}
+      type="button"
+    >
+      <span aria-hidden="true" className="font-mono">
+        @
+      </span>
+      <span className="hidden sm:inline">{t("search.addFilter")}</span>
+    </Button>
+  );
+  const palette = (
+    <Command
+      className={
+        inline
+          ? "h-auto border bg-card p-0 text-card-foreground shadow-xs focus-within:border-ring [&_[data-slot=command-input-wrapper]]:p-0 [&_[data-slot=input-group]]:h-12 [&_[data-slot=input-group]]:rounded-xl [&_[data-slot=input-group]]:border-0 [&_[data-slot=input-group]]:bg-transparent [&_[data-slot=input-group]]:shadow-none"
+          : "pb-0"
+      }
+      label={
+        choosingResource
+          ? t("explorer.searchResourceTypes")
+          : t("common.search")
+      }
+      loop
+      onBlur={
+        inline
+          ? (event) => {
+              if (
+                !(picking || event.currentTarget.contains(event.relatedTarget))
+              ) {
+                close();
+              }
+            }
+          : undefined
+      }
+      onKeyDown={(event) => {
+        if (inline && event.key === "Escape") {
+          event.preventDefault();
+          close();
+        } else if (inline && !isOpen && event.key === "ArrowDown") {
+          event.preventDefault();
+          open();
+        } else if (event.target === inputRef.current && resultsOpen) {
+          handleKeyDown(event);
+        }
+      }}
+      onValueChange={setSelectedValue}
+      shouldFilter={false}
+      value={selectedValue}
+    >
+      <CommandInput
+        ref={inputRef}
+        data-testid={inline ? "workspaces-search" : "search-dialog-input"}
+        asChild
+        onFocus={inline && !isOpen ? open : undefined}
+        onClick={inline && !isOpen ? open : undefined}
+        endAdornment={!(composer || choosingResource) && filterButton}
+        onValueChange={(value) => {
+          if (inline && !isOpen) {
+            open();
+          }
+          setQuery(value);
+        }}
+        placeholder={
+          choosingResource
+            ? t("explorer.searchResourceTypes")
+            : inline
+              ? t(onAskAgent ? "search.searchOrAsk" : "search.placeholder")
+              : t("common.search")
+        }
+        value={query}
+      >
+        {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: cmdk supplies the combobox role through asChild. */}
+        <input aria-expanded={resultsOpen} />
+      </CommandInput>
+      {!!resultsOpen && (
+        <>
+          <CommandList className="max-h-[min(60vh,28rem)] scroll-py-2">
+            {!!showAgentResult && (
+              <CommandItem
+                value="ask-agent-work"
+                className="m-1 py-2"
+                onSelect={submitPrompt}
+              >
+                <ResultIcon icon={AiChat02Icon} />
+                <span className="min-w-0 truncate font-medium">
+                  {t("search.askAgent", { query: query.trim() })}
+                </span>
+              </CommandItem>
+            )}
+            {!!fieldCompletion && (
+              <CommandGroup
+                heading={
+                  <GroupHeading
+                    count={fieldSuggestions.length}
+                    label={t("search.groupFilters")}
+                  />
+                }
+              >
+                {fieldSuggestions.map((field) => {
+                  const details = fieldDetails[field];
+                  return (
+                    <CommandItem
+                      className="py-2"
+                      key={field}
+                      onSelect={() => completeField(field)}
+                      value={`search-filter-${field}`}
+                    >
+                      <ResultIcon icon={details.icon} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-medium">
+                          {details.label}
+                        </span>
+                        <span className="block truncate text-muted-foreground text-xs">
+                          {details.description}
+                        </span>
+                      </span>
+                      <code className="hidden shrink-0 rounded-md bg-background/70 px-2 py-1 text-[11px] text-muted-foreground sm:block">
+                        @{field}:
+                      </code>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+            {valueCompletion && valueSuggestions.length > 0 && (
+              <CommandGroup
+                heading={
+                  <GroupHeading
+                    count={valueSuggestions.length}
+                    label={fieldDetails[valueCompletion.field].label}
+                  />
+                }
+              >
+                {valueSuggestions.map((suggestion) => (
+                  <CommandItem
+                    className="py-2"
+                    key={suggestion.id}
+                    onSelect={() => completeValue(suggestion.value)}
+                    value={suggestion.id}
+                  >
+                    <ResultIcon icon={suggestion.icon} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium">
+                        {suggestion.label}
+                      </span>
+                      {!!suggestion.description && (
+                        <span className="block truncate text-muted-foreground text-xs">
+                          {suggestion.description}
+                        </span>
+                      )}
+                    </span>
+                    {suggestion.value !== suggestion.label && (
+                      <code className="hidden max-w-48 shrink-0 truncate rounded-md bg-background/70 px-2 py-1 text-[11px] text-muted-foreground sm:block">
+                        {suggestion.value}
+                      </code>
+                    )}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            {valueCompletion && valueSuggestions.length === 0 && (
+              <div
+                className="py-12 text-center text-muted-foreground text-sm"
+                role="status"
+              >
+                {t("search.noFilterValues")}
+              </div>
+            )}
+            {!(isCompleting || hasResults || isQueryEmpty) && (
+              <CommandEmpty className="py-12">
+                <span className="mx-auto mb-3 flex size-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                  <HugeiconsIcon className="size-5" icon={FileSearchIcon} />
+                </span>
+                <span className="font-medium">
+                  {choosingResource
+                    ? t("explorer.noMatchingTypes")
+                    : t("search.noResults")}
+                </span>
+                {!choosingResource && (
+                  <span className="mt-1 block text-muted-foreground text-xs">
+                    {t("search.noResultsHint")}
+                  </span>
+                )}
+              </CommandEmpty>
+            )}
+            {!isCompleting && isQueryEmpty && hasRecent && (
+              <CommandGroup
+                heading={
+                  <GroupHeading
+                    count={recentFiles.length}
+                    label={t("search.groupRecent")}
+                  />
+                }
+              >
+                {recentFiles.map((file) => {
+                  const item = items.find((i) => i.id === file.resourceId);
+                  if (!item) {
+                    return null;
+                  }
+                  return (
+                    <CommandItem
+                      className="py-2"
+                      key={`recent-${file.resourceId}`}
+                      onSelect={() =>
+                        handleResourceSelect(item.id, file.title, file.pluginId)
+                      }
+                      value={`recent-${file.resourceId}`}
+                    >
+                      <ResultIcon icon={Time01Icon} />
+                      <span className="min-w-0 flex-1 truncate font-medium">
+                        {file.title}
+                      </span>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+            {!isCompleting && workspaceResults.length > 0 && (
+              <CommandGroup
+                className="border-border/60 border-t"
+                heading={
+                  <GroupHeading
+                    count={workspaceResults.length}
+                    label={t("search.groupWorkspaces")}
+                  />
+                }
+              >
+                {workspaceResults.map((result) => (
+                  <CommandItem
+                    className="py-2"
+                    key={result.id}
+                    onSelect={() =>
+                      handleWorkspaceSelect(result.slug, result.isCurrent)
+                    }
+                    value={result.id}
+                  >
+                    <ResultIcon icon={Folder01Icon} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium">
+                        {result.label}
+                      </span>
+                      <span className="block truncate text-muted-foreground text-xs">
+                        {result.slug}
+                      </span>
+                    </span>
+                    {!!result.isCurrent && (
+                      <Badge variant="secondary">
+                        {t("search.currentWorkspace")}
+                      </Badge>
+                    )}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            {!isCompleting && resourceResults.length > 0 && (
+              <CommandGroup
+                className="border-border/60 border-t"
+                heading={
+                  <GroupHeading
+                    count={resourceResults.length}
+                    label={t("search.groupResources")}
+                  />
+                }
+              >
+                {resourceResults.map((result) => (
+                  <CommandItem
+                    className="py-2"
+                    key={result.id}
+                    onSelect={() =>
+                      handleResourceSelect(
+                        result.resourceId,
+                        result.label,
+                        result.pluginId,
+                        result.workspaceId,
+                        result.workspaceSlug
+                      )
+                    }
+                    value={result.id}
+                  >
+                    <ResultIcon icon={File01Icon} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium">
+                        {result.label}
+                      </span>
+                      <span className="block truncate text-muted-foreground text-xs">
+                        {result.workspaceName}
+                      </span>
+                    </span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            {!isCompleting && uniqueContentResults.length > 0 && (
+              <CommandGroup
+                className="border-border/60 border-t"
+                heading={
+                  <GroupHeading
+                    count={uniqueContentResults.length}
+                    label={t("search.groupContentMatches")}
+                  />
+                }
+              >
+                {uniqueContentResults.map((result) => (
+                  <CommandItem
+                    className="py-2"
+                    key={result.id}
+                    onSelect={() =>
+                      handleResourceSelect(
+                        result.resourceId,
+                        result.label,
+                        result.pluginId,
+                        result.workspaceId,
+                        result.workspaceSlug
+                      )
+                    }
+                    value={result.id}
+                  >
+                    <ResultIcon icon={FileSearchIcon} />
+                    <div className="min-w-0 flex-1 overflow-hidden">
+                      <span className="block truncate font-medium">
+                        {result.label}
+                      </span>
+                      {!!result.preview && (
+                        <span className="block truncate text-muted-foreground text-xs">
+                          <span className="font-medium">
+                            {result.workspaceName}
+                          </span>
+                          <span aria-hidden="true"> · </span>
+                          {highlightMatch(
+                            result.preview,
+                            query,
+                            result.previewHighlights
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            {!isCompleting && commandResults.length > 0 && (
+              <CommandGroup
+                className="border-border/60 border-t"
+                heading={
+                  <GroupHeading
+                    count={commandResults.length}
+                    label={
+                      choosingResource
+                        ? t("explorer.addResource")
+                        : t("search.groupCommands")
+                    }
+                  />
+                }
+              >
+                {commandResults.map((result) => (
+                  <CommandItem
+                    className="py-2"
+                    key={result.id}
+                    onSelect={() =>
+                      handleCommandSelect(result.id, result.action)
+                    }
+                    value={result.id}
+                  >
+                    <ResultIcon icon={result.icon ?? Terminal} />
+                    <span className="min-w-0 truncate font-medium">
+                      {result.label}
+                    </span>
+                    {!!result.shortcut && (
+                      <CommandShortcut>{result.shortcut}</CommandShortcut>
+                    )}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+          </CommandList>
+          {!composer && (
+            <div className="flex min-h-10 flex-wrap items-center gap-x-3 gap-y-1 border-border/60 border-t px-3 py-2 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Kbd>↑↓</Kbd>
+                {t("search.hintNavigate")}
+              </span>
+              {!choosingResource && (
+                <span className="flex items-center gap-1">
+                  <Kbd>Tab</Kbd>
+                  {isCompleting
+                    ? t("search.hintComplete")
+                    : t("search.hintGroups")}
+                </span>
+              )}
+              <span className="ml-auto flex items-center gap-1">
+                <Kbd>↵</Kbd>
+                {t("search.hintOpen")}
+              </span>
+              <span className="flex items-center gap-1">
+                <Kbd>Esc</Kbd>
+                {t("search.hintClose")}
+              </span>
+            </div>
+          )}
+        </>
+      )}
+      {!!composer && (
+        <div className="flex flex-wrap items-center gap-1.5 px-2.5 pb-2.5">
+          {!!searchAttachments && (
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              className="rounded-full text-muted-foreground"
+              aria-haspopup="dialog"
+              onKeyDown={handleToolbarKey}
+              onClick={() => setPicking(true)}
+            >
+              <HugeiconsIcon icon={Add01Icon} />
+              {t("search.attachResource")}
+            </Button>
+          )}
+          {attachments.map((item) => (
+            <Button
+              key={entityReferenceKey(item.reference)}
+              type="button"
+              size="xs"
+              variant="secondary"
+              className="max-w-full rounded-full"
+              onKeyDown={handleToolbarKey}
+              aria-label={t("search.removeAttachment", { name: item.name })}
+              onClick={() => {
+                setAttachments(attachments.filter((option) => option !== item));
+                inputRef.current?.focus();
+              }}
+            >
+              <span className="truncate">{item.name}</span>
+              <HugeiconsIcon icon={Cancel01Icon} />
+            </Button>
+          ))}
+          <div className="ml-auto flex items-center gap-1.5">
+            {filterButton}
+            <Button
+              type="button"
+              size="icon-sm"
+              className="rounded-full"
+              disabled={!query.trim()}
+              aria-label={t("agentWork.send")}
+              title={t("agentWork.send")}
+              onKeyDown={handleToolbarKey}
+              onClick={submitPrompt}
+            >
+              <HugeiconsIcon icon={ArrowUp01Icon} />
+            </Button>
+          </div>
+        </div>
+      )}
+    </Command>
+  );
+
+  if (inline) {
+    return (
+      <>
+        {palette}
+        {!!composer && !!picking && !!searchAttachments && (
+          <AttachmentPicker
+            search={searchAttachments}
+            attached={attachments}
+            onClose={finishPicking}
+            onSelect={(option) => {
+              setAttachments((current) => [...current, option]);
+              finishPicking();
+            }}
+          />
+        )}
+      </>
+    );
+  }
 
   return (
     <CommandDialog
@@ -717,359 +1273,7 @@ export function SearchDialogMenu({
       open={isOpen}
       title={choosingResource ? t("explorer.addResource") : t("search.title")}
     >
-      <Command
-        className="pb-0"
-        label={
-          choosingResource
-            ? t("explorer.searchResourceTypes")
-            : t("common.search")
-        }
-        loop
-        onKeyDown={handleKeyDown}
-        onValueChange={setSelectedValue}
-        shouldFilter={false}
-        value={selectedValue}
-      >
-        <CommandInput
-          data-testid="search-dialog-input"
-          endAdornment={
-            !choosingResource && (
-              <Button
-                aria-controls="search-dialog-results"
-                aria-expanded={isCompleting}
-                aria-haspopup="listbox"
-                aria-label={t("search.addFilterLabel")}
-                className="text-muted-foreground"
-                size="xs"
-                variant="ghost"
-                onClick={openFieldSuggestions}
-                onMouseDown={(event) => event.preventDefault()}
-                type="button"
-              >
-                <span aria-hidden="true" className="font-mono">
-                  @
-                </span>
-                <span className="hidden sm:inline">
-                  {t("search.addFilter")}
-                </span>
-              </Button>
-            )
-          }
-          onValueChange={setQuery}
-          placeholder={
-            choosingResource
-              ? t("explorer.searchResourceTypes")
-              : t("common.search")
-          }
-          value={query}
-        />
-        <CommandList
-          className="max-h-[min(60vh,28rem)] scroll-py-2"
-          id="search-dialog-results"
-        >
-          {!!fieldCompletion && (
-            <CommandGroup
-              heading={
-                <GroupHeading
-                  count={fieldSuggestions.length}
-                  label={t("search.groupFilters")}
-                />
-              }
-            >
-              {fieldSuggestions.map((field) => {
-                const details = fieldDetails[field];
-                return (
-                  <CommandItem
-                    className="py-2"
-                    key={field}
-                    onSelect={() => completeField(field)}
-                    value={`search-filter-${field}`}
-                  >
-                    <ResultIcon icon={details.icon} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-medium">
-                        {details.label}
-                      </span>
-                      <span className="block truncate text-muted-foreground text-xs">
-                        {details.description}
-                      </span>
-                    </span>
-                    <code className="hidden shrink-0 rounded-md bg-background/70 px-2 py-1 text-[11px] text-muted-foreground sm:block">
-                      @{field}:
-                    </code>
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          )}
-          {valueCompletion && valueSuggestions.length > 0 && (
-            <CommandGroup
-              heading={
-                <GroupHeading
-                  count={valueSuggestions.length}
-                  label={fieldDetails[valueCompletion.field].label}
-                />
-              }
-            >
-              {valueSuggestions.map((suggestion) => (
-                <CommandItem
-                  className="py-2"
-                  key={suggestion.id}
-                  onSelect={() => completeValue(suggestion.value)}
-                  value={suggestion.id}
-                >
-                  <ResultIcon icon={suggestion.icon} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium">
-                      {suggestion.label}
-                    </span>
-                    {!!suggestion.description && (
-                      <span className="block truncate text-muted-foreground text-xs">
-                        {suggestion.description}
-                      </span>
-                    )}
-                  </span>
-                  {suggestion.value !== suggestion.label && (
-                    <code className="hidden max-w-48 shrink-0 truncate rounded-md bg-background/70 px-2 py-1 text-[11px] text-muted-foreground sm:block">
-                      {suggestion.value}
-                    </code>
-                  )}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {valueCompletion && valueSuggestions.length === 0 && (
-            <div
-              className="py-12 text-center text-muted-foreground text-sm"
-              role="status"
-            >
-              {t("search.noFilterValues")}
-            </div>
-          )}
-          {!(isCompleting || hasResults || isQueryEmpty) && (
-            <CommandEmpty className="py-12">
-              <span className="mx-auto mb-3 flex size-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                <HugeiconsIcon className="size-5" icon={FileSearchIcon} />
-              </span>
-              <span className="font-medium">
-                {choosingResource
-                  ? t("explorer.noMatchingTypes")
-                  : t("search.noResults")}
-              </span>
-              {!choosingResource && (
-                <span className="mt-1 block text-muted-foreground text-xs">
-                  {t("search.noResultsHint")}
-                </span>
-              )}
-            </CommandEmpty>
-          )}
-          {!isCompleting && isQueryEmpty && hasRecent && (
-            <CommandGroup
-              heading={
-                <GroupHeading
-                  count={recentFiles.length}
-                  label={t("search.groupRecent")}
-                />
-              }
-            >
-              {recentFiles.map((file) => {
-                const item = items.find((i) => i.id === file.resourceId);
-                if (!item) {
-                  return null;
-                }
-                return (
-                  <CommandItem
-                    className="py-2"
-                    key={`recent-${file.resourceId}`}
-                    onSelect={() =>
-                      handleResourceSelect(item.id, file.title, file.pluginId)
-                    }
-                    value={`recent-${file.resourceId}`}
-                  >
-                    <ResultIcon icon={Time01Icon} />
-                    <span className="min-w-0 flex-1 truncate font-medium">
-                      {file.title}
-                    </span>
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          )}
-          {!isCompleting && workspaceResults.length > 0 && (
-            <CommandGroup
-              className="border-border/60 border-t"
-              heading={
-                <GroupHeading
-                  count={workspaceResults.length}
-                  label={t("search.groupWorkspaces")}
-                />
-              }
-            >
-              {workspaceResults.map((result) => (
-                <CommandItem
-                  className="py-2"
-                  key={result.id}
-                  onSelect={() =>
-                    handleWorkspaceSelect(result.slug, result.isCurrent)
-                  }
-                  value={result.id}
-                >
-                  <ResultIcon icon={Folder01Icon} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium">
-                      {result.label}
-                    </span>
-                    <span className="block truncate text-muted-foreground text-xs">
-                      {result.slug}
-                    </span>
-                  </span>
-                  {!!result.isCurrent && (
-                    <Badge variant="secondary">
-                      {t("search.currentWorkspace")}
-                    </Badge>
-                  )}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {!isCompleting && resourceResults.length > 0 && (
-            <CommandGroup
-              className="border-border/60 border-t"
-              heading={
-                <GroupHeading
-                  count={resourceResults.length}
-                  label={t("search.groupResources")}
-                />
-              }
-            >
-              {resourceResults.map((result) => (
-                <CommandItem
-                  className="py-2"
-                  key={result.id}
-                  onSelect={() =>
-                    handleResourceSelect(
-                      result.resourceId,
-                      result.label,
-                      result.pluginId,
-                      result.workspaceId,
-                      result.workspaceSlug
-                    )
-                  }
-                  value={result.id}
-                >
-                  <ResultIcon icon={File01Icon} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium">
-                      {result.label}
-                    </span>
-                    <span className="block truncate text-muted-foreground text-xs">
-                      {result.workspaceName}
-                    </span>
-                  </span>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {!isCompleting && uniqueContentResults.length > 0 && (
-            <CommandGroup
-              className="border-border/60 border-t"
-              heading={
-                <GroupHeading
-                  count={uniqueContentResults.length}
-                  label={t("search.groupContentMatches")}
-                />
-              }
-            >
-              {uniqueContentResults.map((result) => (
-                <CommandItem
-                  className="py-2"
-                  key={result.id}
-                  onSelect={() =>
-                    handleResourceSelect(
-                      result.resourceId,
-                      result.label,
-                      result.pluginId,
-                      result.workspaceId,
-                      result.workspaceSlug
-                    )
-                  }
-                  value={result.id}
-                >
-                  <ResultIcon icon={FileSearchIcon} />
-                  <div className="min-w-0 flex-1 overflow-hidden">
-                    <span className="block truncate font-medium">
-                      {result.label}
-                    </span>
-                    {!!result.preview && (
-                      <span className="block truncate text-muted-foreground text-xs">
-                        <span className="font-medium">
-                          {result.workspaceName}
-                        </span>
-                        <span aria-hidden="true"> · </span>
-                        {highlightMatch(
-                          result.preview,
-                          query,
-                          result.previewHighlights
-                        )}
-                      </span>
-                    )}
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {!isCompleting && commandResults.length > 0 && (
-            <CommandGroup
-              className="border-border/60 border-t"
-              heading={
-                <GroupHeading
-                  count={commandResults.length}
-                  label={
-                    choosingResource
-                      ? t("explorer.addResource")
-                      : t("search.groupCommands")
-                  }
-                />
-              }
-            >
-              {commandResults.map((result) => (
-                <CommandItem
-                  className="py-2"
-                  key={result.id}
-                  onSelect={() => handleCommandSelect(result.id, result.action)}
-                  value={result.id}
-                >
-                  <ResultIcon icon={result.icon ?? Terminal} />
-                  <span className="font-medium">{result.label}</span>
-                  {!!result.shortcut && (
-                    <CommandShortcut>{result.shortcut}</CommandShortcut>
-                  )}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-        </CommandList>
-        <div className="flex min-h-10 flex-wrap items-center gap-x-3 gap-y-1 border-border/60 border-t px-3 py-2 text-[11px] text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Kbd>↑↓</Kbd>
-            {t("search.hintNavigate")}
-          </span>
-          {!choosingResource && (
-            <span className="flex items-center gap-1">
-              <Kbd>Tab</Kbd>
-              {isCompleting ? t("search.hintComplete") : t("search.hintGroups")}
-            </span>
-          )}
-          <span className="ml-auto flex items-center gap-1">
-            <Kbd>↵</Kbd>
-            {t("search.hintOpen")}
-          </span>
-          <span className="flex items-center gap-1">
-            <Kbd>Esc</Kbd>
-            {t("search.hintClose")}
-          </span>
-        </div>
-      </Command>
+      {palette}
     </CommandDialog>
   );
 }

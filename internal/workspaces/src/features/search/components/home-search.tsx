@@ -1,4 +1,9 @@
-import { type ReactNode, useEffect, useState } from "react";
+import { useAgentWorkAccess } from "@repo/agent-work/access";
+import { usePlatform } from "@repo/platform";
+import { useNavigate } from "react-router";
+import { useResourceMentionSearch } from "@repo/agent-work/resource-mention-search";
+import { stageAgentWorkPrompt } from "@repo/agent-work/launch";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { log, parseError } from "evlog";
 import { ExtensionHostProvider } from "../../../extensions/host";
@@ -13,12 +18,19 @@ const ignoreRenderer = () => undefined;
 /** Load indexer declarations on demand, without mounting workspace chrome. */
 function HomeSearchRuntime({
   commandActions,
+  organizationId,
+  userId,
   onReadyChange,
 }: {
   commandActions: CommandActions;
+  organizationId: string;
+  userId?: string;
   onReadyChange: (ready: boolean) => void;
 }) {
   const { i18n } = useTranslation();
+  const navigate = useNavigate();
+  const platform = usePlatform();
+  const access = useAgentWorkAccess();
   const registry = useOrganizationPluginRuntime();
   const { isOpen } = useSearchDialog();
   const [activated, setActivated] = useState(false);
@@ -86,23 +98,48 @@ function HomeSearchRuntime({
 
   useEffect(() => dispose, [dispose]);
 
-  return <SearchDialogMenu commandActions={commandActions} />;
+  const searchAttachments = useResourceMentionSearch(organizationId);
+  const canAskAgent =
+    access.allowed && !access.pending && !!platform.agentWork && !!userId;
+
+  return (
+    <SearchDialogMenu
+      inline
+      searchAttachments={searchAttachments}
+      commandActions={commandActions}
+      onAskAgent={
+        canAskAgent
+          ? (text, attachments) => {
+              const agentLaunch = stageAgentWorkPrompt({
+                organizationId,
+                userId,
+                text,
+                attachments,
+                submit: true,
+              });
+              void navigate("agent-work", { state: { agentLaunch } });
+            }
+          : undefined
+      }
+    />
+  );
 }
 
 function HomeSearchContent({
-  children,
   organizationId,
+  userId,
   commandActions,
 }: {
-  children: ReactNode;
   organizationId: string;
+  userId?: string;
   commandActions: CommandActions;
 }) {
   const [ready, setReady] = useState(false);
   return (
     <SearchProvider indexingReady={ready} organizationId={organizationId}>
-      {children}
       <HomeSearchRuntime
+        userId={userId}
+        organizationId={organizationId}
         commandActions={commandActions}
         onReadyChange={setReady}
       />

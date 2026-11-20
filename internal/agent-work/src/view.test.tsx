@@ -41,6 +41,7 @@ vi.mock("react-i18next", () => ({
 vi.mock("streamdown", () => ({
   Streamdown: ({ children }: { children: string }) => <div>{children}</div>,
 }));
+import { stageAgentWorkPrompt } from "./launch";
 import { AgentWorkView } from "./view";
 const scope = {
   apiUrl: "http://localhost",
@@ -83,7 +84,7 @@ beforeEach(() => {
   });
 });
 afterEach(cleanup);
-const mount = (embedded = false) =>
+const mount = (embedded = false, launchKey?: string) =>
   render(
     <StrictMode>
       <AgentWorkView
@@ -91,6 +92,7 @@ const mount = (embedded = false) =>
           ? { variant: "panel" as const }
           : {
               variant: "workbench" as const,
+              launchKey,
               AppBarLeading: () => null,
               AppBarTrailing: () => null,
             })}
@@ -100,6 +102,27 @@ const mount = (embedded = false) =>
   );
 
 describe("Agent Work", () => {
+  it("submits a homepage prompt once across remounts", async () => {
+    const text = "Outline the next chapter";
+    const key = stageAgentWorkPrompt({ ...scope, text, submit: true });
+    mount(false, key);
+    await waitFor(() =>
+      expect(runtime.request).toHaveBeenCalledWith({
+        type: "prompt",
+        text,
+        modelId: state.modelId,
+      })
+    );
+    cleanup();
+    mount(false, key);
+    await waitFor(() => expect(runtime.connect).toHaveBeenCalledTimes(2));
+    expect(
+      runtime.request.mock.calls.filter(
+        ([command]) => command.type === "prompt"
+      )
+    ).toHaveLength(1);
+  });
+
   it("clears approvals and sign-in UI after disconnection, then reconnects", async () => {
     mount(true);
     const composer = () =>

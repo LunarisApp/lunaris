@@ -8,6 +8,9 @@
     "test": "vitest run"
   },
   "exports": {
+    "./access": "./src/access.ts",
+    "./resource-mention-search": "./src/use-resource-mentions.ts",
+    "./launch": "./src/launch.ts",
     "./routes": "./src/routes.tsx",
     "./panel": "./src/panel.tsx"
   },

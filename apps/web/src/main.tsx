@@ -9,11 +9,16 @@ applyStoredAppearance();
 import App, { type AppRuntime, type AppUpdateState } from "@repo/app-shell";
 import { createBrowserPlatform } from "@repo/platform";
 import { proboCookieBannerEnabled } from "./cookie-banner-config";
+import { previewAgentWork } from "./preview-agent-work";
 import { webPanelWindows } from "./panel-windows";
 import { scheduleServiceWorkerRegistration } from "./service-worker-registration";
 
 const webPlatform = createBrowserPlatform({
   kind: "web",
+  agentWork:
+    import.meta.env.DEV && import.meta.env.VITE_AGENT_WORK_PREVIEW === "true"
+      ? previewAgentWork
+      : undefined,
   panelWindows: webPanelWindows,
 });
 

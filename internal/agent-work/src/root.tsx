@@ -1,8 +1,7 @@
 import { Appbar } from "@repo/features/appbar";
 import { usePlatform } from "@repo/platform";
 import { useTranslation } from "react-i18next";
-import { FEATURE } from "@repo/auth/entitlements";
-import { useFeatureAccess } from "@repo/features/entitlements";
+import { useAgentWorkAccess } from "./access";
 import { useApi } from "@repo/features/api";
 import { useAuth } from "@repo/features/auth";
 import { AgentWorkView, type AgentWorkPresentation } from "./view";
@@ -13,11 +12,11 @@ export function AgentWorkRoot(props: AgentWorkPresentation) {
   const auth = useAuth();
   const api = useApi();
   const { data: session } = auth.useSession();
-  const { allowed, pending } = useFeatureAccess(FEATURE.agentWork);
+  const { allowed, pending } = useAgentWorkAccess();
   if (pending || !allowed) {
     return null;
   }
-  if (platform.kind === "web") {
+  if (platform.kind === "web" && !platform.agentWork) {
     return <DesktopOnly {...props} />;
   }
   const organizationId = session?.session.activeOrganizationId;
