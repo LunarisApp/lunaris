@@ -26,13 +26,24 @@ export const checks = [
   "public-packages",
 ] as const;
 
+// Only presentation paths covered by the edition frontend builds belong here.
+const desktopPresentationPaths = [
+  "packages/ui/src/**/*.{tsx,css}",
+  "internal/features/src/announcements/**/*.{tsx,css}",
+  "internal/workspaces/src/routes/workspaces.tsx",
+  "internal/agent-work/src/message.{tsx,css}",
+  "extensions/{file,kanban}/src/components/**/*.{tsx,css}",
+  "extensions/rich-text/src/entity-reference-inline.tsx",
+  "extensions/rich-text/src/styles.css",
+].map((pattern) => new Bun.Glob(pattern));
+
 export function selectChecks(
   files: string[],
   affected: string[],
-  full = false
+  mode: "affected" | "pull-request" | "full" = "affected"
 ) {
   affected = [...new Set([...affected, ...affectedComponents(files)])];
-  if (full || requiresFullValidation(files)) {
+  if (mode === "full" || requiresFullValidation(files)) {
     return Object.fromEntries(checks.map((name) => [name, true]));
   }
   if (files.every(repositoryDoc)) {
@@ -41,18 +52,27 @@ export function selectChecks(
   const changed = (pattern: RegExp) => files.some((file) => pattern.test(file));
   const has = (...names: string[]) =>
     names.some((name) => affected.includes(name));
+  const sourceFiles = files.filter(
+    (file) => !(repositoryDoc(file) || /^\.changeset\/[^/]+\.md$/.test(file))
+  );
+  const presentationOnlyPR =
+    mode === "pull-request" &&
+    sourceFiles.length > 0 &&
+    sourceFiles.every((file) =>
+      desktopPresentationPaths.some((path) => path.match(file))
+    );
+  const nativeDesktop =
+    !presentationOnlyPR &&
+    (has("desktop", "@repo/agent-contracts", "@lunarisapp/plugin-sdk") ||
+      changed(/^(crates\/|tooling\/mcp|assets\/brand\/)/));
   return {
     editions:
       has("api", "web", "desktop") || changed(/^(ee\/|assets\/brand\/)/),
     "agent-rust":
       has("cli", "@repo/agent-contracts", "@lunarisapp/plugin-sdk") ||
       changed(/^crates\//),
-    "desktop-mcp":
-      has("desktop", "@repo/agent-contracts", "@lunarisapp/plugin-sdk") ||
-      changed(/^(crates\/|tooling\/mcp|assets\/brand\/)/),
-    "desktop-platforms":
-      has("desktop", "@repo/agent-contracts", "@lunarisapp/plugin-sdk") ||
-      changed(/^(crates\/|tooling\/mcp|assets\/brand\/)/),
+    "desktop-mcp": nativeDesktop,
+    "desktop-platforms": nativeDesktop,
     landing: has("landing"),
     docs: has("docs"),
     // Complete installer coverage belongs to packaging changes and release candidates.
@@ -84,13 +104,19 @@ if (import.meta.main) {
     const files = changedFiles(base);
     affected = affectedWorkspaces(files, readWorkspaces());
     affected = [...new Set([...affected, ...affectedComponents(files)])];
-    selected = selectChecks(files, affected);
+    selected = selectChecks(
+      files,
+      affected,
+      process.env.GITHUB_EVENT_NAME === "pull_request"
+        ? "pull-request"
+        : "affected"
+    );
     if (requiresFullValidation(files)) {
       affected = readWorkspaces().map(({ name }) => name);
     }
   } catch (error) {
     console.warn("Running full validation:", String(error));
-    selected = selectChecks([], [], true);
+    selected = selectChecks([], [], "full");
     affected = readWorkspaces().map(({ name }) => name);
   }
   if (process.env.CI_SHADOW === "true") {
