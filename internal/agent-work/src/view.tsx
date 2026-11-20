@@ -1,3 +1,4 @@
+import { takeAgentWorkPrompt } from "./launch";
 import {
   buildMentionMessage,
   updateMentions,
@@ -28,6 +29,7 @@ export type AgentWorkPresentation =
   | { variant: "panel" }
   | {
       variant: "workbench";
+      launchKey?: string;
       AppBarLeading: ComponentType;
       AppBarTrailing: ComponentType;
     };
@@ -123,6 +125,54 @@ export function AgentWorkView(
     }
     setSubmitting(false);
   };
+
+  const launchKey = props.variant === "workbench" ? props.launchKey : undefined;
+  const { runtimeReady, available, error, request } = agent;
+  useEffect(() => {
+    if (!launchKey || (available && !runtimeReady && !error)) {
+      return;
+    }
+    const launch = takeAgentWorkPrompt(launchKey, scope);
+    if (!launch) {
+      return;
+    }
+    let text = launch.text;
+    const mentions = (launch.attachments ?? []).map((option) => {
+      const start = text.length + 1;
+      text += ` @${option.name}`;
+      return { ...option, start, end: text.length };
+    });
+    const launchDraft = { text, mentions };
+    if (
+      !(launch.submit && runtimeReady && state.authenticated) ||
+      state.busy ||
+      !state.modelId
+    ) {
+      setDraftState(launchDraft);
+      return;
+    }
+    setSubmitting(true);
+    void request({
+      type: "prompt",
+      text: buildMentionMessage(text, mentions),
+      modelId: state.modelId,
+    }).then((sent) => {
+      if (!sent) {
+        setDraftState((current) => (current.text ? current : launchDraft));
+      }
+      setSubmitting(false);
+    });
+  }, [
+    available,
+    error,
+    launchKey,
+    request,
+    runtimeReady,
+    scope,
+    state.authenticated,
+    state.busy,
+    state.modelId,
+  ]);
 
   const composer = (
     <AgentComposer

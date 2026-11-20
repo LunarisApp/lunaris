@@ -1,7 +1,6 @@
 import { LunarisMark } from "@repo/features/brand";
 import { WorkspacesSortControl } from "../features/workspaces-list/components/workspaces-sort-control";
 import { HomeSearchProvider } from "../features/search/components/home-search";
-import { SearchButton } from "../features/search/components/search-button";
 import {
   Alert,
   AlertAction,
@@ -211,9 +210,20 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
             id="main-content"
             tabIndex={-1}
           >
-            <h1 className="app-page-title" id="workspaces-heading">
-              {t("workspaces.recentWorkspaces")}
-            </h1>
+            {!!(canReadWorkspaces && activeOrg) && (
+              <HomeSearchProvider
+                userId={session?.user.id}
+                organizationId={activeOrg.id}
+                commandActions={
+                  canCreateWorkspace
+                    ? {
+                        "create-workspace": openCreateWorkspaceDialog,
+                        "import-workspace": openImportWorkspaceDialog,
+                      }
+                    : {}
+                }
+              />
+            )}
             {!canReadWorkspaces && (
               <Alert variant="destructive">
                 <AlertTitle>{t("permissions.deniedTitle")}</AlertTitle>
@@ -235,24 +245,9 @@ export default function WorkspacesPage({ shell }: { shell: WorkspaceShell }) {
               className="flex min-w-0 items-center gap-2"
               role="group"
             >
-              {!!(canReadWorkspaces && activeOrg) && (
-                <HomeSearchProvider
-                  organizationId={activeOrg.id}
-                  commandActions={
-                    canCreateWorkspace
-                      ? {
-                          "create-workspace": openCreateWorkspaceDialog,
-                          "import-workspace": openImportWorkspaceDialog,
-                        }
-                      : {}
-                  }
-                >
-                  <SearchButton
-                    className="max-md:touch-target min-w-0 flex-1 justify-start text-base text-muted-foreground md:text-sm"
-                    data-testid="workspaces-search"
-                  />
-                </HomeSearchProvider>
-              )}
+              <h1 className="app-page-title mr-auto" id="workspaces-heading">
+                {t("workspaces.recentWorkspaces")}
+              </h1>
               {canReadWorkspaces && (
                 <WorkspacesSortControl
                   onChange={setWorkspaceSort}

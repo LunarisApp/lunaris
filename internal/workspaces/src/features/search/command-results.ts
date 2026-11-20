@@ -5,7 +5,7 @@ import { COMMANDS } from "./commands";
 import {
   getSearchTerms,
   hasScopedSearchTerms,
-  matchesSearchTerms,
+  getSearchMatch,
   parseSearchQuery,
 } from "./query";
 import type { CommandSearchResult } from "./types";
@@ -34,10 +34,6 @@ export function buildCommandSearchResults(
     }
 
     const label = t(definition.nameKey);
-    if (!matchesSearchTerms([label], terms)) {
-      return [];
-    }
-
     return {
       id: `cmd-${definition.id}`,
       type: "command" as const,
@@ -49,10 +45,18 @@ export function buildCommandSearchResults(
       action,
     };
   });
-  return [
-    ...commands,
-    ...resourceCommands.filter((command) =>
-      matchesSearchTerms([command.label, command.searchAlias ?? ""], terms)
-    ),
-  ];
+  return [...commands, ...resourceCommands].flatMap(
+    (command: CommandSearchResult) => {
+      const match = getSearchMatch(
+        [command.label, command.searchAlias ?? ""],
+        terms
+      );
+      if (!match) {
+        return [];
+      }
+      return match === "substring"
+        ? { ...command, substringMatch: true }
+        : command;
+    }
+  );
 }

@@ -295,22 +295,89 @@ function includesWordPhrase(haystack: string[], needle: string[]): boolean {
   );
 }
 
-export function matchesSearchTerm(
+type SearchMatch = "prefix" | "substring";
+
+function matchText(value: string, needle: string): SearchMatch | undefined {
+  const normalized = normalizeSearchQuery(value);
+  const first = normalized.indexOf(needle);
+  for (
+    let index = first;
+    index !== -1;
+    index = normalized.indexOf(needle, index + 1)
+  ) {
+    if (
+      index === 0 ||
+      !/^[\p{L}\p{M}\p{N}]/u.test(needle) ||
+      !/[\p{L}\p{M}\p{N}]$/u.test(normalized.slice(0, index))
+    ) {
+      return "prefix";
+    }
+  }
+  return first === -1 ? undefined : "substring";
+}
+
+export function matchesSearchPrefix(value: string, needle: string): boolean {
+  return matchText(value, needle) === "prefix";
+}
+
+export function getSearchMatchRank(
+  values: readonly string[],
+  query: string
+): number {
+  const needle = normalizeSearchQuery(query);
+  if (!needle) {
+    return 0;
+  }
+  return Math.min(
+    ...values.map((value) => {
+      const normalizedValue = normalizeSearchQuery(value);
+      if (normalizedValue === needle) {
+        return 0;
+      }
+      if (normalizedValue.startsWith(needle)) {
+        return 1;
+      }
+      if (matchesSearchPrefix(value, needle)) {
+        return 2;
+      }
+      return 3;
+    })
+  );
+}
+
+function getTermMatch(
   values: readonly string[],
   term: SearchQueryTerm
-): boolean {
+): SearchMatch | undefined {
   if (term.exact) {
     const needle = normalizeWords(term.value);
     return values.some((value) =>
       includesWordPhrase(normalizeWords(value), needle)
-    );
+    )
+      ? "prefix"
+      : undefined;
   }
 
   const needle = normalizeSearchQuery(term.value);
-  return Boolean(
-    needle &&
-      values.some((value) => normalizeSearchQuery(value).includes(needle))
-  );
+  if (!needle) {
+    return;
+  }
+  let best: SearchMatch | undefined;
+  for (const value of values) {
+    const match = matchText(value, needle);
+    if (match === "prefix") {
+      return match;
+    }
+    best ??= match;
+  }
+  return best;
+}
+
+export function matchesSearchTerm(
+  values: readonly string[],
+  term: SearchQueryTerm
+): boolean {
+  return getTermMatch(values, term) === "prefix";
 }
 
 export function matchesSearchTerms(
@@ -318,4 +385,22 @@ export function matchesSearchTerms(
   terms: readonly SearchQueryTerm[]
 ): boolean {
   return terms.every((term) => matchesSearchTerm(values, term));
+}
+
+/** A fallback still requires every term. Quoted phrases always match whole words. */
+export function getSearchMatch(
+  values: readonly string[],
+  terms: readonly SearchQueryTerm[]
+): SearchMatch | undefined {
+  let best: SearchMatch = "prefix";
+  for (const term of terms) {
+    const match = getTermMatch(values, term);
+    if (!match) {
+      return;
+    }
+    if (match === "substring") {
+      best = match;
+    }
+  }
+  return best;
 }

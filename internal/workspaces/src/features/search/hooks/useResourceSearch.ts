@@ -54,5 +54,7 @@ export function useResourceSearch(
     [resources, includeAllWhenEmpty, searchQuery]
   );
 
-  return query.trim() || includeAllWhenEmpty ? results : [];
+  return includeAllWhenEmpty || (query.trim() && query === debouncedQuery)
+    ? results
+    : [];
 }

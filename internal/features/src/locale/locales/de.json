@@ -345,6 +345,8 @@
     "groupResources": "Ressourcen",
     "groupContentMatches": "Inhaltstreffer",
     "groupCommands": "Befehle",
+    "searchOrAsk": "Prompt eingeben, suchen oder einen Befehl ausführen…",
+    "askAgent": "Agent Work fragen: „{{query}}“",
     "groupFilters": "Suchen nach",
     "currentWorkspace": "Aktuell",
     "addFilter": "Filter",

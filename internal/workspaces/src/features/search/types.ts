@@ -16,6 +16,7 @@ export interface SearchResult {
   icon?: PluginIconSource;
   id: string;
   label: string;
+  substringMatch?: boolean;
 }
 
 /** Resource search result */
@@ -65,6 +66,7 @@ export interface SearchDialogState {
 /** Search dialog actions */
 export interface SearchDialogActions {
   close: () => void;
+  dismiss: () => void;
   open: () => void;
   openResourceCommands: (create: CreateResourceCommand) => void;
   setCategory: (category: SearchCategory) => void;

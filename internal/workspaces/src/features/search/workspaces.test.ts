@@ -27,7 +27,7 @@ describe("searchWorkspaces", () => {
     ).toMatchObject({ workspaceId: "workspace_2" });
   });
 
-  it("ranks exact and prefix matches before substring matches", () => {
+  it("ranks exact and prefix matches before later word starts", () => {
     expect(
       searchWorkspaces(workspaces, "notes", "workspace_1", "Untitled").map(
         (workspace) => workspace.workspaceId

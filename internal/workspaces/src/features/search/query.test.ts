@@ -179,15 +179,24 @@ describe("search query value completion", () => {
 });
 
 describe("matchesSearchTerm", () => {
-  it("matches unquoted terms as case-insensitive substrings", () => {
-    expect(
-      matchesSearchTerm(["Quarterly Roadmap"], {
-        exact: false,
-        field: null,
-        value: "ROAD",
-      })
-    ).toBe(true);
-  });
+  it.each([
+    ["Planning notes", "PLAN", true],
+    ["Release-plan", "plan", true],
+    ["Airplane", "plan", false],
+    ["Replan", "plan", false],
+    ["Replan the plan", "plan", true],
+    ["draft_notes.md", "notes.m", true],
+    ["draft_notes.md", ".md", true],
+    ["Планирование", "лан", false],
+    ["𐐀plan", "plan", false],
+  ] as const)(
+    "matches %s against %s by word start",
+    (label, value, expected) => {
+      expect(
+        matchesSearchTerm([label], { exact: false, field: null, value })
+      ).toBe(expected);
+    }
+  );
 
   it("matches quoted terms as contiguous case-insensitive words", () => {
     const term = { exact: true, field: null, value: "Q4 plan" } as const;
@@ -202,7 +211,7 @@ describe("matchesSearchTerm", () => {
         ["Quarterly Roadmap"],
         [
           { exact: false, field: null, value: "quarter" },
-          { exact: false, field: null, value: "map" },
+          { exact: false, field: null, value: "road" },
         ]
       )
     ).toBe(true);

@@ -6,6 +6,7 @@ describe("workspaces/workspaces-list", () => {
   });
 
   it("shows the seeded welcome workspace on a fresh session", () => {
+    cy.focused().should("match", 'input[data-testid="workspaces-search"]');
     cy.get('[data-testid="workspaces-list-item-welcome"]').within(() => {
       cy.get('[data-testid="workspaces-list-item-name"]').should(
         "contain",
@@ -49,13 +50,13 @@ describe("workspaces/workspaces-list", () => {
     });
   });
 
-  it("searches, sorts, and switches views from one controls row", () => {
+  it("searches inline and groups workspace controls with Recent", () => {
     cy.createWorkspace({ name: "Beacon" });
     cy.createWorkspace({ name: "Atlas" });
 
     cy.get(
       [
-        '[data-testid="workspaces-search"]',
+        "#workspaces-heading",
         '[data-testid="workspaces-sort"]',
         '[data-testid="workspaces-view-grid"]',
         '[data-testid="workspaces-create-launcher-header"]',
@@ -71,10 +72,11 @@ describe("workspaces/workspaces-list", () => {
     });
 
     cy.get('[data-testid="workspaces-search"]').click();
-    cy.get('[data-testid="search-dialog-input"]').type("beac");
+    cy.get('[data-testid="workspaces-search"]').type("beac");
     cy.contains('[role="option"]', "Beacon").should("be.visible");
+    cy.contains('[role="option"]', "Ask Agent Work").should("not.exist");
     cy.get('[role="option"]').filter(':contains("Atlas")').should("not.exist");
-    cy.get('[data-testid="search-dialog-input"]').type("{esc}");
+    cy.get('[data-testid="workspaces-search"]').type("{esc}");
 
     cy.get('[data-testid="workspaces-sort"]').click();
     cy.get('[data-testid="workspaces-sort-name"]').click();

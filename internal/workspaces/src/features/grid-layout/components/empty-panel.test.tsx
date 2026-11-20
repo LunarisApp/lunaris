@@ -13,6 +13,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ResourceCapacityExceededError } from "@repo/features/entitlements";
 
 const mocks = vi.hoisted(() => ({
+  askAgent: vi.fn(),
   createFolder: vi.fn(),
   createResource: vi.fn(),
   close: vi.fn(),
@@ -59,6 +60,12 @@ vi.mock("../../workspace-explorer", async () => ({
 vi.mock("../../workspace-explorer/store", () => ({
   useWorkspaceActions: () => ({ createResource: mocks.createResource }),
   useWorkspaceResourcesMap: () => new Map(createdRows),
+}));
+vi.mock("@repo/features/auth", () => ({
+  useAuth: () => ({ useSession: () => ({ data: { user: { id: "user" } } }) }),
+}));
+vi.mock("../../search/hooks/useSearchAgentPrompt", () => ({
+  useSearchAgentPrompt: () => mocks.askAgent,
 }));
 vi.mock("../../workspace", () => ({
   useCurrentWorkspace: () => ({
@@ -164,6 +171,23 @@ describe("GridLayoutEmptyPanel", () => {
     vi.clearAllMocks();
     createdRows.clear();
     availableResources = [documentType];
+  });
+
+  it("submits an unmatched workspace search to Agent Work with Enter", async () => {
+    const user = userEvent.setup();
+    renderEmptyPanel();
+    await user.click(screen.getByRole("button", { name: "common.search" }));
+    expect(
+      screen.queryByRole("option", { name: "search.askAgent" })
+    ).toBeNull();
+    await user.type(screen.getByRole("combobox"), "Outline this chapter");
+    expect(
+      await screen.findByRole("option", { name: "search.askAgent" })
+    ).toBeTruthy();
+    await user.keyboard("{Enter}");
+    expect(mocks.askAgent).toHaveBeenCalledExactlyOnceWith(
+      "Outline this chapter"
+    );
   });
 
   it("lists Rich Text, Kanban, and File first, then other types by display name", async () => {

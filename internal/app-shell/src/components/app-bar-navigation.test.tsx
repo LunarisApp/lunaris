@@ -16,7 +16,8 @@ vi.mock("@repo/features/entitlements", () => ({
   useFeatureAccess: () => featureAccess,
 }));
 
-vi.mock("@repo/platform", () => ({
+vi.mock(import("@repo/platform"), async (importOriginal) => ({
+  ...(await importOriginal()),
   getOperatingSystem: () => "mac",
 }));
 
