@@ -29,13 +29,13 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		download: "Download",
 		downloadFor: "Download for",
 		otherPlatforms: "Other platforms",
-		metaTitle: "Lunaris — A home for your team’s knowledge",
+		metaTitle: "Lunaris — Run your tools beside your notes",
 		metaDescription:
 			"Bring notes, knowledge bases, and projects together in an offline-first workspace. Collaborate in real time, add extensions, and choose where your data lives.",
-		headline: "A home for your",
-		headlineEnd: "team’s knowledge.",
+		headline: "Run your tools",
+		headlineEnd: "beside your notes",
 		description:
-			"Write together, organize projects, and keep working offline. Your notes and tools share one workspace.",
+			"Add a task board, a calculator, or a custom dashboard to your workspace.",
 		freeNote: "Free for up to 3 members. No credit card needed.",
 		watch: "See it in action",
 		tour: "Explore the workspace demo",
