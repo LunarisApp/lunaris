@@ -11,8 +11,7 @@ type HomepageCopy = {
 	start: string;
 	download: string;
 	downloadFor: string;
-	allPlatforms: string;
-	open: string;
+	otherPlatforms: string;
 	freeNote: string;
 	watch: string;
 	tour: string;
@@ -30,7 +29,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 	en: {
 		download: "Download",
 		downloadFor: "Download for",
-		allPlatforms: "All platforms",
+		otherPlatforms: "Other platforms",
 		metaTitle: "Lunaris — A home for your team’s knowledge",
 		metaDescription:
 			"Bring notes, knowledge bases, and projects together in an offline-first workspace. Collaborate in real time, add extensions, and choose where your data lives.",
@@ -39,7 +38,6 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		description:
 			"Write together, organize projects, and keep working offline. Your notes and tools share one workspace.",
 		start: "Start free",
-		open: "Open Lunaris",
 		freeNote: "Free for up to 3 members. No credit card needed.",
 		watch: "See it in action",
 		tour: "Explore the workspace demo",
@@ -81,7 +79,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 	es: {
 		download: "Descargar",
 		downloadFor: "Descargar para",
-		allPlatforms: "Todas las plataformas",
+		otherPlatforms: "Otras plataformas",
 		metaTitle: "Lunaris — Un hogar para el conocimiento de tu equipo",
 		metaDescription:
 			"Reúne notas, bases de conocimiento y proyectos en un espacio que funciona sin conexión. Colabora en tiempo real, añade extensiones y decide dónde guardar tus datos.",
@@ -90,7 +88,6 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		description:
 			"Escribe en equipo, organiza proyectos y sigue trabajando sin conexión. Tus notas y herramientas comparten un mismo espacio.",
 		start: "Empieza gratis",
-		open: "Abrir Lunaris",
 		freeNote: "Gratis para hasta 3 miembros. Sin tarjeta de crédito.",
 		watch: "Ver en acción",
 		tour: "Explora la demostración del espacio de trabajo",
@@ -132,7 +129,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 	fr: {
 		download: "Télécharger",
 		downloadFor: "Télécharger pour",
-		allPlatforms: "Toutes les plateformes",
+		otherPlatforms: "Autres plateformes",
 		metaTitle: "Lunaris — Un espace pour le savoir de votre équipe",
 		metaDescription:
 			"Réunissez notes, bases de connaissances et projets dans un espace utilisable hors ligne. Collaborez en temps réel, ajoutez des extensions et choisissez où stocker vos données.",
@@ -141,7 +138,6 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		description:
 			"Écrivez ensemble, organisez vos projets et travaillez hors ligne. Vos notes et vos outils dans un même espace.",
 		start: "Commencer gratuitement",
-		open: "Ouvrir Lunaris",
 		freeNote: "Gratuit jusqu’à 3 membres. Sans carte bancaire.",
 		watch: "Voir en action",
 		tour: "Explorer la démonstration de l’espace de travail",
@@ -183,7 +179,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 	de: {
 		download: "Herunterladen",
 		downloadFor: "Herunterladen für",
-		allPlatforms: "Alle Plattformen",
+		otherPlatforms: "Andere Plattformen",
 		metaTitle: "Lunaris — Ein Zuhause für das Wissen deines Teams",
 		metaDescription:
 			"Notizen, Wissensdatenbanken und Projekte in einem Workspace, der offline funktioniert. Gemeinsam in Echtzeit arbeiten, Erweiterungen hinzufügen und den Speicherort selbst wählen.",
@@ -192,7 +188,6 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		description:
 			"Gemeinsam schreiben, Projekte organisieren und offline weiterarbeiten. Notizen und Werkzeuge in einem Workspace.",
 		start: "Kostenlos starten",
-		open: "Lunaris öffnen",
 		freeNote: "Kostenlos für bis zu 3 Mitglieder. Ohne Kreditkarte.",
 		watch: "In Aktion ansehen",
 		tour: "Workspace-Demo erkunden",
@@ -234,7 +229,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 	"pt-BR": {
 		download: "Baixar",
 		downloadFor: "Baixar para",
-		allPlatforms: "Todas as plataformas",
+		otherPlatforms: "Outras plataformas",
 		metaTitle: "Lunaris — Um lar para o conhecimento da sua equipe",
 		metaDescription:
 			"Reúna notas, bases de conhecimento e projetos em um espaço que funciona offline. Colabore em tempo real, adicione extensões e escolha onde seus dados ficam.",
@@ -243,7 +238,6 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		description:
 			"Escreva em equipe, organize projetos e trabalhe offline. Suas notas e ferramentas ficam no mesmo espaço.",
 		start: "Comece grátis",
-		open: "Abrir Lunaris",
 		freeNote: "Grátis para até 3 membros. Sem cartão de crédito.",
 		watch: "Veja em ação",
 		tour: "Explore a demonstração do espaço de trabalho",

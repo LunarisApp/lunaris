@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "@lunarisapp/ui/overlays.css";
 
+@source "../../node_modules/@lunarisapp/ui/dist/components/button.js";
 @source "../../node_modules/@lunarisapp/ui/dist/components/navigation-menu.js";
 
 @custom-variant dark (&:where(.dark, .dark *));

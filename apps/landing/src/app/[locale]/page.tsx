@@ -57,22 +57,8 @@ export default async function Page({
 								locale={locale}
 								downloadLabel={copy.downloadFor}
 								fallbackLabel={`${copy.download} Lunaris`}
-								allPlatformsLabel={copy.allPlatforms}
-							>
-								<TrackedButtonLink
-									analyticsProperties={{
-										cta: "open_web_app",
-										destination: "web",
-										location: "home_hero",
-									}}
-									className="min-h-11 gap-2 px-4 focus-visible:outline-2 focus-visible:outline-offset-4 sm:px-5"
-									href="https://web.lunaris.app"
-									size="lg"
-								>
-									{copy.start}
-									<ArrowNarrowRightIcon />
-								</TrackedButtonLink>
-							</DesktopDownload>
+								otherPlatformsLabel={copy.otherPlatforms}
+							/>
 						</div>
 					</Container>
 				</div>

@@ -37,6 +37,7 @@ const en = {
 		productTour: "Product tour",
 		extensionsSdk: "Extensions SDK",
 		downloads: "Downloads",
+		openWebApp: "Open web app",
 		pricing: "Pricing",
 		docs: "Documentation",
 		mcp: "MCP",

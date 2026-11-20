@@ -39,6 +39,7 @@ const ptBR = {
 		productTour: "Tour do produto",
 		extensionsSdk: "SDK de extensões",
 		downloads: "Downloads",
+		openWebApp: "Abrir app web",
 		pricing: "Preços",
 		docs: "Documentação",
 		mcp: "MCP",

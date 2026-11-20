@@ -33,7 +33,7 @@ export function HomebrewCommand({
 
 	return (
 		<div className="min-w-0">
-			<div className="flex items-center gap-1 rounded-lg bg-olive-950/5 pl-4 pr-1 text-olive-950 dark:bg-white/5 dark:text-olive-100">
+			<div className="flex items-center gap-1 rounded-lg bg-olive-950/5 pl-4 pr-1 text-olive-950 dark:bg-olive-800 dark:text-olive-100">
 				<code className="min-w-0 grow select-all break-words py-3 text-xs/6">
 					{command}
 				</code>

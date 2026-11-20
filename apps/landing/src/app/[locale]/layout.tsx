@@ -28,7 +28,6 @@ import { legalDocumentPaths } from "@/lib/legal-document-links";
 
 import { openSourceCopy, repositoryUrl } from "@/data/open-source";
 import { extensionQuickstartUrl, extensionsCopy } from "@/data/extensions";
-import { homepageCopy } from "@/data/homepage";
 
 const DOCS_URL = "https://docs.lunaris.app";
 const LINKEDIN_URL = "https://www.linkedin.com/company/lunarisapp";
@@ -69,7 +68,6 @@ export default async function LocaleLayout({
 	const locale = rawLocale as Locale;
 	const dict = await getDictionary(locale);
 	const source = openSourceCopy[locale];
-	const home = homepageCopy[locale];
 	const menu = dict.nav.menu;
 	const comparisons = {
 		label: dict.footer.compare,
@@ -200,7 +198,7 @@ export default async function LocaleLayout({
 								className="min-h-11 px-5"
 								href="https://web.lunaris.app"
 							>
-								{home.open}
+								{dict.nav.openWebApp}
 							</TrackedButtonLink>
 						}
 						settings={
