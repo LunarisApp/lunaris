@@ -50,7 +50,7 @@ test("unknown inputs, root configuration and release runs select everything", ()
   ]) {
     expect(Object.values(selectChecks([file], [])).every(Boolean)).toBe(true);
   }
-  expect(Object.values(selectChecks([], [], true)).every(Boolean)).toBe(true);
+  expect(Object.values(selectChecks([], [], "full")).every(Boolean)).toBe(true);
 });
 
 test("landing-only PRs avoid native, core and installer jobs", () => {
@@ -107,4 +107,62 @@ test("desktop dependencies select native Windows/Linux packaging", () => {
       "desktop-platforms"
     ]
   ).toBe(false);
+});
+
+test.each([
+  [
+    "workspace banners",
+    [
+      "README.md",
+      "internal/features/src/announcements/banners/ceo-chat.tsx",
+      "internal/workspaces/src/routes/workspaces.tsx",
+    ],
+  ],
+  [
+    "shared spinner",
+    [
+      ".changeset/quarter-ring-spinner.md",
+      "extensions/rich-text/src/entity-reference-inline.tsx",
+      "extensions/rich-text/src/styles.css",
+      "internal/agent-work/src/message.tsx",
+      "packages/ui/src/components/spinner.tsx",
+    ],
+  ],
+] satisfies [string, string[]][])(
+  "%s PR skips only the two native desktop checks",
+  (_, files) => {
+    const push = selectChecks(files, []);
+    expect(push.editions).toBe(true);
+    expect(push["desktop-mcp"]).toBe(true);
+    expect(push["desktop-platforms"]).toBe(true);
+    expect(selectChecks(files, [], "pull-request")).toEqual({
+      ...push,
+      "desktop-mcp": false,
+      "desktop-platforms": false,
+    });
+    expect(Object.values(selectChecks(files, [], "full")).every(Boolean)).toBe(
+      true
+    );
+  }
+);
+
+test.each([
+  "internal/platform/src/index.tsx",
+  "internal/workspaces/src/routes/workspace-desktop-shell.tsx",
+  "apps/desktop/src/main.tsx",
+  "apps/desktop/src-tauri/tauri.conf.json",
+  "apps/desktop/agent-work/index.ts",
+  "extensions/kanban/src/mcp-contract.ts",
+  "packages/ui/package.json",
+  "crates/agent-mcp/src/lib.rs",
+  ".changeset/config.json",
+  "tooling/unknown.ts",
+])("mixed UI PR retains native desktop coverage for %s", (other) => {
+  const selected = selectChecks(
+    ["packages/ui/src/components/spinner.tsx", other],
+    [],
+    "pull-request"
+  );
+  expect(selected["desktop-mcp"]).toBe(true);
+  expect(selected["desktop-platforms"]).toBe(true);
 });
