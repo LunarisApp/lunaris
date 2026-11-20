@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./overlays.css";
+@import "./shadcn-utilities.css";
 @import "tw-animate-css";
 @import "@fontsource-variable/dm-sans";
 @import "@fontsource-variable/dm-sans/wght-italic.css";
