@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  entityReferenceKey,
-  type PluginEntityReferenceOption,
-  type PluginIconSource,
-} from "@lunarisapp/plugin-sdk";
+import type { PluginIconSource } from "@lunarisapp/plugin-sdk";
 import { usePreloadResourceRenderer } from "../../../extensions/use-preload-resource-renderer";
-import { AttachmentPicker, type AttachmentSearch } from "./attachment-picker";
 import { Badge } from "@lunarisapp/ui/components/badge";
 import { Button } from "@lunarisapp/ui/components/button";
 import { Icon } from "@lunarisapp/ui/components/icon";
@@ -22,9 +17,6 @@ import {
 } from "@lunarisapp/ui/components/command";
 import { Kbd } from "@lunarisapp/ui/components/kbd";
 import {
-  Add01Icon,
-  ArrowUp01Icon,
-  Cancel01Icon,
   AiChat02Icon,
   File01Icon,
   FileSearchIcon,
@@ -54,6 +46,8 @@ import {
   useWorkspaceResources,
 } from "../../workspace-explorer";
 import { useCreateRootResource } from "../../workspace-explorer/hooks/use-create-root-resource";
+import { useAuth } from "@repo/features/auth";
+import { useSearchAgentPrompt } from "../hooks/useSearchAgentPrompt";
 import { permission } from "@repo/auth/permissions";
 import { usePermission } from "@repo/features/permissions";
 import type { CommandSearchResult } from "../types";
@@ -85,6 +79,8 @@ import {
   completeSearchQueryValue,
   getSearchQueryFieldCompletion,
   getSearchQueryValueCompletion,
+  getSearchMatchRank,
+  matchesSearchPrefix,
   normalizeSearchQuery,
   type SearchQueryField,
 } from "../query";
@@ -174,34 +170,6 @@ interface FilterValueSuggestion {
   value: string;
 }
 
-function getSuggestionRank(values: string[], query: string): number {
-  const needle = normalizeSearchQuery(query);
-  if (!needle) {
-    return 0;
-  }
-  return Math.min(
-    ...values.map((value) => {
-      const normalizedValue = normalizeSearchQuery(value);
-      if (normalizedValue === needle) {
-        return 0;
-      }
-      if (normalizedValue.startsWith(needle)) {
-        return 1;
-      }
-      if (normalizedValue.includes(needle)) {
-        return 2;
-      }
-      return 3;
-    })
-  );
-}
-
-function handleToolbarKey(event: KeyboardEvent<HTMLButtonElement>) {
-  if (event.key === "Enter") {
-    event.stopPropagation();
-  }
-}
-
 const NO_COMMAND_ACTIONS: CommandActions = {};
 
 export function SearchDialog({
@@ -211,6 +179,11 @@ export function SearchDialog({
 } = {}) {
   const { t } = useTranslation();
   const { workspace, workspaceId } = useCurrentWorkspace();
+  const { data: session } = useAuth().useSession();
+  const askAgent = useSearchAgentPrompt(
+    workspace?.organization_id,
+    session?.user.id
+  );
   const items = useWorkspaceResources();
   const {
     closeViewInstances,
@@ -276,6 +249,7 @@ export function SearchDialog({
 
   return (
     <SearchDialogMenu
+      onAskAgent={askAgent}
       commandActions={
         includeWorkbenchCommands ? commandActions : NO_COMMAND_ACTIONS
       }
@@ -302,7 +276,6 @@ const EMPTY_ITEMS: ReturnType<typeof useWorkspaceResources> = [];
 /** Shared palette; route adapters supply commands and local resource navigation. */
 export function SearchDialogMenu({
   inline = false,
-  searchAttachments,
   onAskAgent,
   commandActions,
   resourceCommands,
@@ -312,11 +285,7 @@ export function SearchDialogMenu({
   onOpenResource,
 }: {
   inline?: boolean;
-  searchAttachments?: AttachmentSearch;
-  onAskAgent?: (
-    text: string,
-    attachments: PluginEntityReferenceOption[]
-  ) => void;
+  onAskAgent?: (text: string) => void;
   commandActions: CommandActions;
   resourceCommands?: CommandSearchResult[];
   workspaceId?: string;
@@ -332,8 +301,15 @@ export function SearchDialogMenu({
   const navigate = useNavigate();
   const { pathWithRegion } = useRegion();
   const { organizationSlug } = useParams<{ organizationSlug: string }>();
-  const { isOpen, query, open, close, setQuery, createResourceInContext } =
-    useSearchDialog();
+  const {
+    isOpen,
+    query,
+    open,
+    close,
+    dismiss,
+    setQuery,
+    createResourceInContext,
+  } = useSearchDialog();
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (inline && isOpen) {
@@ -361,7 +337,7 @@ export function SearchDialogMenu({
   const resultsOpen = isOpen && !(inline && isQueryEmpty);
   const isShowingDefaultSuggestions = !inline && isQueryEmpty && !isCompleting;
   const executableQuery = isCompleting ? "" : searchQuery;
-  const workspaceResults = useWorkspaceSearch(
+  const workspaceCandidates = useWorkspaceSearch(
     isCompletingWorkspace ? valueCompletion.value : executableQuery,
     {
       excludeCurrentWorkspace: isShowingDefaultSuggestions,
@@ -371,7 +347,7 @@ export function SearchDialogMenu({
         : undefined,
     }
   );
-  const resourceResults = useResourceSearch(
+  const resourceCandidates = useResourceSearch(
     valueCompletion?.field === "title"
       ? valueCompletion.value
       : executableQuery,
@@ -381,19 +357,47 @@ export function SearchDialogMenu({
   const contentResults = useResourceContentSearch(
     executableQuery,
     300,
-    isOpen && !choosingResource
+    resultsOpen && !choosingResource && !(inline && isCompleting)
   );
   const resourceTypes = useSearchResourceTypes();
 
   useCommandHotkeys(commandActions);
 
-  const commandResults = useCommandSearch(
+  const commandCandidates = useCommandSearch(
     choosingResource ? query : executableQuery,
     choosingResource ? NO_COMMAND_ACTIONS : commandActions,
     resourceCommands
   );
 
-  const showAgentResult = !!onAskAgent && !!query.trim() && !isCompleting;
+  const { workspaceResults, resourceResults, commandResults } = useMemo(() => {
+    const hasWordMatch = (result: { substringMatch?: boolean }) =>
+      !result.substringMatch;
+    const preferWordMatches =
+      isCompleting ||
+      contentResults.length > 0 ||
+      workspaceCandidates.some(hasWordMatch) ||
+      resourceCandidates.some(hasWordMatch) ||
+      commandCandidates.some(hasWordMatch);
+    return {
+      workspaceResults: preferWordMatches
+        ? workspaceCandidates.filter(hasWordMatch)
+        : workspaceCandidates,
+      resourceResults: preferWordMatches
+        ? resourceCandidates.filter(hasWordMatch)
+        : resourceCandidates,
+      commandResults: preferWordMatches
+        ? commandCandidates.filter(hasWordMatch)
+        : commandCandidates,
+    };
+  }, [
+    commandCandidates,
+    contentResults.length,
+    isCompleting,
+    resourceCandidates,
+    workspaceCandidates,
+  ]);
+  const showAgentResult =
+    !!onAskAgent && !!query.trim() && !isCompleting && !choosingResource;
   const validResourceIds = useMemo(
     () => new Set(items.map((item) => item.id)),
     [items]
@@ -450,8 +454,8 @@ export function SearchDialogMenu({
       return [...resourceResults]
         .sort(
           (left, right) =>
-            getSuggestionRank([left.label], valueCompletion.value) -
-              getSuggestionRank([right.label], valueCompletion.value) ||
+            getSearchMatchRank([left.label], valueCompletion.value) -
+              getSearchMatchRank([right.label], valueCompletion.value) ||
             left.label.localeCompare(right.label)
         )
         .flatMap((result) => {
@@ -490,13 +494,11 @@ export function SearchDialogMenu({
         ),
       ];
       return extensionIds
-        .filter((extensionId) =>
-          normalizeSearchQuery(extensionId).includes(partial)
-        )
+        .filter((extensionId) => matchesSearchPrefix(extensionId, partial))
         .sort(
           (left, right) =>
-            getSuggestionRank([left], valueCompletion.value) -
-              getSuggestionRank([right], valueCompletion.value) ||
+            getSearchMatchRank([left], valueCompletion.value) -
+              getSearchMatchRank([right], valueCompletion.value) ||
             left.localeCompare(right)
         )
         .slice(0, MAX_VALUE_SUGGESTIONS)
@@ -515,16 +517,16 @@ export function SearchDialogMenu({
       }))
       .filter(({ name, resourceTypeId }) =>
         [resourceTypeId, name].some((value) =>
-          normalizeSearchQuery(value).includes(partial)
+          matchesSearchPrefix(value, partial)
         )
       )
       .sort(
         (left, right) =>
-          getSuggestionRank(
+          getSearchMatchRank(
             [left.resourceTypeId, left.name],
             valueCompletion.value
           ) -
-            getSuggestionRank(
+            getSearchMatchRank(
               [right.resourceTypeId, right.name],
               valueCompletion.value
             ) || left.name.localeCompare(right.name)
@@ -554,6 +556,7 @@ export function SearchDialogMenu({
   );
 
   const hasResults =
+    showAgentResult ||
     workspaceResults.length > 0 ||
     resourceResults.length > 0 ||
     uniqueContentResults.length > 0 ||
@@ -751,22 +754,13 @@ export function SearchDialogMenu({
     ]
   );
 
-  const [attachments, setAttachments] = useState<PluginEntityReferenceOption[]>(
-    []
-  );
-  const [picking, setPicking] = useState(false);
-  const composer = inline && !!onAskAgent && !choosingResource;
+  const composer = inline && !choosingResource;
   const submitPrompt = () => {
     if (!(onAskAgent && query.trim())) {
       return;
     }
-    onAskAgent(query.trim(), attachments);
-    setAttachments([]);
+    onAskAgent(query.trim());
     close();
-  };
-  const finishPicking = () => {
-    setPicking(false);
-    requestAnimationFrame(() => inputRef.current?.focus());
   };
   const filterButton = (
     <Button
@@ -813,10 +807,8 @@ export function SearchDialogMenu({
       onBlur={
         inline
           ? (event) => {
-              if (
-                !(picking || event.currentTarget.contains(event.relatedTarget))
-              ) {
-                close();
+              if (!event.currentTarget.contains(event.relatedTarget)) {
+                dismiss();
               }
             }
           : undefined
@@ -824,7 +816,7 @@ export function SearchDialogMenu({
       onKeyDown={(event) => {
         if (inline && event.key === "Escape") {
           event.preventDefault();
-          close();
+          dismiss();
         } else if (inline && !isOpen && event.key === "ArrowDown") {
           event.preventDefault();
           open();
@@ -861,21 +853,12 @@ export function SearchDialogMenu({
         {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: cmdk supplies the combobox role through asChild. */}
         <input aria-expanded={resultsOpen} />
       </CommandInput>
+      {!!composer && (
+        <div className="flex justify-end px-2.5 pb-2.5">{filterButton}</div>
+      )}
       {!!resultsOpen && (
         <>
           <CommandList className="max-h-[min(60vh,28rem)] scroll-py-2">
-            {!!showAgentResult && (
-              <CommandItem
-                value="ask-agent-work"
-                className="m-1 py-2"
-                onSelect={submitPrompt}
-              >
-                <ResultIcon icon={AiChat02Icon} />
-                <span className="min-w-0 truncate font-medium">
-                  {t("search.askAgent", { query: query.trim() })}
-                </span>
-              </CommandItem>
-            )}
             {!!fieldCompletion && (
               <CommandGroup
                 heading={
@@ -1161,6 +1144,18 @@ export function SearchDialogMenu({
                 ))}
               </CommandGroup>
             )}
+            {!!showAgentResult && (
+              <CommandItem
+                value="ask-agent-work"
+                className="m-1 py-2"
+                onSelect={submitPrompt}
+              >
+                <ResultIcon icon={AiChat02Icon} />
+                <span className="min-w-0 truncate font-medium">
+                  {t("search.askAgent", { query: query.trim() })}
+                </span>
+              </CommandItem>
+            )}
           </CommandList>
           {!composer && (
             <div className="flex min-h-10 flex-wrap items-center gap-x-3 gap-y-1 border-border/60 border-t px-3 py-2 text-[11px] text-muted-foreground">
@@ -1188,77 +1183,11 @@ export function SearchDialogMenu({
           )}
         </>
       )}
-      {!!composer && (
-        <div className="flex flex-wrap items-center gap-1.5 px-2.5 pb-2.5">
-          {!!searchAttachments && (
-            <Button
-              type="button"
-              size="xs"
-              variant="outline"
-              className="rounded-full text-muted-foreground"
-              aria-haspopup="dialog"
-              onKeyDown={handleToolbarKey}
-              onClick={() => setPicking(true)}
-            >
-              <HugeiconsIcon icon={Add01Icon} />
-              {t("search.attachResource")}
-            </Button>
-          )}
-          {attachments.map((item) => (
-            <Button
-              key={entityReferenceKey(item.reference)}
-              type="button"
-              size="xs"
-              variant="secondary"
-              className="max-w-full rounded-full"
-              onKeyDown={handleToolbarKey}
-              aria-label={t("search.removeAttachment", { name: item.name })}
-              onClick={() => {
-                setAttachments(attachments.filter((option) => option !== item));
-                inputRef.current?.focus();
-              }}
-            >
-              <span className="truncate">{item.name}</span>
-              <HugeiconsIcon icon={Cancel01Icon} />
-            </Button>
-          ))}
-          <div className="ml-auto flex items-center gap-1.5">
-            {filterButton}
-            <Button
-              type="button"
-              size="icon-sm"
-              className="rounded-full"
-              disabled={!query.trim()}
-              aria-label={t("agentWork.send")}
-              title={t("agentWork.send")}
-              onKeyDown={handleToolbarKey}
-              onClick={submitPrompt}
-            >
-              <HugeiconsIcon icon={ArrowUp01Icon} />
-            </Button>
-          </div>
-        </div>
-      )}
     </Command>
   );
 
   if (inline) {
-    return (
-      <>
-        {palette}
-        {!!composer && !!picking && !!searchAttachments && (
-          <AttachmentPicker
-            search={searchAttachments}
-            attached={attachments}
-            onClose={finishPicking}
-            onSelect={(option) => {
-              setAttachments((current) => [...current, option]);
-              finishPicking();
-            }}
-          />
-        )}
-      </>
-    );
+    return palette;
   }
 
   return (

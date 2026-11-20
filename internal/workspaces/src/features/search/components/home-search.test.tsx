@@ -8,6 +8,7 @@ import {
 } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { useResourceContentSearch } from "../hooks/useResourceContentSearch";
 import { SearchProvider } from "../hooks/useSearchDialog";
 
 import { SearchDialogMenu } from "./search-dialog";
@@ -40,12 +41,21 @@ vi.mock("../hooks/useCommandHotkeys", () => ({ useCommandHotkeys: vi.fn() }));
 vi.mock("../hooks/useSearchResourceTypes", () => ({
   useSearchResourceTypes: () => new Map(),
 }));
-vi.mock("../hooks/useWorkspaceSearch", () => ({
-  useWorkspaceSearch: () => [],
-}));
+vi.mock("../hooks/useWorkspaceSearch", async () => {
+  const { searchWorkspaces } = await import("../workspaces");
+  return {
+    useWorkspaceSearch: (query: string) =>
+      searchWorkspaces(
+        [{ id: "w", name: "Recreate the outline", slug: "recreate" }],
+        query,
+        "",
+        "Untitled"
+      ),
+  };
+});
 vi.mock("../hooks/useResourceSearch", () => ({ useResourceSearch: () => [] }));
 vi.mock("../hooks/useResourceContentSearch", () => ({
-  useResourceContentSearch: (query: string) =>
+  useResourceContentSearch: vi.fn((query: string) =>
     query === "needle"
       ? [
           {
@@ -60,7 +70,8 @@ vi.mock("../hooks/useResourceContentSearch", () => ({
             type: "resource",
           },
         ]
-      : [],
+      : []
+  ),
 }));
 vi.mock("@repo/features/region", () => ({
   useRegion: () => ({ pathWithRegion: (path: string) => `/eu${path}` }),
@@ -83,16 +94,6 @@ afterEach(cleanup);
 function Location() {
   return <output data-testid="location">{useLocation().pathname}</output>;
 }
-const resource = {
-  kind: "resource",
-  name: "Chapter notes",
-  reference: { type: "workspace-resource", workspaceId: "w", resourceId: "r" },
-  workspaceName: "Writing",
-  resourceTypeId: "lunaris.rich-text",
-  storage: {},
-} as const;
-const searchAttachments = async () => [resource];
-
 function renderHomepage(createWorkspace = vi.fn(), askAgent = vi.fn()) {
   render(
     <MemoryRouter initialEntries={["/eu/acme"]}>
@@ -101,9 +102,12 @@ function renderHomepage(createWorkspace = vi.fn(), askAgent = vi.fn()) {
           path="/eu/:organizationSlug/*"
           element={
             <>
-              <SearchProvider indexingReady={false} organizationId="org-1">
+              <SearchProvider
+                inline
+                indexingReady={false}
+                organizationId="org-1"
+              >
                 <SearchDialogMenu
-                  searchAttachments={searchAttachments}
                   inline
                   onAskAgent={askAgent}
                   commandActions={{ "create-workspace": createWorkspace }}
@@ -116,14 +120,20 @@ function renderHomepage(createWorkspace = vi.fn(), askAgent = vi.fn()) {
       </Routes>
     </MemoryRouter>
   );
-  screen.getByRole("combobox").focus();
 }
 
 describe("homepage command menu", () => {
-  it("shows results only while the focused field has a query", async () => {
+  it("focuses the composer on mount and shows results only for a query", async () => {
     renderHomepage();
     const input = screen.getByRole("combobox");
+    expect(document.activeElement).toBe(input);
+    expect(useResourceContentSearch).toHaveBeenLastCalledWith("", 300, false);
+    expect(input.tagName).toBe("INPUT");
+    expect(screen.queryByRole("button", { name: "agentWork.send" })).toBeNull();
     expect(input.getAttribute("aria-expanded")).toBe("false");
+    expect(
+      screen.queryByRole("button", { name: "search.attachResource" })
+    ).toBeNull();
     expect(screen.queryByRole("listbox")).toBeNull();
     fireEvent.click(
       screen.getByRole("button", { name: "search.addFilterLabel" })
@@ -139,6 +149,11 @@ describe("homepage command menu", () => {
     fireEvent.change(screen.getByRole("combobox"), {
       target: { value: "needle" },
     });
+    expect(useResourceContentSearch).toHaveBeenLastCalledWith(
+      "needle",
+      300,
+      true
+    );
     fireEvent.click(await screen.findByText("Project notes"));
     await waitFor(() =>
       expect(screen.getByTestId("location").textContent).toBe(
@@ -155,23 +170,45 @@ describe("homepage command menu", () => {
     fireEvent.change(input, { target: { value: "@work" } });
     fireEvent.keyDown(input, { key: "Tab" });
     expect((input as HTMLInputElement).value).toContain("@workspace:");
-    fireEvent.change(input, { target: { value: "Outline the next chapter" } });
+    fireEvent.change(input, {
+      target: { value: "Outline the next chapter" },
+    });
     fireEvent.click(await screen.findByText("search.askAgent"));
-    expect(askAgent).toHaveBeenCalledWith("Outline the next chapter", []);
+    expect(askAgent).toHaveBeenCalledWith("Outline the next chapter");
   });
 
-  it("sends the typed prompt with the resource selected in the picker", async () => {
+  it("preserves the draft when focus leaves and returns", async () => {
     const askAgent = vi.fn();
     renderHomepage(vi.fn(), askAgent);
     const input = screen.getByRole("combobox");
     fireEvent.change(input, { target: { value: "Summarize this" } });
-    fireEvent.click(
-      screen.getByRole("button", { name: "search.attachResource" })
-    );
-    fireEvent.click(await screen.findByText("Chapter notes"));
+    const filter = screen.getByRole("button", {
+      name: "search.addFilterLabel",
+    });
+    const list = await screen.findByRole("listbox");
+    expect(
+      filter.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    fireEvent.blur(input, { relatedTarget: document.body });
+    expect(screen.queryByRole("listbox")).toBeNull();
     expect((input as HTMLInputElement).value).toBe("Summarize this");
-    fireEvent.click(screen.getByRole("button", { name: "agentWork.send" }));
-    expect(askAgent).toHaveBeenCalledWith("Summarize this", [resource]);
+    fireEvent.focus(input);
+    expect(await screen.findByRole("listbox")).toBeTruthy();
+    fireEvent.click(await screen.findByText("search.askAgent"));
+    expect(askAgent).toHaveBeenCalledWith("Summarize this");
+  });
+
+  it("shows mid-word hits only when no search group has a word-start hit", async () => {
+    renderHomepage();
+    const input = screen.getByRole("combobox");
+    fireEvent.change(input, { target: { value: "create" } });
+    expect(await screen.findByText("workspaces.createWorkspace")).toBeTruthy();
+    expect(screen.queryByText("Recreate the outline")).toBeNull();
+    fireEvent.change(input, { target: { value: "ecreate out" } });
+    expect(await screen.findByText("Recreate the outline")).toBeTruthy();
+    expect(screen.getByText("search.askAgent")).toBeTruthy();
+    fireEvent.change(input, { target: { value: '"ecreate" out' } });
+    expect(screen.queryByText("Recreate the outline")).toBeNull();
   });
 
   it("runs homepage commands and hides workspace-only actions", async () => {

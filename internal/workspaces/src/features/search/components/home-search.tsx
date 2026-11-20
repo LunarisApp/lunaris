@@ -1,8 +1,4 @@
-import { useAgentWorkAccess } from "@repo/agent-work/access";
-import { usePlatform } from "@repo/platform";
-import { useNavigate } from "react-router";
-import { useResourceMentionSearch } from "@repo/agent-work/resource-mention-search";
-import { stageAgentWorkPrompt } from "@repo/agent-work/launch";
+import { useSearchAgentPrompt } from "../hooks/useSearchAgentPrompt";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { log, parseError } from "evlog";
@@ -10,7 +6,7 @@ import { ExtensionHostProvider } from "../../../extensions/host";
 import { usePluginRuntimeHost } from "../../../extensions/host/plugin-runtime-host";
 import { useOrganizationPluginRuntime } from "../../../extensions/organization-runtime";
 import type { CommandActions } from "../command-results";
-import { SearchProvider, useSearchDialog } from "../hooks/useSearchDialog";
+import { SearchProvider, useSearchDialogStore } from "../hooks/useSearchDialog";
 import { SearchDialogMenu } from "./search-dialog";
 
 const ignoreRenderer = () => undefined;
@@ -28,11 +24,10 @@ function HomeSearchRuntime({
   onReadyChange: (ready: boolean) => void;
 }) {
   const { i18n } = useTranslation();
-  const navigate = useNavigate();
-  const platform = usePlatform();
-  const access = useAgentWorkAccess();
   const registry = useOrganizationPluginRuntime();
-  const { isOpen } = useSearchDialog();
+  const searching = useSearchDialogStore(
+    (state) => state.isOpen && Boolean(state.query.trim())
+  );
   const [activated, setActivated] = useState(false);
   const { reconcile, dispose } = usePluginRuntimeHost({
     i18n,
@@ -43,10 +38,10 @@ function HomeSearchRuntime({
   });
 
   useEffect(() => {
-    if (isOpen) {
+    if (searching) {
       setActivated(true);
     }
-  }, [isOpen]);
+  }, [searching]);
 
   useEffect(() => {
     if (!activated) {
@@ -98,29 +93,13 @@ function HomeSearchRuntime({
 
   useEffect(() => dispose, [dispose]);
 
-  const searchAttachments = useResourceMentionSearch(organizationId);
-  const canAskAgent =
-    access.allowed && !access.pending && !!platform.agentWork && !!userId;
+  const askAgent = useSearchAgentPrompt(organizationId, userId);
 
   return (
     <SearchDialogMenu
       inline
-      searchAttachments={searchAttachments}
       commandActions={commandActions}
-      onAskAgent={
-        canAskAgent
-          ? (text, attachments) => {
-              const agentLaunch = stageAgentWorkPrompt({
-                organizationId,
-                userId,
-                text,
-                attachments,
-                submit: true,
-              });
-              void navigate("agent-work", { state: { agentLaunch } });
-            }
-          : undefined
-      }
+      onAskAgent={askAgent}
     />
   );
 }
@@ -136,7 +115,11 @@ function HomeSearchContent({
 }) {
   const [ready, setReady] = useState(false);
   return (
-    <SearchProvider indexingReady={ready} organizationId={organizationId}>
+    <SearchProvider
+      inline
+      indexingReady={ready}
+      organizationId={organizationId}
+    >
       <HomeSearchRuntime
         userId={userId}
         organizationId={organizationId}

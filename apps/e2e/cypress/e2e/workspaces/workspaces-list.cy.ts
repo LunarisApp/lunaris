@@ -6,6 +6,7 @@ describe("workspaces/workspaces-list", () => {
   });
 
   it("shows the seeded welcome workspace on a fresh session", () => {
+    cy.focused().should("match", 'input[data-testid="workspaces-search"]');
     cy.get('[data-testid="workspaces-list-item-welcome"]').within(() => {
       cy.get('[data-testid="workspaces-list-item-name"]').should(
         "contain",
