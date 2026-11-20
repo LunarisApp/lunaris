@@ -12,13 +12,13 @@ import {
   type SuggestionMenuProps,
 } from "@blocknote/react";
 import { Kbd, KbdGroup } from "@lunarisapp/ui/components/kbd";
+import { Spinner } from "@lunarisapp/ui/components/spinner";
 import {
   AtSignIcon,
   File01Icon,
   Folder01Icon,
   FoldersIcon,
   HugeiconsIcon,
-  Loading03Icon,
 } from "@lunarisapp/ui/icons";
 import { useCallback, useEffect, useRef, type MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -268,10 +268,9 @@ export function EntityReferenceSuggestionMenuContent({
           </span>
         </span>
         {isLoading && items.length > 0 ? (
-          <HugeiconsIcon
+          <Spinner
             aria-label={t(`${MENTION_TRANSLATION_KEY}.searching`)}
             className="entity-reference-suggestion__spinner"
-            icon={Loading03Icon}
           />
         ) : null}
       </div>
