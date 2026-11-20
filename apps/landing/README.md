@@ -20,9 +20,30 @@ Use the URL printed by Next.js. To avoid the API's default port, run
 - `src/app/`: pages and route handlers.
 - `src/i18n/`: locale configuration and translated dictionaries.
 - `src/data/`: product copy, pricing data, and region discovery.
+- `src/markdown/`: hand-written Markdown companions for public pages.
 - `public/`: static assets, including the product demo in `video/demo.mp4`.
 
 Keep product claims and pricing consistent with the application and supported plans.
+
+## Markdown companions
+
+Register public pages in `src/data/landing-pages.ts`. For pages with a companion,
+add the entry to `markdownPages` and the corresponding file under
+`src/markdown/`. Use `index.md` for the homepage and mirror the URL for other
+pages, such as `compare/obsidian.md`. Next.js generates `/llms.txt` and the
+Markdown responses during the build. Set `section` on pages worth listing in the
+root index. The sitemap includes all registered pages. The shared HTML head
+links to `/llms.txt` with `rel="describedby"`. Pages with a Markdown
+companion advertise it in a `Link` header.
+
+The pricing and comparison companions render tables from the same data as the
+web pages. The MCP companion renders setup commands and configuration for each
+available cloud region, the macOS Desktop preview, and the CLI. Edit each
+companion's Markdown file to adjust its introductory content.
+
+The Extensions companion links to `/extensions/llms.txt`, which lists individual
+extension companions generated from the catalog. To customize an individual
+extension's Markdown, add `src/markdown/extensions/<slug>.md`.
 
 ## Verify and build
 

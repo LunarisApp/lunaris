@@ -2,7 +2,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/types";
 import { localePath } from "@/i18n/locale-path";
 
-type Plan = {
+export type Plan = {
 	id: "business" | "enterprise" | "free" | "plus";
 	name: string;
 	price: { monthly: string; yearly: string };
@@ -16,6 +16,14 @@ type Plan = {
 
 type PlanGroups = {
 	all: Plan[];
+};
+
+type PlanFeatureValue = string | boolean;
+type PlanFeatureValues = Record<Plan["id"], PlanFeatureValue>;
+
+export type PlanComparisonGroup = {
+	title: string;
+	features: { name: string; values: PlanFeatureValues }[];
 };
 
 export function getPlans(dict: Dictionary, locale: Locale): PlanGroups {
@@ -74,4 +82,83 @@ export function getPlans(dict: Dictionary, locale: Locale): PlanGroups {
 	return {
 		all: [freePlan, plusPlan, businessPlan, enterprisePlan],
 	};
+}
+
+export function getPlanComparison(dict: Dictionary): PlanComparisonGroup[] {
+	const { comparisonTable, labels, storage } = dict.pricingPage;
+	const { core, extensions, support, securityCompliance } =
+		comparisonTable.categories;
+	const { unlimited } = labels;
+
+	function byPlan(
+		free: PlanFeatureValue,
+		plus: PlanFeatureValue,
+		business: PlanFeatureValue,
+		enterprise: PlanFeatureValue,
+	): PlanFeatureValues {
+		return { free, plus, business, enterprise };
+	}
+
+	const included = byPlan(true, true, true, true);
+	const businessAndEnterprise = byPlan(false, false, true, true);
+	const enterpriseOnly = byPlan(false, false, false, true);
+
+	return [
+		{
+			title: core.title,
+			features: [
+				{
+					name: core.features.workspaces,
+					values: byPlan(unlimited, unlimited, unlimited, unlimited),
+				},
+				{
+					name: core.features.items,
+					values: byPlan("25", unlimited, unlimited, unlimited),
+				},
+				{
+					name: core.features.members,
+					values: byPlan("3", "10", unlimited, unlimited),
+				},
+				{
+					name: storage.poolLabel,
+					values: storage.pools,
+				},
+				{
+					name: storage.fileLabel,
+					values: storage.files,
+				},
+				{ name: core.features.cloudSync, values: included },
+			],
+		},
+		{
+			title: extensions.title,
+			features: [
+				{ name: extensions.features.richTextEditor, values: included },
+				{ name: extensions.features.whiteboard, values: included },
+				{ name: extensions.features.kanbanBoard, values: included },
+				{ name: extensions.features.compiler, values: included },
+				{ name: extensions.features.allOther, values: businessAndEnterprise },
+			],
+		},
+		{
+			title: support.title,
+			features: [
+				{ name: support.features.community, values: included },
+				{ name: support.features.priority, values: businessAndEnterprise },
+				{ name: support.features.dedicated, values: enterpriseOnly },
+			],
+		},
+		{
+			title: securityCompliance.title,
+			features: [
+				{
+					name: securityCompliance.features.customRoles,
+					values: enterpriseOnly,
+				},
+				{ name: securityCompliance.features.sla, values: enterpriseOnly },
+				{ name: securityCompliance.features.sso, values: enterpriseOnly },
+				{ name: securityCompliance.features.soc2, values: enterpriseOnly },
+			],
+		},
+	];
 }

@@ -4,6 +4,7 @@ import { defaultLocale, type Locale, locales } from "@/i18n/config";
 import { localePath } from "@/i18n/locale-path";
 
 export const siteUrl = "https://lunaris.app";
+export const docsUrl = "https://docs.lunaris.app";
 
 export const brandIcons: NonNullable<Metadata["icons"]> = {
 	icon: [

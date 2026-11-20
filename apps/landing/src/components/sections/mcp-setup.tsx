@@ -15,72 +15,17 @@ import {
 	CursorIcon,
 	McpIcon,
 } from "@/components/icons/harness-icons";
+import {
+	cloudSetupSnippet,
+	type HarnessId,
+	localSetupSnippet,
+	mcpUrl,
+} from "@/data/mcp-setup";
 import type { DataRegion } from "@/data/regions";
 import type { Dictionary } from "@/i18n/dictionaries/types";
 import { captureLandingEvent } from "@/lib/posthog";
 
 type McpCopy = Dictionary["mcpPage"]["setup"];
-
-type HarnessId = "mcp" | "claude" | "codex" | "cursor";
-
-const desktopMcpCommand = "/Applications/Lunaris.app/Contents/MacOS/Lunaris";
-const desktopMcpArguments = ["mcp", "serve", "--access", "read"] as const;
-
-function mcpUrl(region: DataRegion) {
-	if (region.status === "planned") return "";
-
-	const url = new URL(region.manifestUrl);
-	url.pathname = "/mcp";
-	url.search = "";
-	url.hash = "";
-	return url.toString();
-}
-
-function localSetupSnippet(
-	harness: HarnessId,
-	command: string,
-	args: readonly string[],
-) {
-	const argumentsList = args.join(" ");
-
-	if (harness === "mcp") {
-		return `transport: stdio
-command: ${command}
-args: ${argumentsList}`;
-	}
-	if (harness === "claude") {
-		return `claude mcp add --transport stdio lunaris -- ${command} ${argumentsList}`;
-	}
-	if (harness === "codex") {
-		return `codex mcp add lunaris -- ${command} ${argumentsList}`;
-	}
-	return JSON.stringify(
-		{
-			mcpServers: {
-				lunaris: {
-					command,
-					args,
-				},
-			},
-		},
-		null,
-		2,
-	);
-}
-
-function cloudSetupSnippet(harness: HarnessId, url: string) {
-	if (harness === "mcp") return `transport: http\nurl: ${url}`;
-	if (harness === "claude")
-		return `claude mcp add --transport http lunaris ${url}`;
-	if (harness === "codex") return `codex mcp add lunaris --url ${url}`;
-	return `{
-  "mcpServers": {
-    "lunaris": {
-      "url": "${url}"
-    }
-  }
-}`;
-}
 
 function cursorInstallUrl(url: string) {
 	const config = btoa(JSON.stringify({ url }));
@@ -215,11 +160,7 @@ export function McpSetup({
 	const endpoint = cloud && region ? mcpUrl(region) : "";
 	const snippet = cloud
 		? cloudSetupSnippet(harness, endpoint)
-		: localSetupSnippet(
-				harness,
-				desktop ? desktopMcpCommand : "lunaris",
-				desktop ? desktopMcpArguments : ["mcp", "serve"],
-			);
+		: localSetupSnippet(harness, connection);
 	const cursorDeeplink = endpoint ? cursorInstallUrl(endpoint) : "";
 	const isConfig = harness === "cursor";
 	const isGeneric = harness === "mcp";

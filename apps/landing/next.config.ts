@@ -1,11 +1,23 @@
 import type { NextConfig } from "next";
 import {
+	llmsIndexPath,
+	markdownPages,
+	markdownPath,
+} from "./src/data/landing-pages";
+import { locales } from "./src/i18n/config";
+import { localePath } from "./src/i18n/locale-path";
+import {
 	legalDocumentPaths,
 	legalDocumentUrls,
 } from "./src/lib/legal-document-links";
 import { posthogApiOrigin } from "./src/lib/posthog-config";
 
 const posthogOrigin = posthogApiOrigin();
+
+const markdownRewrites = markdownPages.map(({ path }) => {
+	const source = markdownPath(path);
+	return { source, destination: `/markdown${source}` };
+});
 
 const contentSecurityPolicy = [
 	"default-src 'self'",
@@ -27,8 +39,17 @@ const nextConfig: NextConfig = {
 		globalNotFound: true,
 	},
 	poweredByHeader: false,
+	async rewrites() {
+		return markdownRewrites;
+	},
 	async redirects() {
 		return [
+			// Redirect direct requests to the rewrite destinations to the public URLs.
+			...markdownRewrites.map(({ source, destination }) => ({
+				source: destination,
+				destination: source,
+				permanent: true,
+			})),
 			{
 				source: legalDocumentPaths.privacy,
 				destination: legalDocumentUrls.privacy,
@@ -143,6 +164,17 @@ const nextConfig: NextConfig = {
 					},
 				],
 			},
+			...markdownPages.flatMap(({ path }) =>
+				locales.map((locale) => ({
+					source: localePath(locale, path),
+					headers: [
+						{
+							key: "Link",
+							value: `<${markdownPath(path)}>; rel="alternate"; type="text/markdown"; hreflang="en", <${llmsIndexPath(path)}>; rel="describedby"`,
+						},
+					],
+				})),
+			),
 		];
 	},
 };
