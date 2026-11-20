@@ -324,7 +324,7 @@ export function AgentWorkView(
     return (
       <section
         aria-label={t("editor.agentWork")}
-        className="flex h-full min-h-0 min-w-0 flex-col bg-background text-foreground"
+        className="flex h-full min-h-0 min-w-0 flex-col text-foreground"
       >
         <header className="flex shrink-0 items-center border-b p-1.5">
           <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
