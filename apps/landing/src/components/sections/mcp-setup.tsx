@@ -1,7 +1,14 @@
 "use client";
 
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@lunarisapp/ui/components/select";
 import { clsx } from "clsx/lite";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
 	ClaudeIcon,
 	CodexIcon,
@@ -170,6 +177,15 @@ export function McpSetup({
 	copy: McpCopy;
 }) {
 	const defaultRegion = regions.find((region) => region.status === "available");
+	const regionSelectId = useId();
+	const regionOptions = regions.map((item) => ({
+		value: item.regionId,
+		label:
+			item.status === "planned"
+				? `${item.displayName} · ${copy.comingSoon}`
+				: item.displayName,
+		disabled: item.status !== "available",
+	}));
 	const harnesses = [
 		{
 			id: "mcp",
@@ -226,25 +242,35 @@ export function McpSetup({
 							{copy.desktopDescription}
 						</p>
 					) : (
-						<label className="mt-4 flex flex-col gap-2 text-sm font-medium text-olive-950 dark:text-olive-100">
-							{copy.regionLabel}
-							<select
-								className="min-h-11 w-full rounded-lg border border-olive-950/15 bg-olive-100 px-3 dark:border-white/20 dark:bg-black"
+						<div className="mt-4 flex flex-col gap-2 text-sm font-medium text-olive-950 dark:text-olive-100">
+							<label htmlFor={regionSelectId}>{copy.regionLabel}</label>
+							<Select
+								items={regionOptions}
 								value={regionId}
-								onChange={(event) => setRegionId(event.target.value)}
+								onValueChange={(value) => {
+									if (value !== null) setRegionId(value);
+								}}
 							>
-								{regions.map((item) => (
-									<option
-										key={item.regionId}
-										value={item.regionId}
-										disabled={item.status !== "available"}
-									>
-										{item.displayName}
-										{item.status === "planned" ? ` · ${copy.comingSoon}` : ""}
-									</option>
-								))}
-							</select>
-						</label>
+								<SelectTrigger
+									className="min-h-11 w-full border-olive-950/15 bg-olive-100 px-3 hover:bg-olive-200 dark:border-white/20 dark:bg-black dark:hover:bg-olive-900"
+									id={regionSelectId}
+								>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent alignItemWithTrigger={false}>
+									{regionOptions.map((item) => (
+										<SelectItem
+											className="min-h-9 px-3 pr-8 data-highlighted:bg-olive-200 dark:data-highlighted:bg-olive-800"
+											disabled={item.disabled}
+											key={item.value}
+											value={item.value}
+										>
+											{item.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 					)}
 				</fieldset>
 
