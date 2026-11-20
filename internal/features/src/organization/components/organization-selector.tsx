@@ -14,9 +14,9 @@ import { cn } from "@lunarisapp/ui/lib/utils";
 import { Avatar, AvatarFallback } from "@lunarisapp/ui/components/avatar";
 import {
   Add01Icon,
+  ArrowDown01Icon,
   HugeiconsIcon,
   Setting07Icon,
-  UnfoldMoreIcon,
 } from "@lunarisapp/ui/icons";
 import { permission } from "@repo/auth/permissions";
 import { usePermission } from "@repo/features/permissions";
@@ -51,7 +51,7 @@ function OrganizationInitialAvatar({
       data-testid={testId}
       size="sm"
     >
-      <AvatarFallback className="bg-primary font-semibold text-primary-foreground">
+      <AvatarFallback className="bg-card font-semibold text-foreground">
         {getInitials(name)}
       </AvatarFallback>
     </Avatar>
@@ -202,8 +202,8 @@ export function OrganizationSelector({
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger
           className={cn(
-            buttonVariants({ variant: "outline" }),
-            "min-w-0 max-w-52 gap-2 px-1.5 data-popup-open:bg-accent md:max-w-64",
+            buttonVariants({ variant: "ghost" }),
+            "min-w-0 max-w-52 gap-2 ps-1.5 pe-2.5 text-foreground md:max-w-64",
             className
           )}
           data-testid="organization-selector-trigger"
@@ -213,34 +213,48 @@ export function OrganizationSelector({
             name={activeOrganization?.name}
             testId="organization-selector-avatar"
           />
-          <span className="truncate">
+          <span className="truncate font-semibold">
             {activeOrganization?.name ?? t("workspaces.switchOrganization")}
           </span>
           <HugeiconsIcon
-            className="ml-auto size-3.5 shrink-0 text-muted-foreground"
-            icon={UnfoldMoreIcon}
+            aria-hidden="true"
+            className="ms-auto size-3.5 text-muted-foreground group-aria-expanded/button:rotate-180 motion-safe:transition-transform"
+            icon={ArrowDown01Icon}
             strokeWidth={2}
           />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-56">
+        <DropdownMenuContent
+          align="end"
+          className="w-68 min-w-0 max-w-(--available-width) rounded-xl p-1.5 motion-reduce:animate-none"
+          sideOffset={6}
+        >
           <DropdownMenuRadioGroup
+            aria-label={t("workspaces.switchOrganization")}
             onValueChange={handleSwitch}
             value={activeOrganization?.id ?? ""}
           >
             {visibleOrgs.map((org) => (
-              <DropdownMenuRadioItem key={org.id} value={org.id}>
+              <DropdownMenuRadioItem
+                className="min-h-9 gap-2.5 py-1.5 pl-2 outline-offset-[-2px] focus-visible:outline-2 focus-visible:outline-ring data-checked:bg-muted data-highlighted:bg-accent data-checked:font-semibold max-md:min-h-11"
+                key={org.id}
+                value={org.id}
+              >
                 <OrganizationInitialAvatar name={org.name} />
                 <span className="truncate">{org.name}</span>
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>
-          <DropdownMenuSeparator />
+          {visibleOrgs.length > 0 && (
+            <DropdownMenuSeparator className="mx-1 my-1.5" />
+          )}
           <DropdownMenuItem
+            className="min-h-9 gap-2.5 px-3 py-1.5 outline-offset-[-2px] focus-visible:outline-2 focus-visible:outline-ring max-md:min-h-11"
             data-testid="organization-create-trigger"
             onClick={handleCreateClick}
           >
             <HugeiconsIcon
-              className="size-4"
+              aria-hidden="true"
+              className="size-4 text-muted-foreground"
               icon={Add01Icon}
               strokeWidth={2}
             />
@@ -249,12 +263,14 @@ export function OrganizationSelector({
               : t("organization.createOrganization")}
           </DropdownMenuItem>
           <DropdownMenuItem
+            className="min-h-9 gap-2.5 px-3 py-1.5 outline-offset-[-2px] focus-visible:outline-2 focus-visible:outline-ring max-md:min-h-11"
             data-testid="organization-settings-trigger"
             disabled={!activeOrganization || activeIsHidden}
             onClick={handleSettingsClick}
           >
             <HugeiconsIcon
-              className="size-4"
+              aria-hidden="true"
+              className="size-4 text-muted-foreground"
               icon={Setting07Icon}
               strokeWidth={2}
             />
