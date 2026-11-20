@@ -40,9 +40,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { locale: rawLocale } = await params;
 	const locale = rawLocale as Locale;
+	const copy = downloadsCopy[locale];
 	return {
-		title: `${homepageCopy[locale].download} Lunaris`,
-		description: downloadsCopy[locale].subtitle,
+		title: copy.title,
+		description: copy.subtitle,
 		alternates: localizedAlternates(locale, "/downloads"),
 	};
 }
@@ -75,7 +76,7 @@ export default async function DownloadsPage({
 						height={48}
 						className="mb-6 hidden size-12 dark:block"
 					/>
-					<Heading>{`${home.download} Lunaris`}</Heading>
+					<Heading>{copy.title}</Heading>
 					<p className="mt-5 text-base/7 text-pretty text-olive-600 dark:text-olive-400">
 						{copy.subtitle}
 					</p>
