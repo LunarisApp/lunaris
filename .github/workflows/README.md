@@ -89,31 +89,37 @@ or the account plan; the files in this directory do not enable those protections
 
 ## CI cost controls
 
-Feature PRs use their base SHA and `turbo ls --affected` to select edition builds,
-Rust tests, desktop MCP smoke tests, and hosted-site builds. Shared package changes
-include dependents. Brand, PowerSync, and release-tool checks also use explicit
-input paths. Formatting, public-package validation, types, and workspace tests
-remain mandatory. Repository documentation alone skips optional builds; content
-under `apps/docs` still selects the hosted sites.
+PRs and pushes select checks from the Git diff and workspace manifests. Changes to
+a shared package include its dependents. On PRs limited to the presentation paths
+listed in [the selector](../../tooling/ci-selection.ts), edition builds cover the
+desktop frontend and CI skips native desktop packaging and the macOS MCP smoke test.
+Repository docs and Changesets notes can accompany those edits. A mixed desktop diff
+or a push affecting desktop dependencies selects both native checks.
 
-Pushes, manual runs, release PRs into `main`, and explicit release refs run full
-validation. Unknown root/tooling inputs or failed detection also select everything.
+Brand, PowerSync, public-package, and release-tool checks use affected packages
+or explicit input paths. Formatting, type checks, and workspace test jobs run on
+every PR. Repository documentation alone skips optional builds. Changes under
+`apps/docs` select the docs build.
+
+Manual runs, explicit release refs, unknown root/tooling inputs, and failed change
+detection select full validation.
 The aggregate `CI` gate requires every selected job to succeed and rejects missing
 selection outputs. PR edit triggers remain enabled, preserving base-change coverage.
 
 CI suppresses Cypress binary downloads; the separate E2E workflow installs its
 browser normally. Bun downloads and native Cargo builds persist across runs.
-Edition and SDK build jobs persist Turbo cache with separate OS/job/edition keys.
-Hosted sites remain uncached: docs postbuild writes `public/_pagefind`, outside
-current Turbo outputs. Revisit those outputs before enabling hosted-site reuse.
+Edition builds and Agent Rust share the repository's Turbo cache action. Its
+keys include the runner OS, architecture, edition, Bun version and lockfile
+hash. The docs build also caches its generated `public/_pagefind` search index.
 
 ## Shared setup and validation
 
 All workflows use the local `setup-bun` composite action. It reads the exact Bun
 version from root `package.json` (`packageManager`) and exports `BUN_VERSION` for
-job-specific Turbo cache keys. Checkout and `bun install --frozen-lockfile` remain
-explicit in each job. Download caching is opt-in and enabled only for the existing
-CI jobs. E2E still installs Cypress and clears Bun's download cache afterward.
+job-specific Turbo cache keys. The selector and aggregate gate run directly after
+checkout and Bun setup. Jobs that need workspace dependencies install them with
+`bun install --frozen-lockfile`. The Bun download cache is opt-in. E2E still
+installs Cypress and clears Bun's download cache afterward.
 Manual npm recovery loads the setup action from the recovery tooling checkout,
 so older release commits need not contain the action.
 
@@ -151,8 +157,9 @@ See the [release runbook](../../docs/procedures/releasing-and-deploying.md#publi
 `Desktop - Build Windows and Linux` builds Windows x64 NSIS (`.exe`) and Linux
 x64 Debian (`.deb`) installers on native runners. Linux uses Ubuntu 22.04 as its
 compatibility baseline and requires WebKitGTK 4.1 at runtime. CI selects this
-workflow for desktop changes and affected dependencies; its result is required
-by the aggregate CI gate. CI artifacts remain downloadable for 14 days.
+workflow for desktop changes and affected dependencies, subject to the
+[presentation-only PR rule](#ci-cost-controls). The aggregate CI gate requires
+selected builds to pass. CI artifacts remain downloadable for 14 days.
 
 Every build includes the compiled Bun agent sidecar, frontend, and third-party
 license notices. Rust tests and MCP smoke checks run against the built executable.

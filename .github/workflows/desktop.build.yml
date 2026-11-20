@@ -136,9 +136,20 @@ jobs:
       - name: Set isolated release version
         if: inputs.publish && steps.restore.outputs.cached != 'true'
         run: bun tooling/delivery/product-version.ts
-      - name: Install license generator
-        if: steps.restore.outputs.cached != 'true'
+      - name: Install Linux license generator
+        if: steps.restore.outputs.cached != 'true' && runner.os == 'Linux'
         run: cargo install --locked --version 0.9.1 --features cli cargo-about
+      - name: Install Windows license generator
+        if: steps.restore.outputs.cached != 'true' && runner.os == 'Windows'
+        run: |
+          cd "$RUNNER_TEMP"
+          asset=cargo-about-0.9.1-x86_64-pc-windows-msvc
+          curl --fail --location --retry 3 --output "$asset.tar.gz" \
+            "https://github.com/EmbarkStudios/cargo-about/releases/download/0.9.1/$asset.tar.gz"
+          echo "318893aff6b9efd60f70470f5827b9577ae20a805cf9732d5612862a78508581 *$asset.tar.gz" | sha256sum -c -
+          tar -xzf "$asset.tar.gz" "$asset/cargo-about.exe"
+          PATH="$PWD/$asset:$PATH" cargo about --version
+          cygpath -aw "$asset" >> "$GITHUB_PATH"
       - name: Configure signed updater
         if: inputs.publish && steps.restore.outputs.cached != 'true'
         env:

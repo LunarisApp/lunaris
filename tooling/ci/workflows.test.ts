@@ -143,7 +143,6 @@ test("every external action is pinned, including native releases and composite a
 
 test("workflows share repository Bun setup and preserve download-cache opt-ins", () => {
   const cached = new Set([
-    "changes",
     "quality",
     "typecheck",
     "test",
@@ -213,11 +212,15 @@ test("CI gate and tooling tests stay unconditional; checkout keeps explicit rele
   expect(jobs.ci.name).toBe("CI");
   // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub expression.
   expect(jobs.ci.steps[0].with.ref).toBe("${{ inputs.ref || github.sha }}");
-  expect(
-    jobs.ci.steps.some((step: { run?: string }) =>
-      step.run?.includes("bun install")
-    )
-  ).toBe(false);
+  for (const job of [jobs.changes, jobs.ci]) {
+    expect(
+      job.steps.some(
+        (step: { run?: string; uses?: string }) =>
+          step.run?.includes("bun install") ||
+          step.uses === "./.github/actions/cache-turbo"
+      )
+    ).toBe(false);
+  }
   const tests = jobs.test.steps.find((step: { run?: string }) =>
     step.run?.includes("bun test tooling/ci ")
   );
