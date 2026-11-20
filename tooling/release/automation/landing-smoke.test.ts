@@ -6,17 +6,27 @@ function request(handler: (url: string, options?: RequestInit) => Response) {
     Promise.resolve(handler(url, options));
 }
 
+function landingResponse(url: string, status = 200) {
+  const contentType = /\.(?:sh|ps1)$/.test(new URL(url).pathname)
+    ? "text/plain; charset=utf-8"
+    : "text/html; charset=utf-8";
+  return new Response("content", {
+    status,
+    headers: { "Content-Type": contentType },
+  });
+}
+
 test("landing verification checks pages, installer redirect and asset", async () => {
   const asset =
     "https://github.com/LunarisApp/lunaris/releases/download/self-hosted%400.1.0/install.sh";
   const calls: string[] = [];
   const good = (url: string, options?: RequestInit) => {
     calls.push(url);
-    if (url.endsWith("/install.sh") && url.startsWith("https://fixture")) {
+    if (url === "https://fixture/self-hosted/install.sh") {
       expect(options?.redirect).toBe("manual");
       return new Response(null, { status: 307, headers: { location: asset } });
     }
-    return new Response("content");
+    return landingResponse(url);
   };
   await smokeLanding("https://fixture/health", request(good));
   expect(calls).toContain("https://fixture/en/self-hosted");
@@ -24,7 +34,11 @@ test("landing verification checks pages, installer redirect and asset", async ()
   for (const failUrl of [
     "https://fixture/",
     "https://fixture/en/self-hosted",
-    "https://fixture/install.sh",
+    "https://fixture/downloads",
+    "https://fixture/self-hosted/install.ps1",
+    "https://fixture/cli/install.sh",
+    "https://fixture/cli/install.ps1",
+    "https://fixture/self-hosted/install.sh",
     asset,
   ]) {
     await expect(
@@ -42,7 +56,19 @@ test("landing verification checks pages, installer redirect and asset", async ()
     smokeLanding(
       "https://fixture/health",
       request((url, options) =>
-        url === "https://fixture/install.sh"
+        url === "https://fixture/cli/install.ps1"
+          ? new Response("<html>Landing page</html>", {
+              headers: { "Content-Type": "text/html" },
+            })
+          : good(url, options)
+      )
+    )
+  ).rejects.toThrow("200 text/html");
+  await expect(
+    smokeLanding(
+      "https://fixture/health",
+      request((url, options) =>
+        url === "https://fixture/self-hosted/install.sh"
           ? new Response(null, {
               status: 307,
               headers: { location: "https://evil.example/install.sh" },
@@ -63,9 +89,10 @@ test("landing can deploy before first published installer", async () => {
           { tag_name: "self-hosted@1.0.0", draft: true, prerelease: false },
         ]);
       }
-      return new Response(null, {
-        status: url.endsWith("/install.sh") ? 503 : 200,
-      });
+      return landingResponse(
+        url,
+        url.endsWith("/self-hosted/install.sh") ? 503 : 200
+      );
     })
   );
 });
@@ -89,9 +116,10 @@ test("installer 503 still fails when installer exists on later release page", as
                 ]
           );
         }
-        return new Response(null, {
-          status: url.endsWith("/install.sh") ? 503 : 200,
-        });
+        return landingResponse(
+          url,
+          url.endsWith("/self-hosted/install.sh") ? 503 : 200
+        );
       })
     )
   ).rejects.toThrow("Installer smoke check failed: 503");
@@ -110,9 +138,10 @@ test("missing release evidence cannot excuse installer outage", async () => {
           if (new URL(url).hostname === "api.github.com") {
             return evidence.clone();
           }
-          return new Response(null, {
-            status: url.endsWith("/install.sh") ? 503 : 200,
-          });
+          return landingResponse(
+            url,
+            url.endsWith("/self-hosted/install.sh") ? 503 : 200
+          );
         })
       )
     ).rejects.toThrow();
@@ -133,9 +162,10 @@ test("release evidence authenticates only GitHub API requests", async () => {
           return Response.json([]);
         }
         expect(headers.has("Authorization")).toBe(false);
-        return new Response(null, {
-          status: url.endsWith("/install.sh") ? 503 : 200,
-        });
+        return landingResponse(
+          url,
+          url.endsWith("/self-hosted/install.sh") ? 503 : 200
+        );
       }),
       token ?? ""
     );
@@ -150,9 +180,9 @@ test("unified product installer redirects pass smoke verification", async () => 
     "https://fixture/health",
     request((url) => {
       calls.push(url);
-      return url === "https://fixture/install.sh"
+      return url === "https://fixture/self-hosted/install.sh"
         ? new Response(null, { status: 307, headers: { location: asset } })
-        : new Response("content");
+        : landingResponse(url);
     })
   );
   expect(calls).toContain(asset);
@@ -173,9 +203,10 @@ test("unified product releases cannot excuse installer outages", async () => {
             },
           ]);
         }
-        return new Response(null, {
-          status: url.endsWith("/install.sh") ? 503 : 200,
-        });
+        return landingResponse(
+          url,
+          url.endsWith("/self-hosted/install.sh") ? 503 : 200
+        );
       })
     )
   ).rejects.toThrow("Installer smoke check failed: 503");

@@ -24,7 +24,7 @@ main() {
       --no-web)
         export WEB_ENABLED=false; shift ;;
       --help|-h)
-        echo 'Usage: curl -fsSL https://lunaris.app/install.sh | bash -s -- [PUBLIC_URL] [--dir DIRECTORY] [--tls-mode auto|external] [--no-web]'
+        echo 'Usage: curl -fsSL https://lunaris.app/self-hosted/install.sh | bash -s -- [PUBLIC_URL] [--dir DIRECTORY] [--tls-mode auto|external] [--no-web]'
         echo 'Omit PUBLIC_URL to prompt on first install; existing installations reuse .env.'
         echo '--no-web omits the frontend and requires your own HTTPS reverse proxy.'
         return ;;
@@ -34,7 +34,7 @@ main() {
       *) fail "Unknown argument: $1" ;;
     esac
   done
-  [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && $expected_sha256 =~ ^[a-f0-9]{64}$ ]] || fail 'Use the published installer at https://lunaris.app/install.sh.'
+  [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && $expected_sha256 =~ ^[a-f0-9]{64}$ ]] || fail 'Use the published installer at https://lunaris.app/self-hosted/install.sh.'
   if [[ -z $directory ]]; then
     if [[ -f release.json && -f compose.yaml ]]; then directory=$PWD; else directory="$PWD/lunaris"; fi
   fi

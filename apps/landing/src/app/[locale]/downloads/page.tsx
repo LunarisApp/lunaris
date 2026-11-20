@@ -1,15 +1,16 @@
 import {
 	ArrowUpRight01Icon,
+	ComputerTerminal01Icon,
 	HugeiconsIcon,
 	InternetIcon,
 } from "@lunarisapp/ui/icons";
 import { Heading } from "@/components/elements/heading";
 import type { Metadata } from "next";
 import Image from "next/image";
-import { HomebrewCommand } from "@/components/downloads/homebrew-command";
+import { InstallCommandPicker } from "@/components/downloads/install-command-picker";
 import { PlatformIcon } from "@/components/downloads/platform-icon";
 import { Container } from "@/components/elements/container";
-import { downloadsCopy } from "@/data/downloads";
+import { cliInstallMethods, downloadsCopy } from "@/data/downloads";
 import { homepageCopy } from "@/data/homepage";
 import { repositoryUrl } from "@/data/open-source";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -160,11 +161,12 @@ export default async function DownloadsPage({
 					<section
 						id="cli"
 						aria-labelledby="cli-heading"
-						className="grid scroll-mt-24 gap-5 py-7 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-8 sm:py-8"
+						className="grid scroll-mt-24 gap-5 py-7 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-start sm:gap-8 sm:py-8"
 					>
 						<div className="flex items-start gap-5">
-							<PlatformIcon
-								platform="macos"
+							<HugeiconsIcon
+								aria-hidden="true"
+								icon={ComputerTerminal01Icon}
 								className="mt-0.5 size-7 text-olive-950 dark:text-olive-100"
 							/>
 							<div>
@@ -175,7 +177,6 @@ export default async function DownloadsPage({
 									CLI
 								</h2>
 								<p className="mt-1 text-sm/6 text-olive-600 dark:text-olive-400">
-									macOS · Homebrew ·{" "}
 									<a
 										className="underline underline-offset-4"
 										href={`${repositoryUrl}/blob/main/apps/cli/README.md`}
@@ -185,7 +186,9 @@ export default async function DownloadsPage({
 								</p>
 							</div>
 						</div>
-						<HomebrewCommand
+						<InstallCommandPicker
+							methods={cliInstallMethods}
+							methodLabel={copy.installMethod}
 							copyLabel={copy.copyCommand}
 							copiedLabel={dict.mcpPage.setup.copied}
 							manualCopyLabel={copy.manualCopy}

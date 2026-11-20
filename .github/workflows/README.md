@@ -148,8 +148,8 @@ an alias for existing callers.
 
 Green branch CI is not proof of deployment. Inspect Release Stable, Artifacts -
 Publish, or Sites - Deploy for the affected output. Recover failed publication
-before another release. Landing deployment also checks homepage, self-hosting page,
-installer redirect, and installer asset.
+before another release. Landing deployment checks both install pages and the
+installer endpoints.
 See the [release runbook](../../docs/procedures/releasing-and-deploying.md#publication-status-and-landing-checks).
 
 ## Desktop installers
@@ -174,8 +174,7 @@ in separate jobs enabled only by the stable release caller.
 product version. Windows and Linux installers have separate immutable receipts,
 join the same draft GitHub product release, and must succeed before hosted
 promotion. All desktop installers publish exclusively as GitHub release assets;
-final release checksums cover every platform. CLI archives publish as GitHub Release assets.
-Homebrew remains macOS-only, with desktop downloads resolved from GitHub Releases.
+final release checksums cover every platform.
 
 Windows/Linux installers are currently unsigned. macOS retains universal DMG,
 Developer ID/notarization when all six `APPLE_*` repository secrets are present,
@@ -183,3 +182,13 @@ and ad-hoc signing when none are present. Partial Apple credentials fail the
 release. See [Tauri distribution](https://v2.tauri.app/distribute/) for platform
 requirements. To release, run **Release Stable** on `main` with a successful
 **Core - Candidate** run ID; use the existing stable recovery flow for retries.
+
+## CLI archives
+
+`Native - Build stable artifacts` tests and packages the CLI on native runners.
+The stable release includes a universal macOS ZIP, a Windows x64 ZIP, and Linux
+tarballs for x64 and ARM64 (glibc 2.39+). Each platform has an immutable receipt.
+The install scripts read the stable release's `SHA256SUMS` and verify the archive
+before installing. Homebrew uses the macOS ZIP.
+Candidates with `tooling/delivery/cli-artifacts.sh` include the Windows and Linux
+archives. Resuming a release from an older candidate keeps its original assets.

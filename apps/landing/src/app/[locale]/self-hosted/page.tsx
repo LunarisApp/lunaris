@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
+import { InstallCommandPicker } from "@/components/downloads/install-command-picker";
 import { ButtonLink, SoftButtonLink } from "@/components/elements/button";
 import { Container } from "@/components/elements/container";
 import { Heading } from "@/components/elements/heading";
+import { downloadsCopy } from "@/data/downloads";
 import {
 	openSourceCopy,
 	repositoryUrl,
-	selfHostCommand,
+	selfHostCommands,
 	selfHostingGuideUrl,
 } from "@/data/open-source";
 import type { Locale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/get-dictionary";
 import { localePath } from "@/i18n/locale-path";
 import { localizedAlternates } from "@/i18n/metadata";
 
@@ -28,6 +31,8 @@ export default async function SelfHostedPage({ params }: Props) {
 	const { locale: rawLocale } = await params;
 	const locale = rawLocale as Locale;
 	const copy = openSourceCopy[locale];
+	const installCopy = downloadsCopy[locale];
+	const dictionary = await getDictionary(locale);
 	const linkClass =
 		"min-h-11 max-w-full text-pretty focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-600 dark:focus-visible:outline-olive-300";
 
@@ -61,6 +66,7 @@ export default async function SelfHostedPage({ params }: Props) {
 						<ul className="mt-4 list-disc space-y-4 pl-5 text-base/7 text-olive-700 dark:text-olive-300">
 							<li>{copy.server}</li>
 							<li>{copy.docker}</li>
+							<li>{copy.localRequirements}</li>
 							<li>{copy.domain}</li>
 						</ul>
 					</section>
@@ -74,15 +80,21 @@ export default async function SelfHostedPage({ params }: Props) {
 						<p className="mt-4 text-base/7 text-olive-700 dark:text-olive-300">
 							{copy.installDescription}
 						</p>
-						<pre
-							aria-labelledby="install"
-							role="region"
-							// biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users need to scroll the overflowing install command.
-							tabIndex={0}
-							className="mt-6 overflow-x-auto overscroll-x-contain rounded-lg bg-olive-950 p-4 text-sm/7 text-olive-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive-600 sm:p-5 dark:bg-white/10 dark:focus-visible:outline-olive-300"
-						>
-							<code>{selfHostCommand}</code>
-						</pre>
+						<div className="mt-6">
+							<InstallCommandPicker
+								methods={[
+									{ label: "macOS / Linux", command: selfHostCommands.unix },
+									{
+										label: "Windows (WSL 2)",
+										command: selfHostCommands.windows,
+									},
+								]}
+								methodLabel={installCopy.installMethod}
+								copyLabel={installCopy.copyCommand}
+								copiedLabel={dictionary.mcpPage.setup.copied}
+								manualCopyLabel={installCopy.manualCopy}
+							/>
+						</div>
 						<p className="mt-4 text-base/7 text-olive-700 dark:text-olive-300">
 							{copy.nextStep}
 						</p>

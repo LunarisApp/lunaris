@@ -51,8 +51,9 @@ product publication, **Artifacts - Publish** for npm, and **Sites - Deploy** for
 landing/docs. Recover failed jobs while preserving versions, tags, draft releases,
 and deployment records.
 
-Landing deployment checks the homepage, `/en/self-hosted`, installer redirect, and
-installer asset after its normal health check. Failure leaves the deployment
+After its health check, the landing deployment verifies the homepage, downloads
+and self-hosting pages, both CLI scripts, and both self-hosted installer URLs.
+It follows the Bash installer redirect to verify the published asset. Failure leaves the deployment
 unsuccessful, so the next run still selects those changes.
 
 Hosted retries reconcile recorded Railway deployment IDs. Unknown upload outcomes

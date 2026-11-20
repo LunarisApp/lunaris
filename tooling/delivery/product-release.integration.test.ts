@@ -59,6 +59,7 @@ function fixture() {
     reservationState: "in_progress",
     reservationStates: {} as Record<string, string>,
     failCreate: false,
+    failPublish: false,
     productionReady: false,
     productionWebVersion: undefined as string | undefined,
   };
@@ -100,7 +101,7 @@ if(a[0]==='api'){
  if(a[1]==='view'){if(!r)throw new Error('Missing release '+tag);result={assets:r.assets,isDraft:r.draft,tagName:r.tag_name};}
  else if(a[1]==='delete'){if(!r||!r.draft||r.assets.length)throw new Error('Cannot delete populated release');s.releases.splice(s.releases.indexOf(r),1);}
  else if(a[1]==='create'&&s.failCreate){console.error('Simulated outage');process.exit(1);}else if(a[1]==='create')s.releases.push({tag_name:tag,draft:true,assets:[]});
- else if(a[1]==='edit')r.draft=false;
+ else if(a[1]==='edit'){if(s.failPublish){console.error('Simulated publication outage');process.exit(1);}r.draft=false;}
  else if(a[1]==='upload'){const path=a[3];const name=path.split('/').at(-1);r.assets.push({name});s.files[tag+'/'+name]=readFileSync(path,'utf8');}
  else if(a[1]==='download'){const name=a[a.indexOf('--pattern')+1];const dir=a[a.indexOf('--dir')+1];mkdirSync(dir,{recursive:true});if(!(tag+'/'+name in s.files))throw new Error('Missing asset '+name);writeFileSync(join(dir,name),s.files[tag+'/'+name]);}
  else throw new Error('Unexpected release '+a[1]);
@@ -391,6 +392,8 @@ test("Windows and Linux receipts restore installer bytes independently", () => {
 test("finalization publishes complete updater metadata before making the release live", () => {
   const f = fixture();
   expect(f.run("reserve").status).toBe(0);
+  mkdirSync(join(f.root, "tooling/delivery"), { recursive: true });
+  writeFileSync(join(f.root, "tooling/delivery/cli-artifacts.sh"), "");
   const groups = [
     "cli",
     "desktop",
@@ -398,6 +401,11 @@ test("finalization publishes complete updater metadata before making the release
     "desktop-linux",
     "self-hosted",
   ] as const;
+  const cliAssets = {
+    "cli-windows": "lunaris-cli-0.9.1-x86_64-pc-windows-msvc.zip",
+    "cli-linux": "lunaris-cli-0.9.1-x86_64-unknown-linux-gnu.tar.gz",
+    "cli-linux-arm64": "lunaris-cli-0.9.1-aarch64-unknown-linux-gnu.tar.gz",
+  };
   for (const group of groups) {
     rmSync(join(f.root, "dist"), { recursive: true });
     mkdirSync(join(f.root, "dist"));
@@ -410,6 +418,25 @@ test("finalization publishes complete updater metadata before making the release
     for (const name of names) {
       writeFileSync(join(f.root, "dist", name), `fixture ${name}`);
     }
+    const result = f.run("upload", "0.9.1", group);
+    expect(result.stderr).toBe("");
+    expect(result.status).toBe(0);
+  }
+  const stateBeforeCli = f.state();
+  f.set({
+    ...stateBeforeCli,
+    productionReady: true,
+    productionWebVersion: "0.9.1",
+  });
+  expect(f.run("finalize", "0.9.1").stderr).toContain(
+    "cli-windows-receipt.json"
+  );
+  expect(f.state().releases[0]!.draft).toBe(true);
+  f.set(stateBeforeCli);
+  for (const [group, name] of Object.entries(cliAssets)) {
+    rmSync(join(f.root, "dist"), { recursive: true });
+    mkdirSync(join(f.root, "dist"));
+    writeFileSync(join(f.root, "dist", name), `fixture ${name}`);
     const result = f.run("upload", "0.9.1", group);
     expect(result.stderr).toBe("");
     expect(result.status).toBe(0);
@@ -435,6 +462,9 @@ test("finalization publishes complete updater metadata before making the release
   expect(published.files["v0.9.1/SHA256SUMS"]).toContain(
     "desktop-updater.json"
   );
+  for (const asset of Object.values(cliAssets)) {
+    expect(published.files["v0.9.1/SHA256SUMS"]).toContain(asset);
+  }
   expect(published.releases[0]!.draft).toBe(false);
   const feedUpload = published.calls.findIndex(
     (call) =>
@@ -445,7 +475,7 @@ test("finalization publishes complete updater metadata before making the release
   );
   expect(feedUpload).toBeGreaterThan(-1);
   expect(feedUpload).toBeLessThan(publication);
-});
+}, 20_000);
 
 test("new desktop uploads fail closed without updater signatures", () => {
   const f = fixture();
@@ -512,15 +542,25 @@ test.each([false, true])(
       state.releases[0]!.assets.push({ name: receiptName });
     }
     state.productionReady = true;
+    state.failPublish = true;
     f.set(state);
     expect(f.run("restore", "0.9.1", "desktop").status).toBe(0);
     const upload = f.run("upload", "0.9.1", "desktop");
     expect(upload.stderr).toBe("");
     expect(upload.status).toBe(0);
+    expect(f.run("finalize", "0.9.1").stderr).toContain(
+      "Simulated publication outage"
+    );
+    const interrupted = f.state();
+    expect(interrupted.releases[0]!.draft).toBe(true);
+    const checksums = interrupted.files["v0.9.1/SHA256SUMS"];
+    expect(checksums).toContain("lunaris-cli-0.9.1-universal-apple-darwin.zip");
+    f.set({ ...interrupted, failPublish: false });
     const result = f.run("finalize", "0.9.1");
     expect(result.stderr).toBe("");
     expect(result.status).toBe(0);
     expect(f.state().releases[0]!.draft).toBe(false);
+    expect(f.state().files["v0.9.1/SHA256SUMS"]).toBe(checksums);
     expect(f.state().files["v0.9.1/desktop-updater.json"]).toBeUndefined();
     expect(f.state().files["v0.9.1/SHA256SUMS"]).not.toContain(
       "desktop-updater.json"

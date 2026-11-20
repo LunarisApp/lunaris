@@ -9,14 +9,30 @@ export async function smokeLanding(
       cache: "no-store",
       signal: AbortSignal.timeout(30_000),
     });
-  for (const path of ["/", "/en/self-hosted"]) {
+  for (const path of [
+    "/",
+    "/en/self-hosted",
+    "/downloads",
+    "/self-hosted/install.ps1",
+    "/cli/install.sh",
+    "/cli/install.ps1",
+  ]) {
     const url = new URL(path, healthUrl).href;
     const response = await get(url);
-    if (response.status !== 200) {
-      throw new Error(`Landing smoke check failed: ${url}: ${response.status}`);
+    const contentType = response.headers.get("content-type") ?? "";
+    if (
+      response.status !== 200 ||
+      (/\.(?:sh|ps1)$/.test(path) && !contentType.startsWith("text/plain"))
+    ) {
+      throw new Error(
+        `Landing smoke check failed: ${url}: ${response.status} ${contentType}`
+      );
     }
   }
-  const installer = await get(new URL("/install.sh", healthUrl).href, "manual");
+  const installer = await get(
+    new URL("/self-hosted/install.sh", healthUrl).href,
+    "manual"
+  );
   // Before the first self-hosted release, the installer intentionally returns 503.
   // Check public release evidence so outages after publication still fail CI.
   if (

@@ -17,7 +17,7 @@ Allow at least 4 GB RAM and enough disk for your resources and backups.
 Run from the directory where you want to keep your installation:
 
 ```sh
-curl -fsSL https://lunaris.app/install.sh | bash
+curl -fsSL https://lunaris.app/self-hosted/install.sh | bash
 cd lunaris
 ```
 
@@ -30,7 +30,7 @@ URL from `.env` without prompting.
 For unattended installation, supply the URL as an optional argument:
 
 ```sh
-curl -fsSL https://lunaris.app/install.sh | bash -s -- https://notes.example.com
+curl -fsSL https://lunaris.app/self-hosted/install.sh | bash -s -- https://notes.example.com
 ```
 
 To choose a different directory, append `--dir /path/to/lunaris` after `bash -s --`
@@ -38,12 +38,24 @@ To choose a different directory, append `--dir /path/to/lunaris` after `bash -s 
 Docker must already be installed; no repository clone or manual download is
 needed. Run as a user with Docker access and write access to that directory.
 
-To pin a release, use `https://lunaris.app/install.sh?version=<version>` (for
+To pin a release, use `https://lunaris.app/self-hosted/install.sh?version=<version>` (for
 example, `?version=1.2.3`) in the command. Available versions and release notes:
 https://github.com/LunarisApp/lunaris/releases?q=self-hosted
 
 Each release also provides `install.sh`, `lunaris-self-hosted-<version>.tar.gz`,
 and `SHA256SUMS` for operators who prefer to download and inspect files first.
+
+For local evaluation on macOS, use Docker Desktop and run the same Bash
+command. On Windows, configure WSL 2 with Docker Compose 2.24+, curl, and
+OpenSSL in the default Linux distribution, then run:
+
+```powershell
+& ([scriptblock]::Create((Invoke-RestMethod -UseBasicParsing 'https://lunaris.app/self-hosted/install.ps1')))
+```
+
+The Windows command keeps installation files in `~/lunaris` inside WSL.
+Open the same WSL distribution for Compose commands and configuration edits.
+Run the Bash command directly in WSL to pass options or pin a release.
 
 Open the printed URL and create your account. Registration is open by default.
 After creating accounts, set `SIGNUPS_ALLOWED=false` in `.env`, then apply it:
@@ -109,7 +121,7 @@ customizations. Installer and documented commands load the same override file.
 Choose external TLS mode during installation:
 
 ```sh
-curl -fsSL https://lunaris.app/install.sh | bash -s -- --tls-mode external
+curl -fsSL https://lunaris.app/self-hosted/install.sh | bash -s -- --tls-mode external
 ```
 
 The installer prompts for your public domain. For unattended installation, append
@@ -144,7 +156,7 @@ explicitly only if the HTTP listener must be reachable from another host.
 To use a compatible client without hosting the bundled web frontend:
 
 ```sh
-curl -fsSL https://lunaris.app/install.sh | bash -s -- --no-web
+curl -fsSL https://lunaris.app/self-hosted/install.sh | bash -s -- --no-web
 ```
 
 Append `https://notes.example.com` for unattended installation. This saves
@@ -187,7 +199,7 @@ Read release notes and take a backup first. From the existing installation
 directory, run the remote command without a public URL:
 
 ```sh
-curl -fsSL https://lunaris.app/install.sh | bash
+curl -fsSL https://lunaris.app/self-hosted/install.sh | bash
 ```
 
 Use `?version=<version>` to select a specific release, or `--dir` to specify an

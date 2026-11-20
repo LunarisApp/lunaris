@@ -8,6 +8,7 @@ type DownloadsCopy = {
 	linux: string;
 	webApp: string;
 	browser: string;
+	installMethod: string;
 	copyCommand: string;
 	manualCopy: string;
 };
@@ -15,7 +16,8 @@ type DownloadsCopy = {
 export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 	en: {
 		title: "Get Lunaris",
-		copyCommand: "Copy Homebrew command",
+		installMethod: "Installation method",
+		copyCommand: "Copy command",
 		manualCopy: "Select the command and copy it manually.",
 		subtitle: "Your workspace on the web and desktop.",
 		mac: "Apple Silicon & Intel · macOS 13 or later",
@@ -26,7 +28,8 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 	},
 	es: {
 		title: "Consigue Lunaris",
-		copyCommand: "Copiar el comando de Homebrew",
+		installMethod: "Método de instalación",
+		copyCommand: "Copiar el comando",
 		manualCopy: "Selecciona el comando y cópialo manualmente.",
 		subtitle: "Tu espacio de trabajo en la web y en tu escritorio.",
 		mac: "Apple Silicon e Intel · macOS 13 o posterior",
@@ -37,7 +40,8 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 	},
 	fr: {
 		title: "Obtenez Lunaris",
-		copyCommand: "Copier la commande Homebrew",
+		installMethod: "Méthode d’installation",
+		copyCommand: "Copier la commande",
 		manualCopy: "Sélectionnez la commande et copiez-la manuellement.",
 		subtitle: "Votre espace de travail sur le web et sur votre ordinateur.",
 		mac: "Apple Silicon et Intel · macOS 13 ou version ultérieure",
@@ -48,7 +52,8 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 	},
 	de: {
 		title: "Hol dir Lunaris",
-		copyCommand: "Homebrew-Befehl kopieren",
+		installMethod: "Installationsmethode",
+		copyCommand: "Befehl kopieren",
 		manualCopy: "Wähle den Befehl aus und kopiere ihn manuell.",
 		subtitle: "Dein Workspace im Web und auf dem Desktop.",
 		mac: "Apple Silicon & Intel · macOS 13 oder neuer",
@@ -59,7 +64,8 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 	},
 	"pt-BR": {
 		title: "Obtenha o Lunaris",
-		copyCommand: "Copiar comando do Homebrew",
+		installMethod: "Método de instalação",
+		copyCommand: "Copiar comando",
 		manualCopy: "Selecione o comando e copie-o manualmente.",
 		subtitle: "Seu espaço de trabalho na web e no seu computador.",
 		mac: "Apple Silicon e Intel · macOS 13 ou posterior",
@@ -69,3 +75,19 @@ export const downloadsCopy: Record<Locale, DownloadsCopy> = {
 		browser: "Use o Lunaris diretamente no navegador.",
 	},
 };
+
+export const cliInstallMethods = [
+	{
+		label: "macOS / Linux",
+		command: "curl -fsSL https://lunaris.app/cli/install.sh | bash",
+	},
+	{
+		label: "Windows",
+		command:
+			"& ([scriptblock]::Create((Invoke-RestMethod -UseBasicParsing 'https://lunaris.app/cli/install.ps1')))",
+	},
+	{
+		label: "Homebrew",
+		command: "brew install --formula lunarisapp/tap/lunaris",
+	},
+] as const;
