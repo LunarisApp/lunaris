@@ -3,7 +3,10 @@ import Linkedin from "@thesvg/react/linkedin";
 import X from "@thesvg/react/x";
 import type { Metadata } from "next";
 import Image from "next/image";
-import { TrackedButtonLink } from "@/components/analytics/tracked-button-link";
+import {
+	TrackedButtonLink,
+	TrackedSoftButtonLink,
+} from "@/components/analytics/tracked-button-link";
 import { LanguageSwitcher } from "@/components/elements/language-switcher";
 import { Main } from "@/components/elements/main";
 import { ProboCookieBanner } from "@/components/elements/probo-cookie-banner";
@@ -189,17 +192,30 @@ export default async function LocaleLayout({
 						groups={[product, developers, resources]}
 						directLinks={directLinks}
 						appLink={
-							<TrackedButtonLink
-								analyticsProperties={{
-									cta: "open_web_app",
-									destination: "web",
-									location: "navbar",
-								}}
-								className="min-h-11 px-5"
-								href="https://web.lunaris.app"
-							>
-								{dict.nav.openWebApp}
-							</TrackedButtonLink>
+							<div className="flex flex-wrap items-center gap-2">
+								<TrackedSoftButtonLink
+									analyticsProperties={{
+										cta: "log_in",
+										destination: "web",
+										location: "navbar",
+									}}
+									className="min-h-9 whitespace-nowrap px-4"
+									href="https://web.lunaris.app/auth"
+								>
+									{dict.nav.logIn}
+								</TrackedSoftButtonLink>
+								<TrackedButtonLink
+									analyticsProperties={{
+										cta: "sign_up",
+										destination: "web",
+										location: "navbar",
+									}}
+									className="min-h-9 whitespace-nowrap px-4"
+									href="https://web.lunaris.app/auth/register"
+								>
+									{dict.nav.signUp}
+								</TrackedButtonLink>
+							</div>
 						}
 						settings={
 							<>

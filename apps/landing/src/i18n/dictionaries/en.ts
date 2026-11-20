@@ -37,6 +37,8 @@ const en = {
 		productTour: "Product tour",
 		extensionsSdk: "Extensions SDK",
 		downloads: "Downloads",
+		logIn: "Log in",
+		signUp: "Sign up",
 		openWebApp: "Open web app",
 		pricing: "Pricing",
 		docs: "Documentation",

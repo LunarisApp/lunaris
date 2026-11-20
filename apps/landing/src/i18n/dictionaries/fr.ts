@@ -39,6 +39,8 @@ const fr = {
 		productTour: "Visite guidée",
 		extensionsSdk: "SDK d’extensions",
 		downloads: "Téléchargements",
+		logIn: "Se connecter",
+		signUp: "S’inscrire",
 		openWebApp: "Ouvrir l’app web",
 		pricing: "Tarifs",
 		docs: "Documentation",
