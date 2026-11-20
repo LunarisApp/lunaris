@@ -4,10 +4,10 @@ import {
   Alert02Icon,
   CheckmarkCircle02Icon,
   InformationCircleIcon,
-  Loading03Icon,
   MultiplicationSignCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Spinner } from "@lunarisapp/ui/components/spinner";
 import { useTheme } from "next-themes";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import {
@@ -121,13 +121,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
               strokeWidth={2}
             />
           ),
-          loading: (
-            <HugeiconsIcon
-              className="size-4 animate-spin"
-              icon={Loading03Icon}
-              strokeWidth={2}
-            />
-          ),
+          loading: <Spinner aria-hidden="true" />,
         }}
         style={
           {

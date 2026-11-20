@@ -104,7 +104,7 @@
 }
 
 .entity-reference-suggestion__spinner {
-  @apply size-4 shrink-0 animate-spin text-muted-foreground;
+  @apply shrink-0 text-muted-foreground;
 }
 
 .entity-reference-suggestion__list {
