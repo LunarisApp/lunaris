@@ -117,6 +117,8 @@ function MenuPanel({
 const navControl =
 	"min-h-11 cursor-pointer px-3 font-medium text-olive-700 hover:text-olive-950 dark:text-olive-300 dark:hover:text-white";
 
+const mobileNavControl = "flex min-h-14 items-center py-2 text-lg font-medium";
+
 export function NavbarWithLinksAndActions({
 	groups,
 	directLinks,
@@ -140,6 +142,10 @@ export function NavbarWithLinksAndActions({
 }) {
 	const [openGroup, setOpenGroup] = useState<string | null>(null);
 	const mobile = useRef<HTMLDialogElement>(null);
+
+	function closeMobileMenu() {
+		mobile.current?.close();
+	}
 
 	useEffect(() => {
 		const wide = window.matchMedia("(min-width: 64rem)");
@@ -221,77 +227,85 @@ export function NavbarWithLinksAndActions({
 						</svg>
 					</button>
 				</div>
-				<dialog
-					id="mobile-menu"
-					ref={mobile}
+			</nav>
+			<dialog
+				id="mobile-menu"
+				ref={mobile}
+				aria-label={navigationLabel}
+				className="fixed inset-0 m-0 h-dvh max-h-dvh w-full max-w-none flex-col overflow-hidden bg-olive-100 text-olive-950 open:flex backdrop:bg-olive-950/35 dark:bg-olive-950 dark:text-white"
+			>
+				<div className="flex h-16 shrink-0 items-center justify-between border-b border-olive-950/10 px-6 dark:border-white/10">
+					<Link
+						className="inline-flex shrink-0"
+						href={homeHref}
+						onClick={closeMobileMenu}
+					>
+						{logo}
+					</Link>
+					<button
+						aria-label={closeMenuLabel}
+						className="grid size-11 place-items-center rounded-full hover:bg-olive-200 dark:hover:bg-olive-800"
+						type="button"
+						ref={(button) => {
+							// Set native autofocus so showModal() focuses Close on every open.
+							if (button) button.autofocus = true;
+						}}
+						onClick={closeMobileMenu}
+					>
+						<svg
+							aria-hidden="true"
+							className="size-5"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="1.6"
+							viewBox="0 0 24 24"
+						>
+							<path d="m6 6 12 12M18 6 6 18" strokeLinecap="round" />
+						</svg>
+					</button>
+				</div>
+				<nav
 					aria-label={navigationLabel}
-					className="fixed inset-0 m-0 h-dvh max-h-dvh w-full max-w-none overflow-y-auto overscroll-contain bg-olive-100 text-olive-950 backdrop:bg-olive-950/35 dark:bg-olive-950 dark:text-white"
+					className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
 				>
-					<div className="flex h-16 items-center justify-between border-b border-olive-950/10 px-6 dark:border-white/10">
-						<Link
-							className="inline-flex shrink-0"
-							href={homeHref}
-							onClick={() => mobile.current?.close()}
-						>
-							{logo}
-						</Link>
-						<button
-							aria-label={closeMenuLabel}
-							className="grid size-11 place-items-center rounded-full hover:bg-olive-200 dark:hover:bg-olive-800"
-							type="button"
-							onClick={() => mobile.current?.close()}
-						>
-							<svg
-								aria-hidden="true"
-								className="size-5"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="1.6"
-								viewBox="0 0 24 24"
-							>
-								<path d="m6 6 12 12M18 6 6 18" strokeLinecap="round" />
-							</svg>
-						</button>
-					</div>
 					<div className="mx-auto max-w-lg px-6 pb-8">
-						{groups.map((group) => (
-							<details
-								key={group.label}
-								name="mobile-navigation"
-								className="group border-b border-current/10"
-							>
-								<summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-3 text-xl font-medium [&::-webkit-details-marker]:hidden">
-									{group.label}
-									<HugeiconsIcon
-										aria-hidden="true"
-										icon={ArrowDown01Icon}
-										className="size-4 group-open:rotate-180"
-									/>
-								</summary>
-								<MenuPanel
-									group={group}
-									closeMobile={() => mobile.current?.close()}
-								/>
-							</details>
-						))}
-						<div className="flex items-start justify-between gap-3 pt-4">
-							<div className="grid">
-								{directLinks.map((link) => (
+						<ul className="divide-y divide-current/10 border-b border-current/10">
+							{groups.map((group) => (
+								<li key={group.label}>
+									<details className="group" name="mobile-navigation">
+										<summary
+											className={`${mobileNavControl} cursor-pointer list-none justify-between gap-3 [&::-webkit-details-marker]:hidden`}
+										>
+											{group.label}
+											<HugeiconsIcon
+												aria-hidden="true"
+												icon={ArrowDown01Icon}
+												className="size-5 shrink-0 group-open:rotate-180"
+												strokeWidth={1.6}
+											/>
+										</summary>
+										<div className="pl-3">
+											<MenuPanel group={group} closeMobile={closeMobileMenu} />
+										</div>
+									</details>
+								</li>
+							))}
+							{directLinks.map((link) => (
+								<li key={link.href}>
 									<Link
-										key={link.href}
-										className="flex min-h-11 items-center font-display text-2xl hover:underline"
+										className={`${mobileNavControl} hover:underline`}
 										href={link.href}
-										onClick={() => mobile.current?.close()}
+										onClick={closeMobileMenu}
 									>
 										{link.label}
 									</Link>
-								))}
-							</div>
-							{appLink}
-						</div>
+								</li>
+							))}
+						</ul>
+						<div className="pt-5 [&_a]:min-h-11">{appLink}</div>
 					</div>
-				</dialog>
-			</nav>
+				</nav>
+			</dialog>
 		</header>
 	);
 }

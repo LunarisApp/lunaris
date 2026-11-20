@@ -308,6 +308,7 @@ export default async function LocaleLayout({
 										links: [
 											...directLinks,
 											documentation,
+											{ label: "llms.txt", href: rootIndexPath },
 											wordCounter,
 											contact,
 										],
