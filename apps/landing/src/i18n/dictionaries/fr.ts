@@ -381,7 +381,10 @@ const fr = {
 			manualCopy:
 				"Sélectionnez le texte de configuration et copiez-le manuellement.",
 			regionLabel: "Choisissez votre région de données",
-			desktopName: "Application de bureau",
+			desktopName: "Bureau",
+			cliInstallLabel: "Installation de la CLI",
+			cliDescription:
+				"Installez la CLI de Lunaris et exécutez `lunaris auth login` pour choisir un serveur et vous connecter.",
 			desktopDescription:
 				"Inclut vos espaces de travail avec une visibilité locale.",
 			desktopAuthNote:

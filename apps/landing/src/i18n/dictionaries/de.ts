@@ -382,7 +382,10 @@ const de = {
 			cloudName: "Cloud",
 			manualCopy: "Wähle den Konfigurationstext aus und kopiere ihn manuell.",
 			regionLabel: "Datenregion auswählen",
-			desktopName: "Desktop-App",
+			desktopName: "Desktop",
+			cliInstallLabel: "CLI-Installation",
+			cliDescription:
+				"Installiere die Lunaris-CLI und führe `lunaris auth login` aus, um einen Server zu wählen und dich anzumelden.",
 			desktopDescription:
 				"Umfasst Ihre Arbeitsbereiche mit lokaler Sichtbarkeit.",
 			desktopAuthNote:

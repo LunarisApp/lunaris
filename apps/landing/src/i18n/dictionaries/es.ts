@@ -377,7 +377,10 @@ const es = {
 			cloudName: "Nube",
 			manualCopy: "Selecciona el texto de configuración y cópialo manualmente.",
 			regionLabel: "Elige tu región de datos",
-			desktopName: "Aplicación de escritorio",
+			desktopName: "Escritorio",
+			cliInstallLabel: "Instalación de la CLI",
+			cliDescription:
+				"Instala la CLI de Lunaris y ejecuta `lunaris auth login` para elegir un servidor e iniciar sesión.",
 			desktopDescription:
 				"Incluye tus espacios de trabajo con visibilidad local.",
 			desktopAuthNote:
