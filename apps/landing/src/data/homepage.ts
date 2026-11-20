@@ -8,7 +8,6 @@ type HomepageCopy = {
 	headline: string;
 	headlineEnd: string;
 	description: string;
-	start: string;
 	download: string;
 	downloadFor: string;
 	otherPlatforms: string;
@@ -37,7 +36,6 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		headlineEnd: "team’s knowledge.",
 		description:
 			"Write together, organize projects, and keep working offline. Your notes and tools share one workspace.",
-		start: "Start free",
 		freeNote: "Free for up to 3 members. No credit card needed.",
 		watch: "See it in action",
 		tour: "Explore the workspace demo",
@@ -87,7 +85,6 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		headlineEnd: "conocimiento de tu equipo.",
 		description:
 			"Escribe en equipo, organiza proyectos y sigue trabajando sin conexión. Tus notas y herramientas comparten un mismo espacio.",
-		start: "Empieza gratis",
 		freeNote: "Gratis para hasta 3 miembros. Sin tarjeta de crédito.",
 		watch: "Ver en acción",
 		tour: "Explora la demostración del espacio de trabajo",
@@ -137,7 +134,6 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		headlineEnd: "savoir de votre équipe.",
 		description:
 			"Écrivez ensemble, organisez vos projets et travaillez hors ligne. Vos notes et vos outils dans un même espace.",
-		start: "Commencer gratuitement",
 		freeNote: "Gratuit jusqu’à 3 membres. Sans carte bancaire.",
 		watch: "Voir en action",
 		tour: "Explorer la démonstration de l’espace de travail",
@@ -187,7 +183,6 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		headlineEnd: "Wissen deines Teams.",
 		description:
 			"Gemeinsam schreiben, Projekte organisieren und offline weiterarbeiten. Notizen und Werkzeuge in einem Workspace.",
-		start: "Kostenlos starten",
 		freeNote: "Kostenlos für bis zu 3 Mitglieder. Ohne Kreditkarte.",
 		watch: "In Aktion ansehen",
 		tour: "Workspace-Demo erkunden",
@@ -237,7 +232,6 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		headlineEnd: "conhecimento da sua equipe.",
 		description:
 			"Escreva em equipe, organize projetos e trabalhe offline. Suas notas e ferramentas ficam no mesmo espaço.",
-		start: "Comece grátis",
 		freeNote: "Grátis para até 3 membros. Sem cartão de crédito.",
 		watch: "Veja em ação",
 		tour: "Explore a demonstração do espaço de trabalho",
