@@ -35,7 +35,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
 		headline: "Run your tools",
 		headlineEnd: "beside your notes",
 		description:
-			"Add a task board, a calculator, or a custom dashboard to your workspace.",
+			"Choose from community extensions or build your own tools, from a project tracker to a budget calculator.",
 		freeNote: "Free for up to 3 members. No credit card needed.",
 		watch: "See it in action",
 		tour: "Explore the workspace demo",
