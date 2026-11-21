@@ -137,8 +137,7 @@
   color: var(--color-fd-foreground);
   background:
     var(--docs-welcome-shade),
-    var(--color-fd-background)
-    url("../../landing/public/img/lunar-landscape.webp") 87% center / cover
+    var(--color-fd-background) url("./lunar-landscape.webp") 87% center / cover
     no-repeat;
   border: 1px solid var(--color-fd-border);
   border-radius: 1rem;

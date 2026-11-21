@@ -40,8 +40,7 @@ export const legacyRoutes = {
   "/guides/tools-and-extensions/compile-to-pdf": "/personal/export-your-work",
   "/guides/tools-and-extensions/connect-chatgpt": "/customize/connect-ai",
   "/guides/tools-and-extensions/drawings": "/customize/tools-for-a-project",
-  "/guides/tools-and-extensions/kanban-boards":
-    "/customize/tools-for-a-project",
+  "/guides/tools-and-extensions/kanban-boards": "/customize/kanban",
   "/guides/tools-and-extensions/manage-extensions":
     "/customize/manage-extensions",
   "/guides/writing-and-editing/create-and-format-documents":
