@@ -4,15 +4,49 @@
 
 @theme {
   --font-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
-  --color-fd-background: #fcfbf9;
-  --color-fd-muted-foreground: #656565;
-  --color-fd-primary: #344b69;
-  --color-fd-ring: #526e91;
+  --color-fd-background: #faf9f7;
+  --color-fd-foreground: #000;
+  --color-fd-card: #efeeeb;
+  --color-fd-muted: #efeeeb;
+  --color-fd-muted-foreground: #616161;
+  --color-fd-popover: #faf9f7;
+  --color-fd-secondary: #e5e4e1;
+  --color-fd-accent: #e5e4e1;
+  --color-fd-border: #d3d2cf;
+  --color-fd-primary: #000;
+  --color-fd-primary-foreground: #f8f8f8;
+  --color-fd-ring: #616161;
 }
 
 .dark {
-  --color-fd-primary: #afc7e9;
-  --color-fd-ring: #afc7e9;
+  --color-fd-background: #000;
+  --color-fd-foreground: #f8f8f8;
+  --color-fd-card: #141414;
+  --color-fd-muted: #1c1c1c;
+  --color-fd-muted-foreground: #b1b1b1;
+  --color-fd-popover: #1c1c1c;
+  --color-fd-secondary: #292929;
+  --color-fd-accent: #292929;
+  --color-fd-border: #343434;
+  --color-fd-primary: #f8f8f8;
+  --color-fd-primary-foreground: #000;
+  --color-fd-ring: #b1b1b1;
+}
+
+@layer base {
+  ::selection {
+    color: var(--color-fd-foreground);
+    background: color-mix(
+      in srgb,
+      var(--color-fd-foreground) 25%,
+      var(--color-fd-background)
+    );
+  }
+
+  :where(a, button, input, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-fd-ring);
+    outline-offset: 2px;
+  }
 }
 
 @media (min-width: 48rem) {
@@ -69,15 +103,43 @@
   text-wrap: pretty;
 }
 
+#nd-page .prose :where(p, li, td) a {
+  text-decoration-color: var(--color-fd-muted-foreground);
+}
+
+#nd-page .prose :where(p, li, td) a:hover {
+  text-decoration-thickness: 0.125em;
+  text-decoration-color: var(--color-fd-primary);
+}
+
 #nd-page .docs-overview {
   max-width: 54rem;
   container-type: inline-size;
 }
 
 .docs-welcome {
+  --color-fd-background: #141414;
+  --color-fd-foreground: #f8f8f8;
+  --color-fd-muted-foreground: #e5e4e1;
+  --color-fd-primary: #f8f8f8;
+  --color-fd-primary-foreground: #000;
+  --color-fd-ring: #b1b1b1;
+  --docs-welcome-shade: linear-gradient(
+    to top,
+    rgb(0 0 0 / 95%) 18%,
+    rgb(0 0 0 / 85%) 54%,
+    rgb(0 0 0 / 22%) 81%,
+    transparent 100%
+  );
   display: grid;
+  align-items: center;
   overflow: hidden;
-  background: var(--color-fd-card);
+  color: var(--color-fd-foreground);
+  background:
+    var(--docs-welcome-shade),
+    var(--color-fd-background)
+    url("../../landing/public/img/lunar-landscape.webp") 87% center / cover
+    no-repeat;
   border: 1px solid var(--color-fd-border);
   border-radius: 1rem;
 }
@@ -85,12 +147,14 @@
 .docs-welcome-copy {
   min-width: 0;
   padding: clamp(1.25rem, 5cqi, 2.5rem);
+  padding-block-start: clamp(7rem, 32cqi, 9rem);
 }
 
 #nd-page .docs-welcome h1 {
   margin: 0;
   font-size: clamp(2rem, 6cqi, 3.25rem);
   line-height: 1.08;
+  color: var(--color-fd-foreground);
 }
 
 .docs-welcome p {
@@ -99,14 +163,6 @@
   font-size: 1rem;
   line-height: 1.65;
   color: var(--color-fd-muted-foreground);
-}
-
-.docs-welcome::after {
-  min-height: 5rem;
-  content: "";
-  background:
-    #101722 url("../../landing/public/img/lunar-landscape.webp") 90% 10% / cover
-    no-repeat;
 }
 
 .docs-overview .docs-start {
@@ -195,10 +251,32 @@
 
 @container (min-width: 34rem) {
   .docs-welcome {
-    grid-template-columns: minmax(0, 1fr) minmax(10rem, 34%);
+    --docs-welcome-shade: linear-gradient(
+      to right,
+      rgb(0 0 0 / 88%),
+      rgb(0 0 0 / 76%) 49%,
+      rgb(0 0 0 / 60%) 60%,
+      rgb(0 0 0 / 12%) 80%,
+      transparent 100%
+    );
+    min-height: 19rem;
+    background-position:
+      center,
+      right 22%;
+  }
+
+  .docs-welcome-copy {
+    width: 62%;
+    padding-block-start: clamp(1.25rem, 5cqi, 2.5rem);
   }
 
   .docs-topics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (forced-colors: active) {
+  .docs-welcome {
+    background-image: none;
   }
 }
