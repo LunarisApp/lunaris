@@ -4,6 +4,8 @@ const withMDX = createMDX({ macro: false });
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  // Keep the development badge clear of the sidebar footer controls.
+  devIndicators: false,
   poweredByHeader: false,
   rewrites() {
     return [

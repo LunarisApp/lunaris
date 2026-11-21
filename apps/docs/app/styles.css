@@ -4,25 +4,21 @@
 
 @theme {
   --font-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
-  --color-fd-background: #faf9f7;
-  --color-fd-card: #efeeeb;
-  --color-fd-muted: #efeeeb;
-  --color-fd-muted-foreground: #616161;
-  --color-fd-secondary: #efeeeb;
-  --color-fd-accent: #e5e4e1;
-  --color-fd-border: #deddd8;
-  --color-fd-ring: #616161;
+  --color-fd-background: #fcfbf9;
+  --color-fd-muted-foreground: #656565;
+  --color-fd-primary: #344b69;
+  --color-fd-ring: #526e91;
 }
 
 .dark {
-  --color-fd-background: #141414;
-  --color-fd-card: #1c1c1c;
-  --color-fd-muted: #1c1c1c;
-  --color-fd-muted-foreground: #b1b1b1;
-  --color-fd-secondary: #1c1c1c;
-  --color-fd-accent: #292929;
-  --color-fd-border: #343434;
-  --color-fd-ring: #b1b1b1;
+  --color-fd-primary: #afc7e9;
+  --color-fd-ring: #afc7e9;
+}
+
+@media (min-width: 48rem) {
+  #nd-notebook-layout[data-sidebar-collapsed="false"] {
+    --fd-layout-width: 100%;
+  }
 }
 
 .docs-brand {
@@ -34,36 +30,83 @@
   letter-spacing: -0.02em;
 }
 
-.docs-brand span {
+.docs-brand a {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  min-height: 1.5rem;
+}
+
+.docs-brand a + a {
   padding-inline-start: 0.5rem;
   font-weight: 500;
   color: var(--color-fd-muted-foreground);
   border-inline-start: 1px solid var(--color-fd-border);
 }
 
+.docs-brand a:hover {
+  color: var(--color-fd-primary);
+}
+
+.docs-brand a:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 2px;
+}
+
 #nd-page .prose {
   max-width: 72ch;
 }
 
-#nd-page .prose > h1 {
+#nd-page .prose h1 {
   font-weight: 650;
   letter-spacing: -0.035em;
   text-wrap: balance;
 }
 
-#nd-page .docs-overview {
-  max-width: 48rem;
-}
-
-#nd-page .docs-overview > h1 {
-  margin-bottom: 0.75rem;
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
-}
-
-.docs-overview > h1 + p {
-  max-width: 48ch;
-  font-size: 1.125rem;
+#nd-page .prose:not(.docs-overview) > h1 + p {
+  font-size: 1.0625rem;
   color: var(--color-fd-muted-foreground);
+  text-wrap: pretty;
+}
+
+#nd-page .docs-overview {
+  max-width: 54rem;
+  container-type: inline-size;
+}
+
+.docs-welcome {
+  display: grid;
+  overflow: hidden;
+  background: var(--color-fd-card);
+  border: 1px solid var(--color-fd-border);
+  border-radius: 1rem;
+}
+
+.docs-welcome-copy {
+  min-width: 0;
+  padding: clamp(1.25rem, 5cqi, 2.5rem);
+}
+
+#nd-page .docs-welcome h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6cqi, 3.25rem);
+  line-height: 1.08;
+}
+
+.docs-welcome p {
+  max-width: 40ch;
+  margin: 0.875rem 0 1.5rem;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--color-fd-muted-foreground);
+}
+
+.docs-welcome::after {
+  min-height: 5rem;
+  content: "";
+  background:
+    #101722 url("../../landing/public/img/lunar-landscape.webp") 90% 10% / cover
+    no-repeat;
 }
 
 .docs-overview .docs-start {
@@ -78,32 +121,83 @@
 }
 
 .docs-overview .docs-start:hover {
-  opacity: 0.85;
+  background: color-mix(
+    in oklab,
+    var(--color-fd-primary) 88%,
+    var(--color-fd-background)
+  );
+}
+
+.docs-overview > h2 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.375rem;
+  letter-spacing: -0.02em;
 }
 
 .docs-topics {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0 2rem;
-  border-top: 1px solid var(--color-fd-border);
+  gap: 0.75rem;
 }
 
-.docs-topics section {
-  padding-block: 1rem;
-  border-bottom: 1px solid var(--color-fd-border);
+.docs-topics > a {
+  display: block;
+  padding: 1rem;
+  color: var(--color-fd-foreground);
+  text-decoration: none;
+  background: var(--color-fd-popover);
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.75rem;
 }
 
-.docs-topics section > :is(h3, p) {
+.docs-topics > a:hover {
+  background: var(--color-fd-card);
+  border-color: color-mix(
+    in oklab,
+    var(--color-fd-primary) 25%,
+    var(--color-fd-border)
+  );
+}
+
+.docs-topics h3 {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  justify-content: space-between;
   margin: 0;
+  font-size: 1rem;
+  color: inherit;
 }
 
-.docs-topics section p {
-  margin-top: 0.35rem;
+.docs-topics h3::after {
+  flex: 0 0 0.4rem;
+  height: 0.4rem;
+  margin-inline-end: 0.2rem;
+  color: var(--color-fd-primary);
+  content: "";
+  border-block-start: 1px solid;
+  border-inline-end: 1px solid;
+  rotate: 45deg;
+}
+
+.docs-topics p {
+  margin: 0.3rem 0 0;
   font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.55;
   color: var(--color-fd-muted-foreground);
 }
 
-@media (min-width: 720px) {
+.docs-overview :is(.docs-start, .docs-topics > a):focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 3px;
+}
+
+@container (min-width: 34rem) {
+  .docs-welcome {
+    grid-template-columns: minmax(0, 1fr) minmax(10rem, 34%);
+  }
+
   .docs-topics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
