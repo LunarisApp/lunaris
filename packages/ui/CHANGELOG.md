@@ -1,5 +1,21 @@
 # @lunarisapp/ui
 
+## 0.2.0
+
+### Minor Changes
+
+- [#169](https://github.com/LunarisApp/lunaris/pull/169) [`1285f76`](https://github.com/LunarisApp/lunaris/commit/1285f76315bdac8c224a0d69245190a904b6b5e7) Thanks [@MrLightful](https://github.com/MrLightful)! - Add CodeBlock, Trace, and syntax highlighting helpers.
+
+- [#170](https://github.com/LunarisApp/lunaris/pull/170) [`6a449a8`](https://github.com/LunarisApp/lunaris/commit/6a449a81d459c058d737b5535398d8320099fd3c) Thanks [@MrLightful](https://github.com/MrLightful)! - Add a borderless `glass` button variant for secondary actions over imagery.
+
+### Patch Changes
+
+- [#162](https://github.com/LunarisApp/lunaris/pull/162) [`eb95905`](https://github.com/LunarisApp/lunaris/commit/eb95905f1637be02665c0925c41e115cad8000e0) Thanks [@MrLightful](https://github.com/MrLightful)! - Restore glass overlays in WebKit and use solid surfaces when reduced transparency or forced colors are active.
+
+- [#179](https://github.com/LunarisApp/lunaris/pull/179) [`ab9df48`](https://github.com/LunarisApp/lunaris/commit/ab9df488eb3eee3e2133e22b1e7ac6b91e769103) Thanks [@MrLightful](https://github.com/MrLightful)! - Rebuild the SDK and UI packages with the workspace lockfile updated for the Fumadocs migration.
+
+- [#163](https://github.com/LunarisApp/lunaris/pull/163) [`44ed083`](https://github.com/LunarisApp/lunaris/commit/44ed08312eee77703c619a37e41f0986b15d08f1) Thanks [@MrLightful](https://github.com/MrLightful)! - Use a quarter-ring spinner for loading indicators and toasts, with a static arc when reduced motion is enabled.
+
 ## 0.1.0
 
 ### Minor Changes
