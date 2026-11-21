@@ -1,0 +1,14 @@
+{
+  "title": "Lunaris Docs",
+  "description": "Choose where your work lives, collaborate, and add the tools you need.",
+  "pages": [
+    "index",
+    "getting-started",
+    "personal",
+    "teams",
+    "customize",
+    "administration",
+    "developers",
+    "reference"
+  ]
+}

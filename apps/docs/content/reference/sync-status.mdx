@@ -1,11 +1,11 @@
 ---
-title: "Sync Status"
+title: "Sync status"
 description: "Understand each Lunaris sync state and the action it may require."
 ---
 
-# Sync Status
+# Sync status
 
-The sync indicator reports whether this browser can exchange cloud-workspace
+The sync indicator reports whether this browser or desktop app can exchange cloud-workspace
 changes with Lunaris. Select the indicator to see details, including the last
 successful sync when available.
 
@@ -31,16 +31,6 @@ important work.
 
 ## Local workspaces
 
-Local workspaces do not cloud sync, even while the app is online. Their content
-stays in this browser or desktop app. A Local workspace therefore cannot be made current
-on another device through the sync indicator.
+Local workspaces never upload. Their content stays in the [browser profile or desktop app that created them](/reference/workspace-visibility#local).
 
-## When sync is paused
-
-Open **Settings → Local Data** and choose **Retry Sync** after fixing the sign-in,
-permission, plan, or connection problem. **Discard Pending Uploads** permanently
-discards pending uploads and can lose unsynced work, so use it only when you no
-longer need those changes.
-
-See [Work Offline](/guides/offline-and-sync/work-offline) and
-[Troubleshoot Sync Problems](/troubleshooting/sync-problems) for next steps.
+If cloud work stays queued, follow [Recover local work and sync](/reference/recover-local-work) before using controls that clear pending changes.

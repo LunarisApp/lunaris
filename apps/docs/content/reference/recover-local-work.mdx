@@ -1,0 +1,41 @@
+---
+title: "Recover local work and sync"
+description: "Open a workspace offline, diagnose uploads that are stuck, and protect local data during recovery."
+---
+
+# Recover local work and sync
+
+Start on the device where you last saw the work. Before clearing site data or signing in as a different user, check whether the workspace is **Local** or whether cloud edits are still queued.
+
+## A workspace is unavailable offline
+
+**Workspace unavailable offline** means this device needs more data from Lunaris Cloud to open the workspace.
+
+1. Reconnect and open the workspace from the current organization's workspace list.
+2. Wait for downloads to finish, then open the resources and files you need.
+3. If it still fails online, check [account and workspace access](/reference/account-and-access).
+
+Without a connection, go back to the workspace list and choose an available workspace. Clearing local data makes less content available offline. If the workspace was **Local**, go back to the original browser profile or desktop app. Sync cannot download it to another device.
+
+## Changes are missing on a second device
+
+1. On the device where you edited, confirm the workspace is **Private** or **Shared**.
+2. Reconnect and check **Settings → Local Data → Upload Queue**. Wait for pending uploads to clear. Use the [sync status reference](/reference/sync-status) to interpret any error.
+3. On the second device, sign in to the same account and data region. Open the same organization and workspace and wait for downloads.
+
+**Last Synced** records a previous completed sync. The upload queue tells you whether your newer changes are still waiting.
+
+## Sync is paused or rejects changes
+
+Use the shown reason first. Complete public Wi-Fi sign-in if the network requires it. Sign in again to the same account if your session expired. Ask an owner to review access or billing if the server rejected an upload. Once the cause is fixed, select **Retry Sync** in **Settings → Local Data** and leave Lunaris open until transfers finish.
+
+## Before clearing local data
+
+Export Local documents and download important files somewhere outside Lunaris. For synced content, confirm uploads are complete and [download an organization backup](/administration/audit-and-backup) if you have that permission.
+
+| Control | What it removes |
+| --- | --- |
+| **Discard Pending Uploads** | Queued changes that have not reached cloud storage. |
+| **Purge All Local Data** | Lunaris databases and downloaded files in this browser or app. Synced cloud data can download again. Local workspaces and unsynced changes cannot be recovered from the cloud. |
+
+Use these only when you understand which copy will be lost. Browser settings that clear site data can also remove Local work.

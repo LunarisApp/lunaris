@@ -1,50 +1,30 @@
 ---
-title: "Workspace Visibility"
-description: "Compare Local, Private, and Shared workspaces by storage, sync, and access."
+title: "Workspace visibility"
+description: "Compare where Local, Private, and Shared workspaces live, how they sync, and who can open them."
 ---
 
-# Workspace Visibility
+# Workspace visibility
 
-Every workspace has one visibility setting. It controls where the workspace is
-stored and who can open it.
+Choose visibility when creating a workspace. It determines storage, sync, and access.
 
-| Visibility | Cloud sync | Access | Can change visibility? |
+| Visibility | Where it lives | Who can open it | Sync and backups |
 | --- | --- | --- | --- |
-| **Local** | No | Anyone with access to this browser or desktop app on this device | No |
-| **Private** | Yes | Workspace owner and organization members granted access | Yes, to Shared |
-| **Shared** | Yes | Every member of the organization | Yes, to Private |
+| **Local** | The browser profile or desktop app where you created it | People with access to that app or profile on the device | No sync, no cloud backup |
+| **Private** | Local data on each device and synced cloud storage | The workspace owner and organization members explicitly granted access | Syncs across devices. Synced content can be backed up. |
+| **Shared** | Local data on each device and synced cloud storage | Every member of the organization, subject to their role | Syncs across devices. Synced content can be backed up. |
 
 ## Local
 
-Local workspaces keep their content and uploaded files in the browser or desktop app where you created them. They do not appear on another device after sign-in, cannot be shared,
-and are not included in cloud organization backups.
-
-Clearing site data can remove a Local workspace. Export your writing and download important files before clearing
-local data or replacing your device. A Local
-workspace cannot later be converted to Private or Shared.
+Guests use Local. Signed-in users can also choose Local. Signing in on another device or moving from the browser to the desktop app does not bring the workspace with you. A Local workspace cannot be switched to Private or Shared in Workspace Settings. [Export important work](/personal/export-your-work) before clearing browser data or changing devices.
 
 ## Private
 
-Private workspaces sync through Lunaris Cloud but remain restricted. The workspace
-owner can grant individual organization members **Editor** or **Viewer** access.
-Someone must join the organization before they can receive private-workspace access.
-
-Use Private for personal drafts or work meant for selected people.
+Private keeps a synced workspace restricted. Its owner can grant an individual organization member **Editor** or **Viewer** access. Private workspaces still belong to the organization and count toward its cloud storage.
 
 ## Shared
 
-Shared workspaces sync through Lunaris Cloud and are available to every member of
-the organization. Each member's organization role controls whether they can change
-the workspace or only view it.
-
-Use Shared for team knowledge and work everyone in the organization should find.
+Shared makes the workspace available to the whole organization. Each person's organization role determines what they can do. See the [roles and permissions matrix](/reference/roles-and-permissions).
 
 ## Changing Private and Shared
 
-A cloud workspace's visibility can change between Private and Shared from
-**Workspace Settings → Visibility**. Changing a Shared workspace to Private removes
-organization-wide access; grant selected members access afterward if they should
-keep using it.
-
-For setup steps and examples, see
-[Local, Private, and Shared Workspaces](/getting-started/local-private-and-shared).
+With the required permission, use **Workspace Settings → Visibility** to switch between Private and Shared. Switching to Private removes organization-wide access. [Grant access](/teams/share-a-workspace) to the members who should still be able to open it.

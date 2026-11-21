@@ -1,9 +1,9 @@
 ---
-title: "Publishing and Updates"
+title: "Publishing and updates"
 description: "Package immutable releases and distribute extensions through a GitHub or HTTPS marketplace."
 ---
 
-# Publishing and Updates
+# Publishing and updates
 
 A build is not yet an installable release. Lunaris discovers extensions through `marketplace.json`, fetches a pinned `release.json`, then verifies each executable asset before running it.
 
@@ -26,7 +26,7 @@ Serve the index, descriptor, and every asset publicly with browser CORS enabled,
 
 ## Match the executable's protocol
 
-SDK 0.11 builds emit `dist/runtime.json`; use that build metadata for the release's runtime. Known older SDK 0.10 builds use protocol 6 and do not emit that file. Do not infer a runtime from the extension version or simply stamp whichever SDK your publishing tool happens to use.
+Protocol-7 SDK builds emit `dist/runtime.json`. Use that build metadata for the release's runtime. Known older SDK 0.10 builds target protocol 6 without emitting runtime metadata. The extension release version and the SDK used to run the packager cannot determine the built artifact's protocol.
 
 The extensions repository's `registry/build-artifact.ts` imports `PLUGIN_SANDBOX_PROTOCOL_VERSION` from its own SDK and does not read `dist/runtime.json`. That works for its matching protocol-6 builds. Before using it for a protocol-7 build, update the tooling to consume build metadata or otherwise verify both tool and executable use the same protocol. The generic packager below reads the build metadata explicitly.
 

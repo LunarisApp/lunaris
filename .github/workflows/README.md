@@ -110,7 +110,7 @@ CI suppresses Cypress binary downloads; the separate E2E workflow installs its
 browser normally. Bun downloads and native Cargo builds persist across runs.
 Edition builds and Agent Rust share the repository's Turbo cache action. Its
 keys include the runner OS, architecture, edition, Bun version and lockfile
-hash. The docs build also caches its generated `public/_pagefind` search index.
+hash.
 
 ## Shared setup and validation
 

@@ -1,9 +1,9 @@
 ---
-title: "Create Your First Extension"
+title: "Create your first extension"
 description: "Scaffold a standalone panel, build it, and install it in a test workspace."
 ---
 
-# Create Your First Extension
+# Create your first extension
 
 Build a standalone panel, then install it through a test marketplace. The starter provides the package scripts, TypeScript settings, and sandbox build configuration.
 
@@ -23,7 +23,7 @@ bun install
 
 The target directory must be new or empty. If working directly from the extensions repository, copy its `template/` into a new directory instead, then update `manifest.json`, `package.json`, and contribution IDs in `src/index.tsx`.
 
-The starter uses SDK `^0.10.0` and API `^0.9.0`. Inspect the generated files: a newer initializer may have a different baseline. Keep the SDK, API range, and target host compatible; see [versions](/developers/extensions#version-baseline).
+Use the SDK dependency in the generated `package.json` and the API range in the generated `manifest.json` as a pair. Check [versions](/developers/extensions#version-baseline) before targeting a different host.
 
 ## 2. Check the files
 
@@ -37,21 +37,7 @@ my-tool/
     index.tsx
 ```
 
-`manifest.json` describes the extension before its code runs:
-
-```json
-{
-  "id": "acme.my-tool",
-  "name": "My Tool",
-  "developer": "Acme",
-  "description": "A workspace utility from Acme",
-  "version": "1.0.0",
-  "api": "^0.9.0",
-  "permissions": []
-}
-```
-
-Keep registration code out of the manifest. Unknown fields are rejected. Dependency and conflict maps are optional and normalize to empty objects.
+Review the generated `manifest.json` for the extension ID, API range, release version, and permissions. Keep the generated API range for this exercise and leave permissions empty.
 
 `vite.config.ts` uses the SDK's build contract:
 
@@ -107,7 +93,7 @@ bun run typecheck
 bun run build
 ```
 
-Expect `dist/main.js` and normalized `dist/manifest.json`, plus `styles.css` if you imported CSS and an icon if you supplied one. SDK 0.11 also emits `dist/runtime.json`.
+Expect `dist/main.js` and normalized `dist/manifest.json`, plus `styles.css` if you imported CSS and an icon if you supplied one. SDK builds that target protocol 7 also emit `dist/runtime.json`.
 
 The build produces a self-contained sandbox script and validates registration. It rejects unsupported imports, extra emitted assets, invalid manifests, and oversized bundles. It does not produce `release.json` or `marketplace.json`.
 

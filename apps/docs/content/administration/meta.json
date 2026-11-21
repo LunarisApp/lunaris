@@ -1,0 +1,4 @@
+{
+  "title": "Administration",
+  "pages": ["manage-organization", "audit-and-backup", "hosting"]
+}

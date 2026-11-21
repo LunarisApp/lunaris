@@ -1,7 +1,7 @@
 /node_modules
 /.next
 /out
-/public/_pagefind
+/.source
 *.tsbuildinfo
 next-env.d.ts
 .env*

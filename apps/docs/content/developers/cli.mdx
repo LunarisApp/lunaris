@@ -1,0 +1,56 @@
+---
+title: "CLI"
+description: "Sign in from a terminal, find workspace resources, and use JSON output in scripts."
+---
+
+# CLI
+
+Use the `lunaris` command to query workspaces and resources from a terminal or
+automate recurring tasks in scripts.
+
+## Install and sign in
+
+Install the CLI for macOS, Linux, or Windows from [Lunaris Downloads](https://lunaris.app/downloads#cli).
+
+```sh
+lunaris --version
+lunaris auth login
+```
+
+Choose the server for your account, sign in through the browser, and select a
+default organization. To check which server and organization the CLI is using,
+run `lunaris auth status`.
+
+To work with Local workspaces in the desktop app, enable **Agent access** under
+**Settings → Local Data**. Run the following command and approve the pairing
+in Lunaris. Keep the desktop app running while you use the connection.
+
+```sh
+lunaris --server desktop auth login --access read
+```
+
+## Find workspaces and resources
+
+```sh
+lunaris workspace list
+lunaris resource search "roadmap"
+```
+
+These commands use the selected server and default organization. Use
+`--server` or `--organization` to select a different one for a single command.
+Run `lunaris server list` to see server IDs and `lunaris organization list` to
+see organization IDs.
+
+## Use the CLI in scripts
+
+```sh
+lunaris --json workspace list --limit 20
+```
+
+Successful commands write JSON to stdout in the `{"ok":true,"data":...}` format.
+For paginated results, pass `data.nextCursor` back with `--cursor` when it is
+present. Runtime errors use stderr and a nonzero exit status.
+
+Run `lunaris --help` for command groups or `lunaris resource search --help` for
+command options. For mutation previews, exit codes, and build instructions, see
+the [CLI reference](https://github.com/LunarisApp/lunaris/tree/main/apps/cli).

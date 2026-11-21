@@ -1,80 +1,281 @@
-:root {
-  --lunaris-border: #deddd7;
-  --lunaris-muted: #66645d;
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+@theme {
+  --font-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-fd-background: #faf9f7;
+  --color-fd-foreground: #000;
+  --color-fd-card: #efeeeb;
+  --color-fd-muted: #efeeeb;
+  --color-fd-muted-foreground: #616161;
+  --color-fd-popover: #faf9f7;
+  --color-fd-secondary: #e5e4e1;
+  --color-fd-accent: #e5e4e1;
+  --color-fd-border: #d3d2cf;
+  --color-fd-primary: #000;
+  --color-fd-primary-foreground: #f8f8f8;
+  --color-fd-ring: #616161;
 }
 
 .dark {
-  --lunaris-border: #34332f;
-  --lunaris-muted: #a3a19a;
+  --color-fd-background: #000;
+  --color-fd-foreground: #f8f8f8;
+  --color-fd-card: #141414;
+  --color-fd-muted: #1c1c1c;
+  --color-fd-muted-foreground: #b1b1b1;
+  --color-fd-popover: #1c1c1c;
+  --color-fd-secondary: #292929;
+  --color-fd-accent: #292929;
+  --color-fd-border: #343434;
+  --color-fd-primary: #f8f8f8;
+  --color-fd-primary-foreground: #000;
+  --color-fd-ring: #b1b1b1;
 }
 
-html {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  ::selection {
+    color: var(--color-fd-foreground);
+    background: color-mix(
+      in srgb,
+      var(--color-fd-foreground) 25%,
+      var(--color-fd-background)
+    );
+  }
+
+  :where(a, button, input, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-fd-ring);
+    outline-offset: 2px;
+  }
 }
 
-.lunaris-logo {
+@media (min-width: 48rem) {
+  #nd-notebook-layout[data-sidebar-collapsed="false"] {
+    --fd-layout-width: 100%;
+  }
+}
+
+.docs-brand {
   display: inline-flex;
+  gap: 0.5rem;
   align-items: center;
+  font-size: 1rem;
   font-weight: 650;
   letter-spacing: -0.02em;
 }
 
-.lunaris-brand-link {
+.docs-brand a {
   display: inline-flex;
   gap: 0.5rem;
   align-items: center;
-  color: inherit;
-  text-decoration: none;
+  min-height: 1.5rem;
 }
 
-.lunaris-brand-link,
-.lunaris-logo-section {
-  transition: opacity 150ms ease;
-}
-
-.lunaris-brand-link:hover,
-.lunaris-logo-section:hover {
-  opacity: 0.75;
-}
-
-.lunaris-brand-link:focus-visible,
-.lunaris-logo-section:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 0.25rem;
-  border-radius: 0.25rem;
-}
-
-.lunaris-mark {
-  flex: none;
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.lunaris-mark-dark {
-  display: none;
-}
-
-.dark .lunaris-mark-light {
-  display: none;
-}
-
-.dark .lunaris-mark-dark {
-  display: block;
-}
-
-.lunaris-logo-section {
-  padding-left: 0.5rem;
-  margin-left: 0.5rem;
+.docs-brand a + a {
+  padding-inline-start: 0.5rem;
   font-weight: 500;
-  color: var(--lunaris-muted);
-  text-decoration: none;
-  border-left: 1px solid var(--lunaris-border);
+  color: var(--color-fd-muted-foreground);
+  border-inline-start: 1px solid var(--color-fd-border);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .lunaris-brand-link,
-  .lunaris-logo-section {
-    transition: none;
+.docs-brand a:hover {
+  color: var(--color-fd-primary);
+}
+
+.docs-brand a:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 2px;
+}
+
+#nd-page .prose {
+  max-width: 72ch;
+}
+
+#nd-page .prose h1 {
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+#nd-page .prose:not(.docs-overview) > h1 + p {
+  font-size: 1.0625rem;
+  color: var(--color-fd-muted-foreground);
+  text-wrap: pretty;
+}
+
+#nd-page .prose :where(p, li, td) a {
+  text-decoration-color: var(--color-fd-muted-foreground);
+}
+
+#nd-page .prose :where(p, li, td) a:hover {
+  text-decoration-thickness: 0.125em;
+  text-decoration-color: var(--color-fd-primary);
+}
+
+#nd-page .docs-overview {
+  max-width: 54rem;
+  container-type: inline-size;
+}
+
+.docs-welcome {
+  --color-fd-background: #141414;
+  --color-fd-foreground: #f8f8f8;
+  --color-fd-muted-foreground: #e5e4e1;
+  --color-fd-primary: #f8f8f8;
+  --color-fd-primary-foreground: #000;
+  --color-fd-ring: #b1b1b1;
+  --docs-welcome-shade: linear-gradient(
+    to top,
+    rgb(0 0 0 / 95%) 18%,
+    rgb(0 0 0 / 85%) 54%,
+    rgb(0 0 0 / 22%) 81%,
+    transparent 100%
+  );
+  display: grid;
+  align-items: center;
+  overflow: hidden;
+  color: var(--color-fd-foreground);
+  background:
+    var(--docs-welcome-shade),
+    var(--color-fd-background) url("./lunar-landscape.webp") 87% center / cover
+    no-repeat;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 1rem;
+}
+
+.docs-welcome-copy {
+  min-width: 0;
+  padding: clamp(1.25rem, 5cqi, 2.5rem);
+  padding-block-start: clamp(7rem, 32cqi, 9rem);
+}
+
+#nd-page .docs-welcome h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6cqi, 3.25rem);
+  line-height: 1.08;
+  color: var(--color-fd-foreground);
+}
+
+.docs-welcome p {
+  max-width: 40ch;
+  margin: 0.875rem 0 1.5rem;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--color-fd-muted-foreground);
+}
+
+.docs-overview .docs-start {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding-inline: 1rem;
+  color: var(--color-fd-primary-foreground);
+  text-decoration: none;
+  background: var(--color-fd-primary);
+  border-radius: 0.625rem;
+}
+
+.docs-overview .docs-start:hover {
+  background: color-mix(
+    in oklab,
+    var(--color-fd-primary) 88%,
+    var(--color-fd-background)
+  );
+}
+
+.docs-overview > h2 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.375rem;
+  letter-spacing: -0.02em;
+}
+
+.docs-topics {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.docs-topics > a {
+  display: block;
+  padding: 1rem;
+  color: var(--color-fd-foreground);
+  text-decoration: none;
+  background: var(--color-fd-popover);
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.75rem;
+}
+
+.docs-topics > a:hover {
+  background: var(--color-fd-card);
+  border-color: color-mix(
+    in oklab,
+    var(--color-fd-primary) 25%,
+    var(--color-fd-border)
+  );
+}
+
+.docs-topics h3 {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0;
+  font-size: 1rem;
+  color: inherit;
+}
+
+.docs-topics h3::after {
+  flex: 0 0 0.4rem;
+  height: 0.4rem;
+  margin-inline-end: 0.2rem;
+  color: var(--color-fd-primary);
+  content: "";
+  border-block-start: 1px solid;
+  border-inline-end: 1px solid;
+  rotate: 45deg;
+}
+
+.docs-topics p {
+  margin: 0.3rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--color-fd-muted-foreground);
+}
+
+.docs-overview :is(.docs-start, .docs-topics > a):focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 3px;
+}
+
+@container (min-width: 34rem) {
+  .docs-welcome {
+    --docs-welcome-shade: linear-gradient(
+      to right,
+      rgb(0 0 0 / 88%),
+      rgb(0 0 0 / 76%) 49%,
+      rgb(0 0 0 / 60%) 60%,
+      rgb(0 0 0 / 12%) 80%,
+      transparent 100%
+    );
+    min-height: 19rem;
+    background-position:
+      center,
+      right 22%;
+  }
+
+  .docs-welcome-copy {
+    width: 62%;
+    padding-block-start: clamp(1.25rem, 5cqi, 2.5rem);
+  }
+
+  .docs-topics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (forced-colors: active) {
+  .docs-welcome {
+    background-image: none;
   }
 }
