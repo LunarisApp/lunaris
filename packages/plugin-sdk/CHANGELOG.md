@@ -1,5 +1,13 @@
 # @lunarisapp/plugin-sdk
 
+## 0.12.9
+
+### Patch Changes
+
+- [#179](https://github.com/LunarisApp/lunaris/pull/179) [`ab9df48`](https://github.com/LunarisApp/lunaris/commit/ab9df488eb3eee3e2133e22b1e7ac6b91e769103) Thanks [@MrLightful](https://github.com/MrLightful)! - Rebuild the SDK and UI packages with the workspace lockfile updated for the Fumadocs migration.
+
+- [#169](https://github.com/LunarisApp/lunaris/pull/169) [`1285f76`](https://github.com/LunarisApp/lunaris/commit/1285f76315bdac8c224a0d69245190a904b6b5e7) Thanks [@MrLightful](https://github.com/MrLightful)! - Rebuild the SDK with the updated workspace lockfile.
+
 ## 0.12.8
 
 ### Patch Changes
