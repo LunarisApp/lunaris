@@ -241,12 +241,13 @@ Cypress.Commands.add("resetE2eState", () => {
 Cypress.Commands.add("bootstrapWorkspacesPage", () => {
   cy.resetE2eState();
   cy.signInAnonymous();
-  // Root redirects to `/:activeOrgSlug` (the organization home = workspaces list).
-  cy.visit("/");
-  cy.get('[data-testid="workspaces-page"]').should("be.visible");
-  cy.get('[data-testid="workspaces-list-item-welcome"]', {
-    timeout: 30_000,
-  }).should("be.visible");
+  // Let the post-sign-in navigation finish and the Welcome workspace seed.
+  cy.get(
+    '[data-testid="workspaces-page"] [data-testid="workspaces-list-item-welcome"]',
+    {
+      timeout: 30_000,
+    }
+  ).should("be.visible");
   cy.window({ timeout: 30_000 }).should((win) => {
     expect(win.localStorage.getItem("lunaris_pending_default_workspace_seed"))
       .to.be.null;
