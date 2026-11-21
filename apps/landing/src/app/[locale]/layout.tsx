@@ -86,7 +86,10 @@ export default async function LocaleLayout({
 			},
 		],
 	};
-	const documentation = { label: dict.nav.docs, href: docsUrl };
+	const documentation = {
+		label: dict.nav.docs,
+		href: `${docsUrl}${localePath(locale, "/")}`,
+	};
 	const contact = {
 		label: dict.footer.contact,
 		href: localePath(locale, "/demo"),

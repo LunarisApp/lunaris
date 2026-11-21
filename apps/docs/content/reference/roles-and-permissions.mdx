@@ -1,66 +1,34 @@
 ---
-title: "Roles and Permissions"
-description: "Compare owner, editor, and viewer access at organization and workspace levels."
+title: "Roles and permissions"
+description: "Compare organization roles and the separate roles available in a Private workspace."
 ---
 
-# Roles and Permissions
+# Roles and permissions
 
-Lunaris uses organization roles for shared content and administration. Private
-workspaces give selected organization members a separate workspace role.
+Use the organization role for membership, administration, and **Shared** work. A **Private** workspace has its own access list. A **Local** workspace stays in the original app or browser profile and has no sharing roles.
 
 ## Organization roles
 
 | Capability | Owner | Editor | Viewer |
 | --- | :---: | :---: | :---: |
-| Open Shared workspaces and content | Yes | Yes | Yes |
-| Create and edit Shared-workspace content | Yes | Yes | No |
-| Create and manage workspaces | Yes | Yes | No |
-| View organization members | Yes | Yes | Yes |
+| Open Shared workspaces and view the member list | Yes | Yes | Yes |
+| Create, edit, and delete content in Shared workspaces | Yes | Yes | No |
+| Create Private or Shared workspaces | Yes | Yes | No |
+| Rename or delete Shared workspaces | Yes | Yes | No |
 | Invite, remove, or change members | Yes | No | No |
-| Manage organization details | Yes | No | No |
-| Create and view backups | Yes | No | No |
-| View Audit log | Yes | No | No |
-| Manage billing | Yes | No | No |
-| Delete organization | Yes | No | No |
+| Manage organization details and billing | Yes | No | No |
+| Create and download backups or view the Audit log | Yes | No | No |
+| Delete the organization | Yes | No | No |
 
-### Owner
-
-Owner is the administrative role. Owners control organization access, backups,
-billing, and the Audit log in addition to normal workspace work. The
-organization owner cannot be removed or changed to another role.
-
-### Editor
-
-Editors can create, rename, update, and delete workspaces and content. They can
-see the member list but cannot invite people or manage organization administration.
-
-### Viewer
-
-Viewers can open Shared workspaces and content without changing them. A Private
-workspace can separately grant that member Editor or Viewer access.
-
-Personal organizations do not support additional members. In a shared organization,
-an owner can invite new members as Editor or Viewer from **Organization Settings →
-Members**.
+Team organization owners can [invite members](/teams/share-a-workspace) as Editor or Viewer. Personal organizations have one member.
 
 ## Private-workspace roles
 
-Private workspaces add a second access decision:
-
 | Workspace access | What it allows |
 | --- | --- |
-| **Workspace owner** | Controls private access, visibility, extensions, and ownership. |
-| **Editor** | Can change that workspace's content and manage its extensions. |
-| **Viewer** | Can open the workspace without changing it. |
-| **No workspace access** | Cannot find or open the Private workspace. |
+| **Workspace owner** | Manage access, change visibility, transfer ownership, and edit content. |
+| **Editor** | Edit the workspace's content and manage its extensions. |
+| **Viewer** | Open and read the workspace. |
+| **No workspace access** | The workspace stays hidden from this member. |
 
-Private-workspace access can only be granted to existing organization members. The
-workspace owner can change a member between Editor and Viewer, remove their
-access, or transfer workspace ownership to an eligible organization member.
-
-Shared workspaces do not use individual workspace roles. Every organization member can
-open them, and their organization role determines what they can do. Local workspaces
-have no roles because they never leave their browser profile.
-
-See [Invite People and Share Workspaces](/guides/collaboration/invite-and-share)
-for the sharing workflow.
+A workspace owner can grant workspace access to existing organization members. For example, an organization Viewer with the workspace Editor role can edit that Private workspace while staying a Viewer of Shared work. Use [Share a workspace](/teams/share-a-workspace) to grant access.

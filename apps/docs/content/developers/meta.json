@@ -1,4 +1,4 @@
 {
   "title": "Developers",
-  "pages": ["mcp", "extensions"]
+  "pages": ["extensions", "cli"]
 }

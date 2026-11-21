@@ -1,0 +1,22 @@
+---
+title: "Choose how to host Lunaris"
+description: "Compare device-only work, an official cloud region, and self-hosted Community Edition."
+---
+
+# Choose how to host Lunaris
+
+Decide first which work needs to sync between people and devices. The hosting decision applies to synced content. Each workspace still has its own [storage and access policy](/reference/workspace-visibility).
+
+| Goal | Choose |
+| --- | --- |
+| Keep a workspace in one browser profile or desktop app | Local workspace |
+| Sync work without operating a server | Lunaris Cloud in an available data region |
+| Run the sync infrastructure and storage yourself | Self-hosted Community Edition |
+
+## Choose a cloud data region
+
+Check the region picker when creating the account. A region marked **Planned** is unavailable for new connections. Sign in to the account's original region on each device, and use the same region for [cloud AI connections](/customize/mcp#connect-to-lunaris-cloud).
+
+## Run Community Edition
+
+[Self-hosting](https://lunaris.app/self-hosted) runs Lunaris on infrastructure you manage. Before installing, check the server, Docker Compose, DNS, and HTTPS requirements in the [operator guide](https://github.com/LunarisApp/lunaris/blob/main/infra/self-host/README.md). Use that guide for installs, upgrades, and restoring your own backups. Operating the server also makes you responsible for keeping those backups and applying updates.

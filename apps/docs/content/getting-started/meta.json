@@ -1,10 +1,4 @@
 {
-  "title": "Getting Started",
-  "pages": [
-    "create-first-workspace",
-    "organizations-and-workspaces",
-    "local-private-and-shared",
-    "web-desktop-and-mobile",
-    "navigate-lunaris"
-  ]
+  "title": "Start here",
+  "collapsible": false
 }

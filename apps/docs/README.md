@@ -1,6 +1,6 @@
 # Lunaris documentation
 
-User and extension-developer documentation for [docs.lunaris.app](https://docs.lunaris.app),
+User and developer documentation for [docs.lunaris.app](https://docs.lunaris.app),
 built with Next.js and Fumadocs. Fumadocs indexes the MDX content for search.
 
 ## Development
@@ -22,15 +22,29 @@ Use a single page heading in the body. Colocated `meta.json` files control
 sidebar labels and order. Add new pages to the relevant sidebar entries.
 
 The content path sets the public URL. For example, `content/getting-started/index.mdx`
-is served at `/getting-started`. Extension-author guides live under
-[`content/developers/extensions`](content/developers/extensions).
+is served at `/getting-started`. Group guides by reader in `personal/`, `teams/`,
+`customize/`, and `administration/`. Put lookup tables and recovery steps in
+`reference/`. Put SDK and CLI guides under [`content/developers`](content/developers).
 Keep implementation details in the relevant app or package README.
+When moving or merging a public page, add its old path to
+[`lib/legacy-routes.mjs`](lib/legacy-routes.mjs). The same map covers Markdown URLs.
+
+## Translations
+
+English uses unprefixed URLs. Spanish, French, German, and Brazilian Portuguese
+use `/es`, `/fr`, `/de`, and `/pt-BR`, like the landing site. To translate a
+page, add its locale before the extension. For example,
+`content/getting-started/index.fr.mdx` serves `/fr/getting-started`. Keep the
+original slug and reuse the existing sidebar order. A page without a translation
+shows its English content with a notice. UI and sidebar strings are in
+[`lib/i18n.ts`](lib/i18n.ts).
 
 ## Markdown for agents
 
 Fumadocs generates `/llms.txt` from the docs navigation. The index links to
 each page as Markdown, including `/index.md` for the overview. Read the entire
-site at `/llms-full.txt` or a section at a URL such as `/guides/llms-full.txt`.
+site at `/llms-full.txt` or a section at a URL such as `/personal/llms-full.txt`.
+Localized indexes use URLs such as `/fr/llms.txt` and `/fr/llms-full.txt`.
 
 ## Verify and build
 

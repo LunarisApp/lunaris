@@ -1,12 +1,16 @@
 {
-  "title": "Reference",
+  "title": "Reference and troubleshooting",
   "pages": [
-    "keyboard-shortcuts",
-    "supported-file-types",
+    "---Reference---",
     "workspace-visibility",
     "roles-and-permissions",
     "sync-status",
     "platform-availability",
-    "glossary"
+    "supported-file-types",
+    "keyboard-shortcuts",
+    "---Troubleshooting---",
+    "recover-local-work",
+    "account-and-access",
+    "extension-problems"
   ]
 }

@@ -1,3 +1,4 @@
+import { isLocale } from "../../../../lib/locale";
 import { source } from "../../../../lib/source";
 
 type RouteContext = {
@@ -6,7 +7,10 @@ type RouteContext = {
 
 export async function GET(_request: Request, { params }: RouteContext) {
   const { slug } = await params;
-  const page = source.getPage(slug);
+  const [prefix, ...rest] = slug ?? [];
+  const page = isLocale(prefix)
+    ? source.getPage(rest, prefix)
+    : source.getPage(slug);
 
   if (!page) {
     return new Response(null, { status: 404 });

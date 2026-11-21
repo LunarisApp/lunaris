@@ -1,12 +1,13 @@
 {
-  "title": "Extensions",
+  "title": "Build extensions",
   "pages": [
     "quickstart",
-    "contracts",
     "resources-and-views",
     "storage-and-migrations",
-    "host-capabilities",
     "testing",
-    "publishing"
+    "publishing",
+    "---SDK reference---",
+    "contracts",
+    "host-capabilities"
   ]
 }

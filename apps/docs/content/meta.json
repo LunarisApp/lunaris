@@ -1,12 +1,14 @@
 {
   "title": "Lunaris Docs",
-  "description": "Guides and reference for using Lunaris.",
+  "description": "Choose where your work lives, collaborate, and add the tools you need.",
   "pages": [
     "index",
     "getting-started",
-    "guides",
-    "reference",
-    "troubleshooting",
-    "developers"
+    "personal",
+    "teams",
+    "customize",
+    "administration",
+    "developers",
+    "reference"
   ]
 }
