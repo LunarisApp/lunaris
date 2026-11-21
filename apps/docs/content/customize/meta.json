@@ -1,4 +1,10 @@
 {
   "title": "Customize a workspace",
-  "pages": ["manage-extensions", "tools-for-a-project", "connect-ai", "mcp"]
+  "pages": [
+    "manage-extensions",
+    "tools-for-a-project",
+    "kanban",
+    "connect-ai",
+    "mcp"
+  ]
 }
