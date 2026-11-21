@@ -241,7 +241,9 @@ Cypress.Commands.add("resetE2eState", () => {
 Cypress.Commands.add("bootstrapWorkspacesPage", () => {
   cy.resetE2eState();
   cy.signInAnonymous();
-  // Let the post-sign-in navigation finish and the Welcome workspace seed.
+  // Start with a fresh auth client after the guest session has been created.
+  cy.visit("/");
+  // Workspace startup and seeding can both run during this first load.
   cy.get(
     '[data-testid="workspaces-page"] [data-testid="workspaces-list-item-welcome"]',
     {
